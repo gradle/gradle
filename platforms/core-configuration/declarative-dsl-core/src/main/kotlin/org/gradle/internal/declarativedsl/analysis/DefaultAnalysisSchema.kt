@@ -192,14 +192,14 @@ object FunctionSemanticsInternal {
 
     @Serializable
     @SerialName("builder")
-    class DefaultBuilder(private val objectType: DataTypeRef) : Builder {
+    data class DefaultBuilder(private val objectType: DataTypeRef) : Builder {
         override val returnValueType: DataTypeRef
             get() = objectType
     }
 
     @Serializable
     @SerialName("accessAndConfigure")
-    class DefaultAccessAndConfigure(
+    data class DefaultAccessAndConfigure(
         override val accessor: ConfigureAccessor,
         override val returnType: ReturnType,
         override val configureBlockRequirement: ConfigureBlockRequirement
@@ -230,7 +230,7 @@ object FunctionSemanticsInternal {
 
     @Serializable
     @SerialName("addAndConfigure")
-    class DefaultAddAndConfigure(
+    data class DefaultAddAndConfigure(
         private val objectType: DataTypeRef,
         override val configureBlockRequirement: ConfigureBlockRequirement
     ) : AddAndConfigure {
@@ -243,10 +243,10 @@ object FunctionSemanticsInternal {
 
     @Serializable
     @SerialName("pure")
-    class DefaultPure(override val returnValueType: DataTypeRef) : Pure
+    data class DefaultPure(override val returnValueType: DataTypeRef) : Pure
 
     /** Implementations for [ConfigureBlockRequirement] */
-    object DefaultConfigureBlockRequirement {
+    data object DefaultConfigureBlockRequirement {
         @Serializable
         @SerialName("notAllowed")
         data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed {

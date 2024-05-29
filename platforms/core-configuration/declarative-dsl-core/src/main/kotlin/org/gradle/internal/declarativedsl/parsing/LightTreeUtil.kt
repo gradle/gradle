@@ -44,6 +44,9 @@ class LightTreeSourceData(
     private val sourceOffset: Int,
     private val nodeRange: IntRange,
 ) : SourceData {
+
+    override fun toString(): String = "LightTreeSourceData(${sourceIdentifier.fileIdentifier}:$nodeRange)"
+
     override val indexRange: IntRange by lazy {
         val originalRange = nodeRange
         val first = originalRange.first - sourceOffset
