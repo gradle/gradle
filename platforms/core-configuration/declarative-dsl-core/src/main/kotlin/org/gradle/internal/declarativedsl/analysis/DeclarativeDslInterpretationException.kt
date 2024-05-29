@@ -21,4 +21,12 @@ class DeclarativeDslInterpretationException(message: String) : RuntimeException(
 
 
 internal
-fun failure(message: String): Nothing = throw DeclarativeDslInterpretationException(message) // TODO: function name too generic ...
+fun interpretationFailure(message: String): Nothing = throw DeclarativeDslInterpretationException(message) // TODO: function name too generic ...
+
+
+internal
+fun interpretationCheck(value: Boolean, lazyMessage: () -> String) {
+    if (!value) {
+        interpretationFailure(lazyMessage())
+    }
+}

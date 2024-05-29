@@ -49,7 +49,7 @@ object FunctionBinding {
 
                     (hasLambda || param.isOptional) && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
                         val newCaptor = configureLambdaHandler.produceValueCaptor(param.type)
-                        check(captor == null) { "multiple lambda argument captors are not supported" }
+                        check(captor == null) { "multiple lambda argument captors are not supported" } // TODO: does this happen due to user error?
                         captor = newCaptor
                         put(param, newCaptor.lambda)
                     }

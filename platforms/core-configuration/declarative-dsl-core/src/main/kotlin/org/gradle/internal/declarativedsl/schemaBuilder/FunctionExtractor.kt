@@ -267,20 +267,22 @@ class DefaultFunctionExtractor(
                 val annotationPropertyName = annotation.propertyName
                 val propertyName = annotationPropertyName.ifEmpty { function.name }
 
-                check(configuredType != null) { "a @Configuring function must accept a configuring lambda" }
+                check(configuredType != null) { "@Configuring function $function must accept a configuring lambda" }
 
                 val propertyType = preIndex.getPropertyType(inType, propertyName)
-                check(propertyType == null || propertyType.isSubtypeOf(configuredType)) { "configure lambda type is inconsistent with property type" }
+                check(propertyType == null || propertyType.isSubtypeOf(configuredType)) {
+                    "configure lambda type ($configuredType) is inconsistent with property type ($propertyType) in function $function" }
 
                 val property = preIndex.getProperty(inType, propertyName)
-                check(annotationPropertyName.isEmpty() || propertyType != null) { "a property name '$annotationPropertyName' is specified for @Configuring function but no such property was found" }
+                check(annotationPropertyName.isEmpty() || propertyType != null) {
+                    "a property name ($annotationPropertyName) is specified for @Configuring function $function but no such property was found" }
 
                 val returnType = when (function.returnType) {
                     typeOf<Unit>() -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
                     propertyType, configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
-                    else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
+                    else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
                 }
-                check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
+                check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "configuring function $function may not accept any other parameters" }
                 val accessor =
                     if (property != null) ConfigureAccessorInternal.DefaultProperty(property)
                     else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(lastParam.parameterTypeToRefOrError(inType, function) { configuredType })

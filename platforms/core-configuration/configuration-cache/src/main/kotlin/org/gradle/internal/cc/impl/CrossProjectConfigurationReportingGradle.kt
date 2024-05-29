@@ -41,12 +41,12 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
-import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
+import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -182,7 +182,7 @@ class CrossProjectConfigurationReportingGradle private constructor(
         val originalAction = this@withCrossProjectModelAccessCheck
         return Action<Project> {
             val originalProject = this@Action
-            check(originalProject is ProjectInternal) { "Expected the projects in the model to be ProjectInternal" }
+            check(originalProject is ProjectInternal) { "expected the projects in the model to be ProjectInternal" }
             originalAction.execute(crossProjectModelAccess.access(referrerProject, originalProject))
         }
     }
@@ -192,7 +192,7 @@ class CrossProjectConfigurationReportingGradle private constructor(
         val originalAction = this@withCrossProjectModelGradleAccessCheck
         return Action<Gradle> {
             val originalGradle = this@Action
-            check(originalGradle is GradleInternal) { "Expected the Gradle instance to be GradleInternal" }
+            check(originalGradle is GradleInternal) { "expected the Gradle instance to be GradleInternal" }
             originalAction.execute(crossProjectModelAccess.gradleInstanceForProject(referrerProject, originalGradle))
         }
     }
