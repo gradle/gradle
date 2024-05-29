@@ -317,11 +317,15 @@ data class DefaultExternalObjectProviderKey(override val objectType: DataTypeRef
 object DataTypeRefInternal {
     @Serializable
     @SerialName("dataTypeRefType")
-    data class DefaultType(override val dataType: DataType) : DataTypeRef.Type
+    data class DefaultType(override val dataType: DataType) : DataTypeRef.Type {
+        override fun toString(): String = dataType.toString()
+    }
 
     @Serializable
     @SerialName("dataTypeRefName")
-    data class DefaultName(override val fqName: FqName) : DataTypeRef.Name
+    data class DefaultName(override val fqName: FqName) : DataTypeRef.Name {
+        override fun toString(): String = fqName.simpleName
+    }
 }
 
 
