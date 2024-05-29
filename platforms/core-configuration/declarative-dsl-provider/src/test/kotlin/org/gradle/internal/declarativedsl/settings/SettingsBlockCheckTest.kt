@@ -20,8 +20,8 @@ import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
-import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure

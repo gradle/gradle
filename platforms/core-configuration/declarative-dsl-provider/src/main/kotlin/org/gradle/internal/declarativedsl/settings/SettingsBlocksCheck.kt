@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
-import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
@@ -110,7 +110,7 @@ object SettingsBlocksCheck : DocumentCheck {
         documentNode is ElementNode &&
             documentNode.name == Settings::pluginManagement.name &&
             with(documentResolutionContainer.data(documentNode)) {
-                this is PropertyConfiguringElementResolved && this.elementType.name.qualifiedName == PluginManagementSpec::class.qualifiedName
+                this is ConfiguringElementResolved && this.elementType.name.qualifiedName == PluginManagementSpec::class.qualifiedName
             }
 
     private
@@ -126,6 +126,6 @@ object SettingsBlocksCheck : DocumentCheck {
         resolvedDocumentNode is ElementNode &&
             resolvedDocumentNode.name == "plugins" &&
             with(documentResolutionContainer.data(resolvedDocumentNode)) {
-                this is PropertyConfiguringElementResolved && this.elementType.name.qualifiedName == PluginsCollectingPluginsBlock::class.qualifiedName
+                this is ConfiguringElementResolved && this.elementType.name.qualifiedName == PluginsCollectingPluginsBlock::class.qualifiedName
             }
 }

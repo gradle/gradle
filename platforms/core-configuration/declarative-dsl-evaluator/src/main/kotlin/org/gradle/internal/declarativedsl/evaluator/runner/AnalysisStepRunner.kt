@@ -21,8 +21,8 @@ import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.DocumentChecks
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
-import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.DocumentCheckFailures

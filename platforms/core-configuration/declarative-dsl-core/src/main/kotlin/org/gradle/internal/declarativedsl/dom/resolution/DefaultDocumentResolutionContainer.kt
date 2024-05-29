@@ -50,33 +50,41 @@ import org.gradle.internal.declarativedsl.dom.UnresolvedSignature
 import org.gradle.internal.declarativedsl.dom.UnresolvedValueUsed
 import org.gradle.internal.declarativedsl.dom.ValueFactoryNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.ValueTypeMismatch
-import org.gradle.internal.declarativedsl.dom.blockElement
-import org.gradle.internal.declarativedsl.dom.expr
-import org.gradle.internal.declarativedsl.dom.toDocument
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.LanguageTreeBackedDocument
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 
 
-fun resolutionContainer(
+class DocumentWithResolution internal constructor(
+    val document: LanguageTreeBackedDocument,
+    val resolutionContainer: DocumentResolutionContainer
+)
+
+
+fun documentWithResolution(
     schema: AnalysisSchema,
     languageTreeResult: LanguageTreeResult,
     operationGenerationId: OperationGenerationId,
     analysisStatementFilter: AnalysisStatementFilter,
     strictReceiverChecks: Boolean = true
-) = resolutionContainer(
-    schema,
-    tracingCodeResolver(operationGenerationId, analysisStatementFilter).also { it.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock) }.trace,
-    languageTreeResult.toDocument(),
-    strictReceiverChecks
-)
+): DocumentWithResolution {
+    val document = languageTreeResult.toDocument()
+    return DocumentWithResolution(document, resolutionContainer(
+        schema,
+        tracingCodeResolver(operationGenerationId, analysisStatementFilter).also { it.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock) }.trace,
+        document,
+        strictReceiverChecks
+    ))
+}
 
 
-fun resolutionContainer(schema: AnalysisSchema, trace: ResolutionTrace, document: DeclarativeDocument, strictReceiverChecks: Boolean = true): DocumentResolutionContainer =
+fun resolutionContainer(schema: AnalysisSchema, trace: ResolutionTrace, document: LanguageTreeBackedDocument, strictReceiverChecks: Boolean = true): DocumentResolutionContainer =
     DocumentResolver(trace, SchemaTypeRefContext(schema), strictReceiverChecks).resolutionContainer(document)
 
 
-private
+internal
 class DefaultDocumentResolutionContainer(
     private val elementResolution: Map<ElementNode, ElementResolution>,
     private val propertyResolution: Map<PropertyNode, PropertyResolution>,
@@ -96,10 +104,20 @@ class DocumentResolver(
     private val typeRefContext: SchemaTypeRefContext,
     private val strictReceiverChecks: Boolean
 ) {
-    fun resolutionContainer(document: DeclarativeDocument): DefaultDocumentResolutionContainer {
+    fun resolutionContainer(document: LanguageTreeBackedDocument): DefaultDocumentResolutionContainer {
         val elementResolution = mutableMapOf<ElementNode, ElementResolution>()
         val propertyResolution = mutableMapOf<PropertyNode, PropertyResolution>()
         val valueFactoryResolution = mutableMapOf<ValueFactoryNode, ValueFactoryResolution>()
+
+        fun resolveValueFactory(valueFactoryNode: ValueFactoryNode): ValueFactoryResolution {
+            val expr = document.languageTreeMappingContainer.data(valueFactoryNode)
+            return when (val exprResolution = trace.expressionResolution(expr)) {
+                is ResolutionTrace.ResolutionOrErrors.Resolution -> ValueFactoryResolution.ValueFactoryResolved((exprResolution.result as ObjectOrigin.FunctionOrigin).function)
+                is ResolutionTrace.ResolutionOrErrors.Errors -> ValueFactoryResolution.ValueFactoryNotResolved(mapValueFactoryErrors(exprResolution.errors))
+                ResolutionTrace.ResolutionOrErrors.NoResolution -> ValueFactoryResolution.ValueFactoryNotResolved(listOf(UnresolvedBase))
+            }
+        }
+
         fun visitValue(value: DeclarativeDocument.ValueNode) {
             when (value) {
                 is ValueFactoryNode -> {
@@ -113,13 +131,13 @@ class DocumentResolver(
         fun visitNode(node: DeclarativeDocument.DocumentNode) {
             when (node) {
                 is ElementNode -> {
-                    elementResolution[node] = elementResolution(node.blockElement() as FunctionCall)
+                    elementResolution[node] = elementResolution(document.languageTreeMappingContainer.data(node) as FunctionCall)
                     node.elementValues.forEach(::visitValue)
                     node.content.forEach(::visitNode)
                 }
 
                 is PropertyNode -> {
-                    propertyResolution[node] = propertyResolution(node.blockElement() as Assignment)
+                    propertyResolution[node] = propertyResolution(document.languageTreeMappingContainer.data(node) as Assignment)
                     visitValue(node.value)
                 }
 
@@ -144,7 +162,7 @@ class DocumentResolver(
             when (val semantics = function.semantics) {
                 is FunctionSemantics.AccessAndConfigure -> {
                     val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
-                    ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved(configuredType)
+                    ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved(configuredType)
                 }
 
                 is FunctionSemantics.NewObjectFunctionSemantics -> {
@@ -178,15 +196,6 @@ class DocumentResolver(
         ResolutionTrace.ResolutionOrErrors.NoResolution -> PropertyResolution.PropertyNotAssigned(listOf(UnresolvedBase))
     }
 
-    private
-    fun resolveValueFactory(valueFactoryNode: ValueFactoryNode): ValueFactoryResolution {
-        val expr = valueFactoryNode.expr()
-        return when (val exprResolution = trace.expressionResolution(expr)) {
-            is ResolutionTrace.ResolutionOrErrors.Resolution -> ValueFactoryResolution.ValueFactoryResolved((exprResolution.result as ObjectOrigin.FunctionOrigin).function)
-            is ResolutionTrace.ResolutionOrErrors.Errors -> ValueFactoryResolution.ValueFactoryNotResolved(mapValueFactoryErrors(exprResolution.errors))
-            ResolutionTrace.ResolutionOrErrors.NoResolution -> ValueFactoryResolution.ValueFactoryNotResolved(listOf(UnresolvedBase))
-        }
-    }
 
     private
     fun mapValueFactoryErrors(errors: Iterable<ResolutionError>): List<ValueFactoryNotResolvedReason> =

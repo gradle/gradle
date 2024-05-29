@@ -31,18 +31,18 @@ interface DeclarativeDocument {
     sealed interface DocumentNode : Node {
         override val sourceData: SourceData
 
-        sealed interface PropertyNode : DocumentNode {
+        interface PropertyNode : DocumentNode {
             val name: String
             val value: ValueNode
         }
 
-        sealed interface ElementNode : DocumentNode {
+        interface ElementNode : DocumentNode {
             val name: String
             val elementValues: Collection<ValueNode>
             val content: Collection<DocumentNode>
         }
 
-        sealed interface ErrorNode : DocumentNode {
+        interface ErrorNode : DocumentNode {
             val errors: Collection<DocumentError>
         }
     }
@@ -50,11 +50,11 @@ interface DeclarativeDocument {
     sealed interface ValueNode : Node {
         override val sourceData: SourceData
 
-        sealed interface LiteralValueNode : ValueNode {
+        interface LiteralValueNode : ValueNode {
             val value: Any
         }
 
-        sealed interface ValueFactoryNode : ValueNode {
+        interface ValueFactoryNode : ValueNode {
             val factoryName: String
             val values: List<ValueNode> // TODO: restrict to a single value? or even a single literal?
         }

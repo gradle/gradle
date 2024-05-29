@@ -40,7 +40,7 @@ sealed interface DocumentResolution {
         sealed interface SuccessfulElementResolution : ElementResolution, SuccessfulResolution {
             val elementType: DataType
 
-            data class PropertyConfiguringElementResolved(
+            data class ConfiguringElementResolved(
                 override val elementType: DataClass
             ) : SuccessfulElementResolution
 

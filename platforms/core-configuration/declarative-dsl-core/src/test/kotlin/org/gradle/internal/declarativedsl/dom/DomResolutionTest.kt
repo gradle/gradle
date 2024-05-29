@@ -24,6 +24,7 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -149,7 +150,7 @@ object DomResolutionTest {
             is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
                 " -> element ${functionSignatureString(resolution.elementFactoryFunction)}"
 
-            is DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved ->
+            is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved ->
                 " -> configure ${resolution.elementType}"
 
             is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
