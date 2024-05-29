@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
@@ -43,17 +44,17 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(versionRange(8, 12))
 
         when:
-        def filter = createSpec(versionToFind)
+        def filter = createSpec(JavaLanguageVersion.of(versionToFind))
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
-        toolchain.languageVersion == versionToFind
+        toolchain.languageVersion == JavaVersion.toVersion(versionToFind)
         toolchain.javaHome.toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind           | expectedPath
-        JavaVersion.VERSION_1_9 | "/path/9"
-        JavaVersion.VERSION_12  | "/path/12"
+        versionToFind | expectedPath
+        9             | "/path/9"
+        12            | "/path/12"
     }
 
     def "uses most recent version of multiple matches for version #versionToFind"() {
@@ -61,18 +62,18 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.foo"])
 
         when:
-        def filter = createSpec(versionToFind)
+        def filter = createSpec(JavaLanguageVersion.of(versionToFind))
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
-        toolchain.languageVersion == versionToFind
+        toolchain.languageVersion == JavaVersion.toVersion(versionToFind)
         toolchain.javaHome.toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind           | expectedPath
-        JavaVersion.VERSION_1_7 | "/path/7.9"
-        JavaVersion.VERSION_1_8 | "/path/8.0.zzz.foo" // zzz resolves to a real tool version 999
-        JavaVersion.VERSION_14  | "/path/14.0.2+12"
+        versionToFind | expectedPath
+        7             | "/path/7.9"
+        8             | "/path/8.0.zzz.foo" // zzz resolves to a real tool version 999
+        14            | "/path/14.0.2+12"
     }
 
     def "uses j9 toolchain if requested"() {
@@ -80,7 +81,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.j9"])
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8, DefaultJvmVendorSpec.any(), JvmImplementation.J9)
+        def filter = createSpec(JavaLanguageVersion.of(8), DefaultJvmVendorSpec.any(), JvmImplementation.J9)
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -93,7 +94,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8.0.2.j9", "8.0.1.hs"])
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8, DefaultJvmVendorSpec.any(), JvmImplementation.J9)
+        def filter = createSpec(JavaLanguageVersion.of(8), DefaultJvmVendorSpec.any(), JvmImplementation.J9)
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -111,7 +112,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         )
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8, JvmVendorSpec.IBM)
+        def filter = createSpec(JavaLanguageVersion.of(8), JvmVendorSpec.IBM)
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -128,7 +129,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         )
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8, JvmVendorSpec.BELLSOFT)
+        def filter = createSpec(JavaLanguageVersion.of(8), JvmVendorSpec.BELLSOFT)
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -140,7 +141,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8.0", "8.0.242.hs-adpt", "8.0.broken"])
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8)
+        def filter = createSpec(JavaLanguageVersion.of(8))
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -153,7 +154,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["1.8.1", "1.8.2", "1.8.3"], locationFor("1.8.2"))
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8)
+        def filter = createSpec(JavaLanguageVersion.of(8))
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -166,7 +167,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8", "9", "10"])
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_12)
+        def filter = createSpec(JavaLanguageVersion.of(12))
         queryService.findMatchingToolchain(filter)
 
         then:
@@ -242,7 +243,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         return (begin..end).collect { it.toString() }
     }
 
-    DaemonJvmCriteria createSpec(JavaVersion javaVersion, JvmVendorSpec vendor = DefaultJvmVendorSpec.any(), JvmImplementation implementation = JvmImplementation.VENDOR_SPECIFIC) {
+    DaemonJvmCriteria createSpec(JavaLanguageVersion javaVersion, JvmVendorSpec vendor = DefaultJvmVendorSpec.any(), JvmImplementation implementation = JvmImplementation.VENDOR_SPECIFIC) {
         new DaemonJvmCriteria(javaVersion, vendor, implementation)
     }
 }

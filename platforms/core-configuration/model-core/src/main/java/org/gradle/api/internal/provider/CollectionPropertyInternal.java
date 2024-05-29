@@ -16,11 +16,90 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 
 public interface CollectionPropertyInternal<T, C extends Collection<T>> extends PropertyInternal<C>, HasMultipleValues<T>, CollectionProviderInternal<T, C> {
     @Override
     Class<T> getElementType();
+
+    /**
+     * Adds an element to the property value.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty collection.
+     * </p>
+     *
+     * @param element The element
+     */
+    @Incubating
+    void append(T element);
+
+    /**
+     * Adds an element to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty collection.
+     * </p>
+     * <p>Even if the given provider has no value, after this method is invoked,
+     * the actual value of this property is guaranteed to be present.</p>
+     *
+     * @param provider The provider of an element
+     */
+    @Incubating
+    void append(Provider<? extends T> provider);
+
+    /**
+     * Adds zero or more elements to the property value.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty collection.
+     * </p>
+     *
+     * @param elements The elements to add
+     */
+    @Incubating
+    @SuppressWarnings("unchecked")
+    // TODO Use @SafeVarargs and make method final
+    void appendAll(T... elements);
+
+    /**
+     * Adds zero or more elements to the property value.
+     *
+     * <p>The given iterable will be queried when the value of this property is queried.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty collection.
+     * </p>
+     *
+     * @param elements The elements to add.
+     */
+    @Incubating
+    void appendAll(Iterable<? extends T> elements);
+
+    /**
+     * Adds zero or more elements to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty collection.
+     * </p>
+     * <p>Even if the given provider has no value, after this method is invoked,
+     * the actual value of this property is guaranteed to be present.</p>
+     *
+     * @param provider Provider of elements
+     */
+    @Incubating
+    void appendAll(Provider<? extends Iterable<? extends T>> provider);
 }

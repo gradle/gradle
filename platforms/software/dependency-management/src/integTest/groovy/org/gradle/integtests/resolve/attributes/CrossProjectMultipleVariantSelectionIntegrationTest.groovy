@@ -50,7 +50,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
                         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, 'jar'))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().majorVersion))
+                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersionNumber)
                     }
                     outgoing.capability('org:lib-fixtures:1.0')
                 }
@@ -107,7 +107,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, 'jar'))
                         attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.LIBRARY))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().majorVersion))
+                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersionNumber)
                     }
                     outgoing.capability('test:lib:1.0')
                     outgoing.capability('test:lib-fixtures:1.0')

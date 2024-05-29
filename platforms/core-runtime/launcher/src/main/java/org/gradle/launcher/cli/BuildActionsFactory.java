@@ -19,7 +19,6 @@ package org.gradle.launcher.cli;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
@@ -44,6 +43,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -133,15 +133,15 @@ class BuildActionsFactory implements CommandLineActionCreator {
         // Gradle daemon properties have been defined
         if (daemonParameters.getRequestedJvmCriteria() != null) {
             DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-            daemonParameters.applyDefaultsFor(JavaVersion.toVersion(criteria.getJavaVersion()));
+            daemonParameters.applyDefaultsFor(criteria.getJavaVersion());
             return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
         } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null && daemonParameters.getRequestedJvmBasedOnJavaHome() != Jvm.current()) {
             // Either the TAPI client or org.gradle.java.home has been provided
-            JavaVersion detectedVersion = jvmVersionDetector.getJavaVersion(daemonParameters.getRequestedJvmBasedOnJavaHome());
+            JavaLanguageVersion detectedVersion = JavaLanguageVersion.of(jvmVersionDetector.getJavaVersionMajor(daemonParameters.getRequestedJvmBasedOnJavaHome()));
             daemonParameters.applyDefaultsFor(detectedVersion);
             return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
         } else {
-            daemonParameters.applyDefaultsFor(JavaVersion.current());
+            daemonParameters.applyDefaultsFor(JavaLanguageVersion.current());
             return new DaemonRequestContext(Jvm.current(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
         }
     }
@@ -191,7 +191,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return new DefaultDaemonContext(
             UUID.randomUUID().toString(),
             currentProcess.getJvm().getJavaHome(),
-            JavaVersion.current(),
+            JavaLanguageVersion.current(),
             null, 0L, 0,
             // The gradle options aren't being properly checked.
             requestContext.getDaemonOpts(),
