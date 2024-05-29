@@ -21,8 +21,6 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.api.DaemonStateControl.State
 import org.gradle.util.GradleVersion
 
-import java.nio.file.Files
-
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
@@ -30,21 +28,24 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Sto
 
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
+    protected final DaemonLogFile daemonLog
     final DaemonContext context
 
-    AbstractDaemonFixture(File daemonLog, GradleVersion version) {
+    AbstractDaemonFixture(DaemonLogFile daemonLog, GradleVersion version) {
+        this.daemonLog = daemonLog
         this.context = DaemonContextParser.parseFromFile(daemonLog, version)
         if (!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [${daemonLog.absolutePath}].")
+            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [${daemonLog.file.absolutePath}].")
         }
         if (this.context?.pid == null) {
-            println "PID in daemon log ($daemonLog.absolutePath) is null."
-            println "daemon.log exists: ${daemonLog.exists()}"
+            println "PID in daemon log ($daemonLog.file.absolutePath) is null."
+            println "daemon.log exists: ${daemonLog.file.exists()}"
 
+            def logText = daemonLog.text
             println "start daemon.log content: "
-            println "{daemonLog.text.isEmpty()}) = ${daemonLog.text.isEmpty()})"
-            println daemonLog.text
+            println "{daemonLog.text.isEmpty()}) = ${logText.isEmpty()})"
+            println logText
             println "end daemon.log content"
 
         }
@@ -61,14 +62,14 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
 
     @Override
     boolean logContains(long fromLine, String searchString) {
-        Files.lines(logFile.toPath()).withCloseable { lines ->
+        daemonLog.lines().withCloseable { lines ->
             lines.skip(fromLine).anyMatch { it.contains(searchString) }
         }
     }
 
     @Override
     long getLogLineCount() {
-        return Files.lines(logFile.toPath()).withCloseable { lines -> lines.count() }
+        return daemonLog.lines().withCloseable { lines -> lines.count() }
     }
 
     DaemonFixture becomesIdle() {
@@ -124,5 +125,15 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     @Override
     String toString() {
         "Daemon with context $context"
+    }
+
+    @Override
+    String getLog() {
+        return daemonLog.text
+    }
+
+    @Override
+    File getLogFile() {
+        return daemonLog.file
     }
 }
