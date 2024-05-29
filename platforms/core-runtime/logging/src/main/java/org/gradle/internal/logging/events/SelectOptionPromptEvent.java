@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.internal.Either;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.List;
@@ -67,17 +66,17 @@ public class SelectOptionPromptEvent extends PromptOutputEvent {
     }
 
     @Override
-    public Either<Integer, String> convert(String text) {
+    public PromptResult<Integer> convert(String text) {
         if (text.isEmpty()) {
-            return Either.left(defaultOption);
+            return PromptResult.response(defaultOption);
         }
         String trimmed = text.trim();
         if (trimmed.matches("\\d+")) {
             int value = Integer.parseInt(trimmed);
             if (value > 0 && value <= options.size()) {
-                return Either.left(value - 1);
+                return PromptResult.response(value - 1);
             }
         }
-        return Either.right("Please enter a value between 1 and " + options.size() + ": ");
+        return PromptResult.newPrompt("Please enter a value between 1 and " + options.size() + ": ");
     }
 }

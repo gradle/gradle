@@ -31,8 +31,8 @@ class BooleanQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert(input)
-        result.left.get() == expected
-        !result.right.isPresent()
+        result.response == expected
+        result.newPrompt == null
 
         where:
         input      | expected
@@ -54,8 +54,8 @@ class BooleanQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert("")
-        result.left.get() == true
-        !result.right.isPresent()
+        result.response == true
+        result.newPrompt == null
     }
 
     def "rejects invalid input"() {
@@ -63,8 +63,8 @@ class BooleanQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert(input)
-        !result.left.isPresent()
-        result.right.get() == "Please enter 'yes' or 'no' (default: 'yes'): "
+        result.response == null
+        result.newPrompt == "Please enter 'yes' or 'no' (default: 'yes'): "
 
         where:
         input  | _

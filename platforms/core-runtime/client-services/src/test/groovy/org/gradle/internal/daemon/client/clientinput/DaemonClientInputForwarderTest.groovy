@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.daemon.client.clientinput
 
-import org.gradle.internal.Either
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.logging.console.DefaultUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
@@ -103,7 +102,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def "one line of text is converted and forwarded as user response"() {
         def event = Stub(PromptOutputEvent)
-        _ * event.convert("def") >> Either.left(12)
+        _ * event.convert("def") >> PromptOutputEvent.PromptResult.response(12)
 
         when:
         userInputReceiver.readAndForwardText(event)
@@ -121,8 +120,8 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def "collects additional line of text when invalid user response received"() {
         def event = Stub(PromptOutputEvent)
-        _ * event.convert("bad") >> Either.right("try again")
-        _ * event.convert("ok") >> Either.left(12)
+        _ * event.convert("bad") >> PromptOutputEvent.PromptResult.newPrompt("try again")
+        _ * event.convert("ok") >> PromptOutputEvent.PromptResult.response(12)
 
         when:
         userInputReceiver.readAndForwardText(event)

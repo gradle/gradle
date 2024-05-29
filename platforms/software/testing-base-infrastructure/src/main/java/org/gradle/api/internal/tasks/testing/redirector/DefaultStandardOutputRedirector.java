@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.processors;
+package org.gradle.api.internal.tasks.testing.redirector;
 
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
-import org.gradle.internal.logging.StandardOutputCapture;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
@@ -33,17 +31,17 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr);
 
     @Override
-    public void redirectStandardOutputTo(StandardOutputListener stdOutDestination) {
+    public void redirectStandardOutputTo(OutputListener stdOutDestination) {
         stdOut.setDestination(stdOutDestination);
     }
 
     @Override
-    public void redirectStandardErrorTo(StandardOutputListener stdErrDestination) {
+    public void redirectStandardErrorTo(OutputListener stdErrDestination) {
         stdErr.setDestination(stdErrDestination);
     }
 
     @Override
-    public StandardOutputCapture start() {
+    public void start() {
         if (stdOut.destination != null) {
             originalStdOut = System.out;
             System.setOut(redirectedStdOut);
@@ -52,11 +50,10 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
             originalStdErr = System.err;
             System.setErr(redirectedStdErr);
         }
-        return this;
     }
 
     @Override
-    public StandardOutputCapture stop() {
+    public void stop() {
         try {
             if (originalStdOut != null) {
                 System.setOut(originalStdOut);
@@ -72,17 +69,16 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
             stdOut.setDestination(new DiscardAction());
             stdErr.setDestination(new DiscardAction());
         }
-        return this;
     }
 
-    private static class DiscardAction implements StandardOutputListener {
+    private static class DiscardAction implements OutputListener {
         @Override
         public void onOutput(CharSequence output) {
         }
     }
 
     private static class WriteAction implements TextStream {
-        private StandardOutputListener destination;
+        private OutputListener destination;
 
         @Override
         public void text(String message) {
@@ -93,7 +89,7 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         public void endOfStream(@Nullable Throwable failure) {
         }
 
-        public void setDestination(StandardOutputListener destination) {
+        public void setDestination(OutputListener destination) {
             this.destination = destination;
         }
     }

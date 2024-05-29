@@ -21,7 +21,6 @@ dependencies {
     api(project(":logging-api"))
     api(project(":native"))
     api(project(":problems-api"))
-    api(project(":functional"))
 
     api(libs.jansi)
     api(libs.jsr305)
@@ -33,7 +32,6 @@ dependencies {
 
     implementation(libs.errorProneAnnotations)
     implementation(libs.julToSlf4j)
-    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.guava)

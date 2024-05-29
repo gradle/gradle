@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.BuildException;
@@ -30,14 +29,13 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 
-public class ExceptionTransformer implements Transformer<GradleConnectionException, Throwable> {
-    private final Transformer<String, Throwable> connectionFailureProvider;
+public class ConnectionExceptionTransformer {
+    private final ConnectionFailureMessageProvider messageProvider;
 
-    public ExceptionTransformer(Transformer<String, Throwable> connectionFailureProvider) {
-        this.connectionFailureProvider = connectionFailureProvider;
+    public ConnectionExceptionTransformer(ConnectionFailureMessageProvider messageProvider) {
+        this.messageProvider = messageProvider;
     }
 
-    @Override
     public GradleConnectionException transform(Throwable failure) {
         if (failure instanceof InternalUnsupportedBuildArgumentException) {
             return new UnsupportedBuildArgumentException(connectionFailureMessage(failure)
@@ -61,6 +59,10 @@ public class ExceptionTransformer implements Transformer<GradleConnectionExcepti
     }
 
     private String connectionFailureMessage(Throwable failure) {
-        return connectionFailureProvider.transform(failure);
+        return messageProvider.getConnectionFailureMessage(failure);
+    }
+
+    public interface ConnectionFailureMessageProvider {
+        String getConnectionFailureMessage(Throwable failure);
     }
 }

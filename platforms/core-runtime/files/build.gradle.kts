@@ -8,7 +8,6 @@ description = "Base tools to work with files"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(project(":functional"))
     api(projects.javaLanguageExtensions)
 
     api(libs.jsr305)

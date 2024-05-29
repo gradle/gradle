@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
-
-import org.gradle.api.internal.tasks.testing.processors.DefaultStandardOutputRedirector;
-import org.gradle.internal.logging.StandardOutputCapture;
+package org.gradle.api.internal.tasks.testing.redirector;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
@@ -31,7 +28,7 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
     private boolean reset;
 
     @Override
-    public StandardOutputCapture start() {
+    public void start() {
         super.start();
         if (!reset) {
             LogManager.getLogManager().reset();
@@ -42,6 +39,5 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
             }
             reset = true;
         }
-        return this;
     }
 }

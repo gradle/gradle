@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.processors;
+package org.gradle.api.internal.tasks.testing.redirector;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-class TestOutputRedirector {
+public class TestOutputRedirector {
     private final StandardOutputRedirector redirector;
     Forwarder outForwarder;
     Forwarder errForwarder;
 
-    TestOutputRedirector(TestResultProcessor processor, StandardOutputRedirector redirector) {
+    public TestOutputRedirector(TestResultProcessor processor, StandardOutputRedirector redirector) {
         this.redirector = redirector;
         this.outForwarder = new Forwarder(processor, TestOutputEvent.Destination.StdOut);
         this.errForwarder = new Forwarder(processor, TestOutputEvent.Destination.StdErr);
     }
 
-    void startRedirecting() {
+    public void startRedirecting() {
         assert outForwarder.outputOwner != null;
         assert errForwarder.outputOwner != null;
 
@@ -41,11 +40,11 @@ class TestOutputRedirector {
         redirector.start();
     }
 
-    void stopRedirecting() {
+    public void stopRedirecting() {
         redirector.stop();
     }
 
-    void setOutputOwner(Object testId) {
+    public void setOutputOwner(Object testId) {
         assert testId != null;
         if (System.out != null) {
             System.out.flush();
@@ -57,7 +56,7 @@ class TestOutputRedirector {
         errForwarder.outputOwner = testId;
     }
 
-    static class Forwarder implements StandardOutputListener {
+    static class Forwarder implements StandardOutputRedirector.OutputListener {
         final TestResultProcessor processor;
         final TestOutputEvent.Destination dest;
         Object outputOwner;
