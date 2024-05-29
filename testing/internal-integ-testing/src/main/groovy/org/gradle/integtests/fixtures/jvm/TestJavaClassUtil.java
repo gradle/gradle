@@ -20,6 +20,6 @@ import org.gradle.api.JavaVersion;
 
 public class TestJavaClassUtil {
     public static int getClassVersion(JavaVersion javaVersion) {
-        return Integer.parseInt(javaVersion.getMajorVersion()) + 44;
+        return javaVersion.getMajorVersionNumber() + 44;
     }
 }
