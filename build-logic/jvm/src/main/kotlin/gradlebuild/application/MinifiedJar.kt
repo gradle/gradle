@@ -27,6 +27,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+
 abstract class MinifiedJar : DefaultTask() {
     @get:OutputFile
     abstract val outputJar: RegularFileProperty

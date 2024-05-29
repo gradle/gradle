@@ -24,7 +24,6 @@ class ClassGraph(
     shadowPackage: String
 ) {
 
-    private
     val classes: MutableMap<String, ClassDetails> = linkedMapOf()
 
     val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
@@ -39,23 +38,60 @@ class ClassGraph(
             ?.let { it.replace('.', '/') + "/" }
             ?: ""
 
-    operator fun get(className: String) =
-        classes.computeIfAbsent(className) {
+    /**
+     * Returns the details for the given class.
+     *
+     * @param className The _original_ name of the class, not the renamed name.
+     */
+    operator fun get(className: String): ClassDetails {
+        return classes.getOrPut(className) {
             val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
-            ClassDetails(outputClassName).also { classDetails ->
-                if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
-                    entryPoints.add(classDetails)
-                }
+            val classDetails = ClassDetails(outputClassName)
+            if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
+                entryPoints.add(classDetails)
             }
+            classDetails
         }
+    }
 
-    fun getDependencies() = classes.map { it.value.outputClassFilename to it.value.dependencies.map { it.outputClassFilename } }.toMap()
+    fun getDependencies() = classes.values.map { classDetails -> classDetails.outputClassFilename to classDetails.allDependencies.map { it.outputClassFilename } }.toMap()
 }
 
 
 class ClassDetails(val outputClassName: String) {
-    var visited: Boolean = false
+    /**
+     * Was the given type present in the input?
+     */
+    var present: Boolean = false
+
+    /**
+     * The non-method dependencies of this type.
+     */
     val dependencies: MutableSet<ClassDetails> = linkedSetOf()
+
+    /**
+     * The methods of this type.
+     */
+    val methods: MutableMap<String, MethodDetails> = linkedMapOf()
+
     val outputClassFilename
         get() = "$outputClassName.class"
+
+    val allDependencies: Set<ClassDetails>
+        get() = dependencies + methods.flatMap { it.value.dependencies.map { it.owner } }
+
+    /**
+     * Returns the method of this class with the given signature
+     */
+    fun method(name: String, descriptor: String): MethodDetails {
+        val signature = name + descriptor
+        return methods.getOrPut(signature) {
+            MethodDetails(this, signature)
+        }
+    }
+}
+
+
+class MethodDetails(val owner: ClassDetails, val signature: String) {
+    val dependencies: MutableSet<MethodDetails> = linkedSetOf()
 }

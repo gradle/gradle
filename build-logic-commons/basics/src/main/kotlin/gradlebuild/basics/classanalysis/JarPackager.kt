@@ -49,9 +49,51 @@ class JarPackager {
                 if (manifestFile.exists()) {
                     jarOutputStream.addJarEntry(JarFile.MANIFEST_NAME, manifestFile)
                 }
-                val visited = linkedSetOf<ClassDetails>()
+
+                val includeViaMethodRefs = mutableSetOf<ClassDetails>()
+                val vm = mutableSetOf<MethodDetails>()
+                val methodsToVisit = mutableListOf<MethodDetails>()
                 for (classDetails in classGraph.entryPoints) {
-                    visitTree(classDetails, classesDir, jarOutputStream, visited)
+                    methodsToVisit.addAll(classDetails.methods.values)
+                }
+                while (methodsToVisit.isNotEmpty()) {
+                    val method = methodsToVisit.removeFirst()
+                    if (!vm.add(method)) {
+                        continue
+                    }
+                    includeViaMethodRefs.add(method.owner)
+                    methodsToVisit.addAll(method.dependencies)
+                }
+
+                val includedClasses = mutableSetOf<ClassDetails>()
+                val classesToVisit = mutableListOf<ClassDetails>()
+                classesToVisit.addAll(includeViaMethodRefs)
+                while (classesToVisit.isNotEmpty()) {
+                    val classDetails = classesToVisit.removeFirst()
+                    if (!includedClasses.add(classDetails)) {
+                        continue
+                    }
+                    classesToVisit.addAll(classDetails.dependencies)
+                }
+
+                println("-> Included classes via method references")
+                for (details in includeViaMethodRefs) {
+                    println("  -> ${details.outputClassName}")
+                }
+                println("-> Included classes via other references")
+                for (details in includedClasses) {
+                    if (!includeViaMethodRefs.contains(details)) {
+                        println("  -> ${details.outputClassName}")
+                    }
+                }
+
+                println("-> Visited methods: ${vm.size}")
+                println("-> Methods not required: ${includedClasses.sumOf { classDetails -> classDetails.methods.values.count { !vm.contains(it) } }}")
+                println("-> Included classes via method references: ${includeViaMethodRefs.size}")
+                println("-> Included classes: ${includedClasses.size}")
+
+                for (classDetails in includedClasses) {
+                    copyClass(classDetails, classesDir, jarOutputStream)
                 }
                 for (resource in classGraph.resources) {
                     copyResource(resource, resourcesDir, params.excludeResources, jarOutputStream)
@@ -66,34 +108,19 @@ class JarPackager {
     }
 
     private
-    fun visitTree(
-        classDetails: ClassDetails,
-        classesDir: File,
-        jarOutputStream: JarOutputStream,
-        visited: MutableSet<ClassDetails>
-    ) {
-        if (!visited.add(classDetails)) {
-            return
-        }
-        if (classDetails.visited) {
+    fun copyClass(classDetails: ClassDetails, classesDir: File, jarOutputStream: JarOutputStream) {
+        if (classDetails.present) {
             val fileName = classDetails.outputClassFilename
             val classFile = classesDir.resolve(fileName)
             jarOutputStream.addJarEntry(fileName, classFile)
-            for (dependency in classDetails.dependencies) {
-                visitTree(dependency, classesDir, jarOutputStream, visited)
-            }
         }
     }
 
     private
     fun copyResource(path: String, resourcesDir: File, exclude: NameMatcher, outputStream: JarOutputStream) {
-        if (exclude.matches(path)) {
-            println("-> Exclude resource $path")
-            return
+        if (!exclude.matches(path)) {
+            val file = resourcesDir.resolve(path)
+            outputStream.addJarEntry(path, file)
         }
-
-        println("-> Include resource $path")
-        val file = resourcesDir.resolve(path)
-        outputStream.addJarEntry(path, file)
     }
 }

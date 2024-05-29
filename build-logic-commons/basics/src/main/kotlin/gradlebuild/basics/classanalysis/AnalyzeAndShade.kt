@@ -20,7 +20,9 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.MethodRemapper
 import org.objectweb.asm.commons.Remapper
 import java.io.BufferedInputStream
 import java.io.File
@@ -55,12 +57,17 @@ class JarAnalyzer(
         for (file in additionalJars) {
             analyzeJar(file, true, classGraph, classesDir, manifestFile, resourcesDir, seen)
         }
+
+        println("-> entry points: ${classGraph.entryPoints.size}")
+        println("-> classes: ${classGraph.classes.size}")
+        println("-> found methods: ${classGraph.classes.values.sumOf { it.methods.size }}")
+        println("-> found method dependencies: ${classGraph.classes.values.sumOf { classDetails -> classDetails.methods.values.sumOf { it.dependencies.size } }}")
+
         return classGraph
     }
 
     private
     fun analyzeJar(jarFile: File, transitive: Boolean, classGraph: ClassGraph, classesDir: File, manifestFile: File, resourcesDir: File, seen: MutableSet<String>) {
-        println("-> Visiting ${jarFile.name}")
         ZipInputStream(BufferedInputStream(FileInputStream(jarFile))).use { input ->
             while (true) {
                 val entry = input.nextEntry ?: break
@@ -89,19 +96,11 @@ class JarAnalyzer(
             }
 
             entry.isManifestFilePath() -> {
-                Files.copy(file, manifestFile.toPath())
+                visitManifest(file, manifestFile)
             }
 
             else -> {
-                if (transitive) {
-                    classGraph.transitiveResources.add(entry.name)
-                } else {
-                    classGraph.resources.add(entry.name)
-                }
-                resourcesDir.resolve(entry.name).apply {
-                    parentFile.mkdirs()
-                    Files.copy(file, toPath())
-                }
+                visitResource(file, entry, transitive, classGraph, resourcesDir)
             }
         }
     }
@@ -113,38 +112,88 @@ class JarAnalyzer(
     fun ZipEntry.isManifestFilePath() = name == "META-INF/MANIFEST.MF"
 
     private
+    fun visitManifest(file: ZipInputStream, manifestFile: File) {
+        Files.copy(file, manifestFile.toPath())
+    }
+
+    private
+    fun visitResource(file: ZipInputStream, entry: ZipEntry, transitive: Boolean, classGraph: ClassGraph, resourcesDir: File) {
+        if (transitive) {
+            classGraph.transitiveResources.add(entry.name)
+        } else {
+            classGraph.resources.add(entry.name)
+        }
+        resourcesDir.resolve(entry.name).apply {
+            parentFile.mkdirs()
+            Files.copy(file, toPath())
+        }
+    }
+
+    private
     fun visitClassFile(file: ZipInputStream, entry: ZipEntry, classes: ClassGraph, classesDir: File) {
         try {
             val reader = ClassReader(file)
-            val details = classes[reader.className]
-            details.visited = true
+            val thisClass = classes[reader.className]
+            thisClass.present = true
+            var currentMethod: MethodDetails? = null
             val classWriter = ClassWriter(0)
+            val nonCollecting = DefaultRemapper(classes)
+            val collecting = DependencyCollectingRemapper(thisClass, classes)
             reader.accept(
-                ClassRemapper(
-                    classWriter,
-                    object : Remapper() {
-                        override fun map(name: String): String {
-                            if (ignoredPackagePatterns.matches(name)) {
-                                return name
+                object : ClassRemapper(classWriter, collecting) {
+                    override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<String>?): MethodVisitor {
+                        currentMethod = thisClass.method(name, descriptor)
+                        return super.visitMethod(access, name, descriptor, signature, exceptions)
+                    }
+
+                    override fun createMethodRemapper(methodVisitor: MethodVisitor): MethodVisitor {
+                        val methodDetails = currentMethod!!
+                        currentMethod = null
+                        return object : MethodRemapper(methodVisitor, nonCollecting) {
+                            override fun visitMethodInsn(opcodeAndSource: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
+                                if (!ignoredPackagePatterns.matches(owner)) {
+                                    methodDetails.dependencies.add(classes[owner].method(name, descriptor))
+                                }
+                                super.visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
                             }
-                            val dependencyDetails = classes[name]
-                            if (dependencyDetails !== details) {
-                                details.dependencies.add(dependencyDetails)
-                            }
-                            return dependencyDetails.outputClassName
                         }
                     }
-                ),
+                },
                 ClassReader.EXPAND_FRAMES
             )
 
-            classesDir.resolve(details.outputClassFilename).apply {
+            classesDir.resolve(thisClass.outputClassFilename).apply {
                 parentFile.mkdirs()
                 writeBytes(classWriter.toByteArray())
             }
         } catch (exception: Exception) {
             throw ClassAnalysisException("Could not transform class from ${entry.name}", exception)
         }
+    }
+}
+
+private
+class DependencyCollectingRemapper(val thisClass: ClassDetails, val classes: ClassGraph) : Remapper() {
+    override fun map(name: String): String {
+        if (ignoredPackagePatterns.matches(name)) {
+            return name
+        }
+        val dependencyDetails = classes[name]
+        if (dependencyDetails !== thisClass) {
+            thisClass.dependencies.add(dependencyDetails)
+        }
+        return dependencyDetails.outputClassName
+    }
+}
+
+private
+class DefaultRemapper(val classes: ClassGraph) : Remapper() {
+    override fun map(name: String): String {
+        if (ignoredPackagePatterns.matches(name)) {
+            return name
+        }
+        val dependencyDetails = classes[name]
+        return dependencyDetails.outputClassName
     }
 }
 
@@ -155,7 +204,6 @@ fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {
     BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(this) }
     closeEntry()
 }
-
 
 fun File.getClassSuperTypes(): Set<String> {
     if (!path.endsWith(".class")) {
