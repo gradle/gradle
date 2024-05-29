@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
@@ -33,10 +34,12 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
                 @Mutate
                 void applyMessages(ModelMap<Task> tasks) {
                     println "as map: $tasks"
+                    assert tasks.get("tasks") != null
                 }
                 @Mutate
                 void applyMessages(TaskContainer tasks) {
                     println "as container: $tasks"
+                    assert tasks.getByName("tasks") != null
                 }
                 @Mutate
                 void applyMessages(@Path("tasks") ModelElement tasks) {
@@ -53,12 +56,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
         then:
         output.contains "as map: ModelMap<Task> 'tasks'"
-        (
-            // testing against full distribution
-            output.contains("as container: [task ':buildEnvironment', task ':components', task ':dependencies', task ':dependencyInsight', task ':dependentComponents', task ':help', task ':init', task ':javaToolchains', task ':model', task ':outgoingVariants', task ':prepareKotlinBuildScriptModel', task ':projects', task ':properties', task ':resolvableConfigurations', task ':tasks', task ':wrapper']")
-            // testing against reduced distribution
-            || output.contains("as container: [task ':buildEnvironment', task ':components', task ':dependencies', task ':dependencyInsight', task ':dependentComponents', task ':help', task ':javaToolchains', task ':model', task ':outgoingVariants', task ':prepareKotlinBuildScriptModel', task ':projects', task ':properties', task ':resolvableConfigurations', task ':tasks']")
-        )
+        output.contains("as container:")
         output.contains "as model element: ModelMap<Task> 'tasks'"
         output.contains "name: tasks"
     }
@@ -393,6 +391,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible, configuring projects from root, ")
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
         createDirs("sub1", "sub2")

@@ -30,7 +30,7 @@ description = """A problems description API
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))
 
@@ -45,4 +45,5 @@ dependencies {
 
     testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 }

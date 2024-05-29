@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.demo.reflection
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.demo.assignmentTrace
 import org.gradle.internal.declarativedsl.demo.prettyStringFromReflection

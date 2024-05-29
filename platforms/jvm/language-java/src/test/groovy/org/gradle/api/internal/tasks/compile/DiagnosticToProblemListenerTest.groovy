@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile
 
 
-import org.gradle.api.problems.ProblemSpec
+import org.gradle.api.problems.internal.InternalProblemSpec
 import spock.lang.Specification
 
 import javax.tools.Diagnostic
@@ -25,8 +25,12 @@ import javax.tools.JavaFileObject
 
 class DiagnosticToProblemListenerTest extends Specification {
 
-    // Create a mock for ProblemReporter, which will
-    def spec = Mock(ProblemSpec)
+    def spec = Mock(InternalProblemSpec) {
+        // We report the formatted message in all cases
+        1 * additionalData(org.gradle.api.problems.internal.GeneralDataSpec, _)
+    }
+
+    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, (fo) -> "Formatted message")
 
     def "file location is correctly reported"() {
         given:
@@ -38,7 +42,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.lineNumber | diagnostic.columnNumber | diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
 
         when:
-        DiagnosticToProblemListener.buildProblem(diagnostic, spec)
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         1 * spec.fileLocation("SomeFile.java")
@@ -59,7 +63,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.columnNumber | diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
 
         when:
-        DiagnosticToProblemListener.buildProblem(diagnostic, spec)
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         1 * spec.fileLocation("SomeFile.java")
@@ -82,7 +86,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
 
         when:
-        DiagnosticToProblemListener.buildProblem(diagnostic, spec)
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         1 * spec.fileLocation("SomeFile.java")
@@ -109,7 +113,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.endPosition >> Diagnostic.NOPOS
 
         when:
-        DiagnosticToProblemListener.buildProblem(diagnostic, spec)
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         // Behavior should be the same as when only line and column are defined
@@ -135,7 +139,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.endPosition >> 1
 
         when:
-        DiagnosticToProblemListener.buildProblem(diagnostic, spec)
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         // Behavior should be the same as when only line and column are defined
@@ -146,7 +150,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         0 * spec.offsetInFileLocation(_, _, _, _)
     }
 
-    def "when both start and end are defined, an offset location is reported"() {
+    def "when both start, position, and end are defined, an offset location is reported"() {
         given:
         def diagnostic = Mock(Diagnostic)
         diagnostic.kind >> Diagnostic.Kind.ERROR
@@ -156,12 +160,14 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
         // Start is defined ...
-        diagnostic.startPosition >> 10
+        diagnostic.startPosition >> 5
+        // ... and so is position
+        diagnostic.position >> 10
         // ... and so is end
         diagnostic.endPosition >> 20
 
         when:
-        DiagnosticToProblemListener.buildProblem(diagnostic, spec)
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         1 * spec.fileLocation("SomeFile.java")

@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.StreamedValueListener;
 import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.StreamedValueListener;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -87,9 +86,9 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
                 T result = connection.run(buildAction, operationParameters);
                 return result;
             }
-        }, new ResultHandlerAdapter<T>(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+        }, new ResultHandlerAdapter<T>(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
             @Override
-            public String transform(Throwable throwable) {
+            public String getConnectionFailureMessage(Throwable throwable) {
                 return String.format("Could not run build action using %s.", connection.getDisplayName());
             }
         })));

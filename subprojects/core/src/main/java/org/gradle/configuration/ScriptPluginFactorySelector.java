@@ -27,8 +27,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.scripts.ScriptingLanguage;
 
-import java.util.List;
-
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
  * on its file name. Build script file names ending in ".gradle" are supported by the
@@ -112,7 +110,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {
-        for (ScriptingLanguage scriptingLanguage : scriptingLanguages()) {
+        for (ScriptingLanguage scriptingLanguage : ScriptingLanguages.all()) {
             if (fileName.endsWith(scriptingLanguage.getExtension())) {
                 String provider = scriptingLanguage.getProvider();
                 if (provider != null) {
@@ -122,10 +120,6 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
             }
         }
         return defaultScriptPluginFactory;
-    }
-
-    private List<ScriptingLanguage> scriptingLanguages() {
-        return ScriptingLanguages.all();
     }
 
     private ScriptPluginFactory instantiate(String provider) {

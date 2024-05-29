@@ -22,10 +22,11 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -62,7 +63,8 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         NotationParser<Object, Capability> capabilityNotationParser,
         ImmutableAttributesFactory attributesFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ResolveExceptionContextualizer exceptionContextualizer,
+        ResolveExceptionMapper exceptionMapper,
+        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -88,7 +90,8 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             capabilityNotationParser,
             attributesFactory,
             rootComponentMetadataBuilder,
-            exceptionContextualizer,
+            exceptionMapper,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,

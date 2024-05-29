@@ -20,29 +20,29 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Describable
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.CircularReferences
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.ReadIdentities
-import org.gradle.configurationcache.serialization.ReadIsolate
-import org.gradle.configurationcache.serialization.Tracer
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.WriteIdentities
-import org.gradle.configurationcache.serialization.WriteIsolate
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
-import org.gradle.configurationcache.serialization.beans.BeanStateWriter
-import org.gradle.configurationcache.serialization.runReadOperation
-import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.serialize.graph.CircularReferences
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.ReadIdentities
+import org.gradle.internal.serialize.graph.ReadIsolate
+import org.gradle.internal.serialize.graph.Tracer
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.WriteIdentities
+import org.gradle.internal.serialize.graph.WriteIsolate
+import org.gradle.internal.serialize.graph.BeanStateReader
+import org.gradle.internal.serialize.graph.BeanStateWriter
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.Try
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
@@ -165,7 +165,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             checkFingerprintGiven(
                 mock {
-                    on { hashCodeOf(scriptFile) } doReturn TestHashCodes.hashCodeFrom(1)
+                    on { hashCodeAndTypeOf(scriptFile) } doReturn (TestHashCodes.hashCodeFrom(1) to FileType.RegularFile)
                     on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
                 },
                 ConfigurationCacheFingerprint.InputFile(
@@ -174,6 +174,66 @@ class ConfigurationCacheFingerprintCheckerTest {
                 )
             ),
             equalTo("file 'displayNameOf(scriptFile)' has changed")
+        )
+    }
+
+    @Test
+    fun `build input file has been removed`() {
+        val inputFile = File("input.txt")
+        // no need to match a missing file hash, as long it is changed from the original one
+        val missingFileHash = TestHashCodes.hashCodeFrom(2)
+        val originalFileHash = TestHashCodes.hashCodeFrom(1)
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeAndTypeOf(inputFile) } doReturn (missingFileHash to FileType.Missing)
+                    on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                },
+                ConfigurationCacheFingerprint.InputFile(
+                    inputFile,
+                    originalFileHash
+                )
+            ),
+            equalTo("file 'displayNameOf(inputFile)' has been removed")
+        )
+    }
+
+    @Test
+    fun `build input file is replaced by directory`() {
+        val inputFile = File("input.txt")
+        // all we care is that it is changed from the original one
+        val newDirectoryHash = TestHashCodes.hashCodeFrom(2)
+        val originalFileHash = TestHashCodes.hashCodeFrom(1)
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeAndTypeOf(inputFile) } doReturn (newDirectoryHash to FileType.Directory)
+                    on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                },
+                ConfigurationCacheFingerprint.InputFile(
+                    inputFile,
+                    originalFileHash
+                )
+            ),
+            equalTo("file 'displayNameOf(inputFile)' has been replaced by a directory")
+        )
+    }
+
+    @Test
+    fun `build input file system entry has been removed`() {
+        val inputFile = File("input.txt")
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeAndTypeOf(inputFile) } doReturn (TestHashCodes.hashCodeFrom(1) to FileType.Missing)
+                    on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                },
+                ConfigurationCacheFingerprint.InputFileSystemEntry(
+                    inputFile,
+                    FileType.RegularFile
+                )
+            ),
+            equalTo("the file system entry 'displayNameOf(inputFile)' has been removed")
         )
     }
 
@@ -209,8 +269,8 @@ class ConfigurationCacheFingerprintCheckerTest {
         checkFingerprintGiven(
             mock {
                 on { allInitScripts } doReturn toMap.keys.toList()
-                on { hashCodeOf(any()) }.then { invocation ->
-                    toMap[invocation.getArgument(0)]
+                on { hashCodeAndTypeOf(any()) }.then { invocation ->
+                    toMap[invocation.getArgument(0)] to FileType.RegularFile
                 }
                 on { displayNameOf(any()) }.then { invocation ->
                     invocation.getArgument<File>(0).name
@@ -404,10 +464,10 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onFinish(action: () -> Unit) =
             undefined()
 
-        override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        override fun <T : Any> getSingletonProperty(propertyType: Class<T>): T =
             undefined()
 
-        override fun getProject(path: String): ProjectInternal =
+        override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
             undefined()
 
         override var immediateMode: Boolean

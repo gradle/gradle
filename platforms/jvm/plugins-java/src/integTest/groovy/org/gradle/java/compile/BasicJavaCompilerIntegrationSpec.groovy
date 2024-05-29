@@ -20,7 +20,7 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions

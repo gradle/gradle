@@ -18,12 +18,10 @@ package org.gradle.plugins.ide.tooling.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.plugins.ide.tooling.r31.IdeaProjectUtil
 import org.gradle.plugins.ide.tooling.r33.FetchEclipseProjects
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-@ToolingApiVersion('>=6.8')
 @TargetGradleVersion(">=6.8")
 class CompositeBuildModuleCycleCrossVersionSpec extends ToolingApiSpecification {
 

@@ -23,13 +23,12 @@ import org.gradle.concurrent.ParallelismConfiguration;
 import java.io.Serializable;
 
 public class DefaultParallelismConfiguration implements Serializable, ParallelismConfiguration {
-    public static final ParallelismConfiguration DEFAULT = new DefaultParallelismConfiguration();
 
     private boolean parallelProjectExecution;
     private int maxWorkerCount;
 
     public DefaultParallelismConfiguration() {
-        maxWorkerCount = Runtime.getRuntime().availableProcessors();
+        maxWorkerCount = getDefaultMaxWorkerCount();
     }
 
     public DefaultParallelismConfiguration(boolean parallelProjectExecution, int maxWorkerCount) {
@@ -81,5 +80,9 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    public static int getDefaultMaxWorkerCount() {
+        return Runtime.getRuntime().availableProcessors();
     }
 }

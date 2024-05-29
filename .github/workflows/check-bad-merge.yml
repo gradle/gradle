@@ -6,8 +6,12 @@ on:
      - opened
      - synchronize
 
+permissions: {}
+
 jobs:
   check_pr_commits:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     steps:

@@ -42,6 +42,8 @@ import java.util.Optional;
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
+// TODO Find better names for Result types
+@SuppressWarnings("SameNameButDifferent")
 public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & CachingContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;

@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 
 import java.io.Serializable;
@@ -37,7 +36,7 @@ class JUnitTestClassProcessorFactory implements WorkerTestClassProcessorFactory,
     }
 
     @Override
-    public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-        return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
+    public TestClassProcessor create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+        return new JUnitTestClassProcessor(spec, idGenerator, actorFactory, clock);
     }
 }

@@ -27,18 +27,18 @@ import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
 import org.gradle.configurationcache.EncryptionService
 import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.extensions.directoryChildrenNamesHash
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.core.directoryChildrenNamesHash
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.agents.AgentStatus
@@ -50,6 +50,7 @@ import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -406,7 +407,10 @@ class ConfigurationCacheFingerprintController internal constructor(
             gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.read(file.absolutePath).hash
+            hashCodeAndTypeOf(file).first
+
+        override fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType> =
+            fileSystemAccess.read(file.absolutePath).let { it.hash to it.type }
 
         override fun hashCodeOfDirectoryContent(file: File): HashCode = directoryChildrenNamesHash(file)
 

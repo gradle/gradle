@@ -16,30 +16,30 @@
 
 package org.gradle.internal.reflect.validation
 
-import com.google.common.collect.ImmutableMap
+import org.gradle.api.problems.internal.DefaultTypeValidationData
 import spock.lang.Specification
-
-import static DefaultTypeAwareProblemBuilder.PROPERTY_NAME
-import static DefaultTypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE
-import static DefaultTypeAwareProblemBuilder.TYPE_NAME
-import static java.lang.Boolean.TRUE
 
 class DefaultTypeAwareProblemBuilderTest extends Specification {
 
     def "render introduction without type"() {
         given:
-        def result = DefaultTypeAwareProblemBuilder.introductionFor ImmutableMap.of(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString(),
-            TYPE_NAME, "foo", PROPERTY_NAME, "bar")
+        def data = DefaultTypeValidationData.builder()
+            .typeName("foo")
+            .propertyName("bar")
+            .build()
 
         expect:
-        result == "Property 'bar' "
+        DefaultTypeAwareProblemBuilder.introductionFor(Optional.of(data), true) == "Property 'bar' "
     }
 
     def "render introduction with type"() {
         given:
-        def result = DefaultTypeAwareProblemBuilder.introductionFor ImmutableMap.of(TYPE_NAME, "foo", PROPERTY_NAME, "bar")
+        def data = DefaultTypeValidationData.builder()
+            .typeName("foo")
+            .propertyName("bar")
+            .build()
 
         expect:
-        result == "Type 'foo' property 'bar' "
+        DefaultTypeAwareProblemBuilder.introductionFor(Optional.of(data), false) == "Type 'foo' property 'bar' "
     }
 }

@@ -16,6 +16,8 @@
 package org.gradle.util.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
 import java.util.Collection;
 import java.util.Map;
@@ -204,5 +206,15 @@ public class NameMatcher {
             return String.format("%s '%s' not found in %s. Some candidates are: %s.", singularItemDescription, pattern, container, GUtil.toString(candidates));
         }
         return String.format("%s '%s' not found in %s.", singularItemDescription, pattern, container);
+    }
+
+    public void configureProblemId(ProblemSpec spec) {
+        if (!getMatches().isEmpty()) {
+            spec.id("ambiguous-matches", "Ambiguous matches", GradleCoreProblemGroup.taskSelection());
+        } else if (!getCandidates().isEmpty()) {
+            spec.id("no-matches", "No matches", GradleCoreProblemGroup.taskSelection());
+        } else {
+            spec.id("selection-failed", "Selection failed", GradleCoreProblemGroup.taskSelection());
+        }
     }
 }

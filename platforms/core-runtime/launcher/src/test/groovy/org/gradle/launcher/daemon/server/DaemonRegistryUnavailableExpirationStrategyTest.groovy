@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server
 
 
 import org.gradle.internal.remote.Address
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
@@ -44,7 +45,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
     def "daemon should expire when registry file is unreachable"() {
         given:
         DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
-        DaemonContext daemonContext = new DefaultDaemonContext("user", null, tempDir.file("BOGUS"), 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, JavaLanguageVersion.current(), tempDir.file("BOGUS"), 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }
@@ -62,7 +63,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
                 return "DAEMON_ADDRESS"
             }
         }
-        DaemonContext daemonContext = new DefaultDaemonContext("user", null, daemonDir, 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, JavaLanguageVersion.current(), daemonDir, 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
         DaemonDir daemonDir = new DaemonDir(daemonDir)
         DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()

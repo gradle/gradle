@@ -31,5 +31,5 @@ errorprone {
 dependencies {
     api(libs.slf4jApi)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
 }

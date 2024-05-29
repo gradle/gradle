@@ -4,32 +4,33 @@ plugins {
 
 description = "Infrastructure for starting and managing worker processes"
 
-errorprone {
-    disabledChecks.addAll(
-        "URLEqualsHashCode", // 1 occurrences
-        "UnusedMethod", // 16 occurrences
-    )
-}
-
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":snapshots"))
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":concurrent"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":hashing"))
+    api(project(":java-language-extensions"))
+    api(project(":logging"))
+    api(project(":logging-api"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":process-services"))
+    api(project(":serialization"))
+    api(project(":service-provider"))
+    api(project(":snapshots"))
+    api(project(":worker-main"))
+    api(project(":build-process-services"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":file-collections"))
-    implementation(project(":files"))
-    implementation(project(":native"))
-    implementation(project(":resources"))
+    implementation(project(":time"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":file-collections"))

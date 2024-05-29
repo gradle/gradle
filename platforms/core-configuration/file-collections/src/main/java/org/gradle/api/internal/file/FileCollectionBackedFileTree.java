@@ -36,11 +36,9 @@ import java.util.function.Consumer;
 
 public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
-    private final TaskDependencyFactory taskDependencyFactory;
 
     public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
         super(taskDependencyFactory, patternSetFactory);
-        this.taskDependencyFactory = taskDependencyFactory;
         this.collection = collection;
     }
 

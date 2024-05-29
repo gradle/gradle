@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -56,9 +56,10 @@ class IvyDynamicResolveModuleComponentRepository extends BaseModuleComponentRepo
         }
 
         private void transformDependencies(BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
-            ModuleComponentResolveMetadata metadata = result.getMetaData().getModuleResolveMetadata();
-            if (metadata instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) metadata).withDynamicConstraintVersions();
+            @SuppressWarnings("deprecation")
+            ExternalComponentResolveMetadata legacyMetadata = result.getMetaData().getLegacyMetadata();
+            if (legacyMetadata instanceof IvyModuleResolveMetadata) {
+                IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) legacyMetadata).withDynamicConstraintVersions();
                 result.setMetadata(resolveStateFactory.stateFor(transformedMetadata));
             }
         }

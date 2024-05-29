@@ -22,19 +22,23 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
+@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
-    public static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
+    public static final JavaVersion JAVA_VERSION = AvailableJavaHomes.differentVersion.javaVersion
 
 
     public static final String TOOLCHAIN_WITH_VERSION = """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
+                    languageVersion = JavaLanguageVersion.of(${JAVA_VERSION.majorVersion})
                 }
             }
         """
@@ -69,7 +73,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
-        executer.requireOwnGradleUserHomeDir()
+        executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
                 .withToolchainDownloadEnabled()
     }
 
@@ -138,7 +142,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     private void assertJdkWasDownloaded(String implementation = null) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-$JAVA_VERSION-") && (implementation == null || file.name.contains(implementation))
+            file.name.contains("-${JAVA_VERSION.majorVersion}-") && (implementation == null || file.name.contains(implementation))
         } as FileFilter)
     }
 
@@ -151,7 +155,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             @Override
             void visitFile(FileVisitDetails fileDetails) {
-                if (fileDetails.file.name == "provisioned.ok") {
+                if (fileDetails.file.name == ".ready") {
                     markerFile = fileDetails.file
                 }
             }

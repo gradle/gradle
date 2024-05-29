@@ -17,14 +17,15 @@
 package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.api.GradleException
-import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.MutableIsolateContext
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.logPropertyProblem
-import org.gradle.configurationcache.serialization.ownerService
-import org.gradle.configurationcache.serialization.withPropertyTrace
+import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.graph.BeanStateReader
+import org.gradle.internal.serialize.graph.MutableIsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.JavaReflectionUtil

@@ -23,9 +23,10 @@ import java.util.List;
 
 public class ServiceRegistryBuilder {
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
-    private final List<Object> providers = new ArrayList<Object>();
+    private final List<ServiceRegistrationProvider> providers = new ArrayList<ServiceRegistrationProvider>();
     private String displayName;
     private Class<? extends Scope> scope;
+    private boolean strict;
 
     private ServiceRegistryBuilder() {
     }
@@ -44,7 +45,7 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
-    public ServiceRegistryBuilder provider(Object provider) {
+    public ServiceRegistryBuilder provider(ServiceRegistrationProvider provider) {
         this.providers.add(provider);
         return this;
     }
@@ -52,9 +53,30 @@ public class ServiceRegistryBuilder {
     /**
      * Providing a scope makes the resulting {@link ServiceRegistry}
      * validate all registered services for being annotated with the given scope.
+     * <p>
+     * However, this still allows to register services without the
+     * {@link org.gradle.internal.service.scopes.ServiceScope @ServiceScope} annotation.
+     *
+     * @see #scopeStrictly(Class)
      */
     public ServiceRegistryBuilder scope(Class<? extends Scope> scope) {
         this.scope = scope;
+        this.strict = false;
+        return this;
+    }
+
+    /**
+     * Providing a scope makes the resulting {@link ServiceRegistry}
+     * validate all registered services for being annotated with the given scope.
+     * <p>
+     * All registered services require the {@link org.gradle.internal.service.scopes.ServiceScope @ServiceScope}
+     * annotation to be present and contain the given scope.
+     *
+     * @see #scope(Class)
+     */
+    public ServiceRegistryBuilder scopeStrictly(Class<? extends Scope> scope) {
+        this.scope = scope;
+        this.strict = true;
         return this;
     }
 
@@ -62,10 +84,10 @@ public class ServiceRegistryBuilder {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null
-            ? new ScopedServiceRegistry(scope, displayName, parents)
+            ? new ScopedServiceRegistry(scope, strict, displayName, parents)
             : new DefaultServiceRegistry(displayName, parents);
 
-        for (Object provider : providers) {
+        for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);
         }
         return registry;

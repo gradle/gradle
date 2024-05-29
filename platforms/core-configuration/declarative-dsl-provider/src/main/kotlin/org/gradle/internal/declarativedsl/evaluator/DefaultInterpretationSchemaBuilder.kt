@@ -17,15 +17,17 @@
 package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.declarativedsl.evaluator.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
 import org.gradle.internal.declarativedsl.evaluator.InterpretationSchemaBuildingResult.SchemaNotBuilt
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequence
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
-class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
+class DefaultInterpretationSchemaBuilder(
+    private val softwareTypeRegistry: SoftwareTypeRegistry
+) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(
         targetInstance: Any,
         scriptContext: RestrictedScriptContext,
@@ -34,11 +36,12 @@ class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
             is RestrictedScriptContext.UnknownScript -> SchemaNotBuilt
 
             is RestrictedScriptContext.SettingsScript -> InterpretationSequenceAvailable(
-                settingsInterpretationSequence(targetInstance as SettingsInternal, scriptContext.targetScope, scriptContext.scriptSource)
+                settingsInterpretationSequence(targetInstance as SettingsInternal, scriptContext.targetScope, scriptContext.scriptSource, softwareTypeRegistry)
             )
 
-            is RestrictedScriptContext.ProjectScript -> InterpretationSequenceAvailable(
-                projectInterpretationSequence(targetInstance as ProjectInternal, scriptContext.targetScope, scriptContext.scriptSource)
-            )
+            is RestrictedScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence)
         }
+
+    private
+    val projectInterpretationSequence by lazy { projectInterpretationSequence(softwareTypeRegistry) }
 }

@@ -35,7 +35,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
     def "can stop multiple times"() {
         expect:
-        !stopped
+        notStopped
 
         when: "stopped first time"
         coordinator.stop()
@@ -56,10 +56,11 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.stop()
 
         when:
-        coordinator.awaitStop()
+        def result = coordinator.awaitStop()
 
         then:
         stopped
+        result == DaemonStopState.Clean
     }
 
     def "runs actions when command is run"() {
@@ -325,7 +326,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         1 * command.run() >> {
             assert busy
             coordinator.requestStop("REASON")
-            assert !stopped
+            assert notStopped
             assert coordinator.willRefuseNewCommands
         }
 
@@ -372,7 +373,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         1 * command.run() >> {
             assert busy
             coordinator.requestStop("REASON")
-            assert !stopped
+            assert notStopped
             assert coordinator.willRefuseNewCommands
             throw failure
         }
@@ -399,8 +400,9 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         async {
             thread.blockUntil.actionStarted
             coordinator.requestStop("REASON")
-            coordinator.awaitStop()
+            def result = coordinator.awaitStop()
             instant.idle
+            assert result == DaemonStopState.Clean
         }
 
         then:
@@ -419,7 +421,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
     def "requestForcefulStop stops immediately when idle"() {
         expect:
-        !stopped
+        notStopped
 
         when:
         coordinator.requestForcefulStop("stop")
@@ -434,7 +436,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         def command = Mock(Runnable)
 
         expect:
-        !stopped
+        notStopped
 
         when:
         operation.run {
@@ -447,14 +449,14 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         and:
         coordinator.willRefuseNewCommands
-        stopped
+        forceStopped
 
         and:
         1 * onStartCommand.run()
         1 * command.run() >> {
-            assert !stopped
+            assert notStopped
             coordinator.requestForcefulStop("stop from test")
-            assert stopped
+            assert forceStopped
             thread.blockUntil.run
         }
         0 * _._
@@ -470,13 +472,14 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         async {
             thread.blockUntil.startAction
             coordinator.requestForcefulStop("stop")
-            coordinator.awaitStop()
+            def result = coordinator.awaitStop()
             instant.idle
+            assert result == DaemonStopState.Forced
         }
 
         then:
         thrown(DaemonStoppedException)
-        stopped
+        forceStopped
         instant.idle < instant.finishAction
 
         and:
@@ -494,7 +497,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         def command = Mock(Runnable)
 
         expect:
-        !stopped
+        notStopped
 
         when:
         coordinator.runCommand(command, "command")
@@ -505,7 +508,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         then:
         !coordinator.willRefuseNewCommands
-        !stopped
+        notStopped
         idle
 
         and:
@@ -522,7 +525,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         def command = Mock(Runnable)
 
         expect:
-        !stopped
+        notStopped
 
         when:
         coordinator.runCommand(command, "command")
@@ -533,13 +536,13 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         then:
         !coordinator.willRefuseNewCommands
-        !stopped
+        notStopped
         idle
 
         and:
         1 * onStartCommand.run()
         1 * command.run() >> {
-            assert !stopped
+            assert notStopped
             coordinator.cancellationToken.addCallback { throw new RuntimeException('failing cancel callback') }
             instant.running
             thread.block()
@@ -552,7 +555,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         def command = Mock(Runnable)
 
         expect:
-        !stopped
+        notStopped
 
         when:
         start {
@@ -560,7 +563,8 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
         start {
             instant.awaitRunning
-            coordinator.awaitStop()
+            def result = coordinator.awaitStop()
+            assert result == DaemonStopState.Forced
         }
         async {
             thread.blockUntil.commandRunning
@@ -575,7 +579,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         and:
         canceled
         coordinator.willRefuseNewCommands
-        stopped
+        forceStopped
 
         and:
         1 * onStartCommand.run()
@@ -591,7 +595,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         def command2 = Mock(Runnable)
 
         expect:
-        !stopped
+        notStopped
 
         when:
         coordinator.runCommand(command1, "command1")
@@ -605,7 +609,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         then:
         !coordinator.willRefuseNewCommands
-        !stopped
+        notStopped
         idle
 
         and:
@@ -615,7 +619,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
             thread.block()
         }
         1 * command2.run() >> {
-            assert !stopped
+            assert notStopped
             assert !coordinator.cancellationToken.cancellationRequested
         }
         2 * onFinishCommand.run()
@@ -645,8 +649,16 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.getIdleMillis() > 0
     }
 
+    boolean isNotStopped() {
+        return coordinator.state != Stopped && coordinator.state != ForceStopped
+    }
+
     boolean isStopped() {
         return coordinator.state == Stopped
+    }
+
+    boolean isForceStopped() {
+        return coordinator.state == ForceStopped
     }
 
     boolean isIdle() {

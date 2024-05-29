@@ -489,7 +489,8 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         and:
         failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasCause("A dependency was declared on configuration 'default' which is not declared in the descriptor for project :greeter.")
+        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value 'x86-64', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value 'linux', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:\n" +
+                               "  - No variants exist.")
     }
 
     def "can compile and link against a static library"() {

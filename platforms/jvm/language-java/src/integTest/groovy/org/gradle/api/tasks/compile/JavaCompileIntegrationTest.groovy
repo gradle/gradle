@@ -45,7 +45,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java"
             tasks.withType(JavaCompile) {
                 options.fork = true
-                options.forkOptions.executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                options.forkOptions.executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
 

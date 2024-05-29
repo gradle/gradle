@@ -85,12 +85,4 @@ public class TypeValidationProblemRenderer {
             .replaceAll("[ ]+", " ")
             .replaceAll(": ?[. ]", ": ");
     }
-
-    // A heuristic to determine if the type is relevant or not.
-    // The "DefaultTask" type may appear in error messages
-    // (if using "adhoc" tasks) but isn't visible to this
-    // class so we have to rely on text matching for now.
-    private static boolean shouldRenderType(String className) {
-        return !"org.gradle.api.DefaultTask".equals(className);
-    }
 }

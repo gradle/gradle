@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r35
 import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
@@ -233,14 +232,12 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
         runBuildWithWorkerRunnable() != null
     }
 
-    @ToolingApiVersion('>=5.1')
     @TargetGradleVersion('>=3.5 <7.0')
     def "generates events for worker actions with old Worker API (post 5.1)"() {
         expect:
         runBuildWithWorkerRunnable() != null
     }
 
-    @ToolingApiVersion('>=5.1')
     @TargetGradleVersion('>=5.6')
     def "generates events for worker actions with new Worker API (post 5.1)"() {
         expect:

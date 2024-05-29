@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 description = "Logging infrastructure"
@@ -22,14 +23,15 @@ errorprone {
         "StringSplitter", // 4 occurrences
         "ThreadLocalUsage", // 1 occurrences
         "TypeParameterUnusedInFormals", // 1 occurrences
-        "UnnecessaryParentheses", // 3 occurrences
         "UnusedMethod", // 3 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -37,18 +39,18 @@ dependencies {
     api(project(":enterprise-logging"))
     api(project(":enterprise-workers"))
     api(project(":logging-api"))
-    api(project(":messaging"))
     api(project(":native"))
     api(project(":problems-api"))
-    api(project(":functional"))
 
     api(libs.jansi)
     api(libs.jsr305)
     api(libs.slf4jApi)
 
+    implementation(projects.concurrent)
+    implementation(projects.io)
+    implementation(projects.messaging)
 
     implementation(libs.julToSlf4j)
-    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.guava)

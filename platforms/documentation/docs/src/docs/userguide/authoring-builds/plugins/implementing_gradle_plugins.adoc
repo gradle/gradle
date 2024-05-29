@@ -17,105 +17,73 @@
 
 The choice between script, precompiled script, or binary plugins depends on your specific requirements and preferences.
 
-*Script Plugins* are simple and easy to write as they are written directly in the build script.
+*Script Plugins* are simple and easy to write.
 They are written in Kotlin DSL or Groovy DSL.
 They are suitable for small, one-off tasks or for quick experimentation.
 However, they can become hard to maintain as the build script grows in size and complexity.
 
-*Precompiled Script Plugins* are Kotlin DSL scripts compiled into Java class files packaged in a library.
+*Precompiled Script Plugins* are Kotlin or Groovy DSL scripts compiled into Java class files packaged in a library.
 They offer better performance and maintainability compared to script plugins, and they can be reused across different projects.
 You can also write them in Groovy DSL but that is not recommended.
 
-*Binary Plugins* are full-fledged plugins written in Java or Kotlin, compiled into JAR files, and published to a repository.
+*Binary Plugins* are full-fledged plugins written in Java, Groovy, or Kotlin, compiled into JAR files, and published to a repository.
 They offer the best performance, maintainability, and reusability.
 They are suitable for complex build logic that needs to be shared across projects, builds, and teams.
 You can also write them in Scala or Groovy but that is not recommended.
 
-
 Here is a breakdown of all options for implementing Gradle plugins:
 
-[cols="~,~,~,~,~,~"]
+[cols="~,~,~,~,~"]
 |===
-|*#* |*Using:* |*Type:* |*The Plugin is:* |*Created by applying:* |*Recommended?*
+|*#* |*Using:* |*Type:* |*The Plugin is:* |*Recommended?*
 
 |1
 |Kotlin DSL
-|Script
+|Script plugin
 |in a `.gradle.kts` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|
-|Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types. They are not recommended.]
+|Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain. Do not use script plugins `apply from:`, they are not recommended.]
 
 |2
 |Groovy DSL
-|Script
+|Script plugin
 |in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|
 |Nofootnote:1[]
 
 |3
 |Kotlin DSL
-|Pre-compiled script
-|a `.gradle.kts` file
-|`id("kotlin-dsl")`
-|Yesfootnote:3[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using `@groovy.transform.CompileStatic`.]
+|Pre-compiled script plugin
+|a `.gradle.kts` file.
+|Yes
 
 |4
 |Groovy DSL
-|Pre-compiled script
-|a `.gradle` file
-|`id("groovy-gradle-plugin")`
-|Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>> written in Kotlin DSL or Java.]
+|Pre-compiled script plugin
+|a `.gradle` file.
+|Okfootnote:2[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using *statically compiled Groovy*.]
 
 |5
-|Kotlin DSL
-|Binary
-|a `.gradle.kts` file
-|`id("kotlin-dsl")` +
-`id("com.gradle.plugin-publish")`
-|Yesfootnote:3[]
+|Java
+|Binary plugin
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Java.
+|Yes
 
 |6
-|Groovy DSL
-|Binary
-|a `.gradle` file
-|`id("groovy-gradle-plugin")` +
-`id("com.gradle.plugin-publish")`
-|Nofootnote:3[]
+|Kotlin / Kotlin DSL
+|Binary plugin
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Kotlin and/or Kotlin DSL.
+|Yes
 
 |7
-|Java
-|Binary
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")` +
-`id("com.gradle.plugin-publish")`
-|Yesfootnote:3[<<custom_plugins#sec:custom_plugins_standalone_project,*Binary plugins*>> should be used when logic needs to be shared across independent projects. They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.]
+|Groovy / Groovy DSL
+|Binary plugin
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Groovy and/or Groovy DSL.
+|Okfootnote:2[]
 
 |8
-|Kotlin
-|Binary
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")` +
-`id("org.jetbrains.kotlin.jvm")` +
-`id("com.gradle.plugin-publish")`
-|Yesfootnote:3[]
-
-|9
-|Groovy
-|Binary
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")` +
-`id("groovy")` +
-`id("com.gradle.plugin-publish")`
-|Nofootnote:3[]
-
-|10
 |Scala
-|Binary
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")` +
-`id("scala")` +
-`id("com.gradle.plugin-publish")`
-|Nofootnote:3[]
+|Binary plugin
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Scala.
+|Nofootnote:2[]
 |===
 
 If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[Build Scan] to identify bottlenecks.

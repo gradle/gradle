@@ -15,7 +15,7 @@ dependencies {
     integTestImplementation(project(":resources"))
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(project(":dependency-management"))
-    integTestImplementation(project(":bootstrap"))
+    integTestImplementation(project(":gradle-cli-main"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":ide-plugins"))
     integTestImplementation(libs.groovy)
@@ -32,7 +32,6 @@ dependencies {
 
     crossVersionTestImplementation(project(":base-services"))
     crossVersionTestImplementation(project(":core"))
-    crossVersionTestImplementation(project(":plugins"))
     crossVersionTestImplementation(project(":plugins-application"))
     crossVersionTestImplementation(project(":platform-jvm"))
     crossVersionTestImplementation(project(":language-jvm"))

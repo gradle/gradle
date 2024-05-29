@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.internal.time.Time
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.util.GradleVersion
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
 
@@ -25,8 +26,8 @@ class TestableDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
     private final DaemonRegistryStateProbe registryProbe
 
-    TestableDaemon(File daemonLog, DaemonRegistry registry) {
-        super(daemonLog)
+    TestableDaemon(File daemonLog, DaemonRegistry registry, GradleVersion version) {
+        super(daemonLog, version)
         this.logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
         this.registryProbe = new DaemonRegistryStateProbe(registry, context)
     }

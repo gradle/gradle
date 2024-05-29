@@ -122,7 +122,6 @@ public abstract class ValidatePlugins extends DefaultTask {
                         messages.collect(joining()));
                 } else {
                     reportProblems(problems);
-
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());

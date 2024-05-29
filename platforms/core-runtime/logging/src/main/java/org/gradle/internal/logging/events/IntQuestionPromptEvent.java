@@ -16,16 +16,20 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.internal.Either;
-
 public class IntQuestionPromptEvent extends PromptOutputEvent {
+    private final String question;
     private final int minValue;
     private final int defaultValue;
 
-    public IntQuestionPromptEvent(long timestamp, String prompt, int minValue, int defaultValue) {
-        super(timestamp, prompt, true);
+    public IntQuestionPromptEvent(long timestamp, String question, int minValue, int defaultValue) {
+        super(timestamp);
+        this.question = question;
         this.minValue = minValue;
         this.defaultValue = defaultValue;
+    }
+
+    public String getQuestion() {
+        return question;
     }
 
     public int getMinValue() {
@@ -37,19 +41,31 @@ public class IntQuestionPromptEvent extends PromptOutputEvent {
     }
 
     @Override
-    public Either<Integer, String> convert(String text) {
+    public String getPrompt() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (min: ");
+        builder.append(minValue);
+        builder.append(", default: ");
+        builder.append(defaultValue);
+        builder.append("): ");
+        return builder.toString();
+    }
+
+    @Override
+    public PromptResult<Integer> convert(String text) {
         if (text.isEmpty()) {
-            return Either.left(defaultValue);
+            return PromptResult.response(defaultValue);
         }
         String trimmed = text.trim();
         try {
             int result = Integer.parseInt(trimmed);
             if (result >= minValue) {
-                return Either.left(result);
+                return PromptResult.response(result);
             }
-            return Either.right("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+            return PromptResult.newPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
         } catch (NumberFormatException e) {
-            return Either.right("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+            return PromptResult.newPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
         }
     }
 }

@@ -13,8 +13,8 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":core-api"))
     api(project(":core"))
     api(project(":logging"))
@@ -24,6 +24,7 @@ dependencies {
     api(libs.httpcore)
     api(libs.jsr305)
 
+    implementation(project(":base-services"))
     implementation(project(":hashing"))
     implementation(project(":logging-api"))
     implementation(project(":model-core"))

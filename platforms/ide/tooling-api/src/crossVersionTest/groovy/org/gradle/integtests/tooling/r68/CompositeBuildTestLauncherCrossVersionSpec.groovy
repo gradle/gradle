@@ -18,13 +18,11 @@ package org.gradle.integtests.tooling.r68
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
 @Timeout(120)
-@ToolingApiVersion(">=6.8")
 @TargetGradleVersion('>=6.8')
 class CompositeBuildTestLauncherCrossVersionSpec extends TestLauncherSpec {
 

@@ -17,7 +17,7 @@
 package org.gradle.internal.work
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -30,8 +30,9 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
     private static final DISPLAY_NAME = "Test Execution Queue"
     private static final int MAX_WORKERS = 4
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, 4))
-    def queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, MAX_WORKERS, new DefaultExecutorFactory(), workerLeaseService)
+    def workerLimits = new DefaultWorkerLimits(MAX_WORKERS)
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, workerLimits)
+    def queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, workerLimits, new DefaultExecutorFactory(), workerLeaseService)
 
     def "can run an action and wait for the result"() {
         def execution = testExecution({
@@ -129,7 +130,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
 
     def "can process more executions than max workers (maxWorkers = #maxWorkers)"() {
         def executions = []
-        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, maxWorkers, new DefaultExecutorFactory(), workerLeaseService)
+        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, new DefaultWorkerLimits(maxWorkers), new DefaultExecutorFactory(), workerLeaseService)
 
         expect:
         async {
@@ -202,7 +203,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
         ManagedExecutor executor = Mock(ManagedExecutor)
 
         when:
-        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, 4, factory, workerLeaseService)
+        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, workerLimits, factory, workerLeaseService)
 
         then:
         1 * factory.create(_) >> executor

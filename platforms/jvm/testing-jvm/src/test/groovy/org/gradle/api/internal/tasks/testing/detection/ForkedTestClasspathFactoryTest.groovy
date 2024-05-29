@@ -31,7 +31,7 @@ import java.util.regex.Pattern
 class ForkedTestClasspathFactoryTest extends Specification {
 
     // The number of internal and external implementation jars loaded from the distribution regardless of framework.
-    private static final int NUM_INTERNAL_JARS = 20
+    private static final int NUM_INTERNAL_JARS = 24
     private static final int NUM_EXTERNAL_JARS = 6
 
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry) {
@@ -53,7 +53,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         then:
         classpath.applicationClasspath == [new File("cls.jar")]
         classpath.applicationModulepath == [new File("mod.jar")]
-        classpath.implementationClasspath.size() == 26
+        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
         classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
         classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
         classpath.implementationModulepath.isEmpty()
@@ -144,7 +144,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         } else {
             assert classpath.applicationClasspath == cpFiles
             assert classpath.applicationModulepath == mpFiles
-            assert classpath.implementationClasspath.size() == 26
+            assert classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
             assert classpath.implementationModulepath.isEmpty()
         }
 
@@ -196,7 +196,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         } else {
             assert classpath.applicationClasspath == cpFiles
             assert classpath.applicationModulepath == mpFiles
-            assert classpath.implementationClasspath.size() == 26
+            assert classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
             assert classpath.implementationModulepath.isEmpty()
         }
 

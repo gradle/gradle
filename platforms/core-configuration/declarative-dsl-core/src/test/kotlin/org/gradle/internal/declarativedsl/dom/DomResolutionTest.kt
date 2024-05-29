@@ -20,15 +20,11 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.SchemaFunction
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.language.Block
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -206,7 +202,7 @@ object DomResolutionTest {
                 " -> configure ${resolution.elementType}"
 
             is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
-                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.type)}"
+                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
 
             is DocumentResolution.ValueResolution.ValueFactoryResolution.ValueFactoryResolved ->
                 " -> ${functionSignatureString(resolution.function)}"
@@ -297,10 +293,4 @@ object DomResolutionTest {
 
     private
     class MyNestedElement
-
-    private
-    fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val (tree, sourceCode, sourceOffset) = parse(code)
-        return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
-    }
 }

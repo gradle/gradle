@@ -15,9 +15,8 @@
  */
 package org.gradle.cache;
 
-import org.gradle.internal.Factory;
-
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * Provides synchronization with other processes for a particular file.
@@ -41,7 +40,7 @@ public interface FileAccess {
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      * @throws InsufficientLockModeException If the held lock is not at least a shared lock (e.g. LockMode.NONE)
      */
-    <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
+    <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under an exclusive lock on the target file. If the given action fails, the lock is marked as uncleanly unlocked.

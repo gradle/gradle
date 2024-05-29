@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
@@ -41,13 +42,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -117,7 +119,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         Module module = resolveContext.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
+        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
@@ -166,6 +168,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         @Override
         @Deprecated
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFirstLevelModuleDependencies(Spec)")
+                .withAdvice("Use getFirstLevelModuleDependencies() instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+                .nagUser();
+
             return Collections.emptySet();
         }
 
@@ -187,6 +195,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         @Override
         @Deprecated
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles(Spec)")
+                .withAdvice("Use a lenient ArtifactView with a componentFilter instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+                .nagUser();
+
             return Collections.emptySet();
         }
 
@@ -198,6 +212,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         @Override
         @Deprecated
         public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getArtifacts(Spec)")
+                .withAdvice("Use a lenient ArtifactView with a componentFilter instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+                .nagUser();
+
             return Collections.emptySet();
         }
     }

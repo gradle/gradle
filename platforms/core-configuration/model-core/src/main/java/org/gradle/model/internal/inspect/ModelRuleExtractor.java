@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -28,6 +29,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.GroovyMethods;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleInput;
 import org.gradle.model.RuleSource;
@@ -71,6 +74,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public class ModelRuleExtractor {
     private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
             .weakKeys()
@@ -386,13 +390,15 @@ public class ModelRuleExtractor {
         }
     }
 
-    private static abstract class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
+    @VisibleForTesting
+    static abstract class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
         private final List<ExtractedRuleDetails> rules;
 
         public DefaultExtractedRuleSource(List<ExtractedRuleDetails> rules) {
             this.rules = rules;
         }
 
+        @VisibleForTesting // used in tests only
         public List<ExtractedModelRule> getRules() {
             return CollectionUtils.collect(rules, new InternalTransformer<ExtractedModelRule, ExtractedRuleDetails>() {
                 @Override

@@ -22,6 +22,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -45,6 +46,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -94,6 +96,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+    private GradleLifecycle lifecycle;
     private boolean projectsLoaded;
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
@@ -114,7 +117,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
-                final ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolate();
+                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
@@ -199,13 +202,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public GradleLifecycle getLifecycle() {
-        return action -> {
-            if (projectsLoaded) {
-                throw new IllegalStateException("GradleLifecycle#beforeProject cannot be called after settings have been evaluated.");
-            }
-            // TODO:isolated how should decoration work for isolated actions? Should we just capture the current UserCodeApplication?
-            isolatedProjectEvaluationListenerProvider.beforeProject(action);
-        };
+        if (lifecycle == null) {
+            lifecycle = instantiateGradleLifecycle();
+        }
+        return lifecycle;
     }
 
     @Override
@@ -615,4 +615,40 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     @Inject
     public abstract PublicBuildPath getPublicBuildPath();
+
+    /**
+     * Instantiate {@link DefaultGradleLifecycle} via {@link ObjectFactory} in order to get
+     * {@link Closure} overloads for the {@link IsolatedAction} based methods.
+     */
+    private DefaultGradleLifecycle instantiateGradleLifecycle() {
+        return services.get(ObjectFactory.class).newInstance(DefaultGradleLifecycle.class, this);
+    }
+
+    static class DefaultGradleLifecycle implements GradleLifecycle {
+
+        private final DefaultGradle gradle;
+
+        @Inject
+        public DefaultGradleLifecycle(DefaultGradle gradle) {
+            this.gradle = gradle;
+        }
+
+        @Override
+        public void beforeProject(IsolatedAction<? super Project> action) {
+            assertBeforeProjectsLoaded("beforeProject");
+            gradle.isolatedProjectEvaluationListenerProvider.beforeProject(action);
+        }
+
+        @Override
+        public void afterProject(IsolatedAction<? super Project> action) {
+            assertBeforeProjectsLoaded("afterProject");
+            gradle.isolatedProjectEvaluationListenerProvider.afterProject(action);
+        }
+
+        private void assertBeforeProjectsLoaded(String methodName) {
+            if (gradle.projectsLoaded) {
+                throw new IllegalStateException("GradleLifecycle#" + methodName + " cannot be called after settings have been evaluated.");
+            }
+        }
+    }
 }

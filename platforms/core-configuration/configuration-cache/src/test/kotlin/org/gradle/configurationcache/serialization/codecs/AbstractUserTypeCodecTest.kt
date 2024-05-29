@@ -18,22 +18,25 @@ package org.gradle.configurationcache.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.useToRun
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.DefaultReadContext
-import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.MutableIsolateContext
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.configurationcache.problems.AbstractProblemsListener
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.configurationcache.serialization.DefaultClassDecoder
+import org.gradle.configurationcache.serialization.DefaultClassEncoder
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
-import org.gradle.configurationcache.serialization.runReadOperation
-import org.gradle.configurationcache.serialization.runWriteOperation
-import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -55,7 +58,7 @@ abstract class AbstractUserTypeCodecTest {
                 NullOutputStream.INSTANCE,
                 bean,
                 codec,
-                object : ProblemsListener {
+                object : AbstractProblemsListener() {
                     override fun onProblem(problem: PropertyProblem) {
                         problems += problem
                     }
@@ -80,7 +83,7 @@ abstract class AbstractUserTypeCodecTest {
         val outputStream = ByteArrayOutputStream()
         writeTo(
             outputStream, graph, codec,
-            object : ProblemsListener {
+            object : AbstractProblemsListener() {
                 override fun onProblem(problem: PropertyProblem) {
                     println(problem)
                 }
@@ -122,7 +125,7 @@ abstract class AbstractUserTypeCodecTest {
 
     private
     inline fun <R> MutableIsolateContext.withIsolateMock(codec: Codec<Any?>, block: () -> R): R =
-        withIsolate(IsolateOwner.OwnerGradle(mock()), codec) {
+        withIsolate(IsolateOwners.OwnerGradle(mock()), codec) {
             block()
         }
 
@@ -131,8 +134,8 @@ abstract class AbstractUserTypeCodecTest {
         DefaultWriteContext(
             codec = codec,
             encoder = encoder,
-            scopeLookup = mock(),
-            beanStateWriterLookup = BeanStateWriterLookup(),
+            classEncoder = DefaultClassEncoder(mock()),
+            beanStateWriterLookup = DefaultBeanStateWriterLookup(),
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
@@ -143,9 +146,10 @@ abstract class AbstractUserTypeCodecTest {
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
-            beanStateReaderLookup = BeanStateReaderLookup(BeanConstructors(TestCrossBuildInMemoryCacheFactory()), TestUtil.instantiatorFactory()),
+            beanStateReaderLookup = beanStateReaderLookupForTesting(),
             logger = mock(),
-            problemsListener = mock()
+            problemsListener = mock(),
+            classDecoder = DefaultClassDecoder()
         )
 
     private
@@ -186,3 +190,10 @@ abstract class AbstractUserTypeCodecTest {
         transformStepNodeFactory = mock(),
     )
 }
+
+
+internal
+fun beanStateReaderLookupForTesting() = DefaultBeanStateReaderLookup(
+    BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
+    TestUtil.instantiatorFactory()
+)

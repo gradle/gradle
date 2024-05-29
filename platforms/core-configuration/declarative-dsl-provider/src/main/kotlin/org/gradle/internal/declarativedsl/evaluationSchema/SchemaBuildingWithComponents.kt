@@ -40,6 +40,7 @@ fun buildEvaluationSchema(
             typeDiscovery = CompositeTypeDiscovery(component.typeDiscovery())
         ),
         analysisStatementFilter = analysisStatementFilter,
+        documentChecks = component.documentChecks(),
         runtimePropertyResolvers = component.runtimePropertyResolvers(),
         runtimeFunctionResolvers = component.runtimeFunctionResolvers(),
         runtimeCustomAccessors = component.runtimeCustomAccessors()

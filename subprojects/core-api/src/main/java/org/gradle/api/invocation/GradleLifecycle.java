@@ -32,11 +32,22 @@ public interface GradleLifecycle {
     /**
      * Adds an {@link IsolatedAction isolated action} to be called immediately before a project is evaluated.
      *
-     * Any extensions to the {@code Project} model will be available to build scripts.
+     * Any extensions added to the {@code Project} model will be available to build scripts.
      *
      * @param action The action to execute.
+     * @see IsolatedAction for the requirements to isolated actions
      * @since 8.8
      */
     @Incubating
     void beforeProject(IsolatedAction<? super Project> action);
+
+    /**
+     * Adds an {@link IsolatedAction isolated action} to be called immediately after a project is evaluated.
+     *
+     * @param action The action to execute.
+     * @see IsolatedAction for the requirements to isolated actions
+     * @since 8.8
+     */
+    @Incubating
+    void afterProject(IsolatedAction<? super Project> action);
 }

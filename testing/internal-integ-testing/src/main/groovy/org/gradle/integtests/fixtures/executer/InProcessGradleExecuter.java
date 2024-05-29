@@ -21,6 +21,7 @@ import junit.framework.AssertionFailedError;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -33,7 +34,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -61,10 +61,10 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
+import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
-import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -204,11 +204,27 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
             return true;
         }
+        File daemonJvmProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
+        if (daemonJvmProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(daemonJvmProperties);
+            String requestedVersion = properties.getProperty("toolchainVersion");
+            if (requestedVersion != null) {
+                try {
+                    JavaVersion requestedJavaVersion = JavaVersion.toVersion(requestedVersion);
+                    return !requestedJavaVersion.equals(JavaVersion.current());
+                } catch (Exception e) {
+                    // The build properties may be intentionally invalid, so we should attempt to test this outside the
+                    // in-process executor
+                    return true;
+                }
+            }
+        }
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
             return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
+
         boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
         boolean differentInstrumentationRequested = getAllArgs().stream().anyMatch(
             ("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=" + !isInstrumentationEnabledForProcess)::equals);
@@ -352,11 +368,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        ParametersConverter parametersConverter = new ParametersConverter(new BuildLayoutFactory(), fileCollectionFactory);
-        parametersConverter.configure(parser);
-        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), getWorkingDir());
+        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory);
+        buildEnvironmentConfigurationConverter.configure(parser);
+        Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecutor.class);
 
         ListenerManager listenerManager = GLOBAL_SERVICES.get(ListenerManager.class);
         listenerManager.addListener(listener);
@@ -407,7 +423,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), Time.currentTimeMillis(), interactive),
+            new DefaultBuildRequestMetaData(Time.currentTimeMillis(), interactive),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer());
     }
@@ -803,8 +819,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
             outputFailure.assertThatDescription(matcher);
-            assertHasFailure(matcher, f -> {
-            });
+            assertHasFailure(matcher, f -> {});
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher) {
+            outputFailure.assertThatAllDescriptions(matcher);
+            assertHasFailure(matcher, f -> {});
             return this;
         }
 

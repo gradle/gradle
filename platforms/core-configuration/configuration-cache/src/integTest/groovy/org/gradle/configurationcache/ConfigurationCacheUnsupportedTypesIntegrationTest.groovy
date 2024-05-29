@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.IsolatedProject
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -59,7 +59,6 @@ import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
@@ -74,6 +73,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurati
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
+import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs.DefaultArtifactView
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
 import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult
@@ -304,7 +304,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
         DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
         DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
-        ConfigurationArtifactView             | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
+        DefaultArtifactView                   | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
         DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute()"
         DefaultComponentArtifactsResult       | ComponentArtifactsResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"
         DefaultUnresolvedComponentResult      | UnresolvedComponentResult      | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '100').withArtifacts(JvmLibrary).execute().components.first()"
@@ -317,7 +317,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     private static executorServiceTypeOnCurrentJvm() {
-        def shortName = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
+        def shortName = Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_21) ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
         return 'java.util.concurrent.Executors$' + shortName
     }
 

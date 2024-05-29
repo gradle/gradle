@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionExtension
-import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
-import com.gradle.enterprise.gradleplugin.testretry.retry
-import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
-import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
+import com.gradle.develocity.agent.gradle.internal.test.PredictiveTestSelectionConfigurationInternal
+import com.gradle.develocity.agent.gradle.internal.test.TestDistributionConfigurationInternal
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
-import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.testDistributionEnabled
@@ -131,7 +129,7 @@ fun addDependencies() {
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
-        testImplementation(libs.gradleEnterpriseTestAnnotation)
+        testImplementation(libs.develocityTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -200,6 +198,10 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
+        // Required by JdkTools and JdkJavaCompiler
+        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"))
+        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"))
+
         if (isUnitTest() || usesEmbeddedExecuter()) {
             jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
         } else {
@@ -252,15 +254,12 @@ fun configureTests() {
 
         configureJvmForTest()
         addOsAsInputs()
+        configureRerun()
 
         if (BuildEnvironment.isCiServer) {
-            configureRerun()
-            retry {
+            develocity.testRetry {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures = determineMaxFailures()
-            }
-            doFirst {
-                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
             }
         }
 
@@ -268,27 +267,17 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
-        extensions.findByType<TestDistributionExtension>()?.apply {
-            this as TestDistributionExtensionInternal
-            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server = uri("https://ge-td-dogfooding.grdev.net")
+        extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
+            this as TestDistributionConfigurationInternal
+            server = uri("https://ge.gradle.org")
 
-            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
                 }
-                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
-                distribution.maxLocalExecutors = project.maxTestDistributionLocalExecutors
-
-                // Test distribution annotation-class filters
-                // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
-                localOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
-                }
-                remoteOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
-                }
+                maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
+                maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
                 if (BuildEnvironment.isCiServer) {
                     when {
@@ -306,8 +295,8 @@ fun configureTests() {
             // GitHub actions for contributor PRs uses public build scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
-            extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
-                this as PredictiveTestSelectionExtensionInternal
+            extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
+                this as PredictiveTestSelectionConfigurationInternal
                 server = uri("https://ge.gradle.org")
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
@@ -324,6 +313,8 @@ fun removeTeamcityTempProperty() {
 }
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
+
+fun Project.isNativeProject() = name.contains("native")
 
 /**
  * Whether the project supports running with predictive test selection.

@@ -20,6 +20,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheAccessSerializer;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.file.Chmod;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
 import java.io.File;
 import java.util.HashMap;
@@ -29,7 +31,7 @@ import java.util.Properties;
 /**
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
-public class DaemonRegistryServices {
+public class DaemonRegistryServices implements ServiceRegistrationProvider {
     private final File daemonBaseDir;
     private final Cache<File, DaemonRegistry> daemonRegistryCache;
 
@@ -47,15 +49,18 @@ public class DaemonRegistryServices {
         this.daemonRegistryCache = daemonRegistryCache;
     }
 
+    @Provides
     DaemonDir createDaemonDir() {
         return new DaemonDir(daemonBaseDir);
     }
 
+    @Provides
     DaemonRegistry createDaemonRegistry(DaemonDir daemonDir, final FileLockManager fileLockManager, final Chmod chmod) {
         final File daemonRegistryFile = daemonDir.getRegistry();
         return daemonRegistryCache.get(daemonRegistryFile, () -> new PersistentDaemonRegistry(daemonRegistryFile, fileLockManager, chmod));
     }
 
+    @Provides
     Properties createProperties() {
         return System.getProperties();
     }

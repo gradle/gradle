@@ -28,11 +28,12 @@ public class GradlewRunner {
         String[] combinedArgs;
         
         if (System.getProperty("os.name").startsWith("Windows")) {
-            combinedArgs = new String[3 + args.length];
-            combinedArgs[0] = "cmd";
-            combinedArgs[1] = "/C";
-            combinedArgs[2] = new File("gradlew").getAbsolutePath();
-            System.arraycopy(args, 0, combinedArgs, 3, args.length);
+            combinedArgs = new String[4 + args.length];
+            combinedArgs[0] = "cmd.exe";
+            combinedArgs[1] = "/d";
+            combinedArgs[2] = "/c";
+            combinedArgs[3] = new File("gradlew").getAbsolutePath();
+            System.arraycopy(args, 0, combinedArgs, 4, args.length);
         } else {
             combinedArgs = new String[1 + args.length];
             File gradlew = new File("gradlew");

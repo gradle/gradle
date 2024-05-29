@@ -24,10 +24,12 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
-public class DependencyManagementBuildSessionScopeServices {
+public class DependencyManagementBuildSessionScopeServices implements ServiceRegistrationProvider {
 
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);
@@ -37,10 +39,12 @@ public class DependencyManagementBuildSessionScopeServices {
         registration.add(IvyMutableModuleMetadataFactory.class);
     }
 
+    @Provides
     ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
         return new CachingComponentSelectionDescriptorFactory();
     }
 
+    @Provides
     ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ImmutableAttributesFactory immutableAttributesFactory,

@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAn
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.properties.annotations.NestedValidationUtil;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
@@ -33,9 +34,10 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
@@ -56,18 +58,18 @@ public class PropertyValidationAccess {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
         // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
         // For now, re-implement the discovery here
-        builder.provider(new Object() {
+        builder.provider(new ServiceRegistrationProvider() {
             @SuppressWarnings("unused")
             void configure(ServiceRegistration registration) {
-                registration.add(DefaultListenerManager.class, new DefaultListenerManager(Global.class));
+                registration.add(ScopedListenerManager.class, new DefaultListenerManager(Global.class));
                 registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
                 // TODO: do we need any factories here?
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());
                 registration.add(OutputPropertyRoleAnnotationHandler.class);
                 registration.add(DefaultInstantiatorFactory.class);
-                List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
-                for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
-                    pluginServiceFactory.registerGlobalServices(registration);
+                List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(GradleModuleServices.class);
+                for (GradleModuleServices services : servicesProviders) {
+                    services.registerGlobalServices(registration);
                 }
             }
         });
@@ -75,7 +77,6 @@ public class PropertyValidationAccess {
         this.typeSchemes = services.getAll(TypeScheme.class);
     }
 
-    @SuppressWarnings("unused")
     public static void collectValidationProblems(Class<?> topLevelBean, TypeValidationContext validationContext) {
         INSTANCE.collectTypeValidationProblems(topLevelBean, validationContext);
     }

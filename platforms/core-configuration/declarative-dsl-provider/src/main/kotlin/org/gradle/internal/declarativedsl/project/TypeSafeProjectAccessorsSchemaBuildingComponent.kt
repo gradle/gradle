@@ -18,10 +18,11 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
@@ -41,6 +42,7 @@ import kotlin.reflect.full.isSubclassOf
  * * for each typesafe accessor container type, extracts its properties (see [TypesafeProjectPropertyProducer]);
  * * at runtime, resolves property access to the `projects` property on [Project] instances.
  */
+@Suppress("unused") // temporarily excluded from the schema, awaiting rework in a way that does not require the target scope
 internal
 class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : EvaluationSchemaComponent {
     private
@@ -55,8 +57,8 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : Evaluat
         CollectedPropertyInformation(
             "projects",
             projectAccessorsClass.createType(),
-            returnType = DataTypeRef.Name(FqName.parse(projectAccessorsClass.qualifiedName!!)),
-            propertyMode = DataProperty.PropertyMode.READ_ONLY,
+            returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
+            propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,
             isHiddenInDeclarativeDsl = false,
             isDirectAccessOnly = false,
@@ -122,7 +124,7 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
         fun visit(type: KType) {
             val classifier = type.classifier
             if (classifier is KClass<*> && add(classifier)) {
-                classifier.supertypes.forEach(::visit)
+                (classifier.supertypes - Any::class.createType()).forEach(::visit) // No need to visit Any, it only clutters the extracted functions
             }
         }
         add(kClass)

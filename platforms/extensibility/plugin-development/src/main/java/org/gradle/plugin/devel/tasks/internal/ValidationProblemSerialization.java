@@ -31,24 +31,31 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.internal.DefaultProblemGroup;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.AdditionalData;
+import org.gradle.api.problems.internal.DefaultDeprecationData;
 import org.gradle.api.problems.internal.DefaultFileLocation;
+import org.gradle.api.problems.internal.DefaultGeneralData;
 import org.gradle.api.problems.internal.DefaultLineInFileLocation;
 import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.DefaultProblemGroup;
 import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
+import org.gradle.api.problems.internal.DefaultTypeValidationData;
+import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.FileLocation;
+import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
+import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -57,7 +64,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -78,6 +87,7 @@ public class ValidationProblemSerialization {
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemCategory.class, new ProblemCategoryAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(AdditionalData.class, new AdditionalDataAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
@@ -583,6 +593,117 @@ public class ValidationProblemSerialization {
                 groupObject.add("parent", serializeGroup(parent));
             }
             return groupObject;
+        }
+    }
+
+    private static class AdditionalDataAdapter extends TypeAdapter<AdditionalData> {
+        @Override
+        public void write(JsonWriter out, AdditionalData value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+            out.beginObject();
+            if (value instanceof DeprecationData) {
+                out.name("type").value("deprecationData");
+                out.name("featureUsage").value(((DeprecationData) value).getType().name());
+            } else if (value instanceof TypeValidationData) {
+                out.name("type").value("typeValidationData");
+                out.name("pluginId").value(((TypeValidationData) value).getPluginId());
+                out.name("propertyName").value(((TypeValidationData) value).getPropertyName());
+                out.name("parentPropertyName").value(((TypeValidationData) value).getParentPropertyName());
+                out.name("typeName").value(((TypeValidationData) value).getTypeName());
+            } else if (value instanceof GeneralData) {
+                out.name("type").value("generalData");
+                out.name("data");
+                out.beginObject();
+                Map<String, String> map = ((GeneralData) value).getAsMap();
+                for (String key : map.keySet()) {
+                    out.name(key).value(map.get(key));
+                }
+                out.endObject();
+            }
+            out.endObject();
+        }
+
+        @Override
+        public AdditionalData read(JsonReader in) throws IOException {
+            if (in.hasNext()) {
+                in.beginObject();
+                try {
+                    String type = null;
+                    String featureUsage = null;
+                    String pluginId = null;
+                    String propertyName = null;
+                    String parentPropertyName = null;
+                    String typeName = null;
+                    String name;
+                    Map<String, String> generalData = null;
+                    while (in.hasNext()) {
+                        name = in.nextName();
+                        switch (name) {
+                            case "type": {
+                                type = in.nextString();
+                                break;
+                            }
+                            case "featureUsage": {
+                                featureUsage = in.nextString();
+                                break;
+                            }
+                            case "pluginId": {
+                                pluginId = in.nextString();
+                                break;
+                            }
+                            case "propertyName": {
+                                propertyName = in.nextString();
+                                break;
+                            }
+                            case "parentPropertyName": {
+                                parentPropertyName = in.nextString();
+                                break;
+                            }
+                            case "typeName": {
+                                typeName = in.nextString();
+                                break;
+                            }
+                            case "data": {
+                                in.beginObject();
+                                generalData = new HashMap<>();
+                                while (in.hasNext()) {
+                                    String key = in.nextName();
+                                    String value = in.nextString();
+                                    generalData.put(key, value);
+                                }
+                                in.endObject();
+                                break;
+                            }
+                            default:
+                                in.skipValue();
+                        }
+                    }
+                    if (type == null) {
+                        throw new JsonParseException("type must not be null");
+                    }
+                    switch (type) {
+                        case "deprecationData":
+                            return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
+                        case "typeValidationData":
+                            return new DefaultTypeValidationData(
+                                pluginId,
+                                propertyName,
+                                parentPropertyName,
+                                typeName
+                            );
+                        case "generalData":
+                            return new DefaultGeneralData(generalData);
+                        default:
+                            throw new JsonParseException("Unknown type: " + type);
+                    }
+                } finally {
+                    in.endObject();
+                }
+            }
+            return null;
         }
     }
 }

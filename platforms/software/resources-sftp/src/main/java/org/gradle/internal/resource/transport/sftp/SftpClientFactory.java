@@ -30,6 +30,8 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public class SftpClientFactory implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
 

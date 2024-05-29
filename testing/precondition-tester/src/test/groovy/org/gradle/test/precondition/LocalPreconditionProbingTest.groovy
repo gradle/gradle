@@ -16,7 +16,7 @@
 
 package org.gradle.test.precondition
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+import com.gradle.develocity.testing.annotations.LocalOnly
 
 @LocalOnly
 class LocalPreconditionProbingTest extends PreconditionProbingTest {

@@ -1,4 +1,4 @@
-import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.integrationtests.tasks.DistributionTest
 
 /*
@@ -77,8 +77,8 @@ fun Test.setupPreconditionTesting() {
     classpath += sourceSets.test.get().output
 
     // These tests should not be impacted by the predictive selection
-    extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
-        enabled = false
+    extensions.findByType<DevelocityTestConfiguration>()?.apply {
+        predictiveTestSelection.enabled = false
     }
 
     // These tests should always run

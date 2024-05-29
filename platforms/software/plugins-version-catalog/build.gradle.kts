@@ -29,7 +29,7 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":logging-api"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))

@@ -1,4 +1,4 @@
-import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
@@ -19,7 +19,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
-    testImplementation(libs.futureKotlin("stdlib"))
+    testImplementation(libs.kotlinStdlib)
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
@@ -71,9 +71,9 @@ tasks {
         dependsOn(verifyAcceptedApiChangesOrdering)
         enabled = flakyTestStrategy != FlakyTestStrategy.ONLY
 
-        extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
+        extensions.findByType<DevelocityTestConfiguration>()?.apply {
             // PTS doesn't work well with architecture tests which scan all classes
-            enabled = false
+            predictiveTestSelection.enabled = false
         }
 
         finalizedBy(reorderRuleStore)

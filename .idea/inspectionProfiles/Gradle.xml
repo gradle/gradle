@@ -15,11 +15,13 @@
       </extension>
     </inspection_tool>
     <inspection_tool class="FoldExpressionIntoStream" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="GrMethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="GrMethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
+      <option name="myOnlyPrivateOrFinal" value="true" />
+    </inspection_tool>
     <inspection_tool class="JavadocBlankLines" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinUnusedImport" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="MethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
-      <option name="m_onlyPrivateOrFinal" value="false" />
+      <option name="m_onlyPrivateOrFinal" value="true" />
       <option name="m_ignoreEmptyMethods" value="true" />
     </inspection_tool>
     <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="ERROR" enabled_by_default="true" editorAttributes="ERRORS_ATTRIBUTES">
@@ -94,6 +96,9 @@
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>
       <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newTreeSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.TreeSet&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use @ToBeImplemented annotation" suppressId="not_yet_implemented" problemDescriptor="Prefer '@ToBeImplemented' annotation" text="@NotYetImplemented" recursive="false" caseInsensitive="false" type="Groovy" pattern_context="File" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="@org.gradle.util.internal.ToBeImplemented">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>
     </inspection_tool>

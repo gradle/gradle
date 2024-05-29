@@ -599,6 +599,16 @@ trait ValidationMessageChecker {
         }
     }
 
+    static String getOppositeKind(String kindLocal) {
+        switch (kindLocal) {
+            case 'file':
+                return 'directory'
+            case 'directory':
+                return 'file'
+        }
+        return 'unexpected file type'
+    }
+
     static class IncorrectInputMessage extends ValidationMessageDisplayConfiguration<IncorrectInputMessage> {
         String kind
         File file

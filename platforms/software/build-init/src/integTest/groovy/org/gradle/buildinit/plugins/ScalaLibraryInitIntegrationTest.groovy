@@ -123,7 +123,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationS
             """
 
         when:
-        run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'scala-library', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants("org/acme/SampleMain.scala")

@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.StartParameter
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.configurationcache.extensions.get
+import org.gradle.internal.extensions.core.get
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildStateRegistry

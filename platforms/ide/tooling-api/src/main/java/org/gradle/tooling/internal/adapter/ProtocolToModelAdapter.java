@@ -19,8 +19,11 @@ import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
+import org.gradle.tooling.ToolingModelContract;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -28,6 +31,7 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
@@ -37,6 +41,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,6 +51,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
@@ -54,6 +60,7 @@ import java.util.regex.Pattern;
 /**
  * Adapts some source object to some target view type.
  */
+@ServiceScope(Scope.Global.class)
 public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final ViewDecoration NO_OP_MAPPER = new NoOpDecoration();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
@@ -159,12 +166,87 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         // Create a proxy
         InvocationHandlerImpl handler = new InvocationHandlerImpl(targetType, sourceObject, decorationsForThisType, graphDetails);
-        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, handler);
+        Class<?>[] modelContractInterfaces = getModelContractInterfaces(targetType, sourceObject, viewType);
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), modelContractInterfaces, handler);
         handler.attachProxy(proxy);
 
         graphDetails.putViewFor(sourceObject, viewKey, proxy);
 
         return viewType.cast(proxy);
+    }
+
+    private static <T> Class<?>[] getModelContractInterfaces(Class<T> targetType, Object sourceObject, Class<? extends T> viewType) {
+        Map<String, Class<?>> potentialSubInterfaces = getPotentialModelContractSubInterfaces(targetType);
+        Set<Class<?>> actualSubInterfaces = getActualImplementedModelContractSubInterfaces(sourceObject, potentialSubInterfaces);
+
+        List<Class<?>> modelContractInterfaces = new ArrayList<>();
+        modelContractInterfaces.add(viewType); // base interface
+        modelContractInterfaces.addAll(actualSubInterfaces);
+        return modelContractInterfaces.toArray(new Class<?>[0]);
+    }
+
+    private static <T> Map<String, Class<?>> getPotentialModelContractSubInterfaces(Class<T> targetType) {
+        HashMap<String, Class<?>> result = new HashMap<>();
+        getPotentialModelContractSubInterfaces(targetType, new HashSet<Class<?>>(), result);
+        return result;
+    }
+
+    private static <T> void getPotentialModelContractSubInterfaces(
+        Class<T> targetType,
+        Set<Class<?>> visited,
+        Map<String, Class<?>> result
+    ) {
+        boolean isNew = visited.add(targetType);
+        if (isNew) {
+            Annotation[] annotations = targetType.getAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotation instanceof ToolingModelContract) {
+                    Class<?>[] classes = ((ToolingModelContract) annotation).subTypes();
+                    for (Class<?> clazz : classes) {
+                        result.put(clazz.getName(), clazz);
+                        getPotentialModelContractSubInterfaces(clazz, visited, result);
+                    }
+                }
+            }
+        }
+    }
+
+    private static Set<Class<?>> getActualImplementedModelContractSubInterfaces(Object sourceObject, Map<String, Class<?>> potentialModelContractInterfaces) {
+        if (potentialModelContractInterfaces.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Set<Class<?>> allImplementedInterfaces = walkTypeHierarchyAndExtractInterfaces(sourceObject.getClass());
+
+        // keep only those implemented interfaces which are in model contract set
+        Set<Class<?>> filteredImplementedInterfaces = new HashSet<>();
+        for (Class<?> i : allImplementedInterfaces) {
+            Class<?> actualSubType = potentialModelContractInterfaces.get(i.getName());
+            if (actualSubType != null) {
+                filteredImplementedInterfaces.add(actualSubType);
+            }
+        }
+
+        return filteredImplementedInterfaces;
+    }
+
+    private static <T> Set<Class<?>> walkTypeHierarchyAndExtractInterfaces(Class<?> clazz) {
+        Set<Class<?>> seenInterfaces = new HashSet<>();
+        Queue<Class<?>> queue = new ArrayDeque<>();
+        queue.add(clazz);
+        Class<?> type;
+        while ((type = queue.poll()) != null) {
+            Class<?> superclass = type.getSuperclass();
+            if (superclass != null) {
+                queue.add(superclass);
+            }
+            for (Class<?> iface : type.getInterfaces()) {
+                if (seenInterfaces.add(iface)) {
+                    queue.add(Cast.<Class<? super T>>uncheckedCast(iface));
+                }
+            }
+        }
+        return seenInterfaces;
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
@@ -663,7 +745,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return Optional.absent();
             }
 
-            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+            LinkedList<Class<?>> queue = new LinkedList<>();
             queue.add(sourceClass);
             while (!queue.isEmpty()) {
                 Class<?> c = queue.removeFirst();

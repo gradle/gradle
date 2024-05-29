@@ -17,6 +17,8 @@
 package org.gradle.configurationcache.problems
 
 import org.gradle.api.Task
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyTrace
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

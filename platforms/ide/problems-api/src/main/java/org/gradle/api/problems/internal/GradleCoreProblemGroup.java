@@ -49,6 +49,8 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
     public interface CompilationProblemGroup extends ProblemGroup {
         ProblemGroup java();
 
+        ProblemGroup groovy();
+
         ProblemGroup groovyDsl();
     }
 
@@ -61,6 +63,7 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
     private static class DefaultCompilationProblemGroup extends DefaultProblemGroup implements CompilationProblemGroup {
 
         private final ProblemGroup java = new DefaultProblemGroup("java", "Java compilation", this);
+        private final ProblemGroup groovy = new DefaultProblemGroup("groovy", "Groovy compilation", this);
         public ProblemGroup groovyDsl = new DefaultProblemGroup("groovy-dsl", "Groovy DSL script compilation", this);
 
         private DefaultCompilationProblemGroup(String id, String displayName) {
@@ -70,6 +73,11 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
         @Override
         public ProblemGroup java() {
             return this.java;
+        }
+
+        @Override
+        public ProblemGroup groovy() {
+            return this.groovy;
         }
 
         @Override

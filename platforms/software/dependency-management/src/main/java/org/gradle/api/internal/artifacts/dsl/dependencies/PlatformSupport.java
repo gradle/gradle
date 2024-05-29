@@ -28,10 +28,13 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.util.Set;
 
+@ServiceScope(Scope.Global.class)
 public class PlatformSupport {
     private final Category library;
     private final Category regularPlatform;

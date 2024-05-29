@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.history.impl;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -85,18 +84,22 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        FileCollectionFingerprintSerializer rhs = (FileCollectionFingerprintSerializer) obj;
-        return Objects.equal(fingerprintMapSerializer, rhs.fingerprintMapSerializer)
-            && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
+        FileCollectionFingerprintSerializer that = (FileCollectionFingerprintSerializer) o;
+        return fingerprintMapSerializer.equals(that.fingerprintMapSerializer) && hashCodeSerializer.equals(that.hashCodeSerializer);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), fingerprintMapSerializer, hashCodeSerializer);
+        int result = fingerprintMapSerializer.hashCode();
+        result = 31 * result + hashCodeSerializer.hashCode();
+        return result;
     }
 }

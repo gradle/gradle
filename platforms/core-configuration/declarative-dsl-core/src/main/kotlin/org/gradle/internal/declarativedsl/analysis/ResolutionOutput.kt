@@ -1,6 +1,17 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataBuilderFunction
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -21,7 +32,7 @@ data class PropertyReferenceResolution(
 data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
     val rhs: ObjectOrigin,
-    val assignmentOrder: Long,
+    val operationId: OperationId,
     val assignmentMethod: AssignmentMethod,
     val originElement: LanguageTreeElement
 )
@@ -54,6 +65,8 @@ sealed interface ObjectOrigin {
 
         override val originElement: LanguageTreeElement
             get() = resolvedTo.originElement
+
+        override fun toString(): String = "(this:$resolvedTo)"
     }
 
     sealed interface ReceiverOrigin : ObjectOrigin
@@ -83,7 +96,7 @@ sealed interface ObjectOrigin {
 
     sealed interface FunctionOrigin : ObjectOrigin {
         val function: SchemaFunction
-        val invocationId: Long
+        val invocationId: OperationId
         val receiver: ObjectOrigin?
     }
 
@@ -96,7 +109,7 @@ sealed interface ObjectOrigin {
         override val receiver: ObjectOrigin,
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
-        override val invocationId: Long
+        override val invocationId: OperationId
     ) : FunctionInvocationOrigin, DelegatingObjectOrigin, HasReceiver {
         override fun toString(): String = receiver.toString()
 
@@ -109,7 +122,7 @@ sealed interface ObjectOrigin {
         override val receiver: ObjectOrigin,
         override val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
-        override val invocationId: Long
+        override val invocationId: OperationId
     ) : FunctionInvocationOrigin, HasReceiver {
         override fun toString(): String =
             functionInvocationString(function, receiver, invocationId, parameterBindings)
@@ -119,7 +132,7 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
-        override val invocationId: Long
+        override val invocationId: OperationId
     ) : FunctionInvocationOrigin {
         override val receiver: ObjectOrigin?
             get() = null
@@ -132,7 +145,7 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
-        override val invocationId: Long,
+        override val invocationId: OperationId,
         val accessor: ConfigureAccessor,
     ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver, this).toString()
@@ -144,7 +157,7 @@ sealed interface ObjectOrigin {
     data class AddAndConfigureReceiver(
         override val receiver: FunctionOrigin,
     ) : FunctionOrigin, DelegatingObjectOrigin, ReceiverOrigin {
-        override val invocationId: Long
+        override val invocationId: OperationId
             get() = receiver.invocationId
         override val originElement: LanguageTreeElement
             get() = receiver.originElement
@@ -177,7 +190,7 @@ sealed interface ObjectOrigin {
     data class ConfiguringLambdaReceiver(
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
-        override val invocationId: Long,
+        override val invocationId: OperationId,
         val lambdaReceiverType: DataTypeRef,
         override val originElement: LanguageTreeElement,
         override val receiver: ObjectOrigin,
@@ -218,7 +231,7 @@ sealed interface ObjectOrigin {
     }
 
     data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
-        override fun toString(): String = "${key.type}"
+        override fun toString(): String = "${key.objectType}"
     }
 }
 
@@ -230,7 +243,7 @@ data class ParameterValueBinding(
 
 
 private
-fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
+fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: OperationId, parameterBindings: ParameterValueBinding) =
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
             val fqn = when (val ref = function.dataClass) {

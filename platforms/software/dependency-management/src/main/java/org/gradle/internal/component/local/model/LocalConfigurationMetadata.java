@@ -17,21 +17,11 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 public interface LocalConfigurationMetadata extends ConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
 
     @Override
     ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
-
-    /**
-     * Returns a copy of this configuration metadata, except with all artifacts transformed by the given transformer.
-     *
-     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
-     *
-     * @return A copy of this metadata, with the given transformer applied to all artifacts.
-     */
-    LocalConfigurationMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
 
 }

@@ -23,17 +23,17 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.cacheentry.EntryDetails
-import org.gradle.configurationcache.extensions.toDefaultLowerCase
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
@@ -489,7 +489,7 @@ class DefaultConfigurationCache internal constructor(
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream, profile: () -> String): DefaultWriteContext {
         val (context, codecs) = cacheIO.writerContextFor(outputStream, profile)
         return context.apply {
-            push(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec())
+            push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
     }
 
@@ -552,7 +552,7 @@ class DefaultConfigurationCache internal constructor(
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
         encryptionService.inputStream(fingerprintFile.stateType, fingerprintFile::inputStream).use { inputStream ->
             cacheIO.withReadContextFor(inputStream) { codecs ->
-                withIsolate(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+                withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory
                             get() = host.service()

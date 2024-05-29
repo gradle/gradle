@@ -18,7 +18,10 @@ package org.gradle.internal.remote.internal;
 
 import org.gradle.api.Action;
 import org.gradle.internal.remote.ConnectionAcceptor;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface IncomingConnector {
     /**
      * Starts listening for incoming connections. Assigns an arbitrary address for the endpoint.

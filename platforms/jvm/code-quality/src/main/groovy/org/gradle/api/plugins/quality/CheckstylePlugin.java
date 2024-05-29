@@ -124,7 +124,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureToolchains(Checkstyle task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
@@ -137,9 +137,5 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         task.setDescription("Run Checkstyle analysis for " + sourceSet.getName() + " classes");
         task.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
         task.setSource(sourceSet.getAllJava());
-    }
-
-    private Directory getRootProjectDirectory() {
-        return project.getIsolated().getRootProject().getProjectDirectory();
     }
 }

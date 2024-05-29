@@ -152,7 +152,12 @@ class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_20
         }
 
-        return javaVersion >= JavaVersion.VERSION_1_8 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_21)
+        // 8.8 added JDK 22 support
+        if (isSameOrOlder("8.7")) {
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_21
+        }
+
+        return javaVersion >= JavaVersion.VERSION_1_8 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_22)
     }
 
     @Override
@@ -338,7 +343,18 @@ class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     boolean isHasTestDisplayNames() {
-        return isSameOrNewer("8.8")
+        return isSameOrNewer("8.8-rc-1")
+    }
+
+    @Override
+    boolean isSupportsCustomToolchainResolvers() {
+        return isSameOrNewer("7.6")
+    }
+
+    @Override
+    boolean isNonFlakyToolchainProvisioning() {
+        // Excluding potential 8.9 RCs
+        return !isSameOrOlder("8.8")
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

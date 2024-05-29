@@ -41,28 +41,42 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.configurationcache.extensions.serviceOf
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.flow.BuildWorkResultProvider
-import org.gradle.configurationcache.flow.RegisteredFlowAction
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateContext
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.MutableIsolateContext
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.decodePreservingIdentity
-import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
-import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
-import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
-import org.gradle.configurationcache.serialization.logPropertyProblem
-import org.gradle.configurationcache.serialization.readClassOf
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.withDebugFrame
-import org.gradle.configurationcache.serialization.withIsolate
-import org.gradle.configurationcache.serialization.withPropertyTrace
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.flow.services.BuildWorkResultProvider
+import org.gradle.internal.flow.services.RegisteredFlowAction
+import org.gradle.internal.serialize.graph.Bindings
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.internal.serialize.graph.MutableIsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodePreservingIdentity
+import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
+import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.readClassOf
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.withDebugFrame
+import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.serialize.graph.withPropertyTrace
+
+
+internal
+fun defaultCodecForProviderWithChangingValue(
+    valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
+    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
+    flowProvidersCodec: Codec<BuildWorkResultProvider>
+) = Bindings.of {
+    bind(valueSourceProviderCodec)
+    bind(buildServiceProviderCodec)
+    bind(flowProvidersCodec)
+    bind(BeanCodec)
+}.build()
 
 
 /**
@@ -71,18 +85,11 @@ import org.gradle.internal.build.BuildStateRegistry
  */
 internal
 class FixedValueReplacingProviderCodec(
-    valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
-    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
-    flowProvidersCodec: Codec<BuildWorkResultProvider>,
-) {
-    private
-    val providerWithChangingValueCodec = Bindings.of {
-        bind(valueSourceProviderCodec)
-        bind(buildServiceProviderCodec)
-        bind(flowProvidersCodec)
-        bind(BeanCodec)
-    }.build()
 
+    private
+    val providerWithChangingValueCodec: Codec<Any?>
+
+) {
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
         val state = value.calculateExecutionTimeValue()
         encodeValue(state)
@@ -127,11 +134,11 @@ class FixedValueReplacingProviderCodec(
     suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> =
         when (readByte()) {
             1.toByte() -> ValueSupplier.ExecutionTimeValue.missing<Any>()
-            2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
+            2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, e.g. when using provider of Task
             3.toByte() -> {
                 val value = read()
                 val sideEffect = readNonNull<ValueSupplier.SideEffect<in Any>>()
-                // nullable because serialization may replace value with null, eg when using provider of Task
+                // nullable because serialization may replace value with null, e.g. when using provider of Task
                 ValueSupplier.ExecutionTimeValue.ofNullable(value).withSideEffect(sideEffect)
             }
 
@@ -147,7 +154,7 @@ class FlowProvidersCodec(
 ) : Codec<BuildWorkResultProvider> {
 
     override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
-        if (isolate.owner !is IsolateOwner.OwnerFlowAction) {
+        if (isolate.owner !is IsolateOwners.OwnerFlowAction) {
             logPropertyProblem("serialize") {
                 reference(BuildWorkResultProvider::class)
                 text(" can only be used as input to flow actions.")
@@ -183,8 +190,8 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     }
 
     private
-    inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwner.OwnerFlowScope, block: T.() -> R): R {
-        withIsolate(IsolateOwner.OwnerFlowAction(owner)) {
+    inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwners.OwnerFlowScope, block: T.() -> R): R {
+        withIsolate(IsolateOwners.OwnerFlowAction(owner)) {
             withPropertyTrace(PropertyTrace.BuildLogicClass(flowActionClass.name)) {
                 return block()
             }
@@ -192,9 +199,9 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     }
 
     private
-    fun IsolateContext.verifiedIsolateOwner(): IsolateOwner.OwnerFlowScope {
+    fun IsolateContext.verifiedIsolateOwner(): IsolateOwners.OwnerFlowScope {
         val owner = isolate.owner
-        require(owner is IsolateOwner.OwnerFlowScope) {
+        require(owner is IsolateOwners.OwnerFlowScope) {
             "Flow actions must belong to a Flow scope!"
         }
         return owner
@@ -266,26 +273,22 @@ class ValueSourceProviderCodec(
 ) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-        when (value.obtainedValueOrNull) {
-            null -> {
-                // source has **NOT** been used as build logic input:
-                // serialize the source
-                writeBoolean(true)
-                encodeValueSource(value)
-            }
-
-            else -> {
-                // source has been used as build logic input:
-                // serialize the value directly as it will be part of the
-                // cached state fingerprint.
-                // Currently not necessary due to the unpacking that happens
-                // to the TypeSanitizingProvider put around the ValueSourceProvider.
-                throw IllegalStateException("build logic input")
-            }
+        if (!value.hasBeenObtained()) {
+            // source has **NOT** been used as build logic input:
+            // serialize the source
+            writeBoolean(true)
+            encodeValueSource(value)
+        } else {
+            // source has been used as build logic input:
+            // serialize the value directly as it will be part of the
+            // cached state fingerprint.
+            // Currently not necessary due to the unpacking that happens
+            // to the TypeSanitizingProvider put around the ValueSourceProvider.
+            throw IllegalStateException("build logic input")
         }
     }
 
-    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *>? =
+    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
         when (readBoolean()) {
             true -> decodeValueSource()
             false -> throw IllegalStateException()

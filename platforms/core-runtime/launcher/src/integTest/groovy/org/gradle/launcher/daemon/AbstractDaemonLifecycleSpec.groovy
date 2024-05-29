@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+import org.gradle.util.GradleVersion
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -185,7 +186,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
         // flushed to the log yet.
         DaemonContext context
         poll(5) {
-            context = DaemonContextParser.parseFromString(gradleHandle.standardOutput)
+            context = DaemonContextParser.parseFromString(gradleHandle.standardOutput, GradleVersion.current())
         }
         context.with(assertions)
     }

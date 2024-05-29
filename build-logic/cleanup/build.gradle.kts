@@ -11,7 +11,6 @@ errorprone {
         "DefaultCharset", // 3 occurrences
         "JavaTimeDefaultTimeZone", // 1 occurrences
         "StringCaseLocaleUsage", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 

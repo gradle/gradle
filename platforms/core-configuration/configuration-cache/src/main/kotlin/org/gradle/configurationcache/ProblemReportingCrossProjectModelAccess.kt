@@ -22,7 +22,7 @@ import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.IsolatedProject
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -77,10 +77,10 @@ import org.gradle.configurationcache.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.configurationcache.CrossProjectModelAccessPattern.CHILD
 import org.gradle.configurationcache.CrossProjectModelAccessPattern.DIRECT
 import org.gradle.configurationcache.CrossProjectModelAccessPattern.SUBPROJECT
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse

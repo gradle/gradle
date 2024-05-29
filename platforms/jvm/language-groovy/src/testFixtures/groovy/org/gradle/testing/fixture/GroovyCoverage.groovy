@@ -21,8 +21,8 @@ import org.gradle.test.fixtures.VersionCoverage
 import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.17']
-    private static final String[] FUTURE = ['4.0.14']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.21']
+    private static final String[] FUTURE = ['4.0.20']
 
     static final Set<String> SUPPORTED_BY_JDK
 
@@ -86,8 +86,7 @@ class GroovyCoverage {
         allVersions.addAll(FUTURE)
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
-            // TODO Groovy 3.x doesn't support Java 22 yet
-            return []
+            return VersionCoverage.versionsAbove(allVersions, '3.0.20')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
             return VersionCoverage.versionsAbove(allVersions, '3.0.13')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {

@@ -11,15 +11,17 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":build-operations"))
-    api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":messaging"))
     api(project(":tooling-api"))
 
     implementation(project(":model-core"))
+    implementation(project(":base-services"))
 
     api(libs.jsr305)
     implementation(libs.guava)

@@ -55,6 +55,7 @@ import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrat
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -68,22 +69,27 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         super("Configured project services for '" + project.getPath() + "'", project.getServices());
     }
 
+    @Provides
     org.gradle.api.execution.TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
         return listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class);
     }
 
+    @Provides
     TaskCacheabilityResolver createTaskCacheabilityResolver(RelativeFilePathResolver relativeFilePathResolver) {
         return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
     }
 
+    @Provides
     ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
-    public MissingTaskDependencyDetector createMissingTaskDependencyDetector(ExecutionNodeAccessHierarchies hierarchies) {
+    @Provides
+    MissingTaskDependencyDetector createMissingTaskDependencyDetector(ExecutionNodeAccessHierarchies hierarchies) {
         return new MissingTaskDependencyDetector(hierarchies.getOutputHierarchy(), hierarchies.createInputHierarchy());
     }
 
+    @Provides
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
@@ -128,6 +134,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return executer;
     }
 
+    @Provides
     FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
         StringInterner stringInterner,
         FileCollectionSnapshotter fileCollectionSnapshotter,
@@ -144,10 +151,12 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
     }
 
+    @Provides
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
         return new DefaultFileCollectionFingerprinterRegistry(fileCollectionFingerprinterRegistrations.getRegistrants());
     }
 
+    @Provides
     InputFingerprinter createInputFingerprinter(
         FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
@@ -156,6 +165,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
     }
 
+    @Provides
     TaskExecutionModeResolver createExecutionModeResolver(
         StartParameter startParameter
     ) {

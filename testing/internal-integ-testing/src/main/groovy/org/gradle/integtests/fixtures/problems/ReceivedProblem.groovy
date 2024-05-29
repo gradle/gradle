@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.AdditionalData
 import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.InternalProblemBuilder
@@ -41,7 +42,7 @@ class ReceivedProblem implements Problem {
     private final String details
     private final List<String> solutions
     private final List<ProblemLocation> locations
-    private final Map<String, Object> additionalData
+    private final ReceivedAdditionalData additionalData
     private final ReceivedException exception
 
     ReceivedProblem(long operationId, Map<String, Object> problemDetails) {
@@ -51,7 +52,7 @@ class ReceivedProblem implements Problem {
         this.details =  problemDetails['details'] as String
         this.solutions = problemDetails['solutions'] as List<String>
         this.locations = fromList(problemDetails['locations'] as List<Object>)
-        this.additionalData = problemDetails['additionalData'] as Map<String, Object>
+        this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
     }
 
@@ -112,8 +113,16 @@ class ReceivedProblem implements Problem {
         locations
     }
 
+    <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
+        def location = locations.find {
+            locationType.isInstance(it)
+        }
+        assert location != null : "Expected a location of type $locationType, but found none."
+        return locationType.cast(location)
+    }
+
     @Override
-    Map<String, Object> getAdditionalData() {
+    ReceivedAdditionalData getAdditionalData() {
        additionalData
     }
 
@@ -335,6 +344,32 @@ class ReceivedProblem implements Problem {
         @Override
         String getPluginId() {
             pluginId
+        }
+    }
+
+    static class ReceivedAdditionalData implements AdditionalData {
+        private final Map<String, Object> data
+
+        ReceivedAdditionalData(Map<String, Object> data) {
+            if (data == null) {
+                this.data = [:]
+            } else {
+                def d = data.findAll { k, v -> v != null }
+                // GeneralData already contains asMap property; it is removed for clarity
+                if (d['asMap'] instanceof Map) {
+                    this.data = d['asMap'] as Map<String, Object>
+                } else {
+                    this.data = d
+                }
+            }
+        }
+
+        Map<String, Object> getAsMap() {
+            data
+        }
+
+        boolean containsAll(Map<String, Object> properties) {
+            data.entrySet().containsAll(properties.entrySet())
         }
     }
 }

@@ -38,7 +38,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.Hasher
-import org.gradle.internal.io.ClassLoaderObjectInputStream
+import org.gradle.internal.serialize.ClassLoaderObjectInputStream
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -104,7 +104,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         cacheBuilderFactory,
         cacheFactory,
         fileAccessTimeJournal,
-        classpathWalker,
         classpathFingerprinter,
         fileSystemAccess,
         executorFactory,

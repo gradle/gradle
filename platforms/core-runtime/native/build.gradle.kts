@@ -21,6 +21,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":files"))
 
     api(libs.jsr305)
@@ -29,7 +30,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":file-temp"))
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
 
     implementation(libs.nativePlatformFileEvents)
     implementation(libs.slf4jApi)
@@ -38,6 +39,7 @@ dependencies {
     implementation(libs.jansi)
     implementation(libs.inject)
 
+    testImplementation(testFixtures(projects.files))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 

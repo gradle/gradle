@@ -22,8 +22,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -35,18 +33,17 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
-import org.gradle.internal.resource.cached.ExternalResourceFileStore;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
 /**
  * The set of dependency management services that are created per project.
  */
-class DependencyManagementProjectScopeServices {
+class DependencyManagementProjectScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
@@ -54,6 +51,7 @@ class DependencyManagementProjectScopeServices {
     }
 
     /** This is needed in order to get the {@code taskDependencyFactory} from the current project. */
+    @Provides
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
@@ -65,6 +63,7 @@ class DependencyManagementProjectScopeServices {
         return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory);
     }
 
+    @Provides
     DependencyFactoryInternal createDependencyFactory(
         Instantiator instantiator,
         DefaultProjectDependencyFactory factory,
@@ -86,15 +85,5 @@ class DependencyManagementProjectScopeServices {
                 objectFactory,
                 projectDependencyFactory,
                 attributesFactory);
-    }
-
-    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
-        return new ByUrlCachedExternalResourceIndex(
-            "resource-at-url",
-            timeProvider,
-            cacheAccessCoordinator,
-            externalResourceFileStore.getFileAccessTracker(),
-            artifactCacheMetadata.getCacheDir().toPath()
-        );
     }
 }

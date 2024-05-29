@@ -75,5 +75,5 @@ public interface DaemonStateControl {
      */
     void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException, DaemonStoppedException;
 
-    enum State {Idle, Busy, Canceled, StopRequested, Stopped, Broken}
+    enum State {Idle, Busy, Canceled, StopRequested, Stopped, ForceStopped, Broken}
 }

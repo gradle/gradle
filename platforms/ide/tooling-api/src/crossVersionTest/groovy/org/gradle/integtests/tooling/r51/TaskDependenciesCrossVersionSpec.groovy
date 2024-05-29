@@ -19,14 +19,12 @@ package org.gradle.integtests.tooling.r51
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.model.UnsupportedMethodException
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
 

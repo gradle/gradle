@@ -130,7 +130,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     def cleanup() {
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                KnownProblemIds.assertHasKnownId(it)
+                KnownProblemIds.assertIsKnown(it)
             }
 
             if (getReceivedProblems().every {it == null }) {
@@ -207,8 +207,16 @@ abstract class AbstractIntegrationSpec extends Specification {
      * Provides best-effort groovy script syntax highlighting.
      * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
      */
+    void groovyFile(String targetBuildFile, @GroovyBuildScriptLanguage String script) {
+        groovyFile(file(targetBuildFile), script)
+    }
+
     void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
         targetBuildFile << script
+    }
+
+    void javaFile(String targetBuildFile, @Language('JAVA') String code) {
+        javaFile(file(targetBuildFile), code)
     }
 
     void javaFile(TestFile targetBuildFile, @Language('JAVA') String code) {
@@ -493,6 +501,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
         result = executer.withTasks(*tasks).run()
         return result
+    }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    protected ExecutionResult succeeds(List<String> tasks) {
+        succeeds(tasks.toArray(new String[tasks.size()]))
     }
 
     ExecutionResult getResult() {
@@ -837,11 +850,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             }
             println "    ]"
         }
-        if (problem.additionalData.size() == 1) {
-            println "    additionalData == [ '${problem.additionalData.keySet().iterator().next()}' : '${problem.additionalData.values().iterator().next()}' ]"
-        } else if (problem.additionalData.size() > 1) {
-            println "    additionalData == ["
-            problem.additionalData.each { key, value ->
+        if (problem.additionalData?.size() == 1) {
+            println "    additionalData.asMap == [ '${problem.additionalData.asMap.keySet().iterator().next()}' : '${problem.additionalData.asMap.values().iterator().next()}' ]"
+        } else if (problem.additionalData?.size() > 1) {
+            println "    additionalData.asMap == ["
+            problem.additionalData.asMap.each { key, value ->
                 println "        '$key' : '$value',"
             }
             println "    ]"

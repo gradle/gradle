@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.precondition.Requires
@@ -27,7 +29,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import java.nio.charset.Charset
 
 @Requires(IntegTestPreconditions.NotDaemonExecutor)
-class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
+class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
         executer.withArgument("--no-daemon")
@@ -101,6 +103,21 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    def "forks build with default daemon JVM args when daemon jvm criteria from build properties does not match current process"() {
+        def otherJdk = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJdk)
+        captureJavaHome()
+
+        when:
+        withInstallations(otherJdk).succeeds()
+
+        then:
+        assertDaemonUsedJvm(otherJdk)
+        wasForked()
+        daemons.daemon.stops()
+    }
+
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
         def javaHome = AvailableJavaHomes.differentJdk.javaHome
@@ -112,6 +129,22 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         when:
         executer.withJavaHome(javaHome)
         succeeds()
+
+        then:
+        wasNotForked()
+    }
+
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    def "does not fork build when daemon jvm criteria from build properties matches current process"() {
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        writeJvmCriteria(otherJdk)
+        captureJavaHome()
+
+        when:
+        executer.withJavaHome(otherJdk.javaHome)
+        withInstallations(otherJdk).succeeds()
+        assertDaemonUsedJvm(otherJdk)
 
         then:
         wasNotForked()

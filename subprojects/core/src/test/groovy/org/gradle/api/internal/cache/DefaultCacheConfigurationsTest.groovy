@@ -18,7 +18,6 @@ package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
-import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -236,13 +235,13 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.cleanup.set(Cleanup.ALWAYS)
 
         then:
-        !cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
+        !cacheConfigurations.cleanupFrequency.get().requiresCleanup(null)
 
         when:
         cacheConfigurations.cleanupHasBeenConfigured = true
 
         then:
-        cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
+        cacheConfigurations.cleanupFrequency.get().requiresCleanup(null)
     }
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {

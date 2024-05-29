@@ -16,12 +16,14 @@
 
 package org.gradle.internal.service;
 
-class ProviderWithGenericTypes {
+class ProviderWithGenericTypes implements ServiceRegistrationProvider {
+    @Provides
     Integer createInteger(Runnable action) {
         action.run();
         return 123;
     }
 
+    @Provides
     GenericRunnable<String> createString() {
         return new GenericRunnable<String>() {
             public void run() {

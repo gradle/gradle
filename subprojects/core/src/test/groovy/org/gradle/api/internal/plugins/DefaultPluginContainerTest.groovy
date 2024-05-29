@@ -25,7 +25,6 @@ import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.CustomPluginWithInjection
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification

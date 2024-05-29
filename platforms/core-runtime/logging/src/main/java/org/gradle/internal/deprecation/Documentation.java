@@ -45,6 +45,10 @@ public abstract class Documentation implements DocLink {
         return new DslReference(targetClass, property);
     }
 
+    public static Documentation kotlinDslExtensionReference(String extensionName) {
+        return new KotlinDslExtensionReference(extensionName);
+    }
+
     @Nullable
     @Override
     public String getConsultDocumentationMessage() {
@@ -170,6 +174,24 @@ public abstract class Documentation implements DocLink {
         @Override
         Map<String, String> getProperties() {
             return ImmutableMap.of("property", property, "targetClass", targetClass.getName());
+        }
+    }
+
+    private static class KotlinDslExtensionReference extends SerializableDocumentation {
+        private final String extensionName;
+
+        public KotlinDslExtensionReference(String extensionName) {
+            this.extensionName = extensionName;
+        }
+
+        @Override
+        public String getUrl() {
+            return DOCUMENTATION_REGISTRY.getKotlinDslRefForExtension(extensionName);
+        }
+
+        @Override
+        Map<String, String> getProperties() {
+            return ImmutableMap.of("extensionName", extensionName);
         }
     }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.IsolatedProject;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.file.Directory;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
@@ -37,6 +37,11 @@ public final class DefaultIsolatedProject implements IsolatedProject {
     @Override
     public String getPath() {
         return project.getPath();
+    }
+
+    @Override
+    public String getBuildTreePath() {
+        return project.getBuildTreePath();
     }
 
     @Override

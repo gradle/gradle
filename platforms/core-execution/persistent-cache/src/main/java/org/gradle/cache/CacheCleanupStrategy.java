@@ -20,6 +20,18 @@ package org.gradle.cache;
  * Specifies the details of cache cleanup, including the action to be performed and the frequency at which cache cleanup should occur.
  */
 public interface CacheCleanupStrategy {
+    CacheCleanupStrategy NO_CLEANUP = new CacheCleanupStrategy() {
+        @Override
+        public CleanupAction getCleanupAction() {
+            return CleanupAction.NO_OP;
+        }
+
+        @Override
+        public CleanupFrequency getCleanupFrequency() {
+            return CleanupFrequency.NEVER;
+        }
+    };
+
     /**
      * Returns the action to perform on cleanup.
      */

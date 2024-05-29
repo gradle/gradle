@@ -37,6 +37,7 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.events.FinishEvent
@@ -718,6 +719,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23700")
+    @Flaky(because = "https://github.com/gradle/gradle/issues/24887")
     def "build service registered as listener in an included build with no work is not restored"() {
         def onFinishMessage = "You won't see me!"
         withListenerBuildServicePlugin onFinishMessage

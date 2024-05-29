@@ -38,7 +38,6 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
@@ -78,17 +77,15 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
-import org.gradle.internal.problems.failure.CompositeStackTraceClassifier;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.FailureFactory;
-import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
-import org.gradle.internal.problems.failure.StackTraceClassifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
@@ -118,6 +115,8 @@ import java.util.List;
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
  * only needs these services if it is running in --no-daemon mode.
+ *
+ * <p>Do not use this type directly, but instead use it via {@link BuildProcessState}.</p>
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
@@ -134,21 +133,19 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         this.environment = () -> longLiving;
     }
 
-    void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
-        final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
-            registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
-            pluginServiceRegistry.registerGlobalServices(registration);
-        }
+    @Override
+    void configure(ServiceRegistration registration) {
+        super.configure(registration);
         registration.add(DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
-        registration.add(DefaultUserInputReader.class);
     }
 
+    @Provides
     ScriptFileResolver createScriptFileResolver(DefaultScriptFileResolverListeners listeners) {
         return new DefaultScriptFileResolver(listeners);
     }
 
+    @Provides
     protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
         Clock clock,
         CurrentBuildOperationRef currentBuildOperationRef,
@@ -161,85 +158,105 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
+    @Provides
     GradleBuildEnvironment createGradleBuildEnvironment() {
         return environment;
     }
 
+    @Provides
     CachingServiceLocator createPluginsServiceLocator(ClassLoaderRegistry registry) {
         return CachingServiceLocator.of(
             new DefaultServiceLocator(registry.getPluginsClassLoader())
         );
     }
 
+    @Provides
     JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
         return new DefaultJdkToolsInitializer(classLoaderFactory);
     }
 
+    @Provides
     InstanceGenerator createInstantiator(InstantiatorFactory instantiatorFactory) {
         return instantiatorFactory.decorateLenient();
     }
 
+    @Provides
     InMemoryCacheDecoratorFactory createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new CleaningInMemoryCacheDecoratorFactory(environment.isLongLivingProcess(), cacheFactory);
     }
 
+    @Provides
     ModelRuleExtractor createModelRuleInspector(List<MethodModelRuleExtractor> extractors, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
+    @Provides
     protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(List<ModelSchemaAspectExtractionStrategy> strategies) {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
+    @Provides
     protected ManagedProxyFactory createManagedProxyFactory() {
         return new ManagedProxyFactory();
     }
 
+    @Provides
     protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, List<ModelSchemaExtractionStrategy> strategies) {
         return DefaultModelSchemaExtractor.withDefaultStrategies(strategies, aspectExtractor);
     }
 
+    @Provides
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
         return new DefaultModelSchemaStore(modelSchemaExtractor);
     }
 
+    @Provides
     protected StructBindingsStore createStructBindingsStore(ModelSchemaStore schemaStore) {
         return new DefaultStructBindingsStore(schemaStore);
     }
 
+    @Provides
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
         return new ModelRuleSourceDetector();
     }
 
+    @Provides
     protected ImportsReader createImportsReader() {
         return new DefaultImportsReader();
     }
 
+    @Provides
     StringInterner createStringInterner() {
         return new StringInterner();
     }
 
+    @Provides
     InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, List<AbstractOutputPropertyAnnotationHandler> outputHandlers) {
         return new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers));
     }
 
+    @Provides
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 
+    @Provides
     OsMemoryInfo createOsMemoryInfo() {
         return new DefaultOsMemoryInfo();
     }
 
+    @Provides
     JvmMemoryInfo createJvmMemoryInfo() {
         return new DefaultJvmMemoryInfo();
     }
 
+    @Provides
     MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
+    @Provides
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
@@ -257,10 +274,12 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             domainObjectCollectionFactory);
     }
 
+    @Provides
     DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
     }
 
+    @Provides
     @Override
     PatternSpecFactory createPatternSpecFactory(ListenerManager listenerManager) {
         PatternSpecFactory patternSpecFactory = new CachingPatternSpecFactory();
@@ -268,14 +287,17 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return patternSpecFactory;
     }
 
+    @Provides
     LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
         return loggingManagerFactory.create();
     }
 
+    @Provides
     ExecutionStateChangeDetector createExecutionStateChangeDetector() {
         return new DefaultExecutionStateChangeDetector();
     }
 
+    @Provides
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         return new DefaultClassPathRegistry(
             new DefaultClassPathProvider(moduleRegistry),
@@ -283,10 +305,12 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
                 pluginModuleRegistry));
     }
 
+    @Provides
     PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
+    @Provides
     ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
         if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
             return new FlatClassLoaderRegistry(getClass().getClassLoader());
@@ -296,26 +320,28 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport, DirectInstantiator.INSTANCE);
     }
 
+    @Provides
     OverlappingOutputDetector createOverlappingOutputDetector() {
         return new DefaultOverlappingOutputDetector();
     }
 
+    @Provides
     DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
         return new DefaultWorkValidationWarningRecorder();
     }
 
+    @Provides
     AgentStatus createAgentStatus() {
         return agentStatus;
     }
 
+    @Provides
     AgentInitializer createAgentInitializer() {
         return new AgentInitializer(agentStatus);
     }
 
+    @Provides
     FailureFactory createFailureFactory() {
-        return new DefaultFailureFactory(new CompositeStackTraceClassifier(
-            new InternalStackTraceClassifier(),
-            StackTraceClassifier.USER_CODE
-        ));
+        return DefaultFailureFactory.withDefaultClassifier();
     }
 }

@@ -24,12 +24,12 @@ description = "Adds support for using JVM toolchains in projects"
 errorprone {
     disabledChecks.addAll(
         "StringCaseLocaleUsage", // 2 occurrences
-        "UnnecessaryLambda", // 2 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
@@ -45,8 +45,9 @@ dependencies {
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":resources"))
+    api(project(":toolchains-jvm-shared"))
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
     api(libs.inject)
     api(libs.jsr305)
     api(libs.nativePlatform) {
@@ -56,7 +57,6 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
@@ -74,11 +74,11 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {
     // Needed for the factory methods in the interface
-    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 

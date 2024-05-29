@@ -25,8 +25,8 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.model.CalculatedValueContainer;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
@@ -52,12 +51,12 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private final List<ModuleComponentRepository<ModuleComponentGraphResolveState>> repositories = new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final Cache<ModuleComponentIdentifier, CalculatedValueContainer<BuildableComponentResolveResult, ?>> metadataValueContainerCache;
+    private final CalculatedValueFactory calculatedValueFactory;
+    private final Cache<ModuleComponentIdentifier, CalculatedValue<BuildableComponentResolveResult>> metadataValueContainerCache;
 
-    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, CalculatedValueFactory calculatedValueFactory) {
         this.versionedComponentChooser = componentChooser;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.calculatedValueFactory = calculatedValueFactory;
         this.metadataValueContainerCache = CacheBuilder.newBuilder().weakValues().build();
     }
 
@@ -73,7 +72,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
 
         try {
-            CalculatedValueContainer<BuildableComponentResolveResult, ?> metadataValueContainer =
+            CalculatedValue<BuildableComponentResolveResult> metadataValueContainer =
                 metadataValueContainerCache.get((ModuleComponentIdentifier) identifier, () -> createValueContainerFor(identifier, componentOverrideMetadata));
             metadataValueContainer.finalizeIfNotAlready();
             metadataValueContainer.get().applyTo(result);
@@ -82,9 +81,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
     }
 
-    private CalculatedValueContainer<BuildableComponentResolveResult, ?> createValueContainerFor(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
-        return calculatedValueContainerFactory.create(toDisplayName(identifier),
-            (Supplier<BuildableComponentResolveResult>) () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata));
+    private CalculatedValue<BuildableComponentResolveResult> createValueContainerFor(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        return calculatedValueFactory.create(toDisplayName(identifier), () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata));
     }
 
     @Override

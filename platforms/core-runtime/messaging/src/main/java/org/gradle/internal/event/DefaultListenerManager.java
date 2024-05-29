@@ -22,12 +22,12 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
-import org.gradle.internal.service.AnnotatedServiceLifecycleHandler;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.ListenerService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultListenerManager implements ListenerManager, AnnotatedServiceLifecycleHandler {
+public class DefaultListenerManager implements ScopedListenerManager {
     private static final List<Class<? extends Annotation>> ANNOTATIONS = ImmutableList.of(StatefulListener.class, ListenerService.class);
     private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
@@ -64,6 +64,12 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
     @Override
     public List<Class<? extends Annotation>> getAnnotations() {
         return ANNOTATIONS;
+    }
+
+    @Nullable
+    @Override
+    public Class<? extends Annotation> getImplicitAnnotation() {
+        return null;
     }
 
     @Override
@@ -186,13 +192,7 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
         }
     }
 
-    /**
-     * Creates a child {@code ListenerManager}. All events broadcast in the child will be received by the listeners
-     * registered in the parent. However, the reverse is not true: events broadcast in the parent are not received
-     * by the listeners in the children. The child inherits the loggers of its parent, though these can be replaced.
-     *
-     * @return The child
-     */
+    @Override
     public DefaultListenerManager createChild(Class<? extends Scope> scope) {
         return new DefaultListenerManager(scope, this);
     }

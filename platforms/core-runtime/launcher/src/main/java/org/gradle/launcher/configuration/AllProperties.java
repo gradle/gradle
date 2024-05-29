@@ -33,5 +33,10 @@ public interface AllProperties {
      */
     Map<String, String> getProperties();
 
+    /**
+     * Returns all properties defined under gradle/gradle-daemon-jvm.properties that should be considered to set up build JVM configuration.
+     */
+    Map<String, String> getDaemonJvmProperties();
+
     AllProperties merge(Map<String, String> systemProperties);
 }

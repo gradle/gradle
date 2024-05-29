@@ -17,7 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
@@ -25,11 +25,16 @@ import org.gradle.api.problems.SharedProblemGroup;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class DefaultProblemBuilder implements InternalProblemBuilder {
+public  class DefaultProblemBuilder implements InternalProblemBuilder {
+
+    private static List<Class<?>> supportedAdditionalDataTypes = ImmutableList.<Class<?>>of(
+        GeneralDataSpec.class,
+        DeprecationDataSpec.class,
+        TypeValidationDataSpec.class
+    );
+
     private ProblemId id;
     private String contextualLabel;
     private Severity severity;
@@ -38,7 +43,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private DocLink docLink;
     private List<String> solutions;
     private RuntimeException exception;
-    private final Map<String, Object> additionalData;
+    private AdditionalData additionalData;
     private boolean collectLocation = false;
 
     public DefaultProblemBuilder(Problem problem) {
@@ -50,47 +55,44 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
-        this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
+        this.additionalData = problem.getAdditionalData();
     }
 
     public DefaultProblemBuilder() {
         this.locations = new ArrayList<ProblemLocation>();
         this.solutions = new ArrayList<String>();
-        this.additionalData = new HashMap<String, Object>();
+        this.additionalData = null;
     }
 
     @Override
     public Problem build() {
-        // Label is mandatory
+        // id is mandatory
         if (id == null) {
-            return invalidProblem("missing-id", "Problem id must be specified");
+            return invalidProblem("missing-id", "Problem id must be specified", null);
         } else if (id.getGroup() == null) {
-            return invalidProblem("missing-parent", "Problem id must have a parent");
+            return invalidProblem("missing-parent", "Problem id must have a parent", null);
         }
 
-        // We need to explicitly manage serializing the data from the daemon to the tooling API client, hence the restriction.
-        for (Object value : additionalData.values()) {
-            if (!(value instanceof String)) {
-                return invalidProblem("invalid-additional-data", "ProblemBuilder.additionalData() only supports values of type String");
-            }
+        if (additionalData instanceof UnsupportedAdditionalDataSpec) {
+            return invalidProblem("unsupported-additional-data", "Unsupported additional data type", "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec)additionalData).getType().getName() + ". Supported types are: " + supportedAdditionalDataTypes);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
         return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
     }
 
-    private Problem invalidProblem(String id, String displayName) {
+    private Problem invalidProblem(String id, String displayName, String contextualLabel) {
         id(id, displayName, new DefaultProblemGroup(
             "problems-api",
             "Problems API")
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.id, Severity.WARNING, null);
-        return new DefaultProblem(problemDefinition, null,
+        return new DefaultProblem(problemDefinition, contextualLabel,
             ImmutableList.<String>of(),
             ImmutableList.<ProblemLocation>of(),
             null,
             getExceptionForProblemInstantiation(),
-            ImmutableMap.<String, Object>of());
+            null);
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
@@ -209,8 +211,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder additionalData(String key, Object value) {
-        this.additionalData.put(key, value);
+    @SuppressWarnings("unchecked")
+    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
+        if (!supportedAdditionalDataTypes.contains(specType)) {
+            additionalData = new UnsupportedAdditionalDataSpec(specType);
+        } else if (additionalData == null) {
+            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(specType);
+            config.execute((U) additionalDatabuilder);
+            additionalData = additionalDatabuilder.build();
+        } else {
+            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(additionalData);
+            config.execute((U) additionalDatabuilder);
+            additionalData = additionalDatabuilder.build();
+        }
         return this;
     }
 
@@ -227,5 +240,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     protected void addLocation(ProblemLocation location) {
         this.locations.add(location);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static class UnsupportedAdditionalDataSpec implements AdditionalData {
+
+        private final Class<?> type;
+
+        UnsupportedAdditionalDataSpec(Class<?> type) {
+            this.type = type;
+        }
+
+        public Class<?> getType() {
+            return type;
+        }
     }
 }

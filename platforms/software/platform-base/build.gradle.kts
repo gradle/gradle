@@ -12,11 +12,11 @@ errorprone {
     )
 }
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
-    api(project(":dependency-management"))
     api(project(":files"))
     api(project(":logging"))
     api(project(":model-core"))
@@ -25,6 +25,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(project(":dependency-management"))
     implementation(project(":execution"))
 
     implementation(libs.commonsLang)

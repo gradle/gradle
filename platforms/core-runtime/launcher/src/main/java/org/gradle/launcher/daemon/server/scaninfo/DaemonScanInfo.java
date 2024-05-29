@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server.scaninfo;
 
 import org.gradle.api.Action;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A means to expose Daemon information _specifically_ for the purpose of build scans. The associated plugin obtains this via the service registry and queries all values when it is applied.
@@ -25,6 +27,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * This API is a contract with the plugin. Any binary incompatible changes will require changes to the plugin.
  */
 @UsedByScanPlugin
+@ServiceScope(Scope.Global.class)
 public interface DaemonScanInfo {
     /**
      * @return the number of builds that the daemon has run
