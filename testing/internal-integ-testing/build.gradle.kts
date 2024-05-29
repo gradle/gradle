@@ -99,6 +99,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":serialization"))
     implementation(project(":time"))
+    implementation(projects.toolchainsJvmShared)
     implementation(project(":build-process-services"))
 
     implementation(testFixtures(project(":build-operations")))

@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,6 +32,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
@@ -90,7 +90,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
         return new DefaultDaemonContext(configuration.getUid(),
             canonicalize(Jvm.current().getJavaHome()),
-            JavaVersion.current(),
+            JavaLanguageVersion.current(),
             configuration.getBaseDir(),
             processEnvironment.maybeGetPid(),
             configuration.getIdleTimeout(),

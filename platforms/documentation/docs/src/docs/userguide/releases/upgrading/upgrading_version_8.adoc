@@ -326,6 +326,15 @@ In implementing this spec, we have introduced the following breaking changes to 
 
 In addition, the corresponding Tooling API events are changed to reflect the new design.
 
+==== Changes to collection properties
+
+The following incubating API introduced in 8.7 have been removed:
+
+* `MapProperty.insert*(...)`
+* `HasMultipleValues.append*(...)`
+
+Replacements that better handle conventions are under consideration for a future 8.x release.
+
 ==== Upgrade to Groovy 3.0.21
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.21.html[Groovy 3.0.21].

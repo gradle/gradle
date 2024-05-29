@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.fixtures.daemon
 
-import org.gradle.api.JavaVersion
+
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
@@ -51,7 +52,7 @@ class DaemonContextParserTest extends Specification {
         DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString, GradleVersion.version("8.7"))
         then:
         parsedContext != null
-        parsedContext.javaVersion == JavaVersion.VERSION_1_8 // hardcoded in fixture
+        parsedContext.javaVersion == JavaLanguageVersion.of(8) // hardcoded in fixture
     }
 
     def "parses entries without agent"() {
@@ -85,7 +86,7 @@ class DaemonContextParserTest extends Specification {
         then:
         parsedContext != null
         !parsedContext.shouldApplyInstrumentationAgent()
-        parsedContext.javaVersion == JavaVersion.VERSION_11
+        parsedContext.javaVersion == JavaLanguageVersion.of(11)
     }
 
     def "parses entries with agent"() {

@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
@@ -42,6 +41,7 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -318,15 +318,15 @@ public class ProviderConnection {
         // Gradle daemon properties have been defined
         if (daemonParameters.getRequestedJvmCriteria() != null) {
             DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-            daemonParameters.applyDefaultsFor(JavaVersion.toVersion(criteria.getJavaVersion()));
+            daemonParameters.applyDefaultsFor(criteria.getJavaVersion());
             return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
         } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null && daemonParameters.getRequestedJvmBasedOnJavaHome() != Jvm.current()) {
             // Either the TAPI client or org.gradle.java.home has been provided
-            JavaVersion detectedVersion = jvmVersionDetector.getJavaVersion(daemonParameters.getRequestedJvmBasedOnJavaHome());
+            JavaLanguageVersion detectedVersion = JavaLanguageVersion.of(jvmVersionDetector.getJavaVersionMajor(daemonParameters.getRequestedJvmBasedOnJavaHome()));
             daemonParameters.applyDefaultsFor(detectedVersion);
             return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
         } else {
-            daemonParameters.applyDefaultsFor(JavaVersion.current());
+            daemonParameters.applyDefaultsFor(JavaLanguageVersion.current());
             return new DaemonRequestContext(Jvm.current(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
         }
     }
