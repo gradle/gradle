@@ -476,12 +476,12 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         writeJavaCausingTwoCompilationWarnings("Foo")
 
         when:
-        executer.withArguments("--info", "--stacktrace")
+        executer.withArguments("--info")
         withInstallations(AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8))
         succeeds(":compileJava")
 
         then:
-        result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        result.assertOutputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
     }
 
     /**
