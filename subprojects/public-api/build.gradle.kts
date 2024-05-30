@@ -62,6 +62,8 @@ fun registerApiJarTask(artifactName: String, dependencies: NamedDomainObjectProv
             }.files
         })
         destinationDirectory = layout.buildDirectory.dir("public-api/${artifactName}")
+        // This is needed because of the duplicate package-info.class files
+        duplicatesStrategy = DuplicatesStrategy.WARN
     }
 
     publishing {
@@ -117,9 +119,4 @@ fun registerApiJarTask(artifactName: String, dependencies: NamedDomainObjectProv
     }
 }
 
-val coreApiTask = registerApiJarTask("core-api", configurations.coreRuntimeClasspath)
-val fullApiTask = registerApiJarTask("full-api", configurations.runtimeClasspath)
-
-tasks.register("jarPublicApi") {
-    dependsOn(coreApiTask, fullApiTask)
-}
+registerApiJarTask("gradle-api", configurations.runtimeClasspath)

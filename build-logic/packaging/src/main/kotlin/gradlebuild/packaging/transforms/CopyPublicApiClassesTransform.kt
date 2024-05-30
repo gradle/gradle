@@ -16,7 +16,6 @@
 
 package gradlebuild.packaging.transforms
 
-import gradlebuild.basics.PublicApi
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -43,8 +42,8 @@ abstract class CopyPublicApiClassesTransform : TransformAction<TransformParamete
         val outputRoot = outputs.dir("public-api")
         zipFile.stream().forEach { entry ->
             if (entry.name.endsWith(".class")) {
-                val packageName = entry.name.substringBeforeLast('/').replace('/', '.')
-                if (PublicApi.isPublicApiPackage(packageName)) {
+                val packageName = entry.name.substringBeforeLast('/').replace('/', '.') + "."
+                if (packageName.startsWith("org.gradle.")) {
                     val outputFile = outputRoot.resolve(entry.name)
                     outputFile.parentFile.mkdirs()
                     zipFile.getInputStream(entry).use { input ->
