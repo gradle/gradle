@@ -17,11 +17,11 @@
 package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelController
+import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
@@ -46,14 +46,14 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         getBuildFinishedAction() >> buildFinishedAction
     }
 
-    def buildEventConsumer = Mock(BuildEventConsumer)
+    def sideEffectExecutor = Mock(BuildTreeModelSideEffectExecutor)
     def payloadSerializer = Mock(PayloadSerializer) {
         deserialize(serializedAction) >> phasedAction
     }
     def buildController = Mock(BuildTreeLifecycleController)
     def modelController = Stub(BuildTreeModelController)
 
-    def runner = new ClientProvidedPhasedActionRunner(Stub(BuildControllerFactory), payloadSerializer, buildEventConsumer)
+    def runner = new ClientProvidedPhasedActionRunner(Stub(BuildControllerFactory), payloadSerializer, sideEffectExecutor)
 
     def "can run actions and results are sent to event consumer"() {
         def result1 = 'result1'
@@ -81,12 +81,12 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         }
         1 * projectsLoadedAction.execute(_) >> result1
         1 * buildFinishedAction.execute(_) >> result2
-        1 * buildEventConsumer.dispatch({
+        1 * sideEffectExecutor.runSideEffect(_, {
             it instanceof PhasedBuildActionResult &&
                 it.phase == PhasedActionResult.Phase.PROJECTS_LOADED &&
                 it.result == serializedResult1
         })
-        1 * buildEventConsumer.dispatch({
+        1 * sideEffectExecutor.runSideEffect(_, {
             it instanceof PhasedBuildActionResult &&
                 it.phase == PhasedActionResult.Phase.BUILD_FINISHED &&
                 it.result == serializedResult2
@@ -116,7 +116,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
             throw failure
         }
         0 * buildFinishedAction.execute(_)
-        0 * buildEventConsumer.dispatch(_)
+        0 * sideEffectExecutor.runSideEffect(_, _)
     }
 
     def "build failures are propagated"() {
@@ -147,7 +147,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         }
         1 * phasedAction.getProjectsLoadedAction() >> null
         1 * phasedAction.getBuildFinishedAction() >> null
-        0 * buildEventConsumer.dispatch(_)
+        0 * sideEffectExecutor.runSideEffect(_, _)
     }
 
     def "run tasks if defined"() {
