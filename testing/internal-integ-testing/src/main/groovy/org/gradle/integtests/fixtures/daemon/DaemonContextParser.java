@@ -27,6 +27,7 @@ import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
@@ -39,8 +40,8 @@ public class DaemonContextParser {
     public static DaemonContext parseFromFile(DaemonLogFile log, GradleVersion version) {
         try (Stream<String> lines = log.lines()) {
             return lines.map(line -> parseFrom(line, version)).filter(Objects::nonNull).findFirst().orElse(null);
-        } catch (UncheckedIOException e) {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + log.getFile().getAbsolutePath() + "].", e.getCause());
+        } catch (IOException | UncheckedIOException e) {
+            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + log.getFile().getAbsolutePath() + "].", e);
         }
     }
 

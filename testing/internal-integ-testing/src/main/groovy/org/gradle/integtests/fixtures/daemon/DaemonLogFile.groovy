@@ -24,6 +24,9 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.stream.Stream
 
+/**
+ * A wrapper class to read the daemon log file.
+ */
 class DaemonLogFile {
     private final File logFile
     private final Charset charset
@@ -37,11 +40,11 @@ class DaemonLogFile {
         return logFile
     }
 
-    String getText() {
+    String getText() throws IOException {
         return logFile.getText(charset.name())
     }
 
-    Stream<String> lines() {
+    Stream<String> lines() throws IOException {
         return Files.lines(logFile.toPath(), charset)
     }
 
