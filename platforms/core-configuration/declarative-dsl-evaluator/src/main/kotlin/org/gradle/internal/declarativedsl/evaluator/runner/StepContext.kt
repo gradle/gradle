@@ -16,7 +16,9 @@
 
 package org.gradle.internal.declarativedsl.evaluator.runner
 
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
@@ -33,8 +35,10 @@ data class AnalysisStepContext(
 
 
 data class AnalysisStepResult(
+    val evaluationSchema: EvaluationSchema,
     val languageTreeResult: LanguageTreeResult,
     val resolutionResult: ResolutionResult,
+    val resolutionTrace: ResolutionTrace,
     val assignmentTrace: AssignmentTrace
 ) : StepResult
 

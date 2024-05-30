@@ -74,8 +74,8 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
             failureReasons += DocumentCheckFailures(checkResults)
         }
 
-        val trace = assignmentTrace(resolution)
-        val assignmentErrors = trace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
+        val assignmentTrace = assignmentTrace(resolution)
+        val assignmentErrors = assignmentTrace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
         if (assignmentErrors.isNotEmpty()) {
             failureReasons += AssignmentErrors(assignmentErrors)
         }
@@ -83,7 +83,7 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
             return NotEvaluated(failureReasons)
         }
 
-        return EvaluationResult.Evaluated(AnalysisStepResult(languageModel, resolution, trace))
+        return EvaluationResult.Evaluated(AnalysisStepResult(evaluationSchema, languageModel, resolution, resolver.trace, assignmentTrace))
     }
 
     private

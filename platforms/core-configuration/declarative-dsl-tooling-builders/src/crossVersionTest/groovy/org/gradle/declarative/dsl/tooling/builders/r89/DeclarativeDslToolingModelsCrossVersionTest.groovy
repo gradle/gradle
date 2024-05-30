@@ -22,10 +22,17 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.dom.DataStructuralEqualityKt
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.LanguageTreeToDomKt
+import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils
 import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
+import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
+import org.gradle.internal.declarativedsl.parsing.ParserKt
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.tooling.ModelBuilder
 
@@ -63,14 +70,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.dcl") << ecosystemPluginInSettings
 
         file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
@@ -91,12 +91,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         withSoftwareTypePlugins().prepareToExecute()
 
         file("settings.gradle.dcl") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
+            $ecosystemPluginInSettings
             conventions {
                 testSoftwareType {
                     id = "convention"
@@ -110,19 +105,43 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
 
         then:
-        model != null
-
         def evaluator = SimpleAnalysisEvaluator.@Companion.withSchema(model.settingsSequence, model.projectSequence)
         def settings = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text)
         def project = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text)
 
-        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.keySet().collect { it.key }.toSet()
-        ["project"].toSet() == project.keySet().collect { it.key }.toSet()
+        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
+        ["project"].toSet() == project.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
 
         and: 'conventions get properly applied'
-        ((project.values()[0] as EvaluationResult.Evaluated).stepResult as AnalysisStepResult).assignmentTrace.resolvedAssignments.entrySet().any {
+        // check the conventions in the resolution results, they should be there, and it is independent of the DOM overlay
+        def projectEvaluated = project.stepResults.values()[0] as EvaluationResult.Evaluated<AnalysisStepResult>
+        projectEvaluated.stepResult.assignmentTrace.resolvedAssignments.entrySet().any {
             it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "convention"
         }
+
+        and: 'client can produce a build file document with conventions applied from settings'
+        documentIsEquivalentTo(
+            """
+            testSoftwareType {
+                id = "convention"
+                foo {
+                    bar = "baz"
+                }
+            }
+            """,
+            AnalysisDocumentUtils.INSTANCE.documentWithConventions(settings, project).document
+        )
+    }
+
+    static String getEcosystemPluginInSettings() {
+        """
+        pluginManagement {
+            includeBuild("plugins")
+        }
+        plugins {
+            id("com.example.test-software-type")
+        }
+        """.stripMargin()
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
@@ -313,4 +332,16 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         }
     }
 
+    private static boolean documentIsEquivalentTo(
+        String expectedDocumentText,
+        def actualDocument // can't declare it as DeclarativeDocument, throws NCDFE from the test runner (???)
+    ) {
+        def doc = actualDocument as DeclarativeDocument
+        def parsed = ParserKt.parse(expectedDocumentText)
+        def languageTree = new DefaultLanguageTreeBuilder().build(
+            parsed, new SourceIdentifier("test")
+        )
+        def expectedDocument = LanguageTreeToDomKt.toDocument(languageTree)
+        DataStructuralEqualityKt.structurallyEqualsAsData(doc, expectedDocument)
+    }
 }

@@ -39,8 +39,7 @@ class ConventionApplicationHandler(private val softwareTypeConventionRepository:
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         // Find all the software types that are referenced in the build file
-        val referencedSoftwareTypes = resolutionResult.nestedObjectAccess
-            .mapNotNullTo(mutableSetOf()) { it.dataObject.accessor.softwareTypeNameOrNull() }
+        val referencedSoftwareTypes = findUsedSoftwareTypeNames(resolutionResult)
             .mapNotNull(softwareTypeConventionRepository::findConventions)
 
         with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
@@ -57,12 +56,18 @@ class ConventionApplicationHandler(private val softwareTypeConventionRepository:
             )
         }
     }
+}
 
-    private
+
+internal
+fun findUsedSoftwareTypeNames(resolutionResult: ResolutionResult): Set<String> {
     fun ConfigureAccessor.softwareTypeNameOrNull(): String? =
         if (this is ConfigureAccessor.Custom)
             customAccessorIdentifier.removePrefix("$SOFTWARE_TYPE_ACCESSOR_PREFIX:").takeIf { it != customAccessorIdentifier }
         else null
+
+    return resolutionResult.nestedObjectAccess
+        .mapNotNullTo(mutableSetOf()) { it.dataObject.accessor.softwareTypeNameOrNull() }
 }
 
 
