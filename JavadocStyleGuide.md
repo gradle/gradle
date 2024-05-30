@@ -10,7 +10,7 @@ The basic formatting of Javadoc blocks is as seen in this example:
 /**
  * Returns an Image object that can then be painted on the screen.
  * <p>
- * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. 
+ * The url argument must specify an absolute {@link URL}. 
  * The name argument is a specifier that is relative to the url argument.
  * This method always returns immediately, whether or not the image exists. 
  *
@@ -71,21 +71,12 @@ Each paragraph is denoted by a `<p>` which is placed on a separate line:
  */
 ```
 
-The inline tag `{@link URL}`, which converts to an HTML hyperlink pointing to the documentation for the URL class. 
-This inline tag can be used anywhere that a comment can be written, such as in the text following block tags:
-
-```java
-/**
- * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. The name
- */
-```
-
 HTML tags for other block-level elements, such as `<ul>` or `<table>`, are not preceded with `<p>`.
 
 ### 1.1.4 Symbols
 
 Entities for the less than symbol (<) and the greater than symbol (>) should be written as `&lt`; and `&gt;`. 
-Similarly, the ampersand (&) should be written as `&amp;`.
+Similarly, the ampersand (&) should be written as `&amp;`:
 
 ```java
 /**
@@ -95,12 +86,20 @@ Similarly, the ampersand (&) should be written as `&amp;`.
 
 ### 1.1.5 Links
 
-The `{@link <class or method reference>}` tag is specifically used to link to the Javadoc of other classes and methods. 
-This is an inline tag that converts to an HTML hyperlink pointing to the documentation of the given class or method reference
+The `{@link <class or method reference>}` tag is specifically used to link to the Javadoc of other classes and methods:
 
 ```java
 /**
- * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. The name
+ * The url argument must specify an absolute {@link classname}. The name
+ */
+```
+
+To add a reference to an external URL, use `<a href="URL#value">label</a>`.
+This adds a link as defined by `URL#value`. The `URL#value` is a relative or absolute URL:
+
+```java
+/**
+ * This is a link to <a href="http://www.google.com">Google</a>. The name
  */
 ```
 
@@ -115,6 +114,8 @@ Use `<code>...</code>` or `{@code ... }` style for keywords and names including:
 - field names
 - argument names
 - code examples (see section 1.3 below)
+
+For example:
 
 ```java
 /**
@@ -175,7 +176,7 @@ This fragment is very important: it is the only part of the text that appears in
 `<pre>` is the default HTML tag for preformatted text.
 All code blocks and snippets should be wrapped in `<pre>...</pre>` at minimum.
 
-Code blocks are formatted using `highlight.js` using the `<code>` tag.
+Code blocks are formatted using [`highlight.js`](https://highlightjs.org/) using the `<code>` tag.
 All code blocks and snippets should be wrapped in `<code class="language-*****"></code>` to be automatically highlighted.
 Make sure the correct language is added to the class name: `language-kotlin`, `language-groovy`, or `language-java`.
 
@@ -217,12 +218,12 @@ public Image getImage(URL url, String name) {}
 
 ## 1.5 A note on IDEs
 
-IntelliJ IDEA will display <p> or an empty * as a new line:
+IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
 
 ```java
 /**
  * A
- *              // <- this will be rendered as <br>
+ *
  * B
  ```
 
