@@ -69,6 +69,10 @@ fun registerApiJarTask(artifactName: String, dependencies: NamedDomainObjectProv
             create<MavenPublication>(artifactName) {
                 groupId = "org.gradle.experimental"
                 artifactId = artifactName
+                version = moduleIdentity.snapshot
+                    .map { moduleIdentity.version.get().baseVersion.version + "-SNAPSHOT" }
+                    .orElse(moduleIdentity.version.map { it.version!! })
+                    .get()
                 artifact(task)
 
                 pom {
