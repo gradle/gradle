@@ -188,7 +188,7 @@ Make sure the correct language is added to the class name: `language-kotlin`, `l
 
 ```java
 /**
- * <pre class='kotlin autoTested'><code class="language-kotlin">
+ * <pre><code class="language-kotlin">
  * project.ext.prop1 = "foo"
  * task doStuff {
  *     ext.prop2 = "bar"
@@ -204,11 +204,26 @@ In order to label the coding language used in the multi-line snippet, you can us
 /**
  * <div class="code-block">
  * <span class="label">Groovy</span>
- * <pre class='groovy autoTested'><code class="language-groovy">
+ * <pre><code class="language-groovy">
  * defaultTasks('some-task')
  * reportsDir = file('reports')
  * </code></pre>
  * </div>
+ */
+```
+
+To automatically test your code blocks and multi-line snippets, you must add the `autoTested` class to the <pre> tag.
+Your project must have a test class that extends [`AbstractAutoTestedSamplesTest`](https://github.com/gradle/gradle/blob/master/testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/AbstractAutoTestedSamplesTest.groovy) to run them:
+
+```java
+/**
+ * <pre class='kotlin autoTested'><code class="language-kotlin">
+ * project.ext.prop1 = "foo"
+ * task doStuff {
+ *     ext.prop2 = "bar"
+ * }
+ * subprojects { ext.${prop3} = false }
+ * </code></pre>
  */
 ```
 
@@ -251,3 +266,12 @@ If you want to stop IntelliJ IDEA from auto closing HTML tags:
 `Settings -> Editor -> General -> Smart Keys -> "Insert closing tag on tag completion"`
 
 ### 1.5.2 Android Studio
+
+Android studio will not display javadoc following a `<p>` so make sure your summary fragment is well detailed:
+
+```java
+/**
+ * A // Displayed
+ * <p>
+ * B // Not displayed
+ ```
