@@ -256,7 +256,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     Set<Object> getDependsOn();
 
     /**
-     * <p>Sets the dependencies of this task. <a href="./Task.html#dependencies">here</a> for a description of the types of
+     * <p>Sets the dependencies of this task. See <a href="./Task.html#dependencies">here</a> for a description of the types of
      * objects which can be used as task dependencies.</p>
      *
      * @param dependsOnTasks The set of task paths.
