@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.models.BuildTreeModel
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
 
@@ -30,9 +31,10 @@ class ConfigurationCacheAwareBuildTreeModelCreator(
         }
     }
 
-    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>): T {
+    override fun <T : Any?> fromBuildModel(action: BuildTreeModelAction<out T>): T? {
         return cache.loadOrCreateModel {
-            delegate.fromBuildModel(action)
-        }
+            val model = delegate.fromBuildModel(action)
+            if (model == null) BuildTreeModel.NullModel else BuildTreeModel.Model(model)
+        }.result()
     }
 }

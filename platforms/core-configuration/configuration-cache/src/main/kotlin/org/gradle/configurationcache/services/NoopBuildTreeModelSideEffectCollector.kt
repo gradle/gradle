@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.cacheentry
+package org.gradle.configurationcache.services
 
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.util.Path
-import java.io.File
+import org.gradle.internal.buildtree.BuildTreeModelSideEffectCollector
+import org.gradle.internal.buildtree.IsolatedBuildTreeModelSideEffect
 
 
 /**
- * Data stored in the "entry details" file. Provides some metadata about the cache entry.
+ * Implementation of [BuildTreeModelSideEffectCollector] that does nothing.
  */
-internal
-class EntryDetails(
-    val rootDirs: List<File>,
-    val intermediateModels: Map<ModelKey, BlockAddress>,
-    val projectMetadata: Map<Path, BlockAddress>,
-    val sideEffects: List<BlockAddress>,
-)
+class NoopBuildTreeModelSideEffectCollector : BuildTreeModelSideEffectCollector {
+    override fun <T : Any> onSideEffect(sideEffect: IsolatedBuildTreeModelSideEffect<T>) {}
+}
