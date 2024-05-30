@@ -21,15 +21,16 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.extensions.core.popSingletonProperty
-import org.gradle.internal.extensions.core.setSingletonProperty
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
-import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.extensions.core.extra
+import org.gradle.internal.extensions.core.popSingletonProperty
+import org.gradle.internal.extensions.core.setSingletonProperty
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
@@ -52,6 +53,9 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
     private
     val afterProject = mutableListOf<IsolatedProjectAction>()
 
+    private
+    val allprojects = mutableListOf<IsolatedProjectAction>()
+
     override fun beforeProject(action: IsolatedProjectAction) {
         // TODO:isolated encode Application instances as part of the Environment to avoid waste
         beforeProject.add(withUserCodeApplicationContext(action))
@@ -59,6 +63,10 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     override fun afterProject(action: IsolatedProjectAction) {
         afterProject.add(withUserCodeApplicationContext(action))
+    }
+
+    override fun allprojects(action: IsolatedAction<in Project>) {
+        allprojects.add(withUserCodeApplicationContext(action))
     }
 
     private
@@ -72,21 +80,22 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
             }
         } ?: action
 
-    override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
-        beforeProject.isEmpty() && afterProject.isEmpty() -> null
+    override fun isolateFor(owner: Gradle): ProjectEvaluationListener? = when {
+        beforeProject.isEmpty() && afterProject.isEmpty() && allprojects.isEmpty() -> null
         else -> {
             val isolate = isolate(
-                IsolatedProjectActions(beforeProject, afterProject),
-                IsolateOwners.OwnerGradle(gradle)
+                IsolatedProjectActions(beforeProject, afterProject, allprojects),
+                IsolateOwners.OwnerGradle(owner)
             )
             clear()
-            IsolatedProjectEvaluationListener(gradle, isolate)
+            IsolatedProjectEvaluationListener(owner, isolate)
         }
     }
 
     override fun clear() {
         beforeProject.clear()
         afterProject.clear()
+        allprojects.clear()
     }
 
     private
@@ -99,7 +108,8 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 private
 data class IsolatedProjectActions(
     val beforeProject: IsolatedProjectActionList,
-    val afterProject: IsolatedProjectActionList
+    val afterProject: IsolatedProjectActionList,
+    val allprojects: IsolatedProjectActionList
 )
 
 
@@ -111,6 +121,9 @@ class IsolatedProjectEvaluationListener(
 
     override fun beforeEvaluate(project: Project) {
         val actions = isolatedActions()
+        if (actions.allprojects.isNotEmpty()) {
+            executeAll(actions.allprojects, project)
+        }
         // preserve isolate semantics between `beforeProject` and `afterProject`
         project.setSingletonProperty(actions)
         executeAll(actions.beforeProject, project)

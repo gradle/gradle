@@ -50,4 +50,7 @@ public interface GradleLifecycle {
      */
     @Incubating
     void afterProject(IsolatedAction<? super Project> action);
+
+    @Incubating
+    void allprojects(IsolatedAction<? super Project> action);
 }

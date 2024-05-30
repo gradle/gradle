@@ -115,7 +115,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
-                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    crossProjectConfigurator.rootProject(rootProject, rootProjectActions);
                 }
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
@@ -649,6 +649,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             if (gradle.projectsLoaded) {
                 throw new IllegalStateException("GradleLifecycle#" + methodName + " cannot be called after settings have been evaluated.");
             }
+        }
+
+        @Override
+        public void allprojects(IsolatedAction<? super Project> action) {
+            gradle.isolatedProjectEvaluationListenerProvider.allprojects(action);
         }
     }
 }
