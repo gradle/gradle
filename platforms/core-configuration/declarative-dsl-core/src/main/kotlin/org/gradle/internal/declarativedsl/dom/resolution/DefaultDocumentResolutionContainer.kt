@@ -57,8 +57,8 @@ import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 
 
-class DocumentWithResolution internal constructor(
-    val document: LanguageTreeBackedDocument,
+class DocumentWithResolution(
+    val document: DeclarativeDocument,
     val resolutionContainer: DocumentResolutionContainer
 )
 

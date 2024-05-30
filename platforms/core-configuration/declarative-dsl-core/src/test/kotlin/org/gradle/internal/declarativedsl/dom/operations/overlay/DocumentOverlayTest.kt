@@ -26,7 +26,7 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.DomTestUtil
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.operations.overlay.DocumentOverlay.overlayResolvedDocuments
-import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -316,7 +316,7 @@ object DocumentOverlayTest {
 
         val result = overlayResolvedDocuments(underlay, overlay)
 
-        val resolutionDump = dumpDocumentWithResolution(result.document, result.overlayResolutionContainer)
+        val resolutionDump = dumpDocumentWithResolution(DocumentWithResolution(result.document, result.overlayResolutionContainer))
 
         assertEquals(
             """
@@ -358,11 +358,10 @@ object DocumentOverlayTest {
             resolvedDocument("configuring { b = 4 }")
         )
 
-        val result = docs.map { it.document as DeclarativeDocument to it.resolutionContainer }
-            .reduce { (underlayDoc, underlayRes), (overlayDoc, overlayRes) ->
-                val overlayResult = overlayResolvedDocuments(underlayDoc, underlayRes, overlayDoc, overlayRes)
-                overlayResult.document to overlayResult.overlayResolutionContainer
-            }
+        val result = docs.reduce { acc, it ->
+            val overlayResult = overlayResolvedDocuments(acc, it)
+            DocumentWithResolution(overlayResult.document, overlayResult.overlayResolutionContainer)
+        }
 
         assertEquals(
             """
@@ -377,16 +376,16 @@ object DocumentOverlayTest {
                     - literal(4) -> literal
 
             """.trimIndent(),
-            dumpDocumentWithResolution(result.first, result.second)
+            dumpDocumentWithResolution(result)
         )
     }
 
     private
-    fun dumpDocumentWithResolution(document: DeclarativeDocument, resolution: DocumentResolutionContainer) =
+    fun dumpDocumentWithResolution(documentWithResolution: DocumentWithResolution) =
         DomTestUtil.printDomByTraversal(
-            document,
-            { "* $it -> ${prettyPrintResolution(resolution.data(it))}" },
-            { "- $it -> ${prettyPrintResolution(resolution.data(it))}" },
+            documentWithResolution.document,
+            { "* $it -> ${prettyPrintResolution(documentWithResolution.resolutionContainer.data(it))}" },
+            { "- $it -> ${prettyPrintResolution(documentWithResolution.resolutionContainer.data(it))}" },
         )
 
     private
