@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -32,7 +32,7 @@ public class BuildControllerFactory {
     private final BuildCancellationToken buildCancellationToken;
     private final BuildStateRegistry buildStateRegistry;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
-    private final BuildEventConsumer buildEventConsumer;
+    private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
 
     public BuildControllerFactory(
@@ -40,18 +40,18 @@ public class BuildControllerFactory {
         BuildCancellationToken buildCancellationToken,
         BuildStateRegistry buildStateRegistry,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        BuildEventConsumer buildEventConsumer,
+        BuildTreeModelSideEffectExecutor sideEffectExecutor,
         PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
         this.buildStateRegistry = buildStateRegistry;
-        this.buildEventConsumer = buildEventConsumer;
+        this.sideEffectExecutor = sideEffectExecutor;
         this.parameterCarrierFactory = parameterCarrierFactory;
         this.payloadSerializer = payloadSerializer;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
-        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer, payloadSerializer);
+        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, parameterCarrierFactory, sideEffectExecutor, payloadSerializer);
     }
 }
