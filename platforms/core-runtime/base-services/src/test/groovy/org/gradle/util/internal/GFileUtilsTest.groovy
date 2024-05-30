@@ -44,7 +44,7 @@ two
 three
 """
         when:
-        def out = GFileUtils.tail(f, 2)
+        def out = org.gradle.util.GFileUtils.tail(f, 2)
 
         then:
         out == """two

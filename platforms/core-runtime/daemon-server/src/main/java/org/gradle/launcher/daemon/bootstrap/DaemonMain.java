@@ -168,7 +168,8 @@ public class DaemonMain extends EntryPoint {
         PrintStream result;
         try {
             Files.createParentDirs(daemonLog);
-            result = new PrintStream(new FileOutputStream(daemonLog), true);
+            // Note that DaemonDiagnostics class reads this log.
+            result = new PrintStream(new FileOutputStream(daemonLog), true, "UTF-8");
         } catch (Exception e) {
             throw new RuntimeException("Unable to create daemon log file", e);
         }
