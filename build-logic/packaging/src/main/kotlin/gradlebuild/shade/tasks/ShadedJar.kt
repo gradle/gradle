@@ -42,6 +42,9 @@ abstract class ShadedJar : DefaultTask() {
     @get:Input
     abstract val ignoredPackages: SetProperty<String>
 
+    @get:Input
+    abstract val keepResources: SetProperty<String>
+
     @get:InputFile
     abstract val inputJar: RegularFileProperty
 
@@ -65,6 +68,7 @@ abstract class ShadedJar : DefaultTask() {
             keepDirectories()
             doNotRenamePackages(unshadedPackages.get())
             excludePackages(ignoredPackages.get())
+            keepResources(keepResources.get())
         }
     }
 }

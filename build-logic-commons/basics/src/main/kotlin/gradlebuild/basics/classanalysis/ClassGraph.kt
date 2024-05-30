@@ -77,6 +77,10 @@ class ClassDetails(val outputClassName: String) {
     val allDependencies: Set<ClassDetails>
         get() = dependencies + methods.flatMap { it.value.dependencies.map { it.owner } }
 
+    override fun toString(): String {
+        return outputClassName
+    }
+
     /**
      * Returns the method of this class with the given signature
      */
@@ -91,4 +95,8 @@ class ClassDetails(val outputClassName: String) {
 
 class MethodDetails(val owner: ClassDetails, val signature: String) {
     val dependencies: MutableSet<MethodDetails> = linkedSetOf()
+
+    override fun toString(): String {
+        return "${owner.outputClassName}.$signature"
+    }
 }

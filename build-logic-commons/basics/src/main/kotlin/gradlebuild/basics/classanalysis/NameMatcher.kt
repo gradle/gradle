@@ -28,7 +28,7 @@ sealed interface NameMatcher {
         }
 
         fun classNames(names: Iterable<String>): NameMatcher {
-            return of(names.map { className(it) })
+            return anyOf(names.map { className(it) })
         }
 
         fun pattern(pattern: String): NameMatcher {
@@ -40,7 +40,7 @@ sealed interface NameMatcher {
         }
 
         fun patterns(patterns: Iterable<String>): NameMatcher {
-            return of(patterns.map { pattern(it) })
+            return anyOf(patterns.map { pattern(it) })
         }
 
         /**
@@ -52,16 +52,20 @@ sealed interface NameMatcher {
         }
 
         fun packages(packages: Iterable<String>): NameMatcher {
-            return of(packages.map { packageHierarchy(it) })
+            return anyOf(packages.map { packageHierarchy(it) })
         }
 
-        fun of(matchers: List<NameMatcher>): NameMatcher {
+        fun not(matcher: NameMatcher): NameMatcher = Not(matcher)
+
+        fun anyOf(vararg matchers: NameMatcher) = anyOf(matchers.toList())
+
+        fun anyOf(matchers: List<NameMatcher>): NameMatcher {
             return if (matchers.isEmpty()) {
                 Nothing
             } else if (matchers.size == 1) {
                 matchers.first()
             } else {
-                Composite(matchers)
+                Any(matchers)
             }
         }
     }
@@ -90,7 +94,13 @@ sealed interface NameMatcher {
         }
     }
 
-    private class Composite(private val matches: List<NameMatcher>) : NameMatcher {
+    private class Not(private val matcher: NameMatcher) : NameMatcher {
+        override fun matches(name: String): Boolean {
+            return !matcher.matches(name)
+        }
+    }
+
+    private class Any(private val matches: List<NameMatcher>) : NameMatcher {
         override fun matches(name: String): Boolean {
             return matches.any { it.matches(name) }
         }

@@ -19,6 +19,7 @@ package gradlebuild.basics.classanalysis
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.PrintWriter
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
@@ -43,54 +44,75 @@ class JarPackager {
     }
 
     private
+    fun ClassDetails.interesting() = outputClassName.contains("DefaultScriptFileResolver")
+
+    private
     fun createJar(classGraph: ClassGraph, classesDir: File, manifestFile: File, resourcesDir: File, params: PackagingParameters, jarFile: File) {
+        val includedClasses = mutableSetOf<ClassDetails>()
+
+        PrintWriter(BufferedOutputStream(FileOutputStream(jarFile.parentFile.resolve("graph.txt")))).use { out ->
+            val includeViaMethodRefs = mutableSetOf<ClassDetails>()
+            val vm = mutableSetOf<MethodDetails>()
+            val methodsToVisit = mutableListOf<MethodDetails>()
+            for (classDetails in classGraph.entryPoints) {
+                methodsToVisit.addAll(classDetails.methods.values)
+            }
+            while (methodsToVisit.isNotEmpty()) {
+                val method = methodsToVisit.removeFirst()
+                if (!vm.add(method)) {
+                    continue
+                }
+                includeViaMethodRefs.add(method.owner)
+
+                for (dependency in method.dependencies) {
+                    if (dependency.owner.interesting()) {
+                        println("-> Include $dependency via $method")
+                    }
+                    out.println("-> Method $method -> $dependency")
+                }
+
+                methodsToVisit.addAll(method.dependencies)
+            }
+
+            val classesToVisit = mutableListOf<ClassDetails>()
+            classesToVisit.addAll(includeViaMethodRefs)
+            while (classesToVisit.isNotEmpty()) {
+                val classDetails = classesToVisit.removeFirst()
+                if (!includedClasses.add(classDetails)) {
+                    continue
+                }
+                for (dependency in classDetails.dependencies) {
+                    if (dependency.interesting()) {
+                        println("-> Include $dependency via class $classDetails")
+                    }
+                    out.println("-> Class $classDetails -> $dependency")
+                }
+                classesToVisit.addAll(classDetails.dependencies)
+            }
+
+            out.println("-> Included classes via method references")
+            for (details in includeViaMethodRefs) {
+                out.println("  -> ${details.outputClassName}")
+            }
+            out.println("-> Included classes via other references")
+            for (details in includedClasses) {
+                if (!includeViaMethodRefs.contains(details)) {
+                    out.println("  -> ${details.outputClassName}")
+                }
+            }
+
+            println("-> Visited methods: ${vm.size}")
+            println("-> Methods not required: ${includedClasses.sumOf { classDetails -> classDetails.methods.values.count { !vm.contains(it) } }}")
+            println("-> Included classes via method references: ${includeViaMethodRefs.size}")
+            println("-> Included classes: ${includedClasses.size}")
+        }
+
         try {
             JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile))).use { outputStream ->
                 if (manifestFile.exists()) {
                     outputStream.addJarEntry(JarFile.MANIFEST_NAME, manifestFile)
                 }
 
-                val includeViaMethodRefs = mutableSetOf<ClassDetails>()
-                val vm = mutableSetOf<MethodDetails>()
-                val methodsToVisit = mutableListOf<MethodDetails>()
-                for (classDetails in classGraph.entryPoints) {
-                    methodsToVisit.addAll(classDetails.methods.values)
-                }
-                while (methodsToVisit.isNotEmpty()) {
-                    val method = methodsToVisit.removeFirst()
-                    if (!vm.add(method)) {
-                        continue
-                    }
-                    includeViaMethodRefs.add(method.owner)
-                    methodsToVisit.addAll(method.dependencies)
-                }
-
-                val includedClasses = mutableSetOf<ClassDetails>()
-                val classesToVisit = mutableListOf<ClassDetails>()
-                classesToVisit.addAll(includeViaMethodRefs)
-                while (classesToVisit.isNotEmpty()) {
-                    val classDetails = classesToVisit.removeFirst()
-                    if (!includedClasses.add(classDetails)) {
-                        continue
-                    }
-                    classesToVisit.addAll(classDetails.dependencies)
-                }
-
-                println("-> Included classes via method references")
-                for (details in includeViaMethodRefs) {
-                    println("  -> ${details.outputClassName}")
-                }
-                println("-> Included classes via other references")
-                for (details in includedClasses) {
-                    if (!includeViaMethodRefs.contains(details)) {
-                        println("  -> ${details.outputClassName}")
-                    }
-                }
-
-                println("-> Visited methods: ${vm.size}")
-                println("-> Methods not required: ${includedClasses.sumOf { classDetails -> classDetails.methods.values.count { !vm.contains(it) } }}")
-                println("-> Included classes via method references: ${includeViaMethodRefs.size}")
-                println("-> Included classes: ${includedClasses.size}")
 
                 val directories = mutableSetOf<String>()
                 val beforeEntry: (String) -> Unit = if (params.keepDirectories) {

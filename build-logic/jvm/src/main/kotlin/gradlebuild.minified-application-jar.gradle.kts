@@ -49,8 +49,8 @@ abstract class DefaultMinifiedJar : MinifiedApplicationJar {
         jarName = name
     }
 
-    fun jarName(project: Project, version: GradleVersion): String {
-        return jarName?.invoke(version) ?: "gradle-${project.name}-${version.version}.jar"
+    fun jarName(projectName: String, version: GradleVersion): String {
+        return jarName?.invoke(version) ?: "gradle-${projectName}-${version.version}.jar"
     }
 }
 
@@ -77,7 +77,8 @@ val preMinifiedJar by tasks.registering(Jar::class) {
  */
 val minifiedJar by tasks.registering(MinifiedJar::class) {
     val moduleIdentity = project.extensions.getByType<ModuleIdentityExtension>()
-    val minifiedJarFileName = moduleIdentity.version.map { model.jarName(project, it.baseVersion) }
+    val projectName = project.name
+    val minifiedJarFileName = moduleIdentity.version.map { model.jarName(projectName, it.baseVersion) }
 
     inputJar = preMinifiedJar.flatMap { it.archiveFile }
     outputJar = providers.zip(minifiedLibsDir, minifiedJarFileName) { dir, jar -> dir.file(jar) }

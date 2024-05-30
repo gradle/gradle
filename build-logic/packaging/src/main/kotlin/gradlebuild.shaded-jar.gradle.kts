@@ -51,6 +51,7 @@ fun addShadedJarTask(): TaskProvider<ShadedJar> {
         keepPackages = shadedJarExtension.keepPackages
         unshadedPackages = shadedJarExtension.unshadedPackages
         ignoredPackages = shadedJarExtension.ignoredPackages
+        keepResources.add("*/build-receipt.properties")
         inputJar = tasks.named<Jar>("jar").flatMap { it.archiveFile }
         classpath.from(shadedJarExtension.shadedConfiguration)
     }

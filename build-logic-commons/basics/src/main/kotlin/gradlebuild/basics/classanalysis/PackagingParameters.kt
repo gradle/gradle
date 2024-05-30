@@ -56,6 +56,7 @@ class PackagingParameters(
         private val keepPackages = mutableSetOf<String>()
         private val unshadedPackages = mutableSetOf<String>()
         private val excludePackages = mutableSetOf<String>()
+        private val keepResources = mutableSetOf<String>()
         private val excludeResources = mutableSetOf<String>()
         private val excludeResourcesFromDependencies = mutableSetOf<String>()
 
@@ -89,6 +90,11 @@ class PackagingParameters(
             return this
         }
 
+        fun keepResources(resources: Iterable<String>): Builder {
+            keepResources.addAll(resources)
+            return this
+        }
+
         fun excludeResources(resources: Iterable<String>): Builder {
             excludeResources.addAll(resources)
             return this
@@ -102,12 +108,12 @@ class PackagingParameters(
         fun build(): PackagingParameters {
             return PackagingParameters(
                 shadowPackage,
-                NameMatcher.of(listOf(NameMatcher.classNames(keepClasses), NameMatcher.packages(keepPackages))),
+                NameMatcher.anyOf(NameMatcher.classNames(keepClasses), NameMatcher.packages(keepPackages)),
                 keepDirectories,
                 NameMatcher.packages(unshadedPackages),
                 NameMatcher.packages(excludePackages),
-                NameMatcher.patterns(excludeResources),
-                NameMatcher.patterns(excludeResources + excludeResourcesFromDependencies)
+                if (keepResources.isNotEmpty()) NameMatcher.not(NameMatcher.patterns(keepResources)) else NameMatcher.patterns(excludeResources),
+                if (keepResources.isNotEmpty()) NameMatcher.not(NameMatcher.patterns(keepResources)) else NameMatcher.patterns(excludeResources + excludeResourcesFromDependencies)
             )
         }
     }
