@@ -17,10 +17,27 @@
 package gradlebuild.basics.classanalysis
 
 class PackagingParameters(
+    val packagePrefix: String?,
+
     /**
      * The classes to keep in the output. These are not renamed.
      */
     val keepClasses: NameMatcher,
+
+    /**
+     * Create directories for entries in the output JAR?
+     */
+    val keepDirectories: Boolean,
+
+    /**
+     * The classes to not rename, if they are present.
+     */
+    val unshadedClasses: NameMatcher,
+
+    /**
+     * The classes to exclude from the output. These are not renamed.
+     */
+    val excludeClasses: NameMatcher,
 
     /**
      * Resources from the main JAR to exclude from the output.
@@ -33,25 +50,65 @@ class PackagingParameters(
     val excludeResourcesFromDependencies: NameMatcher
 ) {
     class Builder {
+        private var shadowPackage: String? = null
+        private var keepDirectories = false
         private val keepClasses = mutableSetOf<String>()
-        private val exclude = mutableSetOf<String>()
-        private val excludeFromDependencies = mutableSetOf<String>()
+        private val keepPackages = mutableSetOf<String>()
+        private val unshadedPackages = mutableSetOf<String>()
+        private val excludePackages = mutableSetOf<String>()
+        private val excludeResources = mutableSetOf<String>()
+        private val excludeResourcesFromDependencies = mutableSetOf<String>()
+
+        fun renameClassesIntoPackage(prefix: String): Builder {
+            this.shadowPackage = prefix
+            return this
+        }
 
         fun keepClasses(classes: Iterable<String>): Builder {
             keepClasses.addAll(classes)
             return this
         }
 
+        fun keepPackages(packages: Iterable<String>): Builder {
+            keepPackages.addAll(packages)
+            return this
+        }
+
+        fun keepDirectories(): Builder {
+            keepDirectories = true
+            return this
+        }
+
+        fun doNotRenamePackages(packages: Iterable<String>): Builder {
+            unshadedPackages.addAll(packages)
+            return this
+        }
+
+        fun excludePackages(packages: Iterable<String>): Builder {
+            excludePackages.addAll(packages)
+            return this
+        }
+
         fun excludeResources(resources: Iterable<String>): Builder {
-            exclude.addAll(resources)
+            excludeResources.addAll(resources)
             return this
         }
 
         fun excludeResourcesFromDependencies(resources: Iterable<String>): Builder {
-            excludeFromDependencies.addAll(resources)
+            excludeResourcesFromDependencies.addAll(resources)
             return this
         }
 
-        fun build() = PackagingParameters(NameMatcher.classNames(keepClasses), NameMatcher.patterns(exclude), NameMatcher.patterns(exclude + excludeFromDependencies))
+        fun build(): PackagingParameters {
+            return PackagingParameters(
+                shadowPackage,
+                NameMatcher.of(listOf(NameMatcher.classNames(keepClasses), NameMatcher.packages(keepPackages))),
+                keepDirectories,
+                NameMatcher.packages(unshadedPackages),
+                NameMatcher.packages(excludePackages),
+                NameMatcher.patterns(excludeResources),
+                NameMatcher.patterns(excludeResources + excludeResourcesFromDependencies)
+            )
+        }
     }
 }

@@ -44,10 +44,10 @@ object Attributes {
 
 
 class JarAnalyzer(
-    private val shadowPackage: String,
-    private val keepPackages: NameMatcher,
-    private val unshadedPackages: NameMatcher,
-    private val ignorePackages: NameMatcher
+    private val shadowPackage: String?,
+    private val keepClasses: NameMatcher,
+    private val unshadedClasses: NameMatcher,
+    private val ignoreClasses: NameMatcher
 ) {
     fun analyze(jarFile: File, additionalJars: List<File>, classesDir: File, manifestFile: File, resourcesDir: File): ClassGraph {
         val classGraph = classGraph()
@@ -79,9 +79,9 @@ class JarAnalyzer(
     private
     fun classGraph() =
         ClassGraph(
-            keepPackages,
-            unshadedPackages,
-            ignorePackages,
+            keepClasses,
+            unshadedClasses,
+            ignoreClasses,
             shadowPackage
         )
 
@@ -195,6 +195,13 @@ class DefaultRemapper(val classes: ClassGraph) : Remapper() {
         val dependencyDetails = classes[name]
         return dependencyDetails.outputClassName
     }
+}
+
+fun JarOutputStream.addJarEntry(entryName: String) {
+    val entry = ZipEntry(entryName)
+    entry.time = CONSTANT_TIME_FOR_ZIP_ENTRIES
+    putNextEntry(entry)
+    closeEntry()
 }
 
 fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {

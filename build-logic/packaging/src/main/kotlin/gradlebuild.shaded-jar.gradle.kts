@@ -17,20 +17,8 @@
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.classanalysis.Attributes
 import gradlebuild.basics.decapitalize
-import gradlebuild.shade.ArtifactTypes.buildReceiptType
-import gradlebuild.shade.ArtifactTypes.classTreesType
-import gradlebuild.shade.ArtifactTypes.entryPointsType
-import gradlebuild.shade.ArtifactTypes.manifestsType
-import gradlebuild.shade.ArtifactTypes.relocatedClassesAndAnalysisType
-import gradlebuild.shade.ArtifactTypes.relocatedClassesType
 import gradlebuild.shade.extension.ShadedJarExtension
 import gradlebuild.shade.tasks.ShadedJar
-import gradlebuild.shade.transforms.FindBuildReceipt
-import gradlebuild.shade.transforms.FindClassTrees
-import gradlebuild.shade.transforms.FindEntryPoints
-import gradlebuild.shade.transforms.FindManifests
-import gradlebuild.shade.transforms.FindRelocatedClasses
-import gradlebuild.shade.transforms.ShadeClasses
 
 
 plugins {
@@ -39,50 +27,11 @@ plugins {
 
 val shadedJarExtension = extensions.create<ShadedJarExtension>("shadedJar", createConfigurationToShade())
 
-registerTransforms()
-
 val shadedJarTask = addShadedJarTask()
 
 addInstallShadedJarTask(shadedJarTask)
 addShadedJarVariant(shadedJarTask)
 configureShadedSourcesJarVariant()
-
-fun registerTransforms() {
-    dependencies {
-        registerTransform(ShadeClasses::class) {
-            from.attribute(Attributes.artifactType, "jar")
-                .attribute(Attributes.minified, true)
-            to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-            parameters {
-                shadowPackage = "org.gradle.internal.impldep"
-                keepPackages = shadedJarExtension.keepPackages
-                unshadedPackages = shadedJarExtension.unshadedPackages
-                ignoredPackages = shadedJarExtension.ignoredPackages
-            }
-        }
-
-        registerTransform(FindRelocatedClasses::class) {
-            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-            to.attribute(Attributes.artifactType, relocatedClassesType)
-        }
-        registerTransform(FindEntryPoints::class) {
-            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-            to.attribute(Attributes.artifactType, entryPointsType)
-        }
-        registerTransform(FindClassTrees::class) {
-            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-            to.attribute(Attributes.artifactType, classTreesType)
-        }
-        registerTransform(FindManifests::class) {
-            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-            to.attribute(Attributes.artifactType, manifestsType)
-        }
-        registerTransform(FindBuildReceipt::class) {
-            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-            to.attribute(Attributes.artifactType, buildReceiptType)
-        }
-    }
-}
 
 fun createConfigurationToShade() = configurations.create("jarsToShade") {
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -96,15 +45,14 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
 }
 
 fun addShadedJarTask(): TaskProvider<ShadedJar> {
-    val configurationToShade = shadedJarExtension.shadedConfiguration
-
-    return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {
+    return tasks.register("shadedJar", ShadedJar::class) {
         jarFile = layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" })
-        classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
-        entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
-        relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
-        manifests.from(configurationToShade.artifactViewForType(manifestsType))
-        buildReceiptFile.from(configurationToShade.artifactViewForType(buildReceiptType))
+        shadowPackage = "org.gradle.internal.impldep"
+        keepPackages = shadedJarExtension.keepPackages
+        unshadedPackages = shadedJarExtension.unshadedPackages
+        ignoredPackages = shadedJarExtension.ignoredPackages
+        inputJar = tasks.named<Jar>("jar").flatMap { it.archiveFile }
+        classpath.from(shadedJarExtension.shadedConfiguration)
     }
 }
 

@@ -21,7 +21,7 @@ class ClassGraph(
     private val keepPackages: NameMatcher,
     private val unshadedPackages: NameMatcher,
     private val ignorePackages: NameMatcher,
-    shadowPackage: String
+    shadowPackage: String?
 ) {
 
     val classes: MutableMap<String, ClassDetails> = linkedMapOf()
@@ -33,10 +33,7 @@ class ClassGraph(
     val transitiveResources: MutableSet<String> = linkedSetOf()
 
     private
-    val shadowPackagePrefix =
-        shadowPackage.takeIf(String::isNotEmpty)
-            ?.let { it.replace('.', '/') + "/" }
-            ?: ""
+    val shadowPackagePrefix = if (shadowPackage != null) shadowPackage.replace('.', '/') + "/" else ""
 
     /**
      * Returns the details for the given class.

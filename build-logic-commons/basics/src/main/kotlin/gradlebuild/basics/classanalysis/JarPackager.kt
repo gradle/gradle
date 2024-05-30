@@ -35,7 +35,7 @@ class JarPackager {
         val classesDir = tempDirectory.resolve("classes")
         val manifestFile = tempDirectory.resolve("MANIFEST.MF")
         val resourcesDir = tempDirectory.resolve("resources")
-        val analyzer = JarAnalyzer("", params.keepClasses, NameMatcher.Nothing, NameMatcher.Nothing)
+        val analyzer = JarAnalyzer(params.packagePrefix, params.keepClasses, params.unshadedClasses, params.excludeClasses)
 
         val classGraph = analyzer.analyze(sourceJar, additionalJars, classesDir, manifestFile, resourcesDir)
 
@@ -45,9 +45,9 @@ class JarPackager {
     private
     fun createJar(classGraph: ClassGraph, classesDir: File, manifestFile: File, resourcesDir: File, params: PackagingParameters, jarFile: File) {
         try {
-            JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile))).use { jarOutputStream ->
+            JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile))).use { outputStream ->
                 if (manifestFile.exists()) {
-                    jarOutputStream.addJarEntry(JarFile.MANIFEST_NAME, manifestFile)
+                    outputStream.addJarEntry(JarFile.MANIFEST_NAME, manifestFile)
                 }
 
                 val includeViaMethodRefs = mutableSetOf<ClassDetails>()
@@ -92,14 +92,26 @@ class JarPackager {
                 println("-> Included classes via method references: ${includeViaMethodRefs.size}")
                 println("-> Included classes: ${includedClasses.size}")
 
+                val directories = mutableSetOf<String>()
+                val beforeEntry: (String) -> Unit = if (params.keepDirectories) {
+                    { path ->
+                        val dir = path.substringBeforeLast("/", "")
+                        if (dir.isNotEmpty() && directories.add(dir)) {
+                            outputStream.addJarEntry("$dir/")
+                        }
+                    }
+                } else {
+                    { }
+                }
+
                 for (classDetails in includedClasses) {
-                    copyClass(classDetails, classesDir, jarOutputStream)
+                    copyClass(classDetails, classesDir, beforeEntry, outputStream)
                 }
                 for (resource in classGraph.resources) {
-                    copyResource(resource, resourcesDir, params.excludeResources, jarOutputStream)
+                    copyResource(resource, resourcesDir, params.excludeResources, beforeEntry, outputStream)
                 }
                 for (resource in classGraph.transitiveResources) {
-                    copyResource(resource, resourcesDir, params.excludeResourcesFromDependencies, jarOutputStream)
+                    copyResource(resource, resourcesDir, params.excludeResourcesFromDependencies, beforeEntry, outputStream)
                 }
             }
         } catch (exception: Exception) {
@@ -108,17 +120,19 @@ class JarPackager {
     }
 
     private
-    fun copyClass(classDetails: ClassDetails, classesDir: File, jarOutputStream: JarOutputStream) {
+    fun copyClass(classDetails: ClassDetails, classesDir: File, before: (String) -> Unit, outputStream: JarOutputStream) {
         if (classDetails.present) {
             val fileName = classDetails.outputClassFilename
+            before(fileName)
             val classFile = classesDir.resolve(fileName)
-            jarOutputStream.addJarEntry(fileName, classFile)
+            outputStream.addJarEntry(fileName, classFile)
         }
     }
 
     private
-    fun copyResource(path: String, resourcesDir: File, exclude: NameMatcher, outputStream: JarOutputStream) {
+    fun copyResource(path: String, resourcesDir: File, exclude: NameMatcher, before: (String) -> Unit, outputStream: JarOutputStream) {
         if (!exclude.matches(path)) {
+            before(path)
             val file = resourcesDir.resolve(path)
             outputStream.addJarEntry(path, file)
         }
