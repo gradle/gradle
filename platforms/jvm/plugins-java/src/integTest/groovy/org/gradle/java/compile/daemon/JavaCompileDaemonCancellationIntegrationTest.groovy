@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -30,13 +29,11 @@ import org.junit.Rule
 @Requires(UnitTestPreconditions.Jdk9OrLater)
 class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec {
     private static final String ANNOTATION_PROCESSOR_PROJECT_NAME = "processor"
-    public static final String TASK_STARTED_MESSAGE = "Build operation 'Task :compileJava' started"
 
     @Rule
     final BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
 
     private DaemonClientFixture client
-    private int daemonLogCheckpoint
 
     def setup() {
         blockingHttpServer.start()
@@ -75,6 +72,9 @@ class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec
         then:
         cancelBuild()
 
+        then:
+        daemons.daemon.becomesIdle()
+
         and:
         pidFile().exists()
         def pid1 = pidFile().text.strip() as long
@@ -99,6 +99,78 @@ class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec
         pid2 != pid1
     }
 
+    def "compiler daemon is not stopped when build is cancelled but no compiler daemons are used"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            ${dependsOnPidCapturingAnnotationProcessor}
+            tasks.withType(JavaCompile).configureEach {
+                options.fork = true
+            }
+            tasks.register("block") {
+                doLast {
+                    ${blockingHttpServer.callFromTaskAction("block")}
+                }
+            }
+        """
+        file('src/main/java/Foo.java') << blockingFooClass
+        def handler = blockingHttpServer.expectAndBlock("/block")
+
+        when:
+        startBuild("compileJava")
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        then:
+        handler.releaseAll()
+
+        then:
+        succeeds()
+
+        and:
+        pidFile().exists()
+        def pid1 = pidFile().text.strip() as long
+        new ProcessFixture(pid1).waitForFinish()
+
+        when:
+        handler = blockingHttpServer.expectAndBlock("/block")
+        startBuild("block")
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        then:
+        cancelBuild()
+
+        then:
+        handler.releaseAll()
+
+        then:
+        daemons.daemon.becomesIdle()
+
+        when:
+        file('src/main/java/Foo.java') << "\n// Comment to trigger recompilation\n"
+        handler = blockingHttpServer.expectAndBlock("/block")
+        startBuild("compileJava")
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        then:
+        handler.releaseAll()
+
+        then:
+        succeeds()
+
+        and:
+        pidFile().exists()
+        def pid2 = pidFile().text.strip() as long
+        pid2 == pid1
+    }
+
     private void startBuild(String task) {
         executer
             .withArgument('--debug')
@@ -106,30 +178,18 @@ class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec
             .withTasks(task)
 
         client = new DaemonClientFixture(executer.start())
-        waitForDaemonLog(TASK_STARTED_MESSAGE)
     }
 
     private void cancelBuild() {
         client.kill()
         assert !client.gradleHandle.standardOutput.contains("BUILD FAIL")
         assert !client.gradleHandle.standardOutput.contains("BUILD SUCCESS")
-        daemons.daemon.becomesIdle()
     }
 
     private void succeeds() {
         client.gradleHandle.waitForFinish()
         assert client.gradleHandle.standardOutput.contains("BUILD SUCCESS")
         daemons.daemon.becomesIdle()
-    }
-
-    private void waitForDaemonLog(String output) {
-        String daemonLogSinceLastCheckpoint = ''
-        ConcurrentTestUtil.poll(120, {
-            daemonLogSinceLastCheckpoint = daemons.daemon.log.substring(daemonLogCheckpoint)
-            assert daemonLogSinceLastCheckpoint.contains(output)
-        })
-
-        daemonLogCheckpoint += daemonLogSinceLastCheckpoint.length()
     }
 
     TestFile pidFile(String rootPath = null) {
@@ -147,17 +207,7 @@ class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec
             }
         """
     }
-
-    static String getNonBlockingFooClass() {
-        return """
-            public class Foo {
-                public static void main(String[] args) {
-                    System.out.println("Hola, mundo!");
-                }
-            }
-        """
-    }
-
+    
     static String getDependsOnPidCapturingAnnotationProcessor() {
         return """
             dependencies {

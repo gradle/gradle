@@ -84,8 +84,9 @@ public class WorkersServices extends AbstractGradleModuleServices {
             return new WorkerExecutionQueueFactory(conditionalExecutionQueueFactory);
         }
 
-        WorkerDaemonClientSessionHandler createWorkerDaemonClientSessionHandler(WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
-            return new WorkerDaemonClientSessionHandler(workerDaemonClientsManager, buildCancellationToken);
+        @Provides
+        WorkerDaemonClientCancellationHandler createWorkerDaemonClientSessionHandler(WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
+            return new WorkerDaemonClientCancellationHandler(workerDaemonClientsManager, buildCancellationToken);
         }
     }
 
@@ -159,8 +160,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientSessionHandler workerDaemonClientSessionHandler) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientSessionHandler);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler);
         }
     }
 }

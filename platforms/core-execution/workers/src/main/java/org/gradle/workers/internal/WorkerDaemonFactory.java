@@ -29,11 +29,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
     private final BuildOperationRunner buildOperationRunner;
+    private final WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientSessionHandler workerDaemonClientSessionHandler) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
         this.clientsManager = clientsManager;
         this.buildOperationRunner = buildOperationRunner;
-        workerDaemonClientSessionHandler.start();
+        this.workerDaemonClientCancellationHandler = workerDaemonClientCancellationHandler;
     }
 
     @Override
@@ -41,6 +42,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
         return new AbstractWorker(buildOperationRunner) {
             @Override
             public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
+                workerDaemonClientCancellationHandler.start();
                 // wrap in build operation for logging startup failures
                 final WorkerDaemonClient client = CurrentBuildOperationRef.instance().with(parentBuildOperation, this::reserveClient);
                 try {
