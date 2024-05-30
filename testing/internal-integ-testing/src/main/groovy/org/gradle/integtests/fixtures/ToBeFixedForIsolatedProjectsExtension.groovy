@@ -36,11 +36,11 @@ class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtensio
         visitAnnotation(feature)
     }
 
-    private void visitAnnotation(SpecElementInfo spec) {
+    private void visitAnnotation(SpecElementInfo specElementInfo) {
         if (GradleContextualExecuter.isNotIsolatedProjects()) {
             return
         }
 
-        toBeFixedSpecInterceptor.intercept(spec, new String[0])
+        toBeFixedSpecInterceptor.intercept(specElementInfo, new String[0])
     }
 }
