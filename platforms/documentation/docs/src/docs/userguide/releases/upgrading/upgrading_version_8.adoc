@@ -47,6 +47,10 @@ In previous versions of Gradle, toolchain provisioning could leave a partially p
 
 The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
 
+==== Upgrade to JaCoCo 0.8.12
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.12].
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
