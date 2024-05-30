@@ -26,15 +26,17 @@ class GroovyCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """\
             apply plugin: 'groovy'
 
+            ${mavenCentralRepository()}
+
             dependencies {
-                implementation localGroovy()
+                implementation 'org.codehaus.groovy:groovy-all:2.4.10'
             }
         """
     }
 
-    def "when doing a join compilation java problems are formatted the same as a standalone compication"() {
+    def "when doing a join compilation java problems are formatted the same as a standalone compilation"() {
         given:
-        file("src/main/groovy/JavaThing.java") << """\
+        file("src/main/groovy/JavaThing.java") << """
             public class JavaThing {
                 public void badMethod() {
                     // The following line will cause a compilation error
