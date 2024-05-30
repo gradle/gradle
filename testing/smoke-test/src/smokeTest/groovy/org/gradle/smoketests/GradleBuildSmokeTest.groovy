@@ -33,11 +33,6 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
 //                "https://youtrack.jetbrains.com/issue/KT-46019")
             .ignoreDeprecationWarnings("https://github.com/gradle/gradle-private/issues/3405")
 
-        runner.withJvmArguments(runner.jvmArguments + [
-            // TODO: the version of KGP we use still accesses Task.project from a cacheIf predicate
-            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
-        ])
-
         when:
         def result = runner.build()
 

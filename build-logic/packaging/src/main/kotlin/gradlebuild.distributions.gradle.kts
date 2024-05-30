@@ -207,9 +207,6 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
-
-    @Suppress("DEPRECATION")
-    ownModuleName = "gradle-kotlin-dsl-extensions"
 }
 
 val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
