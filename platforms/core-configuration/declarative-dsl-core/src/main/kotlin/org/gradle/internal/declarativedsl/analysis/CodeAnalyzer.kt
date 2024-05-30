@@ -1,6 +1,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr

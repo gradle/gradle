@@ -59,6 +59,7 @@ platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-ds
 # Core automation platform (Declarative DSL)
 platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-dsl
 platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-dsl
 platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-dsl
 platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-dsl
 platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-dsl

@@ -17,27 +17,34 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.initialization.Settings
-import org.gradle.internal.declarativedsl.checks.DocumentCheck
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureLocation.FailedAtNode
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureLocation.FailedAtNode
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock
 import org.gradle.plugin.management.PluginManagementSpec
+import java.io.Serializable
 
 
 internal
-object SettingsBlocksCheck : DocumentCheck, EvaluationSchemaComponent {
+object SettingsBlocksCheck : DocumentCheck {
 
-    override fun documentChecks(): List<DocumentCheck> = listOf(this)
+    val feature = SettingsBlockCheckFeature()
 
-    private
+    class SettingsBlockCheckFeature() : InterpretationStepFeature.DocumentChecks, Serializable {
+        override val checkKeys: Iterable<String> = listOf(checkKey)
+    }
+
+    override val checkKey: String
+        get() = SettingsBlocksCheck::class.java.name
+
     enum class SpecialOrderBlock {
         PLUGIN_MANAGEMENT, PLUGINS
     }

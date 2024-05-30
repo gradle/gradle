@@ -118,6 +118,7 @@ val core = platform("core") {
         subproject("core-kotlin-extensions")
         subproject("declarative-dsl-api")
         subproject("declarative-dsl-core")
+        subproject("declarative-dsl-evaluator")
         subproject("declarative-dsl-provider")
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")

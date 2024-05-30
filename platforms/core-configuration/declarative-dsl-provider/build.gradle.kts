@@ -24,6 +24,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
+    api(project(":declarative-dsl-evaluator"))
     api(project(":declarative-dsl-tooling-models"))
     api(libs.kotlinStdlib)
 
@@ -31,7 +32,6 @@ dependencies {
     implementation(libs.inject)
     testImplementation(libs.mockitoKotlin2)
 
-    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services"))
     implementation(project(":resources"))
     implementation(project(":model-core"))

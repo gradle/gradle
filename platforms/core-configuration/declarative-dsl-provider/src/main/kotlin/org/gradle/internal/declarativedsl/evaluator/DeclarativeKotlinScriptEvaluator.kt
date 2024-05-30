@@ -18,36 +18,29 @@ package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.ResolutionError
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
-import org.gradle.internal.declarativedsl.dom.toDocument
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
-import org.gradle.internal.declarativedsl.language.LanguageTreeResult
-import org.gradle.internal.declarativedsl.language.SingleFailureResult
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
-import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
-import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
-import org.gradle.internal.declarativedsl.objectGraph.reflect
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
+import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedConventionRegistrar
+import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedConventionRepository
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
+import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionSucceeded
+import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
@@ -55,42 +48,46 @@ interface DeclarativeKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
-        evaluationContext: EvaluationContext,
-    ): EvaluationResult
-
-    sealed interface EvaluationResult {
-        object Evaluated : EvaluationResult
-        class NotEvaluated(val stageFailures: List<StageFailure>) : EvaluationResult {
-            sealed interface StageFailure {
-                data class NoSchemaAvailable(val target: Any) : StageFailure
-                object NoParseResult : StageFailure
-                data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
-                data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
-                data class DocumentCheckFailures(val failures: List<DocumentCheckFailure>) : StageFailure
-                data class AssignmentErrors(val usages: List<AssignmentTraceElement.FailedToRecordAssignment>) : StageFailure
-            }
-        } // TODO: make reason more structured
-    }
-
-    sealed interface EvaluationContext {
-        class ScriptPluginEvaluationContext(
-            val targetScope: ClassLoaderScope
-        ) : EvaluationContext
-    }
+        targetScope: ClassLoaderScope,
+    ): EvaluationResult<*>
 }
 
 
 internal
+fun defaultDeclarativeScriptEvaluator(
+    schemaBuilder: InterpretationSchemaBuilder,
+    softwareTypeRegistry: SoftwareTypeRegistry
+): DeclarativeKotlinScriptEvaluator = DefaultDeclarativeKotlinScriptEvaluator(
+    schemaBuilder,
+    documentChecks = setOf(SettingsBlocksCheck),
+    resolutionResultHandlers = setOf(
+        ConventionDefinitionCollector(softwareTypeRegistryBasedConventionRegistrar(softwareTypeRegistry)),
+        ConventionApplicationHandler(softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry))
+    )
+)
+
+
+internal
 class DefaultDeclarativeKotlinScriptEvaluator(
-    private val schemaBuilder: InterpretationSchemaBuilder
+    private val schemaBuilder: InterpretationSchemaBuilder,
+    documentChecks: Iterable<DocumentCheck>,
+    resolutionResultHandlers: Iterable<ResolutionResultHandler>
 ) : DeclarativeKotlinScriptEvaluator {
+
+    private
+    val stepRunner = AnalysisAndConversionStepRunner(AnalysisStepRunner())
+
+    private
+    val defaultAnalysisContext = AnalysisStepContext(documentChecks, resolutionResultHandlers)
+
     override fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
-        evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext
-    ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
-        return when (val built = schemaBuilder.getEvaluationSchemaForScript(target, scriptContextFor(target, scriptSource, evaluationContext))) {
-            InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
+        targetScope: ClassLoaderScope
+    ): EvaluationResult<ConversionSucceeded> {
+        val scriptContext = scriptContextFor(target, scriptSource, targetScope)
+        return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
+            InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(scriptContext)))
             is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target)
         }
     }
@@ -100,97 +97,20 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         scriptSource: ScriptSource,
         sequence: InterpretationSequence,
         target: Any
-    ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
-        sequence.steps.forEach { step ->
-            val result = runInterpretationSequenceStep(target, scriptSource, step)
-            if (result is NotEvaluated) {
-                return result
-            }
-        }
-        return DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated
-    }
-
-    private
-    fun <R : Any> runInterpretationSequenceStep(
-        target: Any,
-        scriptSource: ScriptSource,
-        step: InterpretationSequenceStep<R>
-    ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
-        val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
-
-        val evaluationSchema = step.evaluationSchemaForStep()
-
-        val resolver = tracingCodeResolver(step.assignmentGeneration, evaluationSchema.analysisStatementFilter)
-
-        val languageModel = languageModelFromLightParser(scriptSource)
-
-        if (languageModel.allFailures.isNotEmpty()) {
-            failureReasons += FailuresInLanguageTree(languageModel.allFailures)
-        }
-        var resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
-        if (resolution.errors.isNotEmpty()) {
-            failureReasons += FailuresInResolution(resolution.errors)
-        }
-
-        resolution = step.processResolutionResult(resolution)
-
-        val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
-        val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document) }
-        if (checkResults.isNotEmpty()) {
-            failureReasons += NotEvaluated.StageFailure.DocumentCheckFailures(checkResults)
-        }
-
-        val trace = assignmentTrace(resolution)
-        val assignmentErrors = trace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
-        if (assignmentErrors.isNotEmpty()) {
-            failureReasons += AssignmentErrors(assignmentErrors)
-        }
-        if (failureReasons.isNotEmpty()) {
-            return NotEvaluated(failureReasons)
-        }
-        val context = ReflectionContext(SchemaTypeRefContext(evaluationSchema.analysisSchema), resolution, trace)
-        val topLevelObjectReflection = reflect(resolution.topLevelReceiver, context)
-
-        val propertyResolver = CompositePropertyResolver(evaluationSchema.runtimePropertyResolvers)
-        val functionResolver = CompositeFunctionResolver(evaluationSchema.runtimeFunctionResolvers)
-        val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
-
-        val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
-        val converter = step.getReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
-        converter.apply(topLevelObjectReflection)
-
-        step.whenEvaluated(topLevelReceiver)
-
-        return DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated
-    }
-
-    private
-    fun assignmentTrace(result: ResolutionResult) =
-        AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
-
-    private
-    fun languageModelFromLightParser(scriptSource: ScriptSource): LanguageTreeResult {
-        val parsedTree = parse(scriptSource.resource.text)
-        return languageTreeBuilder.build(parsedTree, SourceIdentifier(scriptSource.fileName))
-    }
-
-    private
-    val languageTreeBuilder = DefaultLanguageTreeBuilder()
+    ): EvaluationResult<ConversionSucceeded> =
+        sequence.steps.map { step ->
+            stepRunner.runInterpretationSequenceStep(scriptSource.fileName, scriptSource.resource.text, step, ConversionStepContext(target, defaultAnalysisContext))
+                .also { if (it is NotEvaluated) return it }
+        }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList())
 
     private
     fun scriptContextFor(
         target: Any,
         scriptSource: ScriptSource,
-        evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext
-    ): RestrictedScriptContext = when (target) {
-        is Settings -> RestrictedScriptContext.SettingsScript(requirePluginContext(evaluationContext).targetScope, scriptSource)
-        is Project -> RestrictedScriptContext.ProjectScript(requirePluginContext(evaluationContext).targetScope, scriptSource)
-        else -> RestrictedScriptContext.UnknownScript
-    }
-
-    private
-    fun requirePluginContext(evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext): ScriptPluginEvaluationContext {
-        require(evaluationContext is ScriptPluginEvaluationContext) { "this target is not supported outside script plugins" }
-        return evaluationContext
+        targetScope: ClassLoaderScope
+    ): DeclarativeScriptContext = when (target) {
+        is Settings -> LoadedSettingsScriptContext(target as SettingsInternal, targetScope, scriptSource)
+        is Project -> DeclarativeScriptContext.ProjectScript
+        else -> DeclarativeScriptContext.UnknownScript
     }
 }

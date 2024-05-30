@@ -273,6 +273,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-evaluator",
+    "path": "platforms/core-configuration/declarative-dsl-evaluator",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "declarative-dsl-provider",
     "path": "platforms/core-configuration/declarative-dsl-provider",
     "unitTests": true,

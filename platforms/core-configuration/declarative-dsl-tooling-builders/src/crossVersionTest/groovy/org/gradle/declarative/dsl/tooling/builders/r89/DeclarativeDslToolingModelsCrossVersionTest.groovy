@@ -21,6 +21,11 @@ import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @TargetGradleVersion(">=8.9")
@@ -80,11 +85,60 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         !topLevelFunctions.find { it.contains("simpleName=testSoftwareType") }
     }
 
+    def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
+        given:
+        withSoftwareTypePlugins().prepareToExecute()
+
+        file("settings.gradle.dcl") << """
+            pluginManagement {
+                includeBuild("plugins")
+            }
+            plugins {
+                id("com.example.test-software-type")
+            }
+            conventions {
+                testSoftwareType {
+                    id = "convention"
+                }
+            }
+        """
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareTypeFoo
+
+        when:
+        DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
+
+        then:
+        model != null
+
+        def evaluator = SimpleAnalysisEvaluator.@Companion.withSchema(model.settingsSequence, model.projectSequence)
+        def settings = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text)
+        def project = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text)
+
+        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.keySet()
+        ["project"].toSet() == project.keySet()
+
+        and: 'conventions get properly applied'
+        ((project.values()[0] as EvaluationResult.Evaluated).stepResult as AnalysisStepResult).assignmentTrace.resolvedAssignments.entrySet().any {
+            it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "convention"
+        }
+    }
+
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
         return """
             testSoftwareType {
                 id = "test"
 
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
+    }
+
+    static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareTypeFoo() {
+        return """
+            testSoftwareType {
                 foo {
                     bar = "baz"
                 }

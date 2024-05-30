@@ -21,7 +21,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -44,7 +45,7 @@ import kotlin.reflect.full.isSubclassOf
  */
 @Suppress("unused") // temporarily excluded from the schema, awaiting rework in a way that does not require the target scope
 internal
-class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : EvaluationSchemaComponent {
+class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectConversionComponent, AnalysisSchemaComponent {
     private
     val projectAccessorsClass: KClass<*>? = try {
         targetScope.localClassLoader.loadClass("org.gradle.accessors.dm.RootProjectAccessor").kotlin

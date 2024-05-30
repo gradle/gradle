@@ -16,10 +16,11 @@
 
 package org.gradle.declarative.dsl.tooling.models;
 
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence;
 import org.gradle.declarative.dsl.schema.AnalysisSchema;
 
 public interface DeclarativeSchemaModel {
-
+    InterpretationSequence getSettingsSequence();
+    InterpretationSequence getProjectSequence();
     AnalysisSchema getProjectSchema();
-
 }
