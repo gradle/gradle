@@ -54,6 +54,7 @@ Class <org.gradle.execution.selection.BuildTaskSelector$BuildSpecificSelector> i
 Class <org.gradle.execution.taskgraph.TaskExecutionGraphInternal> is not annotated with @ServiceScope in (TaskExecutionGraphInternal.java:0)
 Class <org.gradle.groovy.scripts.internal.ScriptCompilationHandler> is not annotated with @ServiceScope in (ScriptCompilationHandler.java:0)
 Class <org.gradle.initialization.BuildClientMetaData> is not annotated with @ServiceScope in (BuildClientMetaData.java:0)
+Class <org.gradle.initialization.BuildEventConsumer> is not annotated with @ServiceScope in (BuildEventConsumer.java:0)
 Class <org.gradle.initialization.DependenciesAccessors> is not annotated with @ServiceScope in (DependenciesAccessors.java:0)
 Class <org.gradle.initialization.ProjectDescriptorRegistry> is not annotated with @ServiceScope in (ProjectDescriptorRegistry.java:0)
 Class <org.gradle.internal.actor.ActorFactory> is not annotated with @ServiceScope in (ActorFactory.java:0)
