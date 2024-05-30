@@ -106,7 +106,7 @@ This is an inline tag that converts to an HTML hyperlink pointing to the documen
 
 ### 1.1.6 Code keywords, names, and variables
 
-Use `<code>...</code>` style for keywords and names including:
+Use `<code>...</code>` or `{@code ... }` style for keywords and names including:
 - Java keywords
 - package names
 - class names
@@ -119,6 +119,7 @@ Use `<code>...</code>` style for keywords and names including:
 ```java
 /**
  * Use the <code>Project</code> instance to configure the project.
+ * Use the {@code Project} instance to configure the project.
  */
 ```
 

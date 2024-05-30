@@ -16,10 +16,8 @@
 
 package gradlebuild.docs;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
@@ -31,7 +29,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import gradlebuild.basics.BuildEnvironment;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -78,9 +75,9 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            //options.setEncoding("utf-8");
-            //options.setDocEncoding("utf-8");
-            //options.setCharSet("utf-8");
+            options.setEncoding("utf-8");
+            options.setDocEncoding("utf-8");
+            options.setCharSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
             options.setFooter("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">" +
@@ -113,28 +110,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
 
-            /*if (BuildEnvironment.INSTANCE.getJavaVersion().isJava11Compatible()) {
-                // TODO html4 output was removed in Java 13, see https://bugs.openjdk.org/browse/JDK-8215578
-                options.addBooleanOption("html4", true);
-                options.addBooleanOption("-no-module-directories", true);
-
-                FileSystemOperations fs = getFs();
-                //noinspection Convert2Lambda
-                task.doLast(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        fs.copy(copySpec -> {
-                            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
-                            // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
-                            // Here we generate this file manually
-                            copySpec.from(generatedJavadocDirectory.file("element-list"), sub -> {
-                                sub.rename(t -> "package-list");
-                            });
-                            copySpec.into(generatedJavadocDirectory);
-                        });
-                    }
-                });
-            }*/
         });
 
         extension.javadocs(javadocs -> {
