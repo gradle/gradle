@@ -77,7 +77,7 @@ object DomResolutionTest {
             PropertyAssignmentResolved -> TopLevelReceiver.complexValueTwo: ComplexValueTwo
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
-            PropertyConfiguringElementResolved -> configure NestedReceiver
+            ConfiguringElementResolved -> configure NestedReceiver
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
@@ -132,7 +132,7 @@ object DomResolutionTest {
             ElementNotResolved(UnresolvedSignature)
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
-            PropertyConfiguringElementResolved -> configure NestedReceiver
+            ConfiguringElementResolved -> configure NestedReceiver
             ElementNotResolved(CrossScopeAccess)
             LiteralValueResolved -> cross-scope
             ElementNotResolved(UnresolvedSignature)
