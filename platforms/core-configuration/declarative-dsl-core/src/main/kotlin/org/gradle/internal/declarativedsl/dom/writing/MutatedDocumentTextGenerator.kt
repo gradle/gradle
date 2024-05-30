@@ -38,13 +38,13 @@ class MutatedDocumentTextGenerator {
     ): String {
         val textBuilder = TrackingCodeTextBuilder()
 
-        fun visit(ownerTag: ChildTag, textTreeNode: TextTreeNode, isTopLevel: Boolean) {
+        fun visit(parentTag: ChildTag?, ownerTag: ChildTag, textTreeNode: TextTreeNode, isTopLevel: Boolean) {
             insertNodesBefore(ownerTag).takeIf(List<*>::isNotEmpty)?.let { nodesBefore ->
                 insertSyntheticNodes(textBuilder, nodesBefore, isTopLevel, textTreeNode.lineRange.first, needsSeparationBefore = false, needsSeparationAfter = true)
             }
             if (!removeNodeIf(ownerTag)) {
                 when (ownerTag) {
-                    ChildTag.Name -> textBuilder.append(mapNames(ownerTag, tree.originalText.slice(textTreeNode.range)), textTreeNode.lineRange.last)
+                    ChildTag.Name -> textBuilder.append(mapNames(checkNotNull(parentTag), tree.originalText.slice(textTreeNode.range)), textTreeNode.lineRange.last)
                     ChildTag.Indentation -> textBuilder.appendIndent(tree.originalText.slice(textTreeNode.range))
                     ChildTag.UnstructuredText, ChildTag.LineBreak -> textBuilder.append(tree.originalText.substring(textTreeNode.range), textTreeNode.lineRange.last)
 
@@ -54,7 +54,7 @@ class MutatedDocumentTextGenerator {
                         (ownerTag as? ChildTag.ValueNodeChildTag)?.let(replaceValue)?.let { insertSyntheticValue(textBuilder, it, textTreeNode.lineRange.last) }
                             ?: run {
                                 for (child in textTreeNode.children) {
-                                    visit(child.childTag, child.subTreeNode, false)
+                                    visit(ownerTag, child.childTag, child.subTreeNode, false)
                                 }
                             }
                     }
@@ -71,7 +71,7 @@ class MutatedDocumentTextGenerator {
         }
 
         tree.root.children.forEach {
-            visit(it.childTag, it.subTreeNode, isTopLevel = true)
+            visit(null, it.childTag, it.subTreeNode, isTopLevel = true)
         }
 
         return fixLineBreaksAndBlankLines(

@@ -27,6 +27,7 @@ import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+
 object MutatedDocumentTextGeneratorTest {
     // This one does not include dot-access like z.f(...), TODO: add some once it is fixed for the DOM
     private
@@ -62,7 +63,7 @@ object MutatedDocumentTextGeneratorTest {
         block {
             test(); z = 1
         }
-        """.trimIndent()
+    """.trimIndent()
 
     private
     val simpleCodeForAddition = """
@@ -74,7 +75,7 @@ object MutatedDocumentTextGeneratorTest {
             }
             factory(1)
         }
-        """.trimIndent()
+    """.trimIndent()
 
     private
     val codeForAdditionWithProperties = """
@@ -93,7 +94,7 @@ object MutatedDocumentTextGeneratorTest {
 
         c = 3
         d = 4
-        """.trimIndent()
+    """.trimIndent()
 
 
     @Test
@@ -316,7 +317,7 @@ object MutatedDocumentTextGeneratorTest {
                 x = "test"
             }
 
-        """.trimIndent(), result
+            """.trimIndent(), result
         )
     }
 
@@ -636,7 +637,7 @@ object MutatedDocumentTextGeneratorTest {
             c = 3
             d = 4
 
-        """.trimIndent(), result
+            """.trimIndent(), result
         )
     }
 
@@ -671,7 +672,7 @@ object MutatedDocumentTextGeneratorTest {
             c = 3
             d = 4
 
-        """.trimIndent(), result
+            """.trimIndent(), result
         )
     }
 
