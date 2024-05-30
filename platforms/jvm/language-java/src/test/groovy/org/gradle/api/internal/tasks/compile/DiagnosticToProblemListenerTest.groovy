@@ -30,7 +30,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         1 * additionalData(org.gradle.api.problems.internal.GeneralDataSpec, _)
     }
 
-    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, (fo) -> "Formatted message")
+    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null)
 
     def "file location is correctly reported"() {
         given:
