@@ -118,6 +118,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 0
     }
 
+    @TargetGradleVersion(">=8.6 <8.9")
     def "Problems expose details via Tooling API events"() {
         given:
         withReportProblemTask """
