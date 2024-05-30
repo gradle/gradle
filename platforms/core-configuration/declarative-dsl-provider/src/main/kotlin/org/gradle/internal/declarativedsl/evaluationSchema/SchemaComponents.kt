@@ -18,7 +18,9 @@ package org.gradle.internal.declarativedsl.evaluationSchema
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.DefaultEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
@@ -64,10 +66,12 @@ internal
 fun buildEvaluationSchema(
     topLevelReceiverType: KClass<*>,
     analysisStatementFilter: AnalysisStatementFilter,
+    operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     schemaComponents: EvaluationSchemaBuilder.() -> Unit
 ): EvaluationSchema = DefaultEvaluationSchema(
     analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents)),
-    analysisStatementFilter
+    analysisStatementFilter,
+    operationGenerationId
 )
 
 
@@ -75,6 +79,7 @@ internal
 fun buildEvaluationAndConversionSchema(
     topLevelReceiverType: KClass<*>,
     analysisStatementFilter: AnalysisStatementFilter,
+    operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     schemaComponents: EvaluationAndConversionSchemaBuilder.() -> Unit
 ): EvaluationAndConversionSchema {
     val builder = DefaultEvaluationAndConversionSchemaBuilder().apply(schemaComponents)
@@ -82,6 +87,7 @@ fun buildEvaluationAndConversionSchema(
     return DefaultEvaluationAndConversionSchema(
         analysisSchema,
         analysisStatementFilter,
+        operationGenerationId,
         runtimePropertyResolvers = builder.runtimePropertyResolvers,
         runtimeFunctionResolvers = builder.runtimeFunctionResolvers,
         runtimeCustomAccessors = builder.runtimeCustomAccessors

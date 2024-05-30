@@ -20,8 +20,6 @@ import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.declarative.dsl.evaluation.OperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
 
@@ -36,13 +34,12 @@ class DefaultStepIdentifier(override val key: String) : InterpretationSequenceSt
 
 class SimpleInterpretationSequenceStep(
     override val stepIdentifier: InterpretationSequenceStep.StepIdentifier,
-    override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     override val features: Set<InterpretationStepFeature> = emptySet(),
     buildEvaluationAndConversionSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep {
 
-    constructor(stepIdentifierString: String, assignmentGeneration: OperationGenerationId, features: Set<InterpretationStepFeature>, buildEvaluationAndConversionSchema: () -> EvaluationSchema) :
-        this(DefaultStepIdentifier(stepIdentifierString), assignmentGeneration, features, buildEvaluationAndConversionSchema)
+    constructor(stepIdentifierString: String, features: Set<InterpretationStepFeature>, buildEvaluationAndConversionSchema: () -> EvaluationSchema) :
+        this(DefaultStepIdentifier(stepIdentifierString), features, buildEvaluationAndConversionSchema)
 
     override val evaluationSchemaForStep: EvaluationSchema by lazy(buildEvaluationAndConversionSchema)
 }
@@ -55,17 +52,15 @@ class SimpleInterpretationSequenceStep(
 internal
 class SimpleInterpretationSequenceStepWithConversion private constructor(
     override val stepIdentifier: InterpretationSequenceStep.StepIdentifier,
-    override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     override val features: Set<InterpretationStepFeature> = emptySet(),
     buildEvaluationAndConversionSchema: () -> EvaluationAndConversionSchema
 ) : InterpretationSequenceStepWithConversion<Any> {
 
     constructor(
         stepIdentifierString: String,
-        assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
         features: Set<InterpretationStepFeature> = emptySet(),
         buildEvaluationAndConversionSchema: () -> EvaluationAndConversionSchema
-    ) : this(DefaultStepIdentifier(stepIdentifierString), assignmentGeneration, features, buildEvaluationAndConversionSchema)
+    ) : this(DefaultStepIdentifier(stepIdentifierString), features, buildEvaluationAndConversionSchema)
 
     override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy(buildEvaluationAndConversionSchema)
     override fun getTopLevelReceiverFromTarget(target: Any): Any = target

@@ -21,7 +21,6 @@ import java.io.Serializable
 
 interface InterpretationSequenceStep : Serializable {
     val stepIdentifier: StepIdentifier
-    val assignmentGeneration: OperationGenerationId
     val features: Set<InterpretationStepFeature>
     val evaluationSchemaForStep: EvaluationSchema
 

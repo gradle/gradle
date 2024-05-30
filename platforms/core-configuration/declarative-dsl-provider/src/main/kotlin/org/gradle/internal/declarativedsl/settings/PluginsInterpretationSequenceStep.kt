@@ -22,12 +22,10 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep.StepIdentifier
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
-import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
@@ -47,7 +45,6 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 internal
 class PluginsInterpretationSequenceStep(
     stepIdentifierString: String = "plugins",
-    override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
     private val getTargetServices: () -> ServiceRegistry,

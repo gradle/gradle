@@ -134,6 +134,9 @@ class SettingsBlockCheckTest {
     val pluginManagementSchema = pluginManagementEvaluationSchema()
 
     private
-    val pluginsSchema =
-        buildEvaluationSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock, EvaluationSchemaBuilder::gradleDslGeneralSchema)
+    val pluginsSchema = buildEvaluationSchema(
+        PluginsTopLevelReceiver::class,
+        isTopLevelPluginsBlock,
+        schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema
+    )
 }

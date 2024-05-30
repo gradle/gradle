@@ -47,7 +47,7 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
 
         val evaluationSchema = step.evaluationSchemaForStep
 
-        val resolver = tracingCodeResolver(step.assignmentGeneration, evaluationSchema.analysisStatementFilter)
+        val resolver = tracingCodeResolver(evaluationSchema.operationGenerationId, evaluationSchema.analysisStatementFilter)
 
         val languageModel = languageModelFromLightParser(scriptIdentifier, scriptSource)
 

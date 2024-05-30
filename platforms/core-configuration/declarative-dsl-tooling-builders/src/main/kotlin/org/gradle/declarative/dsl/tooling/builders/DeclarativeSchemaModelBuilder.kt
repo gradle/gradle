@@ -66,7 +66,7 @@ class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTy
         steps.map { step ->
             val evaluationSchema = step.evaluationSchemaForStep
             val analysisOnlySchema = DefaultEvaluationSchema(evaluationSchema.analysisSchema, evaluationSchema.analysisStatementFilter)
-            SimpleInterpretationSequenceStep(step.stepIdentifier, step.assignmentGeneration, step.features) { analysisOnlySchema }
+            SimpleInterpretationSequenceStep(step.stepIdentifier, step.features) { analysisOnlySchema }
         }
     )
 

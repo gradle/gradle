@@ -36,7 +36,6 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
     "settingsConventions",
-    assignmentGeneration = DefaultOperationGenerationId.convention,
     features = setOf(ConventionDefinition()),
     buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
 )
@@ -44,7 +43,11 @@ fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: Softwa
 
 private
 fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
-    buildEvaluationSchema(ConventionsTopLevelReceiver::class, isTopLevelElement.implies(isConventionsConfiguringCall)) {
+    buildEvaluationSchema(
+        ConventionsTopLevelReceiver::class,
+        isTopLevelElement.implies(isConventionsConfiguringCall),
+        operationGenerationId = DefaultOperationGenerationId.convention
+    ) {
         gradleDslGeneralSchema()
         dependencyCollectors()
         softwareTypesConventions(ConventionsConfiguringBlock::class, softwareTypeRegistry)

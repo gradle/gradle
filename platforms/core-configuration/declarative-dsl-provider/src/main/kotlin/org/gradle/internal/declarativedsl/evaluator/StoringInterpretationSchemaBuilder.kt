@@ -19,14 +19,13 @@ package org.gradle.internal.declarativedsl.evaluator
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -84,7 +83,6 @@ class StoringInterpretationSchemaBuilder(
         val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : InterpretationSequenceStep {
         override val stepIdentifier: InterpretationSequenceStep.StepIdentifier = step.stepIdentifier
-        override val assignmentGeneration: OperationGenerationId = step.assignmentGeneration
         override val features: Set<InterpretationStepFeature>
             get() = step.features
 
