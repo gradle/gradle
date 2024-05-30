@@ -93,6 +93,7 @@ public abstract class SwiftCompile extends DefaultTask {
     private final Deleter deleter;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public SwiftCompile(
         CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
         Deleter deleter

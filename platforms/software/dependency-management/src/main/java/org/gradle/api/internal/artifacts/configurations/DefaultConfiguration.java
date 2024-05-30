@@ -232,6 +232,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+
+    @SuppressWarnings("this-escape")
     private final Lazy<List<? extends DependencyMetadata>> syntheticDependencies = Lazy.unsafe().of(this::generateSyntheticDependencies);
 
     private final AtomicInteger copyCount = new AtomicInteger();
@@ -249,6 +251,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
      */
+    @SuppressWarnings("this-escape")
     public DefaultConfiguration(
         DomainObjectContext domainObjectContext,
         String name,

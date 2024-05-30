@@ -32,8 +32,8 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  *
  * Note: to avoid 260 char path length limitation on Windows, we should keep the test dir path as short as possible,
- * ideally < 90 chars (from repo root to test dir root, e.g. "core/build/tmp/teŝt files/{TestClass}/{testMethod}/qqlj8"),
- * or < 40 chars for "{TestClass}/{testMethod}/qqlj8"
+ * ideally less than 90 chars (from repo root to test dir root, e.g. "core/build/tmp/teŝt files/{TestClass}/{testMethod}/qqlj8"),
+ * or less than 40 chars for "{TestClass}/{testMethod}/qqlj8"
  */
 public abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
     protected final TestFile root;

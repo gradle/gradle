@@ -63,6 +63,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
+    @SuppressWarnings("this-escape")
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,

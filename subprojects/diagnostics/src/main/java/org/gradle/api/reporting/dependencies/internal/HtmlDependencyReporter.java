@@ -41,7 +41,6 @@ import java.util.Set;
  * by replacing a placeholder @js@ by the name of the generated JS file.
  * The HTML file uses a JavaScript script to generate an interactive page from the data contained in
  * the JSON structure.
- * <p>
  *
  * @see JsonProjectDependencyRenderer
  */

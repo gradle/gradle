@@ -31,6 +31,7 @@ import java.util.concurrent.Executor;
  */
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
+    @SuppressWarnings("this-escape")
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {

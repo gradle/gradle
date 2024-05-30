@@ -27,7 +27,7 @@ public interface ExecuteDeferredWorkProgressDetails {
 
     /**
      * Type of work being executed.
-     * <p>
+     *
      * @since 8.7
      * @see ExecuteWorkBuildOperationType.Details#getWorkType()
      */

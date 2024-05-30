@@ -43,6 +43,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     private final DefaultComponentDependencies dependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultCppTestSuite(String name, ObjectFactory objectFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;

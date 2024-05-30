@@ -68,10 +68,12 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
     }
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultToolchainSpec() {
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
     }
+
     @Override
     public JavaToolchainSpecInternal.Key toKey() {
         return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull());

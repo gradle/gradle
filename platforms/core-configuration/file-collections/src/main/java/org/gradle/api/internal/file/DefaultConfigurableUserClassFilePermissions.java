@@ -21,6 +21,7 @@ import javax.inject.Inject;
 public abstract class DefaultConfigurableUserClassFilePermissions extends AbstractUserClassFilePermissions implements ConfigurableUserClassFilePermissionsInternal {
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultConfigurableUserClassFilePermissions(int unixNumeric) {
         setRead(isRead(unixNumeric));
         setWrite(isWrite(unixNumeric));

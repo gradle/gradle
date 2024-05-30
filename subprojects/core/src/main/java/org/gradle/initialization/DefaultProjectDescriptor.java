@@ -59,6 +59,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultProjectDescriptor(
         @Nullable DefaultProjectDescriptor parent, String name, File dir,
         ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,

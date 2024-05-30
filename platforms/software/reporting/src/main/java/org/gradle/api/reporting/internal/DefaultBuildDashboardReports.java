@@ -24,6 +24,7 @@ import org.gradle.api.reporting.Report;
 
 public class DefaultBuildDashboardReports extends TaskReportContainer<Report> implements BuildDashboardReports {
 
+    @SuppressWarnings("this-escape")
     public DefaultBuildDashboardReports(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(DirectoryReport.class, task, callbackActionDecorator);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");

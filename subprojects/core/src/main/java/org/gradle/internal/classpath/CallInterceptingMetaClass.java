@@ -67,6 +67,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
 
     private static final Object[] NO_ARG = new Object[0];
 
+    @SuppressWarnings("this-escape")
     public CallInterceptingMetaClass(
         MetaClassRegistry registry,
         Class<?> javaClass,

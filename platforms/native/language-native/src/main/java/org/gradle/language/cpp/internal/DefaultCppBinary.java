@@ -55,6 +55,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
+    @SuppressWarnings("this-escape")
     public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objects, componentImplementation);
         this.baseName = baseName;

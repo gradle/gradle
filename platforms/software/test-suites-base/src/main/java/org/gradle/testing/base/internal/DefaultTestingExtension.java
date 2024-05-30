@@ -27,6 +27,7 @@ public abstract class DefaultTestingExtension implements TestingExtension {
     private final ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultTestingExtension() {
         this.suites = getObjectFactory().polymorphicDomainObjectContainer(TestSuite.class);
     }

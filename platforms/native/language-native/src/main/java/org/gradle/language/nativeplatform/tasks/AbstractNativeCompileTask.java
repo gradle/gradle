@@ -76,6 +76,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final ListProperty<String> compilerArgs;
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
+    @SuppressWarnings("this-escape")
     public AbstractNativeCompileTask() {
         ObjectFactory objectFactory = getProject().getObjects();
         this.includes = getProject().files();

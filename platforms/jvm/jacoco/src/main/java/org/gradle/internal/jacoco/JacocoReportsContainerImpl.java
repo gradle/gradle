@@ -28,6 +28,7 @@ import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
 public class JacocoReportsContainerImpl extends TaskReportContainer<ConfigurableReport> implements JacocoReportsContainer {
 
+    @SuppressWarnings("this-escape")
     public JacocoReportsContainerImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ConfigurableReport.class, task, callbackActionDecorator);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");

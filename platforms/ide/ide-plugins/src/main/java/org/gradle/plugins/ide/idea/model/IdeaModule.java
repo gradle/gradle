@@ -194,6 +194,7 @@ public abstract class IdeaModule {
     private Map<String, Iterable<File>> singleEntryLibraries;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;

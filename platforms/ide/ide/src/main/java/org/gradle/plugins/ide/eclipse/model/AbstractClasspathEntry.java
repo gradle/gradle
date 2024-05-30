@@ -46,6 +46,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     protected Set<AccessRule> accessRules;
     protected final Map<String, Object> entryAttributes;
 
+    @SuppressWarnings("this-escape")
     public AbstractClasspathEntry(Node node) {
         path = normalizePath((String) node.attribute("path"));
         this.exported = isNodeExported(node);
@@ -66,6 +67,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
     }
 
+    @SuppressWarnings("this-escape")
     public AbstractClasspathEntry(String path) {
         Preconditions.checkNotNull(path);
         this.path = normalizePath(path);

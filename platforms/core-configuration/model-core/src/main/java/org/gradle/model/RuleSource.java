@@ -26,7 +26,7 @@ import org.gradle.api.Incubating;
  * <p>
  * Please consult the “Rule based model configuration” chapter of the Gradle User Manual for general information about “rules”.
  *
- * <h3>Rule methods</h3>
+ * <h2>Rule methods</h2>
  * <p>
  * Each method that is annotated with one of the following is considered a rule:
  * <ul>
@@ -54,7 +54,7 @@ import org.gradle.api.Incubating;
  * <p>
  * See {@link Model} for information on the significance of the return type of a {@link Model} method.
  *
- * <h4>Subjects and inputs</h4>
+ * <h3>Subjects and inputs</h3>
  * <p>
  * Method rules declare the subject and any inputs as parameters to the method.
  * With the exception of {@link Model} methods, the subject of the rule is the, required, first parameter and all subsequent parameters are inputs.
@@ -65,7 +65,7 @@ import org.gradle.api.Incubating;
  * If there is no {@link Path} annotation, a “by-type” binding will be attempted.
  * The binding scope is determined by how the rule source is applied.
  *
- * <h3>General class constraints</h3>
+ * <h2>General class constraints</h2>
  * <p>
  * Along with the constraints on individual rule methods by their associated annotation, the following are general constraints of rule source implementations:
  * <ul>

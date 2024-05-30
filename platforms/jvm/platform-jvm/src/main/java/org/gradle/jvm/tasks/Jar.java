@@ -54,6 +54,7 @@ public abstract class Jar extends Zip {
     private Manifest manifest;
     private final CopySpecInternal metaInf;
 
+    @SuppressWarnings("this-escape")
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);
         setMetadataCharset("UTF-8");

@@ -68,6 +68,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     @VisibleForTesting
     OperationIdentifier rootBuildOperation;
 
+    @SuppressWarnings("this-escape")
     public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.outputEventListenerManager = outputEventListenerManager;
         this.progressEventEmitter = progressEventEmitter;

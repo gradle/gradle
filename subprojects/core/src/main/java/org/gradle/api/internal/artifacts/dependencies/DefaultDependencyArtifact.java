@@ -30,6 +30,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
     public DefaultDependencyArtifact() {
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultDependencyArtifact(String name, String type, @Nullable String extension, @Nullable String classifier, @Nullable String url) {
         this.name = name;
         this.type = type;

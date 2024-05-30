@@ -43,6 +43,7 @@ public class DaemonJvmOptions extends JvmOptions {
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY, HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
 
+    @SuppressWarnings("this-escape")
     public DaemonJvmOptions(FileCollectionFactory fileCollectionFactory) {
         super(fileCollectionFactory);
         final JvmOptions currentProcessJvmOptions = new CurrentProcess(fileCollectionFactory).getJvmOptions();

@@ -55,6 +55,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
     private final Intersections intersections;
     private final Unions unions;
 
+    @SuppressWarnings("this-escape")
     public NormalizingExcludeFactory(ExcludeFactory delegate) {
         super(delegate);
         this.intersections = new Intersections(this);

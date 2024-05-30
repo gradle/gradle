@@ -45,6 +45,7 @@ public class SimpleXmlWriter extends SimpleMarkupWriter {
      *
      * @param writer The output, should be buffered.
      */
+    @SuppressWarnings("this-escape")
     public SimpleXmlWriter(Writer writer, String indent, String encoding) throws IOException {
         super(writer, indent);
         writeXmlDeclaration(encoding);

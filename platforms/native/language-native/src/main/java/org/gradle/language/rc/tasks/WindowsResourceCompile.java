@@ -74,6 +74,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     private final ListProperty<String> compilerArgs;
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
+    @SuppressWarnings("this-escape")
     public WindowsResourceCompile() {
         ObjectFactory objectFactory = getProject().getObjects();
         includes = getProject().files();

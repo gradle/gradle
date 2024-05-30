@@ -29,6 +29,7 @@ import javax.inject.Inject;
 public class DefaultDependencyReportContainer extends TaskReportContainer<Report> implements DependencyReportContainer {
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultDependencyReportContainer(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(Report.class, task, callbackActionDecorator);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");

@@ -19,6 +19,7 @@ package org.gradle.internal.serialize.codecs.stdlib
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import java.net.URI
 import java.net.URL
 
 
@@ -29,5 +30,5 @@ object UrlCodec : Codec<URL> {
     }
 
     override suspend fun ReadContext.decode(): URL =
-        URL(readString())
+        URI(readString()).toURL()
 }

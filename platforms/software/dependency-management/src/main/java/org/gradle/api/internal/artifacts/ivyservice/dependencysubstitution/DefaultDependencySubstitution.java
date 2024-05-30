@@ -43,6 +43,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     private final ArtifactSelectionDetailsInternal artifactSelectionDetails;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultDependencySubstitution(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
                                          ComponentSelector requested,
                                          List<IvyArtifactName> artifacts) {

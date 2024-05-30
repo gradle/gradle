@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 21
       - id: determine-sys-prop-args
         uses: actions/github-script@v7
         with:
@@ -73,7 +73,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 21
       - uses: actions/download-artifact@v4
         with:
           name: build-receipt.properties
@@ -101,7 +101,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 21
       - uses: actions/download-artifact@v4
         with:
           name: build-receipt.properties

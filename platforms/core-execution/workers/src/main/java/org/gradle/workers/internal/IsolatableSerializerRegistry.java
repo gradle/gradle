@@ -108,6 +108,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
+    @SuppressWarnings("this-escape")
     public IsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;

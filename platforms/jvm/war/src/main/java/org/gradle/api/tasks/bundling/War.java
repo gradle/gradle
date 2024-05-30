@@ -56,6 +56,7 @@ public abstract class War extends Jar {
     private final DefaultCopySpec webInf;
     private final DirectoryProperty webAppDirectory;
 
+    @SuppressWarnings("this-escape")
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
         setMetadataCharset("UTF-8");

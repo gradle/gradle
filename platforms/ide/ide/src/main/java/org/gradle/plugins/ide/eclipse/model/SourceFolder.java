@@ -38,6 +38,7 @@ public class SourceFolder extends AbstractClasspathEntry {
     private File dir;
     private String name;
 
+    @SuppressWarnings("this-escape")
     public SourceFolder(Node node) {
         super(node);
         this.output = normalizePath((String) node.attribute("output"));
@@ -54,6 +55,7 @@ public class SourceFolder extends AbstractClasspathEntry {
         }
     }
 
+    @SuppressWarnings("this-escape")
     public SourceFolder(String projectRelativePath, String output) {
         super(projectRelativePath);
         this.output = normalizePath(output);

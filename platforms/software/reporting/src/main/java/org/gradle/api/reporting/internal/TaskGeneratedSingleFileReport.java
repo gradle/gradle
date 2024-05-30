@@ -26,7 +26,9 @@ import javax.inject.Inject;
 import java.io.File;
 
 public abstract class TaskGeneratedSingleFileReport extends TaskGeneratedReport implements SingleFileReport {
+
     @Inject
+    @SuppressWarnings("this-escape")
     public TaskGeneratedSingleFileReport(String name, Task task) {
         super(name, OutputType.FILE, task);
         // This is for backwards compatibility for plugins that attach a convention mapping to the replaced property

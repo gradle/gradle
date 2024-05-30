@@ -21,6 +21,8 @@ import org.gradle.api.tasks.compile.GroovyForkOptions;
 import java.io.Serializable;
 
 public class MinimalGroovyCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
+
+    @SuppressWarnings("this-escape")
     public MinimalGroovyCompilerDaemonForkOptions(GroovyForkOptions forkOptions) {
         super(forkOptions);
         setJvmArgs(forkOptions.getAllJvmArgs());

@@ -32,6 +32,8 @@ import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
  * command line arguments.
  */
 public class MinimalCompilerDaemonForkOptions extends BaseForkOptions {
+
+    @SuppressWarnings("this-escape")
     public MinimalCompilerDaemonForkOptions(BaseForkOptions forkOptions) {
         setJvmArgs(forkOptions.getJvmArgs());
         setMemoryInitialSize(forkOptions.getMemoryInitialSize());

@@ -28,10 +28,10 @@ import java.util.function.Function;
 /**
  * Provides a state pattern implementation for values that are finalizable and support conventions.
  *
- * <h3>Finalization</h3>
+ * <h2>Finalization</h2>
  * See {@link org.gradle.api.provider.HasConfigurableValue} and {@link HasConfigurableValueInternal}.
  *
- * <h3>Conventions</h3>
+ * <h2>Conventions</h2>
  * See {@link org.gradle.api.provider.SupportsConvention}.
  *
  * @param <S> the type of the value

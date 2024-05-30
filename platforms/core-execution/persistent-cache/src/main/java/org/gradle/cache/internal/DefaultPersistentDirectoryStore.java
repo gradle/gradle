@@ -50,6 +50,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final DefaultCacheCleanupExecutor cleanupExecutor;
     private DefaultCacheCoordinator cacheAccess;
 
+    @SuppressWarnings("this-escape")
     public DefaultPersistentDirectoryStore(
         File dir,
         @Nullable String displayName,

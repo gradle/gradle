@@ -31,9 +31,8 @@ public interface CachedExternalResourceIndex<K> {
 
     /**
      * Adds a resolution to the index.
-     *
-     * The incoming file is expected to be in the persistent local. This method will not move/copy the file there.
      * <p>
+     * The incoming file is expected to be in the persistent local. This method will not move/copy the file there.
      *
      * @param key The key to cache this resolution under in the index. Cannot be null.
      * @param artifactFile The artifact file in the persistent file store. Cannot be null

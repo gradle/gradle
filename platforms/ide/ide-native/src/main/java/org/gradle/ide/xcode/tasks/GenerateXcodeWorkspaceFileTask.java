@@ -38,6 +38,7 @@ import java.io.File;
 public abstract class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
     private FileCollection xcodeProjectLocations;
 
+    @SuppressWarnings("this-escape")
     public GenerateXcodeWorkspaceFileTask() {
         this.xcodeProjectLocations = getProject().files();
     }

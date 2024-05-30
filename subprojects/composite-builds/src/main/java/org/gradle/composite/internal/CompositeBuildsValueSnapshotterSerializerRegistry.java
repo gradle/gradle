@@ -21,6 +21,7 @@ import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 public class CompositeBuildsValueSnapshotterSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
 
+    @SuppressWarnings("this-escape")
     public CompositeBuildsValueSnapshotterSerializerRegistry() {
         super();
         register(CompositeProjectComponentArtifactMetadata.class, new CompositeProjectComponentArtifactMetadataSerializer());

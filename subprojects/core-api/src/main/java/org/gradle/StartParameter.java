@@ -199,6 +199,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Creates a {@code StartParameter} initialized from the given {@link BuildLayoutParameters}.
      * @since 7.0
      */
+    @SuppressWarnings("this-escape")
     protected StartParameter(BuildLayoutParameters layoutParameters) {
         gradleHomeDir = layoutParameters.getGradleInstallationHomeDir();
         currentDir = layoutParameters.getCurrentDir();

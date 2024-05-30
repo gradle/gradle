@@ -31,7 +31,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     private final MutationGuard crossProjectConfiguratorMutationGuard;
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
      * @param instantiator The instantiator to use to create any other collections based on this one
@@ -43,7 +43,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container
      * @param instantiator The instantiator to use to create any other collections based on this one
@@ -57,7 +57,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
      * @param instantiator The instantiator to use to create any other collections based on this one
@@ -68,7 +68,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container
      * @param instantiator The instantiator to use to create any other collections based on this one

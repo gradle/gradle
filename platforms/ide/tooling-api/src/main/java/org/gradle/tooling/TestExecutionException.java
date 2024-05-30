@@ -18,7 +18,6 @@ package org.gradle.tooling;
 
 /**
  * Thrown when the {@link org.gradle.tooling.TestLauncher} cannot run tests, or when one or more tests fail.
- * <p>
  *
  * @since 2.6
  */

@@ -70,6 +70,7 @@ public abstract class InstallExecutable extends DefaultTask {
      * @since 4.2
      */
     @Inject
+    @SuppressWarnings("this-escape")
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
         ObjectFactory objectFactory = getProject().getObjects();
         this.workerLeaseService = workerLeaseService;

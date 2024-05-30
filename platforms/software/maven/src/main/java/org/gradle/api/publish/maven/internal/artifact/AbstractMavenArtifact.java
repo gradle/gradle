@@ -31,6 +31,7 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
     private String extension;
     private String classifier;
 
+    @SuppressWarnings("this-escape")
     protected AbstractMavenArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
         this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {

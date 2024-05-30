@@ -55,6 +55,7 @@ public abstract class SpecificInstallationToolchainSpec extends DefaultToolchain
     private final File javaHome;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public SpecificInstallationToolchainSpec(File javaHome) {
         super();
         this.javaHome = javaHome;

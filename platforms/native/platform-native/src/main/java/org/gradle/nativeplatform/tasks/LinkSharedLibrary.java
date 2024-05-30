@@ -37,9 +37,13 @@ import java.util.concurrent.Callable;
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class LinkSharedLibrary extends AbstractLinkTask {
+
+    @SuppressWarnings("this-escape")
     private final Property<String> installName = getProject().getObjects().property(String.class);
+    @SuppressWarnings("this-escape")
     private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();
 
+    @SuppressWarnings("this-escape")
     public LinkSharedLibrary() {
         importLibrary.set(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {
             @Override

@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.protocol;
 /**
  * Marker interface for the internal protocol purposes.
  * Corresponding client facing model is {@link org.gradle.tooling.model.build.BuildEnvironment}
- * <p>
  *
  * @since 1.0-milestone-8
  */

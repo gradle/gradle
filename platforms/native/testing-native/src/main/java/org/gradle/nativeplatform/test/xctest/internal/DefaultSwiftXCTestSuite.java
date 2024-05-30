@@ -48,6 +48,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent<SwiftXCTestBi
     private final DefaultComponentDependencies dependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory) {
         super(name, SwiftXCTestBinary.class, objectFactory);
         this.testedComponent = objectFactory.property(SwiftComponent.class);

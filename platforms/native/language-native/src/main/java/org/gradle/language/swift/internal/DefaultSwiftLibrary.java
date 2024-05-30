@@ -47,6 +47,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBinary> impl
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;

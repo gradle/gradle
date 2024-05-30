@@ -212,6 +212,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private boolean preparedForRuleBasedPlugins;
 
+    @SuppressWarnings("this-escape")
     public DefaultProject(
         String name,
         @Nullable ProjectInternal parent,

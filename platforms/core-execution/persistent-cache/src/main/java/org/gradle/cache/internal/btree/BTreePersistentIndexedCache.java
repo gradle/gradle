@@ -61,6 +61,7 @@ public class BTreePersistentIndexedCache<K, V> {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
     }
 
+    @SuppressWarnings("this-escape")
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;

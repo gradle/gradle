@@ -24,6 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  * A CPU architecture.
  *
  * <table>
+ *     <caption>Values</caption>
  *     <tr>
  *         <th>Instruction Set</th>
  *         <th>32-bit names</th>

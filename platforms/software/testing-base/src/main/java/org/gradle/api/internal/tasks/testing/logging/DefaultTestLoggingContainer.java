@@ -33,6 +33,7 @@ import java.util.Set;
 public class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
+    @SuppressWarnings("this-escape")
     public DefaultTestLoggingContainer(Instantiator instantiator) {
         for (LogLevel level: LogLevel.values()) {
             perLevelTestLogging.put(level, instantiator.newInstance(DefaultTestLogging.class));

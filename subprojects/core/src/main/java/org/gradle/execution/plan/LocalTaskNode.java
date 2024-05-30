@@ -51,6 +51,7 @@ public class LocalTaskNode extends TaskNode {
     private TaskProperties taskProperties;
     private ProjectInternal taskProject;
 
+    @SuppressWarnings("this-escape")
     public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
         this.validationContext = workValidationContext;

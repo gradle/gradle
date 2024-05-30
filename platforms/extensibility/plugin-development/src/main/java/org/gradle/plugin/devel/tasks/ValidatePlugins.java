@@ -73,6 +73,7 @@ import static org.gradle.api.problems.Severity.ERROR;
 @CacheableTask
 public abstract class ValidatePlugins extends DefaultTask {
 
+    @SuppressWarnings("this-escape")
     public ValidatePlugins() {
         getEnableStricterValidation().convention(false);
         getIgnoreFailures().convention(false);

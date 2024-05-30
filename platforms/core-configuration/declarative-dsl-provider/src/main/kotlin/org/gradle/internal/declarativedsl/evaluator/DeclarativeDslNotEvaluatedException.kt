@@ -42,34 +42,34 @@ class DeclarativeDslNotEvaluatedException(
             stageFailures.forEach { stageFailure ->
                 when (stageFailure) {
                     is StageFailure.FailuresInLanguageTree -> {
-                        appendLine("Failures in building the language tree:".indent(1))
+                        appendLine("Failures in building the language tree:".indented(1))
                         if (stageFailure.failures.isNotEmpty()) {
                             formatFailuresInLanguageTree(stageFailure.failures).forEach {
-                                appendLine(it.indent(2))
+                                appendLine(it.indented(2))
                             }
                         }
                     }
 
                     is StageFailure.FailuresInResolution -> {
-                        appendLine("Failures in resolution:".indent(1))
+                        appendLine("Failures in resolution:".indented(1))
                         stageFailure.errors.forEach {
-                            appendLine(formatResolutionError(it).indent(2))
+                            appendLine(formatResolutionError(it).indented(2))
                         }
                     }
 
                     StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
                     is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.target}")
                     is StageFailure.AssignmentErrors -> {
-                        appendLine("Failures in assignments:".indent(1))
+                        appendLine("Failures in assignments:".indented(1))
                         stageFailure.usages.forEach { unassigned ->
-                            appendLine(describedUnassignedValueUsage(unassigned).indent(2))
+                            appendLine(describedUnassignedValueUsage(unassigned).indented(2))
                         }
                     }
 
                     is StageFailure.DocumentCheckFailures -> {
-                        appendLine("Failures in document checks:".indent(1))
+                        appendLine("Failures in document checks:".indented(1))
                         stageFailure.failures.forEach { failure ->
-                            appendLine(describeDocumentCheckFailure(failure).indent(2))
+                            appendLine(describeDocumentCheckFailure(failure).indented(2))
                         }
                     }
                 }
@@ -158,5 +158,5 @@ class DeclarativeDslNotEvaluatedException(
         if (ast.lineRange.first != -1) "${ast.lineRange.first}:${ast.startColumn}" else ""
 
     private
-    fun String.indent(level: Int = 1) = " ".repeat(level * 2) + this
+    fun String.indented(level: Int = 1) = " ".repeat(level * 2) + this
 }

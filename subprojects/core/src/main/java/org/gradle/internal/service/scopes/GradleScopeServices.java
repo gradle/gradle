@@ -77,6 +77,8 @@ import java.util.List;
  */
 @SuppressWarnings("deprecation")
 public class GradleScopeServices extends ScopedServiceRegistry {
+
+    @SuppressWarnings("this-escape")
     public GradleScopeServices(final ServiceRegistry parent) {
         super(Scope.Gradle.class, "Gradle-scope services", parent);
         register(registration -> {

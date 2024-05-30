@@ -123,7 +123,10 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private final Set<String> aliasesInProgress = new LinkedHashSet<>();
     private final Map<String, Supplier<PluginModel>> plugins = new LinkedHashMap<>();
     private final Map<String, BundleModel> bundles = new LinkedHashMap<>();
+
+    @SuppressWarnings("this-escape")
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
+
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;

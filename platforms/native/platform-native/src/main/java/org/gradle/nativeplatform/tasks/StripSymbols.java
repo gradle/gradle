@@ -54,6 +54,7 @@ public abstract class StripSymbols extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
 
+    @SuppressWarnings("this-escape")
     public StripSymbols() {
         ObjectFactory objectFactory = getProject().getObjects();
 

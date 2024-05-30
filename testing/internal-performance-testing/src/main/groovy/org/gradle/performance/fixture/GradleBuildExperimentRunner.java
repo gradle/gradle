@@ -66,8 +66,6 @@ import java.util.stream.Stream;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * {@inheritDoc}
- *
  * This runner uses Gradle profiler to execute the actual experiment.
  */
 @CompileStatic

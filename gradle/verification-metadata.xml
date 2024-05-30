@@ -159,7 +159,6 @@
          <trusted-key id="53C935821AA6A755BD337DB53595395EB3D8E1BA" group="org.apache.logging.log4j"/>
          <trusted-key id="55E770230E69CC6DE143FB5B62C82E50836EB3EE" group="com.github.gundy" name="semver4j"/>
          <trusted-key id="5989BAF76217B843D66BE55B2D0E1FB8FE4B68B4" group="org.eclipse.jetty"/>
-         <trusted-key id="59B06224FD8912E36603BE79FEFE78456EDDC34A" group="io.mockk"/>
          <trusted-key id="5B7F3605A8CE471A9CA8DB7EC84125C13BF6F2F2" group="^org[.]ajoberstar($|([.].*))" regex="true"/>
          <trusted-key id="5CE325996A35213326AE2C68912D2C0ECCDA55C0" group="com.google.errorprone" name="error_prone_annotations"/>
          <trusted-key id="5DE533CB43DAF8BC3E372283E7AE839CD7C58886" group="org.eclipse.jetty"/>
@@ -294,7 +293,6 @@
             <trusting group="commons-beanutils"/>
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
-         <trusted-key id="DF49FA14952E59A7B21931EC8EDF2667D0ECFFAF" group="io.mockk"/>
          <trusted-key id="E62231331BCA7E1F292C9B88C1B12A5D99C0729D" group="org.jetbrains"/>
          <trusted-key id="E77417AC194160A3FABD04969A259C7EE636C5ED">
             <trusting group="com.google.errorprone" name="error_prone_annotations"/>

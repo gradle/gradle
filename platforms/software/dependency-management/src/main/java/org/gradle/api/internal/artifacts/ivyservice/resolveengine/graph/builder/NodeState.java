@@ -133,6 +133,7 @@ public class NodeState implements DependencyGraphNode {
         this(resultId, id, component, null, variant, selectedByVariantAwareResolution);
     }
 
+    @SuppressWarnings("this-escape")
     public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
         this.nodeId = resultId;
         this.id = id;

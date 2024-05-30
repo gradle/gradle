@@ -60,6 +60,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final GraphVariantSelector graphVariantSelector;
     private final AttributesSchemaInternal consumerSchema;
 
+    @SuppressWarnings("this-escape")
     private final Lazy<ImmutableSet<ResolvedVariant>> ownArtifacts = Lazy.locking().of(this::calculateOwnArtifacts);
 
     public VariantResolvingArtifactSet(

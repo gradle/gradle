@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * Managed types are mostly behaviour-less, as they are data.
  * Instances of managed types should effectively be considered value objects.
  *
- * <h3>Properties</h3>
+ * <h2>Properties</h2>
  * <p>
  * Managed types declare their structure as properties, via getter and setter methods.
  * Getter and setter methods are expected to conform to the well-known Java Bean naming conventions.
@@ -54,7 +54,7 @@ import java.lang.annotation.Target;
  * boolean isEnabled();
  * </pre>
  *
- * <h4>Supported property types</h4>
+ * <h2>Supported property types</h2>
  * <p>
  * The following JDK types are allowed:
  * <ul>
@@ -82,7 +82,7 @@ import java.lang.annotation.Target;
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.
  *
- * <h3>Named types</h3>
+ * <h2>Named types</h2>
  * <p>
  * Managed types may implement/extend the {@link org.gradle.api.Named} interface.
  * Any managed type implementing this interface will have its {@code name} attribute populated automatically
@@ -90,12 +90,12 @@ import java.lang.annotation.Target;
  * <p>
  * The {@link ModelMap} type requires that its elements are {@link org.gradle.api.Named}.
  *
- * <h3>Inheritance</h3>
+ * <h2>Inheritance</h2>
  * <p>
  * Managed types can be arranged into an inheritance hierarchy.
  * Every type in the hierarchy must conform to the constraints of managed types.
  *
- * <h3>Calculated read-only properties</h3>
+ * <h2>Calculated read-only properties</h2>
  * <p>
  * Managed types can contain getter methods that return calculated values, based on other properties.
  * For example, a “name” property may return the concatenation of a “firstName” and “lastName” property.
@@ -103,13 +103,13 @@ import java.lang.annotation.Target;
  * Alternatively, the managed type can be implemented as an abstract class with the calculated property implemented as a non-abstract getter method.
  * In both cases, the implementation of the calculated property getter may not call any setter method.
  *
- * <h3>Abstract classes</h3>
+ * <h2>Abstract classes</h2>
  * <p>
  * A managed type can be implemented as an abstract class.
  * All property getters and setters must be declared {@code abstract} (with the exception of calculated read-only properties).
  * The class cannot contain instance variables, constructors, or any methods that are not a getter or setter.
  *
- * <h3>Creating managed model elements</h3>
+ * <h2>Creating managed model elements</h2>
  * <p>
  * Please see {@link Model} for information on creating model elements of managed types.
  */

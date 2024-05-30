@@ -63,6 +63,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
 
     protected T domainObject;
 
+    @SuppressWarnings("this-escape")
     public GeneratorTask() {
         if (!getIncremental()) {
             getOutputs().upToDateWhen(Specs.satisfyNone());

@@ -78,6 +78,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
+    @SuppressWarnings("this-escape")
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
         LocalComponentGraphResolveMetadata metadata,

@@ -52,12 +52,13 @@ addDependencies()
 configureCompile()
 configureSourcesVariant()
 configureTests()
+configureJavadoc()
 
 tasks.registerCITestDistributionLifecycleTasks()
 
 fun configureCompile() {
     java.toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(21)
         vendor = JvmVendorSpec.ADOPTIUM
     }
 
@@ -382,4 +383,24 @@ fun Test.configureAndroidUserHome() {
     val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
     environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
     environment["ANDROID_USER_HOME"] = androidUserHomeForTest
+}
+
+/**
+ * Configures Javadoc generation for all projects.
+ *
+ * See GradleJavadocsPlugin for public API javadoc generation only
+ */
+fun configureJavadoc() {
+    tasks.javadoc {
+        options {
+            this as StandardJavadocDocletOptions
+
+            // Enable all javadoc warnings, except for:
+            // - missing: Classes and methods are not required to have javadoc
+            addBooleanOption("Xdoclint:all,-missing", true)
+
+            // Add support for custom tags
+            tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
+        }
+    }
 }
