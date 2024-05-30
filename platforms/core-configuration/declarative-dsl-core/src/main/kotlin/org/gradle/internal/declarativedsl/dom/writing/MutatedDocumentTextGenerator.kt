@@ -203,9 +203,11 @@ class TrackingCodeTextBuilder {
      * Tells to which line an original line is mapped to in the resulting text.
      * Assumes that original lines are not split into multiple lines.
      */
-    val originalLinesMappedToResultLines: Map<Int, Int> get() = lineMapping
+    val originalLinesMappedToResultLines: Map<Int, Int>
+        get() = lineMapping
 
-    val flexibleLineBreaksBeforeLines: Set<Int> get() = flexibleLineBreaks
+    val flexibleLineBreaksBeforeLines: Set<Int>
+        get() = flexibleLineBreaks
 
     fun appendIndent(string: String) {
         require(string.isBlank() && string.indexOf('\n') == -1)
@@ -229,7 +231,7 @@ class TrackingCodeTextBuilder {
         flexibleLineBreaks.add(currentResultLine)
     }
 
-    val indentLength: Int get() = lastIndentLength
+    val indentLength: Int
+        get() = lastIndentLength
     //endregion
 }
-
