@@ -177,7 +177,7 @@ class TextPreservingTreeBuilder {
         var unhandledFrom = fromIndex
         var unhandledLineFrom = fromLine
 
-        val lines = originalText.substring(fromIndex..<untilIndexExclusive).split('\n')
+        val lines = originalText.substring(fromIndex until untilIndexExclusive).split('\n')
         lines.forEachIndexed { lineIndex, line ->
             var lineRemainderLength = line.length
             if (lineIndex != 0) {
@@ -226,7 +226,7 @@ class TextPreservingTreeBuilder {
     fun SourceData.nameRange(name: String): IntRange {
         val rangeStart = indexRange.first + text().indexOf(name)
             .also { require(it != -1) { "the name of the document element '$name' is not found in the text '${text()}'" } }
-        return rangeStart..<rangeStart + name.length
+        return rangeStart until (rangeStart + name.length)
     }
 
     private
