@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+
 class CanonicalDocumentTextGeneratorTest {
     private
     val canonicalCode = """

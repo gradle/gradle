@@ -23,16 +23,18 @@ interface DocumentMutationPlan {
     val unsuccessfulDocumentMutations: List<UnsuccessfulDocumentMutation>
 }
 
+
 data class UnsuccessfulDocumentMutation(
     val mutation: DocumentMutation,
     val failureReasons: List<DocumentMutationFailureReason>
 )
 
+
 interface DocumentMutationPlanner<T : DocumentMutationPlan> {
-    fun planDocumentMutations(document: DeclarativeDocument,  mutations: List<DocumentMutation>): T
+    fun planDocumentMutations(document: DeclarativeDocument, mutations: List<DocumentMutation>): T
 }
+
 
 sealed interface DocumentMutationFailureReason {
     data object TargetNotFoundOrSuperseded : DocumentMutationFailureReason
 }
-

@@ -73,7 +73,8 @@ class TextPreservingTreeBuilder {
         val originalText: String = document.sourceData.text()
     }
 
-    private fun TreeBuildingContext.buildTextPreservingTree(document: DeclarativeDocument) = TextPreservingTree(
+    private
+    fun TreeBuildingContext.buildTextPreservingTree(document: DeclarativeDocument) = TextPreservingTree(
         originalText,
         TextTreeNode(
             document.sourceData.indexRange,
@@ -186,7 +187,7 @@ class TextPreservingTreeBuilder {
                     SubTreeData(
                         ChildTag.Indentation,
                         TextTreeNode(
-                            unhandledFrom..<(unhandledFrom + indentation.length), unhandledLineFrom..unhandledLineFrom, emptyList()
+                            unhandledFrom until (unhandledFrom + indentation.length), unhandledLineFrom..unhandledLineFrom, emptyList()
                         )
                     )
                 )
@@ -197,7 +198,7 @@ class TextPreservingTreeBuilder {
                 SubTreeData(
                     ChildTag.UnstructuredText,
                     TextTreeNode(
-                        unhandledFrom..<(unhandledFrom + lineRemainderLength),
+                        unhandledFrom until (unhandledFrom + lineRemainderLength),
                         unhandledLineFrom..unhandledLineFrom,
                         emptyList()
                     )
@@ -233,15 +234,18 @@ class TextPreservingTreeBuilder {
     fun SourceData.nameLines(name: String) = (lineRange.first + text().substring(text().indexOf(name)).count { it == '\n' }).let { it..it }
 
     private
-    val DeclarativeDocument.ValueNode.range: IntRange get() = sourceData.indexRange
+    val DeclarativeDocument.ValueNode.range: IntRange
+        get() = sourceData.indexRange
 
     private
-    val DeclarativeDocument.ValueNode.lines: IntRange get() = sourceData.lineRange
+    val DeclarativeDocument.ValueNode.lines: IntRange
+        get() = sourceData.lineRange
 
     private
-    val DeclarativeDocument.DocumentNode.range: IntRange get() = sourceData.indexRange
+    val DeclarativeDocument.DocumentNode.range: IntRange
+        get() = sourceData.indexRange
 
     private
-    val DeclarativeDocument.DocumentNode.lines: IntRange get() = sourceData.lineRange
+    val DeclarativeDocument.DocumentNode.lines: IntRange
+        get() = sourceData.lineRange
 }
-

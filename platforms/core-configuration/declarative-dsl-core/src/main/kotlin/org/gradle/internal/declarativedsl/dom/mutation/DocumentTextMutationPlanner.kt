@@ -63,7 +63,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
         val name: String
 
         class FromPropertyRename(override val mutation: RenamePropertyNode) : NewNameProviderFromMutation {
-            override val name: String get() = mutation.newName
+            override val name: String
+                get() = mutation.newName
         }
 
         class FromCallMutation(override val mutation: DocumentMutation.HasCallMutation, private val renameCall: CallMutation.RenameCall) : NewNameProviderFromMutation {
@@ -71,7 +72,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                 require(mutation.callMutation == renameCall)
             }
 
-            override val name: String get() = renameCall.newName
+            override val name: String
+                get() = renameCall.newName
         }
     }
 
@@ -103,7 +105,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
         }
     }
 
-    private fun buildNameMapper(
+    private
+    fun buildNameMapper(
         mutations: List<DocumentMutation>,
         confirmationTracker: MutationConfirmationTracker,
     ): NameMapper {
@@ -145,10 +148,10 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
 
             return false
         }
-
     }
 
-    private fun buildNodeRemovalPredicate(
+    private
+    fun buildNodeRemovalPredicate(
         mutations: List<DocumentMutation>,
         mutationConfirmationTracker: MutationConfirmationTracker
     ): NodeRemovalPredicate = NodeRemovalPredicate(
@@ -164,6 +167,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
         }, mutationConfirmationTracker
     )
 }
+
 
 class DocumentTextMutationPlan(
     val newText: String,
