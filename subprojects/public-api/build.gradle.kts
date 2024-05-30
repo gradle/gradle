@@ -14,109 +14,66 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.capitalize
-import gradlebuild.packaging.transforms.CopyPublicApiClassesTransform
-
 plugins {
-    id("gradlebuild.distribution.packaging")
-    id("gradlebuild.module-identity")
-    id("signing")
-    `maven-publish`
+    id("gradlebuild.public-api-jar")
 }
 
-enum class Filtering {
-    PUBLIC_API, ALL
-}
-
-val filteredAttribute: Attribute<Filtering> = Attribute.of("org.gradle.apijar.filtered", Filtering::class.java)
+group = "org.gradle.experimental"
+description = "Public API for Gradle"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
-    pluginsRuntimeOnly(platform(project(":distributions-full")))
+    distribution(project(":distributions-full"))
 
-    artifactTypes.getByName("jar") {
-        attributes.attribute(filteredAttribute, Filtering.ALL)
-    }
-
-    // Filters out classes that are not exposed by our API.
-    // TODO Use actual filtering not copying
-    registerTransform(CopyPublicApiClassesTransform::class.java) {
-        from.attribute(filteredAttribute, Filtering.ALL)
-            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
-        to.attribute(filteredAttribute, Filtering.PUBLIC_API)
-    }
+    externalApi(libs.groovy)
 }
 
-fun registerApiJarTask(artifactName: String, dependencies: NamedDomainObjectProvider<Configuration>) {
-    val task = tasks.register<Jar>("jar${artifactName.split("-").joinToString("") { it.capitalize() }}") {
-        from(dependencies.map { classpath ->
-            classpath.incoming.artifactView {
-                attributes {
-                    attribute(filteredAttribute, Filtering.PUBLIC_API)
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            version = moduleIdentity.snapshot
+                .map { moduleIdentity.version.get().baseVersion.version + "-SNAPSHOT" }
+                .orElse(moduleIdentity.version.map { it.version!! })
+                .get()
+
+            from(components["gradleApi"])
+
+            versionMapping {
+                allVariants {
+                    fromResolutionOf(configurations.externalRuntimeClasspath.get())
                 }
-                componentFilter { component ->
-                    component is ProjectComponentIdentifier &&
-                        // FIXME Why is this dependency present here? Can we exclude it better?
-                        component.buildTreePath != ":build-logic:kotlin-dsl-shared-runtime"
-                }
-            }.files
-        })
-        destinationDirectory = layout.buildDirectory.dir("public-api/${artifactName}")
-        // This is needed because of the duplicate package-info.class files
-        duplicatesStrategy = DuplicatesStrategy.WARN
-    }
+            }
 
-    publishing {
-        publications {
-            create<MavenPublication>(artifactName) {
-                groupId = "org.gradle.experimental"
-                artifactId = artifactName
-                version = moduleIdentity.snapshot
-                    .map { moduleIdentity.version.get().baseVersion.version + "-SNAPSHOT" }
-                    .orElse(moduleIdentity.version.map { it.version!! })
-                    .get()
-                artifact(task)
+            withGradlePomDefaults()
 
-                pom {
-                    name = "org.gradle.experimental:${artifactName}"
-                    // TODO Add artifact type in description
-                    description = "Public API for Gradle"
-
-                    // TODO Can we do this in a CC-compatible way?
-                    withXml {
-                        val dependenciesNode = asNode().appendNode("dependencies")
-                        // TODO Handle this via resolved dependencies
-                        dependenciesNode.appendNode("dependency").apply {
-                            appendNode("groupId", libs.groovyGroup)
-                            appendNode("artifactId", "groovy")
-                            appendNode("version", libs.groovyVersion)
-                        }
-                    }
-
-                    // TODO Reuse these from gradlebuild.publish-public-libraries.gradle
-                    url = "https://gradle.org"
-                    licenses {
-                        license {
-                            name = "Apache-2.0"
-                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                        }
-                    }
-                    developers {
-                        developer {
-                            name = "The Gradle team"
-                            organization = "Gradle Inc."
-                            organizationUrl = "https://gradle.org"
-                        }
-                    }
-                    scm {
-                        connection = "scm:git:git://github.com/gradle/gradle.git"
-                        developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
-                        url = "https://github.com/gradle/gradle"
-                    }
-                }
+            pom {
+                name = project.provider { "${project.group}:${project.name}" }
+                description = project.provider { project.description }
             }
         }
     }
 }
 
-registerApiJarTask("gradle-api", configurations.runtimeClasspath)
+// TODO Reuse these from gradlebuild.publish-public-libraries.gradle
+fun MavenPublication.withGradlePomDefaults() {
+    pom {
+        url = "https://gradle.org"
+        licenses {
+            license {
+                name = "Apache-2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        developers {
+            developer {
+                name = "The Gradle team"
+                organization = "Gradle Inc."
+                organizationUrl = "https://gradle.org"
+            }
+        }
+        scm {
+            connection = "scm:git:git://github.com/gradle/gradle.git"
+            developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
+            url = "https://github.com/gradle/gradle"
+        }
+    }
+}

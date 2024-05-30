@@ -72,6 +72,7 @@ dependencies {
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.26.1") }}
+        api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
