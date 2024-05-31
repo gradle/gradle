@@ -45,7 +45,6 @@ import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 
@@ -211,8 +210,8 @@ class LanguageTreeBackedDocument internal constructor(
     override val content: Collection<DeclarativeDocument.DocumentNode>
 ) : DeclarativeDocument {
 
-    override val sourceIdentifier: SourceIdentifier
-        get() = block.sourceData.sourceIdentifier
+    override val sourceData: SourceData
+        get() = block.sourceData
 }
 
 

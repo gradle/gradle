@@ -40,7 +40,7 @@ import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrig
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrigin.OverlayValueOrigin
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.SourceData
 
 
 object DocumentOverlay {
@@ -71,8 +71,8 @@ object DocumentOverlay {
         val resultDocument = object : DeclarativeDocument {
             override val content: Collection<DeclarativeDocument.DocumentNode>
                 get() = resultContent
-            override val sourceIdentifier: SourceIdentifier
-                get() = overlayDocument.sourceIdentifier
+            override val sourceData: SourceData
+                get() = overlayDocument.sourceData
         }
         val overlayOriginContainer = context.overlayOriginContainer
         val overlayResolutionContainer = OverlayResolutionContainer(overlayOriginContainer, underlayDocumentResolution, overlayDocumentResolution)
