@@ -32,6 +32,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
@@ -70,6 +72,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * The CodeNarc configuration file to use.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getConfigFile() {
         return getConfig() == null ? null : getConfig().asFile();
     }
@@ -79,6 +82,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      */
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -134,6 +138,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * The class path containing the CodeNarc library to be used.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getCodenarcClasspath() {
         return codenarcClasspath;
     }
@@ -151,6 +156,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 4.2
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getCompilationClasspath() {
         return compilationClasspath;
     }
@@ -170,6 +176,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 2.2
      */
     @Nested
+    @ToBeReplacedByLazyProperty
     public TextResource getConfig() {
         return config;
     }
@@ -187,6 +194,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * The maximum number of priority 1 violations allowed before failing the build.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public int getMaxPriority1Violations() {
         return maxPriority1Violations;
     }
@@ -202,6 +210,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * The maximum number of priority 2 violations allowed before failing the build.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public int getMaxPriority2Violations() {
         return maxPriority2Violations;
     }
@@ -217,6 +226,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * The maximum number of priority 3 violations allowed before failing the build.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public int getMaxPriority3Violations() {
         return maxPriority3Violations;
     }
@@ -233,6 +243,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      */
     @Override
     @Nested
+    @ToBeKeptEagerProperty(because = "Read-only nested property")
     public CodeNarcReports getReports() {
         return reports;
     }
