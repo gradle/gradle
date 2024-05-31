@@ -113,6 +113,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private void initCalculatedValues() {
+        // TODO: We wrap the CalculatedValues in an AtomicReference so that we can reset their state, however
+        //       CalculatedValues are not resettable for a reason. This is a pretty terrible hack.
+        //       We should get rid of reevaluate entirely, so that we do not need these AtomicReferences.
+        //       We are already on this path -- we deprecated mutating a configuration after observation.
+        //       However, while mutation is still allowed, we need hacks like this, as plugins are relying
+        //       on the deprecated behavior, for example the Spring dependency management plugin which adds
+        //       excludes to dependencies in a beforeResolve.
         this.graphSelectionCandidates.set(
             calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
                 computeGraphSelectionCandidates(this, idGenerator, configurationFactory, calculatedValueContainerFactory, artifactTransformer)
