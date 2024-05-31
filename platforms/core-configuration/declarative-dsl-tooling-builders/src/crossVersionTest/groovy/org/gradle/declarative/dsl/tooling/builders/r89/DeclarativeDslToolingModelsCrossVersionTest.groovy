@@ -28,7 +28,6 @@ import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.tooling.ModelBuilder
-import org.gradle.tooling.events.OperationType
 
 @TargetGradleVersion(">=8.9")
 @ToolingApiVersion('>=8.9')
