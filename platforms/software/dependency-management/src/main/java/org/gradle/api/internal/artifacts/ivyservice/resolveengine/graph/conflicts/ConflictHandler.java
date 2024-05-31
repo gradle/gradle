@@ -32,7 +32,9 @@ public interface ConflictHandler<CANDIDATE, RESULT> {
     boolean hasConflicts();
 
     /**
-     * Resolves next conflict and trigger provided action after the resolution
+     * Resolves next conflict and trigger provided action after the resolution.
+     *
+     * Must be called only if {@link #hasConflicts()} returns true.
      */
     void resolveNextConflict(Action<RESULT> resolutionAction);
 
