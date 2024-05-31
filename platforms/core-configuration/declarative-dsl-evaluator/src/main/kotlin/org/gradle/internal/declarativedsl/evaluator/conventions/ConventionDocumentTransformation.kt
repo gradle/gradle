@@ -20,7 +20,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.SourceData
 
 
 object ConventionDocumentTransformation {
@@ -37,8 +37,8 @@ object ConventionDocumentTransformation {
                 .filterIsInstance<ElementNode>()
                 .filter { it.name in usedSoftwareTypes }
 
-        override val sourceIdentifier: SourceIdentifier
-            get() = document.sourceIdentifier
+        override val sourceData: SourceData
+            get() = document.sourceData
     }
 
     private

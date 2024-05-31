@@ -22,7 +22,10 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 
 interface DeclarativeDocument {
     val content: Collection<DocumentNode>
+
+    val sourceData: SourceData
     val sourceIdentifier: SourceIdentifier
+        get() = sourceData.sourceIdentifier
 
     sealed interface Node {
         val sourceData: SourceData
