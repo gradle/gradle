@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -28,16 +28,16 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final CopySpecResolver copySpecResolver;
     private final CopyActionProcessingStreamAction action;
     private final Instantiator instantiator;
-    private final ObjectFactory objectFactory;
+    private final PropertyFactory propertyFactory;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopyFileVisitorImpl(CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem,
+    public CopyFileVisitorImpl(CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, PropertyFactory propertyFactory, FileSystem fileSystem,
                                boolean reproducibleFileOrder) {
         this.copySpecResolver = spec;
         this.action = action;
         this.instantiator = instantiator;
-        this.objectFactory = objectFactory;
+        this.propertyFactory = propertyFactory;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
@@ -69,7 +69,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     }
 
     private DefaultFileCopyDetails createDefaultFileCopyDetails(FileVisitDetails visitDetails) {
-        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, copySpecResolver, objectFactory, fileSystem);
+        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, copySpecResolver, instantiator, propertyFactory, fileSystem);
     }
 
     @Override

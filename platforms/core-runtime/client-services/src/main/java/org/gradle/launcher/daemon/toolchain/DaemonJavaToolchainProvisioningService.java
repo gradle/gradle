@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.cache.FileLock;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
@@ -41,13 +43,15 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     private final CurrentBuildPlatform buildPlatform;
     private final ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
     private final boolean isAutoDownloadEnabled;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, CurrentBuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled) {
+    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, CurrentBuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled, ProgressLoggerFactory progressLoggerFactory) {
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory) cacheDirProvider;
         this.buildPlatform = buildPlatform;
         this.toolchainDownloadUrlProvider = toolchainDownloadUrlProvider;
         this.isAutoDownloadEnabled = isAutoDownloadEnabled;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     @Override
@@ -64,6 +68,9 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
 
         synchronized (PROVISIONING_PROCESS_LOCK) {
             URI uri = getBuildPlatformToolchainUrl();
+            // TODO: Would there be a way to have this progress logger be the parent of the one used for download progress logging
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DaemonJavaToolchainProvisioningService.class);
+            progressLogger.start("Installing toolchain", null);
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
                 ExternalResource resource = downloader.getResourceFor(uri);
@@ -73,11 +80,15 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
                     if (!archiveFile.exists()) {
                         downloader.download(uri, archiveFile, resource);
                     }
-                    return cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                    progressLogger.progress("Unpacking toolchain archive " + archiveFile.getName());
+                    File installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                    progressLogger.completed("Installed toolchain", false);
+                    return installedToolchainFile;
                 } finally {
                     fileLock.close();
                 }
             } catch (Exception e) {
+                progressLogger.completed("Failed to installed toolchain", true);
                 throw new MissingToolchainException(spec, uri, e);
             }
         }
