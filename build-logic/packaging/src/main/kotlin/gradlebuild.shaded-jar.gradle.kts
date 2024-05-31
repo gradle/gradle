@@ -45,7 +45,7 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
 }
 
 fun addShadedJarTask(): TaskProvider<ShadedJar> {
-    return tasks.register("shadedJar", ShadedJar::class) {
+    return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {
         jarFile = layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" })
         shadowPackage = "org.gradle.internal.impldep"
         keepPackages = shadedJarExtension.keepPackages

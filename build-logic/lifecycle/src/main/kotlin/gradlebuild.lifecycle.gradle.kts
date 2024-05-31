@@ -98,7 +98,7 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
             ":architecture-test:checkBinaryCompatibility",
             ":docs:javadocAll",
             ":architecture-test:test",
-            ":tooling-api:shadedJar",
+            ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
             ":checkSubprojectsInfo"
         )
