@@ -27,11 +27,12 @@ import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDocume
 import org.gradle.internal.declarativedsl.evaluator.conventions.findUsedSoftwareTypeNames
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
 
 
 object AnalysisDocumentUtils {
     fun documentWithConventions(conventionsSequenceResult: AnalysisSequenceResult, mainSequenceResult: AnalysisSequenceResult): DocumentOverlayResult? {
-        val usedConventions = (mainSequenceResult.conventionsConsumingStep() as? EvaluationResult.Evaluated)?.stepResult?.usedSoftwareTypeNames()
+        val usedConventions = mainSequenceResult.conventionsConsumingStep()?.stepResultOrPartialResult?.usedSoftwareTypeNames()
             ?: return null
 
         val conventions = conventionsSequenceResult.extractConventionsDocument(usedConventions) ?: return null
@@ -52,19 +53,15 @@ object AnalysisDocumentUtils {
 
     fun AnalysisSequenceResult.extractConventionsDocument(forSoftwareTypes: Set<String>): DocumentWithResolution? {
         val conventionsStep = stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is ConventionDefinition } }
-        val conventionsEvaluated = conventionsStep?.value as? EvaluationResult.Evaluated
+        val conventionsEvaluated = conventionsStep?.value
+        val originalDocument = conventionsEvaluated?.stepResultOrPartialResult?.resolvedDocument()
             ?: return null
-        val originalDocument = conventionsEvaluated.stepResult.resolvedDocument()
         val transformedDocument = ConventionDocumentTransformation.extractConventions(originalDocument.document, originalDocument.resolutionContainer, forSoftwareTypes)
         return DocumentWithResolution(transformedDocument, originalDocument.resolutionContainer)
     }
 
-    fun AnalysisSequenceResult.conventionsConsumingDocument(): DocumentWithResolution? {
-        val conventionsApplicationStep = conventionsConsumingStep()
-        val evaluated = conventionsApplicationStep as? EvaluationResult.Evaluated
-            ?: return null
-        return evaluated.stepResult.resolvedDocument()
-    }
+    fun AnalysisSequenceResult.conventionsConsumingDocument(): DocumentWithResolution? =
+        conventionsConsumingStep()?.stepResultOrPartialResult?.resolvedDocument()
 
     private
     fun AnalysisSequenceResult.conventionsConsumingStep(): EvaluationResult<AnalysisStepResult>? =

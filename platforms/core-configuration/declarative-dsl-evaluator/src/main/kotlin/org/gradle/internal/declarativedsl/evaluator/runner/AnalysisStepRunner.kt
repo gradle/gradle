@@ -79,11 +79,13 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
         if (assignmentErrors.isNotEmpty()) {
             failureReasons += AssignmentErrors(assignmentErrors)
         }
-        if (failureReasons.isNotEmpty()) {
-            return NotEvaluated(failureReasons)
-        }
 
-        return EvaluationResult.Evaluated(AnalysisStepResult(evaluationSchema, languageModel, resolution, resolver.trace, assignmentTrace))
+        val analysisResult = AnalysisStepResult(evaluationSchema, languageModel, resolution, resolver.trace, assignmentTrace)
+
+        return when {
+            failureReasons.isNotEmpty() -> NotEvaluated(failureReasons, partialStepResult = analysisResult)
+            else -> EvaluationResult.Evaluated(analysisResult)
+        }
     }
 
     private

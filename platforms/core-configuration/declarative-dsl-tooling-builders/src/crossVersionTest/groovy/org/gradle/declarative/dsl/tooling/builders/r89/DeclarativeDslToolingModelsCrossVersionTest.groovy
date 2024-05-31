@@ -119,17 +119,22 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "convention"
         }
 
-        and: 'client can produce a build file document with conventions applied from settings'
+        when: 'the build and settings files contain errors'
+        def settingsWithErrors = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text.replace("id", "unresolvedId"))
+        def projectWithErrors = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text + "\nunresolvedToTestErrorHandling()")
+
+        then: 'the client can still produce a build file document with conventions applied from settings'
         documentIsEquivalentTo(
             """
             testSoftwareType {
-                id = "convention"
+                unresolvedId = "convention"
                 foo {
                     bar = "baz"
                 }
             }
+            unresolvedToTestErrorHandling()
             """,
-            AnalysisDocumentUtils.INSTANCE.documentWithConventions(settings, project).document
+            AnalysisDocumentUtils.INSTANCE.documentWithConventions(settingsWithErrors, projectWithErrors).document
         )
     }
 
