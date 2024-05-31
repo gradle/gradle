@@ -17,6 +17,7 @@
 package org.gradle.external.javadoc;
 
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
 
 /**
  * Represents a Javadoc command-line option.
@@ -25,5 +26,6 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
+    @ToBeKeptEagerProperty(because = "TODO: Decide what to do with that")
     String getOption();
 }
