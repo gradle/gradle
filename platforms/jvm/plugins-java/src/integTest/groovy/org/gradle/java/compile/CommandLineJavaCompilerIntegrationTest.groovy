@@ -20,7 +20,7 @@ package org.gradle.java.compile
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
 
-class CommandLineJavaCompilerIntegrationTest extends BasicJavaCompilerIntegrationSpec {
+class CommandLineJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {

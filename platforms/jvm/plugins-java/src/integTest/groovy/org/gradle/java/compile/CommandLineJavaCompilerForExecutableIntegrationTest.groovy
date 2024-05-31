@@ -21,7 +21,7 @@ import org.gradle.internal.jvm.Jvm
 
 import org.gradle.util.internal.TextUtil
 
-class CommandLineJavaCompilerForExecutableIntegrationTest extends BasicJavaCompilerIntegrationSpec {
+class CommandLineJavaCompilerForExecutableIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {

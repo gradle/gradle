@@ -16,14 +16,14 @@
 package org.gradle.java.compile.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.java.compile.BasicJavaCompilerIntegrationSpec
+import org.gradle.java.compile.AbstractJavaCompilerIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-class DaemonJavaCompilerIntegrationTest extends BasicJavaCompilerIntegrationSpec {
+class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {

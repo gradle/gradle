@@ -32,6 +32,8 @@ import java.nio.file.Paths
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 
+// TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
+// so that we can verify them for forking, in-process, and cli compilers.
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

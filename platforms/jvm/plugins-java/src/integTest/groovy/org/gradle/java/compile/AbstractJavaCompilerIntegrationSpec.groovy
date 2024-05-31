@@ -29,7 +29,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
-abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String compilerConfiguration()
 
