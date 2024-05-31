@@ -20,10 +20,53 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     void 'can use public API'() {
-        def apiJarLocation = System.getProperty('integTest.apiJarLocation')
+        def apiJarRepoLocation = System.getProperty('integTest.apiJarRepoLocation')
+        def apiJarVersion = System.getProperty("integTest.distZipVersion")
 
-        println("Using API jar: $apiJarLocation")
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            repositories {
+                maven {
+                    url = uri("$apiJarRepoLocation")
+                }
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
+            }
+        """
+
+        file("src/main/java/org/example/PublishedApiTestPlugin.java") << """
+            package org.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public class PublishedApiTestPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getTasks().register("myTask", CustomTask.class);
+                }
+            }
+        """
+        file("src/main/java/org/example/CustomTask.java") << """
+            package org.example;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class CustomTask extends DefaultTask {
+                @TaskAction
+                public void customAction() {
+                    System.out.println("Hello from CustomTask");
+                }
+            }
+        """
+
         expect:
-        true
+        succeeds(":compileJava")
     }
 }

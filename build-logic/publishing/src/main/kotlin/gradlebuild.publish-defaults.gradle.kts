@@ -15,6 +15,7 @@
  */
 
 import gradle.kotlin.dsl.accessors._25bd7e7076749e7e243da5bad7112e92.moduleIdentity
+import gradlebuild.basics.gradleProperty
 import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
@@ -31,7 +32,8 @@ val artifactoryUserPassword
     get() = findProperty("artifactoryUserPassword") as String?
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
-    this.onlyIf { !this.project.hasProperty("noUpload") }
+    val noUpload = project.gradleProperty("noUpload")
+    this.onlyIf { !noUpload.map { it == "true" }.orElse(false).get() }
     if (name.endsWith("ToRemoteRepository")) {
         failEarlyIfUrlOrCredentialsAreNotSet(this)
     }

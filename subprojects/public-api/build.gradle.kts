@@ -28,6 +28,12 @@ dependencies {
     externalApi(libs.groovy)
 }
 
+val testRepoLocation = layout.buildDirectory.dir("repos/test")
+open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
+val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
+val testGradleRepo = softwareComponentFactory.adhoc("testGradleRepo")
+components.add(testGradleRepo)
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -45,7 +51,40 @@ publishing {
                 name = moduleIdentity.baseName.map { "${project.group}:$it"}
             }
         }
+
+        create<MavenPublication>("test") {
+            artifactId = moduleIdentity.baseName.get()
+
+            from(components["testGradleRepo"])
+
+            pom {
+                name = moduleIdentity.baseName.map { "${project.group}:$it"}
+            }
+        }
     }
+    repositories {
+        maven {
+            name = "test"
+            url = testRepoLocation.get().asFile.toURI()
+        }
+    }
+}
+
+val testRepoElements = configurations.consumable("testRepoElements") {
+    outgoing.artifact(testRepoLocation) {
+        builtBy( "publishMavenPublicationToTestRepository")
+    }
+    // TODO: De-duplicate this. See publish-public-libraries
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
+    }
+}
+
+(components["testGradleRepo"] as AdhocComponentWithVariants).addVariantsFromConfiguration(testRepoElements.get()) {
+    mapToOptional() // The POM should not include dependencies of this configuration
 }
 
 // TODO De-duplicate this
