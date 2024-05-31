@@ -64,40 +64,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/26145")
-    @Issue("https://github.com/ljacomet/logging-capabilities/issues/33")
-    def "capability conflict in logging capabilities plugin causes corrupt resolution result"() {
-        buildFile << """
-            plugins {
-                id 'java-library'
-                id 'dev.jacomet.logging-capabilities' version '0.11.1'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                implementation 'eu.medsea.mimeutil:mime-util:2.1.3'
-                implementation 'org.slf4j:slf4j-api:2.0.7'
-                runtimeOnly 'ch.qos.logback:logback-classic:1.3.11'
-            }
-
-            loggingCapabilities {
-                enforceLogback()
-            }
-
-            tasks.register("resolve") {
-                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
-                doLast {
-                    println root.get()
-                }
-            }
-        """
-
-        expect:
-        succeeds("resolve", "--stacktrace")
-    }
-
     @Ignore("Original reproducer. Minified version below")
     @Requires(UnitTestPreconditions.Jdk17OrLater)
     @Issue("https://github.com/gradle/gradle/issues/26145#issuecomment-1957776331")
@@ -405,32 +371,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds(":resolve", "--stacktrace")
 //        succeeds(":compose:ui:ui:dependencies", "--configuration", "commonMainResolvableDependenciesMetadata", "--stacktrace")
-    }
-
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1423804572")
-    def "capability conflict causes cannot decrease hard edge count assertion"() {
-        buildFile << """
-            ${header}
-            ${mavenCentralRepository()}
-
-            ${selectHighest("org.dom4j:dom4j")}
-            ${withModules("dom4j:dom4j").addCapability("org.dom4j", "dom4j")}
-            ${withModules("org.hibernate:hibernate").addCapability("org.hibernate", "hibernate-core")}
-
-            dependencies {
-                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
-
-                implementation ('jaxen:jaxen:1.1.1') {
-                    exclude group: 'com.ibm.icu', module: 'icu4j'
-                }
-
-                implementation 'org.unitils:unitils-database:3.3'
-            }
-        """
-
-        expect:
-        succeeds(":resolve", "--stacktrace")
     }
 
     @NotYetImplemented

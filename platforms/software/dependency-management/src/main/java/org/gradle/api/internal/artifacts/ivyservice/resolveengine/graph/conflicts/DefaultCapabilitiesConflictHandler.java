@@ -39,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
@@ -115,8 +116,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
-        CapabilityConflict conflict = conflicts.poll();
-        // TODO: Ensure >= 2 nodes in this conflict are still selected
+        CapabilityConflict conflict = conflicts.remove().withSelectedNodes();
+        if (conflict.nodes.isEmpty()) {
+            return;
+        }
+
         Details details = new Details(conflict);
         for (Resolver resolver : resolvers) {
             resolver.resolve(details);
@@ -272,10 +276,15 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private static class CapabilityConflict {
 
+        private final String group;
+        private final String name;
+
         private final Collection<NodeState> nodes;
         private final Set<Capability> descriptors;
 
         private CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
+            this.group = group;
+            this.name = name;
             this.nodes = nodes;
             final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<>();
             for (final NodeState node : nodes) {
@@ -285,6 +294,19 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 }
             }
             this.descriptors = builder.build();
+        }
+
+        /**
+         * Many things can happen in-between detection of a conflict and resolution of the conflict. By the time
+         * we resolve the conflict, some or all of the nodes that originally conflicted may no longer be present
+         * in the graph.
+         *
+         * @return a new conflict containing only nodes that are still present in the graph. This new conflict
+         * may contain no nodes.
+         */
+        public CapabilityConflict withSelectedNodes() {
+            List<NodeState> selectedNodes = nodes.stream().filter(NodeState::isSelected).collect(Collectors.toList());
+            return new CapabilityConflict(group, name, selectedNodes);
         }
 
     }

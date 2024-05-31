@@ -344,6 +344,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 edge("org.codehaus.woodstox:wstx-asl:4.0.6", "org.codehaus.woodstox:woodstox-core-asl:4.4.1") {
                     byConflictResolution("latest version of capability woodstox:wstx-asl")
                     edge("javax.xml.stream:stax-api:1.0-2", "stax:stax-api:1.0.1") {
+                        byConflictResolution()
                         byConflictResolution("latest version of capability stax:stax-api")
                     }
                 }
@@ -355,6 +356,124 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     byConflictResolution("between versions 1.0-2 and 1.0.1")
                 }
                 edge("woodstox:wstx-asl:2.9.3", "org.codehaus.woodstox:woodstox-core-asl:4.4.1")
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1423804572")
+    def "resolution succeeds when nodes of a conflict become deselected before conflict is resolved"() {
+
+        mavenRepo.module("org.hibernate", "hibernate-core", "5.4.18.Final")
+            .dependsOn("org.dom4j", "dom4j", "2.1.3", null, "compile", null, [[group: "*", module: "*"]])
+            .publish()
+
+        mavenRepo.module("org.dom4j", "dom4j", "2.1.3").publish()
+            .dependsOn(mavenRepo.module("jaxen", "jaxen", "1.1.6").publish())
+            .publish()
+
+        mavenRepo.module("jaxen", "jaxen", "1.1.1")
+            .dependsOn(mavenRepo.module("dom4j", "dom4j", "1.6.1").publish())
+            .publish()
+
+        mavenRepo.module("org.unitils", "unitils-dbmaintainer", "3.3")
+            .dependsOn(mavenRepo.module("org.hibernate", "hibernate", "3.2.5.ga").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.hibernate:hibernate-core:5.4.18.Final")
+                implementation("jaxen:jaxen:1.1.1")
+                implementation("org.unitils:unitils-dbmaintainer:3.3")
+            }
+        """
+
+        capability("org.dom4j", "dom4j") {
+            forModule("dom4j:dom4j")
+            selectHighest()
+        }
+        capability("org.hibernate", "hibernate-core") {
+            forModule("org.hibernate:hibernate")
+            selectHighest()
+        }
+
+        when:
+        resolve.prepare()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.hibernate:hibernate-core:5.4.18.Final") {
+                    module("org.dom4j:dom4j:2.1.3")
+                }
+                module("jaxen:jaxen:1.1.1") {
+                    module("dom4j:dom4j:1.6.1") {
+                        byConflictResolution()
+                    }
+                }
+                module("org.unitils:unitils-dbmaintainer:3.3") {
+                    edge("org.hibernate:hibernate:3.2.5.ga", "org.hibernate:hibernate-core:5.4.18.Final") {
+                        byConflictResolution("latest version of capability org.hibernate:hibernate-core")
+                    }
+                }
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26145")
+    @Issue("https://github.com/ljacomet/logging-capabilities/issues/33")
+    def "resolution succeeds when two conflicts affect a single node"() {
+
+        mavenRepo.module("org.slf4j", "slf4j-log4j12", "1.5.6").publish()
+        mavenRepo.module("org.slf4j", "log4j-over-slf4j", "1.4.2").publish()
+        mavenRepo.module("ch.qos.logback", "logback-classic", "1.3.11").publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("ch.qos.logback:logback-classic:1.3.11")
+                implementation("org.slf4j:slf4j-log4j12:1.5.6")
+                implementation("org.slf4j:log4j-over-slf4j:1.4.2")
+            }
+        """
+
+        capability("slf4j-impl", "slf4j-impl") {
+            forModule("org.slf4j:slf4j-log4j12")
+            forModule("ch.qos.logback:logback-classic")
+            selectModule("ch.qos.logback", "logback-classic")
+        }
+
+        capability("slf4j-vs-log4j", "slf4j-vs-log4j") {
+            forModule("org.slf4j:slf4j-log4j12")
+            forModule("org.slf4j:log4j-over-slf4j")
+            selectModule("org.slf4j", "log4j-over-slf4j")
+        }
+
+        when:
+        resolve.prepare()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("ch.qos.logback:logback-classic:1.3.11")
+                edge("org.slf4j:slf4j-log4j12:1.5.6", "ch.qos.logback:logback-classic:1.3.11") {
+                    byConflictResolution()
+                }
+                module("org.slf4j:log4j-over-slf4j:1.4.2") {
+                    byConflictResolution()
+                }
             }
         }
     }
@@ -392,6 +511,24 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         capabilitiesResolution {
                             withCapability("$group:$artifactId") {
                                 selectHighestVersion()
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        def selectModule(String selectedGroup, String selectedModule) {
+            buildFile << """
+                configurations.runtimeClasspath {
+                    resolutionStrategy {
+                        capabilitiesResolution {
+                            withCapability("$group:$artifactId") {
+                                def result = candidates.find {
+                                    it.id.group == "${selectedGroup}" && it.id.module == "${selectedModule}"
+                                }
+                                assert result != null
+                                select(result)
                             }
                         }
                     }
