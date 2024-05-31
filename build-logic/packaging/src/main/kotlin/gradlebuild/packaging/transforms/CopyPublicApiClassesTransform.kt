@@ -24,6 +24,7 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.work.DisableCachingByDefault
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 
@@ -41,18 +42,32 @@ abstract class CopyPublicApiClassesTransform : TransformAction<TransformParamete
         val zipFile = ZipFile(jarFile)
         val outputRoot = outputs.dir("public-api")
         zipFile.stream().forEach { entry ->
-            if (entry.name.endsWith(".class")) {
-                val packageName = entry.name.substringBeforeLast('/').replace('/', '.') + "."
-                if (packageName.startsWith("org.gradle.")) {
-                    val outputFile = outputRoot.resolve(entry.name)
-                    outputFile.parentFile.mkdirs()
-                    zipFile.getInputStream(entry).use { input ->
-                        outputFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
+            if (entry.shouldInclude()) {
+                val outputFile = outputRoot.resolve(entry.name)
+                outputFile.parentFile.mkdirs()
+                zipFile.getInputStream(entry).use { input ->
+                    outputFile.outputStream().use { output ->
+                        input.copyTo(output)
                     }
                 }
             }
         }
+    }
+
+    private fun ZipEntry.shouldInclude(): Boolean {
+        if (name.endsWith(".class")) {
+            val packageName = name.substringBeforeLast('/').replace('/', '.') + "."
+            return packageName.startsWith("org.gradle.")
+        }
+        if (name.equals("META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule")) {
+            return true
+        }
+        if (name.equals("META-INF/services/org.codehaus.groovy.transform.ASTTransformation")) {
+            return true
+        }
+        if (name.matches(Regex("META-INF/.*\\.kotlin_module"))) {
+            return true
+        }
+        return false
     }
 }
