@@ -26,6 +26,7 @@ import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -791,13 +792,16 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
 
     def configureBoostrapClasspath(Jvm jvm) {
         if (jvm.javaVersion.majorVersionNumber < 9) {
+            def rtJar = new File(jvm.javaHome, "jre/lib/rt.jar")
+            def rtJarPath = TextUtil.escapeString(rtJar.absolutePath)
             return """
-                options.bootstrapClasspath = files("${jvm.javaHome.absolutePath}/jre/lib/rt.jar")
+                options.bootstrapClasspath = files("${rtJarPath}")
             """
         } else {
+            def javaHome = TextUtil.escapeString(jvm.javaHome.absolutePath)
             return """
                 options.compilerArgs += [
-                    "--system", "${jvm.javaHome.absolutePath}"
+                    "--system", "${javaHome}"
                 ]
             """
         }
