@@ -34,30 +34,35 @@ create_dir $DIST_DIR
 (cd $DIST_DIR && unzip ../../platforms/core-runtime/distributions-core/build/distributions/gradle-8.9-bin.zip) || exit 1
 
 CLI_JAR_DIR=tmp/cli-jar
+CLI_JAR=$DIST_DIR/*/lib/gradle-cli-main-8.9.jar
 create_dir $CLI_JAR_DIR
-(cd $CLI_JAR_DIR && unzip ../dist/*/lib/gradle-cli-main-8.9.jar) || exit 1
+unzip $CLI_JAR -d $CLI_JAR_DIR || exit 1
 
 WRAPPER_DIR=tmp/wrapper-main-jar
 create_dir $WRAPPER_DIR
 (cd $WRAPPER_DIR && unzip ../../platforms/core-runtime/wrapper-main/build/libs/gradle-wrapper-main-8.9.jar) || exit 1
 
 WRAPPER_JAR_DIR=tmp/wrapper-jar
+WRAPPER_JAR=$WRAPPER_DIR/gradle-wrapper.jar
 create_dir $WRAPPER_JAR_DIR
-(cd $WRAPPER_JAR_DIR && unzip ../wrapper-main-jar/gradle-wrapper.jar) || exit 1
+unzip $WRAPPER_JAR -d $WRAPPER_JAR_DIR || exit 1
 
 LAUNCHER_JAR_DIR=tmp/launcher-jar
 create_dir $LAUNCHER_JAR_DIR
 (cd $LAUNCHER_JAR_DIR && unzip ../dist/*/lib/gradle-launcher-8.9.jar) || exit 1
 
 DAEMON_MAIN_JAR_DIR=tmp/daemon-main-jar
+DAEMON_MAIN_JAR=$DIST_DIR/*/lib/gradle-daemon-main-8.9.jar
 create_dir $DAEMON_MAIN_JAR_DIR
-(cd $DAEMON_MAIN_JAR_DIR && unzip ../dist/*/lib/gradle-daemon-main-8.9.jar) || exit 1
+unzip $DAEMON_MAIN_JAR -d $DAEMON_MAIN_JAR_DIR || exit 1
 
 TOOLING_API_DIR=tmp/tapi
 TOOLING_API_JAR=platforms/ide/tooling-api/build/shaded-jar/gradle-tooling-api-shaded-8.9.jar
 create_dir $TOOLING_API_DIR
 unzip -l ~/gradle/projects/gradle/platforms/ide/tooling-api/build/shaded-jar/gradle-tooling-api-shaded-8.9.jar | awk '{ print $4 }' | sort > $TOOLING_API_DIR/before.txt
 unzip -l $TOOLING_API_JAR | awk '{ print $4 }' | sort > $TOOLING_API_DIR/after.txt
+
+FACT_UTIL_JAR=$DIST_DIR/*/lib/fastutil-8.5.2-min.jar
 
 echo
 echo "CLI manifest"
@@ -79,3 +84,17 @@ echo "Tooling API JAR: `tree --list -d $TOOLING_API_JAR | awk ' /jar/ { print $1
 unzip -l $TOOLING_API_JAR | tail -n 1 | awk ' { print $1 " bytes, " $2 " " $3 } '
 
 echo
+echo "Wrapper JAR: `tree --list -d $WRAPPER_JAR | awk ' /jar/ { print $1 } '`"
+unzip -l $WRAPPER_JAR | tail -n 1 | awk ' { print $1 " bytes, " $2 " " $3 } '
+
+echo
+echo "CLI main JAR: `tree --list -d $CLI_JAR | awk ' /jar/ { print $1 } '`"
+unzip -l $CLI_JAR | tail -n 1 | awk ' { print $1 " bytes, " $2 " " $3 } '
+
+echo
+echo "Daemon main JAR: `tree --list -d $DAEMON_MAIN_JAR | awk ' /jar/ { print $1 } '`"
+unzip -l $DAEMON_MAIN_JAR | tail -n 1 | awk ' { print $1 " bytes, " $2 " " $3 } '
+
+echo
+echo "fast-util JAR: `tree --list -d $FACT_UTIL_JAR | awk ' /jar/ { print $1 } '`"
+unzip -l $FACT_UTIL_JAR | tail -n 1 | awk ' { print $1 " bytes, " $2 " " $3 } '
