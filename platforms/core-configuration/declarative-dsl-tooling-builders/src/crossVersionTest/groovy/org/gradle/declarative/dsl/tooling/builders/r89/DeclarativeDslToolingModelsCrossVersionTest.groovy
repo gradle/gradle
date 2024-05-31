@@ -27,6 +27,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.tooling.ModelBuilder
 
 @TargetGradleVersion(">=8.9")
 @ToolingApiVersion('>=8.9')
@@ -49,7 +50,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         file("b/build.gradle.dcl") << ""
 
         when:
-        DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
 
         then:
         model != null
@@ -74,7 +75,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
-        DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
 
         then:
         model != null
@@ -106,7 +107,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareTypeFoo
 
         when:
-        DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
 
         then:
         model != null
@@ -302,6 +303,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         """
 
         return pluginBuilder
+    }
+
+    private <T> T fetchSchemaModel(Class<T> modelType) {
+        toolingApi.withConnection() { connection ->
+            ModelBuilder<T> modelBuilder = connection.model(modelType)
+            collectOutputs(modelBuilder)
+            modelBuilder.get()
+        }
     }
 
 }
