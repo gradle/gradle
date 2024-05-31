@@ -26,6 +26,7 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.model.ObjectFactory
 import org.gradle.kotlin.dsl.named
 
+
 fun ConsumableConfiguration.configureAsRuntimeElements(objects: ObjectFactory) {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -34,6 +35,7 @@ fun ConsumableConfiguration.configureAsRuntimeElements(objects: ObjectFactory) {
         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
     }
 }
+
 
 fun ResolvableConfiguration.configureAsRuntimeJarClasspath(objects: ObjectFactory) {
     attributes {
