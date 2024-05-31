@@ -34,7 +34,11 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
 
     def setup() {
         executer.withArguments("-i")
-        buildFile << buildScript()
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         buildFile << compilerConfiguration()
     }
 
@@ -442,18 +446,14 @@ compileJava.options.release.set(11)
         failure.assertHasErrorOutput("method describeConstable")
     }
 
-    def buildScript() {
-        """
-apply plugin: "java"
-${mavenCentralRepository()}
-
-dependencies {
-    implementation "org.codehaus.groovy:groovy:2.4.10"
-}
-"""
-    }
-
     def goodCode() {
+        buildFile << """
+            ${mavenCentralRepository()}
+            dependencies {
+                implementation "org.codehaus.groovy:groovy:2.4.10"
+            }
+        """
+
         file("src/main/java/compile/test/Person.java") << '''
 package compile.test;
 
@@ -647,6 +647,27 @@ class Main {
         then:
         fails("compileJava")
         failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
+    }
+
+    def "gradle classpath does not leak onto java compile classpath"() {
+        given:
+        file("src/main/java/Example.java") << """
+            import org.gradle.api.Project;
+            import org.gradle.api.Plugin;
+
+            public class Example implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("Hello from Example");
+                }
+            }
+        """
+
+        when:
+        fails(":compileJava")
+
+        then:
+        !file("build/classes/java/main/Example.class").exists()
+        failure.assertHasErrorOutput("package org.gradle.api does not exist")
     }
 
     def bytecodeVersion() {

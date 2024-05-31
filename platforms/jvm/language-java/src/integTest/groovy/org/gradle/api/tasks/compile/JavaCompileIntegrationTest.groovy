@@ -317,33 +317,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    def "gradle classpath does not leak onto java compile classpath"() {
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-        """
-
-        file("src/main/java/Example.java") << """
-            import org.gradle.api.Project;
-            import org.gradle.api.Plugin;
-
-            public class Example implements Plugin<Project> {
-                public void apply(Project project) {
-                    System.out.println("Hello from Example");
-                }
-            }
-        """
-
-        when:
-        fails(":compileJava")
-
-        then:
-        !file("build/classes/java/main/Example.class").exists()
-        failureHasCause("Compilation failed; see the compiler error output for details.")
-        errorOutput.contains("package org.gradle.api does not exist")
-    }
-
     def "test runtime classpath includes implementation dependencies"() {
         given:
         buildFile << """
