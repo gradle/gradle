@@ -973,6 +973,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "public-api-tests",
+    "path": "testing/public-api-tests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "publish",
     "path": "platforms/software/publish",
     "unitTests": true,
