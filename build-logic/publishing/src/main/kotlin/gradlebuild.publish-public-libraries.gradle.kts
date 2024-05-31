@@ -19,6 +19,7 @@ import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
+    id("gradlebuild.publish-defaults")
     id("signing")
     `maven-publish`
 }
@@ -95,30 +96,7 @@ fun MavenPublication.configureGradleModulePublication() {
 
     pom {
         packaging = "jar"
-        name = "org.gradle:gradle-${project.name}"
-        description = provider {
-            require(project.description != null) { "You must set the description of published project ${project.name}" }
-            project.description
-        }
-        url = "https://gradle.org"
-        licenses {
-            license {
-                name = "Apache-2.0"
-                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            }
-        }
-        developers {
-            developer {
-                name = "The Gradle team"
-                organization = "Gradle Inc."
-                organizationUrl = "https://gradle.org"
-            }
-        }
-        scm {
-            connection = "scm:git:git://github.com/gradle/gradle.git"
-            developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
-            url = "https://github.com/gradle/gradle"
-        }
+        name = moduleIdentity.baseName.map { "${project.group}:$it"}
     }
 }
 

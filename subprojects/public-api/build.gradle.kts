@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.public-api-jar")
+    id("gradlebuild.publish-defaults")
 }
 
 group = "org.gradle.experimental"
@@ -30,6 +31,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
+            artifactId = moduleIdentity.baseName.get()
             version = moduleIdentity.snapshot
                 .map { moduleIdentity.version.get().baseVersion.version + "-SNAPSHOT" }
                 .orElse(moduleIdentity.version.map { it.version!! })
@@ -43,37 +45,9 @@ publishing {
                 }
             }
 
-            withGradlePomDefaults()
-
             pom {
-                name = project.provider { "${project.group}:${project.name}" }
-                description = project.provider { project.description }
+                name = moduleIdentity.baseName.map { "${project.group}:$it"}
             }
-        }
-    }
-}
-
-// TODO Reuse these from gradlebuild.publish-public-libraries.gradle
-fun MavenPublication.withGradlePomDefaults() {
-    pom {
-        url = "https://gradle.org"
-        licenses {
-            license {
-                name = "Apache-2.0"
-                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            }
-        }
-        developers {
-            developer {
-                name = "The Gradle team"
-                organization = "Gradle Inc."
-                organizationUrl = "https://gradle.org"
-            }
-        }
-        scm {
-            connection = "scm:git:git://github.com/gradle/gradle.git"
-            developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
-            url = "https://github.com/gradle/gradle"
         }
     }
 }
