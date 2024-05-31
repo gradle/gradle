@@ -37,71 +37,100 @@ class JarPackager {
         paramsConfig(builder)
         val params = builder.build()
 
-        val tempDirectory = java.nio.file.Files.createTempDirectory(outputJar.name).toFile()
-        val classesDir = tempDirectory.resolve("classes")
-        val manifestFile = tempDirectory.resolve("MANIFEST.MF")
-        val resourcesDir = tempDirectory.resolve("resources")
         val analyzer = JarAnalyzer(params.packagePrefix, params.keepClasses, params.unshadedClasses, params.excludeClasses)
 
-        val classGraph = analyzer.analyze(sourceJar, additionalJars, classesDir, manifestFile, resourcesDir)
+        PrintWriter(BufferedOutputStream(FileOutputStream(outputJar.parentFile.resolve("graph.txt")))).use { log ->
+            val classGraph = analyzer.analyze(sourceJar, additionalJars, log)
 
-        createJar(sourceJar, additionalJars, classGraph, params, outputJar)
+            createJar(sourceJar, additionalJars, classGraph, params, outputJar, log)
+        }
     }
 
     private
-    fun createJar(sourceJar: File, additionalJars: List<File>, classGraph: ClassGraph, params: PackagingParameters, outputJar: File) {
+    fun createJar(sourceJar: File, additionalJars: List<File>, classGraph: ClassGraph, params: PackagingParameters, outputJar: File, log: PrintWriter) {
         val includedClasses = mutableSetOf<ClassDetails>()
 
-        PrintWriter(BufferedOutputStream(FileOutputStream(outputJar.parentFile.resolve("graph.txt")))).use { out ->
-            val includeViaMethodRefs = mutableSetOf<ClassDetails>()
-            val vm = mutableSetOf<MethodDetails>()
-            val methodsToVisit = mutableListOf<MethodDetails>()
-            for (classDetails in classGraph.entryPoints) {
-                methodsToVisit.addAll(classDetails.methods.values)
-            }
+        val includeViaMethodRefs = mutableSetOf<ClassDetails>()
+        val includeViaMethodOverride = mutableSetOf<ClassDetails>()
+
+        val seenMethods = mutableSetOf<MethodDetails>()
+        val methodsToVisit = mutableListOf<MethodDetails>()
+        for (classDetails in classGraph.entryPoints) {
+            methodsToVisit.addAll(classDetails.methods.values)
+        }
+
+        val classesToVisit = mutableListOf<ClassDetails>()
+        classesToVisit.addAll(classGraph.entryPoints)
+
+        val pendingMethodOverrides = mutableSetOf<MethodDetails>()
+
+        while (methodsToVisit.isNotEmpty() && classesToVisit.isNotEmpty()) {
             while (methodsToVisit.isNotEmpty()) {
                 val method = methodsToVisit.removeFirst()
-                if (!vm.add(method)) {
+                if (!seenMethods.add(method)) {
                     continue
                 }
                 includeViaMethodRefs.add(method.owner)
+                classesToVisit.add(method.owner)
 
                 for (dependency in method.dependencies) {
-                    out.println("-> Method $method -> $dependency")
+                    log.println("-> Method $method -> $dependency")
                 }
 
                 methodsToVisit.addAll(method.dependencies)
+
+                for (subtype in method.owner.subtypes) {
+                    val override = subtype.method(method)
+                    log.println("-> Pending method override $method -> $override")
+                    pendingMethodOverrides.add(override)
+                }
             }
 
-            val classesToVisit = mutableListOf<ClassDetails>()
-            classesToVisit.addAll(includeViaMethodRefs)
             while (classesToVisit.isNotEmpty()) {
                 val classDetails = classesToVisit.removeFirst()
                 if (!includedClasses.add(classDetails)) {
                     continue
                 }
                 for (dependency in classDetails.dependencies) {
-                    out.println("-> Class $classDetails -> $dependency")
+                    log.println("-> Class $classDetails -> $dependency")
                 }
                 classesToVisit.addAll(classDetails.dependencies)
             }
 
-            out.println("-> Included classes via method references")
-            for (details in includeViaMethodRefs) {
-                out.println("  -> ${details.outputClassName}")
-            }
-            out.println("-> Included classes via other references")
-            for (details in includedClasses) {
-                if (!includeViaMethodRefs.contains(details)) {
-                    out.println("  -> ${details.outputClassName}")
+            val iter = pendingMethodOverrides.iterator()
+            while (iter.hasNext()) {
+                val method = iter.next()
+                if (includedClasses.contains(method.owner)) {
+                    log.println("-> Visit method override $method")
+                    includeViaMethodOverride.add(method.owner)
+                    methodsToVisit.add(method)
+                    iter.remove()
                 }
             }
-
-            println("-> Visited methods: ${vm.size}")
-            println("-> Methods not required: ${includedClasses.sumOf { classDetails -> classDetails.methods.values.count { !vm.contains(it) } }}")
-            println("-> Included classes via method references: ${includeViaMethodRefs.size}")
-            println("-> Included classes: ${includedClasses.size}")
         }
+
+        log.println("-> Included classes via method references")
+        for (details in includeViaMethodRefs) {
+            log.println("  -> ${details.outputClassName}")
+        }
+        log.println("-> Included classes via method override")
+        for (details in includeViaMethodOverride) {
+            if (!includeViaMethodRefs.contains(details)) {
+                log.println("  -> ${details.outputClassName}")
+            }
+        }
+        log.println("-> Included classes via other references")
+        for (details in includedClasses) {
+            if (!includeViaMethodRefs.contains(details) && !includedClasses.contains(details)) {
+                log.println("  -> ${details.outputClassName}")
+            }
+        }
+
+        println("-> Visited methods: ${seenMethods.size}")
+        println("-> Methods not required: ${includedClasses.sumOf { classDetails -> classDetails.methods.values.count { !seenMethods.contains(it) } }}")
+        println("-> Included classes via method references: ${includeViaMethodRefs.size}")
+        println("-> Included classes via method override: ${(includeViaMethodOverride - includeViaMethodRefs).size}")
+        println("-> Included classes: ${includedClasses.size}")
 
         try {
             val seen = mutableSetOf<String>()

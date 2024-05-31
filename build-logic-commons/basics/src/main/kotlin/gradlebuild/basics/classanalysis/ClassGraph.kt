@@ -29,10 +29,6 @@ class ClassGraph(
 
     val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
 
-    val resources: MutableSet<String> = linkedSetOf()
-
-    val transitiveResources: MutableSet<String> = linkedSetOf()
-
     private
     val shadowPackagePrefix = if (shadowPackage != null) shadowPackage.replace('.', '/') + "/" else ""
 
@@ -43,9 +39,10 @@ class ClassGraph(
      */
     operator fun get(className: String): ClassDetails {
         return classes.getOrPut(className) {
-            val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
+            val jvmType = ignoredPackagePatterns.matches(className)
+            val outputClassName = if (jvmType || unshadedPackages.matches(className)) className else shadowPackagePrefix + className
             val classDetails = ClassDetails(outputClassName)
-            if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
+            if (keepPackages.matches(className) && !ignorePackages.matches(className) && !jvmType) {
                 entryPoints.add(classDetails)
             }
             classDetails
@@ -68,12 +65,14 @@ class ClassDetails(val outputClassName: String) {
     /**
      * The non-method dependencies of this type.
      */
-    val dependencies: MutableSet<ClassDetails> = linkedSetOf()
+    val dependencies = mutableSetOf<ClassDetails>()
 
     /**
      * The methods of this type.
      */
-    val methods: MutableMap<String, MethodDetails> = linkedMapOf()
+    val methods = mutableMapOf<String, MethodDetails>()
+
+    val subtypes = mutableSetOf<ClassDetails>()
 
     val outputClassFilename
         get() = "$outputClassName.class"
@@ -90,6 +89,20 @@ class ClassDetails(val outputClassName: String) {
         return methods.getOrPut(signature) {
             MethodDetails(this, signature)
         }
+    }
+
+    /**
+     * Returns the method of this class with the same signature as the given method.
+     */
+    fun method(methodDetails: MethodDetails): MethodDetails {
+        val signature = methodDetails.signature
+        return methods.getOrPut(signature) {
+            MethodDetails(this, signature)
+        }
+    }
+
+    fun superType(type: ClassDetails) {
+        type.subtypes.add(this)
     }
 }
 
