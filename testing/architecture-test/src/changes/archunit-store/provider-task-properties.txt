@@ -141,7 +141,6 @@ Method <org.gradle.api.tasks.diagnostics.ConventionReportTask.getOutputFile()> d
 Method <org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjects()> does not have raw return type assignable to org.gradle.api.provider.Property in (ConventionReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()> does not have raw return type assignable to org.gradle.api.provider.Property in (DependencyInsightReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.isShowSinglePathToDependency()> does not have raw return type assignable to org.gradle.api.provider.Property in (DependencyInsightReportTask.java:0)
-Method <org.gradle.api.tasks.diagnostics.DependencyReportTask.getTaskConfigurations()> does not have raw return type assignable to org.gradle.api.provider.Provider in (DependencyReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.PropertyReportTask.getRenderer()> does not have raw return type assignable to org.gradle.api.provider.Property in (PropertyReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()> does not have raw return type assignable to org.gradle.api.provider.Property in (TaskReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroups()> does not have raw return type assignable to org.gradle.api.provider.Property in (TaskReportTask.java:0)

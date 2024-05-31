@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -34,6 +33,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
@@ -75,7 +75,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * </pre>
  */
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
-public abstract class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
+public abstract class HtmlDependencyReportTask extends AbstractDependencyReportTask implements Reporting<DependencyReportContainer> {
     private final Transient.Var<Set<Project>> projects = Transient.varOf(uncheckedCast(singleton(getProject())));
     private final Cached<ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>> projectsWithConfigurations = Cached.of(this::computeProjectsWithConfigurations);
     private final DirectoryProperty reportDir;
@@ -94,6 +94,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
      *
      * @since 7.1
      */
+    @Override
     @Internal
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
@@ -166,6 +167,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
      *
      * @return The set of files.
      */
+    @Override
     @Internal
     public Set<Project> getProjects() {
         return projects.get();
@@ -176,6 +178,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
      *
      * @param projects The set of projects. Must not be null.
      */
+    @Override
     public void setProjects(Set<Project> projects) {
         this.projects.set(projects);
     }
