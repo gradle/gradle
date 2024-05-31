@@ -32,10 +32,6 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             artifactId = moduleIdentity.baseName.get()
-            version = moduleIdentity.snapshot
-                .map { moduleIdentity.version.get().baseVersion.version + "-SNAPSHOT" }
-                .orElse(moduleIdentity.version.map { it.version!! })
-                .get()
 
             from(components["gradleApi"])
 
