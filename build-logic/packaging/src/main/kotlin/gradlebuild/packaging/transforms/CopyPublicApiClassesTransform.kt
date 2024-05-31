@@ -54,7 +54,8 @@ abstract class CopyPublicApiClassesTransform : TransformAction<TransformParamete
         }
     }
 
-    private fun ZipEntry.shouldInclude(): Boolean {
+    private
+    fun ZipEntry.shouldInclude(): Boolean {
         if (name.endsWith(".class")) {
             val packageName = name.substringBeforeLast('/').replace('/', '.') + "."
             return packageName.startsWith("org.gradle.")

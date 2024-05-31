@@ -96,7 +96,7 @@ fun MavenPublication.configureGradleModulePublication() {
 
     pom {
         packaging = "jar"
-        name = moduleIdentity.baseName.map { "${project.group}:$it"}
+        name = moduleIdentity.baseName.map { "${project.group}:$it" }
     }
 }
 
