@@ -144,12 +144,12 @@ class JarAnalyzer(
                     override fun createMethodRemapper(methodVisitor: MethodVisitor): MethodVisitor {
                         val methodDetails = currentMethod!!
                         currentMethod = null
-                        return object : MethodRemapper(methodVisitor, nonCollecting) {
+                        return object : MethodRemapper(methodVisitor, collecting) {
                             override fun visitMethodInsn(opcodeAndSource: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
                                 if (!ignoredPackagePatterns.matches(owner)) {
                                     methodDetails.dependencies.add(classes[owner].method(name, descriptor))
                                 }
-                                super.visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
+                                MethodRemapper(methodVisitor, nonCollecting).visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
                             }
                         }
                     }
