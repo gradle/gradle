@@ -23,6 +23,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -60,6 +61,7 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
      */
     @Nested
     @Override
+    @ToBeKeptEagerProperty(because = "Read-only nested property")
     public JacocoReportsContainer getReports() {
         return reports;
     }

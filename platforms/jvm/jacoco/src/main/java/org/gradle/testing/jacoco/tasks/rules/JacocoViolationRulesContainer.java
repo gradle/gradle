@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.List;
 
@@ -39,12 +40,14 @@ public interface JacocoViolationRulesContainer {
      * Specifies whether build should fail in case of rule violations. Defaults to true.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean isFailOnViolation();
 
     /**
      * Gets all violation rules. Defaults to an empty list.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     List<JacocoViolationRule> getRules();
 
     /**

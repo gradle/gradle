@@ -37,6 +37,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 import org.gradle.work.DisableCachingByDefault;
@@ -202,6 +203,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @return class dirs to report coverage of
      */
     @Internal
+    @ToBeKeptEagerProperty(because = "Not settable FileCollection")
     public FileCollection getAllClassDirs() {
         return classDirectories.plus(getAdditionalClassDirs());
     }
@@ -213,6 +215,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @see #getAllClassDirs()
      */
     @Internal
+    @ToBeKeptEagerProperty(because = "Not settable FileCollection")
     public FileCollection getAllSourceDirs() {
         return sourceDirectories.plus(getAdditionalSourceDirs());
     }
