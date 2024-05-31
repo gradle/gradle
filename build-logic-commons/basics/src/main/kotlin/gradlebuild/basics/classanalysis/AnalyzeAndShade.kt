@@ -27,6 +27,7 @@ import org.objectweb.asm.commons.Remapper
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
 import java.nio.file.Files
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -106,12 +107,6 @@ class JarAnalyzer(
     }
 
     private
-    fun ZipEntry.isClassFilePath() = name.endsWith(".class")
-
-    private
-    fun ZipEntry.isManifestFilePath() = name == "META-INF/MANIFEST.MF"
-
-    private
     fun visitManifest(file: ZipInputStream, manifestFile: File) {
         Files.copy(file, manifestFile.toPath())
     }
@@ -133,8 +128,8 @@ class JarAnalyzer(
     fun visitClassFile(file: ZipInputStream, entry: ZipEntry, classes: ClassGraph, classesDir: File) {
         try {
             val reader = ClassReader(file)
-            val thisClass = classes[reader.className]
-            thisClass.present = true
+            val thisClass = classes.visitClass(entry.name, reader.className)
+
             var currentMethod: MethodDetails? = null
             val classWriter = ClassWriter(0)
             val nonCollecting = DefaultRemapper(classes)
@@ -186,7 +181,7 @@ class DependencyCollectingRemapper(val thisClass: ClassDetails, val classes: Cla
     }
 }
 
-private
+internal
 class DefaultRemapper(val classes: ClassGraph) : Remapper() {
     override fun map(name: String): String {
         if (ignoredPackagePatterns.matches(name)) {
@@ -197,18 +192,19 @@ class DefaultRemapper(val classes: ClassGraph) : Remapper() {
     }
 }
 
-fun JarOutputStream.addJarEntry(entryName: String) {
+fun JarOutputStream.addJarEntry(entryName: String, inputStream: InputStream) {
     val entry = ZipEntry(entryName)
     entry.time = CONSTANT_TIME_FOR_ZIP_ENTRIES
     putNextEntry(entry)
+    inputStream.copyTo(this)
     closeEntry()
 }
 
-fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {
+fun JarOutputStream.addJarEntry(entryName: String, bytes: ByteArray) {
     val entry = ZipEntry(entryName)
     entry.time = CONSTANT_TIME_FOR_ZIP_ENTRIES
     putNextEntry(entry)
-    BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(this) }
+    write(bytes)
     closeEntry()
 }
 

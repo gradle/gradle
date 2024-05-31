@@ -16,12 +16,17 @@
 
 package gradlebuild.basics.classanalysis
 
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.commons.ClassRemapper
+import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.PrintWriter
-import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
+import java.util.zip.ZipInputStream
 
 class JarPackager {
     /**
@@ -40,14 +45,11 @@ class JarPackager {
 
         val classGraph = analyzer.analyze(sourceJar, additionalJars, classesDir, manifestFile, resourcesDir)
 
-        createJar(classGraph, classesDir, manifestFile, resourcesDir, params, outputJar)
+        createJar(sourceJar, additionalJars, classGraph, params, outputJar)
     }
 
     private
-    fun ClassDetails.interesting() = outputClassName.contains("DefaultScriptFileResolver")
-
-    private
-    fun createJar(classGraph: ClassGraph, classesDir: File, manifestFile: File, resourcesDir: File, params: PackagingParameters, jarFile: File) {
+    fun createJar(sourceJar: File, additionalJars: List<File>, classGraph: ClassGraph, params: PackagingParameters, jarFile: File) {
         val includedClasses = mutableSetOf<ClassDetails>()
 
         PrintWriter(BufferedOutputStream(FileOutputStream(jarFile.parentFile.resolve("graph.txt")))).use { out ->
@@ -65,9 +67,6 @@ class JarPackager {
                 includeViaMethodRefs.add(method.owner)
 
                 for (dependency in method.dependencies) {
-                    if (dependency.owner.interesting()) {
-                        println("-> Include $dependency via $method")
-                    }
                     out.println("-> Method $method -> $dependency")
                 }
 
@@ -82,9 +81,6 @@ class JarPackager {
                     continue
                 }
                 for (dependency in classDetails.dependencies) {
-                    if (dependency.interesting()) {
-                        println("-> Include $dependency via class $classDetails")
-                    }
                     out.println("-> Class $classDetails -> $dependency")
                 }
                 classesToVisit.addAll(classDetails.dependencies)
@@ -108,32 +104,11 @@ class JarPackager {
         }
 
         try {
+            val seen = mutableSetOf<String>()
             JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile))).use { outputStream ->
-                if (manifestFile.exists()) {
-                    outputStream.addJarEntry(JarFile.MANIFEST_NAME, manifestFile)
-                }
-
-
-                val directories = mutableSetOf<String>()
-                val beforeEntry: (String) -> Unit = if (params.keepDirectories) {
-                    { path ->
-                        val dir = path.substringBeforeLast("/", "")
-                        if (dir.isNotEmpty() && directories.add(dir)) {
-                            outputStream.addJarEntry("$dir/")
-                        }
-                    }
-                } else {
-                    { }
-                }
-
-                for (classDetails in includedClasses) {
-                    copyClass(classDetails, classesDir, beforeEntry, outputStream)
-                }
-                for (resource in classGraph.resources) {
-                    copyResource(resource, resourcesDir, params.excludeResources, beforeEntry, outputStream)
-                }
-                for (resource in classGraph.transitiveResources) {
-                    copyResource(resource, resourcesDir, params.excludeResourcesFromDependencies, beforeEntry, outputStream)
+                copyToJar(sourceJar, outputStream, classGraph, params.excludeClasses, seen)
+                for (jar in additionalJars) {
+                    copyToJar(jar, outputStream, classGraph, params.excludeClasses, seen)
                 }
             }
         } catch (exception: Exception) {
@@ -141,22 +116,33 @@ class JarPackager {
         }
     }
 
-    private
-    fun copyClass(classDetails: ClassDetails, classesDir: File, before: (String) -> Unit, outputStream: JarOutputStream) {
-        if (classDetails.present) {
-            val fileName = classDetails.outputClassFilename
-            before(fileName)
-            val classFile = classesDir.resolve(fileName)
-            outputStream.addJarEntry(fileName, classFile)
-        }
-    }
+    private fun copyToJar(jarFile: File, outputStream: JarOutputStream, classGraph: ClassGraph, excludeResources: NameMatcher, seen: MutableSet<String>) {
+        val remapper = DefaultRemapper(classGraph)
 
-    private
-    fun copyResource(path: String, resourcesDir: File, exclude: NameMatcher, before: (String) -> Unit, outputStream: JarOutputStream) {
-        if (!exclude.matches(path)) {
-            before(path)
-            val file = resourcesDir.resolve(path)
-            outputStream.addJarEntry(path, file)
+        ZipInputStream(BufferedInputStream(FileInputStream(jarFile))).use { inputStream ->
+            while (true) {
+                val entry = inputStream.nextEntry ?: break
+                if (entry.isDirectory || !seen.add(entry.name)) {
+                    // Skip duplicates and directories
+                    return
+                }
+                if (entry.isManifestFilePath()) {
+                    // Always copy manifest
+                    outputStream.addJarEntry(entry.name, inputStream)
+                } else if (entry.isClassFilePath()) {
+                    // Copy class if it is to be included
+                    val classDetails = classGraph.forSourceEntry(entry.name)
+                    if (classDetails != null) {
+                        val reader = ClassReader(inputStream)
+                        val writer = ClassWriter(0)
+                        reader.accept(ClassRemapper(writer, remapper), ClassReader.EXPAND_FRAMES)
+                        outputStream.addJarEntry(classDetails.outputClassFilename, writer.toByteArray())
+                    }
+                } else if (!excludeResources.matches(entry.name)) {
+                    // Copy resource if it is to be included
+                    outputStream.addJarEntry(entry.name, inputStream)
+                }
+            }
         }
     }
 }

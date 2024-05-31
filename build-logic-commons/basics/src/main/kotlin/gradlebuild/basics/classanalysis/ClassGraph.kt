@@ -23,6 +23,7 @@ class ClassGraph(
     private val ignorePackages: NameMatcher,
     shadowPackage: String?
 ) {
+    private val classesByPath: MutableMap<String, ClassDetails> = mutableMapOf()
 
     val classes: MutableMap<String, ClassDetails> = linkedMapOf()
 
@@ -36,7 +37,7 @@ class ClassGraph(
     val shadowPackagePrefix = if (shadowPackage != null) shadowPackage.replace('.', '/') + "/" else ""
 
     /**
-     * Returns the details for the given class.
+     * Returns the details for the given class, creating it if missing.
      *
      * @param className The _original_ name of the class, not the renamed name.
      */
@@ -51,16 +52,19 @@ class ClassGraph(
         }
     }
 
-    fun getDependencies() = classes.values.map { classDetails -> classDetails.outputClassFilename to classDetails.allDependencies.map { it.outputClassFilename } }.toMap()
+    fun visitClass(jarPath: String, className: String): ClassDetails {
+        val details = get(className)
+        classesByPath[jarPath] = details
+        return details
+    }
+
+    fun forSourceEntry(jarPath: String): ClassDetails? {
+        return classesByPath[jarPath]
+    }
 }
 
 
 class ClassDetails(val outputClassName: String) {
-    /**
-     * Was the given type present in the input?
-     */
-    var present: Boolean = false
-
     /**
      * The non-method dependencies of this type.
      */
@@ -73,9 +77,6 @@ class ClassDetails(val outputClassName: String) {
 
     val outputClassFilename
         get() = "$outputClassName.class"
-
-    val allDependencies: Set<ClassDetails>
-        get() = dependencies + methods.flatMap { it.value.dependencies.map { it.owner } }
 
     override fun toString(): String {
         return outputClassName
