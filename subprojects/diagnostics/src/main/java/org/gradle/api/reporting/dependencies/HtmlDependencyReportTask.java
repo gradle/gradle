@@ -37,6 +37,8 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -101,6 +103,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
 
     @Nested
     @Override
+    @ToBeKeptEagerProperty(because = "Read-only nested property")
     public DependencyReportContainer getReports() {
         return reports;
     }
@@ -167,6 +170,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
      * @return The set of files.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public Set<Project> getProjects() {
         return projects.get();
     }
