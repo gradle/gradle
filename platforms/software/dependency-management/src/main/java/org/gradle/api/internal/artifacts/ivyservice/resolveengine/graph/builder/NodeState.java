@@ -244,6 +244,12 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges A collector for visited edges.
      */
     public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges) {
+
+        // TODO: Figure out how rejected components are handled when they're added to the queue
+//        if (component.isRejected()) {
+//            return;
+//        }
+
         // If this configuration's version is in conflict, do not traverse.
         // If none of the incoming edges are transitive, remove previous state and do not traverse.
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
