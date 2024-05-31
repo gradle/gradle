@@ -25,8 +25,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry: SoftwareTypeRegistry): SoftwareTypeConventionRepository = object : SoftwareTypeConventionRepository {
     override fun findConventions(softwareTypeName: String): SoftwareTypeConventionResolutionResults? =
-        // TODO: optimize O(n) lookup
-        softwareTypeRegistry.softwareTypeImplementations.find { it.softwareType == softwareTypeName }?.let { softwareType ->
+        softwareTypeRegistry.softwareTypeImplementations[softwareTypeName]?.let { softwareType ->
             val assignments = buildList {
                 softwareType.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { it.apply(::add) }
             }
@@ -44,7 +43,7 @@ fun softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry: Software
 internal
 fun softwareTypeRegistryBasedConventionRegistrar(softwareTypeRegistry: SoftwareTypeRegistry): ConventionDefinitionRegistrar = object : ConventionDefinitionRegistrar {
     override fun registerConventions(conventionsBySoftwareType: Map<String, SoftwareTypeConventionResolutionResults>) {
-        softwareTypeRegistry.softwareTypeImplementations.forEach { softwareTypeImplementation ->
+        softwareTypeRegistry.softwareTypeImplementations.values.forEach { softwareTypeImplementation ->
             conventionsBySoftwareType[softwareTypeImplementation.softwareType]?.let { conventions ->
                 val conventionRecords = conventions.additions.map(::AdditionRecordConvention) +
                     conventions.assignments.map(::AssignmentRecordConvention) +

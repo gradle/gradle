@@ -140,7 +140,7 @@ fun buildSoftwareTypeInfo(
     softwareTypeRegistry: SoftwareTypeRegistry,
     schemaTypeToExtend: KClass<*>,
     onSoftwareTypeApplication: (receiverObject: Any, softwareType: SoftwareTypeImplementation<*>) -> Any
-): List<SoftwareTypeInfo<out Any?>> = softwareTypeRegistry.getSoftwareTypeImplementations().map {
+): List<SoftwareTypeInfo<out Any?>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
     SoftwareTypeInfo(it, schemaTypeToExtend, SOFTWARE_TYPE_ACCESSOR_PREFIX) { receiverObject -> onSoftwareTypeApplication(receiverObject, it) }
 }
 

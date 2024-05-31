@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.software.internal;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -40,7 +40,7 @@ import java.util.Set;
 public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     private final Map<Class<? extends Plugin<Settings>>, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
-    private Set<SoftwareTypeImplementation<?>> softwareTypeImplementations;
+    private Map<String, SoftwareTypeImplementation<?>> softwareTypeImplementations;
 
     private final InspectionScheme inspectionScheme;
 
@@ -56,20 +56,20 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         pluginClasses.computeIfAbsent(registeringPluginClass, k -> new LinkedHashSet<>()).add(pluginClass);
     }
 
-    private Set<SoftwareTypeImplementation<?>> discoverSoftwareTypeImplementations() {
-        final ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder = ImmutableSet.builder();
-        pluginClasses.keySet().forEach(registeringPluginClass -> {
-            pluginClasses.get(registeringPluginClass).forEach(pluginClass -> {
+    private Map<String, SoftwareTypeImplementation<?>> discoverSoftwareTypeImplementations() {
+        final ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder = ImmutableMap.builder();
+        pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
+            registeredPluginClasses.forEach(pluginClass -> {
                 TypeToken<?> pluginType = TypeToken.of(pluginClass);
                 TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), SoftwareType.class)
                     .walk(pluginType, new SoftwareTypeImplementationRecordingVisitor(pluginClass, registeringPluginClass, registeredTypes, softwareTypeImplementationsBuilder));
-            });
-        });
+            })
+        );
         return softwareTypeImplementationsBuilder.build();
     }
 
     @Override
-    public Set<SoftwareTypeImplementation<?>> getSoftwareTypeImplementations() {
+    public Map<String, SoftwareTypeImplementation<?>> getSoftwareTypeImplementations() {
         if (softwareTypeImplementations == null) {
             softwareTypeImplementations = discoverSoftwareTypeImplementations();
         }
@@ -85,11 +85,13 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         private final Class<? extends Plugin<Project>> pluginClass;
         private final Class<? extends Plugin<Settings>> registeringPluginClass;
         private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
-        private final ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
+        private final ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
 
-        public SoftwareTypeImplementationRecordingVisitor(Class<? extends Plugin<Project>> pluginClass,
-                                                          Class<? extends Plugin<Settings>> registeringPluginClass,
-                                                          Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
+        public SoftwareTypeImplementationRecordingVisitor(
+                Class<? extends Plugin<Project>> pluginClass,
+                Class<? extends Plugin<Settings>> registeringPluginClass,
+                Map<String, Class<? extends Plugin<Project>>> registeredTypes,
+                ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
             this.pluginClass = pluginClass;
             this.registeringPluginClass = registeringPluginClass;
             this.registeredTypes = registeredTypes;
@@ -108,7 +110,8 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
                     throw new IllegalArgumentException("Software type '" + softwareType.name() + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
                 }
 
-                softwareTypeImplementationsBuilder.add(
+                softwareTypeImplementationsBuilder.put(
+                    softwareType.name(),
                     new DefaultSoftwareTypeImplementation<>(
                         softwareType.name(),
                         publicTypeOf(propertyMetadata, softwareType),
