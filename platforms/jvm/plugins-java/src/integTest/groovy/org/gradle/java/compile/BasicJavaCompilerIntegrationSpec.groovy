@@ -20,11 +20,13 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.junit.Assume
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -42,12 +44,14 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         buildFile << compilerConfiguration()
     }
 
-    def compileGoodCode() {
+    def "can compile good code"() {
         given:
         goodCode()
 
-        expect:
+        when:
         succeeds("compileJava")
+
+        then:
         output.contains(logStatement())
         javaClassFile("compile/test/Person.class").exists()
     }
@@ -56,54 +60,60 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         given:
         badCode()
 
-        expect:
+        when:
         fails("compileJava")
+
+        then:
         output.contains(logStatement())
         failure.assertHasErrorOutput("';' expected")
         failure.assertNotOutput("https://help.gradle.org")
         javaClassFile("").assertHasDescendants()
     }
 
-    def compileBadCodeWithoutFailing() {
+    def "can compile bad code without failing"() {
         given:
         badCode()
 
         and:
-        buildFile << 'compileJava.options.failOnError = false'
+        buildFile << "compileJava.options.failOnError = false"
 
-        expect:
+        when:
         succeeds("compileJava")
+
+        then:
         output.contains(logStatement())
         result.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
-    def compileWithSpecifiedEncoding() {
+    def "can compile with specific encoding"() {
         given:
         goodCodeEncodedWith('ISO8859_7')
 
         and:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'application'
 
             application {
                 mainClass = 'Main'
             }
             compileJava.options.encoding = \'ISO8859_7\'
-'''
+        """
 
-        expect:
+        when:
         succeeds("run")
+
+        then:
         output.contains(logStatement())
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
-    def compilesWithSpecifiedDebugSettings() {
+    def "can compile with specified debug settings"() {
         given:
         goodCode()
 
         when:
-        run("compileJava")
+        succeeds("compileJava")
 
         then:
         def fullDebug = classFile("compile/test/Person.class")
@@ -113,9 +123,9 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
 
         when:
         buildFile << """
-compileJava.options.debugOptions.debugLevel='lines'
-"""
-        run("compileJava")
+            compileJava.options.debugOptions.debugLevel='lines'
+        """
+        succeeds("compileJava")
 
         then:
         def linesOnly = classFile("compile/test/Person.class")
@@ -125,9 +135,9 @@ compileJava.options.debugOptions.debugLevel='lines'
 
         when:
         buildFile << """
-compileJava.options.debug = false
-"""
-        run("compileJava")
+            compileJava.options.debug = false
+        """
+        succeeds("compileJava")
 
         then:
         def noDebug = classFile("compile/test/Person.class")
@@ -137,92 +147,87 @@ compileJava.options.debug = false
     }
 
     // JavaFx was removed in JDK 10
-    // We don't have Oracle Java 8 on Windows any more
+    // JavaFx comes packaged with Oracle JDKs
     @Requires([
         UnitTestPreconditions.Jdk9OrEarlier,
-        UnitTestPreconditions.NotWindows
+        UnitTestPreconditions.JdkOracle
     ])
-    def "compileJavaFx8Code"() {
+    def "can compile JavaFx 8 code"() {
         given:
-        file("src/main/java/compile/test/FxApp.java") << '''
-import javafx.application.Application;
-import javafx.stage.Stage;
+        file("src/main/java/compile/test/FxApp.java") << """
+            import javafx.application.Application;
+            import javafx.stage.Stage;
 
-public class FxApp extends Application {
-    public void start(Stage stage) {
-    }
-}
-'''
+            public class FxApp extends Application {
+                public void start(Stage stage) {
+                }
+            }
+        """
 
         expect:
         succeeds("compileJava")
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
-    def 'ignores project level compatibility when using toolchain'() {
+    def "honors project level compatibility when using toolchain"() {
         given:
+        def lower = getLowerJvm()
+        def lowerVersion = lower.javaVersion.getMajorVersion()
+
+        and:
         goodCode()
         buildFile << """
-java.sourceCompatibility = JavaVersion.VERSION_14
-java.targetCompatibility = JavaVersion.VERSION_15
-java.toolchain {
-    languageVersion = JavaLanguageVersion.of(11)
-}
+            java.sourceCompatibility = JavaVersion.toVersion(${lowerVersion})
+            java.targetCompatibility = JavaVersion.toVersion(${lowerVersion})
+            java.toolchain {
+                languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
+            }
 
-compileJava {
-    doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
-    }
-}
-"""
+            compileJava {
+                ${configureBoostrapClasspath(lower)}
+            }
+
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def 'honors task level compatibility when using toolchain'() {
         given:
+        def lower = getLowerJvm()
+        def lowerVersion = lower.javaVersion.getMajorVersion()
+
+        and:
         goodCode()
         buildFile << """
-java.toolchain {
-    languageVersion = JavaLanguageVersion.of(11)
-}
+            java.toolchain {
+                languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
+            }
 
-compileJava {
-    sourceCompatibility = JavaVersion.VERSION_9
-    targetCompatibility = JavaVersion.VERSION_9
+            compileJava {
+                ${configureBoostrapClasspath(lower)}
+                sourceCompatibility = JavaVersion.toVersion(${lowerVersion})
+                targetCompatibility = JavaVersion.toVersion(${lowerVersion})
+            }
 
-    doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
-    }
-}
-"""
-    }
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+        """
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def 'computes target jvm version when using toolchain'() {
-        given:
-        def jdk = AvailableJavaHomes.differentVersion
-        def javaVersion = jdk.javaVersion.getMajorVersion()
-        goodCode()
-        buildFile << """
-java.toolchain {
-    languageVersion = JavaLanguageVersion.of(${javaVersion})
-}
+        when:
+        succeeds("compileJava")
 
-compileJava {
-    doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
-    }
-}
-"""
+        then:
+        bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrLater)
@@ -230,27 +235,21 @@ compileJava {
         given:
         goodCode()
         buildFile << """
-java.targetCompatibility = JavaVersion.VERSION_1_7
-compileJava.options.compilerArgs.addAll(['--release', $notation])
-compileJava {
-    def targetVersionOf = { config ->
-        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
-    }
-    def apiElementsTarget = targetVersionOf(configurations.apiElements)
-    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
-    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
-    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
-    doFirst {
-        assert apiElementsTarget.get() == 11
-        assert runtimeElementsTarget.get() == 11
-        assert compileClasspathTarget.get() == 11
-        assert runtimeClasspathTarget.get() == 11
-    }
-}
-"""
+            java.targetCompatibility = JavaVersion.VERSION_1_7 // Ignored
+            compileJava {
+                options.compilerArgs.addAll(['--release', $notation])
+            }
 
-        expect:
-        succeeds 'compileJava'
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
         bytecodeVersion() == 55
 
         where:
@@ -266,28 +265,22 @@ compileJava {
         given:
         goodCode()
         buildFile << """
-java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
-compileJava.targetCompatibility = '10' // ignored
-compileJava.options.release.set(11)
-compileJava {
-    def targetVersionOf = { config ->
-        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
-    }
-    def apiElementsTarget = targetVersionOf(configurations.apiElements)
-    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
-    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
-    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
-    doFirst {
-        assert apiElementsTarget.get() == 11
-        assert runtimeElementsTarget.get() == 11
-        assert compileClasspathTarget.get() == 11
-        assert runtimeClasspathTarget.get() == 11
-    }
-}
-"""
+            java.targetCompatibility = JavaVersion.VERSION_1_7 // Ignored
+            compileJava.targetCompatibility = '10' // Ignored
+            compileJava {
+                options.release.set(11)
+            }
 
-        expect:
-        succeeds 'compileJava'
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
         bytecodeVersion() == 55
     }
 
@@ -296,12 +289,14 @@ compileJava {
         given:
         goodCode()
         buildFile << """
-compileJava.options.compilerArgs.addAll(['--release', '12'])
-compileJava.options.release.set(8)
-"""
+            compileJava.options.compilerArgs.addAll(['--release', '12'])
+            compileJava.options.release.set(8)
+        """
 
-        expect:
-        fails 'compileJava'
+        when:
+        fails("compileJava")
+
+        then:
         failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.')
     }
 
@@ -310,110 +305,107 @@ compileJava.options.release.set(8)
         given:
         goodCode()
         buildFile << """
-java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
-compileJava.targetCompatibility = '10' // ignored
-compileJava.options.release.set(11)
-java.disableAutoTargetJvm()
-compileJava {
-    def apiElementsAttributes = configurations.apiElements.attributes
-    def runtimeElementsAttributes = configurations.runtimeElements.attributes
-    def compileClasspathAttributes = configurations.compileClasspath.attributes
-    def runtimeClasspathAttributes = configurations.runtimeClasspath.attributes
-    doFirst {
-        assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
-        assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
-        assert compileClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
-        assert runtimeClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
-    }
-}
-"""
+            java.disableAutoTargetJvm()
+            java.targetCompatibility = JavaVersion.VERSION_1_7 // Ignored
 
-        expect:
-        succeeds 'compileJava'
+            compileJava {
+                targetCompatibility = '10' // Ignored
+                options.release.set(11)
+            }
+
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
         bytecodeVersion() == 55
     }
 
     def "compile with target compatibility"() {
         given:
-        goodCode()
-        buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
-        buildFile << """
-java.targetCompatibility = JavaVersion.VERSION_1_9 // ignored
-compileJava.targetCompatibility = '1.8'
-compileJava.sourceCompatibility = '1.8'
-compileJava {
-    def targetVersionOf = { config ->
-        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
-    }
-    def apiElementsTarget = targetVersionOf(configurations.apiElements)
-    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
-    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
-    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
-    doFirst {
-        assert apiElementsTarget.get() == 8
-        assert runtimeElementsTarget.get() == 8
-        assert compileClasspathTarget.get() == 8
-        assert runtimeClasspathTarget.get() == 8
-    }
-}
-"""
+        def lower = getLowerJvm()
+        def lowerVersion = lower.javaVersion.getMajorVersion()
 
-        expect:
-        succeeds 'compileJava'
-        bytecodeVersion() == 52
+        and:
+        goodCode()
+        buildFile << """
+            java.targetCompatibility = JavaVersion.VERSION_1_9 // Ignored
+            compileJava {
+                targetCompatibility = JavaVersion.toVersion(${lowerVersion})
+                sourceCompatibility = JavaVersion.toVersion(${lowerVersion})
+                ${configureBoostrapClasspath(lower)}
+            }
+
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
     def "compile with target compatibility set in plugin extension"() {
         given:
-        goodCode()
-        buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
-        buildFile << """
-java.targetCompatibility = JavaVersion.VERSION_1_8
-java.sourceCompatibility = JavaVersion.VERSION_1_8
-compileJava {
-    def targetVersionOf = { config ->
-        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
-    }
-    def apiElementsTarget = targetVersionOf(configurations.apiElements)
-    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
-    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
-    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
-    doFirst {
-        assert apiElementsTarget.get() == 8
-        assert runtimeElementsTarget.get() == 8
-        assert compileClasspathTarget.get() == 8
-        assert runtimeClasspathTarget.get() == 8
-    }
-}
-"""
+        def lower = getLowerJvm()
+        def lowerVersion = lower.javaVersion.getMajorVersion()
 
-        expect:
-        succeeds 'compileJava'
-        bytecodeVersion() == 52
+        and:
+        goodCode()
+        buildFile << """
+            java.targetCompatibility = JavaVersion.toVersion(${lowerVersion})
+            java.sourceCompatibility = JavaVersion.toVersion(${lowerVersion})
+
+            compileJava {
+                ${configureBoostrapClasspath(lower)}
+            }
+
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
     @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release option"() {
         given:
-        file("src/main/java/compile/test/FailsOnJava11.java") << '''
-package compile.test;
+        file("src/main/java/compile/test/FailsOnJava11.java") << """
+            package compile.test;
 
-import java.util.stream.Stream;
-import java.util.function.Predicate;
+            import java.util.stream.Stream;
+            import java.util.function.Predicate;
 
-public class FailsOnJava11<T> {
-    static {
-        System.out.println("Hello, world!".describeConstable());
-    }
-}
-'''
+            public class FailsOnJava11<T> {
+                static {
+                    System.out.println("Hello, world!".describeConstable());
+                }
+            }
+        """
 
         buildFile << """
-compileJava.options.compilerArgs.addAll(['--release', '11'])
-"""
+            compileJava.options.compilerArgs.addAll(['--release', '11'])
+        """
 
-        expect:
-        fails 'compileJava'
+        when:
+        fails("compileJava")
+
+        then:
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
         failure.assertHasErrorOutput("method describeConstable")
@@ -422,111 +414,70 @@ compileJava.options.compilerArgs.addAll(['--release', '11'])
     @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release property"() {
         given:
-        file("src/main/java/compile/test/FailsOnJava11.java") << '''
-package compile.test;
+        file("src/main/java/compile/test/FailsOnJava11.java") << """
+            package compile.test;
 
-import java.util.stream.Stream;
-import java.util.function.Predicate;
+            import java.util.stream.Stream;
+            import java.util.function.Predicate;
 
-public class FailsOnJava11<T> {
-    static {
-        System.out.println("Hello, world!".describeConstable());
-    }
-}
-'''
+            public class FailsOnJava11<T> {
+                static {
+                    System.out.println("Hello, world!".describeConstable());
+                }
+            }
+        """
 
         buildFile << """
-compileJava.options.release.set(11)
-"""
+            compileJava.options.release.set(11)
+        """
 
-        expect:
-        fails 'compileJava'
+        when:
+        fails("compileJava")
+
+        then:
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
         failure.assertHasErrorOutput("method describeConstable")
     }
 
-    def goodCode() {
-        buildFile << """
-            ${mavenCentralRepository()}
-            dependencies {
-                implementation "org.codehaus.groovy:groovy:2.4.10"
+    def "cant compile against gradle base services"() {
+        def gradleBaseServicesClass = Action
+
+        when:
+        file("src/main/java/Java.java") << """
+            import ${gradleBaseServicesClass.name};
+            public class Java {}
+        """
+
+        then:
+        fails("compileJava")
+        failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
+    }
+
+    def "gradle classpath does not leak onto java compile classpath"() {
+        given:
+        file("src/main/java/Example.java") << """
+            import org.gradle.api.Project;
+            import org.gradle.api.Plugin;
+
+            public class Example implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("Hello from Example");
+                }
             }
         """
 
-        file("src/main/java/compile/test/Person.java") << '''
-package compile.test;
+        when:
+        fails(":compileJava")
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-
-import java.util.Arrays;
-
-public class Person {
-    String name;
-    int age;
-
-    void hello() {
-        Iterable<Integer> vars = Arrays.asList(3, 1, 2);
-        DefaultGroovyMethods.max(vars);
-    }
-}'''
-        file("src/main/java/compile/test/Person2.java") << '''
-package compile.test;
-
-class Person2 extends Person {
-}
-'''
-    }
-
-    def goodCodeEncodedWith(String encoding) {
-        def code = '''
-import java.io.FileOutputStream;
-import java.io.File;
-import java.io.OutputStreamWriter;
-
-class Main {
-    public static void main(String[] args) throws Exception {
-        // Some lowercase greek letters
-        String content = "\u03b1\u03b2\u03b3";
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8");
-        writer.write(content);
-        writer.close();
-    }
-}
-'''
-        def file = file("src/main/java/Main.java")
-        file.parentFile.mkdirs()
-        file.withWriter(encoding) { writer ->
-            writer.write(code)
-        }
-
-        // Verify some assumptions: that we've got the correct characters in there, and that we're not using the system encoding
-        assert code.contains(new String(Character.toChars(0x3b1)))
-        assert !Arrays.equals(code.bytes, file.bytes)
-    }
-
-    def badCode() {
-        file("src/main/java/compile/test/Person.java") << '''
-        package compile.test;
-
-        public class Person {
-            String name;
-            int age;
-
-            void hello() {
-                return nothing
-            }
-        } '''
-    }
-
-    def classFile(String path) {
-        return new ClassFile(javaClassFile(path))
+        then:
+        !file("build/classes/java/main/Example.class").exists()
+        failure.assertHasErrorOutput("package org.gradle.api does not exist")
     }
 
     def "can use annotation processor"() {
-        when:
+        given:
         buildFile << """
-            apply plugin: "java"
             dependencies {
                 compileOnly project(":processor")
                 annotationProcessor project(":processor")
@@ -535,12 +486,19 @@ class Main {
         settingsFile << "include 'processor'"
         writeAnnotationProcessorProject()
 
-        file("src/main/java/Java.java") << """@com.test.SimpleAnnotation public class Java {
-            void foo() { (new Runnable() { public void run() {} }).run(); }
-        }"""
+        file("src/main/java/Java.java") << """
+            @com.test.SimpleAnnotation
+            public class Java {
+                void foo() {
+                    (new Runnable() { public void run() {} }).run();
+                }
+            }
+        """
+
+        when:
+        succeeds("compileJava")
 
         then:
-        succeeds("compileJava")
         javaGeneratedSourceFile('Java$$Generated.java').exists()
     }
 
@@ -635,43 +593,108 @@ class Main {
         }
     }
 
-    def "cant compile against gradle base services"() {
-        def gradleBaseServicesClass = Action
-
-        when:
-        file("src/main/java/Java.java") << """
-            import ${gradleBaseServicesClass.name};
-            public class Java {}
+    def goodCode() {
+        buildFile << """
+            ${mavenCentralRepository()}
+            dependencies {
+                implementation "org.codehaus.groovy:groovy:2.4.10"
+            }
         """
 
-        then:
-        fails("compileJava")
-        failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
-    }
+        file("src/main/java/compile/test/Person.java") << """
+            package compile.test;
 
-    def "gradle classpath does not leak onto java compile classpath"() {
-        given:
-        file("src/main/java/Example.java") << """
-            import org.gradle.api.Project;
-            import org.gradle.api.Plugin;
+            import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
-            public class Example implements Plugin<Project> {
-                public void apply(Project project) {
-                    System.out.println("Hello from Example");
+            import java.util.Arrays;
+
+            public class Person {
+                String name;
+                int age;
+
+                void hello() {
+                    Iterable<Integer> vars = Arrays.asList(3, 1, 2);
+                    DefaultGroovyMethods.max(vars);
                 }
             }
         """
 
-        when:
-        fails(":compileJava")
+        file("src/main/java/compile/test/Person2.java") << """
+            package compile.test;
 
-        then:
-        !file("build/classes/java/main/Example.class").exists()
-        failure.assertHasErrorOutput("package org.gradle.api does not exist")
+            class Person2 extends Person {
+            }
+        """
+    }
+
+    def goodCodeEncodedWith(String encoding) {
+        def code = """
+            import java.io.FileOutputStream;
+            import java.io.File;
+            import java.io.OutputStreamWriter;
+
+            class Main {
+                public static void main(String[] args) throws Exception {
+                    // Some lowercase greek letters
+                    String content = "\u03b1\u03b2\u03b3";
+                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8");
+                    writer.write(content);
+                    writer.close();
+                }
+            }
+        """
+
+        def file = file("src/main/java/Main.java")
+        file.parentFile.mkdirs()
+        file.withWriter(encoding) { writer ->
+            writer.write(code)
+        }
+
+        // Verify some assumptions: that we've got the correct characters in there, and that we're not using the system encoding
+        assert code.contains(new String(Character.toChars(0x3b1)))
+        assert !Arrays.equals(code.bytes, file.bytes)
+    }
+
+    def badCode() {
+        file("src/main/java/compile/test/Person.java") << """
+            package compile.test;
+
+            public class Person {
+                String name;
+                int age;
+
+                void hello() {
+                    return nothing
+                }
+            }
+        """
+    }
+
+    def classFile(String path) {
+        return new ClassFile(javaClassFile(path))
     }
 
     def bytecodeVersion() {
         return JavaClassUtil.getClassMajorVersion(javaClassFile('compile/test/Person.class'))
     }
 
+    def configureBoostrapClasspath(Jvm jvm) {
+        if (jvm.javaVersion.majorVersionNumber < 9) {
+            return """
+                options.bootstrapClasspath = files("${jvm.javaHome.absolutePath}/jre/lib/rt.jar")
+            """
+        } else {
+            return """
+                options.compilerArgs += [
+                    "--system", "${jvm.javaHome.absolutePath}"
+                ]
+            """
+        }
+    }
+
+    Jvm getLowerJvm() {
+        def lower = AvailableJavaHomes.getAvailableJdk { element -> element.getLanguageVersion() < Jvm.current().javaVersion }
+        Assume.assumeTrue(lower != null)
+        return lower
+    }
 }
