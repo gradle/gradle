@@ -20,8 +20,8 @@ import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
-import org.gradle.internal.declarativedsl.dom.toDocument
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
@@ -48,7 +48,7 @@ class SettingsBlockCheckTest {
         )
 
         assertEquals(2, result.size)
-        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.start })
+        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.first })
         assertTrue(result.all { it.reason == DocumentCheckFailureReason.DuplicatePluginsBlock })
     }
 
@@ -64,7 +64,7 @@ class SettingsBlockCheckTest {
         )
 
         assertEquals(2, result.size)
-        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.start })
+        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.first })
         assertTrue(result.all { it.reason == DocumentCheckFailureReason.DuplicatePluginManagementBlock })
     }
 
@@ -122,8 +122,9 @@ class SettingsBlockCheckTest {
         val trace = tracingCodeResolver(DefaultOperationGenerationId.finalEvaluation, analysisStatementFilter)
             .apply { resolve(analysisSchema, languageModel.imports, languageModel.topLevelBlock) }
             .trace
-        val document = resolvedDocument(analysisSchema, trace, languageModel.toDocument())
-        return documentChecks.flatMap { it.detectFailures(document) }
+        val document = languageModel.toDocument()
+        val resolution = resolutionContainer(analysisSchema, trace, document)
+        return documentChecks.flatMap { it.detectFailures(document, resolution) }
     }
 
     private
@@ -133,6 +134,9 @@ class SettingsBlockCheckTest {
     val pluginManagementSchema = pluginManagementEvaluationSchema()
 
     private
-    val pluginsSchema =
-        buildEvaluationSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock, EvaluationSchemaBuilder::gradleDslGeneralSchema)
+    val pluginsSchema = buildEvaluationSchema(
+        PluginsTopLevelReceiver::class,
+        isTopLevelPluginsBlock,
+        schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema
+    )
 }

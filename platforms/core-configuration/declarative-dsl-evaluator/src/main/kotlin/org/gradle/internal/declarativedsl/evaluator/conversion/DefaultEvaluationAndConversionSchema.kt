@@ -17,7 +17,9 @@
 package org.gradle.internal.declarativedsl.evaluator.conversion
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
@@ -27,6 +29,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 class DefaultEvaluationAndConversionSchema(
     override val analysisSchema: AnalysisSchema,
     override val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
+    override val operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     override val runtimePropertyResolvers: List<RuntimePropertyResolver> = listOf(),
     override val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = listOf(),
     override val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList(),

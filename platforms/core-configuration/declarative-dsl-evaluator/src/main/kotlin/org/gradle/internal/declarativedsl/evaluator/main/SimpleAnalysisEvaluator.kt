@@ -17,16 +17,22 @@
 package org.gradle.internal.declarativedsl.evaluator.main
 
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import java.io.File
+
+
+class AnalysisSequenceResult(
+    val stepResults: Map<InterpretationSequenceStep, EvaluationResult<AnalysisStepResult>>
+)
 
 
 class SimpleAnalysisEvaluator(
@@ -52,15 +58,15 @@ class SimpleAnalysisEvaluator(
     fun evaluate(
         scriptFileName: String,
         scriptSource: String
-    ): Map<String, EvaluationResult<AnalysisStepResult>> {
+    ): AnalysisSequenceResult {
         val scriptContext = scriptContextFromFileName(scriptFileName)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
-            InterpretationSchemaBuildingResult.SchemaNotBuilt -> emptyMap()
-            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> {
-                built.sequence.steps.associate {
-                    it.stepIdentifier to stepRunner.runInterpretationSequenceStep(scriptFileName, scriptSource, it, analysisContext)
+            InterpretationSchemaBuildingResult.SchemaNotBuilt -> AnalysisSequenceResult(emptyMap())
+            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> AnalysisSequenceResult(
+                built.sequence.steps.associateWith {
+                    stepRunner.runInterpretationSequenceStep(scriptFileName, scriptSource, it, analysisContext)
                 }
-            }
+            )
         }
     }
 

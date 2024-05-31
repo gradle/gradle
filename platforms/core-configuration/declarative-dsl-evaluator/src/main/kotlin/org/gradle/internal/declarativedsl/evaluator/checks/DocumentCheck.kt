@@ -17,7 +17,8 @@
 package org.gradle.internal.declarativedsl.evaluator.checks
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.features.InterpretationStepFeatureHandler
 import org.gradle.internal.declarativedsl.language.SourceData
 
@@ -28,7 +29,7 @@ interface DocumentCheck : InterpretationStepFeatureHandler<InterpretationStepFea
     override fun shouldHandleFeature(feature: InterpretationStepFeature.DocumentChecks): Boolean =
         checkKey in feature.checkKeys
 
-    fun detectFailures(resolvedDeclarativeDocument: ResolvedDeclarativeDocument): List<DocumentCheckFailure>
+    fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer): List<DocumentCheckFailure>
 }
 
 
@@ -46,8 +47,8 @@ sealed interface DocumentCheckFailureLocation {
             is FailedAtValue -> node.sourceData
         }
 
-    data class FailedAtNode(val node: ResolvedDeclarativeDocument.ResolvedDocumentNode) : DocumentCheckFailureLocation
-    data class FailedAtValue(val node: ResolvedDeclarativeDocument.ResolvedValueNode) : DocumentCheckFailureLocation
+    data class FailedAtNode(val node: DeclarativeDocument.DocumentNode) : DocumentCheckFailureLocation
+    data class FailedAtValue(val node: DeclarativeDocument.ValueNode) : DocumentCheckFailureLocation
 }
 
 

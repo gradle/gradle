@@ -29,14 +29,15 @@ import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinition
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionsConfiguringBlock
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionsTopLevelReceiver
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
-    stepIdentifier = "settingsConventions",
-    assignmentGeneration = DefaultOperationGenerationId.convention,
+    "settingsConventions",
     features = setOf(ConventionDefinition()),
     buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
 )
@@ -44,7 +45,11 @@ fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: Softwa
 
 private
 fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
-    buildEvaluationSchema(ConventionsTopLevelReceiver::class, isTopLevelElement.implies(isConventionsConfiguringCall)) {
+    buildEvaluationSchema(
+        ConventionsTopLevelReceiver::class,
+        isTopLevelElement.implies(isConventionsConfiguringCall),
+        operationGenerationId = DefaultOperationGenerationId.convention
+    ) {
         gradleDslGeneralSchema()
         dependencyCollectors()
         softwareTypesConventions(ConventionsConfiguringBlock::class, softwareTypeRegistry)

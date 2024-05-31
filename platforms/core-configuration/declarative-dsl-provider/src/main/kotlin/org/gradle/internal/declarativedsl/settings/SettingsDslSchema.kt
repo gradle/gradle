@@ -25,7 +25,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
-import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
@@ -51,7 +50,7 @@ fun settingsInterpretationSequence(
     DefaultInterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", DefaultOperationGenerationId.finalEvaluation, targetScope, scriptSource) { settings.services },
+            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
             conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
             SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
         )
@@ -63,7 +62,7 @@ fun pluginManagementEvaluationSchema(): EvaluationAndConversionSchema =
     buildEvaluationAndConversionSchema(
         Settings::class,
         isTopLevelPluginManagementBlock,
-        EvaluationSchemaBuilder::gradleDslGeneralSchema
+        schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema
     )
 
 

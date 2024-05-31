@@ -31,7 +31,7 @@ import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplic
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
-import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionSucceeded
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepResult
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
@@ -84,10 +84,10 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         target: Any,
         scriptSource: ScriptSource,
         targetScope: ClassLoaderScope
-    ): EvaluationResult<ConversionSucceeded> {
+    ): EvaluationResult<ConversionStepResult> {
         val scriptContext = scriptContextFor(target, scriptSource, targetScope)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
-            InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(scriptContext)))
+            InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(scriptContext)), ConversionStepResult.CannotRunStep)
             is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target)
         }
     }
@@ -97,11 +97,11 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         scriptSource: ScriptSource,
         sequence: InterpretationSequence,
         target: Any
-    ): EvaluationResult<ConversionSucceeded> =
+    ): EvaluationResult<ConversionStepResult> =
         sequence.steps.map { step ->
             stepRunner.runInterpretationSequenceStep(scriptSource.fileName, scriptSource.resource.text, step, ConversionStepContext(target, defaultAnalysisContext))
                 .also { if (it is NotEvaluated) return it }
-        }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList())
+        }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList(), partialStepResult = ConversionStepResult.CannotRunStep)
 
     private
     fun scriptContextFor(

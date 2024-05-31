@@ -102,7 +102,7 @@ fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
 internal
 fun isConventionsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
     isTopLevelReceiver(parent.receiver) &&
-    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == "conventions"
+    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == ConventionsTopLevelReceiver::conventions.name
 
 
 /**

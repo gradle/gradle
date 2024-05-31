@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.evaluation
+package org.gradle.internal.declarativedsl.evaluator.runner
 
-import java.io.Serializable
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 
 
-interface InterpretationSequenceStep : Serializable {
-    val stepIdentifier: StepIdentifier
-    val features: Set<InterpretationStepFeature>
-    val evaluationSchemaForStep: EvaluationSchema
-
-    interface StepIdentifier : Serializable {
-        val key: String
-    }
+interface InterpretationSequenceStepRunner<in C : StepContext, out R : StepResult> {
+    fun runInterpretationSequenceStep(
+        scriptIdentifier: String,
+        scriptSource: String,
+        step: InterpretationSequenceStep,
+        stepContext: C
+    ): EvaluationResult<R>
 }

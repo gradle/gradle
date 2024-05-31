@@ -21,8 +21,8 @@ import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.DocumentChecks
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
-import org.gradle.internal.declarativedsl.dom.toDocument
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.DocumentCheckFailures
@@ -47,7 +47,7 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
 
         val evaluationSchema = step.evaluationSchemaForStep
 
-        val resolver = tracingCodeResolver(step.assignmentGeneration, evaluationSchema.analysisStatementFilter)
+        val resolver = tracingCodeResolver(evaluationSchema.operationGenerationId, evaluationSchema.analysisStatementFilter)
 
         val languageModel = languageModelFromLightParser(scriptIdentifier, scriptSource)
 
@@ -63,26 +63,29 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
         val resultHandlers = stepContext.supportedResolutionResultHandlers.filter { processor -> postProcessingFeatures.any(processor::shouldHandleFeature) }
         val resolution = resultHandlers.fold(initialResolution) { acc, it -> it.processResolutionResult(acc) }
 
-        val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
+        val document = languageModel.toDocument()
+        val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, resolver.trace, document)
 
         val checkFeatures = step.features.filterIsInstance<DocumentChecks>()
         val checkResults = stepContext.supportedDocumentChecks.filter { checkFeatures.any(it::shouldHandleFeature) }
-            .flatMap { it.detectFailures(document) }
+            .flatMap { it.detectFailures(document, documentResolutionContainer) }
 
         if (checkResults.isNotEmpty()) {
             failureReasons += DocumentCheckFailures(checkResults)
         }
 
-        val trace = assignmentTrace(resolution)
-        val assignmentErrors = trace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
+        val assignmentTrace = assignmentTrace(resolution)
+        val assignmentErrors = assignmentTrace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
         if (assignmentErrors.isNotEmpty()) {
             failureReasons += AssignmentErrors(assignmentErrors)
         }
-        if (failureReasons.isNotEmpty()) {
-            return NotEvaluated(failureReasons)
-        }
 
-        return EvaluationResult.Evaluated(AnalysisStepResult(languageModel, resolution, trace))
+        val analysisResult = AnalysisStepResult(evaluationSchema, languageModel, resolution, resolver.trace, assignmentTrace)
+
+        return when {
+            failureReasons.isNotEmpty() -> NotEvaluated(failureReasons, partialStepResult = analysisResult)
+            else -> EvaluationResult.Evaluated(analysisResult)
+        }
     }
 
     private

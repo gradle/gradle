@@ -53,7 +53,7 @@ class GeneralGradleDslSchemaTest {
         buildEvaluationSchema(
             topLevelReceiverClass,
             analyzeEverything,
-            EvaluationSchemaBuilder::gradleDslGeneralSchema,
+            schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema,
         )
 
     private

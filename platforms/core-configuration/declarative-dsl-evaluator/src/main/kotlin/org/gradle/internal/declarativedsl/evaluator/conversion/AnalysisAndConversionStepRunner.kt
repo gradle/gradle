@@ -39,37 +39,47 @@ data class ConversionStepContext(
 ) : StepContext
 
 
-data class ConversionSucceeded(
-    val analysisResult: AnalysisStepResult
-) : StepResult
+sealed interface ConversionStepResult : StepResult {
+    data class ConversionSucceeded(
+        val analysisResult: AnalysisStepResult
+    ) : ConversionStepResult
+
+    data class ConversionNotApplicable(
+        val analysisResult: AnalysisStepResult
+    ) : ConversionStepResult
+
+    data class AnalysisFailed(
+        val partialAnalysisResult: AnalysisStepResult,
+    ) : ConversionStepResult
+
+    data object CannotRunStep : ConversionStepResult
+}
 
 
 class AnalysisAndConversionStepRunner(
     private val analysisStepRunner: InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult>
-) : InterpretationSequenceStepRunner<ConversionStepContext, ConversionSucceeded> {
+) : InterpretationSequenceStepRunner<ConversionStepContext, ConversionStepResult> {
 
     override fun runInterpretationSequenceStep(
         scriptIdentifier: String,
         scriptSource: String,
         step: InterpretationSequenceStep,
         stepContext: ConversionStepContext
-    ): EvaluationResult<ConversionSucceeded> {
-        when (val analysisResult = analysisStepRunner.runInterpretationSequenceStep(scriptIdentifier, scriptSource, step, stepContext.analysisStepContext)) {
-            is EvaluationResult.NotEvaluated -> return analysisResult
-            is EvaluationResult.Evaluated -> {
-                if (step is InterpretationSequenceStepWithConversion<*>) {
-                    val context = ReflectionContext(
-                        SchemaTypeRefContext(step.evaluationSchemaForStep.analysisSchema),
-                        analysisResult.stepResult.resolutionResult,
-                        analysisResult.stepResult.assignmentTrace
-                    )
-                    val topLevelObjectReflection = reflect(analysisResult.stepResult.resolutionResult.topLevelReceiver, context)
-                    applyReflectionToJvmObjectConversion(step.evaluationSchemaForStep, step, stepContext.targetObject, topLevelObjectReflection)
-                }
+    ): EvaluationResult<ConversionStepResult> = when (val analysisResult = analysisStepRunner.runInterpretationSequenceStep(scriptIdentifier, scriptSource, step, stepContext.analysisStepContext)) {
+        is EvaluationResult.NotEvaluated ->
+            EvaluationResult.NotEvaluated(analysisResult.stageFailures, ConversionStepResult.AnalysisFailed(analysisResult.partialStepResult))
 
-                return EvaluationResult.Evaluated(ConversionSucceeded(analysisResult.stepResult))
-            }
-        }
+        is EvaluationResult.Evaluated ->
+            if (step is InterpretationSequenceStepWithConversion<*>) {
+                val context = ReflectionContext(
+                    SchemaTypeRefContext(step.evaluationSchemaForStep.analysisSchema),
+                    analysisResult.stepResult.resolutionResult,
+                    analysisResult.stepResult.assignmentTrace
+                )
+                val topLevelObjectReflection = reflect(analysisResult.stepResult.resolutionResult.topLevelReceiver, context)
+                applyReflectionToJvmObjectConversion(step.evaluationSchemaForStep, step, stepContext.targetObject, topLevelObjectReflection)
+                EvaluationResult.Evaluated(ConversionStepResult.ConversionSucceeded(analysisResult.stepResult))
+            } else EvaluationResult.Evaluated(ConversionStepResult.ConversionNotApplicable(analysisResult.stepResult))
     }
 
     private

@@ -26,7 +26,11 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 sealed interface EvaluationResult<out R : StepResult> {
     class Evaluated<R : StepResult>(val stepResult: R) : EvaluationResult<R>
 
-    class NotEvaluated(val stageFailures: List<StageFailure>) : EvaluationResult<Nothing> {
+    class NotEvaluated<R : StepResult>(
+        val stageFailures: List<StageFailure>,
+        // This could have been a supertype's property, but always distinguishing between a successful result and a failing one is useful.
+        val partialStepResult: R
+    ) : EvaluationResult<R> {
         sealed interface StageFailure {
             data class NoSchemaAvailable(val scriptContext: DeclarativeScriptContext) : StageFailure
             object NoParseResult : StageFailure
@@ -37,3 +41,10 @@ sealed interface EvaluationResult<out R : StepResult> {
         }
     }
 }
+
+
+val <R : StepResult> EvaluationResult<R>.stepResultOrPartialResult
+    get() = when (this) {
+        is EvaluationResult.Evaluated -> stepResult
+        is EvaluationResult.NotEvaluated -> partialStepResult
+    }

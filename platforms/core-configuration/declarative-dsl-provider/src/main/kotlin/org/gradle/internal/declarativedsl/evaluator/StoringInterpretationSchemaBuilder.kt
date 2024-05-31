@@ -19,14 +19,13 @@ package org.gradle.internal.declarativedsl.evaluator
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -83,13 +82,12 @@ class StoringInterpretationSchemaBuilder(
         private val step: InterpretationSequenceStep,
         val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : InterpretationSequenceStep {
-        override val stepIdentifier: String = step.stepIdentifier
-        override val assignmentGeneration: OperationGenerationId = step.assignmentGeneration
+        override val stepIdentifier: InterpretationSequenceStep.StepIdentifier = step.stepIdentifier
         override val features: Set<InterpretationStepFeature>
             get() = step.features
 
         override val evaluationSchemaForStep: EvaluationSchema by lazy {
-            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier, it.analysisSchema) }
+            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
     }
 
@@ -99,7 +97,7 @@ class StoringInterpretationSchemaBuilder(
         schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : SchemaHandlingInterpretationSequenceStep(step, schemaHandler), InterpretationSequenceStepWithConversion<R> {
         override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy {
-            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier, it.analysisSchema) }
+            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
