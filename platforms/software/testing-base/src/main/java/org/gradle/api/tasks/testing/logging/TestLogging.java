@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.testing.logging;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 import java.util.Set;
 
 /**
@@ -27,6 +29,7 @@ public interface TestLogging {
      *
      * @return the events to be logged
      */
+    @ToBeReplacedByLazyProperty
     Set<TestLogEvent> getEvents();
 
     /**
@@ -61,6 +64,7 @@ public interface TestLogging {
      *
      * @return the minimum granularity of the events to be logged
      */
+    @ToBeReplacedByLazyProperty
     int getMinGranularity();
 
     /**
@@ -85,6 +89,7 @@ public interface TestLogging {
      *
      * @return the maximum granularity of the events to be logged
      */
+    @ToBeReplacedByLazyProperty
     int getMaxGranularity();
 
     /**
@@ -107,6 +112,7 @@ public interface TestLogging {
      *
      * @return the display granularity of the events to be logged
      */
+    @ToBeReplacedByLazyProperty
     int getDisplayGranularity();
 
     /**
@@ -123,6 +129,7 @@ public interface TestLogging {
      *
      * @return whether exceptions that occur during test execution will be logged
      */
+    @ToBeReplacedByLazyProperty
     boolean getShowExceptions();
 
     /**
@@ -137,6 +144,7 @@ public interface TestLogging {
      *
      * @return whether causes of exceptions that occur during test execution will be logged
      */
+    @ToBeReplacedByLazyProperty
     boolean getShowCauses();
 
     /**
@@ -151,6 +159,7 @@ public interface TestLogging {
      *
      * @return whether stack traces of exceptions that occur during test execution will be logged
      */
+    @ToBeReplacedByLazyProperty
     boolean getShowStackTraces();
 
     /**
@@ -166,6 +175,7 @@ public interface TestLogging {
      *
      * @return the format to be used for logging test exceptions
      */
+    @ToBeReplacedByLazyProperty
     TestExceptionFormat getExceptionFormat();
 
     /**
@@ -190,6 +200,7 @@ public interface TestLogging {
      *
      * @return the set of filters to be used for sanitizing test stack traces
      */
+    @ToBeReplacedByLazyProperty
     Set<TestStackTraceFilter> getStackTraceFilters();
 
     /**
@@ -216,6 +227,7 @@ public interface TestLogging {
      * Tells whether output on standard out and standard error will be logged. Equivalent to checking if both log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR} are
      * set.
      */
+    @ToBeReplacedByLazyProperty
     boolean getShowStandardStreams();
 
     /**
