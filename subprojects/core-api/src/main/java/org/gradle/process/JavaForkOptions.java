@@ -24,6 +24,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -40,6 +42,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The system properties. Returns an empty map when there are no system properties.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     Map<String, Object> getSystemProperties();
 
     /**
@@ -71,8 +74,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
-     String getDefaultCharacterEncoding();
+    String getDefaultCharacterEncoding();
 
     /**
      * Sets the default character encoding to use.
@@ -90,6 +94,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     String getMinHeapSize();
 
@@ -106,6 +111,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     String getMaxHeapSize();
 
@@ -123,6 +129,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     List<String> getJvmArgs();
 
@@ -165,6 +172,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 4.6
      */
     @Nested
+    @ToBeReplacedByLazyProperty
     List<CommandLineArgumentProvider> getJvmArgumentProviders();
 
     /**
@@ -174,6 +182,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The bootstrap classpath. Never returns null.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     FileCollection getBootstrapClasspath();
 
     /**
@@ -198,6 +207,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return true if assertions are enabled, false if disabled
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean getEnableAssertions();
 
     /**
@@ -219,6 +229,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return true when debugging is enabled, false to disable.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean getDebug();
 
     /**
@@ -238,6 +249,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 5.6
      */
     @Nested
+    @ToBeKeptEagerProperty(because = "Read-only nested property")
     JavaDebugOptions getDebugOptions();
 
     /**
@@ -256,6 +268,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     List<String> getAllJvmArgs();
 
     /**
