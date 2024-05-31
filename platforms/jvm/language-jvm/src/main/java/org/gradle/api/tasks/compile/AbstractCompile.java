@@ -28,6 +28,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -56,6 +57,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The classpath.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -152,6 +154,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The source language level.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getSourceCompatibility() {
         return sourceCompatibility;
     }
@@ -171,6 +174,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The target JVM.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getTargetCompatibility() {
         return targetCompatibility;
     }
