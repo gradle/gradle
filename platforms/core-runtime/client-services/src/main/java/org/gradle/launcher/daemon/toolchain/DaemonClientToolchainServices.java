@@ -17,15 +17,29 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
+import org.gradle.api.internal.file.archive.DecompressionCoordinator;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.impl.DefaultDeleter;
+import org.gradle.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
@@ -37,6 +51,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.time.Clock;
@@ -63,6 +78,8 @@ import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.internal.DefaultBuildPlatform;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,8 +118,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    protected DaemonJavaToolchainProvisioningService createDaemonJavaToolchainProvisioningService(SecureFileDownloader secureFileDownloader, JdkCacheDirectory jdkCacheDirectory, BuildPlatform buildPlatform) {
-        return new DaemonJavaToolchainProvisioningService(secureFileDownloader, jdkCacheDirectory, buildPlatform, toolchainDownloadUrlProvider, toolchainConfiguration.isDownloadEnabled());
+    protected DaemonJavaToolchainProvisioningService createDaemonJavaToolchainProvisioningService(SecureFileDownloader secureFileDownloader, JdkCacheDirectory jdkCacheDirectory, BuildPlatform buildPlatform, ProgressLoggerFactory progressLoggerFactory) {
+        return new DaemonJavaToolchainProvisioningService(secureFileDownloader, jdkCacheDirectory, buildPlatform, toolchainDownloadUrlProvider, toolchainConfiguration.isDownloadEnabled(), progressLoggerFactory);
     }
 
     @Provides
@@ -116,8 +133,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
-        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
+    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileOperations fileOperations, FileLockManager fileLockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
+        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, fileOperations, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
     }
 
     @Provides
@@ -139,5 +156,46 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     @Provides
     protected JavaToolchainHttpRedirectVerifierFactory createJavaToolchainHttpRedirectVerifierFactory() {
         return new JavaToolchainHttpRedirectVerifierFactory();
+    }
+
+    @Provides
+    protected FileOperations createFileOperations(FileSystem fileSystem, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, TemporaryFileProvider temporaryFileProvider, DecompressionCoordinator decompressionCoordinator, FileCollectionFactory fileCollectionFactory, Deleter deleter, DocumentationRegistry documentationRegistry, PropertyFactory propertyFactory) {
+        return new DefaultFileOperations(
+            fileResolver,
+            DirectInstantiator.INSTANCE,
+            directoryFileTreeFactory,
+            new DefaultFileHasher(new DefaultStreamHasher()),
+            DefaultResourceHandler.Factory.from(fileResolver, null, fileSystem, temporaryFileProvider, null),
+            fileCollectionFactory,
+            propertyFactory,
+            fileSystem,
+            PatternSet::new,
+            deleter,
+            documentationRegistry,
+            DefaultTaskDependencyFactory.withNoAssociatedProject(),
+            new DefaultProviderFactory(),
+            decompressionCoordinator,
+            temporaryFileProvider
+        );
+    }
+
+    @Provides
+    protected DecompressionCoordinator createDecompressionCoordinator() {
+        return new DecompressionCoordinator() {
+            @Override
+            public void exclusiveAccessTo(File expandedDir, Runnable action) {
+                action.run();
+            }
+
+            @Override
+            public void close() throws IOException {
+
+            }
+        };
+    }
+
+    @Provides
+    protected Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
+        return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 }
