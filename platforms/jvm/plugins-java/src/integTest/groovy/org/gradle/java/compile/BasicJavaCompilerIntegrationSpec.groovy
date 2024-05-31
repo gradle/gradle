@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
+import spock.lang.Issue
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -39,6 +40,9 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         buildFile << """
             plugins {
                 id("java-library")
+            }
+            tasks.withType(JavaCompile) {
+                options.compilerArgs << '-Xlint:all' << '-Werror'
             }
         """
         buildFile << compilerConfiguration()
@@ -473,6 +477,113 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         then:
         !file("build/classes/java/main/Example.class").exists()
         failure.assertHasErrorOutput("package org.gradle.api does not exist")
+    }
+
+    def "can compile with long classpath"() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << """
+            dependencies {
+                file("\$projectDir/lib/").mkdirs()
+                implementation files((1..999).collect {
+                    createJarFile("\$projectDir/lib/library\${it}.jar")
+                })
+            }
+
+            def createJarFile(String libraryPath) {
+                def fos
+                try {
+                    fos = new FileOutputStream(file(libraryPath))
+                    new java.util.jar.JarOutputStream(fos, new java.util.jar.Manifest()).withStream {
+                        libraryPath
+                    }
+                } finally {
+                    fos?.close()
+                }
+            }
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        output.contains(logStatement())
+        javaClassFile("compile/test/Person.class").exists()
+    }
+
+    def "can compile with custom heap settings"() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << """
+            compileJava.options.forkOptions.with {
+                memoryInitialSize = '64m'
+                memoryMaximumSize = '128m'
+            }
+        """
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        output.contains(logStatement())
+        javaClassFile("compile/test/Person.class").exists()
+        // couldn't find a good way to verify that heap settings take effect
+    }
+
+    def "can list source files"() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << 'compileJava.options.listFiles = true'
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        output.contains(new File("src/main/java/compile/test/Person.java").toString())
+        output.contains(new File("src/main/java/compile/test/Person2.java").toString())
+        output.contains(logStatement())
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
+    }
+
+    def "ignores non java source files by default"() {
+        given:
+        goodCode()
+
+        and:
+        file('src/main/java/resource.txt').createFile()
+        buildFile << 'compileJava.source += files("src/main/java/resource.txt")'
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5750")
+    def "include narrows down source files to compile"() {
+        given:
+        goodCode()
+
+        and:
+        file('src/main/java/Bar.java') << 'class Bar {}'
+        buildFile << 'compileJava.include "**/Person*.java"'
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
+        !javaClassFile("Bar.class").exists()
     }
 
     def "can use annotation processor"() {
