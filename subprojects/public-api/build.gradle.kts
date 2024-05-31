@@ -51,3 +51,13 @@ publishing {
         }
     }
 }
+
+// TODO De-duplicate this
+/**
+ * Tasks that are called by the (currently separate) promotion build running on CI.
+ */
+tasks.register("promotionBuild") {
+    description = "Build and publish the public API jar"
+    group = "publishing"
+    dependsOn("publish")
+}
