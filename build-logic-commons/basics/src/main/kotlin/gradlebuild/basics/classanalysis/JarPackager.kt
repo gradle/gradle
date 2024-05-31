@@ -49,10 +49,10 @@ class JarPackager {
     }
 
     private
-    fun createJar(sourceJar: File, additionalJars: List<File>, classGraph: ClassGraph, params: PackagingParameters, jarFile: File) {
+    fun createJar(sourceJar: File, additionalJars: List<File>, classGraph: ClassGraph, params: PackagingParameters, outputJar: File) {
         val includedClasses = mutableSetOf<ClassDetails>()
 
-        PrintWriter(BufferedOutputStream(FileOutputStream(jarFile.parentFile.resolve("graph.txt")))).use { out ->
+        PrintWriter(BufferedOutputStream(FileOutputStream(outputJar.parentFile.resolve("graph.txt")))).use { out ->
             val includeViaMethodRefs = mutableSetOf<ClassDetails>()
             val vm = mutableSetOf<MethodDetails>()
             val methodsToVisit = mutableListOf<MethodDetails>()
@@ -105,34 +105,35 @@ class JarPackager {
 
         try {
             val seen = mutableSetOf<String>()
-            JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile))).use { outputStream ->
-                copyToJar(sourceJar, outputStream, classGraph, params.excludeClasses, seen)
-                for (jar in additionalJars) {
-                    copyToJar(jar, outputStream, classGraph, params.excludeClasses, seen)
+            JarOutputStream(BufferedOutputStream(FileOutputStream(outputJar))).use { outputStream ->
+                copyToJar(sourceJar, outputStream, classGraph, includedClasses, params.excludeResources, seen)
+                for (additionalJar in additionalJars) {
+                    copyToJar(additionalJar, outputStream, classGraph, includedClasses, params.excludeResourcesFromDependencies, seen)
                 }
             }
         } catch (exception: Exception) {
-            throw ClassAnalysisException("Could not write JAR $jarFile", exception)
+            throw ClassAnalysisException("Could not write JAR $outputJar", exception)
         }
     }
 
-    private fun copyToJar(jarFile: File, outputStream: JarOutputStream, classGraph: ClassGraph, excludeResources: NameMatcher, seen: MutableSet<String>) {
+    private fun copyToJar(jarFile: File, outputStream: JarOutputStream, classGraph: ClassGraph, includedClasses: Set<ClassDetails>, excludeResources: NameMatcher, seen: MutableSet<String>) {
         val remapper = DefaultRemapper(classGraph)
-
         ZipInputStream(BufferedInputStream(FileInputStream(jarFile))).use { inputStream ->
             while (true) {
                 val entry = inputStream.nextEntry ?: break
+
                 if (entry.isDirectory || !seen.add(entry.name)) {
                     // Skip duplicates and directories
-                    return
+                    continue
                 }
+
                 if (entry.isManifestFilePath()) {
                     // Always copy manifest
                     outputStream.addJarEntry(entry.name, inputStream)
                 } else if (entry.isClassFilePath()) {
                     // Copy class if it is to be included
                     val classDetails = classGraph.forSourceEntry(entry.name)
-                    if (classDetails != null) {
+                    if (classDetails != null && includedClasses.contains(classDetails)) {
                         val reader = ClassReader(inputStream)
                         val writer = ClassWriter(0)
                         reader.accept(ClassRemapper(writer, remapper), ClassReader.EXPAND_FRAMES)
