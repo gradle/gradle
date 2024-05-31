@@ -28,6 +28,8 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
@@ -194,6 +196,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
+    @ToBeReplacedByLazyProperty
     public File getToSign() {
         return uncheckedCall(toSignGenerator);
     }
@@ -213,6 +216,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getName() {
         return name != null ? name : defaultName();
     }
@@ -243,6 +247,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getExtension() {
         return extension != null ? extension : signatureTypeExtension();
     }
@@ -269,6 +274,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getType() {
         return type != null ? type : defaultType();
     }
@@ -295,6 +301,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getClassifier() {
         return classifier != null ? classifier : defaultClassifier();
     }
@@ -316,6 +323,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public Date getDate() {
         return date != null ? date : defaultDate();
     }
@@ -347,6 +355,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getFile() {
         final File toSign = getToSign();
         final SignatureType signatureType = getSignatureType();
@@ -361,6 +370,7 @@ public class Signature extends AbstractPublishArtifact {
      * @return The signatory. May be {@code null} if unknown at this time.
      */
     @Internal("already tracked as part of the Sign task")
+    @ToBeReplacedByLazyProperty
     public Signatory getSignatory() {
         return signatureSpec.getSignatory();
     }
@@ -371,6 +381,7 @@ public class Signature extends AbstractPublishArtifact {
      * @return The signature type. May be {@code null} if unknown at this time.
      */
     @Internal("already tracked as part of the Sign task")
+    @ToBeReplacedByLazyProperty
     public SignatureType getSignatureType() {
         return signatureSpec.getSignatureType();
     }
@@ -382,6 +393,7 @@ public class Signature extends AbstractPublishArtifact {
 
     @Internal
     @SuppressWarnings("unused")
+    @ToBeReplacedByLazyProperty
     public SignatureSpec getSignatureSpec() {
         return signatureSpec;
     }
@@ -393,6 +405,7 @@ public class Signature extends AbstractPublishArtifact {
 
     @Internal
     @Override
+    @ToBeKeptEagerProperty(because = "Returning TaskDependency")
     public TaskDependency getBuildDependencies() {
         return super.getBuildDependencies();
     }
