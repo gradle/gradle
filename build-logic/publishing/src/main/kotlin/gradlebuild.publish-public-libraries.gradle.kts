@@ -26,33 +26,16 @@ plugins {
 
 configureJavadocVariant()
 
-val artifactoryUrl
-    get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
-
-val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
-
-val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
-
 publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
             configureGradleModulePublication()
         }
     }
-    repositories {
-        maven {
-            name = "remote"
-            val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
-            url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
-            credentials {
-                username = artifactoryUserName
-                password = artifactoryUserPassword
-            }
-        }
+
+    plugins.withId("gradlebuild.shaded-jar") {
+        publishNormalizedToLocalRepository()
     }
-    configurePublishingTasks()
 }
 
 val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
@@ -97,33 +80,6 @@ fun MavenPublication.configureGradleModulePublication() {
     pom {
         packaging = "jar"
         name = moduleIdentity.baseName.map { "${project.group}:$it" }
-    }
-}
-
-fun Project.configurePublishingTasks() {
-    tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
-        onlyIf { !project.hasProperty("noUpload") }
-        failEarlyIfUrlOrCredentialsAreNotSet(this)
-    }
-
-    plugins.withId("gradlebuild.shaded-jar") {
-        publishNormalizedToLocalRepository()
-    }
-}
-
-fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
-    gradle.taskGraph.whenReady {
-        if (hasTask(publish)) {
-            if (artifactoryUrl.isEmpty()) {
-                throw GradleException("artifactoryUrl is not set!")
-            }
-            if (artifactoryUserName.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserName is not set!")
-            }
-            if (artifactoryUserPassword.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserPassword is not set!")
-            }
-        }
     }
 }
 
