@@ -14,10 +14,9 @@ tasks.named<Jar>("sourcesJar") {
 }
 
 shadedJar {
-    shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages = listOf("org.gradle.tooling")
-    unshadedPackages = listOf("org.gradle", "org.slf4j", "sun.misc")
-    ignoredPackages = setOf("org.gradle.tooling.provider.model")
+    unshadedPackages = listOf("org.gradle")
+    ignoredPackages = setOf("org.gradle.tooling.provider.model", "org.slf4j")
 }
 
 errorprone {

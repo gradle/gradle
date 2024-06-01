@@ -20,7 +20,7 @@ package gradlebuild.basics.classanalysis
 class ClassGraph(
     private val keepPackages: NameMatcher,
     private val unshadedPackages: NameMatcher,
-    private val ignorePackages: NameMatcher,
+    private val excludedPackages: NameMatcher,
     shadowPackage: String?
 ) {
     private val classesByPath: MutableMap<String, ClassDetails> = mutableMapOf()
@@ -39,10 +39,10 @@ class ClassGraph(
      */
     operator fun get(className: String): ClassDetails {
         return classes.getOrPut(className) {
-            val jvmType = ignoredPackagePatterns.matches(className)
-            val outputClassName = if (jvmType || unshadedPackages.matches(className)) className else shadowPackagePrefix + className
-            val classDetails = ClassDetails(outputClassName)
-            if (keepPackages.matches(className) && !ignorePackages.matches(className) && !jvmType) {
+            val excluded = excludedPackages.matches(className)
+            val outputClassName = if (excluded || unshadedPackages.matches(className)) className else shadowPackagePrefix + className
+            val classDetails = ClassDetails(outputClassName, excluded)
+            if (keepPackages.matches(className)) {
                 entryPoints.add(classDetails)
             }
             classDetails
@@ -51,17 +51,25 @@ class ClassGraph(
 
     fun visitClass(jarPath: String, className: String): ClassDetails {
         val details = get(className)
-        classesByPath[jarPath] = details
+        if (!details.excluded) {
+            details.included = true
+            classesByPath[jarPath] = details
+        }
         return details
     }
 
+    /**
+     * Returns only classes that should be included in the result.
+     */
     fun forSourceEntry(jarPath: String): ClassDetails? {
         return classesByPath[jarPath]
     }
 }
 
 
-class ClassDetails(val outputClassName: String) {
+class ClassDetails(val outputClassName: String, val excluded: Boolean) {
+    var included = false
+
     /**
      * The non-method dependencies of this type.
      */
@@ -72,10 +80,15 @@ class ClassDetails(val outputClassName: String) {
      */
     val methods = mutableMapOf<String, MethodDetails>()
 
+    val supertypes = mutableSetOf<ClassDetails>()
+
     val subtypes = mutableSetOf<ClassDetails>()
 
     val outputClassFilename
         get() = "$outputClassName.class"
+
+    val canBeIncluded: Boolean
+        get() = included
 
     override fun toString(): String {
         return outputClassName
@@ -102,7 +115,11 @@ class ClassDetails(val outputClassName: String) {
     }
 
     fun superType(type: ClassDetails) {
+        if (type.outputClassName == "java/lang/Object") {
+            return
+        }
         type.subtypes.add(this)
+        supertypes.add(type)
     }
 }
 

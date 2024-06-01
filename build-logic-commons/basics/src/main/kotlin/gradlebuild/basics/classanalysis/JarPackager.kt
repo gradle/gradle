@@ -56,30 +56,46 @@ class JarPackager {
         val seenMethods = mutableSetOf<MethodDetails>()
         val methodsToVisit = mutableListOf<MethodDetails>()
         for (classDetails in classGraph.entryPoints) {
+            for (method in classDetails.methods.values) {
+                log.println("-> Entry point method: $method")
+            }
             methodsToVisit.addAll(classDetails.methods.values)
         }
 
+        for (classDetails in classGraph.entryPoints) {
+            log.println("-> Entry point class: $classDetails")
+        }
         val classesToVisit = mutableListOf<ClassDetails>()
         classesToVisit.addAll(classGraph.entryPoints)
 
         val pendingMethodOverrides = mutableSetOf<MethodDetails>()
 
-        while (methodsToVisit.isNotEmpty() && classesToVisit.isNotEmpty()) {
+        while (methodsToVisit.isNotEmpty() || classesToVisit.isNotEmpty()) {
             while (methodsToVisit.isNotEmpty()) {
                 val method = methodsToVisit.removeFirst()
                 if (!seenMethods.add(method)) {
+                    // Already visited this method
                     continue
                 }
-                includeViaMethodRefs.add(method.owner)
-                classesToVisit.add(method.owner)
 
-                for (dependency in method.dependencies) {
-                    log.println("-> Method $method -> $dependency")
+                val owner = method.owner
+                if (!owner.canBeIncluded) {
+                    // Don't visit methods for classes that will not be included
+                    continue
                 }
 
+                includeViaMethodRefs.add(owner)
+                classesToVisit.add(owner)
+
+                for (dependency in method.dependencies) {
+                    log.println("-> Method call $method -> $dependency")
+                }
+
+                // Visit all methods that this method calls
                 methodsToVisit.addAll(method.dependencies)
 
-                for (subtype in method.owner.subtypes) {
+                for (subtype in owner.subtypes) {
+                    // Potentially need to visit overridden methods from subtypes that are included
                     val override = subtype.method(method)
                     log.println("-> Pending method override $method -> $override")
                     pendingMethodOverrides.add(override)
@@ -91,8 +107,17 @@ class JarPackager {
                 if (!includedClasses.add(classDetails)) {
                     continue
                 }
+
+                if (classDetails.supertypes.any { !it.canBeIncluded }) {
+                    for (method in classDetails.methods.values) {
+                        log.println("-> Class with excluded supertype $classDetails -> $method")
+                    }
+                    // Don't know which inherited types will be used, so follow all methods
+                    methodsToVisit.addAll(classDetails.methods.values)
+                }
+
                 for (dependency in classDetails.dependencies) {
-                    log.println("-> Class $classDetails -> $dependency")
+                    log.println("-> Class dependency $classDetails -> $dependency")
                 }
                 classesToVisit.addAll(classDetails.dependencies)
             }
@@ -101,7 +126,7 @@ class JarPackager {
             while (iter.hasNext()) {
                 val method = iter.next()
                 if (includedClasses.contains(method.owner)) {
-                    log.println("-> Visit method override $method")
+                    log.println("-> Method override $method")
                     includeViaMethodOverride.add(method.owner)
                     methodsToVisit.add(method)
                     iter.remove()

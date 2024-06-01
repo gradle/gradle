@@ -25,12 +25,7 @@ class PackagingParameters(
     val keepClasses: NameMatcher,
 
     /**
-     * Create directories for entries in the output JAR?
-     */
-    val keepDirectories: Boolean,
-
-    /**
-     * The classes to not rename, if they are present.
+     * The classes to not rename, if they are present. Includes keep and exclude classes.
      */
     val unshadedClasses: NameMatcher,
 
@@ -106,12 +101,13 @@ class PackagingParameters(
         }
 
         fun build(): PackagingParameters {
+            val excludeClasses = NameMatcher.packages(excludePackages)
+            val keepClasses = NameMatcher.anyOf(NameMatcher.classNames(keepClasses), NameMatcher.packages(keepPackages))
             return PackagingParameters(
                 shadowPackage,
-                NameMatcher.anyOf(NameMatcher.classNames(keepClasses), NameMatcher.packages(keepPackages)),
-                keepDirectories,
-                NameMatcher.packages(unshadedPackages),
-                NameMatcher.packages(excludePackages),
+                keepClasses,
+                NameMatcher.anyOf(NameMatcher.packages(unshadedPackages), excludeClasses, keepClasses),
+                excludeClasses,
                 if (keepResources.isNotEmpty()) NameMatcher.not(NameMatcher.patterns(keepResources)) else NameMatcher.patterns(excludeResources),
                 if (keepResources.isNotEmpty()) NameMatcher.not(NameMatcher.patterns(keepResources)) else NameMatcher.patterns(excludeResources + excludeResourcesFromDependencies)
             )

@@ -34,24 +34,20 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 
-internal
-val ignoredPackagePatterns = NameMatcher.packageHierarchy("java")
-
-
 object Attributes {
     val artifactType = Attribute.of("artifactType", String::class.java)
     val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 }
 
-
+internal
 class JarAnalyzer(
     private val shadowPackage: String?,
     private val keepClasses: NameMatcher,
     private val unshadedClasses: NameMatcher,
-    private val ignoreClasses: NameMatcher
+    private val excludeClasses: NameMatcher
 ) {
     fun analyze(jarFile: File, additionalJars: List<File>, log: PrintWriter): ClassGraph {
-        val classGraph = classGraph()
+        val classGraph = ClassGraph(keepClasses, unshadedClasses, excludeClasses, shadowPackage)
 
         val seen = mutableSetOf<String>()
         analyzeJar(jarFile, classGraph, seen, log)
@@ -78,15 +74,6 @@ class JarAnalyzer(
         }
     }
 
-    private
-    fun classGraph() =
-        ClassGraph(
-            keepClasses,
-            unshadedClasses,
-            ignoreClasses,
-            shadowPackage
-        )
-
     private fun visitEntry(file: ZipInputStream, entry: ZipEntry, classGraph: ClassGraph, seen: MutableSet<String>, log: PrintWriter) {
         if (entry.isClassFilePath() && seen.add(entry.name)) {
             visitClassFile(file, entry, classGraph, log)
@@ -97,6 +84,10 @@ class JarAnalyzer(
     fun visitClassFile(file: ZipInputStream, entry: ZipEntry, classes: ClassGraph, log: PrintWriter) {
         val reader = ClassReader(file)
         val thisClass = classes.visitClass(entry.name, reader.className)
+        if (thisClass.excluded) {
+            log.println("-> Do not analyse $thisClass")
+            return
+        }
 
         var currentMethod: MethodDetails? = null
         val classWriter = ClassWriter(0)
