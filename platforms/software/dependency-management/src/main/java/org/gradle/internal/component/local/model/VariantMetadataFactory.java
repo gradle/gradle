@@ -21,35 +21,35 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Constructs {@link LocalConfigurationGraphResolveMetadata} instances advertised by a
+ * Constructs {@link LocalVariantGraphResolveMetadata} instances advertised by a
  * {@link DefaultLocalComponentGraphResolveState} instance. This allows the component state to
- * source configuration data from multiple sources, both lazy and eager.
+ * source variant data from multiple sources, both lazy and eager.
  */
-public interface ConfigurationMetadataFactory {
+public interface VariantMetadataFactory {
 
     /**
-     * Visit all configurations in this component that can be selected in a dependency graph.
+     * Visit all variants in this component that can be selected in a dependency graph.
      *
-     * <p>This includes all consumable configurations with and without attributes. Configurations visited
+     * <p>This includes all variants with and without attributes. Variants visited
      * by this method may not be suitable for selection via attribute matching.</p>
      */
-    void visitConsumableConfigurations(Consumer<LocalConfigurationGraphResolveMetadata> visitor);
+    void visitConsumableVariants(Consumer<LocalVariantGraphResolveMetadata> visitor);
 
     /**
-     * Invalidates any caching used for producing configuration metadata.
+     * Invalidates any caching used for producing variant metadata.
      */
     void invalidate();
 
     /**
-     * Produces a configuration metadata instance from the configuration with the given {@code name}.
+     * Produces a variant metadata instance from the configuration with the given {@code name}.
      *
-     * @return Null if the configuration with the given name does not exist.
+     * @return Null if the variant with the given configuration name does not exist.
      */
     @Nullable
-    LocalConfigurationGraphResolveMetadata getConfiguration(String name);
+    LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
 
     /**
-     * Get all names such that {@link #getConfiguration(String)} return a non-null value.
+     * Get all names such that {@link #getVariantByConfigurationName(String)} return a non-null value.
      */
     Set<String> getConfigurationNames();
 }

@@ -28,21 +28,17 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueCache;
@@ -65,14 +61,15 @@ import java.util.stream.Collectors;
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
+
     private final ComponentIdGenerator idGenerator;
     private final boolean adHoc;
-    private final ConfigurationMetadataFactory configurationFactory;
+    private final VariantMetadataFactory variantFactory;
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    // The graph resolve state for each configuration of this component
-    private final CalculatedValueCache<String, DefaultLocalConfigurationGraphResolveState> configurations;
+    // The graph resolve state for variants selected by name
+    private final CalculatedValueCache<String, LocalVariantGraphResolveState> variants;
 
     // The variants to use for variant selection during graph resolution
     private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
@@ -86,19 +83,19 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         boolean adHoc,
-        ConfigurationMetadataFactory configurationFactory,
+        VariantMetadataFactory variantFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
         super(instanceId, metadata, attributeDesugaring);
         this.idGenerator = idGenerator;
         this.adHoc = adHoc;
-        this.configurationFactory = configurationFactory;
+        this.variantFactory = variantFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.artifactTransformer = artifactTransformer;
 
         // Mutable state
-        this.configurations = calculatedValueContainerFactory.createCache(Describables.of("configurations"));
+        this.variants = calculatedValueContainerFactory.createCache(Describables.of("variants"));
         initCalculatedValues();
     }
 
@@ -107,8 +104,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         // TODO: This is not really thread-safe.
         //       We should atomically clear all the different fields at once.
         //       Or better yet, we should not allow reevaluation of the state.
-        configurations.clear();
-        configurationFactory.invalidate();
+        variants.clear();
+        variantFactory.invalidate();
         initCalculatedValues();
     }
 
@@ -122,7 +119,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         //       excludes to dependencies in a beforeResolve.
         this.graphSelectionCandidates.set(
             calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
-                computeGraphSelectionCandidates(this, idGenerator, configurationFactory, calculatedValueContainerFactory, artifactTransformer)
+                computeGraphSelectionCandidates(this, idGenerator, variantFactory, calculatedValueContainerFactory, artifactTransformer)
             )
         );
         this.selectableVariantResults.set(
@@ -144,7 +141,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public LocalComponentGraphResolveState copy(ComponentIdentifier newComponentId, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer) {
-        // Keep track of transformed artifacts as a given artifact may appear in multiple variants and configurations
+        // Keep track of transformed artifacts as a given artifact may appear in multiple variants
         Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<>();
         Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> cachedTransformer = oldArtifact ->
             transformedArtifacts.computeIfAbsent(oldArtifact, transformer::transform);
@@ -163,7 +160,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             getAttributeDesugaring(),
             idGenerator,
             adHoc,
-            configurationFactory,
+            variantFactory,
             calculatedValueContainerFactory,
             cachedTransformer
         );
@@ -184,33 +181,34 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
         DefaultLocalComponentGraphResolveState component,
         ComponentIdGenerator idGenerator,
-        ConfigurationMetadataFactory configurationFactory,
+        VariantMetadataFactory variantFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
-        ImmutableList.Builder<VariantGraphResolveState> configurationsWithAttributes = new ImmutableList.Builder<>();
-        ImmutableMap.Builder<String, VariantGraphResolveState> configurationByName = ImmutableMap.builder();
+        ImmutableList.Builder<LocalVariantGraphResolveState> variantsWithAttributes = new ImmutableList.Builder<>();
+        ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName = ImmutableMap.builder();
 
-        configurationFactory.visitConsumableConfigurations(configuration -> {
+        variantFactory.visitConsumableVariants(variant -> {
             if (artifactTransformer != null) {
-                configuration = configuration.copyWithTransformedArtifacts(artifactTransformer);
+                variant = variant.copyWithTransformedArtifacts(artifactTransformer);
             }
 
-            VariantGraphResolveState variantState = new DefaultLocalConfigurationGraphResolveState(
-                idGenerator.nextVariantId(), component, component.getMetadata(), configuration, calculatedValueContainerFactory
-            ).asVariant();
+            LocalVariantGraphResolveState variantState = new DefaultLocalVariantGraphResolveState(
+                idGenerator.nextVariantId(), component, variant, calculatedValueContainerFactory
+            );
 
-            if (!configuration.getAttributes().isEmpty()) {
-                configurationsWithAttributes.add(variantState);
+            if (!variant.getAttributes().isEmpty()) {
+                variantsWithAttributes.add(variantState);
             }
 
-            configurationByName.put(configuration.getName(), variantState);
+            if (variant.getConfigurationName() != null) {
+                variantsByConfigurationName.put(variant.getConfigurationName(), variantState);
+            }
         });
 
         return new DefaultLocalComponentGraphSelectionCandidates(
-            configurationsWithAttributes.build(),
-            configurationByName.build(),
-            component
+            variantsWithAttributes.build(),
+            variantsByConfigurationName.build()
         );
     }
 
@@ -236,44 +234,40 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             .collect(Collectors.toList());
     }
 
-    @Override
-    public Set<String> getConfigurationNames() {
-        return configurationFactory.getConfigurationNames();
-    }
 
     @Nullable
     @Override
-    public ConfigurationGraphResolveState getConfiguration(String configurationName) {
-        return configurations.computeIfAbsent(configurationName, n -> {
-            LocalConfigurationGraphResolveMetadata md = configurationFactory.getConfiguration(configurationName);
-            if (md == null) {
+    @Deprecated
+    public LocalVariantGraphResolveState getConfigurationLegacy(String configurationName) {
+        return variants.computeIfAbsent(configurationName, n -> {
+            LocalVariantGraphResolveMetadata variant = variantFactory.getVariantByConfigurationName(configurationName);
+            if (variant == null) {
                 return null;
             }
             if (artifactTransformer != null) {
-                md = md.copyWithTransformedArtifacts(artifactTransformer);
+                variant = variant.copyWithTransformedArtifacts(artifactTransformer);
             }
-            return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), this, getMetadata(), md, calculatedValueContainerFactory);
+            return new DefaultLocalVariantGraphResolveState(idGenerator.nextVariantId(), this, variant, calculatedValueContainerFactory);
         });
     }
 
-    private static class DefaultLocalConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private static class DefaultLocalVariantGraphResolveState extends AbstractVariantGraphResolveState implements LocalVariantGraphResolveState {
         private final long instanceId;
-        private final LocalConfigurationGraphResolveMetadata configuration;
-        private final CalculatedValue<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
+        private final LocalVariantGraphResolveMetadata variant;
+        private final CalculatedValue<DefaultLocalVariantArtifactResolveState> artifactResolveState;
 
-        public DefaultLocalConfigurationGraphResolveState(
+        public DefaultLocalVariantGraphResolveState(
             long instanceId,
             AbstractComponentGraphResolveState<?> componentState,
-            ComponentGraphResolveMetadata component,
-            LocalConfigurationGraphResolveMetadata configuration,
+            LocalVariantGraphResolveMetadata variant,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             super(componentState);
             this.instanceId = instanceId;
-            this.configuration = configuration;
-            this.artifactResolveState = calculatedValueContainerFactory.create(Describables.of("artifacts of", configuration), context -> {
-                Set<? extends VariantResolveMetadata> legacyVariants = configuration.prepareToResolveArtifacts().getVariants();
-                return new DefaultLocalConfigurationArtifactResolveState(component, configuration, legacyVariants);
+            this.variant = variant;
+            this.artifactResolveState = calculatedValueContainerFactory.create(Describables.of("artifacts of", variant), context -> {
+                LocalVariantArtifactGraphResolveMetadata artifactMetadata = variant.prepareToResolveArtifacts();
+                return new DefaultLocalVariantArtifactResolveState(componentState.getMetadata(), artifactMetadata);
             });
         }
 
@@ -284,32 +278,27 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public String getName() {
-            return configuration.getName();
+            return variant.getName();
         }
 
         @Override
         public String toString() {
-            return configuration.toString();
+            return variant.toString();
         }
 
         @Override
-        public ConfigurationGraphResolveMetadata getMetadata() {
-            return configuration;
+        public LocalVariantGraphResolveMetadata getMetadata() {
+            return variant;
         }
 
         @Override
         public ImmutableAttributes getAttributes() {
-            return configuration.getAttributes();
+            return variant.getAttributes();
         }
 
         @Override
         public ImmutableCapabilities getCapabilities() {
-            return configuration.getCapabilities();
-        }
-
-        @Override
-        public VariantGraphResolveState asVariant() {
-            return this;
+            return variant.getCapabilities();
         }
 
         @Override
@@ -325,34 +314,42 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
     }
 
-    private static class DefaultLocalConfigurationArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
+    private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final ComponentGraphResolveMetadata component;
-        private final LocalConfigurationGraphResolveMetadata graphSelectedConfiguration;
-        private final Set<? extends VariantResolveMetadata> variants;
+        private final LocalVariantArtifactGraphResolveMetadata artifactMetadata;
 
-        public DefaultLocalConfigurationArtifactResolveState(ComponentGraphResolveMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
+        public DefaultLocalVariantArtifactResolveState(ComponentGraphResolveMetadata component, LocalVariantArtifactGraphResolveMetadata artifactMetadata) {
             this.component = component;
-            this.graphSelectedConfiguration = graphSelectedConfiguration;
-            this.variants = variants;
+            this.artifactMetadata = artifactMetadata;
         }
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return graphSelectedConfiguration.prepareToResolveArtifacts().getArtifacts();
+            return artifactMetadata.getArtifacts();
         }
 
         @Override
         public ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts) {
             ImmutableList.Builder<ComponentArtifactMetadata> artifacts = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
-                artifacts.add(graphSelectedConfiguration.prepareToResolveArtifacts().artifact(dependencyArtifact));
+                artifacts.add(getArtifactWithName(dependencyArtifact));
             }
             return variantResolver.resolveAdhocVariant(new LocalComponentArtifactResolveMetadata(component), artifacts.build());
         }
 
+        private ComponentArtifactMetadata getArtifactWithName(IvyArtifactName ivyArtifactName) {
+            for (ComponentArtifactMetadata candidate : getArtifacts()) {
+                if (candidate.getName().equals(ivyArtifactName)) {
+                    return candidate;
+                }
+            }
+
+            return new MissingLocalArtifactMetadata(component.getId(), ivyArtifactName);
+        }
+
         @Override
         public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-            return variants;
+            return artifactMetadata.getVariants();
         }
     }
 
@@ -390,58 +387,40 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static class DefaultLocalComponentGraphSelectionCandidates implements LocalComponentGraphSelectionCandidates {
-        private final List<? extends VariantGraphResolveState> variantsWithAttributes;
-        private final Map<String, ? extends VariantGraphResolveState> variantsByConfigurationName;
-        private final AbstractComponentGraphResolveState<?> component;
+        private final List<? extends LocalVariantGraphResolveState> variantsWithAttributes;
+        private final Map<String, LocalVariantGraphResolveState> variantsByConfigurationName;
 
         public DefaultLocalComponentGraphSelectionCandidates(
-            List<? extends VariantGraphResolveState> variantsWithAttributes,
-            Map<String, ? extends VariantGraphResolveState> variantsByConfigurationName,
-            AbstractComponentGraphResolveState<?> component
+            List<? extends LocalVariantGraphResolveState> variantsWithAttributes,
+            Map<String, LocalVariantGraphResolveState> variantsByConfigurationName
         ) {
             this.variantsWithAttributes = variantsWithAttributes;
             this.variantsByConfigurationName = variantsByConfigurationName;
-            this.component = component;
         }
 
         @Override
-        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
+        public List<? extends LocalVariantGraphResolveState> getVariantsForAttributeMatching() {
             return variantsWithAttributes;
         }
 
         @Nullable
         @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler) {
-            VariantGraphResolveState variant = variantsByConfigurationName.get(name);
-            if (variant != null) {
-                return variant;
-            }
-
-            // There is no consumable variant with the given name.
-            // Perhaps there is a configuration with the same name, but it is not consumable.
-            // In that case, throw an error.
-            ConfigurationGraphResolveState conf = component.getConfiguration(name);
-            if (conf == null) {
-                return null;
-            }
-
-            // If the configuration exists, it must not be consumable, since variantsByConfigurationName contains
-            // all consumable configurations.
-            assert !conf.getMetadata().isCanBeConsumed() : "Expected configuration to be non-consumable";
-
-            throw failureHandler.nonConsumableConfigurationFailure(name, component.getId());
+        public LocalVariantGraphResolveState getVariantByConfigurationName(String name) {
+            return variantsByConfigurationName.get(name);
         }
 
         @Override
-        public List<VariantGraphResolveState> getAllSelectableVariants() {
-            // Find the names of all selectable configurations that are not in the variantsWithAttributes
+        public List<LocalVariantGraphResolveState> getAllSelectableVariants() {
+            // Find the names of all selectable variants that are not in the variantsWithAttributes
             Set<String> configurationNames = new HashSet<>(variantsByConfigurationName.keySet());
-            for (VariantGraphResolveState variant : variantsWithAttributes) {
-                configurationNames.remove(variant.getName());
+            for (LocalVariantGraphResolveState variant : variantsWithAttributes) {
+                if (variant.getMetadata().getConfigurationName() != null) {
+                    configurationNames.remove(variant.getMetadata().getConfigurationName());
+                }
             }
 
             // Join the list of variants with attributes with the list of variants by configuration name
-            List<VariantGraphResolveState> result = new ArrayList<>(variantsWithAttributes);
+            List<LocalVariantGraphResolveState> result = new ArrayList<>(variantsWithAttributes);
             for (String configurationName : configurationNames) {
                 result.add(variantsByConfigurationName.get(configurationName));
             }

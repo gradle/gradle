@@ -225,9 +225,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("""     Required by:
+        assertFullMessageCorrect("""Required by:
          project :
-      > A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.""")
+      > A dependency was declared on configuration 'absent' of 'project :' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()

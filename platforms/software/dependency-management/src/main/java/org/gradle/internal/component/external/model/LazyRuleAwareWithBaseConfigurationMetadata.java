@@ -151,11 +151,6 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public boolean isCanBeConsumed() {
-        return true;
-    }
-
-    @Override
     public boolean isExternalVariant() {
         return externalVariant;
     }

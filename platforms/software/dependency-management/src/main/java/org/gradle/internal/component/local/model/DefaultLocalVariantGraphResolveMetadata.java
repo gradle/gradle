@@ -22,11 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -35,44 +32,33 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Default implementation of {@link LocalConfigurationMetadata} used to represent a single Configuration.
- * <p>
- * TODO: This class should be split up into a separate Metadata and State type in order to track
- * artifact resolution state separately.
+ * Default implementation of {@link LocalVariantGraphResolveMetadata} used to represent a single local variant.
  */
-public final class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
+public final class DefaultLocalVariantGraphResolveMetadata implements LocalVariantGraphResolveMetadata, LocalVariantArtifactGraphResolveMetadata {
 
     private final String name;
     private final String description;
     private final ComponentIdentifier componentId;
     private final boolean transitive;
-    private final boolean visible;
-    private final ImmutableSet<String> hierarchy;
     private final ImmutableAttributes attributes;
-    private final boolean canBeConsumed;
     private final boolean deprecatedForConsumption;
-    private final boolean canBeResolved;
     private final ImmutableCapabilities capabilities;
-    private final CalculatedValue<ConfigurationDependencyMetadata> dependencies;
 
-    // TODO: Move all this lazy artifact stuff to a "State" type.
+    // TODO: All this lazy state should be moved to DefaultLocalVariantGraphResolveState
+    private final CalculatedValue<VariantDependencyMetadata> dependencies;
     private final Set<LocalVariantMetadata> variants;
     private final CalculatedValueContainerFactory factory;
     private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
 
-    public DefaultLocalConfigurationMetadata(
+    public DefaultLocalVariantGraphResolveMetadata(
         String name,
         String description,
         ComponentIdentifier componentId,
-        boolean visible,
         boolean transitive,
-        Set<String> hierarchy,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
-        boolean canBeConsumed,
         boolean deprecatedForConsumption,
-        boolean canBeResolved,
-        CalculatedValue<ConfigurationDependencyMetadata> dependencies,
+        CalculatedValue<VariantDependencyMetadata> dependencies,
         Set<LocalVariantMetadata> variants,
         CalculatedValueContainerFactory factory,
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts
@@ -80,14 +66,10 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         this.name = name;
         this.description = description;
         this.componentId = componentId;
-        this.visible = visible;
         this.transitive = transitive;
-        this.hierarchy = ImmutableSet.copyOf(hierarchy);
         this.attributes = attributes;
         this.capabilities = capabilities;
-        this.canBeConsumed = canBeConsumed;
         this.deprecatedForConsumption = deprecatedForConsumption;
-        this.canBeResolved = canBeResolved;
         this.dependencies = dependencies;
         this.variants = variants;
         this.factory = factory;
@@ -95,7 +77,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public LocalConfigurationMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer) {
+    public LocalVariantGraphResolveMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer) {
         ImmutableSet.Builder<LocalVariantMetadata> copiedVariants = ImmutableSet.builder();
         for (LocalVariantMetadata oldVariant : variants) {
             CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> newArtifacts =
@@ -118,21 +100,16 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
                     .collect(ImmutableList.toImmutableList())
             );
 
-        return new DefaultLocalConfigurationMetadata(
-            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities,
-            canBeConsumed, deprecatedForConsumption, canBeResolved,
+        return new DefaultLocalVariantGraphResolveMetadata(
+            name, description, componentId, transitive, attributes, capabilities,
+            deprecatedForConsumption,
             dependencies, copiedVariants.build(), factory, transformedArtifacts
         );
     }
 
     @Override
     public String toString() {
-        return asDescribable().getDisplayName();
-    }
-
-    @Override
-    public DisplayName asDescribable() {
-        return Describables.of(componentId, "configuration", name);
+        return Describables.of(componentId, "variant", name).getDisplayName();
     }
 
     @Override
@@ -141,18 +118,13 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public ImmutableSet<String> getHierarchy() {
-        return hierarchy;
+    public String getConfigurationName() {
+        return name;
     }
 
     @Override
     public boolean isTransitive() {
         return transitive;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return visible;
     }
 
     @Override
@@ -163,11 +135,6 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     @Override
     public Set<LocalVariantMetadata> getVariants() {
         return variants;
-    }
-
-    @Override
-    public boolean isCanBeConsumed() {
-        return canBeConsumed;
     }
 
     @Override
@@ -194,7 +161,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public LocalConfigurationMetadata prepareToResolveArtifacts() {
+    public LocalVariantArtifactGraphResolveMetadata prepareToResolveArtifacts() {
         artifacts.finalizeIfNotAlready();
         for (LocalVariantMetadata variant : variants) {
             variant.prepareToResolveArtifacts();
@@ -208,17 +175,6 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public ComponentArtifactMetadata artifact(IvyArtifactName ivyArtifactName) {
-        for (ComponentArtifactMetadata candidate : getArtifacts()) {
-            if (candidate.getName().equals(ivyArtifactName)) {
-                return candidate;
-            }
-        }
-
-        return new MissingLocalArtifactMetadata(componentId, ivyArtifactName);
-    }
-
-    @Override
     public ImmutableCapabilities getCapabilities() {
         return capabilities;
     }
@@ -229,15 +185,14 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     /**
-     * The aggregated dependencies, dependency constraints, and excludes for this
-     * configuration and all configurations in its hierarchy.
+     * The dependencies, dependency constraints, and excludes for this variant.
      */
-    public static class ConfigurationDependencyMetadata {
+    public static class VariantDependencyMetadata {
         public final List<LocalOriginDependencyMetadata> dependencies;
         public final Set<LocalFileDependencyMetadata> files;
         public final ImmutableList<ExcludeMetadata> excludes;
 
-        public ConfigurationDependencyMetadata(
+        public VariantDependencyMetadata(
             List<LocalOriginDependencyMetadata> dependencies,
             Set<LocalFileDependencyMetadata> files,
             List<ExcludeMetadata> excludes

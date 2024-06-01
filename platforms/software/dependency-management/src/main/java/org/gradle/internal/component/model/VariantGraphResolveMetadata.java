@@ -47,7 +47,7 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      *
      * <p>This concept should disappear.</p>
      */
-    Set<? extends Subvariant> getVariants();
+    Set<? extends VariantResolveMetadata> getVariants();
 
     List<? extends DependencyMetadata> getDependencies();
 
@@ -64,13 +64,5 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      */
     default boolean isDeprecated() {
         return false;
-    }
-
-    interface Subvariant {
-        String getName();
-
-        ImmutableAttributes getAttributes();
-
-        ImmutableCapabilities getCapabilities();
     }
 }

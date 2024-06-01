@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
-public interface LocalConfigurationMetadata extends ConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
-
+/**
+ * {@link VariantGraphResolveState} for variants of local components.
+ */
+public interface LocalVariantGraphResolveState extends VariantGraphResolveState {
     @Override
-    ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
-
+    LocalVariantGraphResolveMetadata getMetadata();
 }

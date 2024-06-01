@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
@@ -101,23 +100,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         return new ExternalGraphSelectionCandidates(this);
     }
 
-    @Override
-    public Set<String> getConfigurationNames() {
-        return getMetadata().getConfigurationNames();
-    }
-
-    @Nullable
-    @Override
-    public ConfigurationGraphResolveState getConfiguration(String configurationName) {
-        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
-        if (configuration == null) {
-            return null;
-        } else {
-            return resolveStateFor(configuration);
-        }
-    }
-
-    private DefaultConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
+    protected ConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
         return variants.computeIfAbsent(configuration, c -> newVariantState(configuration));
     }
 
@@ -257,13 +240,14 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
 
         @Nullable
         @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler) {
-            ConfigurationGraphResolveState conf = component.getConfiguration(name);
-            if (conf == null) {
+        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+            // TODO: Deprecate this method for non-ivy components.
+            ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) component.getMetadata().getConfiguration(name);
+            if (configuration == null) {
                 return null;
             }
-            assert conf.getMetadata().isCanBeConsumed() : "External components' configurations are always consumable";
-            return conf.asVariant();
+
+            return component.resolveStateFor(configuration).asVariant();
         }
     }
 }

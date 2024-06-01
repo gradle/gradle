@@ -648,7 +648,8 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Selected configuration 'default' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."""
+        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+  - No variants exist."""
     }
 
     def "mentions that there are no variants when there are none"() {
@@ -720,7 +721,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Selected configuration 'someConf' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project :b' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable."
 
     }
 
