@@ -795,13 +795,13 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
             def rtJar = new File(jvm.javaHome, "jre/lib/rt.jar")
             def rtJarPath = TextUtil.escapeString(rtJar.absolutePath)
             return """
-                options.bootstrapClasspath = files("${rtJarPath}")
+                options.bootstrapClasspath = files('${rtJarPath}')
             """
         } else {
             def javaHome = TextUtil.escapeString(jvm.javaHome.absolutePath)
             return """
                 options.compilerArgs += [
-                    "--system", "${javaHome}"
+                    '--system', '${javaHome}'
                 ]
             """
         }
