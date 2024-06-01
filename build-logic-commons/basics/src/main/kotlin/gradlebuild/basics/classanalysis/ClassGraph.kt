@@ -107,10 +107,13 @@ class ClassDetails(val outputClassName: String, val excluded: Boolean) {
     /**
      * Returns the method of this class with the same signature as the given method.
      */
-    fun method(methodDetails: MethodDetails): MethodDetails {
-        val signature = methodDetails.signature
-        return methods.getOrPut(signature) {
-            MethodDetails(this, signature)
+    fun overriddenMethod(methodDetails: MethodDetails): MethodDetails? {
+        return if (methodDetails.isConstructor) {
+            // Constructors do not override
+            null
+        } else {
+            val signature = methodDetails.signature
+            methods[signature]
         }
     }
 
@@ -126,6 +129,9 @@ class ClassDetails(val outputClassName: String, val excluded: Boolean) {
 
 class MethodDetails(val owner: ClassDetails, val signature: String) {
     val dependencies: MutableSet<MethodDetails> = linkedSetOf()
+
+    val isConstructor: Boolean
+        get() = signature.startsWith("<init>")
 
     override fun toString(): String {
         return "${owner.outputClassName}.$signature"

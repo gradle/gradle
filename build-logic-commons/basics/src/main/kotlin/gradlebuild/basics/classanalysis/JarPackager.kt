@@ -65,6 +65,7 @@ class JarPackager {
         for (classDetails in classGraph.entryPoints) {
             log.println("-> Entry point class: $classDetails")
         }
+        val seenClasses = mutableSetOf<ClassDetails>()
         val classesToVisit = mutableListOf<ClassDetails>()
         classesToVisit.addAll(classGraph.entryPoints)
 
@@ -96,24 +97,35 @@ class JarPackager {
 
                 for (subtype in owner.subtypes) {
                     // Potentially need to visit overridden methods from subtypes that are included
-                    val override = subtype.method(method)
-                    log.println("-> Pending method override $method -> $override")
-                    pendingMethodOverrides.add(override)
+                    val override = subtype.overriddenMethod(method)
+                    if (override != null) {
+                        log.println("-> Pending method override $method -> $override")
+                        pendingMethodOverrides.add(override)
+                    }
                 }
             }
 
             while (classesToVisit.isNotEmpty()) {
                 val classDetails = classesToVisit.removeFirst()
-                if (!includedClasses.add(classDetails)) {
+                if (!seenClasses.add(classDetails)) {
+                    continue
+                }
+                if (!classDetails.canBeIncluded) {
+                    // Don't visit classes that will not be included
                     continue
                 }
 
+                includedClasses.add(classDetails)
+
                 if (classDetails.supertypes.any { !it.canBeIncluded }) {
-                    for (method in classDetails.methods.values) {
-                        log.println("-> Class with excluded supertype $classDetails -> $method")
-                    }
                     // Don't know which inherited types will be used, so follow all methods
-                    methodsToVisit.addAll(classDetails.methods.values)
+                    for (method in classDetails.methods.values) {
+                        if (method.isConstructor) {
+                            continue
+                        }
+                        log.println("-> Class with excluded supertype $classDetails -> $method")
+                        methodsToVisit.add(method)
+                    }
                 }
 
                 for (dependency in classDetails.dependencies) {
