@@ -43,7 +43,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
                 id("java-library")
             }
             tasks.withType(JavaCompile) {
-                options.compilerArgs << '-Xlint:all' << '-Werror'
+                options.compilerArgs << '-Xlint:all,-options' << '-Werror'
             }
         """
         buildFile << compilerConfiguration()
