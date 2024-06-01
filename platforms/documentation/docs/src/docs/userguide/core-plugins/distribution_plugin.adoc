@@ -98,6 +98,29 @@ In the example above, the content of the `src/readme` directory will be included
 
 The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
 
+.Adding Files and Directories
+```groovy
+distributions {
+    main {
+        baseName= 'myArchive'
+        contents {
+            into 'bin/config' {
+                from 'config'
+            }
+            into 'lib/samples' {
+                from 'samples'
+            }
+        }
+    }
+}
+```
+
+In the example above, we define the contents using <<working_with_files.adoc#sec:copying_files, CopySpec>> where the `bin/config` directory is automatically created if not already existing, and the contents of `config` directory are copied into it. Similiarly for the `lib/samples` directory.
+
+However there is MUCH more you can do!  Gradle provides a robust set of APIs to simplify handling files, managing file dependencies, generating reports, etc. <<working_with_files.adoc#sec:copying_files, CopySpec>> is just one of the actions in one of the APIs, but there are many more!
+
+File operations are covered in a separate userguide called <<working_with_files.adoc,Working With Files>>.
+
 [[sec:publishing_distributions]]
 == Publishing
 
