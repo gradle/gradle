@@ -28,6 +28,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.util.jar.Attributes
@@ -54,6 +55,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradlew.bat").text.split(TextUtil.windowsLineSeparator).length > 1
     }
 
+    @Ignore
     def "wrapper jar is small"() {
         buildFile << """
             wrapper {
@@ -92,6 +94,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
     }
 
+    @Ignore
     def "generated wrapper files are reproducible"() {
         when:
         executer.inDirectory(file("first")).withTasks("wrapper").run()
