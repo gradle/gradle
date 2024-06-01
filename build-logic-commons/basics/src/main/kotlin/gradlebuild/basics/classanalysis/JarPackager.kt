@@ -19,6 +19,7 @@ package gradlebuild.basics.classanalysis
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.Remapper
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -89,11 +90,18 @@ class JarPackager {
                 classesToVisit.add(owner)
 
                 for (dependency in method.dependencies) {
+                    log.println("-> Method dependency $method -> $dependency")
+                }
+
+                // Visit all types that this method references
+                classesToVisit.addAll(method.dependencies)
+
+                for (dependency in method.calledMethods) {
                     log.println("-> Method call $method -> $dependency")
                 }
 
                 // Visit all methods that this method calls
-                methodsToVisit.addAll(method.dependencies)
+                methodsToVisit.addAll(method.calledMethods)
 
                 for (subtype in owner.subtypes) {
                     // Potentially need to visit overridden methods from subtypes that are included
@@ -183,7 +191,7 @@ class JarPackager {
     }
 
     private fun copyToJar(jarFile: File, outputStream: JarOutputStream, classGraph: ClassGraph, includedClasses: Set<ClassDetails>, excludeResources: NameMatcher, seen: MutableSet<String>) {
-        val remapper = DefaultRemapper(classGraph)
+        val remapper = RenamingRemapper(classGraph)
         ZipInputStream(BufferedInputStream(FileInputStream(jarFile))).use { inputStream ->
             while (true) {
                 val entry = inputStream.nextEntry ?: break
@@ -210,6 +218,18 @@ class JarPackager {
                     outputStream.addJarEntry(entry.name, inputStream)
                 }
             }
+        }
+    }
+}
+
+internal
+class RenamingRemapper(val classes: ClassGraph) : Remapper() {
+    override fun map(name: String): String {
+        val dependencyDetails = classes[name]
+        return if (dependencyDetails.canBeIncluded) {
+            dependencyDetails.outputClassName
+        } else {
+            name
         }
     }
 }

@@ -58,7 +58,7 @@ class JarAnalyzer(
         println("-> entry points: ${classGraph.entryPoints.size}")
         println("-> classes: ${classGraph.classes.size}")
         println("-> found methods: ${classGraph.classes.values.sumOf { it.methods.size }}")
-        println("-> found method dependencies: ${classGraph.classes.values.sumOf { classDetails -> classDetails.methods.values.sumOf { it.dependencies.size } }}")
+        println("-> found method dependencies: ${classGraph.classes.values.sumOf { classDetails -> classDetails.methods.values.sumOf { it.calledMethods.size } }}")
         println("-> found subtypes: ${classGraph.classes.values.sumOf { it.subtypes.size }}")
 
         return classGraph
@@ -91,8 +91,7 @@ class JarAnalyzer(
 
         var currentMethod: MethodDetails? = null
         val classWriter = ClassWriter(0)
-        val nonCollecting = DefaultRemapper(classes)
-        val collecting = DependencyCollectingRemapper(thisClass, classes)
+        val collecting = ClassDependencyCollectingRemapper(thisClass, classes)
         reader.accept(
             object : ClassRemapper(classWriter, collecting) {
                 override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
@@ -115,10 +114,10 @@ class JarAnalyzer(
                 override fun createMethodRemapper(methodVisitor: MethodVisitor): MethodVisitor {
                     val methodDetails = currentMethod!!
                     currentMethod = null
-                    return object : MethodRemapper(methodVisitor, collecting) {
+                    return object : MethodRemapper(methodVisitor, MethodDependencyCollectingRemapper(methodDetails, classes)) {
                         override fun visitMethodInsn(opcodeAndSource: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
-                            methodDetails.dependencies.add(classes[owner].method(name, descriptor))
-                            MethodRemapper(methodVisitor, nonCollecting).visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
+                            methodDetails.calledMethods.add(classes[owner].method(name, descriptor))
+                            MethodRemapper(methodVisitor, NoOpRemapper).visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
                         }
                     }
                 }
@@ -129,21 +128,31 @@ class JarAnalyzer(
 }
 
 private
-class DependencyCollectingRemapper(val thisClass: ClassDetails, val classes: ClassGraph) : Remapper() {
+class ClassDependencyCollectingRemapper(val thisClass: ClassDetails, val classes: ClassGraph) : Remapper() {
     override fun map(name: String): String {
-        val dependencyDetails = classes[name]
-        if (dependencyDetails !== thisClass) {
-            thisClass.dependencies.add(dependencyDetails)
+        val classDetails = classes[name]
+        if (classDetails !== thisClass) {
+            thisClass.dependencies.add(classDetails)
         }
-        return dependencyDetails.outputClassName
+        return name
     }
 }
 
-internal
-class DefaultRemapper(val classes: ClassGraph) : Remapper() {
+private
+class MethodDependencyCollectingRemapper(val method: MethodDetails, val classes: ClassGraph) : Remapper() {
     override fun map(name: String): String {
-        val dependencyDetails = classes[name]
-        return dependencyDetails.outputClassName
+        val classDetails = classes[name]
+        if (classDetails !== method.owner) {
+            method.dependencies.add(classDetails)
+        }
+        return name
+    }
+}
+
+private
+object NoOpRemapper : Remapper() {
+    override fun map(name: String): String {
+        return name
     }
 }
 

@@ -128,7 +128,15 @@ class ClassDetails(val outputClassName: String, val excluded: Boolean) {
 
 
 class MethodDetails(val owner: ClassDetails, val signature: String) {
-    val dependencies: MutableSet<MethodDetails> = linkedSetOf()
+    /**
+     * The types that this method references.
+     */
+    val dependencies: MutableSet<ClassDetails> = linkedSetOf()
+
+    /**
+     * The methods that this method calls
+     */
+    val calledMethods: MutableSet<MethodDetails> = linkedSetOf()
 
     val isConstructor: Boolean
         get() = signature.startsWith("<init>")
