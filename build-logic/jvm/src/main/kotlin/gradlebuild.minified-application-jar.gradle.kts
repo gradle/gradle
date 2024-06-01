@@ -50,7 +50,7 @@ abstract class DefaultMinifiedJar : MinifiedApplicationJar {
     }
 
     fun jarName(projectName: String, version: GradleVersion): String {
-        return jarName?.invoke(version) ?: "gradle-${projectName}-${version.version}.jar"
+        return jarName?.invoke(version) ?: "gradle-$projectName-${version.version}.jar"
     }
 }
 

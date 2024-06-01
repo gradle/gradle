@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.MethodRemapper
@@ -89,7 +90,6 @@ class JarAnalyzer(
             return
         }
 
-        var currentMethod: MethodDetails? = null
         val classWriter = ClassWriter(0)
         val collecting = ClassDependencyCollectingRemapper(thisClass, classes)
         reader.accept(
@@ -107,17 +107,37 @@ class JarAnalyzer(
                 }
 
                 override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<String>?): MethodVisitor {
-                    currentMethod = thisClass.method(name, descriptor)
+                    val methodDetails = thisClass.method(name, descriptor)
+                    log.println("-> Visit method $methodDetails")
+                    if (exceptions != null) {
+                        // Exceptions declared in method signature must be available when class is loaded
+                        for (exception in exceptions) {
+                            log.println("-> Add exception: $exception")
+                            collecting.map(exception)
+                        }
+                    }
+                    collecting.method = methodDetails
                     return super.visitMethod(access, name, descriptor, signature, exceptions)
                 }
 
                 override fun createMethodRemapper(methodVisitor: MethodVisitor): MethodVisitor {
-                    val methodDetails = currentMethod!!
-                    currentMethod = null
-                    return object : MethodRemapper(methodVisitor, MethodDependencyCollectingRemapper(methodDetails, classes)) {
+                    return object : MethodRemapper(methodVisitor, collecting) {
+                        override fun visitTryCatchBlock(start: Label, end: Label, handler: Label, type: String?) {
+                            if (type != null) {
+                                // Exceptions in catch block must be available when class is loaded
+                                collecting.thisClass.dependencies.add(classes[type])
+                            }
+                            super.visitTryCatchBlock(start, end, handler, type)
+                        }
+
                         override fun visitMethodInsn(opcodeAndSource: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
-                            methodDetails.calledMethods.add(classes[owner].method(name, descriptor))
-                            MethodRemapper(methodVisitor, NoOpRemapper).visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
+                            collecting.method!!.calledMethods.add(classes[owner].method(name, descriptor))
+                            methodVisitor.visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface)
+                        }
+
+                        override fun visitEnd() {
+                            log.println("-> Method dependencies: ${collecting.method!!.dependencies}")
+                            collecting.method = null
                         }
                     }
                 }
@@ -129,29 +149,18 @@ class JarAnalyzer(
 
 private
 class ClassDependencyCollectingRemapper(val thisClass: ClassDetails, val classes: ClassGraph) : Remapper() {
+    var method: MethodDetails? = null
+
     override fun map(name: String): String {
         val classDetails = classes[name]
         if (classDetails !== thisClass) {
-            thisClass.dependencies.add(classDetails)
+            val method = this.method
+            if (method != null) {
+                method.dependencies.add(classDetails)
+            } else {
+                thisClass.dependencies.add(classDetails)
+            }
         }
-        return name
-    }
-}
-
-private
-class MethodDependencyCollectingRemapper(val method: MethodDetails, val classes: ClassGraph) : Remapper() {
-    override fun map(name: String): String {
-        val classDetails = classes[name]
-        if (classDetails !== method.owner) {
-            method.dependencies.add(classDetails)
-        }
-        return name
-    }
-}
-
-private
-object NoOpRemapper : Remapper() {
-    override fun map(name: String): String {
         return name
     }
 }
