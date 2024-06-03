@@ -46,9 +46,11 @@ class DocumentTextMutationPlannerTest {
         l(6)
     """.trimIndent()
 
+    val simpleDocument = convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(simpleCode))
+
     @Test
     fun `can plan removal of multiple nodes`() {
-        val document = convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(simpleCode))
+        val document = simpleDocument
 
         val plan = planner.planDocumentMutations(
             document, listOf(
@@ -74,14 +76,37 @@ class DocumentTextMutationPlannerTest {
     }
 
     @Test
-    fun `can plan renaming of multiple nodes of various kinds`() {
-        val document = convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(simpleCode))
-
+    fun `can plan renaming an element and removing a node inside its content at the same time`() {
+        val topLevelElement = simpleDocument.content.toList()[1] as ElementNode
         val plan = planner.planDocumentMutations(
-            document, listOf(
-                ElementNodeCallMutation(document.content.toList()[0] as ElementNode, CallMutation.RenameCall("f0")),
-                RenamePropertyNode((document.content.toList()[1] as ElementNode).content.toList()[2] as PropertyNode, "k0"),
-                ValueNodeCallMutation((((document.content.toList()[1] as ElementNode).content.toList()[1] as ElementNode).elementValues.single()) as ValueFactoryNode, CallMutation.RenameCall("jj0"))
+            simpleDocument, listOf(
+                ElementNodeCallMutation(topLevelElement, CallMutation.RenameCall("g0")),
+                RemoveNode(topLevelElement.content.toList()[1])
+            )
+        )
+
+        assertEquals(
+            """
+            f(1)
+
+            g0(2) {
+                h(3)
+                k = 5
+            }
+
+            l(6)
+
+            """.trimIndent(), plan.newText
+        )
+    }
+
+    @Test
+    fun `can plan renaming of multiple nodes of various kinds`() {
+        val plan = planner.planDocumentMutations(
+            simpleDocument, listOf(
+                ElementNodeCallMutation(simpleDocument.content.toList()[0] as ElementNode, CallMutation.RenameCall("f0")),
+                RenamePropertyNode((simpleDocument.content.toList()[1] as ElementNode).content.toList()[2] as PropertyNode, "k0"),
+                ValueNodeCallMutation((((simpleDocument.content.toList()[1] as ElementNode).content.toList()[1] as ElementNode).elementValues.single()) as ValueFactoryNode, CallMutation.RenameCall("jj0"))
             )
         )
 
@@ -103,9 +128,7 @@ class DocumentTextMutationPlannerTest {
 
     @Test
     fun `removal and rename of an element in an already removed block is reported`() {
-        val document = convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(simpleCode))
-
-        val blockNode = document.content.toList()[1] as ElementNode
+        val blockNode = simpleDocument.content.toList()[1] as ElementNode
         val propertyNode = blockNode.content.toList()[2] as PropertyNode
 
         val mutations = listOf(
@@ -113,7 +136,7 @@ class DocumentTextMutationPlannerTest {
             RemoveNode(propertyNode),
             RenamePropertyNode(propertyNode, "k0")
         )
-        val plan = planner.planDocumentMutations(document, mutations)
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
 
         assertEquals(
             """
@@ -131,15 +154,13 @@ class DocumentTextMutationPlannerTest {
 
     @Test
     fun `rename superseded by another rename is reported`() {
-        val document = convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(simpleCode))
-
-        val propertyNode = (document.content.toList()[1] as ElementNode).content.toList()[2] as PropertyNode
+        val propertyNode = (simpleDocument.content.toList()[1] as ElementNode).content.toList()[2] as PropertyNode
 
         val mutations = listOf(
             RenamePropertyNode(propertyNode, "k0"),
             RenamePropertyNode(propertyNode, "k1")
         )
-        val plan = planner.planDocumentMutations(document, mutations)
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
 
         assertEquals(
             """
