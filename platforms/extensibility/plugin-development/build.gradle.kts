@@ -24,13 +24,13 @@ dependencies {
     api(project(":resources"))
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
+    api(project(":build-operations"))
+    api(projects.serviceProvider)
 
     api(libs.groovy)
-    api(libs.gson)
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.serviceProvider)
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":hashing"))

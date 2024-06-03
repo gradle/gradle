@@ -850,9 +850,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             }
             println "    ]"
         }
-        if (problem.additionalData?.size() == 1) {
+        if (problem.additionalData.asMap?.size() == 1) {
             println "    additionalData.asMap == [ '${problem.additionalData.asMap.keySet().iterator().next()}' : '${problem.additionalData.asMap.values().iterator().next()}' ]"
-        } else if (problem.additionalData?.size() > 1) {
+        } else if (problem.additionalData.asMap?.size() > 1) {
             println "    additionalData.asMap == ["
             problem.additionalData.asMap.each { key, value ->
                 println "        '$key' : '$value',"

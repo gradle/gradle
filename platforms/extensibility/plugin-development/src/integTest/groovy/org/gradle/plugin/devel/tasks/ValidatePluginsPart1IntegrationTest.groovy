@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ValitdatePluginsTrait {
+class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ValidatePluginsTrait {
 
     def "supports recursive types"() {
         groovyTaskSource << """

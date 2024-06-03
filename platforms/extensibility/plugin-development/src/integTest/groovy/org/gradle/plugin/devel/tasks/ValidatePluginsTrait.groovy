@@ -16,14 +16,13 @@
 
 package org.gradle.plugin.devel.tasks
 
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 
-trait ValitdatePluginsTrait implements CommonPluginValidationTrait {
+trait ValidatePluginsTrait implements CommonPluginValidationTrait {
 
     def setup() {
         enableProblemsApiCheck()
@@ -55,16 +54,7 @@ trait ValitdatePluginsTrait implements CommonPluginValidationTrait {
 
     @Override
     void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
-        fails "validatePlugins"
-        def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.json"))
-        report.verify(messages.collectEntries {
-            def fullMessage = it.message
-            if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
-            }
-            [(fullMessage): it.severity]
-        })
-
+        fails("validatePlugins")
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
             String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
