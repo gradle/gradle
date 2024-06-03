@@ -40,6 +40,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -89,6 +90,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * @return The publication to be published
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public IvyPublication getPublication() {
         return publication.get();
     }
@@ -128,6 +130,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * @return The repository to publish to
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public IvyArtifactRepository getRepository() {
         return repository.get();
     }

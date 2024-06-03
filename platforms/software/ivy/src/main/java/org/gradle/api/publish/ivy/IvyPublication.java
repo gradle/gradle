@@ -21,6 +21,8 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * An {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format, to an Ivy repository.
@@ -109,6 +111,7 @@ public interface IvyPublication extends Publication {
      *
      * @return The module descriptor that will be published.
      */
+    @ToBeKeptEagerProperty(because = "Read-only nested like property")
     IvyModuleDescriptorSpec getDescriptor();
 
     /**
@@ -183,6 +186,7 @@ public interface IvyPublication extends Publication {
      * Returns the complete set of configurations for this publication.
      * @return the configurations
      */
+    @ToBeKeptEagerProperty(because = "Container property")
     IvyConfigurationContainer getConfigurations();
 
     /**
@@ -305,6 +309,7 @@ public interface IvyPublication extends Publication {
      *
      * @return the artifacts.
      */
+    @ToBeReplacedByLazyProperty
     IvyArtifactSet getArtifacts();
 
     /**
@@ -317,6 +322,7 @@ public interface IvyPublication extends Publication {
     /**
      * Returns the organisation for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getOrganisation();
 
     /**
@@ -327,6 +333,7 @@ public interface IvyPublication extends Publication {
     /**
      * Returns the module for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getModule();
 
     /**
@@ -337,6 +344,7 @@ public interface IvyPublication extends Publication {
     /**
      * Returns the revision for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getRevision();
 
     /**

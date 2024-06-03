@@ -21,6 +21,8 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
@@ -110,6 +112,7 @@ public interface MavenPublication extends Publication {
      *
      * @return The POM that will be published.
      */
+    @ToBeKeptEagerProperty(because = "Read-only nested like property")
     MavenPom getPom();
 
     /**
@@ -263,11 +266,13 @@ public interface MavenPublication extends Publication {
      * Returns the complete set of artifacts for this publication.
      * @return the artifacts.
      */
+    @ToBeKeptEagerProperty(because = "Read-only nested like property")
     MavenArtifactSet getArtifacts();
 
     /**
      * Returns the groupId for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getGroupId();
 
     /**
@@ -278,6 +283,7 @@ public interface MavenPublication extends Publication {
     /**
      * Returns the artifactId for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getArtifactId();
 
     /**
@@ -288,6 +294,7 @@ public interface MavenPublication extends Publication {
     /**
      * Returns the version for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getVersion();
 
     /**

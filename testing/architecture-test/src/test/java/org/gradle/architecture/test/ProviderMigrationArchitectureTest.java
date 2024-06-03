@@ -62,7 +62,12 @@ public class ProviderMigrationArchitectureTest {
         @Override
         public boolean test(JavaMethod input) {
             PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
-            return accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER;
+            if (accessorType == PropertyAccessorType.IS_GETTER) {
+                // PropertyAccessorType.IS_GETTER doesn't handle names that start with is
+                // but are not getters, e.g. issueManagement is detected as IS_GETTER
+                return !Character.isLowerCase(input.getName().charAt(2));
+            }
+            return accessorType == PropertyAccessorType.GET_GETTER;
         }
     };
 
