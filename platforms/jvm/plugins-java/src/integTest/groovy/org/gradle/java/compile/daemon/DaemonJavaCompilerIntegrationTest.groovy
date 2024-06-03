@@ -16,13 +16,14 @@
 package org.gradle.java.compile.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.java.compile.JavaCompilerIntegrationSpec
+import org.gradle.java.compile.AbstractJavaCompilerIntegrationSpec
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
+class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {
@@ -97,6 +98,30 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
         expect:
         succeeds "compileJava"
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "computes target jvm version when using toolchain"() {
+        given:
+        def jdk = AvailableJavaHomes.differentVersion
+        def javaVersion = jdk.javaVersion.getMajorVersion()
+
+        and:
+        goodCode()
+        buildFile << """
+            java.toolchain {
+                languageVersion = JavaLanguageVersion.of(${javaVersion})
+            }
+
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+        """
+
+        expect:
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
+        succeeds("compileJava")
     }
 
 }

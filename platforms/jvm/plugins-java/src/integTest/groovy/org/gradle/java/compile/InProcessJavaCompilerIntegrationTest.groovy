@@ -15,7 +15,7 @@
  */
 package org.gradle.java.compile
 
-class InProcessJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
+class InProcessJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {
