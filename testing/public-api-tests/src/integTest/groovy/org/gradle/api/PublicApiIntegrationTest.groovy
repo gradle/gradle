@@ -19,26 +19,11 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class PublicApiIntegrationTest extends AbstractIntegrationSpec {
-    void 'can use public API'() {
-        def apiJarRepoLocation = System.getProperty('integTest.apiJarRepoLocation')
-        def apiJarVersion = System.getProperty("integTest.distZipVersion")
+    def apiJarRepoLocation = System.getProperty('integTest.apiJarRepoLocation')
+    def apiJarVersion = System.getProperty("integTest.distZipVersion")
 
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            repositories {
-                maven {
-                    url = uri("$apiJarRepoLocation")
-                }
-                mavenCentral()
-            }
-
-            dependencies {
-                implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
-            }
-        """
+    def "can compile Java code against public API"() {
+        buildFile << configureApiWithPlugin("java-library")
 
         file("src/main/java/org/example/PublishedApiTestPlugin.java") << """
             package org.example;
@@ -68,5 +53,58 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":compileJava")
+    }
+
+    def "can compile Groovy code against public API"() {
+        buildFile << configureApiWithPlugin("groovy")
+
+        file("src/main/groovy/org/example/PublishedApiTestPlugin.groovy") << """
+            package org.example
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class PublishedApiTestPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("myTask", CustomTask)
+                }
+            }
+        """
+        file("src/main/groovy/org/example/CustomTask.groovy") << """
+            package org.example
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+
+            class CustomTask extends DefaultTask {
+                @TaskAction
+                void customAction() {
+                    println("Hello from CustomTask")
+                }
+            }
+        """
+
+        expect:
+        succeeds(":compileGroovy")
+    }
+
+    private configureApiWithPlugin(String plugin) {
+        """
+            plugins {
+                id("$plugin")
+            }
+
+            repositories {
+                maven {
+                    url = uri("$apiJarRepoLocation")
+                }
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
+            }
+        """
+
     }
 }
