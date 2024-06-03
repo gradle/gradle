@@ -17,6 +17,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":resources-http"))
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":core"))
     implementation(project(":logging"))
     implementation(project(":resources"))

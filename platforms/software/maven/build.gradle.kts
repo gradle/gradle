@@ -38,6 +38,7 @@ dependencies {
         because("We use the metadata model classes to create repository metadata files")
     }
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":functional"))
     implementation(project(":hashing"))
     implementation(project(":logging-api"))

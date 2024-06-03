@@ -27,6 +27,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":functional"))

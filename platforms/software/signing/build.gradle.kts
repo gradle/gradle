@@ -17,6 +17,7 @@ dependencies {
     api(libs.groovy)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":model-core"))
     implementation(project(":functional"))
     implementation(project(":platform-base"))

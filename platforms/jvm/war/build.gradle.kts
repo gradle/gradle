@@ -30,6 +30,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.javaLanguageExtensions)
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))

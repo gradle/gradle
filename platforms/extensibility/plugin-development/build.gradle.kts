@@ -30,6 +30,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.serviceProvider)
     implementation(project(":dependency-management"))
     implementation(project(":execution"))

@@ -23,6 +23,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":logging-api"))
     implementation(project(":model-core"))
     implementation(project(":platform-base"))

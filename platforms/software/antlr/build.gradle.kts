@@ -20,6 +20,7 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":base-services"))
     implementation(project(":platform-jvm"))
     implementation(project(":plugins-java-base"))
