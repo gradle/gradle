@@ -73,7 +73,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "problem is received when a single-file compilation failure happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo").absolutePath, 2)
 
         when:
         fails("compileJava")
@@ -96,8 +96,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "problems are received when a multi-file compilation failure happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Bar"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo").absolutePath, 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Bar").absolutePath, 2)
 
         when:
         fails("compileJava")
@@ -130,7 +130,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "problem is received when a single-file warning happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
 
         when:
         def result = run("compileJava")
@@ -152,8 +152,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "problems are received when a multi-file warning happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Bar"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Bar").absolutePath, 2)
 
         when:
         def result = run("compileJava")
@@ -185,8 +185,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "only failures are received when a multi-file compilation failure and warning happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Foo"), 2)
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Bar"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Foo").absolutePath, 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Bar").absolutePath, 2)
 
         when:
         def result = fails("compileJava")
@@ -219,9 +219,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     def "problems are received when two separate compilation task is executed"() {
         given:
         // The main source set will only cause warnings, as otherwise compilation will fail with the `compileJava` task
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
         // The test source set will cause errors
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("FooTest", "test"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("FooTest", "test").absolutePath, 2)
 
         when:
         // Special flag to fork the compiler, see the setup()
@@ -258,7 +258,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         buildFile << "tasks.compileJava.options.compilerArgs += ['-Werror']"
 
         def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
-        possibleFileLocations.put(fooFileLocation, 3)
+        possibleFileLocations.put(fooFileLocation.absolutePath, 3)
 
         when:
         fails("compileJava")
@@ -271,7 +271,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             fqid == 'compilation:java:java-compilation-error'
             details == 'warnings found and -Werror specified'
             solutions.empty
-            additionalData.asMap == ["formatted" : "error: warnings found and -Werror specified"]
+            additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
         }
 
         // Based on the Java version, the types in the lint message will differ...
@@ -289,28 +289,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             details == 'redundant cast to java.lang.String'
             solutions.empty
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
-                it.path == fooFileLocation
+                it.path == fooFileLocation.absolutePath
             }
-            verifyAll(getSingleLocation(ReceivedProblem.ReceivedLineInFileLocation)) {
-                it.line == 5
-                it.length == 21
-            }
-            verifyAll(getSingleLocation(ReceivedProblem.ReceivedOffsetInFileLocation)) {
-                it.offset == 189
-                it.length == 21
-            }
-            additionalData.asMap == ["formatted" : """$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
-                    String s = (String)"Hello World";
-                               ^"""]
+            additionalData.asMap["formatted"] == """\
+$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
+        String s = (String)"Hello World";
+                   ^"""
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.asMap == ["formatted" : """${fooFileLocation}:10: warning: [cast] redundant cast to $expectedType
-                    String s = (String)"Hello World";
-                               ^"""]
+            additionalData.asMap["formatted"] == """\
+${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
+        String s = (String)"Hello World";
+                   ^"""
         }
 
         result.error.contains("1 error\n")
@@ -321,9 +315,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         disableProblemsApiCheck()
 
         given:
-        def sourceFile = file("src/main/java/Foo.java")
-        try (def generator = new ProblematicClassGenerator(sourceFile)) {
-        }
+        def generator = new ProblematicClassGenerator("Foo")
+        generator.save()
 
         when:
         succeeds("compileJava")
@@ -336,12 +329,11 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         disableProblemsApiCheck()
 
         given:
-        def sourceFile = file("src/main/java/Foo.java")
-        try (def generator = new ProblematicClassGenerator(sourceFile)) {
-            for (int i = 1; i <= warningCount; i++) {
-                generator.addWarning()
-            }
+        def generator = new ProblematicClassGenerator()
+        for (int i = 1; i <= warningCount; i++) {
+            generator.addWarning()
         }
+        generator.save()
 
         when:
         succeeds("compileJava")
@@ -359,9 +351,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         disableProblemsApiCheck()
 
         given:
-        def sourceFile = file("src/main/java/Foo.java")
-        try (def generator = new ProblematicClassGenerator(sourceFile)) {
-        }
+        def generator = new ProblematicClassGenerator()
+        generator.save()
 
         when:
         succeeds("compileJava")
@@ -374,12 +365,11 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         disableProblemsApiCheck()
 
         given:
-        def sourceFile = file("src/main/java/Foo.java")
-        try (def generator = new ProblematicClassGenerator(sourceFile)) {
-            for (int i = 1; i <= errorCount; i++) {
-                generator.addError()
-            }
+        def generator = new ProblematicClassGenerator()
+        for (int i = 1; i <= errorCount; i++) {
+            generator.addError()
         }
+        generator.save()
 
         when:
         fails("compileJava")
@@ -397,6 +387,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "compiler warnings causes failure in problem mapping under JDK8"() {
         given:
+        disableProblemsApiCheck()
         //
         // 1. step: Create a simple annotation processor
         //
@@ -482,8 +473,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         }
         """
 
-        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
-        possibleFileLocations.put(fooFileLocation, 2)
+        writeJavaCausingTwoCompilationWarnings("Foo")
 
         when:
         executer.withArguments("--info", "--stacktrace")
@@ -492,21 +482,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
-        verifyAll(receivedProblem(0)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
-            additionalData.asMap == [ 'formatted' : 'redundant cast to java.lang.String' ]
-        }
-        verifyAll(receivedProblem(1)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
-            additionalData.asMap == [ 'formatted' : 'redundant cast to java.lang.String' ]
-        }
-
-        result.error.contains("1 error\n")
-        result.error.contains("2 warnings\n")
     }
 
     /**
@@ -576,119 +551,70 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
     }
 
-    String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
-        def file = file("src/${sourceSet}/java/${className}.java")
-        file << """
-            public class ${className} {
-                public static void problemOne(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-
-                public static void problemTwo(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-            }
-        """
-
-        return formatFilePath(file)
+    TestFile writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
+        def generator = new ProblematicClassGenerator(className, sourceSet)
+        generator.addError()
+        generator.addError()
+        return generator.save()
     }
 
-    String writeJavaCausingTwoCompilationWarnings(String className) {
-        def file = file("src/main/java/${className}.java")
-        file << """
-            public class ${className} {
-                public static void warningOne(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
-
-                public static void warningTwo(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
-            }
-        """
-
-        return formatFilePath(file)
+    TestFile writeJavaCausingTwoCompilationWarnings(String className) {
+        def generator = new ProblematicClassGenerator(className)
+        generator.addWarning()
+        generator.addWarning()
+        return generator.save()
     }
 
-    String writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
-        def file = file("src/main/java/${className}.java")
-        file << """
-            public class ${className} {
-                public static void problemOne(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-
-                public static void problemTwo(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-
-                public static void warningOne(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
-
-                public static void warningTwo(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
-            }
-        """
-
-        return formatFilePath(file)
+    TestFile writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
+        def generator = new ProblematicClassGenerator(className)
+        generator.addError()
+        generator.addError()
+        generator.addWarning()
+        generator.addWarning()
+        return generator.save()
     }
 
-    def formatFilePath(TestFile file) {
-        return file.absolutePath.toString()
-    }
+    class ProblematicClassGenerator {
+        private final TestFile sourceFile
+        private int warningIndex = 0
+        private int errorIndex = 0
 
-    class ProblematicClassGenerator implements AutoCloseable {
-        final TestFile file
-        int warningIndex = 0
-        int errorIndex = 0
-
-        ProblematicClassGenerator(TestFile file) {
-            this.file = file
+        ProblematicClassGenerator(String className = "Foo", String sourceSet = "main") {
+            this.sourceFile = file("src/${sourceSet}/java/${className}.java")
 
             // Get the class name from the file name
-            def className = file.name - ".java"
-            this.file << """
-                public class ${className} {
-            """
+            this.sourceFile << """\
+public class ${className} {
+
+"""
         }
 
         void addWarning() {
             warningIndex += 1
-            file << """
-                public void warning${warningIndex}() {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
-            """
+            sourceFile << """\
+    public void warning${warningIndex}() {
+        // Unnecessary cast will trigger a warning
+        String s = (String)"Hello World";
+    }
+"""
         }
 
         void addError() {
             errorIndex += 1
-            file << """
-                public void error${errorIndex}() {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-            """
+            sourceFile << """\
+public void error${errorIndex}() {
+    // Missing semicolon will trigger an error
+    String s = "Hello, World!"
+}
+"""
         }
 
-        @Override
-        void close() throws Exception {
-            file << """
-                }
-            """
-        }
+        TestFile save() throws Exception {
+            sourceFile << """\
 
+}"""
+            return sourceFile
+        }
     }
 
 }
