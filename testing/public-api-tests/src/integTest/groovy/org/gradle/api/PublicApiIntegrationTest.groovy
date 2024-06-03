@@ -66,7 +66,9 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
 
             class PublishedApiTestPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    project.tasks.register("myTask", CustomTask)
+                    project.tasks.register("myTask", CustomTask) {
+                        mapValues = ["alma": 1, "bela": 2]
+                    }
                 }
             }
         """
@@ -74,12 +76,20 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
             package org.example
 
             import org.gradle.api.DefaultTask
+            import org.gradle.api.provider.MapProperty
+            import org.gradle.api.tasks.Input
             import org.gradle.api.tasks.TaskAction
 
-            class CustomTask extends DefaultTask {
+            @groovy.transform.CompileStatic
+            abstract class CustomTask extends DefaultTask {
+                // This is to test org.gradle.api.internal.provider.MapPropertyExtensions
+                @Input
+                abstract MapProperty<String, Integer> getMapValues()
+
                 @TaskAction
                 void customAction() {
                     println("Hello from CustomTask")
+                    println("- mapValues['alma'] = \${mapValues['alma']}")
                 }
             }
         """
