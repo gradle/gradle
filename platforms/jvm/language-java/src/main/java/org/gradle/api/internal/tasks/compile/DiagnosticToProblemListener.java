@@ -115,7 +115,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
      * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
      */
     void printDiagnosticCounts() {
-        Log logger = Log.instance(context);
+        Log logger = Log.instance(new Context());
         printDiagnosticCount(logger, "error", errorCount);
         printDiagnosticCount(logger, "warn", warningCount);
     }
