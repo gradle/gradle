@@ -58,3 +58,5 @@ dependencies {
         because("Uses application plugin.")
     }
 }
+
+integTest.usesJavadocCodeSnippets = true
