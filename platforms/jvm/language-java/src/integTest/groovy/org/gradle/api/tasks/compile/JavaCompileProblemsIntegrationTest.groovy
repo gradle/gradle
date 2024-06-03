@@ -306,6 +306,82 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         result.error.contains("2 warnings\n")
     }
 
+    def "warning counts are not reported when there are no warnings"() {
+        disableProblemsApiCheck()
+
+        given:
+        def sourceFile = file("src/main/java/Foo.java")
+        try (def generator = new ProblematicClassGenerator(sourceFile)) {
+        }
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        !result.error.contains("0 warnings")
+    }
+
+    def "warning counts are reported correctly"(int warningCount, String warningMessage) {
+        disableProblemsApiCheck()
+
+        given:
+        def sourceFile = file("src/main/java/Foo.java")
+        try (def generator = new ProblematicClassGenerator(sourceFile)) {
+            for (int i = 1; i <= warningCount; i++) {
+                generator.addWarning()
+            }
+        }
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        result.error.contains(warningMessage)
+
+        where:
+        warningCount | warningMessage
+        1            | "1 warning"
+        2            | "2 warnings"
+    }
+
+    def "error counts are not reported when there are no errors"() {
+        disableProblemsApiCheck()
+
+        given:
+        def sourceFile = file("src/main/java/Foo.java")
+        try (def generator = new ProblematicClassGenerator(sourceFile)) {
+        }
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        !result.error.contains("0 errors")
+    }
+
+    def "error counts are reported correctly"(int errorCount, String errorMessage) {
+        disableProblemsApiCheck()
+
+        given:
+        def sourceFile = file("src/main/java/Foo.java")
+        try (def generator = new ProblematicClassGenerator(sourceFile)) {
+            for (int i = 1; i <= errorCount; i++) {
+                generator.addError()
+            }
+        }
+
+        when:
+        fails("compileJava")
+
+        then:
+        result.error.contains(errorMessage)
+
+        where:
+        errorCount | errorMessage
+        1          | "1 error"
+        2          | "2 errors"
+    }
+
     /**
      * Assert if a compilation problems looks like how we expect it to look like.
      * <p>
@@ -330,7 +406,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         ) Closure extraChecks = null
     ) {
         // TODO (donat) we can probably delete some of this method
-        assert problem.definition.severity == Severity.valueOf(severity) : "Expected severity to be ${severity}, but was ${problem.definition.severity}"
+        assert problem.definition.severity == Severity.valueOf(severity): "Expected severity to be ${severity}, but was ${problem.definition.severity}"
         switch (severity) {
             case "ERROR":
                 assert problem.definition.id.displayName == "Java compilation error": "Expected label 'Java compilation error', but was ${problem.definition.id.displayName}"
@@ -452,6 +528,50 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def formatFilePath(TestFile file) {
         return file.absolutePath.toString()
+    }
+
+    class ProblematicClassGenerator implements AutoCloseable {
+        final TestFile file
+        int warningIndex = 0
+        int errorIndex = 0
+
+        ProblematicClassGenerator(TestFile file) {
+            this.file = file
+
+            // Get the class name from the file name
+            def className = file.name - ".java"
+            this.file << """
+                public class ${className} {
+            """
+        }
+
+        void addWarning() {
+            warningIndex += 1
+            file << """
+                public void warning${warningIndex}() {
+                    // Unnecessary cast will trigger a warning
+                    String s = (String)"Hello World";
+                }
+            """
+        }
+
+        void addError() {
+            errorIndex += 1
+            file << """
+                public void error${errorIndex}() {
+                    // Missing semicolon will trigger an error
+                    String s = "Hello, World!"
+                }
+            """
+        }
+
+        @Override
+        void close() throws Exception {
+            file << """
+                }
+            """
+        }
+
     }
 
 }
