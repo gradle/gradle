@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -91,7 +90,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
     @Delegate
-    final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, new TeeOutputStream(stdout, System.out), new TeeOutputStream(stderr, System.err))
+    final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, stdout, stderr)
 
     // TODO: react to the isolatedProejcts prop coming from build settings
 
