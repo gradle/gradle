@@ -40,18 +40,26 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-abstract class ApiJarTestRepoLocationCommandLineArgumentProvider() : CommandLineArgumentProvider {
+abstract class IntegTestCommandLineArgumentProvider(
+) : CommandLineArgumentProvider {
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val repoLocation: DirectoryProperty
 
+    @get:Input
+    abstract val kotlinVersion: Property<String>
+
     override fun asArguments() =
-        listOf("-DintegTest.apiJarRepoLocation=${repoLocation.get().asFile.absolutePath}")
+        listOf(
+            "-DintegTest.apiJarRepoLocation=${repoLocation.get().asFile.absolutePath}",
+            "-DintegTest.kotlinVersion=${kotlinVersion.get()}"
+        )
 }
 
 tasks.withType<IntegrationTest>() {
-    val argument = objects.newInstance(ApiJarTestRepoLocationCommandLineArgumentProvider::class.java).apply {
+    val argument = objects.newInstance(IntegTestCommandLineArgumentProvider::class.java).apply {
         repoLocation.fileProvider(resolveTestRepo.flatMap { it.elements }.map { it.first().asFile })
+        kotlinVersion = libs.kotlinVersion
     }
     jvmArgumentProviders.add(argument)
 }

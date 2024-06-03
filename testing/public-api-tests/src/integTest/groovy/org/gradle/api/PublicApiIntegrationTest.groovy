@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     def apiJarRepoLocation = System.getProperty('integTest.apiJarRepoLocation')
     def apiJarVersion = System.getProperty("integTest.distZipVersion")
+    def kotlinVersion = System.getProperty("integTest.kotlinVersion")
 
     def "can compile Java code against public API"() {
         buildFile << configureApiWithPlugin('id("java-library")')
@@ -103,7 +104,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can compile Kotlin code against public API"() {
-        buildFile << configureApiWithPlugin('id("org.jetbrains.kotlin.jvm") version "1.9.24"')
+        buildFile << configureApiWithPlugin("id(\"org.jetbrains.kotlin.jvm\") version \"${kotlinVersion}\"")
 
         file("src/main/kotlin/org/example/PublishedApiTestPlugin.kt") << """
             package org.example
