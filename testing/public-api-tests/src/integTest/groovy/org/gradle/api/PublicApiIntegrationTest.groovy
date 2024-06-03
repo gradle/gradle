@@ -23,7 +23,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     def apiJarVersion = System.getProperty("integTest.distZipVersion")
 
     def "can compile Java code against public API"() {
-        buildFile << configureApiWithPlugin("java-library")
+        buildFile << configureApiWithPlugin('id("java-library")')
 
         file("src/main/java/org/example/PublishedApiTestPlugin.java") << """
             package org.example;
@@ -53,10 +53,12 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":compileJava")
+        file("build/classes/java/main/org/example/CustomTask.class").assertIsFile()
+        file("build/classes/java/main/org/example/PublishedApiTestPlugin.class").assertIsFile()
     }
 
     def "can compile Groovy code against public API"() {
-        buildFile << configureApiWithPlugin("groovy")
+        buildFile << configureApiWithPlugin('id("groovy")')
 
         file("src/main/groovy/org/example/PublishedApiTestPlugin.groovy") << """
             package org.example
@@ -96,12 +98,57 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":compileGroovy")
+        file("build/classes/groovy/main/org/example/CustomTask.class").assertIsFile()
+        file("build/classes/groovy/main/org/example/PublishedApiTestPlugin.class").assertIsFile()
     }
 
-    private configureApiWithPlugin(String plugin) {
+    def "can compile Kotlin code against public API"() {
+        buildFile << configureApiWithPlugin('id("org.jetbrains.kotlin.jvm") version "1.9.24"')
+
+        file("src/main/kotlin/org/example/PublishedApiTestPlugin.kt") << """
+            package org.example
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class PublishedApiTestPlugin : Plugin<Project> {
+                override fun apply(project: Project) {
+                    project.tasks.register("myTask", CustomTask::class.java) { task ->
+                        task.mapValues.set(mapOf("alma" to 1, "bela" to 2))
+                    }
+                }
+            }
+        """
+        file("src/main/kotlin/org/example/CustomTask.kt") << """
+            package org.example
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.provider.MapProperty
+            import org.gradle.api.tasks.Input
+            import org.gradle.api.tasks.TaskAction
+
+            abstract class CustomTask : DefaultTask() {
+                @get:Input
+                abstract val mapValues: MapProperty<String, Int>
+
+                @TaskAction
+                fun customAction() {
+                    println("Hello from CustomTask")
+                    // println("- mapValues['alma'] = \${mapValues['alma']}")
+                }
+            }
+        """
+
+        expect:
+        succeeds(":compileKotlin")
+        file("build/classes/kotlin/main/org/example/CustomTask.class").assertIsFile()
+        file("build/classes/kotlin/main/org/example/PublishedApiTestPlugin.class").assertIsFile()
+    }
+
+    private configureApiWithPlugin(String pluginDefinition) {
         """
             plugins {
-                id("$plugin")
+                $pluginDefinition
             }
 
             repositories {
@@ -115,6 +162,5 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
                 implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
             }
         """
-
     }
 }
