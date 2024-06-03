@@ -19,6 +19,7 @@ package org.gradle.plugin.software.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +32,19 @@ import java.util.Objects;
 public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImplementation<T> {
     private final String softwareType;
     private final Class<? extends T> modelPublicType;
-    private final Class<? extends Plugin<?>> pluginClass;
+    private final Class<? extends Plugin<Project>> pluginClass;
+    private final Class<? extends Plugin<Settings>> registeringPluginClass;
 
     private final List<Convention<?>> conventionRules = new ArrayList<>();
 
-    public DefaultSoftwareTypeImplementation(String softwareType, Class<? extends T> modelPublicType, Class<? extends Plugin<Project>> pluginClass) {
+    public DefaultSoftwareTypeImplementation(String softwareType,
+                                             Class<? extends T> modelPublicType,
+                                             Class<? extends Plugin<Project>> pluginClass,
+                                             Class<? extends Plugin<Settings>> registeringPluginClass) {
         this.softwareType = softwareType;
         this.modelPublicType = modelPublicType;
         this.pluginClass = pluginClass;
+        this.registeringPluginClass = registeringPluginClass;
     }
 
     @Override
@@ -52,8 +58,13 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     }
 
     @Override
-    public Class<? extends Plugin<?>> getPluginClass() {
+    public Class<? extends Plugin<Project>> getPluginClass() {
         return pluginClass;
+    }
+
+    @Override
+    public Class<? extends Plugin<Settings>> getRegisteringPluginClass() {
+        return registeringPluginClass;
     }
 
     @Override
