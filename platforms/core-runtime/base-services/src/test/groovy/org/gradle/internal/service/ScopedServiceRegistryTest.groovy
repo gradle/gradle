@@ -191,8 +191,8 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class UnscopedService {}
 
-    static class UnscopedServiceProvider {
-        @SuppressWarnings('unused')
+    static class UnscopedServiceProvider implements ServiceRegistrationProvider {
+        @Provides
         UnscopedService createScopedService() {
             return new UnscopedService()
         }
@@ -204,29 +204,29 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class BuildTreeScopedServiceInterfaceUnscopedImpl implements BuildTreeScopedServiceInterface {}
 
-    static class BuildTreeScopedServiceProvider {
-        @SuppressWarnings('unused')
+    static class BuildTreeScopedServiceProvider implements ServiceRegistrationProvider {
+        @Provides
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
         }
     }
 
-    static class BuildTreeScopedServiceInterfaceProvider {
-        @SuppressWarnings('unused')
+    static class BuildTreeScopedServiceInterfaceProvider implements ServiceRegistrationProvider {
+        @Provides
         BuildTreeScopedServiceInterface createScopedService() {
             return new BuildTreeScopedServiceInterfaceUnscopedImpl()
         }
     }
 
-    static class BuildTreeScopedServiceInterfaceUnscopedImplProvider {
-        @SuppressWarnings('unused')
+    static class BuildTreeScopedServiceInterfaceUnscopedImplProvider implements ServiceRegistrationProvider {
+        @Provides
         BuildTreeScopedServiceInterfaceUnscopedImpl createScopedService() {
             return new BuildTreeScopedServiceInterfaceUnscopedImpl()
         }
     }
 
-    static class MultiScopedServiceProvider {
-        @SuppressWarnings('unused')
+    static class MultiScopedServiceProvider implements ServiceRegistrationProvider {
+        @Provides
         GlobalAndBuildScopedService createScopedService() {
             return new GlobalAndBuildScopedService()
         }
@@ -237,7 +237,7 @@ class ScopedServiceRegistryTest extends Specification {
             super(Scope.Build, "broken service registry")
         }
 
-        @SuppressWarnings('unused')
+        @Provides
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
         }

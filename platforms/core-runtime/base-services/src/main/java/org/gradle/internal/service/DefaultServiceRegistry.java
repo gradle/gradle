@@ -56,12 +56,15 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <li>Calling {@link #add(Class, Object)} or {@link #add(Object)} to register a service instance.</li>
  *
- * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
+ * <li>Calling {@link #addProvider(ServiceRegistrationProvider)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
  *
- * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService createSomeService() { ....
- * }</code>. Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
- * type {@code List<T>} will receive all services of type T, if any. If a parameter has the same type as the return type of the factory method, then that parameter will be located in the parent registry.
- * This allows decorating services.</li>
+ * <li>Adding a factory method. A factory method should be annotated with {@literal @}{@link Provides}, have a name that starts with 'create', and have a non-void return type.
+ * For example, <code>@Provides protected SomeService createSomeService() { ....
+ * }</code>.
+ * Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
+ * type {@code List<T>} will receive all services of type {@code T}, if any.
+ * If a parameter has the same type as the return type of the factory method, then that parameter will be located in the parent registry.
+ * This allows decorating services, i.e. specializing a service from a parent scope.</li>
  *
  * <li>Adding a configure method. A configure method should be called 'configure', take a {@link ServiceRegistration} parameter, and a have a void return type. Additional parameters are injected using
  * services from this registry or its parents.</li>
@@ -81,7 +84,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices {
+public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices, ServiceRegistrationProvider {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
@@ -156,9 +159,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     /**
      * Creates a service registry that uses the given providers.
      */
-    public static ServiceRegistry create(Object... providers) {
+    public static ServiceRegistry create(ServiceRegistrationProvider... providers) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        for (Object provider : providers) {
+        for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);
         }
         return registry;
@@ -173,8 +176,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return getDisplayName();
     }
 
-    private void findProviderMethods(Object target) {
-        Class<?> type = target.getClass();
+    private void findProviderMethods(ServiceRegistrationProvider target) {
+        Class<? extends ServiceRegistrationProvider> type = target.getClass();
         RelevantMethods methods = RelevantMethods.getMethods(type);
         for (ServiceMethod method : methods.decorators) {
             if (parentServices == null) {
@@ -248,7 +251,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
 
             @Override
-            public void addProvider(Object provider) {
+            public void addProvider(ServiceRegistrationProvider provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
         };
@@ -273,7 +276,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
      */
-    public DefaultServiceRegistry addProvider(Object provider) {
+    public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
         assertMutable();
         findProviderMethods(provider);
         return this;
@@ -795,8 +798,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         protected abstract Type[] getParameterTypes();
 
-        protected abstract Member getFactory();
-
         protected abstract String getFactoryDisplayName();
 
         @Override
@@ -908,8 +909,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return method.getParameterTypes();
         }
 
-        @Override
-        protected Member getFactory() {
+        private Member getFactory() {
             return method.getMethod();
         }
 
@@ -989,8 +989,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return constructor.getGenericParameterTypes();
         }
 
-        @Override
-        protected Member getFactory() {
+        private Member getFactory() {
             return constructor;
         }
 

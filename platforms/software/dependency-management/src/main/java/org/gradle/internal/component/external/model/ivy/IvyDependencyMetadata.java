@@ -69,7 +69,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema
     ) {
-        return getDependencyDescriptor().selectLegacyConfigurations(configuration, targetComponentState, variantSelector.getFailureProcessor());
+        return getDependencyDescriptor().selectLegacyConfigurations(configuration, targetComponentState, variantSelector.getFailureHandler());
     }
 
     @Override

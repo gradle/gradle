@@ -35,6 +35,7 @@ public enum GradleLazyType {
         }
     };
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final Type type;
 
     GradleLazyType(String name) {

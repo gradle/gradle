@@ -31,6 +31,8 @@ import org.gradle.api.services.ServiceReference
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.util.TestUtil
@@ -42,7 +44,8 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
     def services = TestUtil.createTestServices { registrations ->
-        registrations.addProvider(new Object() {
+        registrations.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             BuildServiceRegistry createBuildServiceRegistry() {
                 return new DefaultBuildServicesRegistry(
                     buildIdentifier,

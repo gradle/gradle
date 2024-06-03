@@ -20,12 +20,13 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.transform.Transform
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
-import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
-import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.configurationcache.serialization.codecs.getProject
+import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.execution.InputFingerprinter
 
 

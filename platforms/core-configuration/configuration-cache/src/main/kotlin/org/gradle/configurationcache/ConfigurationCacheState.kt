@@ -26,34 +26,35 @@ import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
-import org.gradle.configurationcache.extensions.serviceOf
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.flow.BuildFlowScope
-import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
-import org.gradle.configurationcache.serialization.DefaultReadContext
-import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
+import org.gradle.internal.flow.services.BuildFlowScope
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.configurationcache.serialization.codecs.Codecs
-import org.gradle.configurationcache.serialization.logNotImplemented
-import org.gradle.configurationcache.serialization.readCollection
-import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.readList
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.readStrings
-import org.gradle.configurationcache.serialization.readStringsSet
-import org.gradle.configurationcache.serialization.withDebugFrame
+import org.gradle.internal.serialize.graph.logNotImplemented
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readStrings
+import org.gradle.internal.serialize.graph.readStringsSet
+import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
-import org.gradle.configurationcache.serialization.withIsolate
-import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.configurationcache.serialization.writeEnum
-import org.gradle.configurationcache.serialization.writeStrings
+import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.serialize.graph.writeEnum
+import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
@@ -89,6 +90,10 @@ import java.io.OutputStream
 
 
 typealias BuildTreeWorkGraphBuilder = BuildTreeWorkGraph.Builder.(BuildState) -> Unit
+
+
+internal
+typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
@@ -469,7 +474,7 @@ class ConfigurationCacheState(
 
             build.createProjects()
 
-            initProjectProvider(build::getProject)
+            setSingletonProperty<ProjectProvider>(build::getProject)
 
             applyProjectStates(projects, gradle)
             readRequiredBuildServicesOf(gradle)
@@ -498,7 +503,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
-        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
+        withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
             val flowScopeState = buildFlowScopeOf(gradle).store()
             write(flowScopeState)
         }
@@ -506,7 +511,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readFlowScopeOf(gradle: GradleInternal) {
-        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
+        withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
             buildFlowScopeOf(gradle).load(readNonNull())
         }
     }

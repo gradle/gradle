@@ -25,12 +25,14 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 
-public class CompositeBuildServices extends AbstractPluginServiceRegistry {
+public class CompositeBuildServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
@@ -48,13 +50,14 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         registration.add(CompositeBuildPluginResolverContributor.class);
     }
 
-    private static class CompositeBuildSessionScopeServices {
+    private static class CompositeBuildSessionScopeServices implements ServiceRegistrationProvider {
+        @Provides
         public ValueSnapshotterSerializerRegistry createCompositeBuildsValueSnapshotterSerializerRegistry() {
             return new CompositeBuildsValueSnapshotterSerializerRegistry();
         }
     }
 
-    private static class CompositeBuildTreeScopeServices {
+    private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);
@@ -62,6 +65,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             serviceRegistration.add(DefaultIncludedBuildRegistry.class);
         }
 
+        @Provides
         public GlobalDependencySubstitutionRegistry createGlobalDependencySubstitutionRegistry(
             CompositeBuildContext context,
             Instantiator instantiator,
@@ -73,6 +77,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
         }
 
+        @Provides
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
         }

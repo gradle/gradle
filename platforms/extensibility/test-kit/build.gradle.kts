@@ -11,7 +11,6 @@ errorprone {
     disabledChecks.addAll(
         "CatchAndPrintStackTrace", // 1 occurrences
         "ImmutableEnumChecker", // 1 occurrences
-        "StringSplitter", // 1 occurrences
     )
 }
 
@@ -23,11 +22,11 @@ dependencies {
 
     api(libs.jsr305)
 
-    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":file-temp"))
     implementation(projects.io)
     implementation(project(":wrapper-shared"))
+    implementation(project(":build-process-services"))
 
     implementation(libs.commonsIo)
 

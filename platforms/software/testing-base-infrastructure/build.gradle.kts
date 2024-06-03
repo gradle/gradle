@@ -10,16 +10,15 @@ dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
-    api(projects.logging)
-    api(projects.loggingApi)
+    api(projects.messaging)
     api(projects.serialization)
     api(projects.time)
-    api(projects.workerProcesses)
+    api(projects.workerMain)
 
     api(libs.jsr305)
 
     implementation(projects.io)
-    implementation(projects.messaging)
+    implementation(projects.serviceProvider)
 
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)

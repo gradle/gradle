@@ -2,7 +2,6 @@
   <profile version="1.0">
     <option name="myName" value="Gradle" />
     <inspection_tool class="21f28a86-2ba8-3048-9ce1-b6f10d4d4a12" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
-    <inspection_tool class="62125fc1-a999-3cf1-9b9b-a30b4375d9bf" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="73cd39e8-e54e-3a38-ad1b-b883fff4b1eb" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="AsciiDocLinkResolve" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="CatchMayIgnoreException" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -16,11 +15,13 @@
       </extension>
     </inspection_tool>
     <inspection_tool class="FoldExpressionIntoStream" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="GrMethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="GrMethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
+      <option name="myOnlyPrivateOrFinal" value="true" />
+    </inspection_tool>
     <inspection_tool class="JavadocBlankLines" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinUnusedImport" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="MethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
-      <option name="m_onlyPrivateOrFinal" value="false" />
+      <option name="m_onlyPrivateOrFinal" value="true" />
       <option name="m_ignoreEmptyMethods" value="true" />
     </inspection_tool>
     <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="ERROR" enabled_by_default="true" editorAttributes="ERRORS_ATTRIBUTES">

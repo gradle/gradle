@@ -27,9 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -65,7 +63,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer;
     private final Set<Long> visitedComponents = new HashSet<>();
-    private final AttributeDesugaring desugaring;
 
     private ImmutableAttributes rootAttributes;
     private boolean mayHaveVirtualPlatforms;
@@ -76,27 +73,25 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         AttributeContainerSerializer attributeContainerSerializer,
         ComponentDetailsSerializer componentDetailsSerializer,
         SelectedVariantSerializer selectedVariantSerializer,
-        AttributeDesugaring desugaring,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        boolean returnAllVariants
+        boolean includeAllSelectableVariantResults
     ) {
         this.dependencyResultSerializer = new DependencyResultSerializer(componentSelectionDescriptorFactory);
-        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, returnAllVariants);
+        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, includeAllSelectableVariantResults);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
-        this.desugaring = desugaring;
     }
 
-    public MinimalResolutionResult complete(Set<UnresolvedDependency> dependencyLockingFailures) {
+    public MinimalResolutionResult getResolutionResult(Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
         RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, dependencyLockingFailures);
-        return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes);
+        return new MinimalResolutionResult(rootSource::create, rootAttributes);
     }
 
     @Override
     public void start(final RootGraphNode root) {
-        rootAttributes = desugaring.desugar(root.getMetadata().getAttributes());
+        rootAttributes = root.getMetadata().getAttributes();
         mayHaveVirtualPlatforms = root.getResolveOptimizations().mayHaveVirtualPlatforms();
     }
 
@@ -199,7 +194,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             byte type = -1;
             Timer clock = Time.startTimer();
             try {
-                DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+                ResolutionResultGraphBuilder builder = new ResolutionResultGraphBuilder();
                 Map<Long, ComponentSelector> selectors = new HashMap<>();
                 while (true) {
                     type = decoder.readByte();

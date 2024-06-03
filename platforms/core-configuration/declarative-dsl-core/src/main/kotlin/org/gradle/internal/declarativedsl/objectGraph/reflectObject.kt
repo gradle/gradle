@@ -6,12 +6,15 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
-import org.gradle.internal.declarativedsl.analysis.DataAddition
+import org.gradle.internal.declarativedsl.analysis.OperationId
+import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.TypeRefContext
+import org.gradle.internal.declarativedsl.analysis.access
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
@@ -24,7 +27,7 @@ sealed interface ObjectReflection {
     val objectOrigin: ObjectOrigin
 
     data class DataObjectReflection(
-        val identity: Long,
+        val identity: OperationId,
         override val type: DataClass,
         override val objectOrigin: ObjectOrigin,
         val properties: Map<DataProperty, PropertyValueReflection>,
@@ -95,9 +98,9 @@ fun reflect(
 
         is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null(objectOrigin)
 
-        is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataClass, objectOrigin, context)
+        is ObjectOrigin.TopLevelReceiver -> reflectData(OperationId(0, OperationGenerationId.PROPERTY_ASSIGNMENT), type as DataClass, objectOrigin, context)
 
-        is ObjectOrigin.ConfiguringLambdaReceiver -> reflectData(-1L, type as DataClass, objectOrigin, context)
+        is ObjectOrigin.ConfiguringLambdaReceiver -> reflectData(OperationId(-1L, OperationGenerationId.PROPERTY_ASSIGNMENT), type as DataClass, objectOrigin, context)
 
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
@@ -133,7 +136,7 @@ fun reflect(
 
         is ObjectOrigin.PropertyReference,
         is ObjectOrigin.FromLocalValue -> error("value origin needed")
-        is ObjectOrigin.CustomConfigureAccessor -> reflectData(-1L, type as DataClass, objectOrigin, context)
+        is ObjectOrigin.CustomConfigureAccessor -> reflectData(OperationId(-1L, OperationGenerationId.PROPERTY_ASSIGNMENT), type as DataClass, objectOrigin, context)
 
         is ObjectOrigin.ImplicitThisReceiver -> reflect(objectOrigin.resolvedTo, context)
         is ObjectOrigin.AddAndConfigureReceiver -> reflect(objectOrigin.receiver, context)
@@ -147,7 +150,7 @@ fun reflectDefaultValue(
 ): ObjectReflection {
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
         is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
-        is DataClass -> reflectData(-1L, type, objectOrigin, context)
+        is DataClass -> reflectData(OperationId(-1L, OperationGenerationId.PROPERTY_ASSIGNMENT), type, objectOrigin, context)
         is DataType.NullType -> error("Null type can't appear in property types")
         is DataType.UnitType -> error("Unit can't appear in property types")
         else -> { error("Unhandled data type: ${type.javaClass.simpleName}") }
@@ -156,7 +159,7 @@ fun reflectDefaultValue(
 
 
 fun reflectData(
-    identity: Long,
+    identity: OperationId,
     type: DataClass,
     objectOrigin: ObjectOrigin,
     context: ReflectionContext
@@ -194,20 +197,29 @@ class ReflectionContext(
     val resolutionResult: ResolutionResult,
     val trace: AssignmentTrace,
 ) {
-    val additionsByResolvedContainer = resolutionResult.additions.mapNotNull {
+    val additionsByResolvedContainer = (resolutionResult.conventionAdditions + resolutionResult.additions).mapNotNull {
         val resolvedContainer = trace.resolver.resolveToObjectOrPropertyReference(it.container)
         val obj = trace.resolver.resolveToObjectOrPropertyReference(it.dataObject)
         if (resolvedContainer is Ok && obj is Ok) {
-            DataAddition(resolvedContainer.objectOrigin, obj.objectOrigin)
+            DataAdditionRecord(resolvedContainer.objectOrigin, obj.objectOrigin)
         } else null
     }.groupBy({ it.container }, valueTransform = { it.dataObject })
 
     private
-    val allReceiversResolved = (resolutionResult.additions.map { it.container } + resolutionResult.assignments.map { it.lhs.receiverObject })
-        .map(trace.resolver::resolveToObjectOrPropertyReference)
-        .filterIsInstance<Ok>()
-        .map { it.objectOrigin }
-        .flatMap { origin -> generateSequence(origin) { (it as? ObjectOrigin.HasReceiver)?.receiver } }
+    val allReceiversResolved = run {
+        val allReceiverReferences = resolutionResult.conventionAdditions.map { it.container } +
+            resolutionResult.conventionAssignments.map { it.lhs.receiverObject } +
+            resolutionResult.conventionNestedObjectAccess.map { it.dataObject.accessor.access(it.container, it.dataObject) } +
+            resolutionResult.additions.map { it.container } +
+            resolutionResult.assignments.map { it.lhs.receiverObject } +
+            resolutionResult.nestedObjectAccess.map { it.dataObject.accessor.access(it.container, it.dataObject) }
+
+        allReceiverReferences
+            .map(trace.resolver::resolveToObjectOrPropertyReference)
+            .filterIsInstance<Ok>()
+            .map { it.objectOrigin }
+            .flatMap { origin -> generateSequence(origin) { (it as? ObjectOrigin.HasReceiver)?.receiver } }
+    }
 
     val customAccessorsUsedByReceiver: Map<ObjectOrigin, List<ObjectOrigin.CustomConfigureAccessor>> = run {
         allReceiversResolved.mapNotNull { (it as? ObjectOrigin.CustomConfigureAccessor)?.let { custom -> custom.receiver to custom } }
@@ -219,9 +231,9 @@ class ReflectionContext(
             .groupBy(keySelector = { it.first }, valueTransform = { it.second }).mapValues { it.value.distinct() }
     }
 
-    fun functionCall(callId: Long, resolveIfNotResolved: () -> ObjectReflection) =
-        functionCallResults.getOrPut(callId, resolveIfNotResolved)
+    fun functionCall(operationId: OperationId, resolveIfNotResolved: () -> ObjectReflection) =
+        functionCallResults.getOrPut(operationId, resolveIfNotResolved)
 
     private
-    val functionCallResults = mutableMapOf<Long, ObjectReflection>()
+    val functionCallResults = mutableMapOf<OperationId, ObjectReflection>()
 }

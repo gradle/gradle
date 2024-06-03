@@ -26,6 +26,7 @@ dependencies {
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
+    api(project(":build-process-services"))
 
     api(libs.groovy)
     api(libs.inject)
@@ -39,7 +40,7 @@ dependencies {
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
-    implementation(project(":worker-processes"))
+    implementation(project(":worker-main"))
 
     implementation(libs.guava)
 

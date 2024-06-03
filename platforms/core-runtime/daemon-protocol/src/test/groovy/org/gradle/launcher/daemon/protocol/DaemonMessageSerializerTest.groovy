@@ -259,7 +259,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.startTime == message.startTime
         result.interactive
         result.action
-        result.buildRequestMetaData
+        result.buildClientMetaData
         result.parameters
     }
 

@@ -23,7 +23,7 @@ import java.util.List;
 
 public class ServiceRegistryBuilder {
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
-    private final List<Object> providers = new ArrayList<Object>();
+    private final List<ServiceRegistrationProvider> providers = new ArrayList<ServiceRegistrationProvider>();
     private String displayName;
     private Class<? extends Scope> scope;
     private boolean strict;
@@ -45,7 +45,7 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
-    public ServiceRegistryBuilder provider(Object provider) {
+    public ServiceRegistryBuilder provider(ServiceRegistrationProvider provider) {
         this.providers.add(provider);
         return this;
     }
@@ -87,7 +87,7 @@ public class ServiceRegistryBuilder {
             ? new ScopedServiceRegistry(scope, strict, displayName, parents)
             : new DefaultServiceRegistry(displayName, parents);
 
-        for (Object provider : providers) {
+        for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);
         }
         return registry;

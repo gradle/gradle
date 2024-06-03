@@ -21,7 +21,5 @@ dependencies {
     api(libs.junitPlatform)
     api(libs.junitPlatformEngine)
 
-    implementation(projects.testingBase)
-
     implementation(libs.jsr305)
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.internal.declarativedsl.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
@@ -32,6 +33,8 @@ interface EvaluationSchemaComponent {
     fun typeDiscovery(): List<TypeDiscovery> = listOf()
     fun propertyExtractors(): List<PropertyExtractor> = listOf()
     fun functionExtractors(): List<FunctionExtractor> = listOf()
+
+    fun documentChecks(): List<DocumentCheck> = listOf()
 
     fun runtimePropertyResolvers(): List<RuntimePropertyResolver> = listOf()
     fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf()
@@ -64,6 +67,8 @@ class CompositeEvaluationSchemaComponent(
     override fun propertyExtractors(): List<PropertyExtractor> = components.flatMap(EvaluationSchemaComponent::propertyExtractors)
 
     override fun functionExtractors(): List<FunctionExtractor> = components.flatMap(EvaluationSchemaComponent::functionExtractors)
+
+    override fun documentChecks(): List<DocumentCheck> = components.flatMap(EvaluationSchemaComponent::documentChecks)
 
     override fun runtimePropertyResolvers(): List<RuntimePropertyResolver> = components.flatMap(EvaluationSchemaComponent::runtimePropertyResolvers)
 

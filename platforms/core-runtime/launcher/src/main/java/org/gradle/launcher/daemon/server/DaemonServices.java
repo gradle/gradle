@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,7 +29,10 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
@@ -73,7 +75,7 @@ import static org.gradle.internal.FileUtils.canonicalize;
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
-public class DaemonServices {
+public class DaemonServices implements ServiceRegistrationProvider {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
@@ -83,11 +85,12 @@ public class DaemonServices {
         this.loggingManager = loggingManager;
     }
 
+    @Provides
     protected DaemonContext createDaemonContext(AgentStatus agentStatus, ProcessEnvironment processEnvironment) {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
         return new DefaultDaemonContext(configuration.getUid(),
             canonicalize(Jvm.current().getJavaHome()),
-            JavaVersion.current(),
+            JavaLanguageVersion.current(),
             configuration.getBaseDir(),
             processEnvironment.maybeGetPid(),
             configuration.getIdleTimeout(),
@@ -98,40 +101,49 @@ public class DaemonServices {
         );
     }
 
+    @Provides
     protected DaemonLogFile createDaemonLogFile(DaemonContext daemonContext, DaemonDir daemonDir) {
         final Long pid = daemonContext.getPid();
         String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
         return new DaemonLogFile(new File(daemonDir.getVersionedDir(), fileName));
     }
 
+    @Provides
     protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
         return new DaemonHealthCheck(healthExpirationStrategy, listenerManager);
     }
 
+    @Provides
     protected DaemonRunningStats createDaemonRunningStats() {
         return new DaemonRunningStats();
     }
 
+    @Provides
     protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager, DaemonRegistry daemonRegistry) {
         return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), configuration.isSingleUse(), daemonRegistry, listenerManager);
     }
 
+    @Provides
     protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
         return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, listenerManager);
     }
 
+    @Provides
     protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
         return new HealthExpirationStrategy(stats, strategy);
     }
 
+    @Provides
     protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
         return new DaemonHealthStats(runningStats, strategy, executorFactory);
     }
 
+    @Provides
     protected GarbageCollectorMonitoringStrategy createGarbageCollectorMonitoringStrategy() {
         return GarbageCollectorMonitoringStrategy.determineGcStrategy();
     }
 
+    @Provides
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
         BuildExecutor buildActionExecuter,
         DaemonContext daemonContext,
@@ -166,10 +178,12 @@ public class DaemonServices {
         );
     }
 
+    @Provides
     Serializer<BuildAction> createBuildActionSerializer() {
         return BuildActionSerializer.create();
     }
 
+    @Provides
     protected Daemon createDaemon(
         ImmutableList<DaemonCommandAction> actions,
         Serializer<BuildAction> buildActionSerializer,

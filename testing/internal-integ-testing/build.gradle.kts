@@ -79,6 +79,7 @@ dependencies {
         because("Part of the public API")
     }
 
+    implementation(projects.serviceProvider)
     implementation(project(":base-services-groovy"))
     implementation(project(":build-cache"))
     implementation(project(":build-events"))
@@ -86,6 +87,7 @@ dependencies {
     implementation(project(":build-state"))
     implementation(project(":cli"))
     implementation(project(":daemon-protocol"))
+    implementation(project(":daemon-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":enterprise-logging"))
     implementation(project(":files"))
@@ -97,6 +99,8 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":serialization"))
     implementation(project(":time"))
+    implementation(projects.toolchainsJvmShared)
+    implementation(project(":build-process-services"))
 
     implementation(testFixtures(project(":build-operations")))
 

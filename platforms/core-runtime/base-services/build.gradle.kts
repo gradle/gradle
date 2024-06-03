@@ -23,34 +23,11 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
 
 moduleIdentity.createBuildReceipt()
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 4 occurrences
-        "EmptyBlockTag", // 2 occurrences
-        "EscapedEntity", // 1 occurrences
-        "FutureReturnValueIgnored", // 1 occurrences
-        "ImmutableEnumChecker", // 1 occurrences
-        "InlineFormatString", // 2 occurrences
-        "InlineMeSuggester", // 1 occurrences
-        "JavaLangClash", // 1 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "MixedMutabilityReturnType", // 3 occurrences
-        "NonAtomicVolatileUpdate", // 2 occurrences
-        "ReturnValueIgnored", // 1 occurrences
-        "StringCaseLocaleUsage", // 8 occurrences
-        "StringSplitter", // 3 occurrences
-        "ThreadLocalUsage", // 4 occurrences
-        "TypeParameterUnusedInFormals", // 5 occurrences
-        "URLEqualsHashCode", // 1 occurrences
-        "UnsynchronizedOverridesSynchronized", // 2 occurrences
-        "UnusedMethod", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.fileTemp)
+    api(projects.serviceProvider)
     api(project(":hashing"))
     api(project(":build-operations"))
     api(libs.inject)

@@ -42,7 +42,7 @@ sealed interface FunctionSemantics : Serializable {
             ConfigureBlockRequirement.Optional::class,
             ConfigureBlockRequirement.Required::class
         ])
-        sealed interface ConfigureBlockRequirement {
+        sealed interface ConfigureBlockRequirement : Serializable {
             interface NotAllowed : ConfigureBlockRequirement
             interface Optional : ConfigureBlockRequirement
             interface Required : ConfigureBlockRequirement
@@ -84,7 +84,7 @@ sealed interface FunctionSemantics : Serializable {
         override val configuredType: DataTypeRef
             get() = if (returnType is ReturnType.ConfiguredObject) returnValueType else accessor.objectType
 
-        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement.Required
+        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
     }
 
     interface AddAndConfigure : NewObjectFunctionSemantics, ConfigureSemantics {

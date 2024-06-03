@@ -347,7 +347,7 @@ class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    boolean isSupportsToolchainsUsingFoojay() {
+    boolean isSupportsCustomToolchainResolvers() {
         return isSameOrNewer("7.6")
     }
 

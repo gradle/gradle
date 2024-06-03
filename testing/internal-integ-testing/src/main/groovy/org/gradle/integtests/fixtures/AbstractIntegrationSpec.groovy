@@ -850,11 +850,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             }
             println "    ]"
         }
-        if (problem.additionalData.size() == 1) {
-            println "    additionalData == [ '${problem.additionalData.keySet().iterator().next()}' : '${problem.additionalData.values().iterator().next()}' ]"
-        } else if (problem.additionalData.size() > 1) {
-            println "    additionalData == ["
-            problem.additionalData.each { key, value ->
+        if (problem.additionalData?.size() == 1) {
+            println "    additionalData.asMap == [ '${problem.additionalData.asMap.keySet().iterator().next()}' : '${problem.additionalData.asMap.values().iterator().next()}' ]"
+        } else if (problem.additionalData?.size() > 1) {
+            println "    additionalData.asMap == ["
+            problem.additionalData.asMap.each { key, value ->
                 println "        '$key' : '$value',"
             }
             println "    ]"

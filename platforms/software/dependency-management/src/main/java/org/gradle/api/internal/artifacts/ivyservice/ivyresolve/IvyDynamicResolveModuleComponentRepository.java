@@ -56,9 +56,10 @@ class IvyDynamicResolveModuleComponentRepository extends BaseModuleComponentRepo
         }
 
         private void transformDependencies(BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
-            ExternalComponentResolveMetadata metadata = result.getMetaData().getLegacyMetadata();
-            if (metadata instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) metadata).withDynamicConstraintVersions();
+            @SuppressWarnings("deprecation")
+            ExternalComponentResolveMetadata legacyMetadata = result.getMetaData().getLegacyMetadata();
+            if (legacyMetadata instanceof IvyModuleResolveMetadata) {
+                IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) legacyMetadata).withDynamicConstraintVersions();
                 result.setMetadata(resolveStateFactory.stateFor(transformedMetadata));
             }
         }

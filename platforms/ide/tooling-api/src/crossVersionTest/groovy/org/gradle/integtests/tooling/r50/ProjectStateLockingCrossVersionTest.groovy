@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r50
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r33.FetchIdeaProject
 
 @TargetGradleVersion(">=5.0")
-@ToolingApiVersion('>=4.4')
 class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
     def "does not emit deprecation warnings when idea model builder resolves a configuration"() {
         singleProjectBuildInRootFolder("root") {

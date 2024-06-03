@@ -22,8 +22,13 @@ import org.gradle.tooling.ToolingModelContract
 interface BaseModel {
 }
 
+@ToolingModelContract(subTypes = [VeryDeepChildModel.class])
 interface DeepChildModel extends BaseModel {
     String getDeepMessage()
+}
+
+interface VeryDeepChildModel extends DeepChildModel {
+    String getVeryDeepMessage()
 }
 
 interface ShallowChildModel extends BaseModel {

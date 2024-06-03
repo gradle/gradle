@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.model.internal.core.ModelNode
 
@@ -48,6 +49,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createdTasks
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "does not create rule based tasks in projects without required tasks"() {
         when:
         createDirs("a", "b", "c")
@@ -161,6 +163,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         output.contains "finalizer: configured"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configuring projects from root")
     def "task container is self closed for projects of which any tasks are being executed"() {
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"

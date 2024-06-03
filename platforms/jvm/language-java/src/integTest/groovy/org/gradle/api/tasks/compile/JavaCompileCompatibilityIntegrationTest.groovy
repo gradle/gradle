@@ -214,7 +214,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
 
     def "configuring toolchain on java extension with source and target compatibility is supported"() {
         def jdk = Jvm.current()
-        def prevJavaVersion = JavaVersion.toVersion(jdk.javaVersion.majorVersion.toInteger() - 1)
+        def prevJavaVersion = JavaVersion.toVersion(jdk.javaVersion.majorVersionNumber - 1)
         buildFile << """
             apply plugin: 'java'
 

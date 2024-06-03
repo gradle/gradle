@@ -91,7 +91,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'direct\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'direct',
             ]
@@ -101,7 +101,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'listPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'listPropertyInput',
             ]
@@ -111,7 +111,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'mapPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapPropertyInput',
             ]
@@ -121,7 +121,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'nestedBean.nestedInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'nestedBean',
                 'typeName' : 'MyTask',
                 'propertyName' : 'nestedInput',
@@ -132,7 +132,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'propertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'propertyInput',
             ]
@@ -142,7 +142,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'providerInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'providerInput',
             ]
@@ -152,7 +152,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'setPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'setPropertyInput',
             ]
@@ -242,7 +242,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Annotate with @InputFiles for collections of files',
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'file',
             ]
@@ -256,7 +256,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Annotate with @InputFiles for collections of files',
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileCollection',
             ]
@@ -270,7 +270,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Annotate with @InputFiles for collections of files',
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'filePath',
             ]
@@ -284,7 +284,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Annotate with @InputFiles for collections of files',
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileTree',
             ]
@@ -294,7 +294,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'inputDirectory\' is annotated with @InputDirectory but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputDirectory',
             ]
@@ -304,7 +304,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'inputFile\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputFile',
             ]
@@ -314,7 +314,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == 'Type \'MyTask\' property \'inputFiles\' is annotated with @InputFiles but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputFiles',
             ]
@@ -444,7 +444,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'doubleIterableOptions.*.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -458,7 +458,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'iterableMappedOptions.*.<key>.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -472,7 +472,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'iterableOptions.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -486,7 +486,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'mappedOptions.<key>',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -500,7 +500,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'namedIterable.<name>',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -514,7 +514,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'options',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -528,7 +528,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'optionsList.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -542,7 +542,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Add an input or output annotation',
                 'Mark it as @Internal',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'parentPropertyName' : 'providedOptions',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
@@ -649,7 +649,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
             details == 'Key of nested map must be one of the following types: \'Enum\', \'Integer\', \'String\''
             solutions == [ 'Change type of key to one of the following types: \'Enum\', \'Integer\', \'String\'' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapWithUnsupportedKey',
             ]
@@ -693,7 +693,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Use a different input annotation if type is not a bean',
                 'Use a different package that doesn\'t conflict with standard Java or Kotlin types for custom types',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : "my$typeName",
             ]
@@ -791,7 +791,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Use a different input annotation if type is not a bean',
                 'Use a different package that doesn\'t conflict with standard Java or Kotlin types for custom types'
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : "my$typeName"
             ]

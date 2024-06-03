@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -89,7 +90,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return null;
         }
         return Stream.of(projectName.split("-"))
-            .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+            .map(s -> s.substring(0, 1).toUpperCase(Locale.ROOT) + s.substring(1))
             .collect(Collectors.joining());
     }
 
@@ -206,7 +207,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String methodName;
         switch (accessorType) {
             case GETTER:
-                String capitalize = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+                String capitalize = propertyName.substring(0, 1).toUpperCase(Locale.ROOT) + propertyName.substring(1);
                 methodName = originalType.equals(Type.BOOLEAN_TYPE) ? "is" + capitalize : "get" + capitalize;
                 break;
             case SETTER:

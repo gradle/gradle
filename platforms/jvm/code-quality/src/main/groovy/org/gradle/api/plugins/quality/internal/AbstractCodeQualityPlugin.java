@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -82,6 +83,10 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     protected String getReportName() {
         return getToolName().toLowerCase();
+    }
+
+    protected Directory getRootProjectDirectory() {
+        return project.getIsolated().getRootProject().getProjectDirectory();
     }
 
     @SuppressWarnings("rawtypes")

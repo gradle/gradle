@@ -22,6 +22,7 @@ import org.gradle.internal.Cast
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
@@ -36,6 +37,7 @@ class NativeServicesInitializationTest extends Specification {
         // that's guaranteed not to have been initialized before
         URL[] jars = [
             jar(NativeServices),
+            jar(ServiceRegistration),
             jar(ServiceRegistry),
             jar(Native),
             jar(LoggerFactory),

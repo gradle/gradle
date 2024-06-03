@@ -46,6 +46,7 @@ import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildprocess.BuildProcessScopeServices;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
@@ -203,6 +204,7 @@ public class ProjectBuilderImpl {
             .parent(LoggingServiceRegistry.newNestedLogging())
             .parent(NativeServices.getInstance())
             .provider(new TestGlobalScopeServices())
+            .provider(new BuildProcessScopeServices())
             .build();
     }
 

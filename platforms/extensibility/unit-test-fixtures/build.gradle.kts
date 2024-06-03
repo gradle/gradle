@@ -22,6 +22,7 @@ description = "Public types for unit testing plugins"
 
 dependencies {
     api(libs.jsr305)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":concurrent"))
@@ -30,6 +31,7 @@ dependencies {
     api(project(":persistent-cache"))
     api(project(":serialization"))
     api(project(":time"))
+    api(project(":build-process-services"))
 
     implementation(project(":build-state"))
     implementation(project(":file-collections"))
@@ -37,6 +39,8 @@ dependencies {
     implementation(project(":java-language-extensions"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
+    implementation(project(":daemon-protocol"))
+    implementation(project(":daemon-services"))
     implementation(project(":native"))
 
     testImplementation(project(":testing-base"))

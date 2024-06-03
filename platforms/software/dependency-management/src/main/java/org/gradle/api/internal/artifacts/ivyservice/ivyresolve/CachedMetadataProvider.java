@@ -34,7 +34,9 @@ class CachedMetadataProvider implements MetadataProvider {
         cachedResult = result;
         usable = cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
         if (usable) {
-            cachedComponentMetadata = new ComponentMetadataAdapter(cachedResult.getMetaData().getLegacyMetadata());
+            @SuppressWarnings("deprecation")
+            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            cachedComponentMetadata = new ComponentMetadataAdapter(legacyMetadata);
         } else {
             cachedComponentMetadata = null;
         }
@@ -47,9 +49,10 @@ class CachedMetadataProvider implements MetadataProvider {
 
     @Override
     public IvyModuleDescriptor getIvyModuleDescriptor() {
-        ExternalComponentResolveMetadata metaData = cachedResult.getMetaData().getLegacyMetadata();
-        if (metaData instanceof IvyModuleResolveMetadata) {
-            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
+        @SuppressWarnings("deprecation")
+        ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+        if (legacyMetadata instanceof IvyModuleResolveMetadata) {
+            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) legacyMetadata;
             return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
         }
         return null;

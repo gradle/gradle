@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.UUID;
 
 class GenericFileSystem implements FileSystem {
@@ -145,7 +146,7 @@ class GenericFileSystem implements FileSystem {
 
     private boolean probeCaseSensitive(File file, String content) {
         try {
-            File upperCased = new File(file.getPath().toUpperCase());
+            File upperCased = new File(file.getPath().toUpperCase(Locale.ROOT));
             return !hasContent(upperCased, content);
         } catch (IOException e) {
             // not fully accurate but a sensible fallback

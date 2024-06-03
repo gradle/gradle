@@ -17,11 +17,13 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.BaseBuildScanPluginCheckInFixture
-import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
@@ -29,11 +31,18 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
 
     protected final DevelocityPluginCheckInFixture autoAppliedPluginFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
+    abstract boolean isIsolatedProjectsCompatible()
+
     abstract BaseBuildScanPluginCheckInFixture getTransitivePluginFixture()
 
     abstract void assertNotAutoApplied(String output)
 
     static class DevelocityAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
+
+        @Override
+        boolean isIsolatedProjectsCompatible() {
+            return false
+        }
 
         @Override
         BaseBuildScanPluginCheckInFixture getTransitivePluginFixture() {
@@ -52,6 +61,11 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
         private final GradleEnterprisePluginCheckInFixture gradleEnterpriseFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
         @Override
+        boolean isIsolatedProjectsCompatible() {
+            return true
+        }
+
+        @Override
         BaseBuildScanPluginCheckInFixture getTransitivePluginFixture() {
             // Develocity plugin is auto-applied but the Gradle Enterprise plugin is a transitive dependency
             gradleEnterpriseFixture
@@ -65,6 +79,8 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
     }
 
     def setup() {
+        Assume.assumeTrue(GradleContextualExecuter.notIsolatedProjects || isIsolatedProjectsCompatible())
+
         autoAppliedPluginFixture.publishDummyPlugin(executer)
 
         transitivePluginFixture.publishDummyPlugin(executer)

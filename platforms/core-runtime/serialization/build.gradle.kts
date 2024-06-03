@@ -34,4 +34,6 @@ dependencies {
 
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.errorProneAnnotations)
 }

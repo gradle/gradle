@@ -38,7 +38,6 @@ errorprone {
         "StreamResourceLeak", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 1 occurrences
-        "StringSplitter", // 4 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
@@ -53,6 +52,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -74,6 +74,7 @@ dependencies {
     api(project(":resources"))
     api(project(":security"))
     api(project(":snapshots"))
+    api(project(":build-process-services"))
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)

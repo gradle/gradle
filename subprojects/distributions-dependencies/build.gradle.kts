@@ -63,7 +63,6 @@ dependencies {
         api(libs.bouncycastlePkix)      { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
-        api(libs.capsule)               { version { strictly("0.6.3") }}
         api(libs.commonsCodec)          { version { strictly("1.16.1") } }
         api(libs.commonsCompress)       { version { strictly("1.26.1") } }
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }

@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -67,7 +68,7 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining("\n"));
-                try (Writer writer = new OutputStreamWriter(outputStream)) {
+                try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
                     writer.write(types);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);

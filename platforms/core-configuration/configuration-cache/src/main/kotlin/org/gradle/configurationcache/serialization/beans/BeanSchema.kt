@@ -20,13 +20,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
-import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.internal.serialize.graph.logUnsupportedBaseType
+import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
+import org.gradle.internal.serialize.graph.MutableIsolateContext
+import org.gradle.internal.serialize.graph.logUnsupported
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
@@ -118,7 +120,7 @@ fun MutableIsolateContext.reportUnsupportedFieldType(
 ) {
     withPropertyTrace(PropertyKind.Field, fieldName) {
         if (fieldValue == null) logUnsupported(action, unsupportedType)
-        else logUnsupported(action, unsupportedType, fieldValue::class.java)
+        else logUnsupportedBaseType(action, unsupportedType, unpackType(fieldValue))
     }
 }
 

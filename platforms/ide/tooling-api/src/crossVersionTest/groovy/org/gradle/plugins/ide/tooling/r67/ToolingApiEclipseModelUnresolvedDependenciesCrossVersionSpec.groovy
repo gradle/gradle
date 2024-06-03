@@ -18,11 +18,9 @@ package org.gradle.plugins.ide.tooling.r67
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=6.7')
 @TargetGradleVersion(">=6.7")
 class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends ToolingApiSpecification {
 

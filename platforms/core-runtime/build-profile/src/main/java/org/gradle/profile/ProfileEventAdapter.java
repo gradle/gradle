@@ -40,6 +40,7 @@ import org.gradle.internal.time.Clock;
 public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, TransformExecutionListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ContinuousOperation> currentTransform = new ThreadLocal<>();
     private final BuildProfile buildProfile;
 

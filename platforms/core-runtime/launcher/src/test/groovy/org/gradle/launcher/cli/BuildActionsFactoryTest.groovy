@@ -16,7 +16,6 @@
 package org.gradle.launcher.cli
 
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Actions
@@ -28,7 +27,10 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -39,7 +41,7 @@ import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess
+import org.gradle.tooling.internal.provider.RunInProcess
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -60,7 +62,8 @@ class BuildActionsFactoryTest extends Specification {
         loggingServices.add(OutputEventListener, Mock(OutputEventListener))
         loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
         loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
-        loggingServices.addProvider(new Object() {
+        loggingServices.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             Factory<LoggingManagerInternal> createFactory() {
                 return factoryLoggingManager
             }
@@ -166,7 +169,7 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts=[]) {
-        def request = new DaemonRequestContext(null, new DaemonJvmCriteria(JavaVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL)
+        def request = new DaemonRequestContext(null, new DaemonJvmCriteria(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL)
         request
     }
 
@@ -186,7 +189,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof ForwardStdInToThisProcess
+        assert executor instanceof RunInProcess
     }
 
     void isSingleUseDaemon(def action) {
@@ -202,6 +205,6 @@ class BuildActionsFactoryTest extends Specification {
 
     private BuildActionExecutor unwrapExecutor(Runnable runnable) {
         assert runnable instanceof RunBuildAction
-        return runnable.executer
+        return runnable.executor
     }
 }

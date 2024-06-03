@@ -16,38 +16,68 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Transformer;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
-import javax.annotation.Nullable;
+/**
+ * Implementation of {@link ComponentGraphResolveMetadata} for local components.
+ */
+public final class LocalComponentGraphResolveMetadata implements ComponentGraphResolveMetadata {
 
-public interface LocalComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
+    private final ComponentIdentifier componentId;
+    private final ModuleVersionIdentifier moduleVersionId;
+    private final String status;
+    private final AttributesSchemaInternal attributesSchema;
 
-    @Nullable
+    public LocalComponentGraphResolveMetadata(
+        ModuleVersionIdentifier moduleVersionId,
+        ComponentIdentifier componentId,
+        String status,
+        AttributesSchemaInternal attributesSchema
+    ) {
+        this.moduleVersionId = moduleVersionId;
+        this.componentId = componentId;
+        this.status = status;
+        this.attributesSchema = attributesSchema;
+    }
+
     @Override
-    LocalConfigurationMetadata getConfiguration(String name);
+    public ComponentIdentifier getId() {
+        return componentId;
+    }
 
-    LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
+    @Override
+    public ModuleVersionIdentifier getModuleVersionId() {
+        return moduleVersionId;
+    }
 
-    /**
-     * We currently allow a configuration that has been partially observed for resolution to be modified
-     * in a beforeResolve callback.
-     *
-     * To reduce the number of instances of root component metadata we create, we mark all configurations
-     * as dirty and in need of re-evaluation when we see certain types of modifications to a configuration.
-     *
-     * In the future, we could narrow the number of configurations that need to be re-evaluated, but it would
-     * be better to get rid of the behavior that allows configurations to be modified once they've been observed.
-     *
-     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder.MetadataHolder#tryCached(ComponentIdentifier)
-     */
-    void reevaluate();
+    @Override
+    public String toString() {
+        return componentId.getDisplayName();
+    }
 
-    /**
-     * Returns if the configuration with the given name has been realized.
-     */
-    @VisibleForTesting
-    boolean isConfigurationRealized(String configName);
+    @Override
+    public boolean isChanging() {
+        return false;
+    }
+
+    @Override
+    public String getStatus() {
+        return status;
+    }
+
+    @Override
+    public ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners() {
+        return ImmutableList.of();
+    }
+
+    @Override
+    public AttributesSchemaInternal getAttributesSchema() {
+        return attributesSchema;
+    }
+
 }

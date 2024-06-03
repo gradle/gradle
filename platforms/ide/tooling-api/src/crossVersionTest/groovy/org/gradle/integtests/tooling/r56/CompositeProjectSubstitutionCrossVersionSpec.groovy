@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r56
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
@@ -26,7 +25,6 @@ import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
 import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
 
 @TargetGradleVersion('>=5.6')
-@ToolingApiVersion(">=5.6")
 class CompositeProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification {
 
     TestFile buildA

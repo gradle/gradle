@@ -84,4 +84,4 @@ It is created for each project in the build definition, once per build execution
 Each [architecture module and platform](platforms.md) can contribute code to any of the elements.
 Not every module contributes to every element.
 
-A module does this by providing an implementation of `PluginServiceRegistry` that registers the services that the module contributes to each element. 
+A module does this by providing an implementation of `GradleModuleServices` that registers the services that the module contributes to each element. 

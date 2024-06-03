@@ -94,6 +94,7 @@ public class ArgWriter implements ArgCollector {
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
+    @SuppressWarnings("DefaultCharset")
     public static InternalTransformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final InternalTransformer<ArgWriter, PrintWriter> argWriterFactory) {
         return new InternalTransformer<List<String>, List<String>>() {
             @Override

@@ -20,6 +20,7 @@ import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -243,6 +244,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer barrier = new BlockingHttpServer()
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "can run multiple GradleBuild tasks concurrently"() {
         barrier.start()
 

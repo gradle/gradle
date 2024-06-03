@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -37,7 +36,7 @@ public class JvmVersionValidator {
             return;
         }
 
-        JavaVersion javaVersion = versionDetector.getJavaVersion(resolvedJvm);
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8, javaVersion);
+        int javaVersionMajor = versionDetector.getJavaVersionMajor(resolvedJvm);
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", 8, javaVersionMajor);
     }
 }

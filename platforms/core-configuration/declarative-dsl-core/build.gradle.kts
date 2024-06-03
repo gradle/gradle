@@ -20,11 +20,11 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     api(project(":declarative-dsl-tooling-models"))
 
-    api(libs.futureKotlin("compiler-embeddable"))
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinCompilerEmbeddable)
+    api(libs.kotlinStdlib)
 
     implementation(project(":declarative-dsl-api"))
-    implementation(libs.futureKotlin("reflect"))
+    implementation(libs.kotlinReflect)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 

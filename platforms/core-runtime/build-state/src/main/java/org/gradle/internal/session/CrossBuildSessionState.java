@@ -16,43 +16,21 @@
 
 package org.gradle.internal.session;
 
-import org.gradle.StartParameter;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
-import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
-import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
-import org.gradle.configuration.internal.DynamicCallContextTracker;
-import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
-import org.gradle.internal.code.DefaultUserCodeApplicationContext;
-import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultWorkerLimits;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.WorkerLimits;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.sink.OutputEventListenerManager;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.DefaultBuildOperationExecutor;
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
-import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
-import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.CrossBuildSessionParameters;
+import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
-import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.Closeable;
+import java.util.List;
 
 /**
  * Services to be shared across build sessions.
@@ -67,7 +45,7 @@ import java.io.Closeable;
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
-    public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
+    public CrossBuildSessionState(ServiceRegistry parent, StartParameterInternal startParameter) {
         this.services = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.CrossBuildSession.class)
             .displayName("cross session services")
@@ -87,71 +65,21 @@ public class CrossBuildSessionState implements Closeable {
         CompositeStoppable.stoppable(services).stop();
     }
 
-    @SuppressWarnings("unused")
-    private class Services {
+    private class Services implements ServiceRegistrationProvider {
 
-        private final StartParameter startParameter;
+        private final StartParameterInternal startParameter;
 
-        public Services(StartParameter startParameter) {
+        public Services(StartParameterInternal startParameter) {
             this.startParameter = startParameter;
         }
 
-        void configure(ServiceRegistration registration) {
-            registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
-            registration.add(DefaultWorkerLeaseService.class);
-            registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
-        }
-
-        CrossBuildSessionState createCrossBuildSessionState() {
-            return CrossBuildSessionState.this;
-        }
-
-        WorkerLimits createWorkerLimits() {
-            return new DefaultWorkerLimits(startParameter.getMaxWorkerCount());
-        }
-
-        BuildOperationExecutor createBuildOperationExecutor(
-            BuildOperationRunner buildOperationRunner,
-            CurrentBuildOperationRef currentBuildOperationRef,
-            WorkerLeaseService workerLeaseService,
-            ExecutorFactory executorFactory,
-            WorkerLimits workerLimits
-        ) {
-            return new DefaultBuildOperationExecutor(
-                buildOperationRunner,
-                currentBuildOperationRef,
-                new DefaultBuildOperationQueueFactory(workerLeaseService),
-                executorFactory,
-                workerLimits
-            );
-        }
-
-        UserCodeApplicationContext createUserCodeApplicationContext() {
-            return new DefaultUserCodeApplicationContext();
-        }
-
-        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
-        }
-
-        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
-        }
-
-        LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-            return new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter);
-        }
-
-        BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager) {
-            return new BuildOperationTrace(startParameter, buildOperationListenerManager);
-        }
-
-        BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager generalListenerManager) {
-            return new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
-        }
-
-        BuildOperationNotificationValve createBuildOperationNotificationValve(BuildOperationNotificationBridge buildOperationNotificationBridge) {
-            return buildOperationNotificationBridge.getValve();
+        @Provides
+        void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
+            for (GradleModuleServices services : servicesProviders) {
+                services.registerCrossBuildSessionServices(registration);
+            }
+            registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter));
+            registration.add(CrossBuildSessionState.class, CrossBuildSessionState.this);
         }
     }
 }

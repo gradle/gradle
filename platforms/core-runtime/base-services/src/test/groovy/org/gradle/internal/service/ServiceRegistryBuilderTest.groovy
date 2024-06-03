@@ -39,8 +39,8 @@ class ServiceRegistryBuilderTest extends Specification {
     @ServiceScope(Scope.BuildTree)
     static class BuildTreeScopedService {}
 
-    static class ScopedServiceProvider {
-        @SuppressWarnings('unused')
+    static class ScopedServiceProvider implements ServiceRegistrationProvider {
+        @Provides
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
         }

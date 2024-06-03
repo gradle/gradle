@@ -81,7 +81,9 @@ class DefaultMetadataProvider implements MetadataProvider {
         if (metadata != null) {
             metadata = transformThroughComponentMetadataRules(componentMetadataSupplier, metadata);
         } else if (resolve()) {
-            metadata = new ComponentMetadataAdapter(cachedResult.getMetaData().getLegacyMetadata());
+            @SuppressWarnings("deprecation")
+            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            metadata = new ComponentMetadataAdapter(legacyMetadata);
         }
         return metadata;
     }
@@ -105,9 +107,10 @@ class DefaultMetadataProvider implements MetadataProvider {
     @Override
     public IvyModuleDescriptor getIvyModuleDescriptor() {
         if (resolve()) {
-            ExternalComponentResolveMetadata metaData = cachedResult.getMetaData().getLegacyMetadata();
-            if (metaData instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
+            @SuppressWarnings("deprecation")
+            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            if (legacyMetadata instanceof IvyModuleResolveMetadata) {
+                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) legacyMetadata;
                 return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
             }
         }

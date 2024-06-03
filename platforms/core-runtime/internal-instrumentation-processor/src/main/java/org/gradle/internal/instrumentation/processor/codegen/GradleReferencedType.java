@@ -31,14 +31,11 @@ public enum GradleReferencedType {
     SET_PROPERTY_SET_VIEW("org.gradle.api.internal.provider.views.SetPropertySetView"),
     MAP_PROPERTY_MAP_VIEW("org.gradle.api.internal.provider.views.MapPropertyMapView");
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final Type type;
 
     GradleReferencedType(String name) {
         this.type = Type.getType("L" + name.replace('.', '/') + ";");
-    }
-
-    public Type asType() {
-        return type;
     }
 
     public TypeName asTypeName() {

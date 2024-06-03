@@ -18,24 +18,18 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Types for build state management"
+description = "Types for build process and session state management"
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":base-services"))
     api(project(":java-language-extensions"))
-    api(project(":core-api"))
-    api(project(":file-collections"))
     api(project(":daemon-protocol"))
     api(project(":logging"))
 
-    implementation(project(":build-operations"))
-    implementation(project(":files"))
-    implementation(project(":hashing"))
+    implementation(project(":core-api"))
     implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":time"))
     implementation(project(":concurrent"))
     implementation(project(":logging-api"))
     implementation(project(":problems-api"))

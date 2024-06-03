@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.time.Clock;
 
 public interface WorkerTestClassProcessorFactory {
-    TestClassProcessor create(ServiceRegistry serviceRegistry);
+    TestClassProcessor create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock);
 }

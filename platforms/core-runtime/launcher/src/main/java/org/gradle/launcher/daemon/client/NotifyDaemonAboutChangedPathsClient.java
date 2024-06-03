@@ -28,8 +28,6 @@ import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,8 +37,6 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Can
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
 
 public class NotifyDaemonAboutChangedPathsClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotifyDaemonAboutChangedPathsClient.class);
-
     private final DaemonConnector connector;
     private final IdGenerator<UUID> idGenerator;
     private final DaemonRegistry daemonRegistry;

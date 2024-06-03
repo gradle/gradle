@@ -237,10 +237,10 @@ public abstract class AvailableJavaHomes {
      */
     public static Jvm getDifferentJdkWithValidJre() {
         return getSupportedJdk(jvm -> !isCurrentJavaHome(jvm)
-            && Jvm.discovered(jvm.getJavaHome().toFile(), null, jvm.getLanguageVersion()).getJre() != null);
+            && Jvm.discovered(jvm.getJavaHome().toFile(), null, jvm.getLanguageVersion().getMajorVersionNumber()).getJre() != null);
     }
 
-    private static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
+    public static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
         return metadata.getJavaHome().toFile().equals(Jvm.current().getJavaHome());
     }
 
@@ -272,7 +272,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static Jvm jvmFromMetadata(JvmInstallationMetadata metadata) {
-        return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getJavaVersion(), metadata.getLanguageVersion());
+        return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getJavaVersion(), metadata.getLanguageVersion().getMajorVersionNumber());
     }
 
     public static List<JvmInstallationMetadata> getAvailableJvmMetadatas() {

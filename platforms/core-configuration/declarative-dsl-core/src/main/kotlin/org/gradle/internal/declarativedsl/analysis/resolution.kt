@@ -12,12 +12,19 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 data class ResolutionResult(
     val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
     val assignments: List<AssignmentRecord>,
-    val additions: List<DataAddition>,
+    val additions: List<DataAdditionRecord>,
+    val nestedObjectAccess: List<NestedObjectAccessRecord>,
     val errors: List<ResolutionError>,
+    val conventionAssignments: List<AssignmentRecord> = emptyList(),
+    val conventionAdditions: List<DataAdditionRecord> = emptyList(),
+    val conventionNestedObjectAccess: List<NestedObjectAccessRecord> = emptyList()
 )
 
 
-data class DataAddition(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+
+
+data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin.AccessAndConfigureReceiver)
 
 
 data class ResolutionError(
@@ -49,4 +56,15 @@ sealed interface ErrorReason {
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
     data object UnitAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
+}
+
+
+/**
+ * Represents the "generation" of a particular operation (either an addition function call or a property assignment operation).  The order of generations
+ * is important as calls in later generations can override calls in earlier generations, but no the other way around.  For instance, a property assignment
+ * can override a convention assignment, but a convention assignment cannot override a property assignment.
+ */
+enum class OperationGenerationId {
+    CONVENTION_ASSIGNMENT,
+    PROPERTY_ASSIGNMENT
 }

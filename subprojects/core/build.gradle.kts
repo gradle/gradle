@@ -62,7 +62,6 @@ errorprone {
         "SameNameButDifferent", // 11 occurrences
         "StreamResourceLeak", // 6 occurrences
         "StringCaseLocaleUsage", // 11 occurrences
-        "StringSplitter", // 2 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
@@ -76,6 +75,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
@@ -111,7 +111,8 @@ dependencies {
     api(project(":process-services"))
     api(project(":resources"))
     api(project(":snapshots"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
+    api(project(":build-process-services"))
 
     api(libs.ant)
     api(libs.asm)
@@ -143,7 +144,7 @@ dependencies {
     }
     implementation(libs.xmlApis)
 
-    compileOnly(libs.futureKotlin("stdlib")) {
+    compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
     }
 
@@ -304,6 +305,10 @@ tasks.test {
 
 tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
+}
+
+tasks.isolatedProjectsIntegTest {
+    enabled = true
 }
 
 integTest.usesJavadocCodeSnippets = true

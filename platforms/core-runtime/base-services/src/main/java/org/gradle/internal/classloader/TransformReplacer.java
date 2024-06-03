@@ -279,6 +279,7 @@ public class TransformReplacer implements Closeable {
 
         public static final String RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
 
+        @SuppressWarnings("ImmutableEnumChecker")
         private final byte[] markerBody;
 
         MarkerResource(byte[] markerBody) {

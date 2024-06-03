@@ -30,8 +30,6 @@ import org.gradle.internal.serialize.Serializer;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -95,24 +93,18 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Nullable Consumer<? super PersistentCache> initializer,
         CacheCleanupStrategy cacheCleanupStrategy
     ) {
-        File canonicalDir;
-        try {
-            canonicalDir = cacheDir.getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
+        DirCacheReference dirCacheReference = dirCaches.get(cacheDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
                 Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+                cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
             } else {
-                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+                cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
-            dirCaches.put(canonicalDir, dirCacheReference);
+            dirCaches.put(cacheDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));

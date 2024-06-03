@@ -24,10 +24,11 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 public interface ExternalComponentGraphResolveState extends ComponentGraphResolveState {
 
     /**
-     * Try to avoid using this. This method exposes legacy stateful metadata. Usages should be
+     * @deprecated Try to avoid using this. This method exposes legacy stateful metadata. Usages should be
      * replaced by using the stateful types like {@link ComponentGraphResolveState} and
      * {@link org.gradle.internal.component.model.ComponentArtifactResolveState}.
      */
+    @Deprecated
     ExternalComponentResolveMetadata getLegacyMetadata();
 
 }
