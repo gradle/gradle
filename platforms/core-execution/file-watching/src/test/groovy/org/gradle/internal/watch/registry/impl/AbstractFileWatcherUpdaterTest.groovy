@@ -150,7 +150,16 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
     }
 
-    def "fails when discovering a hierarchy to watch and there is already something in the VFS"() {
+    /**
+     * This can happen when a file is loaded into the VFS before the hierarchy is registered.
+     * Currently, this is the case for configuration cache.
+     * It {@link org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintChecker#checkFileUpToDateStatus reads a snapshot} to check if a file is up-to-date.
+     * That can happen before watchable hierarchy is registered if a build is run, then another unrelated build is run (clearing the state),
+     * and the original build is run again.
+     */
+    def "allows to reuse snapshot loaded into VFS before watchable hierarchy was registered"() {
+        // currently, this is the case for configuration cache
+        //
         def watchableHierarchy = file("watchable").createDir()
         def fileInWatchableHierarchy = watchableHierarchy.file("some/dir/file.txt").createFile()
 
@@ -162,8 +171,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         registerWatchableHierarchies([watchableHierarchy])
         then:
-        def exception = thrown(IllegalStateException)
-        exception.message == "Found existing snapshot at '${fileInWatchableHierarchy.absolutePath}' for unwatched hierarchy '${watchableHierarchy.absolutePath}'"
+        noExceptionThrown()
     }
 
     def "does not watch symlinks and removes symlinks at the end of the build"() {

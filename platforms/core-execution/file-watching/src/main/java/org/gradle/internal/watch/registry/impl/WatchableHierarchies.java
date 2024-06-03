@@ -74,7 +74,7 @@ public class WatchableHierarchies {
         this.immutableLocationsFilter = immutableLocationsFilter;
     }
 
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    public void registerWatchableHierarchy(File watchableHierarchy) {
         String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
         if (immutableLocationsFilter.test(watchableHierarchyPath)) {
             throw new IllegalStateException(String.format(
@@ -87,13 +87,12 @@ public class WatchableHierarchies {
             LOGGER.info("Not watching {} since the file system is not supported", watchableHierarchy);
             return;
         }
-        doRegisterWatchableHierarchy(watchableHierarchy, root);
+        doRegisterWatchableHierarchy(watchableHierarchy);
     }
 
-    private void doRegisterWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    private void doRegisterWatchableHierarchy(File watchableHierarchy) {
         String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
         if (!watchableFiles.contains(watchableHierarchyPath)) {
-            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPath, root);
             hierarchies.addFirst(watchableHierarchy);
             watchableFiles = watchableFiles.plus(watchableHierarchy);
         } else {
@@ -256,7 +255,7 @@ public class WatchableHierarchies {
             // Replay the watchable hierarchies since the end of last build, since they have become watchable.
             for (File watchableHierarchy : watchableHierarchiesSinceLastBuildFinish) {
                 if (!unwatchableFiles.contains(watchableHierarchy)) {
-                    doRegisterWatchableHierarchy(watchableHierarchy, newRoot);
+                    doRegisterWatchableHierarchy(watchableHierarchy);
                 }
             }
         }
@@ -275,19 +274,6 @@ public class WatchableHierarchies {
      */
     public Stream<File> stream() {
         return hierarchies.stream();
-    }
-
-    private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
-        vfsRoot.rootSnapshotsUnder(watchableHierarchy)
-            .filter(snapshotRoot -> !isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot))
-            .findAny()
-            .ifPresent(snapshotRoot -> {
-                throw new IllegalStateException(String.format(
-                    "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
-                    snapshotRoot.getAbsolutePath(),
-                    watchableHierarchy
-                ));
-            });
     }
 
     public boolean ignoredForWatching(FileSystemLocationSnapshot snapshot) {

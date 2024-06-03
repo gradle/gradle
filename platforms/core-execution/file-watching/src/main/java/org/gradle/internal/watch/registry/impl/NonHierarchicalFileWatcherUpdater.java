@@ -70,7 +70,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                decrement(previousWatchedRoot, changedWatchedDirectories);
+                if (previousWatchedRoot == null) {
+                    LOGGER.debug("Trying to unwatch directory {} that was not watched", snapshot.getAbsolutePath());
+                } else {
+                    decrement(previousWatchedRoot, changedWatchedDirectories);
+                }
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
             });
         addedSnapshots.stream()
