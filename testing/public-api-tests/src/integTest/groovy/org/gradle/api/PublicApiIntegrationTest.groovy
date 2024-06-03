@@ -149,7 +149,18 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     private configureApiWithPlugin(String pluginDefinition) {
         """
             plugins {
+                id("java-gradle-plugin")
                 $pluginDefinition
+            }
+
+            gradlePlugin {
+                gradleApiVersion = "$apiJarVersion"
+                plugins {
+                    create("plugin") {
+                        id = "test.plugin"
+                        implementationClass = "org.example.PublishedApiTestPlugin"
+                    }
+                }
             }
 
             repositories {
@@ -157,10 +168,6 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
                     url = uri("$apiJarRepoLocation")
                 }
                 mavenCentral()
-            }
-
-            dependencies {
-                implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
             }
         """
     }

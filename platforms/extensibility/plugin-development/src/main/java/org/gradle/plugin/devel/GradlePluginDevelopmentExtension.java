@@ -85,6 +85,14 @@ public abstract class GradlePluginDevelopmentExtension {
     }
 
     /**
+     * Get the version of the Gradle API to compile against.
+     *
+     * @since 8.9
+     */
+    @Incubating
+    public abstract Property<String> getGradleApiVersion();
+
+    /**
      * Provides the source set that compiles the code under test.
      *
      * @param pluginSourceSet the plugin source set

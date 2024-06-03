@@ -137,8 +137,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
-        applyDependencies(project);
         GradlePluginDevelopmentExtension extension = createExtension(project);
+        applyDependencies(project, extension);
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
@@ -155,9 +155,11 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration)));
     }
 
-    private void applyDependencies(Project project) {
-        DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+    private static void applyDependencies(Project project, GradlePluginDevelopmentExtension extension) {
+        Configuration apiConfiguration = JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration();
+        apiConfiguration.getDependencies().addLater(extension.getGradleApiVersion().map(version ->
+            project.getDependencies().create("org.gradle.experimental:gradle-public-api:" + version)
+        ).orElse(project.provider(() -> project.getDependencies().gradleApi())));
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
