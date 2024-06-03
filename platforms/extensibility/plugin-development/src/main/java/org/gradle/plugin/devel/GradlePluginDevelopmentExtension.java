@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -126,6 +128,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the plugin source set
      */
+    @ToBeReplacedByLazyProperty
     public SourceSet getPluginSourceSet() {
         return pluginSourceSet;
     }
@@ -135,6 +138,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the test source sets
      */
+    @ToBeReplacedByLazyProperty
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
     }
@@ -164,6 +168,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the declared plugins, never null
      */
+    @ToBeKeptEagerProperty(because = "Container property")
     public NamedDomainObjectContainer<PluginDeclaration> getPlugins() {
         return plugins;
     }
@@ -181,6 +186,7 @@ public abstract class GradlePluginDevelopmentExtension {
      * Whether the plugin should automatically configure the publications for the plugins.
      * @return true if publishing should be automated, false otherwise
      */
+    @ToBeReplacedByLazyProperty
     public boolean isAutomatedPublishing() {
         return automatedPublishing;
     }
