@@ -21,8 +21,9 @@ import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.reflect.KClass
@@ -51,8 +52,8 @@ class GeneralGradleDslSchemaTest {
     fun schemaFrom(topLevelReceiverClass: KClass<*>) =
         buildEvaluationSchema(
             topLevelReceiverClass,
-            gradleDslGeneralSchemaComponent(),
-            analyzeEverything
+            analyzeEverything,
+            schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema,
         )
 
     private

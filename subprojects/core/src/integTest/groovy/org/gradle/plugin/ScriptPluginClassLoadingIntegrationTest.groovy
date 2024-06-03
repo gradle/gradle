@@ -17,7 +17,10 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
@@ -136,6 +139,10 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("Could not find method someMethod()"))
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises IP incompatible behavior"
+    )
     def "methods defined in a build script are visible to scripts applied to sub projects"() {
         given:
         settingsFile << "include 'sub'"
@@ -197,6 +204,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("unable to resolve class Foo"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Investigate")
     def "script plugin buildscript does not affect client"() {
         given:
         def jar = file("plugin.jar")

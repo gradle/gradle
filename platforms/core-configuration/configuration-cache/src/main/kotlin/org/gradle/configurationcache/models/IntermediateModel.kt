@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.models
 
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.tooling.provider.model.UnknownModelException
 
 

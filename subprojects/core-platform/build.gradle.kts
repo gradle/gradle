@@ -9,8 +9,17 @@ javaPlatform.allowDependencies()
 dependencies {
     runtime(project(":installation-beacon"))
     runtime(project(":api-metadata"))
-    runtime(project(":launcher")) {
-        because("This is the entry point of Gradle core which transitively depends on all other core projects.")
+    runtime(project(":daemon-server")) {
+        because("This is the Gradle daemon implementation, which transitively depends on all other core projects.")
+    }
+    runtime(project(":gradle-cli-main")) {
+        because("This is the entry point of the `gradle` command.")
+    }
+    runtime(project(":daemon-main")) {
+        because("This is the entry point of the Gradle daemon.")
+    }
+    runtime(project(":tooling-api-provider")) {
+        because("This is the entry point of the tooling API provider, which is the version-specific client part of the tooling API.")
     }
     runtime(project(":kotlin-dsl")) {
         because("Adds support for Kotlin DSL scripts.")

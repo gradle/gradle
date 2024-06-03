@@ -404,7 +404,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // e: Unknown JVM target version: 21
         // Supported versions: 1.6, 1.8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
-            it.languageVersion.majorVersion.toInteger() <= 17
+            it.languageVersion.majorVersionNumber <= 17
         }))
 
         given:
@@ -464,6 +464,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
+                    "Property was automatically upgraded to the lazy version. " +
                     "Please use the destinationDirectory property instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
             executer.expectDocumentedDeprecationWarning(
@@ -486,10 +487,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // KGP performed convention registration at config time until 1.9.20
         if (kotlinVersionNumber <= VersionNumber.parse("1.9.20")) {
             executer.expectDocumentedDeprecationWarning(
-                    "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                            "This is scheduled to be removed in Gradle 9.0. " +
-                            "Consult the upgrading guide for further information: " +
-                            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -666,12 +667,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private static String latestStableKotlinPluginVersion(String minorVersion) {
-        def stable = kgpLatestVersions.findAll { it.startsWith(minorVersion) && !it.contains("-") }
+    private static String latestStableKotlinPluginVersion(String kotlinMajorMinor) {
+        def stable = kgpLatestVersions.findAll { it.startsWith(kotlinMajorMinor) && !it.contains("-") }
+        println("================")
+        println(kgpLatestVersions)
+        println(kotlinMajorMinor)
         if (stable.isEmpty()) {
-            throw new IllegalStateException("No stable Kotlin plugin version found for minor version $minorVersion. " +
+            throw new IllegalStateException("No stable Kotlin plugin version found for version $kotlinMajorMinor. " +
                 "Please, use major.minor version in the test and make sure it has corresponding version in kotlin-versions.properties.")
         }
+        println(stable)
         return stable.last()
     }
 }

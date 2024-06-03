@@ -19,7 +19,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
-    testImplementation(libs.futureKotlin("stdlib"))
+    testImplementation(libs.kotlinStdlib)
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)

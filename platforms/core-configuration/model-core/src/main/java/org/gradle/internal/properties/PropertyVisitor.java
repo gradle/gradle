@@ -16,6 +16,7 @@
 
 package org.gradle.internal.properties;
 
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.services.BuildService;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -24,7 +25,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import javax.annotation.Nullable;
 
 /**
- * Visits properties of beans which are inputs, outputs, destroyables, local state or service references.
+ * Visits properties of beans which are inputs, outputs, destroyables, local state, service references or software types.
  */
 public interface PropertyVisitor {
     default void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable FileNormalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {}
@@ -41,4 +42,6 @@ public interface PropertyVisitor {
      * Visits a service reference. Service references may or may not be declared with a name.
      */
     default void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {}
+
+    default void visitSoftwareTypeProperty(String propertyName, PropertyValue value, SoftwareType softwareType) {}
 }

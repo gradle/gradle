@@ -23,7 +23,9 @@ import org.gradle.test.fixtures.file.TestFile
 class SystemPropertiesCompositeBuildFixture {
 
     static Set<List<BuildWithSystemPropertyDefined>> definitions() {
-        Set<List<BuildWithSystemPropertyDefined>> containsIncludedBuildDefinitions = new HashSet()
+        // The order needs to be consistent here for the retry plugin to work,
+        // see https://github.com/gradle/gradle/pull/25605
+        Set<List<BuildWithSystemPropertyDefined>> containsIncludedBuildDefinitions = new LinkedHashSet<>()
 
         Set<List<BuildWithSystemPropertyDefined>> allDefinitions = [
             new RootBuild() as BuildWithSystemPropertyDefined,

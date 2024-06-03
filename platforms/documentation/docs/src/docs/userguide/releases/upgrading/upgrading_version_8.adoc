@@ -35,6 +35,30 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.9]]
+== Upgrading from 8.8 and earlier
+
+=== Potential breaking changes
+
+==== Change to toolchain provisioning
+In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**. This could lead to strange behavior with the toolchain. In Gradle 8.9, the toolchain is now fully provisioned before the marker file is written. However, in order to not detect potentially broken toolchains, a different marker file (`.ready`) is used. This means that all of your existing toolchains will be re-provisioned the first time you use them with Gradle 8.9. Gradle 8.9 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned. This means that if you go back to an older version of Gradle, a 8.9-provisioned toolchain will **not** be re-provisioned.
+
+==== Upgrade to Kotlin 1.9.23
+
+The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
+
+==== Change the encoding of daemon log files
+In previous versions of Gradle, the daemon log file, located at `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`, was encoded with the default JVM encoding.
+To prevent clients that may use different default encoding from reading data incorrectly, this file is now always encoded with UTF-8.
+This change may affect third-party tools trying to read this file.
+
+==== Compiling against Gradle implementation classpath
+
+In previous versions of Gradle, it was possible for Java projects that had no declared dependencies to implicitly compile against Gradle's runtime classes.
+This means it was possible for some projects to compile without any declared dependencies even though they referenced Gradle runtime classes.
+We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
+If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
@@ -210,6 +234,7 @@ This allows for more granular control over which artifacts are selected.
 
 [[deprecated_namers]]
 ==== Deprecated `Namer` of `Task` and `Configuration`
+
 `Task` and `Configuration` have a link:{javadocPath}/org/gradle/api/Namer.html[`Namer`] inner class (also called `Namer`) that can be used as a common way to retrieve the name of a task or configuration.
 Now that these types implement link:{javadocPath}/org/gradle/api/Named.html[`Named`], these classes are no longer necessary and have been deprecated.
 They will be removed in Gradle 9.0.
@@ -268,6 +293,38 @@ beforeSettings {
 Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
 If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
 
+[[gradle_enterprise_extension_deprecated]]
+==== Deprecated Kotlin DSL gradle-enterprise plugin block extension ====
+
+In `settings.gradle.kts` (Kotlin DSL), you can use `gradle-enterprise` in the plugins block to apply the Gradle Enterprise plugin with the same version as `gradle --scan`.
+```kotlin
+plugins {
+    `gradle-enterprise`
+}
+```
+
+There is no equivalent to this in `settings.gradle` (Groovy DSL).
+
+Gradle Enterprise has been renamed to Develocity and the `com.gradle.enterprise` plugin has been renamed to `com.gradle.develocity`.
+Therefore, the `gradle-enterprise` plugin block extension has been deprecated and will be removed in Gradle 9.0.
+
+The Develocity plugin must be applied with an explicit plugin id and version.
+There is no `develocity` shorthand available in the plugins block.
+```kotlin
+plugins {
+    id("com.gradle.develocity") version "3.17.3"
+}
+```
+
+If you want to continue using the Gradle Enterprise plugin, you can specify the deprecated plugin id.
+```kotlin
+plugins {
+    id("com.gradle.enterprise") version "3.17.3"
+}
+```
+
+We encourage you to use the https://plugins.gradle.org/plugin/com.gradle.develocity[latest released Develocity plugin version], even when you are using an older Gradle version.
+
 === Potential breaking changes
 
 ==== Changes in the Problems API
@@ -276,7 +333,17 @@ We have implemented several refactorings of the Problems API, including a signif
 The complete design specification can be found https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6[here].
 
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
+
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
+
+==== Changes to collection properties
+
+The following incubating API introduced in 8.7 have been removed:
+
+* `MapProperty.insert*(...)`
+* `HasMultipleValues.append*(...)`
+
+Replacements that better handle conventions are under consideration for a future 8.x release.
 
 ==== Upgrade to Groovy 3.0.21
 

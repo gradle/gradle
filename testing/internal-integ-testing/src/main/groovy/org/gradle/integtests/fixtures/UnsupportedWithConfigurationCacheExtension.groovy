@@ -24,9 +24,9 @@ import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isAllIterations
+import static ToBeFixedSpecInterceptor.isAllIterations
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
+import static ToBeFixedSpecInterceptor.iterationMatches
 
 class UnsupportedWithConfigurationCacheExtension implements IAnnotationDrivenExtension<UnsupportedWithConfigurationCache> {
 

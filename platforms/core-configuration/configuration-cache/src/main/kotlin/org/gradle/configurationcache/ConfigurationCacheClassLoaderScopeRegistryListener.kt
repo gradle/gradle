@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.configurationcache.serialization.ClassLoaderRole
+import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin

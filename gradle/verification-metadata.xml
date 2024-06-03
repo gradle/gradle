@@ -346,18 +346,18 @@
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2023.2.1.24">
-         <artifact name="android-studio-2023.2.1.24.linux.tar.gz">
-            <sha256 value="0026427572849c9cbb0c94d6f9718ea08bc345dccfe3b372b54100a95fff99b5" origin="Verified" reason="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2023.3.1.18">
+         <artifact name="android-studio-2023.3.1.18.linux.tar.gz">
+            <sha256 value="46a9b4a311820b2c1841110affa286d65665ac9f8970fd9e9eb903c3d7aa436e" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.24.mac.zip">
-            <sha256 value="c0bf9d6f7ee5fe8f61e556a2326c73dabea4ba0b2e6b13bfed824268dcc7e585" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.3.1.18.mac.zip">
+            <sha256 value="b0b5a2cec33e331c30727a06356c2724e7d9a8f5e78dc76cdb62eb6f2442c569" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.24.mac_arm.zip">
-            <sha256 value="736c7c372353925378205087c59b58ac7a0e9a26c096e72796017f4f5f29562b" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.3.1.18.mac_arm.zip">
+            <sha256 value="86755aaa6d515cbbc0e953f228333289daf573a2728a4ee592054ca43b4cf52d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.24.windows.zip">
-            <sha256 value="da1c548b6d57f1dd63737cb248cf6760eddbd79ab21e8b1e3c3b55123ab4ef57" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.3.1.18.windows.zip">
+            <sha256 value="35c673127615c86bde61f5ab91abdcdd510275c8c81e26fa2910166a0d6852da" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
@@ -860,9 +860,9 @@
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.0">
-         <artifact name="gradle-enterprise-conventions-plugin-0.10.0.jar">
-            <sha256 value="616a3b59e603d1e22f6da9cae020fb3d007163cfa3fa85b57fa0eac394e46a95" origin="Verified" reason="Artifact is not signed"/>
+      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.1">
+         <artifact name="gradle-enterprise-conventions-plugin-0.10.1.jar">
+            <sha256 value="69487b9158b5ec4620a9adbd5cc63fdfd1b00ce482bfa595f0340594ae10e388" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">
@@ -878,11 +878,6 @@
       <component group="io.netty" name="netty-all" version="4.1.63.Final">
          <artifact name="netty-all-4.1.63.Final.jar">
             <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-         </artifact>
-      </component>
-      <component group="io.usethesource" name="capsule" version="0.6.3">
-         <artifact name="capsule-0.6.3.jar">
-            <sha256 value="38df64de67bd7c953f3643bdc34fe5fc674eb7e42b8f65f01e2233b8e5006a09" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="it.unimi.dsi" name="fastutil" version="8.5.2">

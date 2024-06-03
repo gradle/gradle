@@ -181,7 +181,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.failed == [test]
     }
 
-    @TargetGradleVersion(">=2.6 <3.6")
+    @TargetGradleVersion(">=3.0 <3.6")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
         server.start()

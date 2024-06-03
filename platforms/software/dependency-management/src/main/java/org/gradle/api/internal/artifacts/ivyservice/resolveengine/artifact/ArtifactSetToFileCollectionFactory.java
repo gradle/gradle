@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -25,8 +26,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -197,11 +198,11 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getDisplayName(), failures));
+                return Optional.of(new TypedResolveException(type, displayName, failures));
             }
         }
     }

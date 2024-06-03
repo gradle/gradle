@@ -28,9 +28,9 @@ class ScriptExecuter {
     @Override
     ExecHandle build() {
         if (OperatingSystem.current().isWindows()) {
-            def theArgs = ['/c', executable.replace('/', File.separator)] + getArgs()
+            def theArgs = ['/d', '/c', executable.replace('/', File.separator)] + getArgs()
             setArgs(theArgs) //split purposefully to avoid weird windows CI issue
-            executable = 'cmd'
+            executable = 'cmd.exe'
         } else {
             executable = "${workingDir}/${executable}"
         }

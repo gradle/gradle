@@ -150,7 +150,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             if (((access & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
                 missingStaticStringConstantGetters.put("get" + name, name);
             }
-            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && (Type.getDescriptor(boolean.class).equals(desc))) {
+            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && Type.getDescriptor(boolean.class).equals(desc)) {
                 booleanFields.add(name);
             }
             return super.visitField(access, name, desc, signature, value);

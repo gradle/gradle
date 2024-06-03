@@ -8,14 +8,13 @@ errorprone {
     disabledChecks.addAll(
         "NotJavadoc", // 1 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
         "UnusedMethod", // 2 occurrences
         "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-services"))
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":resources"))
@@ -31,6 +30,7 @@ dependencies {
     }
     api(libs.guava)
 
+    implementation(projects.baseServices)
     implementation(project(":hashing"))
 
     implementation(libs.commonsLang)

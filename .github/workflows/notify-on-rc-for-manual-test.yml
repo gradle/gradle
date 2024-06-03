@@ -5,6 +5,8 @@ on:
     tags:
       - 'v*.*.*-RC1'
 
+permissions: {}
+
 jobs:
   send-slack-notification:
     runs-on: ubuntu-latest

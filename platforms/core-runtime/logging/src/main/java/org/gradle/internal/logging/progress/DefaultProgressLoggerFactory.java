@@ -35,6 +35,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final Clock clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 

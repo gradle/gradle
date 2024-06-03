@@ -16,11 +16,11 @@
 
 package org.gradle.configurationcache.initialization
 
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.classpath.CachedClasspathTransformer
 
 
@@ -33,8 +33,7 @@ class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
             PropertyProblem(
                 PropertyTrace.Gradle,
                 StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
-                null,
-                DocumentationSection.NotYetImplementedTestKitJavaAgent
+                documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
             )
         )
         return CachedClasspathTransformer.StandardTransform.BuildLogic

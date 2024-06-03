@@ -18,10 +18,13 @@ package org.gradle.internal.service;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static org.gradle.util.internal.ArrayUtils.contains;
 
 public class RelevantMethods {
     private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
@@ -31,91 +34,82 @@ public class RelevantMethods {
     final List<ServiceMethod> factories;
     final List<ServiceMethod> configurers;
 
-    RelevantMethods(List<Method> decorators, List<Method> factories, List<Method> configurers) {
-        this.decorators = toServiceMethodList(decorators);
-        this.factories = toServiceMethodList(factories);
-        this.configurers = toServiceMethodList(configurers);
+    private RelevantMethods(List<ServiceMethod> decorators, List<ServiceMethod> factories, List<ServiceMethod> configurers) {
+        this.decorators = decorators;
+        this.factories = factories;
+        this.configurers = configurers;
     }
 
-    private static List<ServiceMethod> toServiceMethodList(List<Method> methods) {
-        List<ServiceMethod> result = new ArrayList<ServiceMethod>(methods.size());
-        for (Method method : methods) {
-            result.add(SERVICE_METHOD_FACTORY.toServiceMethod(method));
-        }
-        return result;
-    }
-
-    public static RelevantMethods getMethods(Class<?> type) {
+    public static RelevantMethods getMethods(Class<? extends ServiceRegistrationProvider> type) {
         RelevantMethods relevantMethods = METHODS_CACHE.get(type);
         if (relevantMethods == null) {
-            relevantMethods = buildRelevantMethods(type);
+            relevantMethods = new RelevantMethodsBuilder(type).build();
             METHODS_CACHE.putIfAbsent(type, relevantMethods);
         }
-
         return relevantMethods;
     }
 
-    private static RelevantMethods buildRelevantMethods(Class<?> type) {
-        RelevantMethodsBuilder builder = new RelevantMethodsBuilder(type);
-        RelevantMethods relevantMethods;
-        addDecoratorMethods(builder);
-        addFactoryMethods(builder);
-        addConfigureMethods(builder);
-        relevantMethods = builder.build();
-        return relevantMethods;
-    }
+    private static class RelevantMethodsBuilder {
+        private final Class<?> type;
+        private final List<ServiceMethod> decorators = new ArrayList<ServiceMethod>();
+        private final List<ServiceMethod> factories = new ArrayList<ServiceMethod>();
+        private final List<ServiceMethod> configurers = new ArrayList<ServiceMethod>();
 
-    private static void addConfigureMethods(RelevantMethodsBuilder builder) {
-        Class<?> type = builder.type;
-        Iterator<Method> iterator = builder.remainingMethods.iterator();
-        while (iterator.hasNext()) {
-            Method method = iterator.next();
+        private final Set<String> seen = new HashSet<String>();
+
+        public RelevantMethodsBuilder(Class<? extends ServiceRegistrationProvider> type) {
+            this.type = type;
+        }
+
+        public RelevantMethods build() {
+            for (Class<?> clazz = type; clazz != Object.class && clazz != DefaultServiceRegistry.class; clazz = clazz.getSuperclass()) {
+                for (Method method : clazz.getDeclaredMethods()) {
+                    if (Modifier.isStatic(method.getModifiers())) {
+                        continue;
+                    }
+                    addMethod(method);
+                }
+            }
+            return new RelevantMethods(decorators, factories, configurers);
+        }
+
+        private void addMethod(Method method) {
             if (method.getName().equals("configure")) {
                 if (!method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must return void.", type.getSimpleName(), method.getName()));
+                    throw new ServiceValidationException(String.format("Method %s.%s() must return void.", type.getName(), method.getName()));
                 }
-                builder.add(iterator, builder.configurers, method);
-            }
-        }
-    }
-
-    private static void addFactoryMethods(RelevantMethodsBuilder builder) {
-        Class<?> type = builder.type;
-        Iterator<Method> iterator = builder.remainingMethods.iterator();
-        while (iterator.hasNext()) {
-            Method method = iterator.next();
-            if (method.getName().startsWith("create") && !Modifier.isStatic(method.getModifiers())) {
-                if (method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
+                add(configurers, method);
+            } else if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
+                if (method.getAnnotation(Provides.class) == null) {
+                    throw new ServiceValidationException(String.format("Method %s.%s() must be annotated with @Provides.", type.getName(), method.getName()));
                 }
-                builder.add(iterator, builder.factories, method);
-            }
-        }
-    }
-
-    private static void addDecoratorMethods(RelevantMethodsBuilder builder) {
-        Class<?> type = builder.type;
-        Iterator<Method> iterator = builder.remainingMethods.iterator();
-        while (iterator.hasNext()) {
-            Method method = iterator.next();
-            if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
                 if (method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
+                    throw new ServiceValidationException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
                 }
                 if (takesReturnTypeAsParameter(method)) {
-                    builder.add(iterator, builder.decorators, method);
+                    add(decorators, method);
+                } else {
+                    add(factories, method);
                 }
+            } else if (method.getAnnotation(Provides.class) != null) {
+                throw new ServiceValidationException(String.format("Non-factory method %s.%s() must not be annotated with @Provides.", type.getName(), method.getName()));
             }
         }
-    }
 
-    private static boolean takesReturnTypeAsParameter(Method method) {
-        for (Class<?> param : method.getParameterTypes()) {
-            if (param.equals(method.getReturnType())) {
-                return true;
+        public void add(List<ServiceMethod> builder, Method method) {
+            StringBuilder signature = new StringBuilder();
+            signature.append(method.getName());
+            for (Class<?> parameterType : method.getParameterTypes()) {
+                signature.append(",");
+                signature.append(parameterType.getName());
+            }
+            if (seen.add(signature.toString())) {
+                builder.add(SERVICE_METHOD_FACTORY.toServiceMethod(method));
             }
         }
-        return false;
-    }
 
+        private static boolean takesReturnTypeAsParameter(Method method) {
+            return contains(method.getParameterTypes(), method.getReturnType());
+        }
+    }
 }

@@ -16,30 +16,35 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
-import org.gradle.internal.Transformers;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 
-class CancellationExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
-    private CancellationExceptionTransformer() {
-    }
+public abstract class CancellationExceptionTransformer {
 
-    static Transformer<RuntimeException, RuntimeException> transformerFor(VersionDetails versionDetails) {
+    private static final CancellationExceptionTransformer NO_OP = new CancellationExceptionTransformer() {
+        @Override
+        public RuntimeException transform(RuntimeException e) {
+            return e;
+        }
+    };
+
+    static CancellationExceptionTransformer transformerFor(VersionDetails versionDetails) {
         if (versionDetails.honorsContractOnCancel()) {
-            return Transformers.noOpTransformer();
+            return NO_OP;
         }
-        return new CancellationExceptionTransformer();
+        return new CancellationExceptionTransformer() {
+            @Override
+            public RuntimeException transform(RuntimeException e) {
+                for (Throwable t = e; t != null; t = t.getCause()) {
+                    if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
+                        || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
+                        return new InternalBuildCancelledException(e.getCause());
+                    }
+                }
+                return e;
+            }
+        };
     }
 
-    @Override
-    public RuntimeException transform(RuntimeException e) {
-        for (Throwable t = e; t != null; t = t.getCause()) {
-            if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
-                || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
-                return new InternalBuildCancelledException(e.getCause());
-            }
-        }
-        return e;
-    }
+    abstract RuntimeException transform(RuntimeException e);
 }

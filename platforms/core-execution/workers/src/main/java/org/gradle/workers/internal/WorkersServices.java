@@ -18,21 +18,23 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
@@ -47,7 +49,8 @@ import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.WorkerExecutor;
 
-public class WorkersServices extends AbstractPluginServiceRegistry {
+@SuppressWarnings("UnusedMethod")
+public class WorkersServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new GradleUserHomeServices());
@@ -64,21 +67,25 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
-    private static class BuildSessionScopeServices {
+    private static class BuildSessionScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
 
-        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, WorkerLeaseService workerLeaseService) {
-            return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, workerLeaseService);
+        @Provides
+        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
+            return new DefaultConditionalExecutionQueueFactory(workerLimits, executorFactory, workerLeaseService);
         }
 
+        @Provides
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
             return new WorkerExecutionQueueFactory(conditionalExecutionQueueFactory);
         }
     }
 
-    private static class GradleUserHomeServices {
+    private static class GradleUserHomeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
                                                                     ListenerManager listenerManager,
@@ -89,20 +96,24 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory), listenerManager, loggingManager, memoryManager, memoryInfo);
         }
 
+        @Provides
         ClassLoaderStructureProvider createClassLoaderStructureProvider(ClassLoaderRegistry classLoaderRegistry) {
             return new ClassLoaderStructureProvider(classLoaderRegistry);
         }
 
+        @Provides
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
+        @Provides
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
         }
     }
 
-    private static class ProjectScopeServices {
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,
                                             IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
@@ -142,6 +153,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return workerExecutor;
         }
 
+        @Provides
         WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner) {
             return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner);
         }

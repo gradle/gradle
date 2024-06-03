@@ -22,6 +22,7 @@ import org.gradle.cli.ParsedCommandLine;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -35,23 +36,15 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     private final Class<E> enumClass;
     private final List<E> possibleValues;
 
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(displayName, enumClass, possibleValues, property, deprecatedProperty, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfigurations);
-    }
-
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(displayName, enumClass, possibleValues, property, null, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfigurations);
-    }
-
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, PropertyOrigin propertyOrigin, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(displayName, enumClass, possibleValues, property, null, propertyOrigin, commandLineOptionConfigurations);
-    }
-
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, String deprecatedProperty, PropertyOrigin propertyOrigin, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(property, deprecatedProperty, propertyOrigin, commandLineOptionConfigurations);
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, deprecatedProperty, commandLineOptionConfigurations);
         this.displayName = displayName;
         this.enumClass = enumClass;
         this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
+    }
+
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        this(displayName, enumClass, possibleValues, gradleProperty, null, commandLineOptionConfigurations);
     }
 
     @Override
@@ -89,10 +82,10 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         if (value != null) {
             enumValue = tryGetValue(value);
             if (enumValue == null) {
-                enumValue = tryGetValue(value.toLowerCase());
+                enumValue = tryGetValue(value.toLowerCase(Locale.ROOT));
             }
             if (enumValue == null) {
-                enumValue = tryGetValue(value.toUpperCase());
+                enumValue = tryGetValue(value.toUpperCase(Locale.ROOT));
             }
         }
         if (enumValue == null) {

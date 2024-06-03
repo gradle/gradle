@@ -22,7 +22,7 @@ dependencies {
     api(libs.asm)
     api(libs.guava)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":functional"))
 
     implementation(libs.slf4jApi)

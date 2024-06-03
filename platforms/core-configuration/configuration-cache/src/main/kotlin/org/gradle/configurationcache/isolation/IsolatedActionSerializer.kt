@@ -18,25 +18,25 @@ package org.gradle.configurationcache.isolation
 
 import org.gradle.api.IsolatedAction
 import org.gradle.configurationcache.ConfigurationCacheError
-import org.gradle.configurationcache.extensions.invert
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.internal.extensions.stdlib.invert
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.configurationcache.logger
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.serialization.ClassDecoder
-import org.gradle.configurationcache.serialization.ClassEncoder
-import org.gradle.configurationcache.serialization.DefaultReadContext
-import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.runReadOperation
-import org.gradle.configurationcache.serialization.runWriteOperation
-import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.configurationcache.problems.AbstractProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ClassEncoder
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
@@ -71,7 +71,7 @@ class SerializedIsolatedActionGraph<G>(
 internal
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
-    private val beanStateWriterLookup: BeanStateWriterLookup,
+    private val beanStateWriterLookup: DefaultBeanStateWriterLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun <G : Any> serialize(action: G): SerializedIsolatedActionGraph<G> {
@@ -118,7 +118,7 @@ class IsolatedActionSerializer(
 internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
-    private val beanStateReaderLookup: BeanStateReaderLookup,
+    private val beanStateReaderLookup: DefaultBeanStateReaderLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun <G : Any> deserialize(action: SerializedIsolatedActionGraph<G>): G =
@@ -172,7 +172,7 @@ class EnvironmentDecoder(
  * TODO: report problems via the Problems API
  */
 private
-object ThrowingProblemsListener : ProblemsListener {
+object ThrowingProblemsListener : AbstractProblemsListener() {
     override fun onProblem(problem: PropertyProblem) {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")

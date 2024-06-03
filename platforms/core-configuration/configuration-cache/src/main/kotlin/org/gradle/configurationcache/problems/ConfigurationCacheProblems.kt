@@ -30,7 +30,13 @@ import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.InternalBuildAdapter
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
@@ -52,9 +58,13 @@ class ConfigurationCacheProblems(
     val cacheKey: ConfigurationCacheKey,
 
     private
-    val listenerManager: ListenerManager
+    val listenerManager: ListenerManager,
 
-) : ProblemsListener, ProblemReporter, AutoCloseable {
+    private
+    val failureFactory: FailureFactory
+
+) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
+
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
@@ -123,13 +133,14 @@ class ConfigurationCacheProblems(
 
     override fun forIncompatibleTask(path: String): ProblemsListener {
         incompatibleTasks.add(path)
-        return object : ProblemsListener {
+        return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
             }
 
             override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+                val failure = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
         }
     }
@@ -192,6 +203,7 @@ class ConfigurationCacheProblems(
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
                 log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
+
             else -> validationFailures.accept(failure)
         }
     }

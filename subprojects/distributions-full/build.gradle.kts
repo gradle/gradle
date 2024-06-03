@@ -21,6 +21,7 @@ dependencies {
     pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))
     pluginsRuntimeOnly(project(":enterprise"))
+    pluginsRuntimeOnly(project(":unit-test-fixtures"))
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future

@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultProblem implements Serializable, Problem {
@@ -32,7 +31,7 @@ public class DefaultProblem implements Serializable, Problem {
     private final List<ProblemLocation> problemLocations;
     private final String details;
     private final RuntimeException exception;
-    private final Map<String, Object> additionalData;
+    private final AdditionalData additionalData;
 
     protected DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -41,7 +40,7 @@ public class DefaultProblem implements Serializable, Problem {
         List<ProblemLocation> problemLocations,
         @Nullable String details,
         RuntimeException exception,
-        Map<String, Object> additionalData
+        @Nullable AdditionalData additionalData
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -86,7 +85,7 @@ public class DefaultProblem implements Serializable, Problem {
     }
 
     @Override
-    public Map<String, Object> getAdditionalData() {
+    public AdditionalData getAdditionalData() {
         return additionalData;
     }
 

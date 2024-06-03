@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
@@ -102,7 +103,19 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
          *
          * Example: deprecated CLI switch.
          */
-        BUILD_INVOCATION
+        BUILD_INVOCATION;
+
+        public DeprecationData.Type toDeprecationDataType() {
+            switch (this) {
+                case USER_CODE_DIRECT:
+                    return DeprecationData.Type.USER_CODE_DIRECT;
+                case USER_CODE_INDIRECT:
+                    return DeprecationData.Type.USER_CODE_INDIRECT;
+                case BUILD_INVOCATION:
+                    return DeprecationData.Type.BUILD_INVOCATION;
+            }
+            throw new IllegalStateException("Unknown deprecation type: " + this);
+        }
     }
 
     /**

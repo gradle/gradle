@@ -16,9 +16,13 @@
 
 package org.gradle.internal.file;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Providers a byte buffer to be used in processing streams.
  */
+@ServiceScope(Scope.Global.class)
 public interface BufferProvider {
     byte[] getBuffer();
 }

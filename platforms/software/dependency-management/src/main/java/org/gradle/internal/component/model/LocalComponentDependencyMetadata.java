@@ -91,17 +91,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return selector;
     }
 
-    /**
-     * Choose a single target configuration based on: a) the consumer attributes, b) the target configuration name and c) the target component
-     *
-     * Use attribute matching to choose a single variant when:
-     * - The target configuration name is not specified AND
-     * - The target component has variants.
-     *
-     * Otherwise, revert to legacy selection of target configuration.
-     *
-     * @return A List containing a single `ConfigurationMetadata` representing the target variant.
-     */
     @Override
     public GraphVariantSelectionResult selectVariants(
         GraphVariantSelector variantSelector,
@@ -110,9 +99,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         AttributesSchemaInternal consumerSchema,
         Collection<? extends Capability> explicitRequestedCapabilities
     ) {
-        // If the target component is variant-aware, and we haven't requested an explicit configuration, use variant aware matching.
-        boolean variantAware = targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants();
-        if (dependencyConfiguration == null && variantAware) {
+        // If a specific variant is requested by name, select it.
+        if (dependencyConfiguration != null) {
+            VariantGraphResolveState selected = variantSelector.selectVariantByConfigurationName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
+        }
+
+        // Use attribute matching if it is supported.
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 consumerAttributes,
                 explicitRequestedCapabilities, targetComponentState,
@@ -122,15 +116,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
 
-        // Otherwise, select a legacy configuration.
-        VariantGraphResolveState selected;
-        if (dependencyConfiguration != null) {
-            selected = variantSelector.selectConfigurationByName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
-        } else {
-            selected = variantSelector.selectLegacyConfiguration(consumerAttributes, targetComponentState, consumerSchema);
-        }
-
-        return new GraphVariantSelectionResult(ImmutableList.of(selected), false);
+        // Otherwise, select the legacy configuration.
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+        return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 
     @Override

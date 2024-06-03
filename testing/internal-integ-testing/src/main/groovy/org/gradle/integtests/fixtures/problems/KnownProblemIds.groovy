@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.problems
 
 class KnownProblemIds {
 
-    static void assertHasKnownId(ReceivedProblem problem) {
+    static void assertIsKnown(ReceivedProblem problem) {
         assert problem != null
         def definition = problem.definition
         def knownDefinition = KNOWN_DEFINITIONS[problem.definition.id.fqid]
@@ -60,7 +60,7 @@ class KnownProblemIds {
 
     private static final def KNOWN_DEFINITIONS = [
         'problems-api:missing-id' : 'Problem id must be specified',
-        'problems-api:invalid-additional-data' : 'ProblemBuilder.additionalData() only supports values of type String',
+        'problems-api:unsupported-additional-data' : 'Unsupported additional data type',
         'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
         'compilation:java:java-compilation-error' : 'Java compilation error',
         'compilation:java:java-compilation-failed' : 'Java compilation error',
@@ -86,10 +86,16 @@ class KnownProblemIds {
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption' : 'The detachedConfiguration1 configuration has been deprecated for consumption.',
         'deprecation:configurations-acting-as-both-root-and-variant' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
         'deprecation:repository-jcenter' : 'The RepositoryHandler.jcenter() method has been deprecated.',
-        'task-selection:no-matches' : 'cannot locate task',
+        'task-selection:ambiguous-matches' : 'Ambiguous matches',
+        'task-selection:no-matches' : 'No matches',
+        'task-selection:selection-failed' : 'Selection failed',
+        'task-selection:empty-path' : 'Empty path',
+        'missing-task-name' : 'Missing task name',
+        'empty-segments' : 'Empty segments',
         'validation:property-validation:annotation-invalid-in-context' : 'Invalid annotation in context',
         'validation:property-validation:cannot-use-optional-on-primitive-types' : 'Property should be annotated with @Optional',
-        'validation:property-validation:cannot-write-output' : 'Property not writeable',
+        'validation:property-validation:cannot-write-output' : 'Property is not writable',
+        'validation:property-validation:cannot-write-to-reserved-location' : 'Cannot write to reserved location',
         'validation:property-validation:conflicting-annotations' : 'Type has conflicting annotation',
         'validation:property-validation:ignored-property-must-not-be-annotated' : 'Has wrong combination of annotations',
         'validation:property-validation:implicit-dependency' : 'Property has implicit dependency',
@@ -102,7 +108,7 @@ class KnownProblemIds {
         'validation:property-validation:nested-type-unsupported' : 'Nested type unsupported',
         'validation:property-validation:mutable-type-with-setter' : 'Mutable type with setter',
         'validation:property-validation:private-getter-must-not-be-annotated' : 'Private property with wrong annotation',
-        'validation:property-validation:unexpected-input-file-type' : 'input not allowed for property',
+        'validation:property-validation:unexpected-input-file-type' : 'Unexpected input file type',
         'validation:property-validation:unsupported-notation' : 'Property has unsupported value',
         'validation:property-validation:unknown-implementation' : 'Unknown property implementation',
         'validation:property-validation:unknown-implementation-nested' : 'Unknown property implementation',

@@ -16,13 +16,14 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
@@ -132,7 +133,7 @@ public class DaemonParameters {
         String requestedVersion = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
         if (requestedVersion != null) {
             try {
-                JavaVersion javaVersion = JavaVersion.toVersion(requestedVersion);
+                JavaLanguageVersion javaVersion = DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
                 this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC);
             } catch (Exception e) {
                 // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
@@ -150,8 +151,8 @@ public class DaemonParameters {
         this.requestedJvmBasedOnJavaHome = requestedJvmBasedOnJavaHome;
     }
 
-    public void applyDefaultsFor(JavaVersion javaVersion) {
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+    public void applyDefaultsFor(JavaLanguageVersion javaVersion) {
+        if (javaVersion.asInt() >= 9) {
             Set<String> jpmsArgs = new LinkedHashSet<>(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
             jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
             jvmOptions.jvmArgs(jpmsArgs);

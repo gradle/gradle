@@ -19,22 +19,30 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services"))
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
-    api(libs.futureKotlin("stdlib"))
-    api(libs.inject)
+    api(project(":declarative-dsl-evaluator"))
+    api(project(":declarative-dsl-tooling-models"))
+    api(libs.kotlinStdlib)
 
+
+    implementation(libs.inject)
     testImplementation(libs.mockitoKotlin2)
 
+    implementation(project(":base-services"))
     implementation(project(":resources"))
-    implementation(libs.futureKotlin("compiler-embeddable"))
-    implementation(libs.futureKotlin("reflect"))
+    implementation(project(":model-core"))
+
+    implementation(libs.guava)
+    implementation(libs.kotlinReflect)
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":tooling-api")))
 }

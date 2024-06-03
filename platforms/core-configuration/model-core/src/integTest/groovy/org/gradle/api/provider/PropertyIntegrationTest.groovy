@@ -953,7 +953,7 @@ project.extensions.create("some", SomeExtension)
                 'Assign a value to \'strings\'',
                 'Mark property \'strings\' as optional',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'strings',
             ]

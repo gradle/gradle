@@ -31,7 +31,6 @@ import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -76,16 +75,16 @@ public abstract class ShowToolchainsTask extends DefaultTask {
         output.println();
     }
 
-    private List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
+    private static List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
+        return toolchains.stream().filter(t -> !isValidToolchain(t)).collect(Collectors.toList());
     }
 
-    private List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
+    private static List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
+        return toolchains.stream().filter(ShowToolchainsTask::isValidToolchain).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
     }
 
-    private Predicate<? super JvmToolchainMetadata> isValidToolchain() {
-        return t -> t.metadata.isValidInstallation();
+    private static boolean isValidToolchain(JvmToolchainMetadata t) {
+        return t.metadata.isValidInstallation();
     }
 
     private List<JvmToolchainMetadata> allReportableToolchains() {

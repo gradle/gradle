@@ -29,18 +29,18 @@ public class ComponentResultSerializer {
     private final ComponentSelectionReasonSerializer reasonSerializer;
     private final ComponentDetailsSerializer componentDetailsSerializer;
     private final SelectedVariantSerializer selectedVariantSerializer;
-    private final boolean returnAllVariants;
+    private final boolean includeAllSelectableVariantResults;
 
     public ComponentResultSerializer(
         ComponentDetailsSerializer componentDetailsSerializer,
         SelectedVariantSerializer selectedVariantSerializer,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        boolean returnAllVariants
+        boolean includeAllSelectableVariantResults
     ) {
         this.componentDetailsSerializer = componentDetailsSerializer;
         this.selectedVariantSerializer = selectedVariantSerializer;
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
-        this.returnAllVariants = returnAllVariants;
+        this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
     }
 
     public void readInto(Decoder decoder, ResolvedComponentVisitor builder) throws Exception {
@@ -61,7 +61,7 @@ public class ComponentResultSerializer {
             encoder.writeSmallLong(value.getResultId());
             reasonSerializer.write(encoder, value.getSelectionReason());
             encoder.writeNullableString(value.getRepositoryName());
-            componentDetailsSerializer.writeComponentDetails(value.getResolveState(), returnAllVariants, encoder);
+            componentDetailsSerializer.writeComponentDetails(value.getResolveState(), includeAllSelectableVariantResults, encoder);
             List<ResolvedGraphVariant> selectedVariants = value.getSelectedVariants();
             encoder.writeSmallInt(selectedVariants.size());
             for (ResolvedGraphVariant variant : selectedVariants) {

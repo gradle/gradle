@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 
 import java.util.Set;
@@ -33,4 +34,13 @@ public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGra
      * <p>Note that this may be expensive, and should be called only when required.</p>
      */
     LocalConfigurationMetadata prepareToResolveArtifacts();
+
+    /**
+     * Returns a copy of this configuration metadata, except with all artifacts transformed by the given transformer.
+     *
+     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
+     *
+     * @return A copy of this metadata, with the given transformer applied to all artifacts.
+     */
+    LocalConfigurationGraphResolveMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
 }

@@ -6,14 +6,9 @@ description = "Process execution abstractions."
 
 gradlebuildJava.usedInWorkers()
 
-errorprone {
-    disabledChecks.addAll(
-        "FutureReturnValueIgnored", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":messaging"))
 

@@ -89,9 +89,7 @@ public final class ResolutionCandidateAssessor {
     }
 
     public List<AssessedCandidate> assessGraphSelectionCandidates(GraphSelectionCandidates candidates) {
-        assert candidates.isUseVariants() : "Cannot assess graph selection candidates when variants are not used.";
-
-        return candidates.getVariants().stream()
+        return candidates.getVariantsForAttributeMatching().stream()
             .map(VariantGraphResolveState::getMetadata)
             .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
             .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))

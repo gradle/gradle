@@ -24,7 +24,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
 class LegacyDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
 
-    LegacyDaemon(File daemonLog, GradleVersion version) {
+    LegacyDaemon(DaemonLogFile daemonLog, GradleVersion version) {
         super(daemonLog, version)
         if (version.baseVersion >= GradleVersion.version("2.2")) {
             logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
@@ -50,16 +50,6 @@ Current state is ${lastLogState}.""")
     @Override
     protected void assertHasState(State state) {
         assert logFileProbe.currentState == state
-    }
-
-    @Override
-    String getLog() {
-        return logFileProbe.log
-    }
-
-    @Override
-    File getLogFile() {
-        return logFileProbe.logFile
     }
 
     @Override

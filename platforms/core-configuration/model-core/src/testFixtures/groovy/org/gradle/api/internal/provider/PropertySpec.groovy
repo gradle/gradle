@@ -64,6 +64,16 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def host = Mock(PropertyHost)
 
+    protected void assertPropertyValueIs(T expected, PropertyInternal<?> property) {
+        assert property.present
+        T actual = property.get()
+        assertEqualValues(expected, actual)
+    }
+
+    protected void assertEqualValues(T expected, T actual) {
+        assert actual == expected
+    }
+
     def "cannot get value when it has none"() {
         given:
         def property = propertyWithNoValue()
@@ -194,6 +204,25 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == someValue()
         property.getOrElse(someOtherValue()) == someValue()
         property.getOrElse(null) == someValue()
+    }
+
+
+    def "property is restored to initial state after unset"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+
+        expect:
+        assertPropertyValueIs(someValue(), property)
+        property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someOtherValue()) == someOtherValue()
     }
 
     def "fails when untyped value is set using incompatible type"() {

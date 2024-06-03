@@ -16,96 +16,86 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.objectweb.asm.Type;
+import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
-    enum UpgradedPropertyType {
-        LIST_PROPERTY(true),
-        SET_PROPERTY(true),
-        MAP_PROPERTY(true),
-        PROPERTY(false),
-        FILE_SYSTEM_LOCATION_PROPERTY(false),
-        CONFIGURABLE_FILE_COLLECTION(false);
-
-        private final boolean isMultiValueProperty;
-
-        UpgradedPropertyType(boolean isMultiValueProperty) {
-            this.isMultiValueProperty = isMultiValueProperty;
-        }
-
-        public boolean isMultiValueProperty() {
-            return isMultiValueProperty;
-        }
-
-        public static UpgradedPropertyType from(Type type) {
-            if (type.getClassName().equals(DirectoryProperty.class.getName()) || type.getClassName().equals(RegularFileProperty.class.getName())) {
-                return FILE_SYSTEM_LOCATION_PROPERTY;
-            } else if (type.getClassName().equals(ConfigurableFileCollection.class.getName())) {
-                return CONFIGURABLE_FILE_COLLECTION;
-            } else if (type.getClassName().equals(MapProperty.class.getName())) {
-                return MAP_PROPERTY;
-            } else if (type.getClassName().equals(SetProperty.class.getName())) {
-                return SET_PROPERTY;
-            } else if (type.getClassName().equals(ListProperty.class.getName())) {
-                return LIST_PROPERTY;
-            } else {
-                return PROPERTY;
-            }
-        }
-    }
-
     private final String propertyName;
+    private final String methodName;
     private final boolean isFluentSetter;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
-    private final String interceptedPropertyAccessorDescriptor;
-    private final UpgradedPropertyType upgradedPropertyType;
+    private final String methodDescriptor;
+    private final GradleLazyType propertyType;
+    private final DeprecationSpec deprecationSpec;
+    private final BinaryCompatibility binaryCompatibility;
+    private final String interceptedPropertyName;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
+        String methodName,
+        String methodDescriptor,
         boolean isFluentSetter,
         String implementationClassName,
+        String interceptedPropertyName,
         String interceptedPropertyAccessorName,
-        String interceptedPropertyAccessorDescriptor,
-        UpgradedPropertyType upgradedPropertyType
+        GradleLazyType propertyType,
+        DeprecationSpec deprecationSpec,
+        BinaryCompatibility binaryCompatibility
     ) {
         this.propertyName = propertyName;
+        this.methodName = methodName;
+        this.methodDescriptor = methodDescriptor;
+        this.propertyType = propertyType;
         this.isFluentSetter = isFluentSetter;
         this.implementationClassName = implementationClassName;
+        this.interceptedPropertyName = interceptedPropertyName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
-        this.interceptedPropertyAccessorDescriptor = interceptedPropertyAccessorDescriptor;
-        this.upgradedPropertyType = upgradedPropertyType;
+        this.deprecationSpec = deprecationSpec;
+        this.binaryCompatibility = binaryCompatibility;
     }
 
     public String getPropertyName() {
         return propertyName;
     }
 
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public String getMethodDescriptor() {
+        return methodDescriptor;
+    }
+
+    public GradleLazyType getPropertyType() {
+        return propertyType;
+    }
+
     public String getImplementationClassName() {
         return implementationClassName;
+    }
+
+
+    public String getInterceptedPropertyName() {
+        return interceptedPropertyName;
     }
 
     public String getInterceptedPropertyAccessorName() {
         return interceptedPropertyAccessorName;
     }
 
-    public String getInterceptedPropertyAccessorDescriptor() {
-        return interceptedPropertyAccessorDescriptor;
-    }
-
-    public UpgradedPropertyType getUpgradedPropertyType() {
-        return upgradedPropertyType;
-    }
-
     public boolean isFluentSetter() {
         return isFluentSetter;
+    }
+
+    public DeprecationSpec getDeprecationSpec() {
+        return deprecationSpec;
+    }
+
+    public BinaryCompatibility getBinaryCompatibility() {
+        return binaryCompatibility;
     }
 }

@@ -22,10 +22,10 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransform
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationRunner

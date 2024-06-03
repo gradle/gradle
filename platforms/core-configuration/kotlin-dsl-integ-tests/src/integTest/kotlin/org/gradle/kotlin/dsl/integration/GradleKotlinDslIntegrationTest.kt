@@ -304,7 +304,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
         assertThat(
             build("plugins").output,
-            containsString("*BasePlugin\$Inject*")
+            containsString("*BasePlugin_Decorated*")
         )
     }
 

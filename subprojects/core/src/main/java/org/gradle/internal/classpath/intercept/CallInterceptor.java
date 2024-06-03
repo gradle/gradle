@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,10 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
-import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.GradleException;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
+import java.util.Set;
 
 /**
  * Intercepts method and constructor calls as well as property reads in dynamic Groovy bytecode.
@@ -33,24 +30,7 @@ import java.lang.invoke.MethodType;
  * <p>
  * Descendants of this class should be thread-safe, making a stateless implementation is perfect.
  */
-public abstract class CallInterceptor implements BytecodeInterceptor {
-    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
-
-    private static final MethodHandle INTERCEPTOR;
-
-    static {
-        try {
-            INTERCEPTOR = LOOKUP.findVirtual(CallInterceptor.class, "interceptMethodHandle", MethodType.methodType(Object.class, MethodHandle.class, int.class, String.class, Object[].class));
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new GradleException("Failed to set up an interceptor method", e);
-        }
-    }
-
-    private final InterceptScope[] interceptScopes;
-
-    protected CallInterceptor(InterceptScope... interceptScopes) {
-        this.interceptScopes = interceptScopes;
-    }
+public interface CallInterceptor {
 
     /**
      * Called when the method/constructor/property read is intercepted.
@@ -63,20 +43,9 @@ public abstract class CallInterceptor implements BytecodeInterceptor {
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
-    public abstract Object doIntercept(Invocation invocation, String consumer) throws Throwable;
+    Object intercept(Invocation invocation, String consumer) throws Throwable;
 
-    MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags) {
-        MethodHandle spreader = original.asSpreader(Object[].class, original.type().parameterCount());
-        MethodHandle decorated = MethodHandles.insertArguments(INTERCEPTOR, 0, this, spreader, flags, caller.lookupClass().getName());
-        return decorated.asCollector(Object[].class, original.type().parameterCount()).asType(original.type());
-    }
+    MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags);
 
-    private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
-        boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
-        return doIntercept(new MethodHandleInvocation(original, args, isSpread), consumer);
-    }
-
-    InterceptScope[] getInterceptScopes() {
-        return interceptScopes;
-    }
+    Set<InterceptScope> getInterceptScopes();
 }

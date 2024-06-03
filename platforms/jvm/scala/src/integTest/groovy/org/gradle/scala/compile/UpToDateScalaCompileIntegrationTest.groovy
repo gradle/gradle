@@ -19,6 +19,7 @@ package org.gradle.scala.compile
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
@@ -124,7 +125,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:2.13.12" // must be above 2.13.1
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}"
             }
 
             scala {
@@ -174,7 +175,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()
 
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 8..17 })
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersionNumber in 8..17 })
 
         buildScript """
             apply plugin: 'scala'
@@ -182,7 +183,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:2.13.8" // must be above 2.13.1
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}"
             }
 
             scala {

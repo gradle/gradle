@@ -26,13 +26,14 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.decodeBean
-import org.gradle.configurationcache.serialization.encodeBean
-import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodeBean
+import org.gradle.internal.serialize.graph.encodeBean
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.groovy.scripts.BasicScript
 import org.gradle.internal.metaobject.ConfigureDelegate
 

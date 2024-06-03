@@ -226,7 +226,7 @@ public class DefaultTransform implements Transform {
 
     @Override
     public boolean isIsolated() {
-        return isolatedParameters.getOrNull() != null;
+        return isolatedParameters.isFinalized();
     }
 
     @Override

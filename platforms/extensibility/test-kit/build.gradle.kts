@@ -11,21 +11,24 @@ errorprone {
     disabledChecks.addAll(
         "CatchAndPrintStackTrace", // 1 occurrences
         "ImmutableEnumChecker", // 1 occurrences
-        "StringSplitter", // 1 occurrences
     )
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
+    api(project(":base-services"))
+    api(project(":java-language-extensions"))
+    api(project(":logging"))
+    api(project(":tooling-api"))
+
+    api(libs.jsr305)
+
     implementation(project(":core"))
-    implementation(project(":build-option"))
-    implementation(project(":logging"))
-    implementation(project(":wrapper-shared"))
-    implementation(project(":tooling-api"))
     implementation(project(":file-temp"))
+    implementation(projects.io)
+    implementation(project(":wrapper-shared"))
+    implementation(project(":build-process-services"))
+
     implementation(libs.commonsIo)
-    api(libs.groovyTest)
 
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":launcher"))

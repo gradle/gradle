@@ -33,6 +33,8 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+// TODO Do not rely on default encoding
+@SuppressWarnings("StringCaseLocaleUsage")
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");

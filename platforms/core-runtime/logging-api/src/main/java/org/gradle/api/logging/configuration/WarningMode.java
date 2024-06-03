@@ -44,7 +44,7 @@ public enum WarningMode {
      */
     Fail(true);
 
-    private boolean displayMessages;
+    private final boolean displayMessages;
 
     WarningMode(boolean displayMessages) {
         this.displayMessages = displayMessages;

@@ -39,6 +39,7 @@ class TestNGOptionsTest extends Specification {
             listeners.empty
             parallel == null
             threadCount == -1
+            suiteThreadPoolSize == 1
             suiteName == 'Gradle suite'
             testName == 'Gradle test'
             configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY
@@ -71,7 +72,7 @@ class TestNGOptionsTest extends Specification {
         def source = testNGOptionsWithPrefix("source", false, 0)
 
         when:
-        def target = testNGOptionsWithPrefix("target", true, 1)
+        def target = testNGOptionsWithPrefix("target", true, 5)
         target.copyFrom(source)
 
         then:
@@ -83,6 +84,7 @@ class TestNGOptionsTest extends Specification {
             listeners == source.listeners
             parallel == source.parallel
             threadCount == source.threadCount
+            suiteThreadPoolSize == source.suiteThreadPoolSize
             useDefaultListeners == source.useDefaultListeners
             threadPoolFactoryClass == source.threadPoolFactoryClass
             suiteName == source.suiteName
@@ -103,6 +105,7 @@ class TestNGOptionsTest extends Specification {
             setListeners([prefix + "Listener"] as Set)
             setParallel(prefix + "Parallel")
             setThreadCount(intValue)
+            setSuiteThreadPoolSize(intValue)
             setUseDefaultListeners(booleanValue)
             setThreadPoolFactoryClass(prefix + "ThreadPoolFactoryClass")
             setSuiteName(prefix + "SuiteName")

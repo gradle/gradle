@@ -16,23 +16,23 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 public class DaemonJvmCriteria {
-    private final JavaVersion javaVersion;
+    private final JavaLanguageVersion javaVersion;
     private final JvmVendorSpec vendorSpec;
     private final JvmImplementation jvmImplementation;
 
-    public DaemonJvmCriteria(JavaVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
+    public DaemonJvmCriteria(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
         this.javaVersion = javaVersion;
         this.vendorSpec = vendorSpec;
         this.jvmImplementation = jvmImplementation;
     }
 
-    public JavaVersion getJavaVersion() {
+    public JavaLanguageVersion getJavaVersion() {
         return javaVersion;
     }
 
@@ -45,7 +45,11 @@ public class DaemonJvmCriteria {
     }
 
     public boolean isCompatibleWith(Jvm other) {
-        return isCompatibleWith(other.getJavaVersion());
+        Integer javaVersionMajor = other.getJavaVersionMajor();
+        if (javaVersionMajor == null) {
+            return false;
+        }
+        return isCompatibleWith(JavaLanguageVersion.of(javaVersionMajor));
     }
 
     @Override
@@ -54,8 +58,8 @@ public class DaemonJvmCriteria {
         return String.format("JVM version '%s'", getJavaVersion());
     }
 
-    public boolean isCompatibleWith(JavaVersion javaVersion) {
+    public boolean isCompatibleWith(JavaLanguageVersion javaVersion) {
         // TODO: Implement comparisons for vendorSpec and jvmImplementation
-        return javaVersion == getJavaVersion(); // && vendorSpec.matches() && jvmImplementation == other.jvmImplementation;
+        return javaVersion.equals(getJavaVersion()); // && vendorSpec.matches() && jvmImplementation == other.jvmImplementation;
     }
 }

@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.time.Instant;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
@@ -326,8 +327,8 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         @Override
-        public boolean requiresCleanup(long lastCleanupTimestamp) {
-            return cleanupHasBeenConfigured && configuredCleanupFrequency.requiresCleanup(lastCleanupTimestamp);
+        public boolean requiresCleanup(@Nullable Instant lastCleanupTime) {
+            return cleanupHasBeenConfigured && configuredCleanupFrequency.requiresCleanup(lastCleanupTime);
         }
     }
 }

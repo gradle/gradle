@@ -24,6 +24,7 @@ import org.gradle.util.GradleVersion;
 import javax.annotation.CheckReturnValue;
 import java.util.List;
 
+@SuppressWarnings("SameNameButDifferent")
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 

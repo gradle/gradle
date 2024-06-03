@@ -29,7 +29,7 @@ errorprone {
 
 dependencies {
     api(project(":logging-api"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core-api"))
@@ -43,6 +43,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(project(":functional"))
+    implementation(project(":native"))
 
     implementation(libs.guava)
     implementation(libs.asm)

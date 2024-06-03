@@ -21,6 +21,7 @@ import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.JavaAgentFixture
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -155,15 +156,23 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         def compilerOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)
         def taskOperations =
             compilerOperations.collectEntries {
-                def op = buildOperations.parentsOf(it).reverse().find {parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType) }
+                def op = buildOperations.parentsOf(it).reverse().find {
+                    parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType)
+                }
                 [op.displayName, it]
             }
 
         def tasks = ['Task :compileJava', 'Task :compileMain2Java']
         taskOperations.keySet() == tasks.toSet()
         tasks.eachWithIndex { taskName, index ->
-            def operation = taskOperations[taskName]
-            assert operation.progress.find {progress -> progress.details.spans.any { it.text.contains "ClassWithWarning${index + 1}.java uses or overrides a deprecated API" } }
+            def operation = taskOperations[taskName] as BuildOperationRecord
+            assert operation["progress"].find { BuildOperationRecord.Progress progress ->
+                "org.gradle.api.problems.internal.DefaultProblemProgressDetails" == progress.detailsClassName
+            }.any { BuildOperationRecord.Progress progress ->
+                def problem = progress.details["problem"]
+                def detail = problem["details"] as String
+                return detail.endsWith("ClassWithWarning${index + 1}.java uses or overrides a deprecated API.")
+            }
         }
     }
 }

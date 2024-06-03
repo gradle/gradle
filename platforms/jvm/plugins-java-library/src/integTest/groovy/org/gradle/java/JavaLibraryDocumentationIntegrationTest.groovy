@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        enableProblemsApiCheck()
         buildFile << '''
             subprojects {
                 apply plugin: 'java-library'
@@ -108,6 +109,13 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Cannot locate tasks that match ':a:javadocJar' as task 'javadocJar' not found in project ':a'. Some candidates are: 'javadoc'.")
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'task-selection:no-matches'
+            contextualLabel == 'Cannot locate tasks that match \':a:javadocJar\' as task \'javadocJar\' not found in project \':a\'. Some candidates are: \'javadoc\'.'
+            additionalData.asMap == [ 'requestedPath' : ':a:javadocJar']
+        }
+
         when:
         buildFile << '''
             subprojects {
@@ -124,6 +132,13 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Cannot locate tasks that match ':a:sourcesJar' as task 'sourcesJar' not found in project ':a'.")
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'task-selection:selection-failed'
+            contextualLabel == 'Cannot locate tasks that match \':a:sourcesJar\' as task \'sourcesJar\' not found in project \':a\'.'
+            additionalData.asMap == [ 'requestedPath' : ':a:sourcesJar']
+        }
 
         when:
         buildFile << '''

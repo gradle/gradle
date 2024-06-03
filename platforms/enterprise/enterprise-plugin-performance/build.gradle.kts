@@ -8,12 +8,23 @@ description = """Performance tests for the build scan plugin
     | """.trimMargin()
 
 dependencies {
-    testFixturesApi(project(":internal-performance-testing"))
-    testFixturesApi(libs.commonsIo)
+    performanceTestImplementation(project(":base-services"))
+    performanceTestImplementation(project(":internal-testing"))
+
+    performanceTestCompileOnly(project(":internal-integ-testing"))
+    performanceTestCompileOnly(project(":internal-performance-testing"))
+
+    performanceTestImplementation(libs.gradleProfiler)
+
     testFixturesApi(project(":base-services"))
-    testFixturesImplementation(project(":internal-testing"))
+
+    testFixturesApi(libs.commonsIo)
+
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":internal-testing"))
+    testFixturesImplementation(project(":internal-performance-testing"))
     testFixturesImplementation(project(":logging"))
+
     testFixturesImplementation(libs.groovyJson)
 
     performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
@@ -71,10 +82,10 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
         .map { projectRootDir.resolve(it) }
 
     // Provides a system property required by `AbstractBuildScanPluginPerformanceTest`
-    jvmArgumentProviders += GradleEnterprisePluginInfoDirPropertyProvider(pluginInfoDir)
+    jvmArgumentProviders += DevelocityPluginInfoDirPropertyProvider(pluginInfoDir)
 }
 
 internal
-class GradleEnterprisePluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
-    override fun asArguments() = listOf("-Dorg.gradle.performance.enterprise.plugin.infoDir=${pluginInfoDir.get().path}")
+class DevelocityPluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-Dorg.gradle.performance.develocity.plugin.infoDir=${pluginInfoDir.get().path}")
 }

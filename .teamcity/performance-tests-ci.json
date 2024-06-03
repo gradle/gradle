@@ -364,6 +364,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean check on ephemeral ci with remote http cache",
+    "groups" : [ {
+      "testProject" : "smallJavaMultiProjectManyExternalDependencies",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest.clean assemble with local cache (native project)",
     "groups" : [ {
       "testProject" : "bigCppApp",
@@ -392,6 +400,30 @@
       "testProject" : "mediumSwiftMulti",
       "coverage" : {
         "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.compressing tar",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.compressing zip",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.packing tar",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
       }
     } ]
   }, {

@@ -465,7 +465,7 @@ include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/
 
 To make the custom `dependencies` block configurable, the plugin needs to add a `getDependencies` method that returns the new type from above and a configurable block method named `dependencies`.
 
-By convention, the accessors for your custom `dependencies` block should be called `getDependencies()`/`dpeendencies(Action)`.
+By convention, the accessors for your custom `dependencies` block should be called `getDependencies()`/`dependencies(Action)`.
 This method could be named something else, but users would need to know that a different block can behave like a `dependencies` block.
 
 ====

@@ -1,6 +1,10 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
@@ -67,10 +71,22 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
 }
 
 
+/**
+ * Represents a unique operation within a particular generation.  The invocation id should be unique within a single
+ * interpretation step, but not across generations (i.e. two operations in different generations may have the same
+ * invocation id).  Operations in different generations with the same invocation id have no relationship to each
+ * other except by coincidence.
+ */
+data class OperationId(val invocationId: Long, val generationId: OperationGenerationId) {
+    override fun toString(): String = "${generationId.ordinal}:$invocationId"
+}
+
+
 class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
-    val errorCollector: ErrorCollector
+    val errorCollector: ErrorCollector,
+    private val generationId: OperationGenerationId
 ) : AnalysisContextView {
 
     // TODO: thread safety?
@@ -81,7 +97,9 @@ class AnalysisContext(
     private
     val nextInstant = AtomicLong(1)
     private
-    val mutableAdditions = mutableListOf<DataAddition>()
+    val mutableAdditions = mutableListOf<DataAdditionRecord>()
+    private
+    val mutableNestedObjectAccess = mutableListOf<NestedObjectAccessRecord>()
 
     override val currentScopes: List<AnalysisScope>
         get() = mutableScopes
@@ -89,8 +107,11 @@ class AnalysisContext(
     override val assignments: List<AssignmentRecord>
         get() = mutableAssignments
 
-    val additions: List<DataAddition>
+    val additions: List<DataAdditionRecord>
         get() = mutableAdditions
+
+    val nestedObjectAccess: List<NestedObjectAccessRecord>
+        get() = mutableNestedObjectAccess
 
     private
     val typeRefContext = SchemaTypeRefContext(schema)
@@ -102,16 +123,20 @@ class AnalysisContext(
     }
 
     fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
-        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod, originElement)
+        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextCallId(), assignmentMethod, originElement)
         mutableAssignments.add(result)
         return result
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
-        mutableAdditions += DataAddition(container, dataObject)
+        mutableAdditions += DataAdditionRecord(container, dataObject)
     }
 
-    fun nextInstant(): Long = nextInstant.incrementAndGet()
+    fun recordNestedObjectAccess(container: ObjectOrigin, dataObject: ObjectOrigin.AccessAndConfigureReceiver) {
+        mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
+    }
+
+    fun nextCallId(): OperationId = OperationId(nextInstant.incrementAndGet(), generationId)
 
     fun leaveScope(scope: AnalysisScope) {
         check(mutableScopes.last() === scope)

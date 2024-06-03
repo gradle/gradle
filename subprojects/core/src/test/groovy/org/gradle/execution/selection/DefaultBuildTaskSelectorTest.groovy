@@ -21,6 +21,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.execution.ProjectSelectionException
 import org.gradle.execution.TaskSelectionException
@@ -30,6 +32,7 @@ import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -38,7 +41,7 @@ import java.util.function.Consumer
 class DefaultBuildTaskSelectorTest extends Specification {
     def buildRegistry = Mock(BuildStateRegistry)
     def taskSelector = Mock(TaskSelector)
-    def selector = new DefaultBuildTaskSelector(buildRegistry, taskSelector, [new HelpBuiltInCommand()])
+    def selector = new DefaultBuildTaskSelector(buildRegistry, taskSelector, [new HelpBuiltInCommand()], new DefaultProblems(new NoOpProblemEmitter(), Mock(CurrentBuildOperationRef)))
     def root = rootBuild()
     def target = root.state
 

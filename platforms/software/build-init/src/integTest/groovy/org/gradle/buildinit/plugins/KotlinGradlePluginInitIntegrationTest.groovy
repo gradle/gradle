@@ -27,7 +27,7 @@ import static org.gradle.buildinit.plugins.GroovyGradlePluginInitIntegrationTest
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
-@Requires(value = UnitTestPreconditions.Jdk21OrEarlier, reason = "Kotlin doesn't run on Java 22 without further configuration yet")
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier, reason = "Kotlin doesn't run on Java 22 without further configuration yet")
 class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override

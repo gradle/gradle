@@ -20,12 +20,15 @@ import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
 /**
  * Collects and isolates the actions provided via the {@link org.gradle.api.invocation.GradleLifecycle GradleLifecycle} API.
  */
+@ServiceScope(Scope.Build.class)
 public interface IsolatedProjectEvaluationListenerProvider {
 
     /**
@@ -46,7 +49,7 @@ public interface IsolatedProjectEvaluationListenerProvider {
     ProjectEvaluationListener isolateFor(Gradle owner);
 
     /**
-     * Discards any registered actions. This doesn't affect any {@link #isolate() previously returned isolated listeners}.
+     * Discards any registered actions. This doesn't affect any {@link #isolateFor(Gradle) previously returned isolated listeners}.
      */
     void clear();
 }

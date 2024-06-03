@@ -15,4 +15,288 @@
 [[organizing_gradle_projects]]
 = Organizing Gradle Projects
 
-This page has been removed.
+Source code and build logic of every software project should be organized in a meaningful way.
+This page lays out the best practices that lead to readable, maintainable projects.
+The following sections also touch on common problems and how to avoid them.
+
+[[sec:separate_language_source_files]]
+== Separate language-specific source files
+
+Gradle's language plugins establish conventions for discovering and compiling source code.
+For example, a project applying the <<java_plugin.adoc#java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`.
+Other language plugins follow the same pattern.
+The last portion of the directory path usually indicates the expected language of the source files.
+
+Some compilers are capable of cross-compiling multiple languages in the same source directory.
+The Groovy compiler can handle the scenario of mixing Java and Groovy source files located in `src/main/groovy`.
+Gradle recommends that you place sources in directories according to their language, because builds are more performant and both the user and build can make stronger assumptions.
+
+The following source tree contains Java and Kotlin source files. Java source files live in `src/main/java`, whereas Kotlin source files live in `src/main/kotlin`.
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+└── src
+    └── main
+        ├── java
+        │   └── HelloWorld.java
+        └── kotlin
+            └── Utils.kt
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── build.gradle
+└── src
+    └── main
+        ├── java
+        │   └── HelloWorld.java
+        └── kotlin
+            └── Utils.kt
+----
+=====
+====
+
+[[sec:separate_test_type_source_files]]
+== Separate source files per test type
+
+It's very common that a project defines and executes different types of tests e.g. unit tests, integration tests, functional tests or smoke tests.
+Optimally, the test source code for each test type should be stored in dedicated source directories.
+Separated test source code has a positive impact on maintainability and separation of concerns as you can run test types independent from each other.
+
+Have a look at the link:../samples/sample_jvm_multi_project_with_additional_test_types.html[sample]
+that demonstrates how a separate integration tests configuration can be added to a Java-based project.
+
+[[sec:use_standard_conventions]]
+== Use standard conventions as much as possible
+
+All Gradle core plugins follow the software engineering paradigm link:https://en.wikipedia.org/wiki/Convention_over_configuration[convention over configuration].
+The plugin logic provides users with sensible defaults and standards, the conventions, in a certain context.
+Let’s take the <<java_plugin.adoc#java_plugin,Java plugin>> as an example.
+
+* It defines the directory `src/main/java` as the default source directory for compilation.
+* The output directory for compiled source code and other artifacts (like the JAR file) is `build`.
+
+By sticking to the default conventions, new developers to the project immediately know how to find their way around.
+While those conventions can be reconfigured, it makes it harder to build script users and authors to manage the build logic and its outcome.
+Try to stick to the default conventions as much as possible except if you need to adapt to the layout of a legacy project.
+Refer to the reference page of the relevant plugin to learn about its default conventions.
+
+[[sec:settings_file]]
+== Always define a settings file
+
+Gradle tries to locate a `settings.gradle` (Groovy DSL) or a `settings.gradle.kts` (Kotlin DSL) file with every invocation of the build.
+For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory.
+The algorithm stops searching as soon as it finds the settings file.
+
+Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact.
+The file can either be empty or define the desired name of the project.
+
+A multi-project build must have a `settings.gradle(.kts)` file in the root project of the multi-project hierarchy.
+It is required because the settings file defines which projects are taking part in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>.
+Besides defining included projects, you might need it to <<organizing_gradle_projects.adoc#organizing_gradle_projects,add libraries to your build script classpath>>.
+
+The following example shows a standard Gradle project layout:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
+----
+=====
+====
+
+[[sec:build_sources]]
+== Use `buildSrc` to abstract imperative logic
+
+Complex build logic is usually a good candidate for being encapsulated either as custom task or binary plugin.
+Custom task and plugin implementations should not live in the build script.
+It is very convenient to use `buildSrc` for that purpose as long as the code does not need to be shared among multiple, independent projects.
+
+The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles this code and puts it in the classpath of your build script.
+For multi-project builds there can be only one `buildSrc` directory, which has to sit in the root project directory.
+`buildSrc` should be preferred over <<plugins.adoc#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
+
+`buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java and Groovy projects.
+It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.
+
+.Custom buildSrc build script
+====
+include::sample[dir="snippets/java/multiproject/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/java/multiproject/groovy",files="buildSrc/build.gradle[]"]
+====
+
+A typical project including `buildSrc` has the following layout.
+Any code under `buildSrc` should use a package similar to application code.
+Optionally, the `buildSrc` directory can host a build script if additional configuration is needed (e.g. to apply plugins or to declare dependencies).
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── buildSrc
+│   ├── build.gradle.kts
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       └── com
+│       │           └── enterprise
+│       │               ├── Deploy.java
+│       │               └── DeploymentPlugin.java
+│       └── test
+│           └── java
+│               └── com
+│                   └── enterprise
+│                       └── DeploymentPluginTest.java
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── buildSrc
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       └── com
+│       │           └── enterprise
+│       │               ├── Deploy.java
+│       │               └── DeploymentPlugin.java
+│       └── test
+│           └── java
+│               └── com
+│                   └── enterprise
+│                       └── DeploymentPluginTest.java
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
+----
+=====
+====
+
+[NOTE]
+====
+A change in `buildSrc` causes the whole project to become out-of-date.
+
+Thus, when making small incremental changes, the <<command_line_interface#sec:command_line_execution_options, `--no-rebuild` command-line option>> is often helpful to get faster feedback.
+Remember to run a full build regularly.
+====
+
+== Declare properties in `gradle.properties` file
+
+In Gradle, properties can be defined in the build script, in a `gradle.properties` file or as parameters on the command line.
+
+It's common to declare properties on the command line for ad-hoc scenarios.
+For example you may want to pass in a specific property value to control runtime behavior just for this one invocation of the build.
+Properties in a build script can easily become a maintenance headache and convolute the build script logic.
+The `gradle.properties` helps with keeping properties separate from the build script and should be explored as viable option.
+It's a good location for placing <<build_environment.adoc#sec:gradle_configuration_properties,properties that control the build environment>>.
+
+A typical project setup places the `gradle.properties` file in the root directory of the build.
+Alternatively, the file can also live in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory if you want it to apply to all builds on your machine.
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── gradle.properties
+└── settings.gradle.kts
+├── subproject-a
+│   └── build.gradle.kts
+└── subproject-b
+    └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── gradle.properties
+└── settings.gradle
+├── subproject-a
+│   └── build.gradle
+└── subproject-b
+    └── build.gradle
+----
+=====
+====
+
+== Avoid overlapping task outputs
+
+Tasks should define inputs and outputs to get the performance benefits of <<incremental_build.adoc#incremental_build,incremental build functionality>>.
+When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
+
+Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.
+In turn, these filesystem changes may prevent Gradle's <<build_cache.adoc#build_cache,build cache>> from properly identifying and caching what would otherwise be cacheable tasks.
+
+[[sec:custom_gradle_distribution]]
+== Standardizing builds with a custom Gradle distribution
+
+Often enterprises want to standardize the build platform for all projects in the organization by defining common conventions or rules.
+You can achieve that with the help of initialization scripts.
+<<init_scripts.adoc#init_scripts,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
+For example, to declare a in-house repository and its credentials.
+
+There are some drawbacks to the approach.
+First of all, you will have to communicate the setup process across all developers in the company.
+Furthermore, updating the initialization script logic uniformly can prove challenging.
+
+Custom Gradle distributions are a practical solution to this very problem.
+A custom Gradle distribution is comprised of the standard Gradle distribution plus one or many custom initialization scripts.
+The initialization scripts come bundled with the distribution and are applied every time the build is run.
+Developers only need to point their checked-in <<gradle_wrapper.adoc#gradle_wrapper_reference,Wrapper>> files to the URL of the custom Gradle distribution.
+
+Custom Gradle distributions may also contain a `gradle.properties` file in the root of the distribution, which provide an organization-wide <<build_environment.adoc#sec:gradle_configuration_properties,set of properties that control the build environment>>.
+
+The following steps are typical for creating a custom Gradle distribution:
+
+1. Implement logic for downloading and repackaging a Gradle distribution.
+2. Define one or many initialization scripts with the desired logic.
+3. Bundle the initialization scripts with the Gradle distribution.
+4. Upload the Gradle distribution archive to a HTTP server.
+5. Change the Wrapper files of all projects to point to the URL of the custom Gradle distribution.
+
+.Building a custom Gradle distribution
+====
+include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[]"]
+====

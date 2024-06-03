@@ -41,7 +41,7 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
      *
      * <p>
      * Note: for performance reasons,
-     * {@link org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal#setReturnAllVariants(boolean)}
+     * {@link org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal#setIncludeAllSelectableVariantResults(boolean)}
      * must be set to {@code true} for this to actually return all variants in all cases.
      * </p>
      *

@@ -46,18 +46,18 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
-import org.gradle.configurationcache.extensions.fileSystemEntryType
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.uri
+import org.gradle.internal.extensions.core.fileSystemEntryType
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.core.uri
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
@@ -773,7 +773,6 @@ class ConfigurationCacheFingerprintWriter(
             PropertyProblem(
                 trace,
                 StructuredMessage.build(messageBuilder),
-                null,
                 documentationSection = documentationSection
             )
         )

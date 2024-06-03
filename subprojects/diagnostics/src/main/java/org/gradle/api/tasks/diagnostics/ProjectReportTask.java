@@ -124,7 +124,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
         renderProjectTree(model);
         renderIncludedBuilds(model);
-        renderHelp(project, model);
+        renderHelp(model);
     }
 
     private void renderProjectTree(ProjectReportModel model) {
@@ -184,7 +184,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         }
     }
 
-    private void renderHelp(ProjectDetails project, ProjectReportModel model) {
+    private void renderHelp(ProjectReportModel model) {
         BuildClientMetaData metaData = getClientMetaData();
         StyledTextOutput textOutput = getRenderer().getTextOutput();
 

@@ -16,9 +16,9 @@
 
 package org.gradle.configurationcache.services
 
-import org.gradle.configurationcache.extensions.filterKeysByPrefix
-import org.gradle.configurationcache.extensions.getBroadcaster
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
+import org.gradle.internal.extensions.core.getBroadcaster
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.initialization.Environment
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.resource.local.FileResourceListener

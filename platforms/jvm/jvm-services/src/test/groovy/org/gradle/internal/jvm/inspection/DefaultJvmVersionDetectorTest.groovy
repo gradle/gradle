@@ -38,22 +38,22 @@ class DefaultJvmVersionDetectorTest extends Specification {
 
     def "can determine version of current jvm"() {
         expect:
-        detector.getJavaVersion(Jvm.current()) == JavaVersion.current()
+        detector.getJavaVersionMajor(Jvm.current()) == JavaVersion.current().majorVersionNumber
     }
 
     def "can determine version of java command for current jvm"() {
         expect:
-        detector.getJavaVersion(Jvm.current().getJavaExecutable().path) == JavaVersion.current()
+        detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path) == JavaVersion.current().majorVersionNumber
     }
 
     def "can determine version of java command without file extension"() {
         expect:
-        detector.getJavaVersion(Jvm.current().getJavaExecutable().path.replace(".exe", "")) == JavaVersion.current()
+        detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path.replace(".exe", "")) == JavaVersion.current().majorVersionNumber
     }
 
     def "fails for unknown java command"() {
         when:
-        detector.getJavaVersion("unknown")
+        detector.getJavaVersionMajor("unknown")
 
         then:
         def e = thrown(ExecException)
@@ -71,7 +71,7 @@ class DefaultJvmVersionDetectorTest extends Specification {
         def detector = new DefaultJvmVersionDetector(metadataDetector)
 
         when:
-        detector.getJavaVersion(Jvm.current())
+        detector.getJavaVersionMajor(Jvm.current())
 
         then:
         def e = thrown(GradleException)

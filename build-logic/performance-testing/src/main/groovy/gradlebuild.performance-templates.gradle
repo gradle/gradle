@@ -56,7 +56,7 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
 
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {
@@ -424,7 +424,7 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/android/nowinandroid.git'
     // Pinned from main branch
-    ref = "88c3eb0b90ace5499962d9495464fa2388ec9e9a" // latest of March 29th, 2024
+    ref = "b85cf7d4766ca84a424700f86a96f5eab0a3cfbd" // latest of May 14th, 2024
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }

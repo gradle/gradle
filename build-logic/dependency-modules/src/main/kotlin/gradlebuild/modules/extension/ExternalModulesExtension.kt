@@ -22,7 +22,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.20" else "3.0.21"
     val configurationCacheReportVersion = "1.5"
-    val kotlinVersion = "1.9.22"
+    val gradleIdeStarterVersion = "0.3"
+    val kotlinVersion = "1.9.23"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -44,7 +45,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
-    val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
@@ -54,6 +54,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
+    val errorProneAnnotations = "com.google.errorprone:error_prone_annotations"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -61,6 +62,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
     val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
+    val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
@@ -80,7 +82,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val h2Database = "com.h2database:h2"
-    val hamcrest = "org.hamcrest:hamcrest-core"
+    val hamcrest = "org.hamcrest:hamcrest"
+    val hamcrestCore = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
     val ivy = "org.apache.ivy:ivy"
@@ -110,6 +113,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
+    val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
+    val kotlinReflect = futureKotlin("reflect")
+    val kotlinStdlib = futureKotlin("stdlib")
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3Artifact = "org.apache.maven:maven-artifact"
@@ -139,6 +145,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val pmavenCommon = "org.sonatype.pmaven:pmaven-common"
     val pmavenGroovy = "org.sonatype.pmaven:pmaven-groovy"
     val slf4jApi = "org.slf4j:slf4j-api"
+    val slf4jSimple = "org.slf4j:slf4j-simple"
     val snakeyaml = "org.yaml:snakeyaml"
     val testng = "org.testng:testng"
     val tomlj = "org.tomlj:tomlj"
@@ -171,6 +178,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val javaParser = "com.github.javaparser:javaparser-core"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
+    val jettyServer = "org.eclipse.jetty:jetty-server"
+    val jettyServlet = "org.eclipse.jetty:jetty-servlet"
+    val jettyUtil = "org.eclipse.jetty:jetty-util"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"
     val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
@@ -184,7 +194,10 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "mysql:mysql-connector-java"
+    val netty = "io.netty:netty-all"
+    val opentest4j = "org.opentest4j:opentest4j"
     val samplesCheck = "org.gradle.exemplar:samples-check"
+    val samplesDiscovery = "org.gradle.exemplar:samples-discovery"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
     val socksProxy = "com.github.bbottema:java-socks-proxy-server"
@@ -194,6 +207,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val sshdOsgi = "org.apache.sshd:sshd-osgi"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
+    val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
@@ -216,7 +230,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
-        capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,
@@ -233,12 +246,14 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         googleHttpClientGson to License.Apache2,
         googleHttpClientApacheV2 to License.Apache2,
         googleOauthClient to License.Apache2,
+        gradleIdeStarter to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
+        hamcrestCore to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
         inject to License.Apache2,

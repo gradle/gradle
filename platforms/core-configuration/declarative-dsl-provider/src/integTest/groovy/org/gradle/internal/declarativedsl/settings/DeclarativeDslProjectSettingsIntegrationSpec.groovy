@@ -23,7 +23,15 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
 
     def "can interpret the settings file with the declarative DSL"() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
+            pluginManagement {
+                includeBuild("pluginIncluded")
+                repositories {
+                    mavenCentral()
+                    google()
+                }
+            }
+
             rootProject.name = "test-value"
             include(":a")
             include(":b")
@@ -34,18 +42,11 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
                     google()
                 }
             }
-            pluginManagement {
-                includeBuild("pluginIncluded")
-                repositories {
-                    mavenCentral()
-                    google()
-                }
-            }
         """
         buildFile << "println('name = ' + rootProject.name)"
         file("a/build.gradle") << ""
         file("b/build.gradle") << ""
-        file("pluginIncluded/settings.gradle.something") << "rootProject.name = \"pluginIncluded\""
+        file("pluginIncluded/settings.gradle.dcl") << "rootProject.name = \"pluginIncluded\""
 
         expect:
         succeeds(":help", ":a:help", ":b:help")
@@ -54,7 +55,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
 
     def 'schema is written during settings interpretation'() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test"
         """
 
@@ -62,13 +63,13 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         run(":help")
 
         then:
-        def schemaFile = file(".gradle/restricted-schema/settings.something.schema")
+        def schemaFile = file(".gradle/declarative-schema/settings.dcl.schema")
         schemaFile.isFile() && schemaFile.text != ""
     }
 
     def 'reports #kind errors in settings'() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test"
             $code
         """
@@ -81,9 +82,57 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
 
         where:
         kind               | code                  | expectedMessage
-        "syntax"           | "..."                 | "2:13: parsing error: Expecting an element"
-        "language feature" | "@A dependencies { }" | "2:13: unsupported language feature: AnnotationUsage"
-        "semantic"         | "x = 1"               | "2:13: unresolved reference 'x'"
+        "syntax"           | "..."                 | "3:13: parsing error: Expecting an element"
+        "language feature" | "@A dependencies { }" | "3:13: unsupported language feature: AnnotationUsage"
+        "semantic"         | "x = 1"               | "3:13: unresolved reference 'x'"
+    }
+
+    def 'reports illegal order of settings blocks on #order'() {
+        given:
+        file("settings.gradle.dcl") << content
+
+        when:
+        def failure = fails(":projects")
+
+        then:
+        failure.assertHasErrorOutput(errorMessage)
+
+        where:
+        order                                | content                                          | errorMessage
+        'statement before plugin management' | 'rootProject.name = "foo"\npluginManagement { }' | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file"
+        'plugins before plugin management'   | 'plugins { }\npluginManagement { }'              | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file"
+        'statement before plugins'           | 'rootProject.name = "foo"\nplugins { }'          | "1:1: illegal content before 'plugins', which can only be preceded by 'pluginManagement"
+    }
+
+    def 'reports duplicate #kind blocks in settings'() {
+        given:
+        file("settings.gradle.dcl") << content
+
+        when:
+        def failure = fails(":projects")
+
+        then:
+        failure.assertHasErrorOutput(errorMessage)
+
+        where:
+        kind               | content                                                                             | errorMessage
+        'plugins'          | 'pluginManagement { }\nplugins { }\nrootProject.name = "foo"\nplugins { }'          | "4:1: duplicate 'plugins'"
+        'pluginManagement' | 'pluginManagement { }\nplugins { }\nrootProject.name = "foo"\npluginManagement { }' | "4:1: duplicate 'pluginManagement'"
+    }
+
+    def 'supports correct order of blocks in setttings file if there is #order'() {
+        given:
+        file("settings.gradle.dcl") << content
+
+        expect:
+        succeeds(":projects")
+        outputContains("Root project 'test-project'")
+
+        where:
+        order                                     | content
+        'a plugins block but no pluginManagement' | 'plugins { }\nrootProject.name = "test-project"'
+        'a pluginManagement block but no plugins' | 'pluginManagement { }\nrootProject.name = "test-project'
+        'no special blocks'                       | 'rootProject.name = "test-project"'
     }
 
     def 'can apply settings plugins'() {
@@ -134,7 +183,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
             }
         """
 
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             pluginManagement {
                 includeBuild("included-settings-plugin")
             }
@@ -151,5 +200,21 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         expect:
         succeeds("help")
         outputContains("id = test")
+    }
+
+    def "reports reassigned value"() {
+        given:
+        file("settings.gradle.dcl") << """
+        rootProject.name = "foo"
+        rootProject.name = "bar"
+        rootProject.name = "baz"
+        include(":baz")""".stripIndent().trim()
+
+        when:
+        def failure = fails(":projects")
+
+        then:
+        failure.assertHasErrorOutput('2:1: Value reassigned in (this:(top-level-object)).rootProject.name := "bar"')
+        failure.assertHasErrorOutput('3:1: Value reassigned in (this:(top-level-object)).rootProject.name := "baz"')
     }
 }

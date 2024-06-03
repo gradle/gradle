@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfi
 import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
@@ -32,7 +31,6 @@ import org.gradle.tooling.events.ProgressListener
 
 import java.util.regex.Pattern
 
-@ToolingApiVersion(">=4.8")
 @TargetGradleVersion(">=4.8")
 class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -463,7 +461,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
-    @TargetGradleVersion(">=2.6 <4.8")
+    @TargetGradleVersion(">=3.0 <4.8")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()

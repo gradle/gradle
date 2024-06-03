@@ -16,8 +16,8 @@
 
 package org.gradle.configurationcache.services
 
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.initialization.EnvironmentChangeTracker
 import java.util.concurrent.ConcurrentHashMap
 

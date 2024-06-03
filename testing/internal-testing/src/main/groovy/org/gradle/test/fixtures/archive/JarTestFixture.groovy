@@ -19,8 +19,8 @@ package org.gradle.test.fixtures.archive
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.io.IOUtils
 import org.gradle.api.JavaVersion
-import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.internal.lazy.Lazy
+import org.gradle.internal.serialize.JavaClassUtil
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile

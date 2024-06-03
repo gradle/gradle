@@ -140,7 +140,7 @@ Joe!""")
             task javadoc(type: Javadoc) {
                 destinationDir = file("build/javadoc")
                 source "src/main/java"
-                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
 

@@ -19,11 +19,11 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.FileFactory
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readFile
-import org.gradle.configurationcache.serialization.writeFile
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readFile
+import org.gradle.internal.serialize.graph.writeFile
 
 
 class DirectoryCodec(private val fileFactory: FileFactory) : Codec<Directory> {

@@ -15,6 +15,16 @@
  */
 /* Custom Admonition Blocks */
 :root {
+    --gradle-blue: #209BC4;
+    --gradle-bg-dark: #010002;
+    --gradle-bg-gray: #F8F8F8;
+    --gradle-bg-white: #FFFFFF;
+    --gradle-blue: #209BC4;
+    --gradle-blue-lite: #4DC9C0;
+    --gradle-blue-dark: #1b3262;
+    --gradle-blue-darker: #19274f;
+    --button-gradient-angle: 160deg;
+
 	--caution-color: #e40046;
 	--caution-on-color: #fff;
 	--important-color: #802392;
@@ -3433,161 +3443,9 @@ div.screenshot {
 	border-right: 1px solid #e7e7e9;
 }
 
-@media (max-width: 768px) {
-    .dark-mode {
-        .algolia-autocomplete .algolia-docsearch-suggestion .algolia-docsearch-suggestion--subcategory-column {
-            color: #fff;
-        }
-    }
-}
-
-.dark-mode {
-	.docs-navigation {
-		border-right: 1px solid #242526;
-	}
-	.docs-navigation .search-input {
-    	background: var(--white-color) !important;
-    	color: var(--text-color);
-    }
-    .algolia-autocomplete .algolia-docsearch-suggestion {
-        background: var(--footer-white-color);
-    }
-    .algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column {
-        color: #fff;
-    }
-    .algolia-autocomplete .algolia-docsearch-suggestion--highlight {
-        color: #287bdc;
-    }
-}
-
 .docs-navigation .search-container {
 	display: none;
 	margin-bottom: 1rem;
-}
-
-.docs-navigation .search-input {
-	height: 30px;
-	line-height: 30px;
-	box-sizing: border-box;
-	border: 1px solid #e3e3e3;
-	border-radius: 3px;
-	color: #666;
-	outline: none;
-	margin-right: 10px;
-	transition: border-color 0.2s ease;
-	background: var(--white-color) url('data:image/svg+xml;utf8,<svg height="20px" version="1.1" viewBox="0 0 32 32" width="20px" xmlns="http://www.w3.org/2000/svg"><g fill="#cccccc" fill-rule="evenodd" stroke="none" stroke-width="1"><path d="M19.4271164,21.4271164 C18.0372495,22.4174803 16.3366522,23 14.5,23 C9.80557939,23 6,19.1944206 6,14.5 C6,9.80557939 9.80557939,6 14.5,6 C19.1944206,6 23,9.80557939 23,14.5 C23,16.3366522 22.4174803,18.0372495 21.4271164,19.4271164 L27.0119176,25.0119176 C27.5621186,25.5621186 27.5575313,26.4424687 27.0117185,26.9882815 L26.9882815,27.0117185 C26.4438648,27.5561352 25.5576204,27.5576204 25.0119176,27.0119176 L19.4271164,21.4271164 L19.4271164,21.4271164 Z M14.5,21 C18.0898511,21 21,18.0898511 21,14.5 C21,10.9101489 18.0898511,8 14.5,8 C10.9101489,8 8,10.9101489 8,14.5 C8,18.0898511 10.9101489,21 14.5,21 L14.5,21 Z"/></g></svg>') no-repeat 8px 5px;
-	background-size: 20px;
-	vertical-align: middle !important;
-	width: 100%;
-	padding-left: 10px;
-}
-
-.docs-navigation .search-input:focus {
-	border-color: #1BA8CB;
-}
-
-.docs-navigation .search-input::placeholder {
-	color: #ccc;
-}
-
-/* Docsearch overrides */
-.docs-navigation .algolia-autocomplete {
-	display: block !important;
-	flex: 1;
-}
-
-.docs-navigation .algolia-autocomplete .ds-dropdown-menu {
-	width: 100px;
-	min-width: 0 !important;
-	max-width: none !important;
-	padding: .75rem 0 !important;
-	background-color: var(--white-color) !important;
-	background-clip: padding-box;
-	border: 1px solid #e3e3e3 !important;
-	box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
-	position: fixed !important;
-	top: 103px;
-	left: 25px;
-}
-
-.docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
-	padding: 0 !important;
-	overflow: visible !important;
-	background-color: transparent !important;
-	border: 0 !important;
-	position: inherit !important;
-	top: 112px;
-	left: 25px;
-}
-
-.docs-navigation .algolia-autocomplete .ds-dropdown-menu .ds-suggestions {
-	margin-top: 0 !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion {
-	padding: 0 15px !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--category-header {
-	font-weight: 800 !important;
-	color: #1BA8CB !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--wrapper {}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column {}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--content {
-	padding: 0 !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--title {
-	display: block !important;
-	color: var(--text-color);
-	padding: .25rem 1rem !important;
-	margin-bottom: 0 !important;
-	font-weight: 500 !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--text {
-	padding: 0 1rem .5rem !important;
-	margin-top: -.25rem !important;
-	font-size: 0.9em !important;
-	font-weight: 400 !important;
-	line-height: 1.25 !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-footer {
-	float: none !important;
-	width: auto !important;
-	height: auto !important;
-	padding: .75rem 1rem 0;
-	font-size: .875rem !important;
-	line-height: 1 !important;
-	color: #767676 !important;
-	border-top: 1px solid #e3e3e3 !important;
-	text-align: right;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-footer a {
-	font-size: .875rem;
-	text-decoration: underline;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-footer--logo {
-	display: inline !important;
-	overflow: visible !important;
-	color: inherit !important;
-	text-indent: 0 !important;
-	background: none !important;
-}
-
-.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--highlight {
-	background-color: rgba(143, 187, 237, .1) !important;
-}
-
-.docs-navigation .algolia-autocomplete .ds-suggestion .ds-cursor .algolia-docsearch-suggestion--content {
-	background-color: rgba(208, 189, 236, .15) !important;
 }
 
 .docs-navigation a {
@@ -4316,6 +4174,63 @@ code[data-lang="text"] .fun {
 	li.L9 {
 		background: #111 !important;
 	}
+}
+
+/* DPE University button*/
+/* CSS */
+.badge-wrapper {
+    padding-top: 0px;
+    padding-bottom: 20px;
+    a {
+        text-decoration: none;
+    }
+    a:link {
+        text-decoration: none;
+    }
+    a:visited {
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: none;
+    }
+    a:active {
+        text-decoration: none;
+    }
+}
+.badge {
+    background-color: var(--black-color);
+    height: 24px;
+    border-radius: 12px;
+    border-color: var(--black-color);
+    border-style: solid;
+    border-width: 1px;
+    padding: 5px;
+    a {
+        color: var(--gradle-blue);
+    }
+}
+.badge-type {
+    border-radius: 8px;
+    margin-right: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.badge-text {
+    color: var(--white-color);
+}
+.button--blue {
+  color: white;
+  border-color: transparent;
+  &:hover {
+    color: white;
+  }
+}
+.button--blue {
+  background: var(--gradle-blue);
+  background: linear-gradient(var(--button-gradient-angle), var(--gradle-blue) 0%, var(--gradle-blue-lite) 100%);
+  &:hover {
+    background: var(--gradle-blue-lite);
+  }
 }
 
 /* Custom Download button*/

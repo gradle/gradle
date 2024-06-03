@@ -16,20 +16,26 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
+
+import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Issue
 
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
-class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     /**
      * A map of all possible file locations, and the number of occurrences we expect to find in the problems.
@@ -46,11 +52,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         enableProblemsApiCheck()
 
-        propertiesFile << """
-            # Feature flag as of 8.6 to enable the Problems API
-            systemProp.org.gradle.internal.emit-compiler-problems=true
-        """
-
         buildFile << """
             plugins {
                 id 'java'
@@ -65,7 +66,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def cleanup() {
-        assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
+        if (isProblemsApiCheckEnabled()) {
+            assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited, unchecked files were: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
+        }
     }
 
     def "problem is received when a single-file compilation failure happens"() {
@@ -237,14 +240,15 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "the compiler flag -Werror correctly reports"() {
+    def "the compiler flag -Werror correctly reports problems"() {
         given:
         buildFile << "tasks.compileJava.options.compilerArgs += ['-Werror']"
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 3)
+
+        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
+        possibleFileLocations.put(fooFileLocation, 3)
 
         when:
         fails("compileJava")
-
 
         then:
         // 2 warnings + 1 special error
@@ -254,22 +258,159 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-error'
             details == 'warnings found and -Werror specified'
             solutions.empty
-            additionalData.isEmpty()
+            additionalData.asMap == ["formatted" : "error: warnings found and -Werror specified"]
         }
+
+        // Based on the Java version, the types in the lint message will differ...
+        String expectedType
+        if (JavaVersion.current().isJava9Compatible()) {
+            expectedType = "String"
+        } else {
+            expectedType = "java.lang.String"
+        }
+
         // The two expected warnings are still reported as warnings
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.isEmpty()
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
+                it.path == fooFileLocation
+            }
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedLineInFileLocation)) {
+                it.line == 5
+                it.length == 21
+            }
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedOffsetInFileLocation)) {
+                it.offset == 189
+                it.length == 21
+            }
+            additionalData.asMap == ["formatted" : """$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
+                    String s = (String)"Hello World";
+                               ^"""]
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.isEmpty()
+            additionalData.asMap == ["formatted" : """${fooFileLocation}:10: warning: [cast] redundant cast to $expectedType
+                    String s = (String)"Hello World";
+                               ^"""]
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/29141")
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "compiler warnings causes failure in problem mapping under JDK8"() {
+        given:
+        //
+        // 1. step: Create a simple annotation processor
+        //
+        file("processor/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+        """
+        file("processor/src/main/java/DummyAnnotation.java") << """
+            package com.example;
+
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.TYPE)
+            public @interface DummyAnnotation {
+            }
+        """
+        // A simple annotation processor
+        file("processor/src/main/java/DummyProcessor.java") << """
+            package com.example;
+
+            import javax.annotation.processing.AbstractProcessor;
+            import javax.annotation.processing.RoundEnvironment;
+            import javax.annotation.processing.Processor;
+            import javax.annotation.processing.ProcessingEnvironment;
+            import javax.annotation.processing.SupportedAnnotationTypes;
+            import javax.annotation.processing.SupportedSourceVersion;
+            import javax.lang.model.SourceVersion;
+            import javax.lang.model.element.TypeElement;
+            import javax.lang.model.element.Element;
+            import javax.tools.Diagnostic;
+
+            import java.util.Set;
+
+            @SupportedAnnotationTypes("com.example.DummyAnnotation")
+            @SupportedSourceVersion(SourceVersion.RELEASE_8)
+            public class DummyProcessor extends AbstractProcessor {
+                @Override
+                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    for (Element element : roundEnv.getElementsAnnotatedWith(DummyAnnotation.class)) {
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing: " + element.getSimpleName());
+                    }
+                    return true; // No further processing of this annotation type
+                }
+            }
+        """
+        // META-INF/services file for registering the annotation processor
+        file("processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << "com.example.DummyProcessor"
+
+        //
+        // 2. step: Create a simple project that uses the annotation processor
+        //
+        settingsFile << """\
+            include 'processor'
+        """
+        buildFile << """\
+        dependencies {
+            //annotationProcessor project(':processor')
+            annotationProcessor "org.immutables:value:2.+"
+        }
+
+        repositories {
+            mavenCentral()
+        }
+
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(8)
+            }
+        }
+
+        repositories {
+            mavenCentral()
+        }
+        """
+
+        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
+        possibleFileLocations.put(fooFileLocation, 2)
+
+        when:
+        executer.withArguments("--info", "--stacktrace")
+        withInstallations(AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8))
+        succeeds(":compileJava")
+
+        then:
+        result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            additionalData.asMap == [ 'formatted' : 'redundant cast to java.lang.String' ]
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            additionalData.asMap == [ 'formatted' : 'redundant cast to java.lang.String' ]
         }
     }
 
@@ -288,16 +429,11 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     void assertProblem(
         ReceivedProblem problem,
         String severity,
-        boolean expectPreciseLocation = true,
-        @ClosureParams(
-            value = SimpleType,
-            options = [
-                "java.lang.String"
-            ]
-        ) Closure extraChecks = null
+        boolean expectPreciseLocation = true
     ) {
         // TODO (donat) we can probably delete some of this method
         assert problem.definition.severity == Severity.valueOf(severity) : "Expected severity to be ${severity}, but was ${problem.definition.severity}"
+
         switch (severity) {
             case "ERROR":
                 assert problem.definition.id.displayName == "Java compilation error": "Expected label 'Java compilation error', but was ${problem.definition.id.displayName}"
@@ -344,10 +480,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
-
-        if (extraChecks != null) {
-            extraChecks.call(details)
-        }
     }
 
     String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {

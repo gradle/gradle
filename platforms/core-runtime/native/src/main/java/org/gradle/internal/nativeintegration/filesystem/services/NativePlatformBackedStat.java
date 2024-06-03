@@ -17,7 +17,7 @@
 package org.gradle.internal.nativeintegration.filesystem.services;
 
 import net.rubygrapefruit.platform.file.PosixFiles;
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
+import org.gradle.internal.file.FileModeAccessor;
 
 import java.io.File;
 

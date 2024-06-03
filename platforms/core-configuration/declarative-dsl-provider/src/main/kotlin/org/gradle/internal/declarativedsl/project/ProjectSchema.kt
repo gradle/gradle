@@ -16,40 +16,28 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.plus
-import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.plugins.ignoreTopLevelPluginsBlock
+import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.software.softwareTypesWithPluginApplication
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun projectInterpretationSequence(
-    target: ProjectInternal,
-    targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource
-) = InterpretationSequence(
-    listOf(
-        PluginsInterpretationSequenceStep("plugins", target, targetScope, scriptSource, ProjectInternal::getServices),
-        SimpleInterpretationSequenceStep("project", target) { projectEvaluationSchema(target, targetScope) }
-    )
-)
+    softwareTypeRegistry: SoftwareTypeRegistry
+) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(softwareTypeRegistry)))
 
 
-private
 fun projectEvaluationSchema(
-    target: ProjectInternal,
-    targetScope: ClassLoaderScope
-): EvaluationSchema {
-    val component = gradleDslGeneralSchemaComponent() +
-        ThirdPartyExtensionsComponent(ProjectTopLevelReceiver::class, target, "projectExtension") +
-        DependencyConfigurationsComponent(target) +
-        TypesafeProjectAccessorsComponent(targetScope)
-
-    return buildEvaluationSchema(ProjectTopLevelReceiver::class, component, ignoreTopLevelPluginsBlock)
+    softwareTypeRegistry: SoftwareTypeRegistry
+): EvaluationAndConversionSchema {
+    return buildEvaluationAndConversionSchema(ProjectTopLevelReceiver::class, analyzeEverything) {
+        gradleDslGeneralSchema()
+        dependencyCollectors()
+        softwareTypesWithPluginApplication(ProjectTopLevelReceiver::class, softwareTypeRegistry)
+    }
 }

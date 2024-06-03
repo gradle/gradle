@@ -19,7 +19,9 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-events"))
     api(project(":build-operations"))
@@ -30,7 +32,6 @@ dependencies {
     api(project(":files"))
     api(project(":hashing"))
     api(project(":language-jvm"))
-    api(project(":messaging"))
     api(project(":persistent-cache"))
     api(project(":platform-base"))
     api(project(":platform-jvm"))
@@ -40,8 +41,9 @@ dependencies {
     api(project(":test-suites-base"))
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
     api(project(":workers"))
+    api(project(":build-process-services"))
 
     api(libs.asm)
     api(libs.fastutil)
@@ -50,6 +52,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.concurrent)
+    implementation(projects.time)
     implementation(project(":file-temp"))
     implementation(project(":logging-api"))
     implementation(project(":model-core"))
@@ -72,6 +76,7 @@ dependencies {
         because("Required for SystemInfo")
     }
 
+    integTestImplementation(projects.messaging)
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
 

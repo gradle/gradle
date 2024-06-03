@@ -31,11 +31,9 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -66,7 +64,7 @@ import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -370,12 +368,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        ObjectFactory propertyFactory = GLOBAL_SERVICES.get(ObjectFactory.class);
         BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory);
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecutor.class);
 
         ListenerManager listenerManager = GLOBAL_SERVICES.get(ListenerManager.class);
         listenerManager.addListener(listener);
@@ -426,7 +423,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), Time.currentTimeMillis(), interactive),
+            new DefaultBuildRequestMetaData(Time.currentTimeMillis(), interactive),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer());
     }
@@ -822,8 +819,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
             outputFailure.assertThatDescription(matcher);
-            assertHasFailure(matcher, f -> {
-            });
+            assertHasFailure(matcher, f -> {});
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher) {
+            outputFailure.assertThatAllDescriptions(matcher);
+            assertHasFailure(matcher, f -> {});
             return this;
         }
 

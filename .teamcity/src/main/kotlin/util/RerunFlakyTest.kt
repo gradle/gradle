@@ -56,7 +56,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val parameters = (
         buildToolGradleParameters(daemon) +
             listOf(extraParameters) +
-            functionalTestParameters(os)
+            functionalTestParameters(os, arch)
         ).joinToString(separator = " ")
 
     killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)

@@ -69,8 +69,8 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -83,7 +83,9 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ExecFactory;
@@ -99,7 +101,7 @@ import java.util.List;
 /**
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
-public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServices {
+public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServices implements ServiceRegistrationProvider {
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {
@@ -119,55 +121,66 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathElementTransformFactoryForAgent.class);
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
         registration.add(DefaultCachedClasspathTransformer.class);
-        for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
-            plugin.registerGradleUserHomeServices(registration);
+        for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
+            services.registerGradleUserHomeServices(registration);
         }
     }
 
+    @Provides
     ToPlannedNodeConverterRegistry createToPlannedNodeConverterRegistry(List<ToPlannedNodeConverter> converters) {
         return new ToPlannedNodeConverterRegistry(converters);
     }
 
+    @Provides
     ToPlannedNodeConverter createToPlannedTransformConverter() {
         return new ToPlannedTaskConverter();
     }
 
+    @Provides
     @Override
     DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
+    @Provides
+    ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.UserHome.class);
     }
 
+    @Provides
     ScriptSourceHasher createScriptSourceHasher() {
         return new DefaultScriptSourceHasher();
     }
 
+    @Provides
     CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
+    @Provides
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
         return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderFactory);
     }
 
+    @Provides
     HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher classpathHasher) {
         return new DefaultHashingClassLoaderFactory(classpathHasher);
     }
 
+    @Provides
     ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher, ListenerManager listenerManager) {
         DefaultClassLoaderCache cache = new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
         listenerManager.addListener(cache);
         return cache;
     }
 
-    protected ClassLoaderScopeRegistryListenerManager createClassLoaderScopeRegistryListenerManager(ListenerManager listenerManager) {
+    @Provides
+    ClassLoaderScopeRegistryListenerManager createClassLoaderScopeRegistryListenerManager(ListenerManager listenerManager) {
         return new ClassLoaderScopeRegistryListenerManager(listenerManager);
     }
 
-    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
+    @Provides
+    ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
         ClassLoaderRegistry classLoaderRegistry,
         ClassLoaderCache classLoaderCache,
         ClassLoaderScopeRegistryListenerManager listenerManager
@@ -175,10 +188,12 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache, listenerManager.getBroadcaster());
     }
 
+    @Provides
     GlobalCacheLocations createGlobalCacheLocations(List<GlobalCache> globalCaches) {
         return new DefaultGlobalCacheLocations(globalCaches);
     }
 
+    @Provides
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
         return parent.forContext()
             .withFileResolver(fileResolver)
@@ -189,6 +204,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             .build();
     }
 
+    @Provides
     WorkerProcessFactory createWorkerProcessFactory(
         LoggingManagerInternal loggingManagerInternal,
         MessagingServer messagingServer,
@@ -214,6 +230,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         );
     }
 
+    @Provides
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, WorkerProcessClassPathProvider workerProcessClassPathProvider) {
         return new DefaultClassPathRegistry(
             new DefaultClassPathProvider(moduleRegistry),
@@ -221,38 +238,48 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         );
     }
 
+    @Provides
     WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(GlobalScopedCacheBuilderFactory cacheBuilderFactory, ModuleRegistry moduleRegistry) {
         return new WorkerProcessClassPathProvider(cacheBuilderFactory, moduleRegistry);
     }
 
-    protected JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
+    @Provides
+    JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
         return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
     }
 
+    @Provides
     DefaultGeneratedGradleJarCache createGeneratedGradleJarCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheBuilderFactory, gradleVersion);
     }
 
+    @Provides
     FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, cacheBuilderFactory, inMemoryCacheDecoratorFactory);
     }
 
+    @Provides
     FileAccessTimeJournal createFileAccessTimeJournal(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         return new DefaultFileAccessTimeJournal(cacheBuilderFactory, cacheDecoratorFactory);
     }
 
+    @Provides
     TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory, CurrentBuildOperationRef currentBuildOperationRef) {
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
     }
 
+    @Provides
     LegacyCacheCleanupEnablement createLegacyCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
         return new LegacyCacheCleanupEnablement(gradleUserHomeDirProvider);
     }
-    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
+
+    @Provides
+    CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
         return objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
     }
 
+    @Provides
     GroovyDslWorkspaceProvider createGroovyDslWorkspaceProvider(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,

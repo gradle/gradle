@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.stream.Stream.empty;
-import static java.util.stream.Stream.of;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private final List<TaskReportModel> projects = new ArrayList<>();
@@ -41,7 +39,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group, List<String> groups) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
-        this.groupsOfInterest = Stream.concat(isNullOrEmpty(group) ? empty() : of(group), groups.stream())
+        this.groupsOfInterest = Stream.concat(isNullOrEmpty(group) ? Stream.empty() : Stream.of(group), groups.stream())
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
     }

@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-experimental-contracts")
 }
 
 description = "Configuration cache implementation"
@@ -18,7 +19,7 @@ dependencies {
 }
 
 tasks.processResources {
-    from(zipTree(provider { configurationCacheReportPath.files.first() })) {
+    from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
         into("org/gradle/configurationcache/problems")
         exclude("META-INF/**")
     }
@@ -29,16 +30,11 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-opt-in=kotlin.contracts.ExperimentalContracts",
-        )
-    }
-}
-
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
+    api(projects.configurationProblemsBase)
     api(project(":base-services"))
     api(project(":build-operations"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
@@ -49,8 +45,8 @@ dependencies {
     api(project(":enterprise-operations"))
     api(project(":file-collections"))
     api(project(":file-temp"))
-    api(project(":files"))
     api(project(":functional"))
+    api(projects.graphSerialization)
     api(project(":hashing"))
     api(project(":logging"))
     api(project(":logging-api"))
@@ -60,32 +56,36 @@ dependencies {
     api(project(":native"))
     api(project(":persistent-cache"))
     api(project(":plugin-use"))
-    api(project(":problems-api"))
     api(project(":resources"))
     api(project(":snapshots"))
 
     api(libs.groovy)
-    api(libs.guava)
     api(libs.inject)
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
-    implementation(project(":base-services-groovy"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(project(":base-services-groovy"))
     implementation(project(":build-events"))
+    implementation(projects.coreKotlinExtensions)
     implementation(project(":execution"))
+    implementation(project(":files"))
     implementation(project(":file-watching"))
+    implementation(projects.flowServices)
+    implementation(projects.guavaSerializationCodecs)
     implementation(project(":input-tracking"))
     implementation(project(":platform-jvm"))
+    implementation(projects.problemsApi)
     implementation(project(":process-services"))
     implementation(project(":publish"))
-    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(projects.serialization)
+    implementation(projects.stdlibKotlinExtensions)
+    implementation(projects.stdlibSerializationCodecs)
     implementation(project(":tooling-api"))
 
     implementation(libs.asm)
-    implementation(libs.capsule)
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
-    implementation(libs.jsr305)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     runtimeOnly(project(":composite-builds"))
@@ -93,8 +93,9 @@ dependencies {
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(project(":workers"))
 
-    runtimeOnly(libs.futureKotlin("reflect"))
+    runtimeOnly(libs.kotlinReflect)
 
+    testImplementation(projects.io)
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)

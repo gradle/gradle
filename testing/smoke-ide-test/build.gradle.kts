@@ -1,10 +1,8 @@
-import gradlebuild.integrationtests.tasks.SmokeIdeTest
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.ide.AndroidStudioProvisioningExtension
+import gradlebuild.integrationtests.tasks.SmokeIdeTest
 
 plugins {
     id("gradlebuild.internal.java")
-    id("gradlebuild.android-studio-provisioning")
 }
 
 description = "Tests are checking Gradle behavior during IDE synchronization process"
@@ -15,8 +13,18 @@ val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
 }
 
 addDependenciesAndConfigurations("smokeIde")
+
 val smokeIdeTestImplementation: Configuration by configurations
 val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
+val ideStarter by configurations.creating {
+    isVisible = false
+    isCanBeConsumed = false
+}
+
+val unzipIdeStarter by tasks.registering(ProcessResources::class) {
+    from(zipTree(ideStarter.elements.map { it.single() }))
+    into(layout.buildDirectory.dir("ideStarter"))
+}
 
 plugins.withType<IdeaPlugin> {
     with(model) {
@@ -33,13 +41,11 @@ tasks.register<SmokeIdeTest>("smokeIdeTest") {
     systemProperties["org.gradle.integtest.executer"] = "forking"
     testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
     classpath = smokeIdeTestSourceSet.runtimeClasspath
-
-    val jvmArgumentProvider = project.extensions.getByType<AndroidStudioProvisioningExtension>().androidStudioSystemProperties(project, emptyList())
-    jvmArgumentProviders.add(jvmArgumentProvider)
+    dependsOn(unzipIdeStarter)
 }
 
 dependencies {
-    smokeIdeTestImplementation(libs.gradleProfiler)
+    ideStarter(libs.gradleIdeStarter)
     smokeIdeTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("Tests starts an IDE with using current Gradle distribution")
     }

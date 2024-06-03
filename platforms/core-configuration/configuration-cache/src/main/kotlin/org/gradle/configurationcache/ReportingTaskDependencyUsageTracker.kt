@@ -19,8 +19,8 @@ package org.gradle.configurationcache
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 
 
 /** Reports all usages of the tracked TaskDependency APIs as problems using the [problems] listener.

@@ -10,7 +10,6 @@ errorprone {
         "LoopOverCharArray", // 1 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
         "StringCaseLocaleUsage", // 2 occurrences
-        "StringSplitter", // 1 occurrences
     )
 }
 
@@ -24,7 +23,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":dependency-management"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":platform-base"))

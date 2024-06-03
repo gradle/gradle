@@ -58,6 +58,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -162,7 +163,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
         public AbstractListener(ExecutorFactory executorFactory) {
             this.executor = executorFactory.create("build event listener");
-            executor.submit(this::run);
+            Future<?> ignored = executor.submit(this::run);
         }
 
         private void run() {

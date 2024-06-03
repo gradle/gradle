@@ -40,7 +40,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
             version = "0.1.1"
 
             repositories {
-                jcenter()
+                mavenCentral()
             }
 
             gradlePlugin {

@@ -24,20 +24,16 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
@@ -48,12 +44,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final DependencyMetaDataProvider metadataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
     private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DefaultRootComponentMetadataBuilder.Factory factory;
 
     /**
@@ -63,21 +57,17 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         DependencyMetaDataProvider metadataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        LocalConfigurationMetadataBuilder configurationMetadataBuilder,
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
         Factory factory
     ) {
         this.metadataProvider = metadataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.configurationMetadataBuilder = configurationMetadataBuilder;
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
         this.localResolveStateFactory = localResolveStateFactory;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.factory = factory;
         this.holder = new MetadataHolder();
     }
@@ -138,16 +128,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private LocalComponentGraphResolveState createRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
-            new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-                configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
 
-        LocalComponentMetadata metadata = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
         if (shouldCacheResolutionState()) {
-            return localResolveStateFactory.stateFor(metadata);
+            return localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, module.getStatus(), schema);
         } else {
             // Mark the state as 'ad hoc' and not cacheable
-            return localResolveStateFactory.adHocStateFor(metadata);
+            return localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, module.getStatus(), schema);
         }
     }
 
@@ -234,28 +220,22 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         private final DependencyMetaDataProvider metaDataProvider;
         private final ComponentIdentifierFactory componentIdentifierFactory;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
         private final ProjectStateRegistry projectStateRegistry;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
-        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
         @Inject
         public Factory(
             DependencyMetaDataProvider metaDataProvider,
             ComponentIdentifierFactory componentIdentifierFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            LocalConfigurationMetadataBuilder configurationMetadataBuilder,
             ProjectStateRegistry projectStateRegistry,
-            LocalComponentGraphResolveStateFactory localResolveStateFactory,
-            CalculatedValueContainerFactory calculatedValueContainerFactory
+            LocalComponentGraphResolveStateFactory localResolveStateFactory
         ) {
             this.metaDataProvider = metaDataProvider;
             this.componentIdentifierFactory = componentIdentifierFactory;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
-            this.configurationMetadataBuilder = configurationMetadataBuilder;
             this.projectStateRegistry = projectStateRegistry;
             this.localResolveStateFactory = localResolveStateFactory;
-            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         }
 
         public RootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider) {
@@ -263,11 +243,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 metaDataProvider,
                 componentIdentifierFactory,
                 moduleIdentifierFactory,
-                configurationMetadataBuilder,
                 configurationsProvider,
                 projectStateRegistry,
                 localResolveStateFactory,
-                calculatedValueContainerFactory,
                 this
             );
         }

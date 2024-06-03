@@ -83,10 +83,10 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Iguana 2023.2.1 Patch 1
+    // Android Studio Jellyfish 2023.3.1
     // Find all references here https://developer.android.com/studio/archive
     // Update verification-metadata.xml
-    const val performanceTestAndroidStudioVersion = "2023.2.1.24"
+    const val performanceTestAndroidStudioVersion = "2023.3.1.18"
     val performanceTestAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -147,7 +147,9 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val junit by configurations.creating
         dependencies {
-            "performanceTestImplementation"(project(":internal-performance-testing"))
+            if (project.name != "enterprise-plugin-performance") {
+                "performanceTestImplementation"(project(":internal-performance-testing"))
+            }
             junit("junit:junit:4.13")
         }
     }
