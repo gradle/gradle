@@ -151,6 +151,7 @@ public class ProviderMigrationArchitectureTest {
             // IDE Plugins
             .and(not(declaredIn(resideInAPackage("org.gradle.ide.."))))
             .and(not(declaredIn(resideInAPackage("org.gradle.plugins.ide.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.tooling.."))))
             // Kotlin DSL
             .and(not(declaredIn(resideInAPackage("org.gradle.kotlin.dsl"))))
             // Native
