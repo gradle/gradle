@@ -29,6 +29,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeModelSideEffectCollector {
 
-    <T> void onSideEffect(IsolatedBuildTreeModelSideEffect<T> sideEffect);
+    void onSideEffect(BuildTreeModelSideEffect sideEffect);
 
 }

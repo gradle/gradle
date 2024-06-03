@@ -17,26 +17,20 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.model.ObjectFactory;
 
 
 @NonNullApi
 public class DefaultBuildTreeModelSideEffectExecutor implements BuildTreeModelSideEffectExecutor {
 
-    private final ObjectFactory objectFactory;
     private final BuildTreeModelSideEffectCollector sideEffectCollector;
 
-    public DefaultBuildTreeModelSideEffectExecutor(ObjectFactory objectFactory, BuildTreeModelSideEffectCollector sideEffectCollector) {
-        this.objectFactory = objectFactory;
+    public DefaultBuildTreeModelSideEffectExecutor(BuildTreeModelSideEffectCollector sideEffectCollector) {
         this.sideEffectCollector = sideEffectCollector;
     }
 
     @Override
-    public <T> void runSideEffect(Class<? extends BuildTreeModelSideEffect<T>> implementation, T parameter) {
-        IsolatedBuildTreeModelSideEffect<T> sideEffect = new IsolatedBuildTreeModelSideEffect<>(implementation, parameter);
-        sideEffect.run(objectFactory);
-
+    public void runIsolatableSideEffect(BuildTreeModelSideEffect sideEffect) {
+        sideEffect.runSideEffect();
         sideEffectCollector.onSideEffect(sideEffect);
     }
-
 }

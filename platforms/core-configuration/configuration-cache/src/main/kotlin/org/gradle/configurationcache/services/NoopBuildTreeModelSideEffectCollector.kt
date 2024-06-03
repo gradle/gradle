@@ -16,13 +16,13 @@
 
 package org.gradle.configurationcache.services
 
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectCollector
-import org.gradle.internal.buildtree.IsolatedBuildTreeModelSideEffect
 
 
 /**
  * Implementation of [BuildTreeModelSideEffectCollector] that does nothing.
  */
 class NoopBuildTreeModelSideEffectCollector : BuildTreeModelSideEffectCollector {
-    override fun <T : Any> onSideEffect(sideEffect: IsolatedBuildTreeModelSideEffect<T>) {}
+    override fun onSideEffect(sideEffect: BuildTreeModelSideEffect) {}
 }

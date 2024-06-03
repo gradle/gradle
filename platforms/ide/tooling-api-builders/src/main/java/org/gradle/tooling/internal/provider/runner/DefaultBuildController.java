@@ -17,14 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
-import org.gradle.internal.buildtree.BuildTreeModelSideEffect;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -46,7 +44,6 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -58,6 +55,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
+    private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
 
@@ -67,6 +65,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+        BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
         PayloadSerializer payloadSerializer
     ) {
@@ -75,6 +74,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
         this.parameterCarrierFactory = parameterCarrierFactory;
+        this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
     }
@@ -181,20 +181,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     public void dispatch(Object value) {
         SerializedPayload serializedModel = payloadSerializer.serialize(value);
         StreamedValue streamedValue = new StreamedValue(serializedModel);
-        sideEffectExecutor.runSideEffect(StreamValueSideEffect.class, streamedValue);
-    }
-
-    @NonNullApi
-    public static abstract class StreamValueSideEffect implements BuildTreeModelSideEffect<StreamedValue> {
-
-        @Override
-        public void run(StreamedValue parameter) {
-            BuildEventConsumer buildEventConsumer = getBuildEventConsumer();
-            buildEventConsumer.dispatch(parameter);
-        }
-
-        @Inject
-        protected abstract BuildEventConsumer getBuildEventConsumer();
+        BuildEventConsumer buildEventConsumer = this.buildEventConsumer;
+        sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
     }
 
 }

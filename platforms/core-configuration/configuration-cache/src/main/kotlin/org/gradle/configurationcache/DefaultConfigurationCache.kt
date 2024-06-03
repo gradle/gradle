@@ -36,8 +36,8 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.buildtree.IsolatedBuildTreeModelSideEffect
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -82,7 +82,6 @@ class DefaultConfigurationCache internal constructor(
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    private val objectFactory: ObjectFactory,
     private val sideEffectCollector: ConfigurationCacheBuildTreeModelSideEffectCollector
 ) : BuildTreeConfigurationCache, Stoppable {
 
@@ -108,7 +107,7 @@ class DefaultConfigurationCache internal constructor(
     lateinit var host: Host
 
     private
-    val loadedSideEffects = mutableListOf<IsolatedBuildTreeModelSideEffect<*>>()
+    val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     private
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
@@ -209,7 +208,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun runLoadedSideEffects() {
         for (sideEffect in loadedSideEffects) {
-            sideEffect.run(objectFactory)
+            sideEffect.runSideEffect()
         }
     }
 

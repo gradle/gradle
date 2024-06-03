@@ -18,21 +18,19 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.NonNullApi;
 
+import java.io.Serializable;
+
 /**
  * An internal side effect executed during a build action
  * that must be observed even if the resulting model is loaded from cache.
  * <p>
- * The implementations are instantiated via {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...) ObjectFactory.newInstance(CLASS)}
- * without parameters, and must therefore have a parameterless constructor.
- * <p>
- * Any additional services required by the implementation are expected to be injected via abstract methods.
+ * The implementations are serialized by the Configuration Cache.
  *
- * @param <T> parameter of the side effect
  * @see BuildTreeModelSideEffectExecutor
  */
 @NonNullApi
-public interface BuildTreeModelSideEffect<T> {
+public interface BuildTreeModelSideEffect extends Serializable {
 
-    void run(T parameter);
+    void runSideEffect();
 
 }

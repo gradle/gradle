@@ -16,11 +16,9 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-import org.gradle.internal.buildtree.BuildTreeModelSideEffect;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
@@ -31,19 +29,21 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
+    private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
 
     public ClientProvidedPhasedActionRunner(
         BuildControllerFactory buildControllerFactory,
         PayloadSerializer payloadSerializer,
+        BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor
     ) {
         super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
+        this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
     }
 
@@ -81,7 +81,8 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
         @Override
         public void collectActionResult(SerializedPayload serializedResult, PhasedActionResult.Phase phase) {
             PhasedBuildActionResult phaseResult = new PhasedBuildActionResult(serializedResult, phase);
-            sideEffectExecutor.runSideEffect(CollectActionResultSideEffect.class, phaseResult);
+            BuildEventConsumer buildEventConsumer = ClientProvidedPhasedActionRunner.this.buildEventConsumer;
+            sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(phaseResult));
         }
 
         @Nullable
@@ -94,18 +95,5 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
         public boolean isRunTasks() {
             return action.isRunTasks();
         }
-    }
-
-    @NonNullApi
-    public static abstract class CollectActionResultSideEffect implements BuildTreeModelSideEffect<PhasedBuildActionResult> {
-
-        @Override
-        public void run(PhasedBuildActionResult parameter) {
-            BuildEventConsumer buildEventConsumer = getBuildEventConsumer();
-            buildEventConsumer.dispatch(parameter);
-        }
-
-        @Inject
-        protected abstract BuildEventConsumer getBuildEventConsumer();
     }
 }

@@ -17,8 +17,8 @@
 package org.gradle.configurationcache.services
 
 import org.gradle.configurationcache.models.BuildTreeModelSideEffectStore
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectCollector
-import org.gradle.internal.buildtree.IsolatedBuildTreeModelSideEffect
 
 
 internal
@@ -26,7 +26,7 @@ class ConfigurationCacheBuildTreeModelSideEffectCollector : BuildTreeModelSideEf
 
     lateinit var sideEffectStore: BuildTreeModelSideEffectStore
 
-    override fun <T : Any> onSideEffect(sideEffect: IsolatedBuildTreeModelSideEffect<T>) {
+    override fun onSideEffect(sideEffect: BuildTreeModelSideEffect) {
         sideEffectStore.write(sideEffect)
     }
 }

@@ -24,7 +24,6 @@ import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
-import org.gradle.internal.buildtree.IsolatedBuildTreeModelSideEffect
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -53,7 +52,7 @@ class BuildTreeModelSideEffectStore(
 
     private
     val valuesStore by lazy {
-        val writer = ValueStore.Writer<IsolatedBuildTreeModelSideEffect<*>> { encoder, value ->
+        val writer = ValueStore.Writer<BuildTreeModelSideEffect> { encoder, value ->
             write(encoder, value)
         }
         val reader = ValueStore.Reader { decoder ->
@@ -64,19 +63,19 @@ class BuildTreeModelSideEffectStore(
 
     fun collectSideEffects(): List<BlockAddress> = entries.toList()
 
-    fun <T> write(sideEffect: IsolatedBuildTreeModelSideEffect<T>) {
+    fun write(sideEffect: BuildTreeModelSideEffect) {
         val blockAddress = valuesStore.write(sideEffect)
         entries += blockAddress
     }
 
-    fun restoreFromCacheEntry(sideEffects: List<BlockAddress>): List<IsolatedBuildTreeModelSideEffect<*>> {
+    fun restoreFromCacheEntry(sideEffects: List<BlockAddress>): List<BuildTreeModelSideEffect> {
         return sideEffects.map {
             valuesStore.read(it)
         }
     }
 
     private
-    fun write(encoder: Encoder, value: IsolatedBuildTreeModelSideEffect<*>) {
+    fun write(encoder: Encoder, value: BuildTreeModelSideEffect) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
         context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
@@ -85,7 +84,7 @@ class BuildTreeModelSideEffectStore(
     }
 
     private
-    fun read(decoder: Decoder): IsolatedBuildTreeModelSideEffect<*> {
+    fun read(decoder: Decoder): BuildTreeModelSideEffect {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
         context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {

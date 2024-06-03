@@ -30,6 +30,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeModelSideEffectExecutor {
 
-    <T> void runSideEffect(Class<? extends BuildTreeModelSideEffect<T>> implementation, T parameter);
+    void runIsolatableSideEffect(BuildTreeModelSideEffect sideEffect);
 
 }
