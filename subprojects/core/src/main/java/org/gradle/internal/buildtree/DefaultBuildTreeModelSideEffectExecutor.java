@@ -22,15 +22,8 @@ import org.gradle.api.NonNullApi;
 @NonNullApi
 public class DefaultBuildTreeModelSideEffectExecutor implements BuildTreeModelSideEffectExecutor {
 
-    private final BuildTreeModelSideEffectCollector sideEffectCollector;
-
-    public DefaultBuildTreeModelSideEffectExecutor(BuildTreeModelSideEffectCollector sideEffectCollector) {
-        this.sideEffectCollector = sideEffectCollector;
-    }
-
     @Override
     public void runIsolatableSideEffect(BuildTreeModelSideEffect sideEffect) {
         sideEffect.runSideEffect();
-        sideEffectCollector.onSideEffect(sideEffect);
     }
 }

@@ -31,7 +31,7 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.HostServiceProvider
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.service
-import org.gradle.configurationcache.services.ConfigurationCacheBuildTreeModelSideEffectCollector
+import org.gradle.configurationcache.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
@@ -82,7 +82,7 @@ class DefaultConfigurationCache internal constructor(
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    private val sideEffectCollector: ConfigurationCacheBuildTreeModelSideEffectCollector
+    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor
 ) : BuildTreeConfigurationCache, Stoppable {
 
     interface Host : HostServiceProvider {
@@ -146,8 +146,8 @@ class DefaultConfigurationCache internal constructor(
     override fun initializeCacheEntry() {
         cacheAction = determineCacheAction()
         problems.action(cacheAction)
-        // TODO: find a way to avoid this late binding
-        sideEffectCollector.sideEffectStore = buildTreeModelSideEffects
+        // TODO:isolated find a way to avoid this late binding
+        modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
 
     override fun attachRootBuild(host: Host) {
