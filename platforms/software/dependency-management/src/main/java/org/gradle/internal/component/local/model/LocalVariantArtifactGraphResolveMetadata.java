@@ -35,5 +35,5 @@ public interface LocalVariantArtifactGraphResolveMetadata extends VariantArtifac
      *
      * <p>This concept should disappear.</p>
      */
-    Set<? extends VariantResolveMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 }

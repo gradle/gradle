@@ -73,7 +73,7 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantResolveMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 
     /**
      * Returns the exclusions to apply to this configuration:

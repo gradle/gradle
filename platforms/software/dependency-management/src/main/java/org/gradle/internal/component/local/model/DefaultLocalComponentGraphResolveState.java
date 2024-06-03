@@ -266,8 +266,9 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             this.instanceId = instanceId;
             this.variant = variant;
             this.artifactResolveState = calculatedValueContainerFactory.create(Describables.of("artifacts of", variant), context -> {
-                LocalVariantArtifactGraphResolveMetadata artifactMetadata = variant.prepareToResolveArtifacts();
-                return new DefaultLocalVariantArtifactResolveState(componentState.getMetadata(), artifactMetadata);
+                LocalVariantArtifactGraphResolveMetadata variantArtifactMetadata = variant.prepareToResolveArtifacts();
+                LocalComponentArtifactResolveMetadata componentArtifactMetadata = new LocalComponentArtifactResolveMetadata(componentState.getMetadata());
+                return new DefaultLocalVariantArtifactResolveState(componentArtifactMetadata, variantArtifactMetadata);
             });
         }
 
@@ -315,17 +316,17 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
-        private final ComponentGraphResolveMetadata component;
-        private final LocalVariantArtifactGraphResolveMetadata artifactMetadata;
+        private final ComponentArtifactResolveMetadata component;
+        private final LocalVariantArtifactGraphResolveMetadata variant;
 
-        public DefaultLocalVariantArtifactResolveState(ComponentGraphResolveMetadata component, LocalVariantArtifactGraphResolveMetadata artifactMetadata) {
+        public DefaultLocalVariantArtifactResolveState(ComponentArtifactResolveMetadata component, LocalVariantArtifactGraphResolveMetadata variant) {
             this.component = component;
-            this.artifactMetadata = artifactMetadata;
+            this.variant = variant;
         }
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return artifactMetadata.getArtifacts();
+            return variant.getArtifacts();
         }
 
         @Override
@@ -334,7 +335,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
                 artifacts.add(getArtifactWithName(dependencyArtifact));
             }
-            return variantResolver.resolveAdhocVariant(new LocalComponentArtifactResolveMetadata(component), artifacts.build());
+            return variantResolver.resolveAdhocVariant(component, artifacts.build());
         }
 
         private ComponentArtifactMetadata getArtifactWithName(IvyArtifactName ivyArtifactName) {
@@ -349,7 +350,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-            return artifactMetadata.getVariants();
+            return variant.getArtifactVariants();
         }
     }
 

@@ -67,7 +67,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         );
         this.idGenerator = idGenerator;
         this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().stream()
-            .flatMap(variant -> variant.getVariants().stream())
+            .flatMap(variant -> variant.getArtifactVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),
                 Describables.of(variant.getName()),
@@ -166,28 +166,26 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
     }
 
     private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
-        private final ComponentArtifactResolveMetadata artifactMetadata;
-        private final ConfigurationMetadata graphSelectedConfiguration;
-        private final Set<? extends VariantResolveMetadata> variants;
+        private final ComponentArtifactResolveMetadata component;
+        private final ConfigurationMetadata configuration;
 
-        public DefaultConfigurationArtifactResolveState(ComponentArtifactResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration) {
-            this.artifactMetadata = artifactMetadata;
-            this.graphSelectedConfiguration = graphSelectedConfiguration;
-            this.variants = graphSelectedConfiguration.getVariants();
+        public DefaultConfigurationArtifactResolveState(ComponentArtifactResolveMetadata component, ConfigurationMetadata configuration) {
+            this.component = component;
+            this.configuration = configuration;
         }
 
         @Override
         public ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts) {
             ImmutableList.Builder<ComponentArtifactMetadata> artifacts = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
-                artifacts.add(graphSelectedConfiguration.artifact(dependencyArtifact));
+                artifacts.add(configuration.artifact(dependencyArtifact));
             }
-            return variantResolver.resolveAdhocVariant(artifactMetadata, artifacts.build());
+            return variantResolver.resolveAdhocVariant(component, artifacts.build());
         }
 
         @Override
         public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-            return variants;
+            return configuration.getArtifactVariants();
         }
     }
 

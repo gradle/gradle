@@ -133,7 +133,7 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     }
 
     @Override
-    public Set<LocalVariantMetadata> getVariants() {
+    public Set<LocalVariantMetadata> getArtifactVariants() {
         return variants;
     }
 
