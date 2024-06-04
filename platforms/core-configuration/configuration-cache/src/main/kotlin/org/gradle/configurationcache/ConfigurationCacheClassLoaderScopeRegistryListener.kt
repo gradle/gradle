@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
+import org.gradle.configurationcache.serialization.ClassLoaderScopeSpec
 import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
@@ -116,26 +117,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
-        }
-    }
-}
-
-
-internal
-class ClassLoaderScopeSpec(
-    val parent: ClassLoaderScopeSpec?,
-    val name: String,
-    val origin: ClassLoaderScopeOrigin?
-) {
-    var localClassPath: ClassPath = ClassPath.EMPTY
-    var localImplementationHash: HashCode? = null
-    var exportClassPath: ClassPath = ClassPath.EMPTY
-
-    override fun toString(): String {
-        return if (parent != null) {
-            "$parent:$name"
-        } else {
-            name
         }
     }
 }

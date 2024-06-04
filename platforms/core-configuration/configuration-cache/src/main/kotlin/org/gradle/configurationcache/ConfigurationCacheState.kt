@@ -26,7 +26,6 @@ import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
@@ -39,9 +38,11 @@ import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.configurationcache.base.serialize.ProjectProvider
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.configurationcache.serialization.codecs.Codecs
+import org.gradle.configurationcache.serialization.Codecs
+import org.gradle.configurationcache.serialization.service
 import org.gradle.internal.serialize.graph.logNotImplemented
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readEnum
@@ -55,7 +56,7 @@ import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.internal.serialize.graph.writeStrings
-import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
@@ -90,10 +91,6 @@ import java.io.OutputStream
 
 
 typealias BuildTreeWorkGraphBuilder = BuildTreeWorkGraph.Builder.(BuildState) -> Unit
-
-
-internal
-typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal

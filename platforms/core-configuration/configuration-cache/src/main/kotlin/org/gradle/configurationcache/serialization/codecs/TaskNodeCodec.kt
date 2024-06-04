@@ -22,26 +22,35 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.specs.Spec
-import org.gradle.configurationcache.ProjectProvider
-import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.internal.serialize.graph.MutableIsolateContext
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
 import org.gradle.configurationcache.serialization.beans.readPropertyValue
 import org.gradle.configurationcache.serialization.beans.writeNextProperty
-import org.gradle.internal.serialize.graph.getSingletonProperty
+import org.gradle.internal.configurationcache.base.serialize.getProject
+import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
+import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.properties.InputFilePropertyType
+import org.gradle.internal.properties.OutputFilePropertyType
+import org.gradle.internal.properties.PropertyValue
+import org.gradle.internal.properties.PropertyVisitor
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.internal.serialize.graph.MutableIsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
@@ -52,17 +61,6 @@ import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.execution.plan.LocalTaskNode
-import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.FileNormalizer
-import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.properties.InputBehavior
-import org.gradle.internal.properties.InputFilePropertyType
-import org.gradle.internal.properties.OutputFilePropertyType
-import org.gradle.internal.properties.PropertyValue
-import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -488,11 +486,6 @@ fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Cla
     }
     return task
 }
-
-
-internal
-fun ReadContext.getProject(path: String): ProjectInternal =
-    getSingletonProperty<ProjectProvider>().invoke(path)
 
 
 private

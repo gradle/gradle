@@ -22,9 +22,9 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.configurationcache.serialization.codecs.BeanCodec
-import org.gradle.internal.serialize.graph.Bindings
-import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.codecs.BeanCodec
+import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.configurationcache.serialization.codecs.DirectoryCodec
 import org.gradle.configurationcache.serialization.codecs.DirectoryPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec
@@ -36,9 +36,9 @@ import org.gradle.configurationcache.serialization.codecs.ProviderCodec
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.configurationcache.serialization.codecs.RegularFileCodec
 import org.gradle.configurationcache.serialization.codecs.RegularFilePropertyCodec
-import org.gradle.configurationcache.serialization.codecs.ServicesCodec
+import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.configurationcache.serialization.codecs.SetPropertyCodec
-import org.gradle.configurationcache.serialization.codecs.baseTypes
+import org.gradle.configurationcache.serialization.baseTypes
 import org.gradle.configurationcache.serialization.codecs.groovyCodecs
 import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec

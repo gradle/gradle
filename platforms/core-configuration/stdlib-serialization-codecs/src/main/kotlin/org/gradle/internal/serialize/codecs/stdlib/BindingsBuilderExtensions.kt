@@ -30,7 +30,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 
 
 fun BindingsBuilder.stdlibTypes() {
