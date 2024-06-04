@@ -32,6 +32,7 @@ import spock.lang.Timeout
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @Requires(IntegTestPreconditions.NotParallelExecutor)
+@ToBeFixedForIsolatedProjects(because = "allprojects")
 // no point, always runs in parallel
 class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -147,7 +148,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "overlapping outputs prevent parallel execution"() {
         given:
         withParallelThreads(2)
@@ -164,7 +164,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "independent tasks from multiple projects execute in parallel"() {
         given:
         withParallelThreads(3)
@@ -176,7 +175,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "two tasks with should run after execute in parallel"() {
         given:
         withParallelThreads(2)
@@ -193,7 +191,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks that should run after are chosen last when there are more tasks than workers"() {
         given:
         withParallelThreads(2)
@@ -211,7 +208,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "two tasks that are dependencies of another task are executed in parallel"() {
         given:
         withParallelThreads(2)
@@ -229,7 +225,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "task is not executed if one of its dependencies executed in parallel fails"() {
         given:
         withParallelThreads(2)
@@ -247,7 +242,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "the number of tasks executed in parallel is limited by the number of parallel threads"() {
         given:
         withParallelThreads(2)
@@ -260,7 +254,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are run in parallel if there are tasks without async work running in a different project using --parallel"() {
         given:
         executer.beforeExecute {
@@ -318,7 +311,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         noExceptionThrown()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are not run in parallel if there are tasks without async work running in a different project without --parallel"() {
         given:
         withParallelThreads(3)
@@ -335,7 +327,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are not run in parallel if destroy files overlap with output files"() {
         given:
         withParallelThreads(2)
@@ -354,7 +345,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
         given:
         withParallelThreads(2)
@@ -373,7 +363,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
         given:
         withParallelThreads(2)
@@ -399,7 +388,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
         given:
         withParallelThreads(2)
@@ -425,7 +413,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first) in multi-project build"() {
         given:
         withParallelThreads(2)
@@ -455,7 +442,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
@@ -484,7 +470,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
@@ -515,7 +500,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     @Timeout(30)
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "handles an exception thrown while walking the task graph when a finalizer is present"() {
         given:
         withParallelThreads(2)
@@ -562,7 +546,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "cacheability warnings do not prevent a task from running in parallel"() {
         given:
         withParallelThreads(3)
@@ -590,7 +573,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17013")
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
         buildFile("""
             import org.gradle.util.internal.GFileUtils
@@ -642,7 +624,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17905")
-    @ToBeFixedForIsolatedProjects(because = "allprojects in setup")
     def "does not fail when outputs requires resolving configurations"() {
         buildFile("""
             abstract class OutputsAsMappedInputs extends DefaultTask {
