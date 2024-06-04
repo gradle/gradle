@@ -93,8 +93,6 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
 
-    public static final String EXPERIMENTAL_TARGET_GRADLE_API_PROPERTY = "org.gradle.unsafe.target-gradle-api-version";
-
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -111,6 +109,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_PLUGINS_TASK_NAME = "validatePlugins";
+    static final String EXPERIMENTAL_TARGET_GRADLE_API_PROPERTY = "org.gradle.unsafe.target-gradle-api-version";
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
