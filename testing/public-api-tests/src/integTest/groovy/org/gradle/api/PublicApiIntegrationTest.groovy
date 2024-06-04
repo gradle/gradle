@@ -17,8 +17,13 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 
-class PublicApiIntegrationTest extends AbstractIntegrationSpec {
+class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
+    // Need to pin this to a specific JVM version to avoid Kotlin complaining about using a different version to Java
+    def jvm = AvailableJavaHomes.jdk17
+
     def apiJarRepoLocation = System.getProperty('integTest.apiJarRepoLocation')
     def apiJarVersion = System.getProperty("integTest.distZipVersion")
     def kotlinVersion = System.getProperty("integTest.kotlinVersion")
@@ -26,6 +31,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.beforeExecute {
             args("-Dorg.gradle.unsafe.target-gradle-api-version=$apiJarVersion")
+            withInstallations(jvm)
         }
     }
 
@@ -157,6 +163,12 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id("java-gradle-plugin")
                 $pluginDefinition
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersionMajor})
+                }
             }
 
             gradlePlugin {
