@@ -171,7 +171,6 @@ import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.FeatureFlags;
-import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -501,7 +500,6 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         ExecutionEngine executionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        InternalOptions internalOptions,
         GroovyDslWorkspaceProvider groovyDslWorkspaceProvider,
         ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
@@ -512,7 +510,6 @@ public class BuildScopeServices extends ScopedServiceRegistry {
             executionEngine,
             fileCollectionFactory,
             inputFingerprinter,
-            internalOptions,
             groovyDslWorkspaceProvider.getWorkspace(),
             transformFactoryForLegacy
         );

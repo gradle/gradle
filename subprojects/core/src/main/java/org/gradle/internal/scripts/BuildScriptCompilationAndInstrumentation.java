@@ -17,8 +17,6 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.buildoption.InternalFlag;
-import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
@@ -26,9 +24,6 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -40,7 +35,6 @@ import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -49,36 +43,21 @@ import static java.util.Objects.requireNonNull;
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
-    private static final InternalFlag CACHING_DISABLED_PROPERTY = new InternalFlag("org.gradle.internal.script-caching-disabled");
-    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of script compilation disabled by property (experimental)");
-
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
-    private final boolean cachingDisabledByProperty;
     protected final FileCollectionFactory fileCollectionFactory;
 
     public BuildScriptCompilationAndInstrumentation(
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        InternalOptions internalOptions,
         ClasspathElementTransformFactoryForLegacy transformFactory
     ) {
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.transformFactory = transformFactory;
-        this.cachingDisabledByProperty = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
-    }
-
-    @Override
-    public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-        if (cachingDisabledByProperty) {
-            return Optional.of(CACHING_DISABLED_REASON);
-        }
-
-        return ImmutableUnitOfWork.super.shouldDisableCaching(detectedOverlappingOutputs);
     }
 
     @Override

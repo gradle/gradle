@@ -29,6 +29,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -38,6 +39,9 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
@@ -65,6 +69,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import java.io.File
+import java.util.Optional
 
 
 interface KotlinScriptEvaluator {
@@ -358,8 +363,10 @@ class StandardKotlinScriptEvaluator(
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
-        transformFactory: ClasspathElementTransformFactoryForLegacy
-    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, internalOptions, transformFactory) {
+        transformFactory: ClasspathElementTransformFactoryForLegacy,
+        private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
+
+    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"
@@ -369,10 +376,21 @@ class StandardKotlinScriptEvaluator(
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
+            val CACHING_DISABLED_PROPERTY: InternalFlag = InternalFlag("org.gradle.internal.kotlin-script-caching-disabled")
+            val CACHING_DISABLED_REASON: CachingDisabledReason = CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation disabled by property")
         }
 
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
+
+
+        override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
+            if (cachingDisabledByProperty) {
+                return Optional.of(CACHING_DISABLED_REASON)
+            }
+
+            return super.shouldDisableCaching(detectedOverlappingOutputs)
+        }
 
         override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
             visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
