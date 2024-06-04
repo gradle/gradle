@@ -114,7 +114,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         hierarchies
             .map(File::toPath)
             .map(this::getProbeForHierarchy)
-            .filter(x -> x.state == WatchProbeImpl.State.UNARMED)
+            .filter(x -> x.state != WatchProbeImpl.State.ARMED)
             .distinct()
             .forEach(probe -> {
                 beforeProbeArmed.accept(probe.getDirectory(), probe.isSubPathOfWatchableHierarchy());
