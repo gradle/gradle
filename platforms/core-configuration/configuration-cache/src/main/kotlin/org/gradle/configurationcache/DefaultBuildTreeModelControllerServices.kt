@@ -34,7 +34,7 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
-import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.StartParameterBuildOptions
@@ -48,6 +48,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
+import org.gradle.internal.configurationcache.base.logger
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration

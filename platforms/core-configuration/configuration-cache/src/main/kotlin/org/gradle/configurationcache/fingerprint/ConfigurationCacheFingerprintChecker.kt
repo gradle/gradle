@@ -22,13 +22,13 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
+import org.gradle.internal.configurationcache.base.logger
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.configurationcache.logger
-import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
@@ -116,6 +116,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         referrer.consumedBy(target)
                     }
                 }
+
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }

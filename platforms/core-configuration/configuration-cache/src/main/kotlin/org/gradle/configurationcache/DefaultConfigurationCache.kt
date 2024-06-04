@@ -21,19 +21,15 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.cacheentry.EntryDetails
-import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.configurationcache.serialization.HostServiceProvider
 import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.configurationcache.serialization.service
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
@@ -44,8 +40,14 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
+import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -77,15 +79,13 @@ class DefaultConfigurationCache internal constructor(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : BuildTreeConfigurationCache, Stoppable {
 
-    interface Host {
+    interface Host : HostServiceProvider {
 
         val currentBuild: VintageGradleBuild
 
         fun createBuild(settingsFile: File?): ConfigurationCacheBuild
 
         fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
-
-        fun <T> service(serviceType: Class<T>): T
 
         fun <T> factory(serviceType: Class<T>): Factory<T>
     }
@@ -592,12 +592,3 @@ class DefaultConfigurationCache internal constructor(
     val configurationCacheLogLevel: LogLevel
         get() = startParameter.configurationCacheLogLevel
 }
-
-
-internal
-inline fun <reified T> DefaultConfigurationCache.Host.service(): T =
-    service(T::class.java)
-
-
-internal
-val logger = Logging.getLogger(DefaultConfigurationCache::class.java)

@@ -59,7 +59,7 @@ import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
-import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag

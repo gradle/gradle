@@ -48,7 +48,8 @@ import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.flow.services.BuildWorkResultProvider
 import org.gradle.internal.flow.services.RegisteredFlowAction
-import org.gradle.internal.serialize.graph.Bindings
+import org.gradle.internal.serialize.graph.codecs.BeanCodec
+import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.MutableIsolateContext

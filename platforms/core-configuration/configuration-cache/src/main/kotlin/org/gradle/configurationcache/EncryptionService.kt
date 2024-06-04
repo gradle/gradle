@@ -19,8 +19,9 @@ package org.gradle.configurationcache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
