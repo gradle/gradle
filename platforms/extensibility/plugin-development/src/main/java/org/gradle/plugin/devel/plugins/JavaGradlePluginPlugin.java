@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
@@ -72,6 +73,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -88,7 +90,11 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  */
 @NonNullApi
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
+
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+
+    public static final String EXPERIMENTAL_TARGET_GRADLE_API_PROPERTY = "org.gradle.unsafe.target-gradle-api-version";
+
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -138,7 +144,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
         GradlePluginDevelopmentExtension extension = createExtension(project);
-        applyDependencies(project, extension);
+        applyDependencies(project);
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
@@ -155,11 +161,13 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration)));
     }
 
-    private static void applyDependencies(Project project, GradlePluginDevelopmentExtension extension) {
+    private static void applyDependencies(Project project) {
         Configuration apiConfiguration = JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration();
-        apiConfiguration.getDependencies().addLater(extension.getGradleApiVersion().map(version ->
-            project.getDependencies().create("org.gradle.experimental:gradle-public-api:" + version)
-        ).orElse(project.provider(() -> project.getDependencies().gradleApi())));
+        // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
+        Dependency requestedTargetApiVersion = Optional.ofNullable(System.getProperty(EXPERIMENTAL_TARGET_GRADLE_API_PROPERTY))
+            .map(version -> project.getDependencies().create("org.gradle.experimental:gradle-public-api:" + version))
+            .orElseGet(() -> project.getDependencies().gradleApi());
+        apiConfiguration.getDependencies().add(requestedTargetApiVersion);
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {

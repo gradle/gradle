@@ -23,6 +23,12 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
     def apiJarVersion = System.getProperty("integTest.distZipVersion")
     def kotlinVersion = System.getProperty("integTest.kotlinVersion")
 
+    def setup() {
+        executer.beforeExecute {
+            args("-Dorg.gradle.unsafe.target-gradle-api-version=$apiJarVersion")
+        }
+    }
+
     def "can compile Java code against public API"() {
         buildFile << configureApiWithPlugin('id("java-library")')
 
@@ -154,7 +160,6 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec {
             }
 
             gradlePlugin {
-                gradleApiVersion = "$apiJarVersion"
                 plugins {
                     create("plugin") {
                         id = "test.plugin"
