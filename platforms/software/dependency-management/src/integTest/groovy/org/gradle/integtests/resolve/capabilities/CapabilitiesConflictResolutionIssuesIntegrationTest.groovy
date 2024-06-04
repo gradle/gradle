@@ -172,4 +172,104 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/29208")
+    def test() {
+
+        mavenRepo.module("org.bouncycastle", "bcprov-jdk12", "130").publish()
+        mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.71").publish()
+        mavenRepo.module("org.bouncycastle", "bcpkix-jdk18on", "1.72")
+            .dependsOn(mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.72").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.bouncycastle:bcprov-jdk12:130")
+                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
+                implementation("org.bouncycastle:bcpkix-jdk18on:1.72")
+            }
+        """
+
+        capability("org.gradlex", "bouncycastle-bcprov") {
+            forModule("org.bouncycastle:bcprov-jdk12")
+            forModule("org.bouncycastle:bcprov-jdk18on")
+            selectHighest()
+        }
+
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath", "--stacktrace")
+    }
+
+    // region test fixtures
+
+    class CapabilityClosure {
+
+        private final String group
+        private final String artifactId
+        private final File buildFile
+
+        CapabilityClosure(String group, String artifactId, File buildFile) {
+            this.group = group
+            this.artifactId = artifactId
+            this.buildFile = buildFile
+        }
+
+        def forModule(String module) {
+            buildFile << """
+                dependencies.components.withModule('$module') {
+                    allVariants {
+                        withCapabilities {
+                            addCapability('$group', '$artifactId', id.version)
+                        }
+                    }
+                }
+            """
+        }
+
+        def selectHighest() {
+            buildFile << """
+                configurations.runtimeClasspath {
+                    resolutionStrategy {
+                        capabilitiesResolution {
+                            withCapability("$group:$artifactId") {
+                                selectHighestVersion()
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        def selectModule(String selectedGroup, String selectedModule) {
+            buildFile << """
+                configurations.runtimeClasspath {
+                    resolutionStrategy {
+                        capabilitiesResolution {
+                            withCapability("$group:$artifactId") {
+                                def result = candidates.find {
+                                    it.id.group == "${selectedGroup}" && it.id.module == "${selectedModule}"
+                                }
+                                assert result != null
+                                select(result)
+                            }
+                        }
+                    }
+                }
+            """
+        }
+    }
+
+    def capability(String group, String module, @DelegatesTo(CapabilityClosure) Closure<?> closure) {
+        def capabilityClosure = new CapabilityClosure(group, module, buildFile)
+        closure.delegate = capabilityClosure
+        closure.call(capabilityClosure)
+    }
+
+    // endregion
 }
