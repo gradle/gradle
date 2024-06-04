@@ -478,6 +478,52 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29208")
+    def "valid graph with both module conflict and capability conflict"() {
+        mavenRepo.module("org.bouncycastle", "bcprov-jdk12", "130").publish()
+        mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.71").publish()
+        mavenRepo.module("org.bouncycastle", "bcpkix-jdk18on", "1.72")
+            .dependsOn(mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.72").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.bouncycastle:bcprov-jdk12:130")
+                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
+                implementation("org.bouncycastle:bcpkix-jdk18on:1.72")
+            }
+        """
+
+        capability("org.gradlex", "bouncycastle-bcprov") {
+            forModule("org.bouncycastle:bcprov-jdk12")
+            forModule("org.bouncycastle:bcprov-jdk18on")
+            selectHighest()
+        }
+
+        when:
+        resolve.prepare()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.bouncycastle:bcprov-jdk12:130")
+                edge("org.bouncycastle:bcprov-jdk18on:1.71", "org.bouncycastle:bcprov-jdk12:130") {
+                    byConflictResolution("latest version of capability org.gradlex:bouncycastle-bcprov")
+                }
+                module("org.bouncycastle:bcpkix-jdk18on:1.72") {
+                    edge("org.bouncycastle:bcprov-jdk18on:1.72", "org.bouncycastle:bcprov-jdk12:130")
+                }
+            }
+        }
+    }
+
     // region test fixtures
 
     class CapabilityClosure {
