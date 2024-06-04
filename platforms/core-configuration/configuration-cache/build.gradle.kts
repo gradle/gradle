@@ -30,7 +30,47 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+@CacheableTransform
+abstract class StripBindingTransform : TransformAction<StripBindingTransform.StripBindingParameters> {
+    interface StripBindingParameters : TransformParameters
+
+    @InputArtifact
+    @Classpath
+    abstract fun getInputArtifact(): Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        val input = getInputArtifact().get().asFile
+        val output = outputs.file(input.name + ".txt")
+        output.writeText("File size: " + input.length())
+        throw RuntimeException("Stripping binding...")
+    }
+}
+
+configurations {
+    compileClasspath {
+        attributes {
+            attribute(gradlebuild.SLF4J_ATTRIBUTE, "no-binding")
+        }
+    }
+}
+
 dependencies {
+    attributesSchema {
+        attribute(gradlebuild.SLF4J_ATTRIBUTE)
+    }
+
+    components {
+        withModule<gradlebuild.HasBindingAttributeRule>(libs.slf4jApi)
+    }
+
+    // Not selected due to: https://github.com/gradle/gradle/issues/8386
+    registerTransform(StripBindingTransform::class) {
+        from.attribute(gradlebuild.SLF4J_ATTRIBUTE, "has-binding")
+        to.attribute(gradlebuild.SLF4J_ATTRIBUTE, "no-binding")
+    }
+
+    implementation(libs.slf4jApi)
+
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serviceProvider)
@@ -86,7 +126,6 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
     implementation(libs.guava)
-    implementation(libs.slf4jApi)
 
     runtimeOnly(project(":composite-builds"))
     runtimeOnly(project(":resources-http"))
