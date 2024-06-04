@@ -116,7 +116,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         referrer.consumedBy(target)
                     }
                 }
-
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }

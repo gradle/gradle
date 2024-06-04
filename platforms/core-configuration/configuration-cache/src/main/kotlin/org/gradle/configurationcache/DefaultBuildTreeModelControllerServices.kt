@@ -157,7 +157,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
-            registerServices(registration, modelParameters, buildFeatures, requirements)
+            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements)
         }
     }
 
@@ -180,12 +180,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
-            registerServices(registration, buildModelParameters, buildFeatures, requirements)
+            registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements)
         }
     }
 
     private
-    fun registerServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
+    fun registerCommonBuildTreeServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
         registration.add(BuildModelParameters::class.java, modelParameters)
         registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
