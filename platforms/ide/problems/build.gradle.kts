@@ -29,8 +29,6 @@ dependencies {
     api(project(":java-language-extensions"))
     api(project(":service-provider"))
 
-    implementation(project(":base-services"))
-
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))
     integTestDistributionRuntimeOnly(project(":distributions-full"))
