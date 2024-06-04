@@ -130,6 +130,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val requiresTasks = requirements.isRunsTasks
         val isolatedProjects = startParameter.isolatedProjects.get()
+        val configurationCache = isolatedProjects || startParameter.configurationCache.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
@@ -142,7 +143,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
-                configurationCache = isolatedProjects,
+                configurationCache = configurationCache,
                 isolatedProjects = isolatedProjects,
                 intermediateModelCache = isolatedProjects,
                 parallelToolingApiActions = parallelToolingActions,
@@ -150,7 +151,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 modelAsProjectDependency = modelAsProjectDependency
             )
         } else {
-            val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand =
                 if (isolatedProjects) options.getOption(isolatedProjectsTasksConfigureOnDemand).get()
                 else startParameter.isConfigureOnDemand
