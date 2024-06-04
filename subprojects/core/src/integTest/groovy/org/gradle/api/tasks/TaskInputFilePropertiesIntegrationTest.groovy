@@ -163,7 +163,11 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         })
 
         and:
-        verifyAll(receivedProblem) {
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:configuration-cache-cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
+            contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+        }
+        verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:unsupported-notation'
             contextualLabel == 'Type \'CustomTask\' property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
