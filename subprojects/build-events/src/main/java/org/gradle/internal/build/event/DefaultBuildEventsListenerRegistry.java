@@ -135,8 +135,8 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private void keepAliveIfBuildService(Provider<?> listenerProvider) {
-        if (listenerProvider instanceof RegisteredBuildServiceProvider) {
-            ((RegisteredBuildServiceProvider) listenerProvider).keepAlive();
+        if (listenerProvider instanceof RegisteredBuildServiceProvider<?, ?>) {
+            ((RegisteredBuildServiceProvider<?, ?>) listenerProvider).keepAlive();
         }
     }
 
