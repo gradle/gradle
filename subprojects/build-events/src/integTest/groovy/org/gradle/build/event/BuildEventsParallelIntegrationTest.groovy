@@ -36,7 +36,7 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "event handling does not block other work"() {
-        buildFile("""
+        buildFile """
             import ${BuildEventsListenerRegistry.name}
             import ${OperationCompletionListener.name}
             import ${FinishEvent.name}
@@ -73,7 +73,7 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
                     ${server.callFromBuild("run_:b")}
                 }
             }
-        """)
+        """
 
         server.expectConcurrent("run_:b", "handle1_:a", "handle2_:a")
         server.expectConcurrent("handle1_:b", "handle2_:b")
@@ -88,7 +88,7 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/24887")
     @Issue("https://github.com/gradle/gradle/issues/27099")
     def "build events listener service handles all events before it is closed"() {
-        buildFile("""
+        buildFile """
             import ${BuildEventsListenerRegistry.name}
             import ${OperationCompletionListener.name}
             import ${FinishEvent.name}
@@ -128,7 +128,7 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("b") {
                 dependsOn("a")
             }
-        """)
+        """
 
         when:
         def handleA = server.expectAndBlock("handle:a")

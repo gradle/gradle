@@ -1678,11 +1678,11 @@ Hello, subproject1
             """
         }
 
-        settingsScript("""
+        settingsFile """
             includeBuild("plugins")
-        """)
+        """
 
-        buildScript("""
+        buildFile """
             plugins {
                 id("convention-groovy-plugin")
                 id("convention-kotlin-plugin")
@@ -1693,7 +1693,7 @@ Hello, subproject1
                     println("Hello!")
                 }
             }
-        """)
+        """
 
         expect:
         succeeds("hello")
