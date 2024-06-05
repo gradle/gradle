@@ -31,32 +31,10 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
-import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
-import org.gradle.internal.flow.services.BuildFlowScope
-import org.gradle.internal.serialize.graph.DefaultReadContext
-import org.gradle.internal.serialize.graph.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.internal.configurationcache.base.serialize.ProjectProvider
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.configurationcache.serialization.Codecs
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.service
-import org.gradle.internal.serialize.graph.logNotImplemented
-import org.gradle.internal.serialize.graph.readCollection
-import org.gradle.internal.serialize.graph.readEnum
-import org.gradle.internal.serialize.graph.readList
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.readStrings
-import org.gradle.internal.serialize.graph.readStringsSet
-import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
-import org.gradle.internal.serialize.graph.withIsolate
-import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.internal.serialize.graph.writeStrings
-import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
@@ -76,12 +54,34 @@ import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
+import org.gradle.internal.configurationcache.base.serialize.ProjectProvider
+import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
+import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.logNotImplemented
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readStrings
+import org.gradle.internal.serialize.graph.readStringsSet
+import org.gradle.internal.serialize.graph.withDebugFrame
+import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.serialize.graph.writeEnum
+import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
@@ -99,6 +99,11 @@ enum class StateType(val encryptable: Boolean = false) {
      * Contains the state for the entire build.
      */
     Work(true),
+
+    /**
+     * Contains the side effects observed during the creation of the [Model].
+     */
+    ModelSideEffects(true),
 
     /**
      * Contains the model objects sent back to the IDE in response to a TAPI request.

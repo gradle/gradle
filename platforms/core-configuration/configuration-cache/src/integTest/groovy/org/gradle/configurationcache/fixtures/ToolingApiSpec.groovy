@@ -288,18 +288,23 @@ trait ToolingApiSpec {
         }
     }
 
-    def <T> T runBuildAction(BuildAction<T> buildAction) {
+    def <T> T runBuildAction(BuildAction<T> buildAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {
         def model = null
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
             def args = executer.allArgs.tap { remove("--no-daemon") }
 
-            model = connection.action(buildAction)
+            def actionExecuter = connection.action(buildAction)
+            config.delegate = actionExecuter
+            config.call()
+
+            model = actionExecuter
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
+
             OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
         return model

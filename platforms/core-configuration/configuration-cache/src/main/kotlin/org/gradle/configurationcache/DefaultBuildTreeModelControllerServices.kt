@@ -34,6 +34,7 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
+import org.gradle.configurationcache.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
 import org.gradle.execution.selection.BuildTaskSelector
@@ -45,6 +46,7 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
@@ -206,12 +208,14 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
+            registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageEnvironmentChangeTracker::class.java)
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
+            registration.add(DefaultBuildTreeModelSideEffectExecutor::class.java)
         }
         if (modelParameters.isIntermediateModelCache) {
             registration.addProvider(ConfigurationCacheModelProvider())

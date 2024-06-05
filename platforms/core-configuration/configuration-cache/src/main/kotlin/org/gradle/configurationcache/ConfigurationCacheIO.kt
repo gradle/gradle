@@ -82,6 +82,7 @@ class ConfigurationCacheIO internal constructor(
         buildStateRegistry: BuildStateRegistry,
         intermediateModels: Map<ModelKey, BlockAddress>,
         projectMetadata: Map<Path, BlockAddress>,
+        sideEffects: List<BlockAddress>,
         stateFile: ConfigurationCacheStateFile
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
@@ -95,6 +96,9 @@ class ConfigurationCacheIO internal constructor(
             writeCollection(projectMetadata.entries) { entry ->
                 writeString(entry.key.path)
                 addressSerializer.write(this, entry.value)
+            }
+            writeCollection(sideEffects) {
+                addressSerializer.write(this, it)
             }
         }
     }
@@ -126,7 +130,10 @@ class ConfigurationCacheIO internal constructor(
                 val address = addressSerializer.read(this)
                 metadata[path] = address
             }
-            EntryDetails(rootDirs, intermediateModels, metadata)
+            val sideEffects = readList {
+                addressSerializer.read(this)
+            }
+            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects)
         }
     }
 

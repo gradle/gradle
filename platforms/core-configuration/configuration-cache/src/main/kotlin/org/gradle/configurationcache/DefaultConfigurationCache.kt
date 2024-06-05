@@ -25,15 +25,18 @@ import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.metadata.ProjectMetadataController
+import org.gradle.configurationcache.models.BuildTreeModelSideEffectStore
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.HostServiceProvider
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.service
+import org.gradle.configurationcache.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
@@ -76,7 +79,8 @@ class DefaultConfigurationCache internal constructor(
      */
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess,
-    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
+    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor
 ) : BuildTreeConfigurationCache, Stoppable {
 
     interface Host : HostServiceProvider {
@@ -101,13 +105,23 @@ class DefaultConfigurationCache internal constructor(
     lateinit var host: Host
 
     private
+    val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
+
+    private
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
+
+    private
+    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(host, cacheIO, store) }
 
     private
     val lazyIntermediateModels = lazy { IntermediateModelController(host, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
 
     private
     val lazyProjectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
+
+    private
+    val buildTreeModelSideEffects
+        get() = lazyBuildTreeModelSideEffects.value
 
     private
     val intermediateModels
@@ -130,6 +144,8 @@ class DefaultConfigurationCache internal constructor(
     override fun initializeCacheEntry() {
         cacheAction = determineCacheAction()
         problems.action(cacheAction)
+        // TODO:isolated find a way to avoid this late binding
+        modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
 
     override fun attachRootBuild(host: Host) {
@@ -176,12 +192,21 @@ class DefaultConfigurationCache internal constructor(
 
     override fun <T : Any> loadOrCreateModel(creator: () -> T): T {
         if (isLoaded) {
+            runLoadedSideEffects()
             return loadModel().uncheckedCast()
         }
+
         return runWorkThatContributesToCacheEntry {
             val model = creator()
             saveModel(model)
             model
+        }
+    }
+
+    private
+    fun runLoadedSideEffects() {
+        for (sideEffect in loadedSideEffects) {
+            sideEffect.runSideEffect()
         }
     }
 
@@ -233,7 +258,8 @@ class DefaultConfigurationCache internal constructor(
             writeConfigurationCacheFingerprint(layout, reusedProjects)
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, layout.fileFor(StateType.Entry))
+            val sideEffects = buildTreeModelSideEffects.collectSideEffects()
+            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
         }
     }
 
@@ -310,6 +336,7 @@ class DefaultConfigurationCache internal constructor(
 
     override fun stop() {
         val stoppable = CompositeStoppable.stoppable()
+        stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
         stoppable.addIfInitialized(lazyIntermediateModels)
         stoppable.addIfInitialized(lazyProjectMetadata)
         stoppable.add(store)
@@ -525,6 +552,11 @@ class DefaultConfigurationCache internal constructor(
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
             intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
             projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
+        }
+
+        if (projectResult is CheckedFingerprint.Valid) {
+            val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
+            loadedSideEffects += sideEffects
         }
 
         return projectResult

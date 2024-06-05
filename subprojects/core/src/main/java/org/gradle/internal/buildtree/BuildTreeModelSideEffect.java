@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.cacheentry
+package org.gradle.internal.buildtree;
 
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.util.Path
-import java.io.File
+import org.gradle.api.NonNullApi;
 
+import java.io.Serializable;
 
 /**
- * Data stored in the "entry details" file. Provides some metadata about the cache entry.
+ * An internal side effect executed during a build action
+ * that must be observed even if the resulting model is loaded from cache.
+ * <p>
+ * The implementations are serialized by the Configuration Cache.
+ *
+ * @see BuildTreeModelSideEffectExecutor
  */
-internal
-class EntryDetails(
-    val rootDirs: List<File>,
-    val intermediateModels: Map<ModelKey, BlockAddress>,
-    val projectMetadata: Map<Path, BlockAddress>,
-    val sideEffects: List<BlockAddress>,
-)
+@NonNullApi
+public interface BuildTreeModelSideEffect extends Serializable {
+
+    void runSideEffect();
+
+}

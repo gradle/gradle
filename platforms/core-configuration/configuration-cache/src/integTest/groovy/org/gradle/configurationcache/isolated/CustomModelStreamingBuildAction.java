@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r86;
+package org.gradle.configurationcache.isolated;
 
+import org.gradle.configurationcache.fixtures.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 

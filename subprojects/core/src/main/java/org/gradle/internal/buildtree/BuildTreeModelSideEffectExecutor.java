@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,20 @@
 
 package org.gradle.internal.buildtree;
 
-import javax.annotation.Nullable;
+import org.gradle.api.NonNullApi;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface BuildTreeModelAction<T> {
-    void beforeTasks(BuildTreeModelController controller);
+/**
+ * Executes internal side effects of a build action while ensuring
+ * they will be re-executed in case the build action result is loaded from cache.
+ *
+ * @see BuildTreeModelSideEffect
+ */
+@NonNullApi
+@ServiceScope(Scope.BuildTree.class)
+public interface BuildTreeModelSideEffectExecutor {
 
-    @Nullable
-    T fromBuildModel(BuildTreeModelController controller);
+    void runIsolatableSideEffect(BuildTreeModelSideEffect sideEffect);
+
 }
