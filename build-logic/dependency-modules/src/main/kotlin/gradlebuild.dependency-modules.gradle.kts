@@ -30,6 +30,9 @@ dependencies {
         withLibraryDependencies<DependencyRemovalByNameRule>(libs.awsS3Core, setOf("jackson-dataformat-cbor"))
         withLibraryDependencies<DependencyRemovalByGroupRule>(libs.jgit, setOf("com.googlecode.javaewah"))
 
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.sshdCore, setOf("slf4j-simple"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.gradleProfiler, setOf("slf4j-simple"))
+
         // We don't need the extra annotations provided by j2objc
         withLibraryDependencies<DependencyRemovalByNameRule>(libs.googleHttpClient, setOf("j2objc-annotations"))
 
