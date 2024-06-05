@@ -38,7 +38,12 @@ configurations {
     docsTestRuntimeClasspath.extendsFrom(integTestDistributionRuntimeOnly)
 }
 
+configurations.configureEach {
+    exclude([group: "slf4j", module: "slf4j-simple"])
+}
+
 dependencies {
+
     // generate Javadoc for the full Gradle distribution
     runtimeOnly project(":distributions-full")
 
@@ -66,10 +71,6 @@ dependencies {
     docsTestImplementation libs.junit
 
     integTestDistributionRuntimeOnly project(":distributions-full")
-}
-
-configurations.docsTestRuntimeClasspath {
-    exclude group: "org.slf4j", module: "slf4j-simple"
 }
 
 asciidoctorj {
