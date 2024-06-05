@@ -80,7 +80,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return result;
     }
 
-@SuppressWarnings("DefaultCharset")
+    @SuppressWarnings("DefaultCharset")
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         ContextAwareJavaCompiler compiler = compilerFactory.create();
