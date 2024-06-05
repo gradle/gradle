@@ -30,6 +30,7 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+// For now, goal is to see this transform executed, which will fail with a Runtime Exception
 @CacheableTransform
 abstract class StripBindingTransform : TransformAction<StripBindingTransform.StripBindingParameters> {
     interface StripBindingParameters : TransformParameters
@@ -42,11 +43,13 @@ abstract class StripBindingTransform : TransformAction<StripBindingTransform.Str
         val input = getInputArtifact().get().asFile
         val output = outputs.file(input.name + ".txt")
         output.writeText("File size: " + input.length())
-        throw RuntimeException("Stripping binding...")
+        throw RuntimeException("Transform running: Should strip binding from jar now...")
     }
 }
 
 configurations {
+    // Request variants for compilation using the "no-binding" variant identified by the SLF4J_ATTRIBUTE
+    // The only dependency that has uses this attribute is slf4j
     compileClasspath {
         attributes {
             attribute(gradlebuild.SLF4J_ATTRIBUTE, "no-binding")
@@ -59,16 +62,26 @@ dependencies {
         attribute(gradlebuild.SLF4J_ATTRIBUTE)
     }
 
+    // All variants of SLF4J get the SLF4J_ATTRIBUTE attribute with value "has-binding"
     components {
         withModule<gradlebuild.HasBindingAttributeRule>(libs.slf4jApi)
     }
 
-    // Not selected due to: https://github.com/gradle/gradle/issues/8386
+    artifactTypes.getByName("jar") {
+        // For artifacts for dependencies that contain the SLF4J_ATTRIBUTE (should be just slf4j from the ComponentMetadataRule above),
+        // we want to request the "no-binding" variant
+        if (attributes.contains(gradlebuild.SLF4J_ATTRIBUTE)) {
+            attributes.attribute(gradlebuild.SLF4J_ATTRIBUTE, "no-binding")
+        }
+    }
+
+    // Register a transform from "has-binding" to "no-binding"
     registerTransform(StripBindingTransform::class) {
         from.attribute(gradlebuild.SLF4J_ATTRIBUTE, "has-binding")
         to.attribute(gradlebuild.SLF4J_ATTRIBUTE, "no-binding")
     }
 
+    // The slf4j dependency declaration moved here for clarity
     implementation(libs.slf4jApi)
 
     api(projects.concurrent)
