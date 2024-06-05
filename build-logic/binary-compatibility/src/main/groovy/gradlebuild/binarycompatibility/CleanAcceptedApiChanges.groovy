@@ -36,9 +36,9 @@ abstract class CleanAcceptedApiChanges extends DefaultTask {
 
     @TaskAction
     void clean() {
-        jsonFileDirectory.asFile.get().listFiles().each {
-            AcceptedApiChangesJsonFileManager jsonFileManager = new AcceptedApiChangesJsonFileManager()
-            jsonFileManager.emptyAcceptedApiChanges(it)
-        }
+        def jsonFileManager = new AcceptedApiChangesJsonFileManager()
+        jsonFileDirectory.asFile.get().listFiles()
+            ?.findAll { it.name.endsWith(".json") }
+            ?.each { jsonFileManager.emptyAcceptedApiChanges(it) }
     }
 }
