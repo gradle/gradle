@@ -45,7 +45,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     /**
      * A map of all visited file locations, and the number of occurrences we have found in the problems.
      * <p>
-     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean, Closure)} as it asserts a problem.
+     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean)} as it asserts a problem.
      */
     private final Map<String, Integer> visitedFileLocations = [:]
 
@@ -386,6 +386,9 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     @Issue("https://github.com/gradle/gradle/pull/29141")
     @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "compiler warnings causes failure in problem mapping under JDK8"() {
+        // We are interested in how the reporting mechanism behaves when the compiler breaks, and not in the problems themselves
+        disableProblemsApiCheck()
+
         given:
         disableProblemsApiCheck()
         //
@@ -436,9 +439,6 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             public class DummyProcessor extends AbstractProcessor {
                 @Override
                 public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-                    for (Element element : roundEnv.getElementsAnnotatedWith(DummyAnnotation.class)) {
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing: " + element.getSimpleName());
-                    }
                     return true; // No further processing of this annotation type
                 }
             }
@@ -454,8 +454,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         """
         buildFile << """\
         dependencies {
-            //annotationProcessor project(':processor')
-            annotationProcessor "org.immutables:value:2.+"
+            annotationProcessor project(':processor')
         }
 
         repositories {
