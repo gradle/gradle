@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.inputs.undeclared
 
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
 
@@ -273,6 +274,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "the build uses a file content in configuration"
         accessedFile.text = "foo"
+        waitForChangesToBePickedUp()
         configurationCacheRunLenient()
 
         then: "the file content input is reported"
@@ -290,6 +292,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         when: "the file content is modified and the build is re-run"
         accessedFile.text = "bar"
+        waitForChangesToBePickedUp()
         configurationCacheRunLenient()
 
         then: "the cache entry is invalidated and the change is reported"
@@ -305,6 +308,13 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         "constructing a byte channel with open options" | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannelWithOpenOptions(testFilePath(it)) }
         "reading lines from a file"                     | (TestFile it) -> { UndeclaredFileAccess.fileReadLines(testFilePath(it)) }
     }
+
+    void waitForChangesToBePickedUp() {
+        FileSystemWatchingHelper.waitForChangesToBePickedUp()
+        // the test is flaky, trying harder
+        FileSystemWatchingHelper.waitForChangesToBePickedUp()
+    }
+
 }
 
 class FileUtils {
