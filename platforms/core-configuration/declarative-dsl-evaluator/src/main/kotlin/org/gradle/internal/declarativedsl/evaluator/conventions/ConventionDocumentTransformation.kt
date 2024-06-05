@@ -30,7 +30,7 @@ object ConventionDocumentTransformation {
         resolutionContainer: DocumentResolutionContainer,
         usedSoftwareTypes: Set<String>
     ): DeclarativeDocument = object : DeclarativeDocument {
-        override val content: Collection<DeclarativeDocument.DocumentNode>
+        override val content: List<DeclarativeDocument.DocumentNode>
             get() = document.content
                 .filter { node -> isTopLevelConventionsCall(node, resolutionContainer) }
                 .flatMap { (it as? ElementNode)?.content.orEmpty() }

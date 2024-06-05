@@ -207,7 +207,7 @@ class LanguageTreeToDomContext {
 class LanguageTreeBackedDocument internal constructor(
     val block: Block,
     val languageTreeMappingContainer: LanguageTreeMappingContainer,
-    override val content: Collection<DeclarativeDocument.DocumentNode>
+    override val content: List<DeclarativeDocument.DocumentNode>
 ) : DeclarativeDocument {
 
     override val sourceData: SourceData
@@ -220,7 +220,7 @@ fun propertyNode(blockElement: Assignment, valueNode: DeclarativeDocument.ValueN
 
 
 private
-fun elementNode(blockElement: FunctionCall, arguments: List<DeclarativeDocument.ValueNode>, content: Collection<DeclarativeDocument.DocumentNode>) =
+fun elementNode(blockElement: FunctionCall, arguments: List<DeclarativeDocument.ValueNode>, content: List<DeclarativeDocument.DocumentNode>) =
     DefaultElementNode(blockElement.name, blockElement.sourceData, arguments, content)
 
 

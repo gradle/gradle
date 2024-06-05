@@ -20,8 +20,8 @@ import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 
 
-interface DeclarativeDocument {
-    val content: Collection<DocumentNode>
+interface DeclarativeDocument : DocumentNodeContainer {
+    override val content: List<DocumentNode>
 
     val sourceData: SourceData
     val sourceIdentifier: SourceIdentifier
@@ -39,10 +39,10 @@ interface DeclarativeDocument {
             val value: ValueNode
         }
 
-        interface ElementNode : DocumentNode {
+        interface ElementNode : DocumentNode, DocumentNodeContainer {
             val name: String
-            val elementValues: Collection<ValueNode>
-            val content: Collection<DocumentNode>
+            val elementValues: List<ValueNode>
+            override val content: List<DocumentNode>
         }
 
         interface ErrorNode : DocumentNode {
@@ -62,4 +62,9 @@ interface DeclarativeDocument {
             val values: List<ValueNode> // TODO: restrict to a single value? or even a single literal?
         }
     }
+}
+
+
+interface DocumentNodeContainer {
+    val content: List<DeclarativeDocument.DocumentNode>
 }

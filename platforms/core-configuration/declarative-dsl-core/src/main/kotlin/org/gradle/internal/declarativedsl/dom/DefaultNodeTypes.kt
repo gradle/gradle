@@ -33,8 +33,8 @@ internal
 class DefaultElementNode(
     override val name: String,
     override val sourceData: SourceData,
-    override val elementValues: Collection<DeclarativeDocument.ValueNode>,
-    override val content: Collection<DeclarativeDocument.DocumentNode>,
+    override val elementValues: List<DeclarativeDocument.ValueNode>,
+    override val content: List<DeclarativeDocument.DocumentNode>,
 ) : DeclarativeDocument.DocumentNode.ElementNode {
     override fun toString(): String = "element($name, [${elementValues.joinToString()}], content.size = ${content.size})"
 }
