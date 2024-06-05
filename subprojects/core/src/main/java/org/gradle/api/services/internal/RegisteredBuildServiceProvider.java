@@ -17,11 +17,13 @@
 package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -30,6 +32,9 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
 public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
@@ -44,6 +49,9 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private final Listener listener;
     private Try<T> instance;
     private boolean keepAlive;
+    @GuardedBy("this")
+    @Nullable
+    private List<Consumer<? super RegisteredBuildServiceProvider<T, P>>> stopActions;
 
     public RegisteredBuildServiceProvider(
         BuildIdentifier buildIdentifier,
@@ -107,6 +115,25 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         keepAlive = true;
     }
 
+    /**
+     * Registers a callback to be called just before the service represented by this provider is stopped.
+     * The callback runs even if the service wasn't created.
+     * This provider is used as a callback argument.
+     * <p>
+     * The service will only be stopped after completing all registered callbacks.
+     *
+     * @param stopAction the callback
+     */
+    public void beforeStopping(Consumer<? super RegisteredBuildServiceProvider<T, P>> stopAction) {
+        synchronized (this) {
+            if (stopActions == null) {
+                // If the number of the listeners goes up, the capacity should be increased.
+                stopActions = new ArrayList<>(1);
+            }
+            stopActions.add(stopAction);
+        }
+    }
+
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         return Value.of(getInstance());
@@ -157,8 +184,18 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return ExecutionTimeValue.changingValue(this);
     }
 
+    private ImmutableList<Consumer<? super RegisteredBuildServiceProvider<T, P>>> getStopActions() {
+        synchronized (this) {
+            if (stopActions != null) {
+                return ImmutableList.copyOf(stopActions);
+            }
+        }
+        return ImmutableList.of();
+    }
+
     @Override
     public void maybeStop() {
+        ExecutionResult<Void> stopResult = ExecutionResult.forEach(getStopActions(), action -> action.accept(this));
         synchronized (this) {
             try {
                 if (instance != null) {
@@ -167,11 +204,14 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                             try {
                                 ((AutoCloseable) t).close();
                             } catch (Exception e) {
-                                throw new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                stopResult.getFailures().forEach(failure::addSuppressed);
+                                throw failure;
                             }
                         }
                     });
                 }
+                stopResult.rethrow();
             } finally {
                 instance = null;
             }

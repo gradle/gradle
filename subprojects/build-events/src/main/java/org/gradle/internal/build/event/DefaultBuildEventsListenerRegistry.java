@@ -104,7 +104,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
 
         ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(listenerProvider, executorFactory);
-        keepAliveIfBuildService(listenerProvider);
+        processIfBuildService(listenerProvider);
         subscriptions.put(listenerProvider, subscription);
         buildOperationListenerManager.addListener(subscription);
     }
@@ -116,7 +116,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
 
         ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(listenerProvider, executorFactory);
-        keepAliveIfBuildService(listenerProvider);
+        processIfBuildService(listenerProvider);
         subscriptions.put(listenerProvider, subscription);
 
         for (Object listener : subscription.getListeners()) {
@@ -127,9 +127,19 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
     }
 
-    private void keepAliveIfBuildService(Provider<?> listenerProvider) {
+    private void processIfBuildService(Provider<?> listenerProvider) {
         if (listenerProvider instanceof RegisteredBuildServiceProvider<?, ?>) {
-            ((RegisteredBuildServiceProvider<?, ?>) listenerProvider).keepAlive();
+            RegisteredBuildServiceProvider<?, ?> serviceProvider = Cast.uncheckedCast(listenerProvider);
+            serviceProvider.beforeStopping(this::unsubscribeProvider);
+            serviceProvider.keepAlive();
+        }
+    }
+
+    private void unsubscribeProvider(Provider<?> listenerProvider) {
+        AbstractListener<?> subscription = subscriptions.remove(listenerProvider);
+        if (subscription != null) {
+            subscription.getListeners().forEach(this::unsubscribe);
+            subscription.close();
         }
     }
 
