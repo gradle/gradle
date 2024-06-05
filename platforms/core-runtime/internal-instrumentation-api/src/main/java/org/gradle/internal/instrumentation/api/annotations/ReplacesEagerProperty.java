@@ -63,6 +63,9 @@ public @interface ReplacesEagerProperty {
 
     /**
      * A custom interception adapter for a property that is used for bytecode upgrade.
+     *
+     * When this value is set, no other interception will be generated.
+     * But {@link #deprecation} and {@link #binaryCompatibility} settings are still respected.
      */
     Class<?> adapter() default DefaultValue.class;
 

@@ -16,9 +16,11 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.DefaultValue;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -35,6 +37,7 @@ import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMeth
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.InvalidRequest;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.Success;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
 import org.objectweb.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -46,6 +49,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,14 +78,16 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
-    private static final Type DEFAULT_TYPE = Type.getType(ReplacesEagerProperty.DefaultValue.class);
+    private static final Type DEFAULT_TYPE = Type.getType(DefaultValue.class);
 
     private final String projectName;
     private final Elements elements;
+    private final Types types;
 
     public PropertyUpgradeAnnotatedMethodReader(ProcessingEnvironment processingEnv) {
         this.projectName = getProjectName(processingEnv);
         this.elements = processingEnv.getElementUtils();
+        this.types = processingEnv.getTypeUtils();
     }
 
     private static String getProjectName(ProcessingEnvironment processingEnv) {
@@ -146,6 +152,13 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     @SuppressWarnings("unchecked")
     private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
+        Element element = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
+            .map(v -> types.asElement((TypeMirror) v.getValue()))
+            .orElseThrow(() -> new IllegalArgumentException("Missing adapter value"));
+        if (!element.getSimpleName().toString().equals(DefaultValue.class.getSimpleName())) {
+            return readAccessorSpecsFromAdapter(element);
+        }
+
         List<AnnotationMirror> replacedAccessors = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "replacedAccessors")
             .map(v -> (List<AnnotationMirror>) v.getValue())
             .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'replacedAccessors' attribute in @%s", ReplacesEagerProperty.class.getSimpleName())));
@@ -160,6 +173,15 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             getAccessorSpec(method, AccessorType.GETTER, annotationMirror),
             getAccessorSpec(method, AccessorType.SETTER, annotationMirror)
         );
+    }
+
+    private static List<AccessorSpec> readAccessorSpecsFromAdapter(Element element) {
+        List<ExecutableElement> methods = TypeUtils.getExecutableElementsFromElements(Stream.of(element)).stream()
+            .filter(method -> method.getAnnotation(BytecodeUpgrade.class) != null)
+            .collect(Collectors.toList());
+
+
+        return new ArrayList<>();
     }
 
     private DeprecationSpec readDeprecationSpec(AnnotationMirror annotation) {
