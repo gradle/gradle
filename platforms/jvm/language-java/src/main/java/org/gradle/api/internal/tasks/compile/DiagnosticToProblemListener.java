@@ -158,11 +158,16 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
         spec.severity(mapKindToSeverity(diagnostic.getKind()));
+        addId(spec, diagnostic);
         addFormattedMessage(spec, diagnostic);
         addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
+    }
+
+    private static void addId(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String idName = diagnostic.getCode().replace('.', '-');
+        spec.id(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
     }
 
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -242,23 +247,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         return fileObject.getName();
     }
 
-    private static String mapKindToId(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "java-compilation-error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "java-compilation-warning";
-            case NOTE:
-                return "java-compilation-note";
-            case OTHER:
-                return "java-compilation-problem";
-            default:
-                return "unknown-java-compilation-problem";
-        }
-    }
-
-    private static String mapKindToLabel(Diagnostic.Kind kind) {
+    private static String mapKindToDisplayName(Diagnostic.Kind kind) {
         switch (kind) {
             case ERROR:
                 return "Java compilation error";

@@ -21,9 +21,12 @@ class KnownProblemIds {
     static void assertIsKnown(ReceivedProblem problem) {
         assert problem != null
         def definition = problem.definition
-        def knownDefinition = KNOWN_DEFINITIONS[problem.definition.id.fqid]
+        def knownDefinition = KNOWN_DEFINITIONS.find { it ->
+            def pattern = it.key
+            definition.id.fqid ==~ pattern
+        }?.value
         assert knownDefinition != null : "Unknown problem id: ${definition.id.fqid}"
-        assert knownDefinition == definition.id.displayName : "Unexpected display name for problem: ${definition.id.fqid}. Expected=${knownDefinition}, actual=${definition.id.displayName}"
+        assert definition.id.displayName ==~ knownDefinition: "Unexpected display name for problem"
 
         def groupFqid = groupOf(definition.id.fqid)
         while (groupFqid != null) {
@@ -63,15 +66,17 @@ class KnownProblemIds {
         'generic' : 'Generic'
     ]
 
-    private static final def KNOWN_DEFINITIONS = [
+    /**
+     * This map is used to validate that problems reported have known IDs, and display name.
+     * <p>
+     * Both the key and value is handled as a regular expression if the value is too dynamic.
+     */
+    private static final HashMap<String, String> KNOWN_DEFINITIONS = [
         'problems-api:missing-id' : 'Problem id must be specified',
         'problems-api:unsupported-additional-data' : 'Unsupported additional data type',
         'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
-        'compilation:java:initialization-failed' : 'Java compilation initialization error',
-        'compilation:java:java-compilation-error' : 'Java compilation error',
-        'compilation:java:java-compilation-failed' : 'Java compilation error',
-        'compilation:java:java-compilation-warning' : 'Java compilation warning',
-        'compilation:java:java-compilation-advice' : 'Java compilation note',
+        // Flexible category, as the category id's last component, and the message, will be supplied by the compiler
+        'compilation:java:.+' : '.+',
         'dependency-version-catalog:alias-not-finished' : 'version catalog error',
         'dependency-version-catalog:invalid-dependency-notation' : 'Dependency version catalog problem',
         'dependency-version-catalog:reserved-alias-name' : 'version catalog error',
