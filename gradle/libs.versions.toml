@@ -26,6 +26,7 @@ decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", ver
 essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version = "1.3.0" }
 gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
 gradle-declarative-dsl-core = { module = "org.gradle:gradle-declarative-dsl-tooling-models", version.ref = "declarative-dsl" }
+gradle-declarative-dsl-evaluator = { module = "org.gradle:gradle-declarative-dsl-evaluator", version.ref = "declarative-dsl" }
 gradle-declarative-dsl-tooling-models = { module = "org.gradle:gradle-declarative-dsl-core", version.ref = "declarative-dsl" }
 material3WindowSizeClassMultiplatform = { module = "dev.chrisbanes.material3:material3-window-size-class-multiplatform", version = "0.3.1" }
 materialKolor = { module = "com.materialkolor:material-kolor", version = "1.4.4" }

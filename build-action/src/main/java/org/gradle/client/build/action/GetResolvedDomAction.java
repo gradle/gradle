@@ -46,9 +46,10 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         if (declarativeBuildFiles.isEmpty()) {
             throw new RuntimeException("No declarative project file found");
         }
-        return Pair.of(rootProjectDirectory, declarativeBuildFiles);
+        return Pair.of(rootProjectDirectory,  declarativeBuildFiles);
     }
 
+    
     private static final class ResolvedDomPrerequisitesImpl implements ResolvedDomPrerequisites {
 
         private final InterpretationSequence settingsSequence;
@@ -59,7 +60,7 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         public ResolvedDomPrerequisitesImpl(
                 InterpretationSequence settingsSequence,
                 InterpretationSequence projectSequence,
-                File rootDir,
+                File rootDir, 
                 List<File> declarativeBuildFiles
         ) {
             this.settingsSequence = settingsSequence;
@@ -90,6 +91,12 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         @Override
         public File getRootDir() {
             return rootDir;
+        }
+
+        @Override
+        public File getSettingsFile() {
+            // TODO: this is an assumption about the location of the settings file – get it from Gradle instead.
+            return new File(getRootDir(), "settings.gradle.dcl");
         }
 
         @Override

@@ -16,6 +16,8 @@ public interface ResolvedDomPrerequisites extends Serializable {
     AnalysisSchema getAnalysisSchema();
 
     File getRootDir();
+    
+    File getSettingsFile();
 
     List<File> getDeclarativeBuildFiles();
 }

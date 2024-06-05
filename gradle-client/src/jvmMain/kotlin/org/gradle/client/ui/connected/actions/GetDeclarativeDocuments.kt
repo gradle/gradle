@@ -17,6 +17,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
+import org.gradle.client.core.gradle.dcl.analyzer
 import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.LabelMedium
 import org.gradle.client.ui.composables.TitleLarge
@@ -26,13 +27,9 @@ import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
-import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
+import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils.resolvedDocument
+import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
 import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
 import java.io.File
@@ -56,22 +53,13 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
 
         val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
+
         val buildFileRelativePath = selectedBuildFile.value.relativeTo(model.rootDir).path
         val schema = model.analysisSchema
 
-        val dom = remember(model, selectedBuildFile.value) {
-            val parsedLightTree = parse(buildFileContent)
-            val languageTreeResult = DefaultLanguageTreeBuilder().build(
-                parsedLightTree = parsedLightTree,
-                sourceIdentifier = SourceIdentifier(selectedBuildFile.value.name)
-            )
-            documentWithResolution(
-                schema = schema,
-                languageTreeResult = languageTreeResult,
-                analysisStatementFilter = analyzeEverything,
-                operationGenerationId = DefaultOperationGenerationId.finalEvaluation,
-            )
-        }
+        val analyzer = analyzer(model)
+        val projectResult = analyzer.evaluate(selectedBuildFile.value.name, buildFileContent)
+        val dom = projectResult.stepResults.values.single().stepResultOrPartialResult.resolvedDocument()
 
         val highlightedSourceRange = mutableStateOf<IntRange?>(null)
 
