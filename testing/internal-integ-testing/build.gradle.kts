@@ -69,7 +69,6 @@ dependencies {
     }
     api(libs.samplesCheck) {
         exclude(module = "groovy-all")
-        exclude(module = "slf4j-simple")
     }
     api(libs.samplesDiscovery)
     api(libs.servletApi)
