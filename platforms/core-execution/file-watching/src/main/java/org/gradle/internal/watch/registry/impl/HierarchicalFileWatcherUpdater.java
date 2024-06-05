@@ -126,15 +126,15 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    protected void startWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy) {
-        if (!isSubdirectoryOfWatchedHierarchy) {
+    protected void startWatchingProbeDirectory(File probeDirectory) {
+        if (!watchableHierarchies.isInWatchableHierarchy(probeDirectory.getParentFile().getPath())) {
             fileWatcher.startWatching(Collections.singletonList(probeDirectory));
         }
     }
 
     @Override
-    protected void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy) {
-        if (!isSubdirectoryOfWatchedHierarchy) {
+    protected void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfRemovedWatchedHierarchy) {
+        if (!isSubdirectoryOfRemovedWatchedHierarchy && !watchableHierarchies.isInWatchableHierarchy(probeDirectory.getParentFile().getPath())) {
             if (!fileWatcher.stopWatching(Collections.singletonList(probeDirectory))) {
                 LOGGER.debug("Couldn't stop watching directory: {}", probeDirectory);
             }

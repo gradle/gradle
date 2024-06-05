@@ -149,21 +149,21 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         probeRegistry.updateProbedHierarchies(
             probedHierarchies,
             this::stopWatchingProbeDirectory,
-            (probeDirectory, isSubdirectoryOfWatchedHierarchy) -> {
+            probeDirectory -> {
             // Make sure the directory exists, this can be necessary when
             // included builds are evaluated with configuration cache
             //noinspection ResultOfMethodCallIgnored
                 probeDirectory.mkdirs();
-                startWatchingProbeDirectory(probeDirectory, isSubdirectoryOfWatchedHierarchy);
+                startWatchingProbeDirectory(probeDirectory);
             }
         );
     }
 
     protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles);
 
-    protected abstract void startWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy);
+    protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
-    protected abstract void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy);
+    protected abstract void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfRemovedWatchedHierarchy);
 
     @VisibleForTesting
     static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {

@@ -23,6 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 class DefaultFileWatcherProbeRegistryTest extends Specification {
     @Rule
@@ -42,7 +43,7 @@ class DefaultFileWatcherProbeRegistryTest extends Specification {
 
         when:
         registry.registerProbe(hierarchy, probeDirectory)
-        registry.updateProbedHierarchies(ImmutableSet.of(hierarchy), noop, noop)
+        registry.updateProbedHierarchies(ImmutableSet.of(hierarchy), biNoop, noop)
         then:
         registry.unprovenHierarchies().count() == 1
 
@@ -56,5 +57,7 @@ class DefaultFileWatcherProbeRegistryTest extends Specification {
         temporaryFolder.testDirectory.file(path)
     }
 
-    BiConsumer<File, Boolean> noop = { p, s -> }
+    BiConsumer<File, Boolean> biNoop = { p, s -> }
+    Consumer<File> noop = { f -> }
+
 }

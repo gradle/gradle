@@ -123,12 +123,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    protected void startWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy) {
+    protected void startWatchingProbeDirectory(File probeDirectory) {
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
     }
 
     @Override
-    protected void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy) {
+    protected void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfRemovedWatchedHierarchy) {
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
     }
 

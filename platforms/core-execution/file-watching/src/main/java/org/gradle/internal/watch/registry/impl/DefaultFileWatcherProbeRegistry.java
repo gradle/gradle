@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry {
@@ -56,36 +57,31 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
 
         FileStore fileStore = getFileStore(watchableHierarchy.toPath());
         File probeFile = new File(probeDirectory, "file-system.probe");
-        boolean isSubpath = isSubpath(probeFile, watchableHierarchy);
         WatchProbeImpl watchProbe;
         if (fileStore != null) {
-            watchProbe = probesByFS.computeIfAbsent(fileStore, fs -> new WatchProbeImpl(probeFile, isSubpath));
+            watchProbe = probesByFS.computeIfAbsent(fileStore, fs -> new WatchProbeImpl(probeFile));
         } else { // fallback, unlikely to happen
             watchProbe = watchProbesByHierarchy
                 .values()
                 .stream()
                 .filter(probe -> probe.probeFile.equals(probeFile))
                 .findFirst()
-                .orElseGet(() -> new WatchProbeImpl(probeFile, isSubpath));
+                .orElseGet(() -> new WatchProbeImpl(probeFile));
 
             watchProbesByHierarchy.put(watchableHierarchy.toPath(), watchProbe);
         }
 
-        watchProbe.addWatchableHierarchy(watchableHierarchy, probeFile, isSubpath);
-    }
-
-    private static boolean isSubpath(File probeFile, File watchableHierarchy) {
-        return probeFile.toPath().startsWith(watchableHierarchy.toPath());
+        watchProbe.addWatchableHierarchy(watchableHierarchy, probeFile);
     }
 
     @Override
-    public void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, BiConsumer<File, Boolean> beforeProbeArmed) {
+    public void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, Consumer<File> beforeProbeArmed) {
         if (this.probedHierarchies.equals(probedHierarchies)) {
             return;
         }
 
         Set<File> removedHierarchies = Sets.difference(this.probedHierarchies, probedHierarchies);
-        stopWatching(removedHierarchies.stream(), probeDisarmed);
+        stopWatching(removedHierarchies, probeDisarmed);
 
         Set<File> addedHierarchies = Sets.difference(probedHierarchies, this.probedHierarchies);
         startWatching(addedHierarchies.stream(), beforeProbeArmed);
@@ -93,8 +89,9 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         this.probedHierarchies = probedHierarchies;
     }
 
-    private void stopWatching(Stream<File> hierarchies, BiConsumer<File, Boolean> probeDisarmed) {
+    private void stopWatching(Set<File> hierarchies, BiConsumer<File, Boolean> probeDisarmed) {
         hierarchies
+            .stream()
             .map(hierarchy -> {
                 unwatchedHierarchies.add(hierarchy);
                 return getProbeForHierarchy(hierarchy.toPath());
@@ -103,19 +100,19 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             .forEach(probe -> {
                 if (!probe.hasWatchableHierarchies(unwatchedHierarchies)) {
                     probe.disarm();
-                    probeDisarmed.accept(probe.getDirectory(), probe.isSubPathOfWatchableHierarchy());
+                    probeDisarmed.accept(probe.getDirectory(), hierarchies.contains(probe.getDirectory().getParentFile()));
                 }
             });
     }
 
-    private void startWatching(Stream<File> hierarchies, BiConsumer<File, Boolean> beforeProbeArmed) {
+    private void startWatching(Stream<File> hierarchies, Consumer<File> beforeProbeArmed) {
         hierarchies
             .map(File::toPath)
             .map(this::getProbeForHierarchy)
             .filter(x -> x.state != WatchProbeImpl.State.ARMED)
             .distinct()
             .forEach(probe -> {
-                beforeProbeArmed.accept(probe.getDirectory(), probe.isSubPathOfWatchableHierarchy());
+                beforeProbeArmed.accept(probe.getDirectory());
                 probe.arm();
             });
     }
@@ -204,21 +201,15 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
 
         private final Set<File> watchableHierarchies;
         private File probeFile;
-        private boolean subPathOfWatchableHierarchy;
         private State state = State.UNARMED;
 
-        public WatchProbeImpl(File probeFile, boolean subPathOfWatchableHierarchy) {
+        public WatchProbeImpl(File probeFile) {
             this.probeFile = probeFile;
-            this.subPathOfWatchableHierarchy = subPathOfWatchableHierarchy;
             this.watchableHierarchies = new HashSet<>();
         }
 
         public File getDirectory() {
             return probeFile.getParentFile();
-        }
-
-        public boolean isSubPathOfWatchableHierarchy() {
-            return subPathOfWatchableHierarchy;
         }
 
         public synchronized void arm() {
@@ -276,9 +267,8 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             return Sets.difference(watchableHierarchies, unwatchedHierarchies).stream();
         }
 
-        public void addWatchableHierarchy(File watchableHierarchy, File probeFile, boolean isSubpathOfWatchableHierarchy) {
+        public void addWatchableHierarchy(File watchableHierarchy, File probeFile) {
             this.probeFile = probeFile;
-            this.subPathOfWatchableHierarchy = isSubpathOfWatchableHierarchy;
             watchableHierarchies.add(watchableHierarchy);
         }
 

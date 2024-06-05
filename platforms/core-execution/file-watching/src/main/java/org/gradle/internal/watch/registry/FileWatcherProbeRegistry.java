@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
 public interface FileWatcherProbeRegistry {
     void registerProbe(File hierarchy, File probeDirectory);
 
-    void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, BiConsumer<File, Boolean> beforeProbeArmed);
+    void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, Consumer<File> beforeProbeArmed);
 
     void triggerWatchProbe(Path path);
 
