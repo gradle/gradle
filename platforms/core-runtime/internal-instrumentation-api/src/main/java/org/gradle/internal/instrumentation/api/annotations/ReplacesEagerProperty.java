@@ -61,6 +61,11 @@ public @interface ReplacesEagerProperty {
      */
     ReplacedDeprecation deprecation() default @ReplacedDeprecation();
 
+    /**
+     * A custom interception adapter for a property that is used for bytecode upgrade.
+     */
+    Class<?> adapter() default DefaultValue.class;
+
     interface DefaultValue {
     }
 
