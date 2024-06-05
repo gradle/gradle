@@ -46,7 +46,7 @@ import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.Accessor
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
 
     private final Map<ApiChange, String> acceptedApiChanges
-    private final File apiChangesJsonFile
+    private final File mainApiChangesJsonFile
     private final File projectRootDir
 
     AbstractGradleViolationRule(Map<String, Object> params) {
@@ -54,7 +54,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges) : [:]
 
         // Tests will not supply these
-        this.apiChangesJsonFile = params.get("apiChangesJsonFile") ? new File(params.get("apiChangesJsonFile") as String) : null
+        this.mainApiChangesJsonFile = params.get("mainApiChangesJsonFile") ? new File(params.get("mainApiChangesJsonFile") as String) : null
         this.projectRootDir = params.get("projectRootDir") ? new File(params.get("projectRootDir") as String) : null
     }
 
@@ -170,7 +170,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="accept-${changeId}">
                   <div class="well">
-                      In order to accept this change add the following to <code>${relativePathToApiChanges()}</code>:
+                      In order to accept this change add the following to <code>${relativePathToMainApiChanges()}</code>:
                     <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
                 </div>
@@ -214,9 +214,9 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return context.getUserData().get("currentVersion")
     }
 
-    private String relativePathToApiChanges() {
-        if (null != apiChangesJsonFile && null != projectRootDir) {
-            return projectRootDir.relativePath(apiChangesJsonFile)
+    private String relativePathToMainApiChanges() {
+        if (null != mainApiChangesJsonFile && null != projectRootDir) {
+            return projectRootDir.relativePath(mainApiChangesJsonFile)
         } else {
             return "<PATHS TO API CHANGES JSON NOT PROVIDED>"
         }

@@ -42,7 +42,7 @@ class BinaryCompatibilityHelper {
         AcceptedApiChanges acceptedViolations,
         FileCollection sourceRoots,
         String currentVersion,
-        File apiChangesJsonFile,
+        File mainApiChangesJsonFile,
         Directory projectRootDir,
         File currentUpgradedPropertiesFile,
         File baselineUpgradedPropertiesFile
@@ -53,56 +53,56 @@ class BinaryCompatibilityHelper {
 
             def acceptedChangesMap = acceptedViolations.toAcceptedChangesMap()
 
-            def apiChangesJsonFilePath = apiChangesJsonFile.path
+            def mainApiChangesJsonFilePath = mainApiChangesJsonFile.path
             def projectRootDirPath = projectRootDir.asFile.path
 
             richReport.get().tap {
                 addRule(IncubatingInternalInterfaceAddedRule, [
                     acceptedApiChanges: acceptedChangesMap,
                     publicApiPatterns: includedClasses.get(),
-                    apiChangesJsonFile: apiChangesJsonFilePath,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                     projectRootDir: projectRootDirPath
                 ])
                 addRule(MethodsRemovedInInternalSuperClassRule, [
                     acceptedApiChanges: acceptedChangesMap,
                     publicApiPatterns: includedClasses.get(),
-                    apiChangesJsonFile: apiChangesJsonFilePath,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                     projectRootDir: projectRootDirPath
                 ])
                 addRule(BinaryBreakingSuperclassChangeRule, [
                     acceptedApiChanges: acceptedChangesMap,
                     publicApiPatterns: includedClasses.get(),
-                    apiChangesJsonFile: apiChangesJsonFilePath,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                     projectRootDir: projectRootDirPath
                 ])
                 addRule(BinaryBreakingChangesRule, [
                         acceptedApiChanges: acceptedChangesMap,
-                        apiChangesJsonFile: apiChangesJsonFilePath,
+                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
                 addRule(NullabilityBreakingChangesRule, [
                         acceptedApiChanges: acceptedChangesMap,
-                        apiChangesJsonFile: apiChangesJsonFilePath,
+                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
                 addRule(KotlinModifiersBreakingChangeRule, [
                         acceptedApiChanges: acceptedChangesMap,
-                        apiChangesJsonFile: apiChangesJsonFilePath,
+                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
                 addRule(JApiChangeStatus.NEW, IncubatingMissingRule, [
                         acceptedApiChanges: acceptedChangesMap,
-                        apiChangesJsonFile: apiChangesJsonFilePath,
+                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
                 addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, [
                         acceptedApiChanges: acceptedChangesMap,
-                        apiChangesJsonFile: apiChangesJsonFilePath,
+                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
                 addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, [
                         acceptedApiChanges: acceptedChangesMap,
-                        apiChangesJsonFile: apiChangesJsonFilePath,
+                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
 
