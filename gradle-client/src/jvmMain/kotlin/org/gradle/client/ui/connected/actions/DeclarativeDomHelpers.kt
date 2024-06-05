@@ -1,11 +1,11 @@
 package org.gradle.client.ui.connected.actions
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.language.SourceData
 
-val ResolvedDeclarativeDocument.singleSoftwareTypeNode: DeclarativeDocument.DocumentNode.ElementNode
-    get() = content.single() as DeclarativeDocument.DocumentNode.ElementNode
+val DocumentWithResolution.singleSoftwareTypeNode: DeclarativeDocument.DocumentNode.ElementNode
+    get() = document.content.single() as DeclarativeDocument.DocumentNode.ElementNode
 
 fun DeclarativeDocument.DocumentNode.ElementNode.childElementNode(
     name: String

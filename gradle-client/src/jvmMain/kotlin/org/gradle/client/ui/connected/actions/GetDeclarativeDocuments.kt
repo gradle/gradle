@@ -26,10 +26,10 @@ import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
+import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
@@ -65,12 +65,11 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 parsedLightTree = parsedLightTree,
                 sourceIdentifier = SourceIdentifier(selectedBuildFile.value.name)
             )
-            resolvedDocument(
+            documentWithResolution(
                 schema = schema,
                 languageTreeResult = languageTreeResult,
                 analysisStatementFilter = analyzeEverything,
-                strictReceiverChecks = true,
-                generationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
+                operationGenerationId = DefaultOperationGenerationId.finalEvaluation,
             )
         }
 

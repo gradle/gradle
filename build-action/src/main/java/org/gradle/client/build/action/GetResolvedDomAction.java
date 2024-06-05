@@ -1,6 +1,7 @@
 package org.gradle.client.build.action;
 
 import org.gradle.client.build.model.ResolvedDomPrerequisites;
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence;
 import org.gradle.declarative.dsl.schema.AnalysisSchema;
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel;
 import org.gradle.internal.Pair;
@@ -11,19 +12,26 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisites> {
 
     @Override
     public ResolvedDomPrerequisites execute(BuildController controller) {
-        AnalysisSchema projectSchema = getProjectSchema(controller);
+        InterpretationSequence settingsSchema = getSettingsInterpretationSequence(controller);
+        InterpretationSequence projectSchema = getProjectInterpretationSequence(controller);
         Pair<File, List<File>> buildFiles = getDeclarativeBuildFiles(controller);
-        return new ResolvedDomPrerequisitesImpl(projectSchema, buildFiles.getLeft(), buildFiles.getRight());
+        return new ResolvedDomPrerequisitesImpl(settingsSchema, projectSchema, buildFiles.getLeft(), buildFiles.getRight());
     }
 
-    private static AnalysisSchema getProjectSchema(BuildController controller) {
+    private static InterpretationSequence getSettingsInterpretationSequence(BuildController controller) {
         DeclarativeSchemaModel declarativeSchemaModel = controller.getModel(DeclarativeSchemaModel.class);
-        return declarativeSchemaModel.getProjectSchema();
+        return declarativeSchemaModel.getSettingsSequence();
+    }
+
+    private static InterpretationSequence getProjectInterpretationSequence(BuildController controller) {
+        DeclarativeSchemaModel declarativeSchemaModel = controller.getModel(DeclarativeSchemaModel.class);
+        return declarativeSchemaModel.getProjectSequence();
     }
 
     private static Pair<File, List<File>> getDeclarativeBuildFiles(BuildController controller) {
@@ -43,19 +51,40 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
 
     private static final class ResolvedDomPrerequisitesImpl implements ResolvedDomPrerequisites {
 
-        private final AnalysisSchema analysisSchema;
+        private final InterpretationSequence settingsSequence;
+        private final InterpretationSequence projectSequence;
         private final File rootDir;
         private final List<File> declarativeBuildFiles;
 
-        public ResolvedDomPrerequisitesImpl(AnalysisSchema analysisSchema, File rootDir, List<File> declarativeBuildFiles) {
-            this.analysisSchema = analysisSchema;
+        public ResolvedDomPrerequisitesImpl(
+                InterpretationSequence settingsSequence,
+                InterpretationSequence projectSequence,
+                File rootDir,
+                List<File> declarativeBuildFiles
+        ) {
+            this.settingsSequence = settingsSequence;
+            this.projectSequence = projectSequence;
             this.rootDir = rootDir;
             this.declarativeBuildFiles = declarativeBuildFiles;
         }
 
         @Override
+        public InterpretationSequence getSettingsInterpretationSequence() {
+            return settingsSequence;
+        }
+
+        @Override
+        public InterpretationSequence getProjectInterpretationSequence() {
+            return projectSequence;
+        }
+
+        @Override
         public AnalysisSchema getAnalysisSchema() {
-            return analysisSchema;
+            return StreamSupport.stream(getProjectInterpretationSequence().getSteps().spliterator(), false)
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("no schema step available for project"))
+                    .getEvaluationSchemaForStep()
+                    .getAnalysisSchema();
         }
 
         @Override
