@@ -375,7 +375,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         def notWatchedHierarchyProbeDir = notWatchedHierarchy.file(".gradle")
         def fileInNotWatchedHierarchy = notWatchedHierarchy.file("file.txt").createFile()
 
-        def watchableHierarchies = [watchableHierarchy, notWatchedHierarchy]
+        def watchableHierarchies = [notWatchedHierarchy, watchableHierarchy]
 
         when:
         registerWatchableHierarchies(watchableHierarchies)
@@ -422,7 +422,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         def notMovedDir = file("normal").createDir()
 
         def watchableHierarchies = probeRegisteredForMovedDir ? [sourceDir, notMovedDir] : [notMovedDir, sourceDir]
-        def probeDir = watchableHierarchies[0].file('.gradle')
+        def probeDir = watchableHierarchies.last().file('.gradle')
 
         when:
         registerWatchableHierarchies(watchableHierarchies)

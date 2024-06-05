@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.test.fixtures.file.TestFile
 
 @LocalOnly
 class DaemonReuseFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
@@ -26,78 +27,90 @@ class DaemonReuseFileSystemWatchingIntegrationTest extends AbstractFileSystemWat
     }
 
     def "can run consecutive builds in a single daemon without issues"() {
-        buildFile << """
-            tasks.register("change") {
-                def output = file("output.txt")
-                outputs.file(output)
-                outputs.upToDateWhen { false }
-                doLast {
-                    output.text = Math.random() as String
-                }
-            }
-        """
+        def project = file(".")
+        buildFile << sampleTask("change")
 
         when:
-        withWatchFs().run("change", "--debug")
-        waitForChangesToBePickedUp()
-        file("output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
-        withWatchFs().run("change", "--debug")
-        waitForChangesToBePickedUp()
+        succeeds(project, "change")
+        updateSampleFile(project)
+
+        succeeds(project, "change")
 
         then:
         succeeds("change")
     }
 
+
     def "can run consecutive unrelated builds in a single daemon without issues"() {
         def firstProject = file("first")
         def secondProject = file("second")
 
-        file(firstProject.name, "build.gradle") << """
-            tasks.register("change1") {
-                def output = file("output.txt")
-                outputs.file(output)
-                outputs.upToDateWhen { false }
-                doLast {
-                    output.text = Math.random() as String
-                }
-            }
-        """
-        file(firstProject.name, "settings.gradle") << """
-            rootProject.name = "first"
-        """
-
-        file(secondProject.name, "build.gradle") << """
-            tasks.register("change2") {
-                def output = file("output.txt")
-                outputs.file(output)
-                outputs.upToDateWhen { false }
-                doLast {
-                    output.text = Math.random() as String
-                }
-            }
-        """
-        file(secondProject.name, "settings.gradle") << """
-            rootProject.name = "second"
-        """
+        createSampleProject(firstProject, "change1")
+        createSampleProject(secondProject, "change2")
 
         when:
-        withWatchFs().inDirectory(firstProject).withArguments("change1").run()
-        waitForChangesToBePickedUp()
-        file(firstProject, "output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
+        succeeds(firstProject, "change1")
+        updateSampleFile(firstProject)
 
-        withWatchFs().inDirectory(secondProject).withArguments("change2").run()
-        waitForChangesToBePickedUp()
-        file(secondProject, "output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
+        succeeds(secondProject, "change2")
+        updateSampleFile(secondProject)
 
-        withWatchFs().inDirectory(firstProject).withArguments("change1").run()
-        waitForChangesToBePickedUp()
-        file(firstProject, "output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
+        succeeds(firstProject, "change1")
+        updateSampleFile(firstProject)
 
         then:
-        inDirectory(firstProject).withArguments("change1").run()
+        inDirectory(firstProject).withArguments("change1", "--debug").run()
+    }
+
+    def "can run consecutive unrelated builds in a single daemon without issues if older build was deleted"() {
+        def firstProject = file("first")
+        def secondProject = file("second")
+
+        createSampleProject(firstProject, "change1")
+        createSampleProject(secondProject, "change2")
+
+        when:
+        succeeds(firstProject, "change1")
+        updateSampleFile(firstProject)
+
+        firstProject.deleteDir()
+
+        succeeds(secondProject, "change2")
+        updateSampleFile(secondProject)
+
+        then:
+        succeeds(secondProject, "change2")
+        !firstProject.exists()
+    }
+
+    private void createSampleProject(TestFile dir, String taskName) {
+        file(dir.name, "build.gradle") << sampleTask(taskName)
+        file(dir.name, "settings.gradle") << """
+            rootProject.name = "${dir.name}"
+        """
+    }
+
+    private String sampleTask(String name) {
+        """
+            tasks.register("$name") {
+                def output = file("output.txt")
+                outputs.file(output)
+                outputs.upToDateWhen { false }
+                doLast {
+                    output.text = Math.random() as String
+                }
+            }
+        """
+    }
+
+    private void succeeds(TestFile project, String taskName) {
+        // need to have --debug here to catch stacktraces
+        withWatchFs().inDirectory(project).withArguments(taskName, "--debug").run()
+    }
+
+    private void updateSampleFile(TestFile project) {
+        waitForChangesToBePickedUp()
+        file(project, "output.txt").text = "Changed"
+        waitForChangesToBePickedUp()
     }
 }

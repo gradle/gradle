@@ -33,7 +33,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
         def fileInWatchableHierarchies = file("first/inside/root/dir/file.txt")
         def fileOutsideOfWatchableHierarchies = file("forth").file("someFile.txt")
-        def watchProbeDir = watchableHierarchies[0].file(".gradle")
+        def watchProbeDir = watchableHierarchies.last().file(".gradle")
 
         when:
         registerWatchableHierarchies(watchableHierarchies)

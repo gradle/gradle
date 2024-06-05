@@ -195,7 +195,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def directoryWithinFirst = file("first/within").createDir()
 
         def hierarchies = [directoryWithinFirst, firstDir, secondDir]
-        def watchProbeDir = hierarchies[0].file(".gradle")
+        def watchProbeDir = hierarchies.last().file(".gradle")
 
         registerWatchableHierarchies(hierarchies)
 

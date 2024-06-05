@@ -55,25 +55,23 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         LOGGER.debug("Registering probe for {}", watchableHierarchy);
 
         FileStore fileStore = getFileStore(watchableHierarchy.toPath());
+        File probeFile = new File(probeDirectory, "file-system.probe");
+        boolean isSubpath = isSubpath(probeFile, watchableHierarchy);
         WatchProbeImpl watchProbe;
         if (fileStore != null) {
-            watchProbe = probesByFS.computeIfAbsent(fileStore, fs -> {
-                File probeFile = new File(probeDirectory, "file-system.probe");
-                return new WatchProbeImpl(probeFile, isSubpath(probeFile, watchableHierarchy));
-            });
+            watchProbe = probesByFS.computeIfAbsent(fileStore, fs -> new WatchProbeImpl(probeFile, isSubpath));
         } else { // fallback, unlikely to happen
-            File probeFile = new File(probeDirectory, "file-system.probe");
             watchProbe = watchProbesByHierarchy
                 .values()
                 .stream()
                 .filter(probe -> probe.probeFile.equals(probeFile))
                 .findFirst()
-                .orElseGet(() -> new WatchProbeImpl(probeFile, isSubpath(probeFile, watchableHierarchy)));
+                .orElseGet(() -> new WatchProbeImpl(probeFile, isSubpath));
 
             watchProbesByHierarchy.put(watchableHierarchy.toPath(), watchProbe);
         }
 
-        watchProbe.addWatchableHierarchy(watchableHierarchy);
+        watchProbe.addWatchableHierarchy(watchableHierarchy, probeFile, isSubpath);
     }
 
     private static boolean isSubpath(File probeFile, File watchableHierarchy) {
@@ -205,8 +203,8 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         }
 
         private final Set<File> watchableHierarchies;
-        private final File probeFile;
-        private final boolean subPathOfWatchableHierarchy;
+        private File probeFile;
+        private boolean subPathOfWatchableHierarchy;
         private State state = State.UNARMED;
 
         public WatchProbeImpl(File probeFile, boolean subPathOfWatchableHierarchy) {
@@ -278,7 +276,9 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             return Sets.difference(watchableHierarchies, unwatchedHierarchies).stream();
         }
 
-        public void addWatchableHierarchy(File watchableHierarchy) {
+        public void addWatchableHierarchy(File watchableHierarchy, File probeFile, boolean isSubpathOfWatchableHierarchy) {
+            this.probeFile = probeFile;
+            this.subPathOfWatchableHierarchy = isSubpathOfWatchableHierarchy;
             watchableHierarchies.add(watchableHierarchy);
         }
 
