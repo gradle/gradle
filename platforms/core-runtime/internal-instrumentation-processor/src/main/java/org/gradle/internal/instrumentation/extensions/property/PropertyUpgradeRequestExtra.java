@@ -21,6 +21,8 @@ import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAn
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 
+import javax.lang.model.element.ExecutableElement;
+
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
     private final String propertyName;
@@ -33,6 +35,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
+    private final ExecutableElement bridgedMethod;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
@@ -44,7 +47,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         String interceptedPropertyAccessorName,
         GradleLazyType propertyType,
         DeprecationSpec deprecationSpec,
-        BinaryCompatibility binaryCompatibility
+        BinaryCompatibility binaryCompatibility,
+        ExecutableElement bridgedMethod
     ) {
         this.propertyName = propertyName;
         this.methodName = methodName;
@@ -56,6 +60,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.deprecationSpec = deprecationSpec;
         this.binaryCompatibility = binaryCompatibility;
+        this.bridgedMethod = bridgedMethod;
     }
 
     public String getPropertyName() {
@@ -97,5 +102,9 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     public BinaryCompatibility getBinaryCompatibility() {
         return binaryCompatibility;
+    }
+
+    public ExecutableElement getBridgedMethod() {
+        return bridgedMethod;
     }
 }
