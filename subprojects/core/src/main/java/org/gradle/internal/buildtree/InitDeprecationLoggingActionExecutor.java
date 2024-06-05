@@ -23,12 +23,10 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemStream;
 
 public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExecutor {
     private final BuildTreeActionExecutor delegate;
-    private final ProblemDiagnosticsFactory problemDiagnosticsFactory;
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final StartParameter startParameter;
     private final Problems problemsService;
@@ -36,14 +34,12 @@ public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExec
 
     public InitDeprecationLoggingActionExecutor(
         BuildTreeActionExecutor delegate,
-        ProblemDiagnosticsFactory problemDiagnosticsFactory,
         BuildOperationProgressEventEmitter eventEmitter,
         StartParameter startParameter,
         Problems problemsService,
         ProblemStream problemsStream
     ) {
         this.delegate = delegate;
-        this.problemDiagnosticsFactory = problemDiagnosticsFactory;
         this.eventEmitter = eventEmitter;
         this.startParameter = startParameter;
         this.problemsService = problemsService;

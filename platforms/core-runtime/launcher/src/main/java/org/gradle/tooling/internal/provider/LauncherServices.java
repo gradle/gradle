@@ -183,8 +183,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
 
     static class ToolingBuildTreeScopeServices implements ServiceRegistrationProvider {
         @Provides
-        ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
-            return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
+        ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory) {
+            return parameter.getWarningMode().shouldDisplayMessages() ? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
         }
 
         @Provides
@@ -208,7 +208,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
-            ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter,
             InternalProblems problemsService,
             ProblemStream problemStream
@@ -240,7 +239,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                     buildLoggerFactory),
                                 options),
                             gradleEnterprisePluginManager)),
-                    problemDiagnosticsFactory,
                     eventEmitter,
                     startParameter,
                     problemsService,
