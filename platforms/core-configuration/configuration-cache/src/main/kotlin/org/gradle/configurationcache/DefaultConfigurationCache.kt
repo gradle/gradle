@@ -46,8 +46,6 @@ import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configurationcache.base.logger
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.DefaultWriteContext
