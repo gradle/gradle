@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
 import org.gradle.api.problems.Severity
@@ -32,6 +31,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.opentest4j.AssertionFailedError
 import spock.lang.Issue
 
 /**
@@ -82,14 +82,17 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLabel(it)
+            assertLocations(it, true)
             severity == Severity.ERROR
+            contextualLabel == '\';\' expected'
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
+            contextualLabel == '\';\' expected'
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
@@ -107,26 +110,26 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
             solutions.empty
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
@@ -144,13 +147,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -169,25 +172,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -206,25 +209,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
@@ -246,25 +249,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -288,7 +291,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         // 2 warnings + 1 special error
         // The compiler will report a single error, implying that the warnings were treated as errors
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, false)
+            assertLocations(it, false)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-warnings-and-werror'
             contextualLabel =='warnings found and -Werror specified'
@@ -306,7 +309,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         // The two expected warnings are still reported as warnings
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -320,7 +323,7 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
                    ^"""
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -426,7 +429,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         then:
         outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -454,7 +457,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         then:
         !result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, true)
+            assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel =='redundant cast to java.lang.String'
@@ -488,6 +491,19 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         }
     }
 
+    void assertLabel(ReceivedProblem receivedProblem) {
+        switch (receivedProblem.severity) {
+            case Severity.ERROR:
+                assert receivedProblem.definition.id.displayName == "Java compilation error"
+                break
+            case Severity.WARNING:
+                assert receivedProblem.definition.id.displayName == "Java compilation warning"
+                break
+            default:
+                throw new AssertionFailedError("Unexpected severity: ${receivedProblem.severity}")
+        }
+    }
+
     /**
      * Assert if a compilation problems looks like how we expect it to look like.
      * <p>
@@ -500,7 +516,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
      *
      * @throws AssertionError if the problem does not look like how we expect it to look like
      */
-    void assertProblem(
+    void assertLocations(
         ReceivedProblem problem,
         boolean expectPreciseLocation = true
     ) {
