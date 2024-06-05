@@ -177,7 +177,7 @@ class ConfigurationCacheProblems(
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.toString()
-        internalReporter.reporting {
+        internalReporter.create {
             id(
                 "configuration-cache-" + DeprecationMessageBuilder.createDefaultDeprecationId(message),
                 message,
@@ -187,7 +187,9 @@ class ConfigurationCacheProblems(
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
-        }
+            // additionalData()
+        }.also { internalReporter.report(it) }
+        // TODO (reinhold) add report taking Action<InternalProblemSpec> as parameter?
     }
 
     private

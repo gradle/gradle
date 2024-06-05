@@ -36,13 +36,21 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         """
 
         when:
-        configurationCacheFails 'run'
+        configurationCacheRunLenient 'run'
 
         then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(1)
+            withUniqueProblems(
+                "Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        and:
         verifyAll(receivedProblem(0)) {
             fqid == REGISTRATION_UNSUPPORTED
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
-            definition.severity == Severity.ERROR
+            definition.severity == Severity.WARNING
             definition.documentationLink != null
             locations.size() == 2
             locations[0].path == "build file 'build.gradle'"
@@ -52,7 +60,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         }
 
         when:
-        configurationCacheRunLenient 'run'
+        configurationCacheRunLenient '-Pdummy=true', 'run'
 
         then:
         verifyAll(receivedProblem(0)) {

@@ -97,6 +97,9 @@ class ConfigurationCacheProblemsSummary(
         )
     }
 
+    /**
+     * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of problems was reached.
+     */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
             problemCount += 1
