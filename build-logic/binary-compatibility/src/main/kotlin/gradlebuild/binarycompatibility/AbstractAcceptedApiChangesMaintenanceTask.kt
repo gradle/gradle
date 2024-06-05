@@ -19,11 +19,12 @@ package gradlebuild.binarycompatibility
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import java.io.File
 
 
 /**
@@ -31,15 +32,33 @@ import org.gradle.api.tasks.PathSensitivity
  */
 @CacheableTask
 abstract class AbstractAcceptedApiChangesMaintenanceTask : DefaultTask() {
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.NONE)
-    abstract val apiChangesFile: RegularFileProperty
+
+    /**
+     * A directory that contains jsons with accepted API changes.
+     * Any json is a directory is considered to contain accepted API changes.
+     */
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val apiChangesDirectory: DirectoryProperty
 
     protected
-    fun loadChanges(): List<AcceptedApiChange> {
-        val jsonString = apiChangesFile.get().asFile.readText()
-        val json = Gson().fromJson(jsonString, AcceptedApiChanges::class.java)
-        return json.acceptedApiChanges!!
+    fun loadChanges(): Map<File, List<AcceptedApiChange>> {
+        return apiChangesDirectory.get().asFile.listFiles()
+            ?.filter {
+                it.name.endsWith(".json")
+            }?.associate {
+                it to it.readAcceptedChanges()
+            }?.filterValues {
+                it.acceptedApiChanges != null
+            }?.mapValues {
+                it.value.acceptedApiChanges!!
+            } ?: emptyMap()
+    }
+
+    private
+    fun File.readAcceptedChanges(): AcceptedApiChanges {
+        val jsonString = this.readText()
+        return Gson().fromJson(jsonString, AcceptedApiChanges::class.java)
     }
 
     /**
