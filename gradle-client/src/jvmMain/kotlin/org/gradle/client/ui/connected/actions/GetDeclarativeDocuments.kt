@@ -27,7 +27,11 @@ import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils.resolvedDocument
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
 import org.gradle.tooling.BuildAction
@@ -130,11 +134,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                                     highlightedSourceRange.value = functionNode?.sourceData?.indexRange
                                 }
                         )
-                        AccessAndConfigureFunction(
+                        ElementInfoOrNothingDeclared(
                             schema,
                             highlightedSourceRange,
                             functionType,
                             functionNode,
+                            dom.resolutionContainer,
                             indentLevel = 1,
                         )
                         MaterialTheme.spacing.VerticalLevel2()
@@ -159,11 +164,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     private val indentDp = MaterialTheme.spacing.level2
 
     @Composable
-    private fun AccessAndConfigureFunction(
+    private fun ElementInfoOrNothingDeclared(
         schema: AnalysisSchema,
         highlightedSourceRange: MutableState<IntRange?>,
         type: DataClass,
         node: DeclarativeDocument.DocumentNode.ElementNode?,
+        resolutionContainer: DocumentResolutionContainer,
         indentLevel: Int,
     ) {
         Column(Modifier.padding(start = indentLevel * indentDp)) {
@@ -171,33 +177,13 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 LabelMedium(NOTHING_DECLARED)
             } else {
                 type.properties.forEach { property ->
-                    LabelMedium(
-                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                            .onClick {
-                                highlightedSourceRange.value =
-                                    node.propertySourceData(property.name)?.indexRange
-                            },
-                        text = "${property.name}: ${property.kotlinType.simpleName} = ${
-                            node.propertyValue(property.name) ?: NOTHING_DECLARED
-                        }"
-                    )
+                    PropertyInfo(highlightedSourceRange, node, property)
                 }
                 val accessAndConfigure = type.memberFunctions.accessAndConfigure
                 val accessAndConfigureNames = accessAndConfigure.map { it.simpleName }
                 accessAndConfigure.forEach { subFunction ->
-                    val functionType = schema.configuredTypeOf(subFunction.accessAndConfigureSemantics)
-                    val functionNode = node.childElementNode(subFunction.simpleName)
-                    TitleSmall(
-                        text = subFunction.simpleName,
-                        modifier = Modifier
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                            .onClick {
-                                highlightedSourceRange.value = functionNode?.sourceData?.indexRange
-                            }
-                    )
-                    AccessAndConfigureFunction(
-                        schema, highlightedSourceRange, functionType, functionNode, indentLevel + 1
+                    ConfiguringFunctionInfo(
+                        schema, subFunction, node, highlightedSourceRange, resolutionContainer, indentLevel
                     )
                 }
                 val addAndConfigure = type.memberFunctions.addAndConfigure.filter { function ->
@@ -206,25 +192,94 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 val addAndConfigureByName = addAndConfigure.associateBy { it.simpleName }
                 val elementsByAddAndConfigure = node.content
                     .filterIsInstance<DeclarativeDocument.DocumentNode.ElementNode>()
-                    .mapNotNull { element -> addAndConfigureByName[element.name]?.let { element to it } }
-                    .toMap()
-                elementsByAddAndConfigure.forEach { (element, _) ->
-                    val arguments = when (val valueNode = element.elementValues.single()) {
-                        is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
-                        is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
-                            val args = valueNode.values.single() as DeclarativeDocument.ValueNode.LiteralValueNode
-                            "${valueNode.factoryName}(${args.value})"
-                        }
-                    }
-                    LabelMedium(
-                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                            .onClick { highlightedSourceRange.value = element.sourceData.indexRange },
-                        text = "${element.name}($arguments)"
-                    )
+                    .filter { it.name in addAndConfigureByName }
+                
+                elementsByAddAndConfigure.forEach { element ->
+                    AddingFunctionInfo(element, resolutionContainer, highlightedSourceRange, schema, indentLevel)
                 }
             }
         }
+    }
+
+    @Composable
+    private fun AddingFunctionInfo(
+        element: DeclarativeDocument.DocumentNode.ElementNode,
+        resolutionContainer: DocumentResolutionContainer,
+        highlightedSourceRange: MutableState<IntRange?>,
+        schema: AnalysisSchema,
+        indentLevel: Int
+    ) {
+        val arguments = when (val valueNode = element.elementValues.single()) {
+            is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
+            is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
+                val args = valueNode.values.single() as DeclarativeDocument.ValueNode.LiteralValueNode
+                "${valueNode.factoryName}(${args.value})"
+            }
+        }
+        val elementType =
+            (resolutionContainer.data(element) as? ContainerElementResolved)?.elementType as? DataClass
+
+        val elementTextRepresentation = "${element.name}($arguments)"
+
+        if (elementType == null || element.content.isNotEmpty()) {
+            TitleSmall(
+                text = elementTextRepresentation,
+                modifier = Modifier
+                    .withHoverCursor()
+                    .withClickTextRangeSelection(element, highlightedSourceRange)
+            )
+        } else {
+            LabelMedium(
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                    .withHoverCursor()
+                    .withClickTextRangeSelection(element, highlightedSourceRange),
+                text = elementTextRepresentation
+            )
+            ElementInfoOrNothingDeclared(
+                schema, highlightedSourceRange, elementType, element, resolutionContainer, indentLevel + 1
+            )
+        }
+    }
+
+    @Composable
+    private fun ConfiguringFunctionInfo(
+        schema: AnalysisSchema,
+        subFunction: SchemaMemberFunction,
+        node: DeclarativeDocument.DocumentNode.ElementNode,
+        highlightedSourceRange: MutableState<IntRange?>,
+        resolutionContainer: DocumentResolutionContainer,
+        indentLevel: Int
+    ) {
+        val functionType = schema.configuredTypeOf(subFunction.accessAndConfigureSemantics)
+        val functionNode = node.childElementNode(subFunction.simpleName)
+        TitleSmall(
+            text = subFunction.simpleName,
+            modifier = Modifier
+                .withHoverCursor()
+                .withClickTextRangeSelection(functionNode, highlightedSourceRange)
+        )
+        ElementInfoOrNothingDeclared(
+            schema, highlightedSourceRange, functionType, functionNode, resolutionContainer, indentLevel + 1
+        )
+    }
+
+    @Composable
+    private fun PropertyInfo(
+        highlightedSourceRange: MutableState<IntRange?>,
+        node: DeclarativeDocument.DocumentNode.ElementNode,
+        property: DataProperty
+    ) {
+        LabelMedium(
+            modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                .onClick {
+                    highlightedSourceRange.value =
+                        node.propertySourceData(property.name)?.indexRange
+                },
+            text = "${property.name}: ${property.kotlinType.simpleName} = ${
+                node.propertyValue(property.name) ?: NOTHING_DECLARED
+            }"
+        )
     }
 
     @Composable
@@ -266,3 +321,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
         }
     }
 }
+
+private fun Modifier.withHoverCursor() =
+    pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+
+@OptIn(ExperimentalFoundationApi::class)
+private fun Modifier.withClickTextRangeSelection(
+    node: DeclarativeDocument.DocumentNode?,
+    rangeState: MutableState<in IntRange?>
+) = onClick { rangeState.value = node?.sourceData?.indexRange }
