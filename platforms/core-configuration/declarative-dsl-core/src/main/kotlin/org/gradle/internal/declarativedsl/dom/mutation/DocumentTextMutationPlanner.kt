@@ -274,7 +274,12 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
             companion object {
                 fun createFrom(targetNode: ElementNode, valueMapper: ValueMapper, nameMapper: NameMapper, newContent: List<DocumentNode>): ByReplacingElementInAddingContent =
                     ByReplacingElementInAddingContent(
-                        DefaultElementNode(targetNode.name, targetNode.sourceData, targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) }, newContent)
+                        DefaultElementNode(
+                            nameMapper.newNamesForElements[targetNode] ?: targetNode.name,
+                            targetNode.sourceData,
+                            targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) },
+                            newContent
+                        )
                     )
 
                 private
