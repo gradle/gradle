@@ -172,7 +172,7 @@
 					"reporting",
 					"resources-s3",
 					"diagnostics",
-					"plugins-application",
+					"plugins-java-application",
 					"language-jvm"
 				]
 			},
@@ -480,7 +480,7 @@
 					"model-groovy",
 					"plugins-jvm-test-suite",
 					"tooling-native",
-					"plugins-application",
+					"plugins-java-application",
 					"signing",
 					"plugins-java-library"
 				]
@@ -728,7 +728,7 @@
 					"signing",
 					"antlr",
 					"plugins-java-library",
-					"plugins-application"
+					"plugins-java-application"
 				]
 			},
 			{
@@ -1018,7 +1018,7 @@
 					"logging",
 					"resources-s3",
 					"signing",
-					"plugins-application",
+					"plugins-java-application",
 					"core-api",
 					"antlr"
 				]
@@ -1226,7 +1226,7 @@
 					"resources-s3",
 					"core-api",
 					"antlr",
-					"plugins-application",
+					"plugins-java-application",
 					"ide-native",
 					"signing",
 					"persistent-cache",
@@ -1492,7 +1492,7 @@
 					"signing",
 					"antlr",
 					"plugins-java-library",
-					"plugins-application"
+					"plugins-java-application"
 				]
 			},
 			{
@@ -1656,7 +1656,7 @@
 					"persistent-cache",
 					"build-cache-local",
 					"plugins-java-library",
-					"plugins-application",
+					"plugins-java-application",
 					"ide-native"
 				]
 			},
@@ -1853,7 +1853,7 @@
 					"plugin-use",
 					"model-groovy",
 					"jacoco",
-					"plugins-application",
+					"plugins-java-application",
 					"execution-e2e-tests",
 					"version-control",
 					"ide",
@@ -2104,7 +2104,7 @@
 				},
 				"subprojects":[
 					"plugins-groovy",
-					"plugins-application",
+					"plugins-java-application",
 					"signing",
 					"core-api",
 					"tooling-api"
@@ -2355,7 +2355,7 @@
 					"kotlin-dsl-integ-tests",
 					"core-api",
 					"plugins-jvm-test-suite",
-					"plugins-application",
+					"plugins-java-application",
 					"reporting",
 					"diagnostics",
 					"ide-native",
@@ -2542,7 +2542,7 @@
 					"platform-jvm",
 					"plugin-development",
 					"plugin-use",
-					"plugins-application",
+					"plugins-java-application",
 					"plugins-distribution",
 					"plugins-groovy",
 					"plugins-java-base",
@@ -2686,7 +2686,7 @@
 					"platform-jvm",
 					"plugin-development",
 					"plugin-use",
-					"plugins-application",
+					"plugins-java-application",
 					"plugins-distribution",
 					"plugins-groovy",
 					"plugins-java-base",
@@ -2943,7 +2943,7 @@
 					"file-collections",
 					"platform-base",
 					"persistent-cache",
-					"plugins-application",
+					"plugins-java-application",
 					"signing",
 					"build-cache-local",
 					"declarative-dsl-provider",

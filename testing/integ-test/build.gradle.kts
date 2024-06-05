@@ -32,7 +32,7 @@ dependencies {
 
     crossVersionTestImplementation(project(":base-services"))
     crossVersionTestImplementation(project(":core"))
-    crossVersionTestImplementation(project(":plugins-application"))
+    crossVersionTestImplementation(project(":plugins-java-application"))
     crossVersionTestImplementation(project(":platform-jvm"))
     crossVersionTestImplementation(project(":language-jvm"))
     crossVersionTestImplementation(project(":language-java"))

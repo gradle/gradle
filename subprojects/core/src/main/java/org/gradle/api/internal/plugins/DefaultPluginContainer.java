@@ -150,7 +150,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     @Override
-    public void withId(final String pluginId, final Action<? super Plugin> action) {
+    public void withId(String pluginId, final Action<? super Plugin> action) {
         Action<DefaultPluginManager.PluginWithId> wrappedAction = new Action<DefaultPluginManager.PluginWithId>() {
             @Override
             public void execute(final DefaultPluginManager.PluginWithId pluginWithId) {

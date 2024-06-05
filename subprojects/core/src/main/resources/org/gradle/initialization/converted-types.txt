@@ -1,5 +1,5 @@
 org.gradle.api.distribution.plugins.DistributionPlugin
-org.gradle.api.plugins.ApplicationPlugin
+org.gradle.api.plugins.JavaApplicationPlugin
 org.gradle.api.plugins.ApplicationPluginConvention
 org.gradle.api.plugins.BasePluginConvention
 org.gradle.api.plugins.JavaLibraryDistributionPlugin
