@@ -30,6 +30,7 @@ import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.BuildServiceSpec
 import org.gradle.api.services.ServiceReference
 import org.gradle.internal.Actions
+import org.gradle.internal.Try
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
@@ -470,6 +471,42 @@ class DefaultBuildServicesRegistryTest extends Specification {
         then:
         def e = thrown(ServiceLifecycleException)
         e.suppressed != null && e.suppressed.length > 0
+    }
+
+    def "exception from stop action does not prevent other services from stopping"() {
+        given:
+        def providerA = registerService("A", StoppableServiceImpl)
+        def providerB = registerService("B", StoppableServiceImpl)
+        Consumer<Object> actionB = Mock()
+
+        providerA.beforeStopping { throw new UnsupportedOperationException("Don't stop") }
+        providerB.beforeStopping(actionB)
+
+        providerA.get()
+        providerB.get()
+
+        when:
+        buildFinished()
+
+        then:
+        thrown(Exception)
+        StoppableServiceImpl.instances.isEmpty()
+        1 * actionB.accept(providerB)
+    }
+
+    def "stop action runs for service that failed to start"() {
+        given:
+        def provider = registerService("failed", BrokenServiceImpl)
+        Consumer<Object> action = Mock()
+        provider.beforeStopping(action)
+
+        Try.ofFailable { provider.get() }
+
+        when:
+        buildFinished()
+
+        then:
+        1 * action.accept(provider)
     }
 
     private <P extends BuildServiceParameters, T extends BuildService<P>> RegisteredBuildServiceProvider<T, P> registerService(
