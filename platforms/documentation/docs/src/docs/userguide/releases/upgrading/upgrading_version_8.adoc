@@ -47,6 +47,18 @@ In previous versions of Gradle, toolchain provisioning could leave a partially p
 
 The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
 
+==== Change the encoding of daemon log files
+In previous versions of Gradle, the daemon log file, located at `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`, was encoded with the default JVM encoding.
+To prevent clients that may use different default encoding from reading data incorrectly, this file is now always encoded with UTF-8.
+This change may affect third-party tools trying to read this file.
+
+==== Compiling against Gradle implementation classpath
+
+In previous versions of Gradle, it was possible for Java projects that had no declared dependencies to implicitly compile against Gradle's runtime classes.
+This means it was possible for some projects to compile without any declared dependencies even though they referenced Gradle runtime classes.
+We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
+If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 

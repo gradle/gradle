@@ -58,7 +58,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                     "-x", ":distributions-integ-tests:configCacheTest"
                 ) +
                 listOf(extraParameters) +
-                functionalTestParameters(os) +
+                functionalTestParameters(os, arch) +
                 listOf(buildScanTag(functionalTestTag))
             ).joinToString(separator = " ")
         steps {

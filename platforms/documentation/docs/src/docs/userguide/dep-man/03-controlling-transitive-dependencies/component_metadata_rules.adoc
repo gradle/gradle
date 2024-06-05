@@ -280,6 +280,9 @@ And we add the corresponding native jar file so that each runtime variant now ca
 
 In the build script, we can now request a specific variant and Gradle will fail with a selection error if more information is needed to make a decision.
 
+Gradle is able to understand the common case where a single attribute is missing that would have removed the ambiguity.
+In this case, rather than listing information about all attributes on all available variants, Gradle helpfully lists only possible values for that attribute along with the variants each value would select.
+
 .Applying and utilising rule for LWGJ metadata
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
@@ -292,9 +295,10 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
    > Could not resolve org.lwjgl:lwjgl:3.2.3.
      Required by:
          project :
-      > Cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
-          - natives-windows-runtime
-          - natives-windows-x86-runtime
+      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. There are several available matching variants of org.lwjgl:lwjgl:3.2.3
+       The only attribute distinguishing these variants is 'org.gradle.native.architecture'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'x86-64' selects variant: 'natives-windows-runtime'
+          - Value: 'x86' selects variant: 'natives-windows-x86-runtime'
 ----
 
 == Making different flavors of a library available through capabilities
@@ -399,4 +403,3 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
 Existing modules with the state `integration` are mapped to `nightly`.
-

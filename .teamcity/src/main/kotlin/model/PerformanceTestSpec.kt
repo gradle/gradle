@@ -16,12 +16,14 @@
 
 package model
 
+import common.Arch
 import common.Os
 import java.util.Locale
 
 interface PerformanceTestBuildSpec {
     val type: PerformanceTestType
     val os: Os
+    val arch: Arch
     val withoutDependencies: Boolean
 
     fun asConfigurationId(model: CIBuildModel, bucket: String): String
@@ -47,6 +49,7 @@ data class PerformanceTestCoverage(
     private val uuid: Int,
     override val type: PerformanceTestType,
     override val os: Os,
+    override val arch: Arch = Arch.AMD64,
     val numberOfBuckets: Int = 40,
     private val oldUuid: String? = null,
     override val withoutDependencies: Boolean = false,
@@ -96,11 +99,12 @@ data class FlameGraphGeneration(
     val buildSpecs: List<FlameGraphGenerationBuildSpec>
         get() = scenarios.flatMap { scenario ->
             Os.values().flatMap { os ->
+                val arch = if (os == Os.MACOS) Arch.AARCH64 else Arch.AMD64
                 if (os == Os.WINDOWS) {
                     listOf("jprofiler")
                 } else {
                     listOf("async-profiler", "async-profiler-heap")
-                }.map { FlameGraphGenerationBuildSpec(scenario, os, it) }
+                }.map { FlameGraphGenerationBuildSpec(scenario, os, arch, it) }
             }
         }
 
@@ -108,6 +112,7 @@ data class FlameGraphGeneration(
     class FlameGraphGenerationBuildSpec(
         val performanceScenario: PerformanceScenario,
         override val os: Os,
+        override val arch: Arch,
         val profiler: String
     ) : PerformanceTestBuildSpec {
         override

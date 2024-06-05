@@ -276,10 +276,11 @@ public class JavaCompilerArgumentsBuilder {
         List<File> modulePath = spec.getModulePath();
         String moduleVersion = spec.getCompileOptions().getJavaModuleVersion();
 
-        if (!classpath.isEmpty()) {
-            args.add("-classpath");
-            args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
-        }
+        // Even if `classpath` is empty, we still need to pass `-classpath ""` to the compiler.
+        // Otherwise, the compiler will try to infer the classpath by looking at the `java.class.path` system property.
+        args.add("-classpath");
+        args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
+
         if (!modulePath.isEmpty()) {
             if (moduleVersion != null) {
                 args.add("--module-version");

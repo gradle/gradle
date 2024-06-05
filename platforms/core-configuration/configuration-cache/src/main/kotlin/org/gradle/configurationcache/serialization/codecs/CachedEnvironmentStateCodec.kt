@@ -23,7 +23,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 
 
 internal

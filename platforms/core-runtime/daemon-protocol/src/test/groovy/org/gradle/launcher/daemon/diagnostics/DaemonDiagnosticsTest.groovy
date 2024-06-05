@@ -29,10 +29,11 @@ class DaemonDiagnosticsTest extends Specification {
         def diagnostics = new DaemonDiagnostics(new File("does not exist"), 123)
 
         when:
-        diagnostics.describe()
+        def description = diagnostics.describe()
 
         then:
         noExceptionThrown()
+        description.contains("Unable to read from the daemon log file")
     }
 
     def "can describe itself"() {

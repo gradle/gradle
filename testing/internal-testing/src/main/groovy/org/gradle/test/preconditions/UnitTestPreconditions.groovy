@@ -469,6 +469,13 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class KotlinOnlySupportsJdk21Earlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return new Jdk21OrEarlier().satisfied
+        }
+    }
+
     static final class Online implements TestPrecondition {
         @Override
         boolean isSatisfied() {

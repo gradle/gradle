@@ -76,10 +76,12 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     DaemonFixture daemonForLogFile(File logFile) {
-        if (version == GradleVersion.current().version) {
-            return new TestableDaemon(logFile, registry, GradleVersion.version(version))
+        def version = GradleVersion.version(version)
+        def daemonLog = DaemonLogFile.forVersion(logFile, version)
+        if (version == GradleVersion.current()) {
+            return new TestableDaemon(daemonLog, registry, version)
         }
-        return new LegacyDaemon(logFile, GradleVersion.version(version))
+        return new LegacyDaemon(daemonLog, version)
     }
 
     DaemonFixture getDaemon() {

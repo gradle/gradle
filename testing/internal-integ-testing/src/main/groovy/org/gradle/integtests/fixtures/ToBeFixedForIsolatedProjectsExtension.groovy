@@ -19,17 +19,28 @@ package org.gradle.integtests.fixtures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.model.SpecElementInfo
+import org.spockframework.runtime.model.SpecInfo
 
 class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtension<ToBeFixedForIsolatedProjects> {
 
     private final ToBeFixedSpecInterceptor toBeFixedSpecInterceptor = new ToBeFixedSpecInterceptor("Isolated Projects")
 
     @Override
+    void visitSpecAnnotation(ToBeFixedForIsolatedProjects annotation, SpecInfo spec) {
+        visitAnnotation(spec)
+    }
+
+    @Override
     void visitFeatureAnnotation(ToBeFixedForIsolatedProjects annotation, FeatureInfo feature) {
+        visitAnnotation(feature)
+    }
+
+    private void visitAnnotation(SpecElementInfo specElementInfo) {
         if (GradleContextualExecuter.isNotIsolatedProjects()) {
             return
         }
 
-        toBeFixedSpecInterceptor.intercept(feature, new String[0])
+        toBeFixedSpecInterceptor.intercept(specElementInfo, new String[0])
     }
 }

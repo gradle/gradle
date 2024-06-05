@@ -39,7 +39,6 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         then:
         [
             file(".gradle/declarative-schema/project.dcl.schema"),
-            file("sub/.gradle/declarative-schema/project.dcl.schema")
         ].every { it.isFile() && it.text != "" }
     }
 

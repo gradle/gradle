@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.ProjectCacheDir;
@@ -81,6 +82,11 @@ public class WorkersServices extends AbstractGradleModuleServices {
         @Provides
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
             return new WorkerExecutionQueueFactory(conditionalExecutionQueueFactory);
+        }
+
+        @Provides
+        WorkerDaemonClientCancellationHandler createWorkerDaemonClientSessionHandler(WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
+            return new WorkerDaemonClientCancellationHandler(workerDaemonClientsManager, buildCancellationToken);
         }
     }
 
@@ -154,8 +160,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler);
         }
     }
 }

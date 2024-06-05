@@ -62,7 +62,7 @@ import org.gradle.internal.event.AbstractBroadcastDispatch
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.flow.services.BuildWorkResultProvider
 import org.gradle.internal.scripts.GradleScript
-import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext

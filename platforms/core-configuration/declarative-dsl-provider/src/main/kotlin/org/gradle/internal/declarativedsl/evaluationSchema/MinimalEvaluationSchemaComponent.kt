@@ -16,10 +16,6 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -30,12 +26,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
  * Defines a minimal set of features for Declarative DSL evaluation. The only Gradle-related customization in this component is [gradleConfigureLambdas].
  * Besides, no custom Gradle APIs are considered as schema contributors.
  */
-class MinimalEvaluationSchemaComponent : EvaluationSchemaComponent {
+class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(DefaultPropertyExtractor())
-
     override fun functionExtractors(): List<FunctionExtractor> = listOf(DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas))
-
-    override fun runtimePropertyResolvers(): List<RuntimePropertyResolver> = listOf(ReflectionRuntimePropertyResolver)
-
-    override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(MemberFunctionResolver(gradleConfigureLambdas))
 }

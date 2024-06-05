@@ -2,21 +2,7 @@
    > Could not resolve org.lwjgl:lwjgl:3.2.3.
      Required by:
          project :
-      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. However we cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
-          - natives-windows-runtime
-          - natives-windows-x86-runtime
-        All of them match the consumer attributes:
-          - Variant 'natives-windows-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a library for use during runtime, packaged as a jar, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows':
-              - Unmatched attributes:
-                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
-                  - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
-                  - Provides attribute 'org.gradle.native.architecture' with value 'x86-64' but the consumer didn't ask for it
-                  - Provides release status but the consumer didn't ask for it
-          - Variant 'natives-windows-x86-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a library for use during runtime, packaged as a jar, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows':
-              - Unmatched attributes:
-                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
-                  - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
-                  - Provides attribute 'org.gradle.native.architecture' with value 'x86' but the consumer didn't ask for it
-                  - Provides release status but the consumer didn't ask for it
+      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. There are several available matching variants of org.lwjgl:lwjgl:3.2.3
+        The only attribute distinguishing these variants is 'org.gradle.native.architecture'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'x86-64' selects variant: 'natives-windows-runtime'
+          - Value: 'x86' selects variant: 'natives-windows-x86-runtime'

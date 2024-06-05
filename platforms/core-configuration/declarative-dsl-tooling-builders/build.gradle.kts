@@ -11,6 +11,8 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
+    implementation(projects.javaLanguageExtensions)
+    implementation(project(":declarative-dsl-evaluator"))
     implementation(project(":declarative-dsl-provider"))
     implementation(project(":declarative-dsl-tooling-models"))
 

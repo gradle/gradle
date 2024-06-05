@@ -21,34 +21,36 @@ import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.cacheentry.ModelKey
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.internal.serialize.graph.Codec
 import org.gradle.configurationcache.serialization.DefaultClassDecoder
 import org.gradle.configurationcache.serialization.DefaultClassEncoder
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
+import org.gradle.configurationcache.serialization.Codecs
+import org.gradle.configurationcache.serialization.service
+import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.Tracer
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
-import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
-import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
-import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
@@ -379,7 +381,7 @@ class ConfigurationCacheIO internal constructor(
         )
 
     private
-    inline fun <reified T> service() =
+    inline fun <reified T : Any> service() =
         host.service<T>()
 
     private

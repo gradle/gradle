@@ -24,6 +24,7 @@ import org.gradle.internal.component.resolution.failure.describer.IncompatibleAr
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.MissingAttributeAmbiguousGraphVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoMatchingCapabilitiesFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.RequestedConfigurationNotFoundFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
@@ -79,6 +80,7 @@ public final class ResolutionFailureDescriberRegistry {
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
+        registry.registerDescriber(VariantAwareAmbiguousResolutionFailure.class, MissingAttributeAmbiguousGraphVariantsFailureDescriber.class); // Added ahead of AmbiguousGraphVariantsFailureDescriber so the more specific ambiguity case is checked first
         registry.registerDescriber(VariantAwareAmbiguousResolutionFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
         registry.registerDescriber(IncompatibleGraphVariantFailure.class, IncompatibleGraphVariantsFailureDescriber.class);
 

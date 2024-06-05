@@ -98,3 +98,5 @@ packageCycles {
      canHandleCi.cies/xinjd/.classpath
  */
 testFilesCleanup.reportOnly = true
+
+integTest.usesJavadocCodeSnippets = true

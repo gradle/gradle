@@ -409,9 +409,10 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""      > The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally, as well as attribute 'org.gradle.plugin.api-version' with value '${GradleVersion.current().version}'. However we cannot choose between the following variants of com.example:producer:1.0:
-          - alternateRuntimeElements
-          - runtimeElements""")
+        failure.assertHasErrorOutput("""      > The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally, as well as attribute 'org.gradle.plugin.api-version' with value '${GradleVersion.current().version}'. There are several available matching variants of com.example:producer:1.0
+        The only attribute distinguishing these variants is 'color'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'green' selects variant: 'alternateRuntimeElements'
+          - Value: 'blue' selects variant: 'runtimeElements'""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.name)
     }
 

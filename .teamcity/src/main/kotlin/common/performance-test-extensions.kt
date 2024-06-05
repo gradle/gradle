@@ -44,6 +44,7 @@ fun performanceTestCommandLine(
     baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
     testJavaVendor: String = os.perfTestJavaVendor.toString(),
 ) = listOf(
@@ -54,7 +55,7 @@ fun performanceTestCommandLine(
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
-    os.javaInstallationLocations()
+    os.javaInstallationLocations(arch)
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",

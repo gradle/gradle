@@ -23,33 +23,31 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collections;
-import java.util.List;
+import org.gradle.problems.buildtree.ProblemStream;
 
 import static org.gradle.api.problems.internal.DefaultProblemCategory.GRADLE_CORE_NAMESPACE;
 
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
+    private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemEmitter emitter;
-    private final List<ProblemTransformer> transformers;
     private final InternalProblemReporter internalReporter;
     private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
 
     public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
-        this(emitter, Collections.<ProblemTransformer>emptyList(), currentBuildOperationRef);
+        this(emitter, null, currentBuildOperationRef);
     }
     public DefaultProblems(ProblemEmitter emitter) {
-        this(emitter, Collections.<ProblemTransformer>emptyList(), CurrentBuildOperationRef.instance());
+        this(emitter, null, CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(ProblemEmitter emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
         this.emitter = emitter;
-        this.transformers = transformers;
+        this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        internalReporter = createReporter(emitter, transformers, problemsForThrowables);
+        internalReporter = createReporter(emitter, problemStream, problemsForThrowables);
     }
 
     @Override
@@ -57,11 +55,11 @@ public class DefaultProblems implements InternalProblems {
         if (GRADLE_CORE_NAMESPACE.equals(namespace)) {
             throw new IllegalStateException("Cannot use " + GRADLE_CORE_NAMESPACE + " namespace. Reserved for internal use.");
         }
-        return createReporter(emitter, transformers, problemsForThrowables);
+        return createReporter(emitter, problemStream, problemsForThrowables);
     }
 
-    private DefaultProblemReporter createReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers, Multimap<Throwable, Problem> problems) {
-        return new DefaultProblemReporter(emitter, transformers, currentBuildOperationRef, problems);
+    private DefaultProblemReporter createReporter(ProblemEmitter emitter, ProblemStream problemStream, Multimap<Throwable, Problem> problems) {
+        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, problems);
     }
 
     @Override

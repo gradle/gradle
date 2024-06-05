@@ -70,6 +70,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
+import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
@@ -306,11 +307,9 @@ public abstract class AvailableJavaHomes {
         WindowsRegistry windowsRegistry = NativeServicesTestFixture.getInstance().get(WindowsRegistry.class);
         return Lists.newArrayList(
             new AsdfInstallationSupplier(toolchainConfiguration),
-            new BaseDirJvmLocator("/opt"),
-            new BaseDirJvmLocator("/opt/jdk"),
-            new BaseDirJvmLocator("C:\\Program Files\\Java\\"),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(),
+            new ToolchainInstallatioinPathsSystemPropertyJvmLocator(),
             new EnvVariableJvmLocator(),
             new IntellijInstallationSupplier(toolchainConfiguration),
             new JabbaInstallationSupplier(toolchainConfiguration),
@@ -341,6 +340,30 @@ public abstract class AvailableJavaHomes {
                 .filter(it -> JDK_PATTERN.matcher(it.getKey()).matches())
                 .map(entry -> InstallationLocation.userDefined(new File(entry.getValue()), "env var " + entry.getKey()))
                 .collect(Collectors.toSet());
+        }
+    }
+
+    /**
+     * On CI we pass -Porg.gradle.java.installations.paths=X,Y,Z to the build, then "forward" it
+     * as system property to get deterministic results.
+     */
+    private static class ToolchainInstallatioinPathsSystemPropertyJvmLocator implements InstallationSupplier {
+
+        @Override
+        public String getSourceName() {
+            return "System properties " + JAVA_INSTALLATIONS_PATHS_PROPERTY;
+        }
+
+        @Override
+        public Set<InstallationLocation> get() {
+            final String property = System.getProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
+            if (property != null) {
+                return Arrays.stream(property.split(","))
+                    .filter(path -> !path.trim().isEmpty())
+                    .map(path -> InstallationLocation.userDefined(new File(path), getSourceName()))
+                    .collect(Collectors.toSet());
+            }
+            return Collections.emptySet();
         }
     }
 

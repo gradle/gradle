@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.guava
 
-import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 
 
 fun BindingsBuilder.guavaTypes() {

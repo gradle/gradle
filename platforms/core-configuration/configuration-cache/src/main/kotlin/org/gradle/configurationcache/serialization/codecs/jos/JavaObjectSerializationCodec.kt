@@ -21,9 +21,9 @@ import org.gradle.internal.serialize.graph.EncodingProvider
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.BeanStateReader
-import org.gradle.internal.serialize.graph.Decoding
-import org.gradle.internal.serialize.graph.Encoding
-import org.gradle.internal.serialize.graph.EncodingProducer
+import org.gradle.internal.serialize.graph.codecs.Decoding
+import org.gradle.internal.serialize.graph.codecs.Encoding
+import org.gradle.internal.serialize.graph.codecs.EncodingProducer
 import org.gradle.configurationcache.serialization.codecs.SerializedLambdaParametersCheckingCodec
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
