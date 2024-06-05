@@ -16,8 +16,8 @@
 
 package org.gradle.configurationcache.serialization
 
-import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.ClassLoaderRole
@@ -28,6 +28,26 @@ import org.gradle.internal.serialize.graph.WriteIdentities
 internal
 interface ScopeLookup {
     fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
+}
+
+
+internal
+class ClassLoaderScopeSpec(
+    val parent: ClassLoaderScopeSpec?,
+    val name: String,
+    val origin: ClassLoaderScopeOrigin?
+) {
+    var localClassPath: ClassPath = ClassPath.EMPTY
+    var localImplementationHash: HashCode? = null
+    var exportClassPath: ClassPath = ClassPath.EMPTY
+
+    override fun toString(): String {
+        return if (parent != null) {
+            "$parent:$name"
+        } else {
+            name
+        }
+    }
 }
 
 

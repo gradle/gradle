@@ -17,6 +17,8 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 
 import java.util.List;
 
@@ -28,7 +30,9 @@ public interface SoftwareTypeImplementation<T> {
 
     Class<? extends T> getModelPublicType();
 
-    Class<? extends Plugin<?>> getPluginClass();
+    Class<? extends Plugin<Project>> getPluginClass();
+
+    Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
     void addConvention(Convention<?> rule);
 

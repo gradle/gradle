@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -71,6 +72,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     public void generate() {
         reportGenerator().generateReport(
             new TreeSet<>(getProjects()),
+            ProjectDetails::of,
             project -> {
                 generate(project);
                 logClickableOutputFileUrl();

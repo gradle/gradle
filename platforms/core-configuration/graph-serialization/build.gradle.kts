@@ -32,6 +32,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.problemsApi)
+    implementation(projects.javaLanguageExtensions)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.fastutil)

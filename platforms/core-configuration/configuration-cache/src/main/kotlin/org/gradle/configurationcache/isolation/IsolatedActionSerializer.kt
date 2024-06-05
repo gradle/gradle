@@ -18,12 +18,15 @@ package org.gradle.configurationcache.isolation
 
 import org.gradle.api.IsolatedAction
 import org.gradle.configurationcache.ConfigurationCacheError
+import org.gradle.configurationcache.problems.AbstractProblemsListener
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
+import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configurationcache.base.logger
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
-import org.gradle.configurationcache.logger
-import org.gradle.configurationcache.problems.AbstractProblemsListener
-import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.DefaultReadContext
@@ -31,13 +34,10 @@ import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withIsolate
-import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import java.io.ByteArrayOutputStream

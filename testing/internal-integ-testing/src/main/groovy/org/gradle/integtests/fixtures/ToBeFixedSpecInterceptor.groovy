@@ -22,6 +22,8 @@ import org.opentest4j.TestAbortedException
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.model.SpecElementInfo
+import org.spockframework.runtime.model.SpecInfo
 
 import java.lang.reflect.Field
 import java.util.concurrent.atomic.AtomicBoolean
@@ -34,7 +36,15 @@ class ToBeFixedSpecInterceptor {
         this.feature = feature
     }
 
-    void intercept(FeatureInfo featureInfo, String[] iterationMatchers) {
+    void intercept(SpecElementInfo specElementInfo, String[] iterationMatchers) {
+        if (specElementInfo instanceof SpecInfo) {
+            specElementInfo.features.forEach { interceptFeature(it, iterationMatchers) }
+        } else {
+            interceptFeature((FeatureInfo) specElementInfo, iterationMatchers)
+        }
+    }
+
+    private void interceptFeature(FeatureInfo featureInfo, String[] iterationMatchers) {
         if (featureInfo.isParameterized()) {
             featureInfo.addInterceptor(new ToBeFixedIterationInterceptor(iterationMatchers))
         } else {

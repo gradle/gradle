@@ -21,12 +21,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
@@ -88,9 +90,10 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private void registerSoftwareTypes(TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {
+            Class<? extends Plugin<Settings>> registeringPlugin = Cast.uncheckedCast(typeMetadata.getType());
             for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {
                 validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareTypeImplClass, typeMetadata.getType());
-                softwareTypeRegistry.register(softwareTypeImplClass);
+                softwareTypeRegistry.register(softwareTypeImplClass, registeringPlugin);
             }
         });
     }

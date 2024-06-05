@@ -34,7 +34,7 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
-import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.StartParameterBuildOptions
@@ -48,6 +48,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
+import org.gradle.internal.configurationcache.base.logger
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -156,7 +157,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
-            registerServices(registration, modelParameters, buildFeatures, requirements)
+            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements)
         }
     }
 
@@ -179,12 +180,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
-            registerServices(registration, buildModelParameters, buildFeatures, requirements)
+            registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements)
         }
     }
 
     private
-    fun registerServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
+    fun registerCommonBuildTreeServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
         registration.add(BuildModelParameters::class.java, modelParameters)
         registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
