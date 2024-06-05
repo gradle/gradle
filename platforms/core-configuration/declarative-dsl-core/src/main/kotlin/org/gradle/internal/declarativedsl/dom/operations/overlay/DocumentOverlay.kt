@@ -69,7 +69,7 @@ object DocumentOverlay {
         val context = documentOverlayContextByResolutionResults(underlayDocumentResolution, overlayDocumentResolution)
         val resultContent = context.mergeRecursively(underlayDocument.content, overlayDocument.content)
         val resultDocument = object : DeclarativeDocument {
-            override val content: Collection<DeclarativeDocument.DocumentNode>
+            override val content: List<DeclarativeDocument.DocumentNode>
                 get() = resultContent
             override val sourceData: SourceData
                 get() = overlayDocument.sourceData
@@ -129,7 +129,7 @@ class DocumentOverlayContext(
     fun mergeRecursively(
         underlay: Collection<DeclarativeDocument.DocumentNode>,
         overlay: Collection<DeclarativeDocument.DocumentNode>
-    ): Collection<DeclarativeDocument.DocumentNode> {
+    ): List<DeclarativeDocument.DocumentNode> {
         val underlayNodesByMergeKey: MutableMap<MergeKey, List<DeclarativeDocument.DocumentNode>> =
             underlay.groupBy(underlayKeyMapper::mapNodeToMergeKey).toMutableMap()
 
