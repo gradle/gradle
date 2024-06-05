@@ -52,15 +52,21 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final InternalProblemReporter problemReporter;
+    private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
 
-    DiagnosticToProblemListener(InternalProblemReporter problemReporter, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
+    private int errorCount = 0;
+    private int warningCount = 0;
+
+    DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
         this.problemReporter = problemReporter;
+        this.context = context;
         this.messageFormatter = messageFormatter;
     }
 
     public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
+        this.context = context;
         this.messageFormatter = diagnostic -> {
             try {
                 DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
@@ -75,7 +81,80 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        switch (diagnostic.getKind()) {
+            case ERROR:
+                errorCount++;
+                break;
+            case WARNING:
+            case MANDATORY_WARNING:
+                warningCount++;
+                break;
+            default:
+                break;
+        }
+
         problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+    }
+
+    /**
+     * This method is responsible for printing the number of errors and warnings after writing the diagnostics out to the console.
+     * This count is normally printed by the compiler itself, but when a {@link DiagnosticListener} is registered, the compiled will stop reporting the number of errors and warnings.
+     *
+     * An example output with the last two lines being the count:
+     * <pre>
+     * /.../src/main/java/Foo.java:10: error: ';' expected
+     *                     String s = "Hello, World!"
+     *                                               ^
+     * /.../Bar.java:10: warning: [cast] redundant cast to String
+     *                     String s = (String)"Hello World";
+     *                                ^
+     * 1 error
+     * 1 warning
+     * </pre>
+     *
+     * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
+     */
+    void printDiagnosticCounts() {
+        Log logger = Log.instance(new Context());
+        printDiagnosticCount(logger, "error", errorCount);
+        printDiagnosticCount(logger, "warn", warningCount);
+    }
+
+    /**
+     * Formats and prints the number of diagnostics of a given kind.
+     * <p>
+     * E.g.:
+     * <pre>
+     * 1 error
+     * 2 warnings
+     * </pre>
+     *
+     * @param logger the logger used to localize the message
+     * @param kind the kind of diagnostic (error, or warn)
+     * @param number the total number of diagnostics of the given kind
+     */
+    private static void printDiagnosticCount(Log logger, String kind, int number) {
+        // Compiler only handles 'error' and 'warn' kinds
+        if (!("error".equals(kind) || "warn".equals(kind))) {
+            throw new IllegalArgumentException("kind must be either 'error' or 'warn'");
+        }
+        // If there are no diagnostics of this kind, we don't need to print anything
+        if (number == 0) {
+            return;
+        }
+
+        // See the distributions' respective `compiler.java` files to see the keys used for localization.
+        // We are using the following keys:
+        //  - count.error and count.error.plural
+        //  - count.warn and count.warn.plural
+        StringBuilder keyBuilder = new StringBuilder("count.");
+        keyBuilder.append(kind);
+        if (number > 1) {
+            keyBuilder.append(".plural");
+        }
+
+        String localizedMessage = logger.localize(keyBuilder.toString(), number);
+        System.err.println(localizedMessage);
     }
 
     @VisibleForTesting
