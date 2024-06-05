@@ -62,6 +62,7 @@ class KnownProblemIds {
         'problems-api:missing-id' : 'Problem id must be specified',
         'problems-api:unsupported-additional-data' : 'Unsupported additional data type',
         'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
+        'compilation:java:initialization-failed' : 'Java compilation initialization error',
         'compilation:java:java-compilation-error' : 'Java compilation error',
         'compilation:java:java-compilation-failed' : 'Java compilation error',
         'compilation:java:java-compilation-warning' : 'Java compilation warning',

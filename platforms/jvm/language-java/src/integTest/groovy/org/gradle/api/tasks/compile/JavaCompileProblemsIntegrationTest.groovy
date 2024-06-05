@@ -414,6 +414,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
+    def "invalid flags should be reported as problems"() {
+        given:
+        writeJavaCausingTwoCompilationWarnings("Foo")
+        buildFile << "tasks.compileJava.options.compilerArgs += ['-invalid-flag']"
+
+        when:
+        fails("compileJava")
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:java:initialization-failed'
+            details == 'error: invalid flag: -invalid-flag'
+        }
+    }
+
     /**
      * Assert if a compilation problems looks like how we expect it to look like.
      * <p>

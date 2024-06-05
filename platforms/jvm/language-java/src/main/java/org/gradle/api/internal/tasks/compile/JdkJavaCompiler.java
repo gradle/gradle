@@ -19,6 +19,9 @@ import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
@@ -45,6 +48,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
     private final Context context;
     private final Factory<ContextAwareJavaCompiler> compilerFactory;
+    private final InternalProblems problemsService;
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
@@ -54,6 +58,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     ) {
         this.context = new Context();
         this.compilerFactory = compilerFactory;
+        this.problemsService = problemsService;
         this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
     }
 
@@ -62,7 +67,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result);
+        JavaCompiler.CompilationTask task;
+        try {
+            task = createCompileTask(spec, result);
+        } catch (RuntimeException ex) {
+            throw problemsService.getInternalReporter().rethrowing(ex, builder -> buildProblemFrom(ex, builder));
+        }
         boolean success = task.call();
         if (!success) {
             throw new CompilationFailedException(result);
@@ -70,7 +80,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return result;
     }
 
-    @SuppressWarnings("DefaultCharset")
+@SuppressWarnings("DefaultCharset")
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         ContextAwareJavaCompiler compiler = compilerFactory.create();
@@ -112,5 +122,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         }
         return false;
     }
+
+    private void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
+        spec.severity(Severity.ERROR);
+        spec.id("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
+        spec.details(ex.getLocalizedMessage());
+        spec.withException(ex);
+    }
+
 
 }
