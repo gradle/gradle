@@ -453,23 +453,15 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             include 'processor'
         """
         buildFile << """\
-        dependencies {
-            annotationProcessor project(':processor')
-        }
-
-        repositories {
-            mavenCentral()
-        }
-
-        java {
-            toolchain {
-                languageVersion = JavaLanguageVersion.of(8)
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
             }
-        }
 
-        repositories {
-            mavenCentral()
-        }
+            dependencies {
+                annotationProcessor project(':processor')
+            }
         """
 
         writeJavaCausingTwoCompilationWarnings("Foo")
