@@ -52,6 +52,27 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature can significantly improve build performance.
+
+#### More precise information about file changes that cause a configuration cache miss
+
+Before this release, when a configuration cache entry could not be reused due to a change to some file, the console output would show this message:
+
+> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' **has changed**.
+
+even if the file was not actually changed, but removed, or replaced with a directory.
+
+Starting with this release, you get additional information detailing the kind of change. For example:
+
+> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' **has been removed**.
+
+or
+
+> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' **has been replaced by a directory**.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
