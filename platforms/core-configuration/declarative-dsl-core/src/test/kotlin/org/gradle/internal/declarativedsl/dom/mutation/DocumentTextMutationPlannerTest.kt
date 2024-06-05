@@ -489,6 +489,47 @@ object DocumentTextMutationPlannerTest {
         }
     }
 
+    @Test
+    fun `can apply all kinds of mutation to an element parts without conflicts`() {
+        val f = simpleDocument.elementNamed("f")
+        val g = simpleDocument.elementNamed("g")
+
+        val mutations = listOf(
+            // For an element with non-empty content:
+            ElementNodeCallMutation(g, CallMutation.RenameCall("gRenamed")),
+            ReplaceValue(g.elementValues[0], valueFromText("replaced()")),
+            ReplaceNode(g.elementNamed("h"), nodeFromText("hReplaced()")),
+            ReplaceValue(g.elementNamed("j").elementValues[0], valueFromText("alsoReplaced()")),
+
+            // And also for an element with empty content:
+            ElementNodeCallMutation(f, CallMutation.RenameCall("fRenamed")),
+            AddChildrenToEndOfBlock(f, listOf(nodeFromText("added()"))),
+            ReplaceValue(f.elementValues[0], valueFromText("replaced()")),
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            fRenamed(replaced()) {
+                added()
+            }
+
+            gRenamed(replaced()) {
+                hReplaced()
+                j(alsoReplaced())
+                k = 5
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+
+        assertTrue { plan.unsuccessfulDocumentMutations.isEmpty() }
+    }
+
     private
     fun DocumentNodeContainer.elementNamed(name: String): ElementNode = content.single { it is ElementNode && it.name == name } as ElementNode
 
