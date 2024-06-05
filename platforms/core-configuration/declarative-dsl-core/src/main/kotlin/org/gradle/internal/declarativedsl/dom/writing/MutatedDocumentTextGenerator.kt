@@ -40,7 +40,7 @@ class MutatedDocumentTextGenerator {
 
         fun visit(parentTag: ChildTag?, ownerTag: ChildTag, textTreeNode: TextTreeNode, isTopLevel: Boolean) {
             insertNodesBefore(ownerTag).takeIf(List<*>::isNotEmpty)?.let { nodesBefore ->
-                insertSyntheticNodes(textBuilder, nodesBefore, isTopLevel, textTreeNode.lineRange.first, needsSeparationBefore = false, needsSeparationAfter = true)
+                insertSyntheticNodes(textBuilder, nodesBefore, isTopLevel, textTreeNode.lineRange.first, needsSeparationBefore = false, needsSeparationAfter = !removeNodeIf(ownerTag))
             }
             if (!removeNodeIf(ownerTag)) {
                 when (ownerTag) {
@@ -64,7 +64,7 @@ class MutatedDocumentTextGenerator {
                 val needsSeparationAfter = isTopLevel && nodesAfter.last() is ElementNode
                 insertSyntheticNodes(
                     textBuilder, nodesAfter, isTopLevel, textTreeNode.lineRange.last,
-                    needsSeparationBefore = true,
+                    needsSeparationBefore = !removeNodeIf(ownerTag),
                     needsSeparationAfter
                 )
             }
