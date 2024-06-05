@@ -46,12 +46,19 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
     private final Listener listener;
-    @GuardedBy("this")
+
+    private final Object instanceLock = new Object();
+    @GuardedBy("instanceLock")
+    @Nullable
     private Try<T> instance;
-    private boolean keepAlive;
-    @GuardedBy("this")
+    /**
+     * Lazily initialized when the first action is registered because not every service needs this.
+     * Use {@link #getStopActions()} to get the list instead of reading the field directly.
+     */
+    @GuardedBy("instanceLock")
     @Nullable
     private List<Consumer<? super RegisteredBuildServiceProvider<T, P>>> stopActions;
+    private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
         BuildIdentifier buildIdentifier,
@@ -124,9 +131,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
      * @param stopAction the callback
      */
     public void beforeStopping(Consumer<? super RegisteredBuildServiceProvider<T, P>> stopAction) {
-        synchronized (this) {
+        synchronized (instanceLock) {
             if (stopActions == null) {
-                // If the number of the listeners goes up, the capacity should be increased.
+                // So far we expect at most one listener.
+                // If the number of the listeners goes up, the capacity number here should be increased.
                 stopActions = new ArrayList<>(1);
             }
             stopActions.add(stopAction);
@@ -140,7 +148,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
 
     private T getInstance() {
         listener.beforeGet(this);
-        synchronized (this) {
+        synchronized (instanceLock) {
             if (instance == null) {
                 instance = instantiate();
             }
@@ -184,7 +192,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     }
 
     private ImmutableList<Consumer<? super RegisteredBuildServiceProvider<T, P>>> getStopActions() {
-        synchronized (this) {
+        synchronized (instanceLock) {
             if (stopActions != null) {
                 return ImmutableList.copyOf(stopActions);
             }
@@ -195,7 +203,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     @Override
     public void maybeStop() {
         ExecutionResult<Void> stopResult = ExecutionResult.forEach(getStopActions(), action -> action.accept(this));
-        synchronized (this) {
+        synchronized (instanceLock) {
             try {
                 if (instance != null) {
                     instance.ifSuccessful(t -> {
