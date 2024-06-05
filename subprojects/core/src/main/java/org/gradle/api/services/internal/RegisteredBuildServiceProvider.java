@@ -40,13 +40,13 @@ import java.util.function.Consumer;
 public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
 
     protected final ServiceRegistry internalServices;
-    protected BuildServiceDetails<T, P> serviceDetails;
+    protected final BuildServiceDetails<T, P> serviceDetails;
 
-    @SuppressWarnings("rawtypes")
-    private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;
+    private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme;
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
     private final Listener listener;
+    @GuardedBy("this")
     private Try<T> instance;
     private boolean keepAlive;
     @GuardedBy("this")
@@ -58,8 +58,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
-        @SuppressWarnings("rawtypes")
-        IsolationScheme<BuildService, BuildServiceParameters> isolationScheme,
+        IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme,
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
         ServiceRegistry internalServices,
@@ -145,8 +144,8 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
             if (instance == null) {
                 instance = instantiate();
             }
+            return instance.get();
         }
-        return instance.get();
     }
 
     private Try<T> instantiate() {
