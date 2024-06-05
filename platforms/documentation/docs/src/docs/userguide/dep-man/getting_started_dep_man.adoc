@@ -19,32 +19,48 @@ Software projects typically rely on libraries, internal modules and/or external 
 
 Gradle's dependency management provides APIs to declare, resolve, use, and bundle functionality required by a project.
 
-A common build file looks as follows:
+Understanding dependency management in Gradle is important for structuring projects into components.
+It is also important when you want to reuse existing libraries, or you need to upgrade those libraries while dealing with their versions.
+
+Let's look at a Java based example:
 
 ====
-include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/kotlin",files="build.gradle.kts"]
-include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/groovy",files="build.gradle"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro]"]
 ====
-<1> Repositories block where dependencies for the project can be found.
-<2> Dependencies block where dependencies for the project can be found.
-<3> Configurations block where configurations for the project can be created.
-<4> Constraints block where a version range of a dependency can be defined.
 
-== 1. Declaring Repositories
+Within the `dependencies` block, there are three things to notice when a dependency is declared:
+
+1. The configuration: `implementation` also known as the scope the dependency is applied to
+2. The coordinates: `com.google.guava:guava` made up of a `group` and an artifact `name` which are uniquely identifiable
+3. The version: `32.1.2-jre` which is only required for published dependencies
+
+Dependencies can be local or remote.
+To let Gradle know where to find the dependencies declared, you can use the <<settings_file_basics.adoc#sec:settings_file_script,Settings File>> or the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
+
+Let's expand our example:
+
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-repo]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-repo]"]
+====
+
+In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
+
+== 1. Declaring Dependencies
+
+You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
+
+== 2. Declaring Repositories
 
 You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
-In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_. +
+
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
 Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
 Subsequent builds use this cache to avoid unnecessary network calls and speed up the build process.
 
 Repositories offer dependencies in multiple formats.
 For information about the formats supported by Gradle, see <<declaring_dependencies.adoc#sec:dependency-types,dependency types>>.
-
-== 2. Declaring Dependencies
-
-You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
-In this example, the theoretical project uses Guava version 32.1.2-jre and JUnit 4.13.2 as _dependencies_. +
 
 == 3. Understanding Configurations
 
