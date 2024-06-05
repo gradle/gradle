@@ -19,6 +19,8 @@ package org.gradle.internal.watch
 import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.watch.registry.WatchMode
+import org.gradle.test.fixtures.file.TempFileSystemProvider
+import org.junit.Rule
 
 @LocalOnly
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
@@ -28,6 +30,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     private static final String ACTIVE_MESSAGE = "File system watching is active"
     private static final String INACTIVE_MESSAGE = "File system watching is inactive"
+
+    @Rule
+    TempFileSystemProvider testFileSystemProvider = new TempFileSystemProvider(temporaryFolder)
 
     def "is enabled by default"() {
         buildFile << """
@@ -132,16 +137,39 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         watchMode << WatchMode.values()
     }
 
-    def "cannot define a custom build scope cache dir when watching is explicitly enabled"() {
-        buildFile << """
-        """
-        file("buildSrc/build.gradle") << """
-        """
+    def "fails when a custom build scope cache dir is defined, watching is explicitly enabled and cache dir is on another fs"() {
+        given:
+        def testFileSystem = testFileSystemProvider.create()
+        buildFile << ""
+        file("buildSrc/build.gradle") << ""
 
         when:
-        fails("help", "--watch-fs", "--project-cache-dir=broken")
+        fails("help", "--watch-fs", "--project-cache-dir=${testFileSystem.root}")
 
         then:
-        failure.assertHasDescription("Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem")
+        failure.assertHasDescription("Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir located on another filesystem is not supported; remove either option to fix this problem")
+    }
+
+    def "can define a custom build scope cache dir when watching is explicitly enabled if they are on the same fs"() {
+        given:
+        def testFileSystem = testFileSystemProvider.create()
+
+        def project = testFileSystem.file("project").createDir()
+        project.file(defaultBuildFileName) << ""
+        file("$project/buildSrc/build.gradle") << ""
+
+        when:
+        executer.inDirectory(project)
+        def cacheDir = file("cache-dir")
+        if (cacheDirExists) {
+            cacheDir.createDir()
+        }
+
+        then:
+        succeeds("help", "--watch-fs", "--project-cache-dir=cache-dir")
+        outputDoesNotContain("File system watching is disabled")
+
+        where:
+        cacheDirExists << [true, false]
     }
 }

@@ -24,7 +24,6 @@ import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
-import java.io.File;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
@@ -47,11 +46,9 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
     public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
-            // TODO How can we avoid hard-coding ".gradle" here?
-            FileWatcherProbeRegistry probeRegistry = new DefaultFileWatcherProbeRegistry(buildDir ->
-                new File(new File(buildDir, ".gradle"), "file-system.probe"));
+            FileWatcherProbeRegistry probeRegistry = new DefaultFileWatcherProbeRegistry();
             W watcher = createFileWatcher(fileEvents);
-            WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter);
+            WatchableHierarchies watchableHierarchies = new WatchableHierarchies(immutableLocationsFilter);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);
             return new DefaultFileWatcherRegistry(
                 fileEventFunctions,

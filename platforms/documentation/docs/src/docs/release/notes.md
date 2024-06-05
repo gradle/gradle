@@ -52,7 +52,20 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="Other"></a>
 
+### Other improvements
+
+#### Watch probes de-duplication
+
+Gradle uses watch probes to verify if a location can be watched with [File System Watching](userguide/file_system_watching.html).
+Previously, a probe was created for each location to be watched.
+This release introduces a de-duplication mechanism for watch probes.
+Now, if multiple locations are watched and they share the same filesystem, only one probe is created.
+This reduces the number of probes created and improves performance.
+
+On top of that, this allows a custom [project cache dir](userguide/command_line_interface.html) to be used together with File System Watching if the directory is located on the same filesystem as the
+project.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

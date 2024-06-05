@@ -14,9 +14,9 @@ dependencies {
     api(libs.nativePlatform)
     api(libs.nativePlatformFileEvents)
     api(libs.slf4jApi)
-    implementation(project(":functional"))
+    api(libs.guava)
 
-    implementation(libs.guava)
+    implementation(project(":functional"))
 
     testImplementation(project(":process-services"))
     testImplementation(project(":resources"))

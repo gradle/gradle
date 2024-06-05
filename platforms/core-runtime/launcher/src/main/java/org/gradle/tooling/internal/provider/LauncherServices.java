@@ -224,6 +224,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                 statStatisticsCollector,
                                 fileHasherStatisticsCollector,
                                 directorySnapshotterStatisticsCollector,
+                                buildLayout,
                                 buildOperationRunner,
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,7 +46,7 @@ import java.util.List;
  * The build root directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watchable hierarchies:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy, File)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch watchable hierarchies registered for this build or old watched directories from previous builds instead of
  *   directories inside them.
@@ -126,12 +127,18 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     @Override
     protected void startWatchingProbeDirectory(File probeDirectory) {
-        // We already started watching the hierarchy.
+        if (!watchableHierarchies.isInWatchableHierarchy(probeDirectory.getParentFile().getPath())) {
+            fileWatcher.startWatching(Collections.singletonList(probeDirectory));
+        }
     }
 
     @Override
-    protected void stopWatchingProbeDirectory(File probeDirectory) {
-        // We already stopped watching the hierarchy.
+    protected void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfRemovedWatchedHierarchy) {
+        if (!isSubdirectoryOfRemovedWatchedHierarchy && !watchableHierarchies.isInWatchableHierarchy(probeDirectory.getParentFile().getPath())) {
+            if (!fileWatcher.stopWatching(Collections.singletonList(probeDirectory))) {
+                LOGGER.debug("Couldn't stop watching directory: {}", probeDirectory);
+            }
+        }
     }
 
     @Override

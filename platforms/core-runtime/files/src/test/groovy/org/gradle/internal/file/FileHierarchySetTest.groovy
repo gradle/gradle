@@ -16,6 +16,7 @@
 
 package org.gradle.internal.file
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -358,11 +359,32 @@ class FileHierarchySetTest extends Specification {
         rootsOf(from(dir1, commonDir2, commonDir3)) == [dir1.absolutePath, commonDir2.absolutePath, commonDir3.absolutePath]
     }
 
+    def "handles two unrelated paths correctly"() {
+        def set = FileHierarchySet.empty()
+        def absolutePaths
+        if (OperatingSystem.current().isUnix()) {
+            absolutePaths = ['/some/dIR', '/another/dIR']
+        } else {
+            absolutePaths = ['C:\\Some\\DIR', 'D:\\Another\\DIR']
+        }
+
+        expect:
+        rootsOf(fromPaths(absolutePaths)) == absolutePaths
+    }
+
     private static FileHierarchySet from(File... roots) {
         from(roots as List)
     }
 
     private static FileHierarchySet from(Iterable<File> roots) {
+        def set = FileHierarchySet.empty()
+        for (def root : roots) {
+            set = set.plus(root)
+        }
+        return set
+    }
+
+    private static FileHierarchySet fromPaths(Iterable<String> roots) {
         def set = FileHierarchySet.empty()
         for (def root : roots) {
             set = set.plus(root)

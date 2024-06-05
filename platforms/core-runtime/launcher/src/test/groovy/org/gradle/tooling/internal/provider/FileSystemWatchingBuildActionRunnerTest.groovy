@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics
 import org.gradle.deployment.internal.Deployment
 import org.gradle.deployment.internal.DeploymentRegistryInternal
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -44,6 +45,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     }
     def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
+    def buildLayout = Mock(BuildLayout)
     def buildController = Stub(BuildTreeLifecycleController)
     def delegate = Mock(BuildActionRunner)
     def buildAction = Stub(BuildAction)
@@ -56,6 +58,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         Stub(StatStatistics.Collector),
         Stub(FileHasherStatistics.Collector),
         Stub(DirectorySnapshotterStatistics.Collector),
+        buildLayout,
         buildOperationRunner,
         delegate,
         new DefaultInternalOptions([:]))
@@ -103,12 +106,16 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG  | false
     }
 
-    def "watching enabled by default is disabled when project cache dir is specified"() {
+    def "watching enabled by default is disabled when project cache dir is specified with different fs"() {
         _ * startParameter.watchFileSystemMode >> WatchMode.DEFAULT
-        _ * startParameter.projectCacheDir >> Mock(File)
+        _ * startParameter.projectCacheDir >> new File(".")
+        _ * buildLayout.rootDirectory >> null
 
         when:
         runner.run(buildAction, buildController)
+
+        then:
+        1 * buildLayout.rootDirectory
 
         then:
         1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
@@ -124,18 +131,6 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
         then:
         0 * _
-    }
-
-    def "fails when watching is enabled and project cache dir is specified"() {
-        _ * startParameter.watchFileSystemMode >> WatchMode.ENABLED
-        _ * startParameter.projectCacheDir >> Mock(File)
-
-        when:
-        runner.run(buildAction, buildController)
-
-        then:
-        def ex = thrown IllegalStateException
-        ex.message == "Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem"
     }
 
     def "force-enables watching when #description"() {

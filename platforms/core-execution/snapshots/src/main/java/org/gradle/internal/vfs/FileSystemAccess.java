@@ -45,6 +45,7 @@ public interface FileSystemAccess {
 
     /**
      * Reads the hierarchy of files at the given location.
+     * Note that this method can read a snapshot from the disk and load it into virtual file system
      */
     FileSystemLocationSnapshot read(String location);
 
