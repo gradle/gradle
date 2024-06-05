@@ -16,37 +16,51 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
+import org.gradle.internal.declarativedsl.dom.DocumentNodeContainer
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.ElementNodeCallMutation
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.InsertNodesAfterNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.InsertNodesBeforeNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.PropertyNodeMutation.RenamePropertyNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ValueFactoryNodeMutation.ValueNodeCallMutation
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutationFailureReason.TargetNotFoundOrSuperseded
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
-import org.junit.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 
-class DocumentTextMutationPlannerTest {
+object DocumentTextMutationPlannerTest {
+    private
     val planner = DocumentTextMutationPlanner()
 
-    val simpleCode = """
-        f(1)
+    private
+    val simpleDocument = convertBlockToDocument(
+        ParseTestUtil.parseAsTopLevelBlock(
+            """
+            f(1)
 
-        g(2) {
-            h(3)
-            j(jj(4))
-            k = 5
-        }
+            g(2) {
+                h(3)
+                j(jj(4))
+                k = 5
+            }
 
-        l(6)
-    """.trimIndent()
+            l(6)
 
-    val simpleDocument = convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(simpleCode))
+            """.trimIndent()
+        )
+    )
 
     @Test
     fun `can plan removal of multiple nodes`() {
@@ -54,8 +68,8 @@ class DocumentTextMutationPlannerTest {
 
         val plan = planner.planDocumentMutations(
             document, listOf(
-                RemoveNode(document.content.toList()[0]),
-                RemoveNode((document.content.toList()[1] as ElementNode).content.toList()[1])
+                RemoveNode(document.elementNamed("f")),
+                RemoveNode(document.elementNamed("g").elementNamed("j"))
             )
         )
 
@@ -77,11 +91,10 @@ class DocumentTextMutationPlannerTest {
 
     @Test
     fun `can plan renaming an element and removing a node inside its content at the same time`() {
-        val topLevelElement = simpleDocument.content.toList()[1] as ElementNode
         val plan = planner.planDocumentMutations(
             simpleDocument, listOf(
-                ElementNodeCallMutation(topLevelElement, CallMutation.RenameCall("g0")),
-                RemoveNode(topLevelElement.content.toList()[1])
+                ElementNodeCallMutation(simpleDocument.elementNamed("g"), CallMutation.RenameCall("g0")),
+                RemoveNode(simpleDocument.elementNamed("g").elementNamed("j"))
             )
         )
 
@@ -104,9 +117,12 @@ class DocumentTextMutationPlannerTest {
     fun `can plan renaming of multiple nodes of various kinds`() {
         val plan = planner.planDocumentMutations(
             simpleDocument, listOf(
-                ElementNodeCallMutation(simpleDocument.content.toList()[0] as ElementNode, CallMutation.RenameCall("f0")),
-                RenamePropertyNode((simpleDocument.content.toList()[1] as ElementNode).content.toList()[2] as PropertyNode, "k0"),
-                ValueNodeCallMutation((((simpleDocument.content.toList()[1] as ElementNode).content.toList()[1] as ElementNode).elementValues.single()) as ValueFactoryNode, CallMutation.RenameCall("jj0"))
+                ElementNodeCallMutation(simpleDocument.elementNamed("f"), CallMutation.RenameCall("f0")),
+                RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k"), "k0"),
+                ValueNodeCallMutation(
+                    (simpleDocument.elementNamed("g").elementNamed("j").elementValues.single()) as ValueFactoryNode,
+                    CallMutation.RenameCall("jj0")
+                )
             )
         )
 
@@ -128,13 +144,10 @@ class DocumentTextMutationPlannerTest {
 
     @Test
     fun `removal and rename of an element in an already removed block is reported`() {
-        val blockNode = simpleDocument.content.toList()[1] as ElementNode
-        val propertyNode = blockNode.content.toList()[2] as PropertyNode
-
         val mutations = listOf(
-            RemoveNode(blockNode),
-            RemoveNode(propertyNode),
-            RenamePropertyNode(propertyNode, "k0")
+            RemoveNode(simpleDocument.elementNamed("g")),
+            RemoveNode(simpleDocument.elementNamed("g").propertyNamed("k")),
+            RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k"), "k0")
         )
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
 
@@ -153,8 +166,8 @@ class DocumentTextMutationPlannerTest {
     }
 
     @Test
-    fun `rename superseded by another rename is reported`() {
-        val propertyNode = (simpleDocument.content.toList()[1] as ElementNode).content.toList()[2] as PropertyNode
+    fun `multiple renames get correctly stacked`() {
+        val propertyNode = simpleDocument.elementNamed("g").propertyNamed("k")
 
         val mutations = listOf(
             RenamePropertyNode(propertyNode, "k0"),
@@ -177,6 +190,316 @@ class DocumentTextMutationPlannerTest {
             """.trimIndent(), plan.newText
         )
 
-        assertTrue { plan.unsuccessfulDocumentMutations.single().let { it.mutation === mutations[0] && it.failureReasons.single() == TargetNotFoundOrSuperseded } }
+        assertTrue { plan.unsuccessfulDocumentMutations.isEmpty() }
     }
+
+    @Test
+    fun `can plan node replacement`() {
+        val mutations = listOf(
+            ReplaceNode(simpleDocument.elementNamed("f"), nodeFromText("f0(1)")),
+            ReplaceNode(simpleDocument.elementNamed("g"), nodeFromText("g0(2) { h0(3) }"))
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f0(1)
+
+            g0(2) {
+                h0(3)
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `can plan node insertion before another node`() {
+        val mutations = listOf(
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))),
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j"), listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")))
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1)
+
+            newNode()
+
+            oneMore()
+
+            g(2) {
+                h(3)
+                newNodeInBlock()
+                oneMore()
+                j(jj(4))
+                k = 5
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `can plan node insertion after another node`() {
+        val mutations = listOf(
+            InsertNodesAfterNode(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))),
+            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j"), listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")))
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1)
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                newNodeInBlock()
+                oneMore()
+                k = 5
+            }
+
+            newNode()
+
+            oneMore()
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `can plan node insertion into the block start`() {
+        val mutations = listOf(
+            AddChildrenToStartOfBlock(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))),
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1)
+
+            g(2) {
+                newNode1()
+                newNode2()
+                h(3)
+                j(jj(4))
+                k = 5
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `can plan node insertion into the block end`() {
+        val mutations = listOf(
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))),
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1)
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                k = 5
+                newNode1()
+                newNode2()
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+
+    @Test
+    fun `can plan node insertion into an element that does not have content yet`() {
+        val mutations = listOf(
+            AddChildrenToStartOfBlock(simpleDocument.elementNamed("f"), listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))),
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("l"), listOf(nodeFromText("newNode3()"), nodeFromText("newNode4()"))),
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1) {
+                newNode1()
+                newNode2()
+            }
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                k = 5
+            }
+
+            l(6) {
+                newNode3()
+                newNode4()
+            }
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `of two mutations replacing a single node the first is applied and the second is reported as superseded`() {
+        val f = simpleDocument.elementNamed("f")
+        val mutations = listOf(
+            ReplaceNode(f, nodeFromText("newNode1()")),
+            ReplaceNode(f, nodeFromText("newNode2()")),
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            newNode1()
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                k = 5
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `insertions into an empty element get merged together`() {
+        val f = simpleDocument.elementNamed("f")
+        val mutations = listOf(
+            // Also provide them mixed wrt start and end:
+            AddChildrenToEndOfBlock(f, listOf(nodeFromText("newNode3()"))), // expected to go before newNode4() and after newNode2()
+            AddChildrenToStartOfBlock(f, listOf(nodeFromText("newNode1()"))),
+            AddChildrenToStartOfBlock(f, listOf(nodeFromText("newNode2()"))), // expected to go before newNode1()
+            AddChildrenToEndOfBlock(f, listOf(nodeFromText("newNode4()"))),
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1) {
+                newNode2()
+                newNode1()
+                newNode3()
+                newNode4()
+            }
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                k = 5
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `can simultaneously rename a property and replace its value`() {
+        val property = simpleDocument.elementNamed("g").propertyNamed("k")
+        val mutations = listOf(
+            RenamePropertyNode(property, "k0"),
+            ReplaceValue(property.value, valueFromText("foo0(5)"))
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1)
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                k0 = foo0(5)
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+    }
+
+    @Test
+    fun `replacement of a value that has already been replaced is reported`() {
+        val property = simpleDocument.elementNamed("g").propertyNamed("k")
+        val mutations = listOf(
+            ReplaceValue(property.value, valueFromText("replaced1()")),
+            ReplaceValue(property.value, valueFromText("replaced2()"))
+        )
+
+        val plan = planner.planDocumentMutations(simpleDocument, mutations)
+
+        assertEquals(
+            """
+            f(1)
+
+            g(2) {
+                h(3)
+                j(jj(4))
+                k = replaced1()
+            }
+
+            l(6)
+
+            """.trimIndent(),
+            plan.newText
+        )
+
+        with(plan.unsuccessfulDocumentMutations.single()) {
+            assertEquals(mutations[1], mutation)
+            assertEquals(listOf(TargetNotFoundOrSuperseded), this.failureReasons)
+        }
+    }
+
+    private
+    fun DocumentNodeContainer.elementNamed(name: String): ElementNode = content.single { it is ElementNode && it.name == name } as ElementNode
+
+    private
+    fun DocumentNodeContainer.propertyNamed(name: String): PropertyNode = content.single { it is PropertyNode && it.name == name } as PropertyNode
+
+    private
+    fun nodeFromText(code: String): DocumentNode =
+        convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock(code)).content.single()
+
+    private
+    fun valueFromText(code: String): DeclarativeDocument.ValueNode =
+        (convertBlockToDocument(ParseTestUtil.parseAsTopLevelBlock("stub = $code")).content.single() as PropertyNode).value
 }

@@ -17,10 +17,16 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ErrorNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.LiteralValueNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
+import org.gradle.internal.declarativedsl.dom.DefaultElementNode
+import org.gradle.internal.declarativedsl.dom.DefaultValueFactoryNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.ElementNodeCallMutation
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.InsertNodesBeforeNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.PropertyNodeMutation.RenamePropertyNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ValueFactoryNodeMutation.ValueNodeCallMutation
 import org.gradle.internal.declarativedsl.dom.writing.MutatedDocumentTextGenerator
@@ -28,148 +34,308 @@ import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTreeBuilder
 
 
+class DocumentTextMutationPlan(
+    val newText: String,
+    override val unsuccessfulDocumentMutations: List<UnsuccessfulDocumentMutation>
+) : DocumentMutationPlan
+
+
 class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutationPlan> {
+
+    /**
+     * Translates a series of [mutations] on the [document] content into the text-level mutations and produces a [DocumentTextMutationPlan] with those mutations applied.
+     *
+     * The mutations are applied as if done in a series, and either succeed if there was no conflict or fail and get reported in [DocumentTextMutationPlan.unsuccessfulDocumentMutations] if
+     * there were conflicting mutations. Failed mutations get excluded from the plan, and the resulting [DocumentTextMutationPlan.newText] will show the effect of all the succeeded mutations,
+     * even those that appear later in the [mutations] list than the failing ones.
+     *
+     * * If a mutation removes or replaces a [DeclarativeDocument.Node] altogether (or replaces the node's direct or transitive owner), then any further mutations operating on that node will fail.
+     *
+     * * If a mutation modifies the parts of a node, such as its name, values (property value or call arguments) or nested content, then further mutations can still operate on the node,
+     *   including mutations that remove or replace the node.
+     *
+     *     * In case earlier mutations become shadowed by a later mutation, they are all still considered successful, as if applied one-by-one. For example, in `a { x = 1 }`
+     *       replacing `x`'s value with `2` and removing `a { ... }` will not report any of the mutations as failures and will lead to the removal of `a { ... }`.
+     */
     override fun planDocumentMutations(document: DeclarativeDocument, mutations: List<DocumentMutation>): DocumentTextMutationPlan {
-        val confirmationTracker = MutationConfirmationTracker()
-        val nameMapper = buildNameMapper(mutations, confirmationTracker)
-        val nodeFilter = buildNodeRemovalPredicate(mutations, confirmationTracker)
+        val applicationState = MutationApplicationState()
+        val results = mutations.associateWith(applicationState::applyMutation)
+
+        val nameMapper = with(applicationState) { NameMapper(newNamesForProperties, newNamesForElements, newNamesForValueFactories) }
+        val nodeRemovalPredicate = NodeRemovalPredicate(applicationState.nodesToRemove)
+        val valueMapper = ValueMapper(applicationState.valueReplacement)
 
         val resultText = MutatedDocumentTextGenerator().generateText(
             TextPreservingTreeBuilder().build(document),
             mapNames = nameMapper,
-            removeNodeIf = nodeFilter
+            removeNodeIf = nodeRemovalPredicate,
+            insertNodesBefore = nodeInsertionBeforeOrReplacing(applicationState, valueMapper, nameMapper),
+            insertNodesAfter = NodeInsertionProvider(applicationState.insertAfter),
+            replaceValue = valueMapper
         )
 
-        val nonAppliedMutations = mutations.filterNot(confirmationTracker.confirmedMutations::contains)
+        return DocumentTextMutationPlan(resultText, results.entries.mapNotNull { (mutation, result) ->
+            (result as? MutationApplicationResult.TargetsReplacedOrRemovedNode)?.let { UnsuccessfulDocumentMutation(mutation, listOf(DocumentMutationFailureReason.TargetNotFoundOrSuperseded)) }
+        })
+    }
 
-        return DocumentTextMutationPlan(resultText, nonAppliedMutations.map { UnsuccessfulDocumentMutation(it, listOf(DocumentMutationFailureReason.TargetNotFoundOrSuperseded)) })
+    sealed interface MutationApplicationResult {
+        data object Applied : MutationApplicationResult
+        data object TargetsReplacedOrRemovedNode : MutationApplicationResult
     }
 
     private
-    class MutationConfirmationTracker {
+    fun nodeInsertionBeforeOrReplacing(
+        applicationState: MutationApplicationState,
+        valueMapper: ValueMapper,
+        nameMapper: NameMapper,
+    ) = NodeInsertionProvider(
+        insertNodesByMutation = (applicationState.insertBefore.keys + applicationState.insertContentIntoEmptyNodes.keys)
+            .associateWith { node ->
+                applicationState.insertBefore[node].orEmpty() +
+                    if (node is ElementNode) {
+                        applicationState.insertContentIntoEmptyNodes[node]
+                            ?.let { content -> listOf(NodeInsertion.ByReplacingElementInAddingContent.createFrom(node, valueMapper, nameMapper, content)) }
+                            .orEmpty()
+                    } else emptyList()
+            })
+
+    private
+    class MutationApplicationState {
+        /**
+         * Maintains a set of nodes that are affected by some mutation and thus can no longer be a target of another mutation.
+         * As mutations focus on nodes individually, tainting a node should also recursively taint all of its values and content.
+         */
+        val removedOrReplaced: MutableSet<DeclarativeDocument.Node> = mutableSetOf()
+
+        val insertBefore = mutableMapOf<DocumentNode, MutableList<NodeInsertion>>()
+        val insertAfter = mutableMapOf<DocumentNode, MutableList<NodeInsertion>>()
+        val insertContentIntoEmptyNodes = mutableMapOf<ElementNode, MutableList<DocumentNode>>()
+        val valueReplacement = mutableMapOf<DeclarativeDocument.ValueNode, DeclarativeDocument.ValueNode>()
+        val newNamesForProperties: MutableMap<PropertyNode, String> = mutableMapOf()
+        val newNamesForElements: MutableMap<ElementNode, String> = mutableMapOf()
+        val newNamesForValueFactories: MutableMap<ValueFactoryNode, String> = mutableMapOf()
+        val nodesToRemove: MutableSet<DocumentNode> = mutableSetOf()
+
         private
-        val confirmed = mutableSetOf<DocumentMutation>()
+        fun registerRemovedOrReplacedNode(node: DeclarativeDocument.Node) {
+            if (removedOrReplaced.add(node)) {
+                when (node) {
+                    is ElementNode -> {
+                        node.elementValues.forEach(::registerRemovedOrReplacedNode)
+                        node.content.forEach(::registerRemovedOrReplacedNode)
+                    }
 
-        val confirmedMutations: Set<DocumentMutation>
-            get() = confirmed
+                    is PropertyNode -> {
+                        registerRemovedOrReplacedNode(node.value)
+                    }
 
-        fun confirmMutation(documentMutation: DocumentMutation) {
-            this.confirmed.add(documentMutation)
+                    is ValueFactoryNode -> {
+                        node.values.forEach(::registerRemovedOrReplacedNode)
+                    }
+
+                    is LiteralValueNode,
+                    is ErrorNode -> Unit
+                }
+            }
+        }
+
+        fun applyMutation(mutation: DocumentMutation): MutationApplicationResult {
+            if (mutation is DocumentMutation.DocumentNodeTargetedMutation && mutation.targetNode in removedOrReplaced) {
+                return MutationApplicationResult.TargetsReplacedOrRemovedNode
+            }
+            if (mutation is DocumentMutation.ValueTargetedMutation && mutation.targetValue in removedOrReplaced) {
+                return MutationApplicationResult.TargetsReplacedOrRemovedNode
+            }
+
+            return recordMutationEffects(mutation)
+        }
+
+        private
+        fun recordMutationEffects(mutation: DocumentMutation): MutationApplicationResult {
+            when (mutation) {
+                is DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock -> {
+                    if (mutation.targetNode.content.isNotEmpty()) {
+                        insertAfter.getOrPut(mutation.targetNode.content.last(), ::mutableListOf).add(NodeInsertion.ByInsertNodesToEnd(mutation))
+                    } else {
+                        // We do not use insertBefore or insertAfter because further mutations can add more items to them, and the order will become incorrect.
+                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(mutation.nodes)
+                        nodesToRemove.add(mutation.targetNode)
+                        // No need to mark the element as tainted: its content is empty, and its values are clean, we can still mutate them.
+                    }
+                }
+
+                is DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock -> {
+                    if (mutation.targetNode.content.isNotEmpty()) {
+                        insertBefore.getOrPut(mutation.targetNode.content.first(), ::mutableListOf).add(0, NodeInsertion.ByInsertNodesToStart(mutation))
+                    } else {
+                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(0, mutation.nodes)
+                        nodesToRemove.add(mutation.targetNode)
+                    }
+                }
+
+                is ElementNodeCallMutation -> {
+                    if (mutation.callMutation is CallMutation.RenameCall) {
+                        newNamesForElements[mutation.targetNode] = mutation.callMutation.newName
+                    }
+                }
+
+                is DocumentMutation.DocumentNodeTargetedMutation.InsertNodesAfterNode -> {
+                    // Every new insertion has to happen right after the target node, so insert the mutation to the beginning of the list.
+                    insertAfter.getOrPut(mutation.targetNode, ::mutableListOf).add(0, NodeInsertion.ByInsertNodesAfter(mutation))
+                }
+
+                is InsertNodesBeforeNode -> {
+                    insertBefore.getOrPut(mutation.targetNode, ::mutableListOf).add(NodeInsertion.ByInsertNodesBefore(mutation))
+                }
+
+                is RenamePropertyNode -> {
+                    newNamesForProperties[mutation.targetNode] = mutation.newName
+                }
+
+                is DocumentMutation.DocumentNodeTargetedMutation.RemoveNode -> {
+                    registerRemovedOrReplacedNode(mutation.targetNode)
+                    nodesToRemove.add(mutation.targetNode)
+                }
+
+                is DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode -> {
+                    registerRemovedOrReplacedNode(mutation.targetNode)
+                    nodesToRemove.add(mutation.targetNode)
+                    insertAfter.getOrPut(mutation.targetNode, ::mutableListOf).add(0, NodeInsertion.ByReplaceNode(mutation))
+                }
+
+                is ValueNodeCallMutation -> {
+                    when (mutation.callMutation) {
+                        is CallMutation.RenameCall ->
+                            newNamesForValueFactories[mutation.targetValue] = mutation.callMutation.newName
+
+                        is CallMutation.ReplaceCallArgumentMutation ->
+                            recordValueReplacement(mutation.targetValue.values[mutation.callMutation.argumentAtIndex], mutation.callMutation.replaceWithValue)
+                    }
+                }
+
+                is DocumentMutation.ValueTargetedMutation.ReplaceValue -> {
+                    recordValueReplacement(mutation.targetValue, mutation.replaceWithValue)
+                }
+            }
+
+            return MutationApplicationResult.Applied
+        }
+
+        private
+        fun recordValueReplacement(
+            targetValue: DeclarativeDocument.ValueNode,
+            replacementValue: DeclarativeDocument.ValueNode,
+        ) {
+            registerRemovedOrReplacedNode(targetValue)
+            valueReplacement[targetValue] = replacementValue
         }
     }
 
-    sealed interface NewNameProviderFromMutation {
-        val mutation: DocumentMutation
-        val name: String
+    private
+    sealed interface NodeInsertion {
+        fun getNewNodes(): List<DocumentNode>
 
-        class FromPropertyRename(override val mutation: RenamePropertyNode) : NewNameProviderFromMutation {
-            override val name: String
-                get() = mutation.newName
+        class ByInsertNodesBefore(
+            val mutation: InsertNodesBeforeNode,
+        ) : NodeInsertion {
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
         }
 
-        class FromCallMutation(override val mutation: DocumentMutation.HasCallMutation, private val renameCall: CallMutation.RenameCall) : NewNameProviderFromMutation {
-            init {
-                require(mutation.callMutation == renameCall)
-            }
+        class ByInsertNodesToStart(
+            val mutation: DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock,
+        ) : NodeInsertion {
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+        }
 
-            override val name: String
-                get() = renameCall.newName
+        class ByInsertNodesAfter(
+            val mutation: DocumentMutation.DocumentNodeTargetedMutation.InsertNodesAfterNode,
+        ) : NodeInsertion {
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+        }
+
+        class ByInsertNodesToEnd(
+            val mutation: DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock,
+        ) : NodeInsertion {
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+        }
+
+        class ByReplaceNode(
+            val mutation: DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode,
+        ) : NodeInsertion {
+            override fun getNewNodes(): List<DocumentNode> = listOf(mutation.replaceWithNode)
+        }
+
+        class ByReplacingElementInAddingContent(
+            val newNode: ElementNode
+        ) : NodeInsertion {
+            override fun getNewNodes(): List<DocumentNode> = listOf(newNode)
+
+            companion object {
+                fun createFrom(targetNode: ElementNode, valueMapper: ValueMapper, nameMapper: NameMapper, newContent: List<DocumentNode>): ByReplacingElementInAddingContent =
+                    ByReplacingElementInAddingContent(
+                        DefaultElementNode(targetNode.name, targetNode.sourceData, targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) }, newContent)
+                    )
+
+                private
+                fun applyValueMutations(valueNode: DeclarativeDocument.ValueNode, nameMapper: NameMapper, valueMapper: ValueMapper): DeclarativeDocument.ValueNode =
+                    valueMapper.valueReplacement[valueNode]
+                        ?: when (valueNode) {
+                            is LiteralValueNode -> valueNode
+                            is ValueFactoryNode -> DefaultValueFactoryNode(
+                                nameMapper.newNamesForValueFactories[valueNode] ?: valueNode.factoryName,
+                                valueNode.sourceData,
+                                valueNode.values.map { applyValueMutations(it, nameMapper, valueMapper) })
+                        }
+            }
         }
     }
 
     private
     class NameMapper(
-        val newNamesForProperties: Map<PropertyNode, NewNameProviderFromMutation.FromPropertyRename>,
-        val newNamesForElements: MutableMap<ElementNode, NewNameProviderFromMutation.FromCallMutation>,
-        val newNamesForValueFactories: MutableMap<ValueFactoryNode, NewNameProviderFromMutation.FromCallMutation>,
-        val confirmationTracker: MutationConfirmationTracker
+        val newNamesForProperties: MutableMap<PropertyNode, String>,
+        val newNamesForElements: MutableMap<ElementNode, String>,
+        val newNamesForValueFactories: MutableMap<ValueFactoryNode, String>,
     ) : (TextPreservingTree.ChildTag, String) -> String {
-        override fun invoke(ownerTag: TextPreservingTree.ChildTag, oldName: String): String {
-            val newNameFromMutation = when (ownerTag) {
-                is TextPreservingTree.ChildTag.BlockElement -> when (ownerTag.documentNode) {
-                    is PropertyNode -> newNamesForProperties[ownerTag.documentNode]
-                    is ElementNode -> newNamesForElements[ownerTag.documentNode]
-                    is DeclarativeDocument.DocumentNode.ErrorNode -> null
-                }
-
-                is TextPreservingTree.ChildTag.ValueNodeChildTag -> if (ownerTag.valueNode is ValueFactoryNode) {
-                    newNamesForValueFactories[ownerTag.valueNode]
-                } else null
-
-                else -> null
+        override fun invoke(ownerTag: TextPreservingTree.ChildTag, oldName: String): String = when (ownerTag) {
+            is TextPreservingTree.ChildTag.BlockElement -> when (ownerTag.documentNode) {
+                is PropertyNode -> newNamesForProperties[ownerTag.documentNode]
+                is ElementNode -> newNamesForElements[ownerTag.documentNode]
+                is ErrorNode -> null
             }
-            return if (newNameFromMutation != null) {
-                confirmationTracker.confirmMutation(newNameFromMutation.mutation)
-                newNameFromMutation.name
-            } else oldName
-        }
+
+            is TextPreservingTree.ChildTag.ValueNodeChildTag -> if (ownerTag.valueNode is ValueFactoryNode) {
+                newNamesForValueFactories[ownerTag.valueNode]
+            } else null
+
+            else -> null
+        } ?: oldName
     }
 
     private
-    fun buildNameMapper(
-        mutations: List<DocumentMutation>,
-        confirmationTracker: MutationConfirmationTracker,
-    ): NameMapper {
-
-        val newNamesForProperties: MutableMap<PropertyNode, NewNameProviderFromMutation.FromPropertyRename> = mutableMapOf()
-        val newNamesForElements: MutableMap<ElementNode, NewNameProviderFromMutation.FromCallMutation> = mutableMapOf()
-        val newNamesForValueFactories: MutableMap<ValueFactoryNode, NewNameProviderFromMutation.FromCallMutation> = mutableMapOf()
-
-        mutations.forEach { mutation ->
-            when (mutation) {
-                is RenamePropertyNode -> newNamesForProperties[mutation.targetNode] = NewNameProviderFromMutation.FromPropertyRename(mutation)
-                is ElementNodeCallMutation ->
-                    if (mutation.callMutation is CallMutation.RenameCall) newNamesForElements[mutation.targetNode] = NewNameProviderFromMutation.FromCallMutation(mutation, mutation.callMutation)
-
-                is ValueNodeCallMutation ->
-                    if (mutation.callMutation is CallMutation.RenameCall) newNamesForValueFactories[mutation.targetValue] =
-                        NewNameProviderFromMutation.FromCallMutation(mutation, mutation.callMutation)
-
-                else -> Unit
-            }
-        }
-
-        return NameMapper(newNamesForProperties, newNamesForElements, newNamesForValueFactories, confirmationTracker)
+    class ValueMapper(
+        val valueReplacement: Map<DeclarativeDocument.ValueNode, DeclarativeDocument.ValueNode>
+    ) : (TextPreservingTree.ChildTag.ValueNodeChildTag) -> DeclarativeDocument.ValueNode? {
+        override fun invoke(tag: TextPreservingTree.ChildTag.ValueNodeChildTag): DeclarativeDocument.ValueNode? =
+            valueReplacement[tag.valueNode]
     }
 
     private
     class NodeRemovalPredicate(
-        val nodeToRemoveByMutation: Map<DeclarativeDocument.DocumentNode, DocumentMutation>,
-        val confirmationTracker: MutationConfirmationTracker
+        val nodeToRemoveByMutation: Set<DocumentNode>,
     ) : (TextPreservingTree.ChildTag) -> Boolean {
-        override fun invoke(childTag: TextPreservingTree.ChildTag): Boolean {
-            if (childTag is TextPreservingTree.ChildTag.BlockElement) {
-                val mutation = nodeToRemoveByMutation[childTag.documentNode]
-                if (mutation != null) {
-                    confirmationTracker.confirmMutation(mutation)
-                    return true
-                }
-            }
-
-            return false
-        }
+        override fun invoke(childTag: TextPreservingTree.ChildTag): Boolean =
+            childTag is TextPreservingTree.ChildTag.BlockElement &&
+                childTag.documentNode in nodeToRemoveByMutation
     }
 
     private
-    fun buildNodeRemovalPredicate(
-        mutations: List<DocumentMutation>,
-        mutationConfirmationTracker: MutationConfirmationTracker
-    ): NodeRemovalPredicate = NodeRemovalPredicate(
-        buildMap {
-            mutations.forEach { mutation ->
-                when (mutation) {
-                    is DocumentMutation.DocumentNodeTargetedMutation.RemoveNode,
-                    is DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode -> put((mutation as DocumentMutation.DocumentNodeTargetedMutation).targetNode, mutation)
-
-                    else -> Unit
-                }
-            }
-        }, mutationConfirmationTracker
-    )
+    class NodeInsertionProvider(
+        val insertNodesByMutation: Map<DocumentNode, List<NodeInsertion>>,
+    ) : (TextPreservingTree.ChildTag) -> List<DocumentNode> {
+        override fun invoke(tag: TextPreservingTree.ChildTag): List<DocumentNode> = when (tag) {
+            is TextPreservingTree.ChildTag.BlockElement -> insertNodesByMutation[tag.documentNode]?.flatMap { it.getNewNodes() }.orEmpty()
+            else -> listOf()
+        }
+    }
 }
-
-
-class DocumentTextMutationPlan(
-    val newText: String,
-    override val unsuccessfulDocumentMutations: List<UnsuccessfulDocumentMutation>
-) : DocumentMutationPlan
