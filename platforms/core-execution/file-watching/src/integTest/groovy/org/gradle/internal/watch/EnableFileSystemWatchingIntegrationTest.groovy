@@ -156,7 +156,7 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
         def project = testFileSystem.file("project").createDir()
         project.file(defaultBuildFileName) << ""
-        file("$project/buildSrc/build.gradle") << ""
+        project.file("buildSrc", "build.gradle") << ""
 
         when:
         executer.inDirectory(project)
