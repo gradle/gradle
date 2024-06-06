@@ -60,9 +60,8 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.build.DefaultGradleEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
-import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
@@ -83,7 +82,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
-import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.GradleEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -152,38 +151,17 @@ public class ProviderConnection {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
         Parameters params = initParams(providerParameters);
-        if (BuildEnvironment.class.getName().equals(modelName)) {
-            //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
+        if (GradleEnvironment.class.getName().equals(modelName)) {
+            //we don't really need to launch the daemon to acquire information needed for GradleEnvironment
             if (tasks != null) {
-                throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
+                throw new IllegalArgumentException("Cannot run tasks and fetch the gradle environment model.");
             }
-            return new DefaultBuildEnvironment(
-                new DefaultBuildIdentifier(providerParameters.getProjectDir()),
-                params.buildLayout.getGradleUserHomeDir(),
-                GradleVersion.current().getVersion(),
-                reportableJavaHomeForBuild(params),
-                params.daemonParams.getEffectiveJvmArgs());
+            return new DefaultGradleEnvironment(GradleVersion.current().getVersion());
         }
-
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
-    }
-
-    private static File reportableJavaHomeForBuild(Parameters params) {
-        DaemonParameters daemonParameters = params.daemonParams;
-        // Gradle daemon properties have been defined
-        if (daemonParameters.getRequestedJvmCriteria() != null) {
-            // TODO: We don't know what this will be without searching.
-            // We'll say it's the current JVM because we don't know any better for now.
-            return Jvm.current().getJavaHome();
-        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null) {
-            // Either the TAPI client or org.gradle.java.home has been provided
-            return daemonParameters.getRequestedJvmBasedOnJavaHome().getJavaHome();
-        } else {
-            return Jvm.current().getJavaHome();
-        }
     }
 
     @SuppressWarnings({"deprecation", "overloads"})

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.versioning
 
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.build.GradleEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -43,6 +44,7 @@ class ModelMappingTest extends Specification {
         BasicIdeaProject           | "1.0-milestone-5"
         BuildEnvironment           | "1.0-milestone-8"
         GradleBuild                | "1.8"
+        GradleEnvironment          | "8.10"
         CustomModel                | null
     }
 }

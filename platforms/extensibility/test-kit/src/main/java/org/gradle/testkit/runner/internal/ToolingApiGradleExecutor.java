@@ -44,7 +44,7 @@ import org.gradle.tooling.events.task.TaskStartEvent;
 import org.gradle.tooling.events.task.TaskSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.GradleEnvironment;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
@@ -188,8 +188,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {
-        BuildEnvironment buildEnvironment = connection.getModel(BuildEnvironment.class);
-        return GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
+        GradleEnvironment gradleEnvironment = connection.getModel(GradleEnvironment.class);
+        return GradleVersion.version(gradleEnvironment.getGradleVersion());
     }
 
     private static OutputStream teeOutput(OutputStream capture, OutputStream user) {

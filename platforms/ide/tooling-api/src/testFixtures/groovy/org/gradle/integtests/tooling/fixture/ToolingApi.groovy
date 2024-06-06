@@ -32,7 +32,6 @@ import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -238,10 +237,7 @@ class ToolingApi implements TestRule {
             // When using an isolated user home, first initialise the Gradle instance using the default user home dir
             // This sets some static state that uses files from the user home dir, such as DLLs
             connector.useGradleUserHomeDir(new File(context.gradleUserHomeDir.path))
-
-            try (def connection = connector.connect()) {
-                connection.getModel(BuildEnvironment.class)
-            }
+            connector.connect()
         }
 
         isolateFromGradleOwnBuild(connector)

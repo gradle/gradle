@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.junit.Assume
 
 @TargetGradleVersion(">=8.8")
@@ -76,5 +77,21 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         then:
         def e= thrown(GradleConnectionException)
         e.cause.message.contains("Cannot find a Java installation on your machine")
+    }
+
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "Given daemon toolchain criteria When obtaining build information Then build environment java home matches with expected one"() {
+        given:
+        def jdk8 = AvailableJavaHomes.jdk8
+        writeJvmCriteria(jdk8.javaVersion.majorVersion)
+        captureJavaHome()
+
+        when:
+        BuildEnvironment env = withConnection {
+            it.getModel(BuildEnvironment.class)
+        }
+
+        then:
+        env.java.javaHome == jdk8.javaHome
     }
 }

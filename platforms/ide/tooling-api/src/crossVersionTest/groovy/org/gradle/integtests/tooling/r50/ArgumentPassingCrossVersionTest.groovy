@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r50
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -36,6 +37,16 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         """
     }
 
+    @TargetGradleVersion('>=8.9')
+    def "Cannot append additional JVM arguments to BuildEnvironment model"() {
+        when:
+        BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1) }
+
+        then:
+        !env1.java.jvmArguments.contains(JVM_ARG_1)
+    }
+
+    @TargetGradleVersion('<8.9')
     def "Appends additional JVM arguments"() {
         when:
         BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1) }
@@ -50,6 +61,7 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         env2.java.jvmArguments.contains(JVM_ARG_1)
     }
 
+    @TargetGradleVersion('<8.9')
     def "Appends additional JVM arguments multiple times"() {
         when:
         BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1).addJvmArguments(JVM_ARG_2) }
@@ -66,6 +78,7 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         env2.java.jvmArguments.contains(JVM_ARG_2)
     }
 
+    @TargetGradleVersion('<8.9')
     def "Adds multiple JVM arguments at once"() {
         when:
         BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1, JVM_ARG_2) }
@@ -82,6 +95,7 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         env2.java.jvmArguments.contains(JVM_ARG_2)
     }
 
+    @TargetGradleVersion('<8.9')
     def "Adding JVM argument does not overwrite existing values"() {
         when:
         BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.setJvmArguments(JVM_ARG_1).addJvmArguments(JVM_ARG_2) }
