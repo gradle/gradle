@@ -401,7 +401,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         succeeds(":compileJava")
 
         then:
-        result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
