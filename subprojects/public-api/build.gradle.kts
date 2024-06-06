@@ -27,6 +27,7 @@ dependencies {
 
     externalApi(libs.groovy)
     externalApi(libs.inject)
+    externalApi(libs.jsr305)
 }
 
 val testRepoLocation = layout.buildDirectory.dir("repos/test")

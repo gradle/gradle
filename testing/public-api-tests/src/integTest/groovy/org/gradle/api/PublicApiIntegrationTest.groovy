@@ -60,6 +60,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
         file("src/main/java/org/example/CustomTask.java") << """
             package org.example;
 
+            import javax.annotation.Nullable;
             import javax.inject.Inject;
             import org.gradle.api.DefaultTask;
             import org.gradle.api.file.FileSystemOperations;
@@ -72,6 +73,11 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 @TaskAction
                 public void customAction() {
                     System.out.println("Hello from custom task");
+                }
+
+                @Nullable
+                private String doThatThing() {
+                    return null;
                 }
             }
         """
