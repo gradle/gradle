@@ -147,6 +147,22 @@ The [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.ht
 `suiteThreadPoolSize`
 
 More information about this option is available in the [TestNG documentation](https://testng.org/#_command_line_parameters).
+<a name="ip-usability"></a>
+
+### Isolated Projects usability improvements
+
+#### String-notated task dependency is not a violation anymore
+
+Depending on a task from another project in string-notated form is a common idiom:
+
+```
+foo.dependsOn(":a:bar")
+```
+
+Starting with this release, this is no longer considered a violation of Isolated Projects boundaries.
+
+#### `gradle init` generates Isolated Projects compatible projects
+[Build Init Plugin](userguide/build_init_plugin.html) supports multimodule project layout. Starting with this release, `gradle init` generates projects compatible with Isolated Projects restrictions.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
