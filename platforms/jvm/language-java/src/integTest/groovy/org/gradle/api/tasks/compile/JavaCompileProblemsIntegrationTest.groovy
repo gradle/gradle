@@ -45,7 +45,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     /**
      * A map of all visited file locations, and the number of occurrences we have found in the problems.
      * <p>
-     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean, Closure)} as it asserts a problem.
+     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean)} as it asserts a problem.
      */
     private final Map<String, Integer> visitedFileLocations = [:]
 
@@ -476,12 +476,12 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         writeJavaCausingTwoCompilationWarnings("Foo")
 
         when:
-        executer.withArguments("--info", "--stacktrace")
+        executer.withArguments("--info")
         withInstallations(AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8))
         succeeds(":compileJava")
 
         then:
-        result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
     }
 
     /**
