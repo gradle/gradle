@@ -24,7 +24,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
@@ -73,7 +72,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -109,7 +107,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_PLUGINS_TASK_NAME = "validatePlugins";
-    static final String EXPERIMENTAL_TARGET_GRADLE_API_PROPERTY = "org.gradle.unsafe.target-gradle-api-version";
+    static final String EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = "org.gradle.unsafe.suppress-gradle-api";
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
@@ -163,10 +161,15 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static void applyDependencies(Project project) {
         Configuration apiConfiguration = JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration();
         // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
-        Dependency requestedTargetApiVersion = Optional.ofNullable(System.getProperty(EXPERIMENTAL_TARGET_GRADLE_API_PROPERTY))
-            .map(version -> project.getDependencies().create("org.gradle.experimental:gradle-public-api:" + version))
-            .orElseGet(() -> project.getDependencies().gradleApi());
-        apiConfiguration.getDependencies().add(requestedTargetApiVersion);
+        apiConfiguration.getDependencies().addLater(
+            project.getProviders().systemProperty(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY)
+                .map(value -> value.isEmpty() || value.equals("true"))
+                .orElse(false)
+                .map(suppress ->
+                    suppress ?
+                        null
+                        : project.getDependencies().gradleApi()
+                ));
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {

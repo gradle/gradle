@@ -34,7 +34,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
     def setup() {
         executer.beforeExecute {
-            args("-Dorg.gradle.unsafe.target-gradle-api-version=$apiJarVersion")
+            args("-Dorg.gradle.unsafe.suppress-gradle-api=true")
             withInstallations(jvm)
         }
 
@@ -182,6 +182,10 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                         implementationClass = "org.example.PublishedApiTestPlugin"
                     }
                 }
+            }
+
+            dependencies {
+                implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
             }
 
             testing {
