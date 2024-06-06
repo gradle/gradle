@@ -197,7 +197,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
-        String generatedClassName = packageElement.getQualifiedName().toString() + "$$BridgeFor$$" + topClass.getSimpleName().toString() + "$" + innerClass.getSimpleName().toString();
+        String generatedClassName = packageElement.getQualifiedName().toString() + ".$$BridgeFor$$" + topClass.getSimpleName().toString() + "$" + innerClass.getSimpleName().toString();
         return new AccessorSpec(
             generatedClassName,
             accessorType,
