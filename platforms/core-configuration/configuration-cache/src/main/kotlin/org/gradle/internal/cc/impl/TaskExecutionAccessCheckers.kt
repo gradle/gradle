@@ -18,29 +18,34 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.provider.EvaluationContext
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker
+import kotlin.reflect.KProperty
 
 
 abstract class AbstractTaskProjectAccessChecker(
     private val broadcaster: TaskExecutionAccessListener,
     private val workExecutionTracker: WorkExecutionTracker
 ) : TaskExecutionAccessChecker {
+    private
+    var isCheckingExecutionContext by ThreadLocal.withInitial { false }
+
     override fun notifyProjectAccess(task: TaskInternal) {
-        if (shouldReportExecutionTimeAccess(task)) {
+        if (!isAccessAllowedForEvaluationContext() && shouldReportExecutionTimeAccess(task)) {
             broadcaster.onProjectAccess("Task.project", task, currentTask())
         }
     }
 
     override fun notifyTaskDependenciesAccess(task: TaskInternal, invocationDescription: String) {
-        if (shouldReportExecutionTimeAccess(task)) {
+        if (!isAccessAllowedForEvaluationContext() && shouldReportExecutionTimeAccess(task)) {
             broadcaster.onTaskDependenciesAccess(invocationDescription, task, currentTask())
         }
     }
 
     override fun notifyConventionAccess(task: TaskInternal, invocationDescription: String) {
-        if (shouldReportExecutionTimeAccess(task)) {
+        if (!isAccessAllowedForEvaluationContext() && shouldReportExecutionTimeAccess(task)) {
             broadcaster.onConventionAccess(invocationDescription, task, currentTask())
         }
     }
@@ -50,6 +55,20 @@ abstract class AbstractTaskProjectAccessChecker(
 
     protected
     abstract fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean
+
+    protected
+    fun isAccessAllowedForEvaluationContext(): Boolean {
+        if (isCheckingExecutionContext) {
+            return true
+        }
+
+        return try {
+            isCheckingExecutionContext = true
+            EvaluationContext.current().isComputingFixedExecutionTimeValue
+        } finally {
+            isCheckingExecutionContext = false
+        }
+    }
 }
 
 
@@ -69,3 +88,11 @@ object TaskExecutionAccessCheckers {
             !configurationTimeBarrier.isAtConfigurationTime && !Workarounds.canAccessProjectAtExecutionTime(task)
     }
 }
+
+
+private
+operator fun <T> ThreadLocal<T>.getValue(thisRef: Any?, property: KProperty<*>) = get()
+
+
+private
+operator fun <T> ThreadLocal<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) = set(value)

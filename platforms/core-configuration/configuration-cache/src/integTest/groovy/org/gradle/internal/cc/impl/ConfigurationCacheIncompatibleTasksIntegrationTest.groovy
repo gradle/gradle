@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import spock.lang.IgnoreRest
 
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
@@ -219,6 +220,82 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         result.assertTasksExecuted(":declared")
         fixture.assertStateLoaded()
+    }
+
+    @IgnoreRest
+    def "tasks that access project through provider do not trigger warning when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("reliesOnSerialization") { task ->
+                dependsOn "declared"
+                def projectProvider = provider { task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("reliesOnSerialization")
+
+        then:
+        result.assertTasksExecuted(":declared", ":reliesOnSerialization")
+    }
+
+    @IgnoreRest
+    def "tasks that access project through provider created at execution time trigger warning when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                dependsOn "declared"
+                def providerFactory = providers
+                doLast { task ->
+                    def projectProvider = providerFactory.provider { task.project.name }
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        expect:
+        configurationCacheFails("bypassesSafeguards")
+    }
+
+    @IgnoreRest
+    def "tasks that access project through indirect provider created at execution time trigger warning when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                dependsOn "declared"
+                def valueProvider = providers.provider { "value" }
+                doLast { task ->
+                    println valueProvider.map { it + task.project.name }.get()
+                }
+            }
+        """
+
+        expect:
+        configurationCacheFails("bypassesSafeguards")
+    }
+
+    @IgnoreRest
+    def "tasks that access project through mapped changing provider trigger warning when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") { task ->
+                dependsOn "declared"
+                def projectProvider = providers.systemProperty("some.property").map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        expect:
+        configurationCacheFails("bypassesSafeguards", "-Dsome.property=value")
     }
 
     private void assertStateStoredAndDiscardedForDeclaredTask(int line) {
