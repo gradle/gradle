@@ -16,12 +16,10 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.declarative.dsl.schema.DataMemberFunction
-import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 
 
 interface ModelMutationPlan {
@@ -31,8 +29,15 @@ interface ModelMutationPlan {
 
 
 interface ModelToDocumentMutationPlanner {
-    fun planModelMutations(modelMutation: List<ModelMutation>): ModelMutationPlan
+    fun planModelMutations(documentResolution: DocumentResolutionContainer, mutationRequests: List<ModelMutationRequest>): ModelMutationPlan
 }
+
+
+data class ModelMutationRequest(
+    val location: ScopeLocation,
+    val mutation: ModelMutation,
+    val ifNotFoundBehavior: IfNotFoundBehavior = IfNotFoundBehavior.FailAndReport
+)
 
 
 sealed interface ModelMutation {
@@ -43,13 +48,13 @@ sealed interface ModelMutation {
     ) : ModelMutation
 
     data class AddElement(
-        val newElement: DeclarativeDocument.DocumentNode.ElementNode,
+        val newElement: DocumentNode.ElementNode,
         val ifPresentBehavior: IfPresentBehavior
     ) : ModelMutation
 
     data class UnsetProperty(
         val property: DataProperty
-    )
+    ) : ModelMutation
 
     sealed interface IfPresentBehavior {
         data object Overwrite : IfPresentBehavior
@@ -68,49 +73,16 @@ data class UnsuccessfulModelMutation(
 sealed interface ModelMutationFailureReason
 
 
-data class ModelMutationRequest(
-    val location: ScopeLocation,
-    val mutation: ModelMutation,
-    val ifNotFoundBehavior: IfNotFoundBehavior = IfNotFoundBehavior.FailAndReport
-)
-
-
-data class ScopeLocation(val elements: List<ScopeLocationElement>)
-
-
-sealed interface ScopeLocationElement {
-    data object InAllNestedScopes : ScopeLocationElement
-    data class InNestedScopes(val nestedScopeSelector: NestedScopeSelector) : ScopeLocationElement
+internal
+class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
+    override fun planModelMutations(documentResolution: DocumentResolutionContainer, mutationRequests: List<ModelMutationRequest>): ModelMutationPlan {
+        TODO("Not yet implemented")
+    }
 }
 
 
-sealed interface NestedScopeSelector {
-    data class NestedObjectsOfType(val type: DataClass) : NestedScopeSelector
-    data class ObjectsConfiguredBy(val function: DataMemberFunction, val argumentsPattern: ArgumentsPattern = ArgumentsPattern.AnyArguments) : NestedScopeSelector
-}
-
-
-sealed interface IfNotFoundBehavior {
-    data object Ignore : IfNotFoundBehavior
-    data object FailAndReport : IfNotFoundBehavior
-}
-
-
-sealed interface ArgumentsPattern {
-    data object AnyArguments : ArgumentsPattern
-
-    data class MatchesArguments(
-        /**
-         * These are arguments that a call site should have. They are matched as [DeclarativeDocument.ValueNode]s structurally, and their
-         * resolutions are considered equal if they are resolved to the same declaration or are both unresolved (for any reason). Actual arguments that are present at
-         * a call site but not in this map are considered as matching arguments.
-         */
-        val shouldHaveArguments: Map<DataParameter, ValueMatcher>
-    ) : ArgumentsPattern
-}
-
-
-sealed interface ValueMatcher {
-    data class MatchLiteral(val literalValue: Any) : ValueMatcher
-    data class MatchValueFactory(val valueFactory: SchemaMemberFunction, val args: ArgumentsPattern) : ValueMatcher
-}
+internal
+class DefaultModelMutationPlan(
+    override val documentMutations: List<DocumentMutation>,
+    override val unsuccessfulModelMutations: List<UnsuccessfulModelMutation>
+) : ModelMutationPlan
