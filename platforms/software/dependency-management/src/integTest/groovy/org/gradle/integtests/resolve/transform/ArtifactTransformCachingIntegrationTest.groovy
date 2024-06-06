@@ -1927,6 +1927,82 @@ resultsFile:
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
+    def "can disable storing to build-cache with experimental property"() {
+        given:
+        buildFile << declareAttributes() << withExternalLibDependency("lib1") << """
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    outputs.file(input.name + ".green").text = 'green'
+                    println "Transformed \$input.name to green"
+                }
+            }
+            @CacheableTransform
+            abstract class MakeBlue implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    outputs.file(input.name + ".blue").text = 'blue'
+                    println "Transformed \$input.name to blue"
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'green')
+                    }
+                    registerTransform(MakeBlue) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'blue')
+                    }
+                }
+                task resolveGreen(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'green') }
+                    }.artifacts
+                }
+                task resolveBlue(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'blue') }
+                    }.artifacts
+                }
+                task resolve {
+                    dependsOn(resolveGreen, resolveBlue)
+                }
+            }
+        """
+
+        when:
+        executer.requireOwnGradleUserHomeDir("Test checks existence of build-cache entries")
+        executer.withArguments("--build-cache", "--info", "-Dorg.gradle.internal.transform-caching-disabled=${transformsDisabled}")
+        succeeds ":lib:resolve"
+
+        then:
+        output.contains("Transformed lib1-1.0.jar to green")
+        output.contains("Transformed lib1-1.0.jar to blue")
+
+        def localBuildCacheDir = executer.gradleUserHomeDir.file("caches/build-cache-1")
+        def localBuildCacheFiles = localBuildCacheDir.list { dir, fileName -> fileName != "gc.properties" && fileName != "build-cache-1.lock" }
+        localBuildCacheFiles.length == entryCount
+
+        where:
+        transformsDisabled   | entryCount
+        "true"               | 0
+        "false"              | 2
+        "MakeGreen"          | 1
+        "MakeGreen,MakeBlue" | 0
+    }
+
     def "cleans up cache"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
