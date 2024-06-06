@@ -667,14 +667,17 @@ public class ValidationProblemSerialization {
                                 break;
                             }
                             case "data": {
-                                in.beginObject();
-                                generalData = new HashMap<>();
-                                while (in.hasNext()) {
-                                    String key = in.nextName();
-                                    String value = in.nextString();
-                                    generalData.put(key, value);
+                                try{
+                                    in.beginObject();
+                                    generalData = new HashMap<>();
+                                    while (in.hasNext()) {
+                                        String key = in.nextName();
+                                        String value = in.nextString();
+                                        generalData.put(key, value);
+                                    }
+                                } finally {
+                                    in.endObject();
                                 }
-                                in.endObject();
                                 break;
                             }
                             default:

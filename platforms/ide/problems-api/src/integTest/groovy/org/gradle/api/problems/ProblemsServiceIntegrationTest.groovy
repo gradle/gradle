@@ -284,6 +284,30 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem.additionalData.asMap == ['key': 'value']
     }
 
+    def "can emit a problem with generic additional data and have a second call with additional data with a different spec type"() {
+        given:
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                    it.put('key','value')
+                }
+                .additionalData(org.gradle.api.problems.internal.DeprecationDataSpec) {
+                    it.put('key2','value2')
+                }
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        receivedProblem.additionalData.asMap == [
+            'key': 'value',
+            'key2': 'value2'
+        ]
+    }
+
     def "cannot emit a problem with invalid additional data"() {
         given:
         buildScript 'class InvalidData implements org.gradle.api.problems.internal.AdditionalData {}'
