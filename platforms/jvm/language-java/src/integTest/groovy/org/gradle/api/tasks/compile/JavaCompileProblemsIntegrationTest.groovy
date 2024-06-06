@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -291,7 +292,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
                 it.path == fooFileLocation.absolutePath
             }
-            additionalData.asMap["formatted"] == """\
+            additionalData.asMap ["formatted"] == """\
 $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -301,7 +302,7 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.asMap["formatted"] == """\
+            additionalData.asMap ["formatted"] == """\
 ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -387,93 +388,12 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "compiler warnings causes failure in problem mapping under JDK8"() {
         given:
-        disableProblemsApiCheck()
-        //
-        // 1. step: Create a simple annotation processor
-        //
-        file("processor/build.gradle") << """
-            plugins {
-                id 'java'
-            }
+        setupAnnotationProcessors(JavaVersion.VERSION_1_8)
 
-            java {
-                sourceCompatibility = JavaVersion.VERSION_1_8
-                targetCompatibility = JavaVersion.VERSION_1_8
-            }
-        """
-        file("processor/src/main/java/DummyAnnotation.java") << """
-            package com.example;
-
-            import java.lang.annotation.ElementType;
-            import java.lang.annotation.Retention;
-            import java.lang.annotation.RetentionPolicy;
-            import java.lang.annotation.Target;
-
-            @Retention(RetentionPolicy.RUNTIME)
-            @Target(ElementType.TYPE)
-            public @interface DummyAnnotation {
-            }
-        """
-        // A simple annotation processor
-        file("processor/src/main/java/DummyProcessor.java") << """
-            package com.example;
-
-            import javax.annotation.processing.AbstractProcessor;
-            import javax.annotation.processing.RoundEnvironment;
-            import javax.annotation.processing.Processor;
-            import javax.annotation.processing.ProcessingEnvironment;
-            import javax.annotation.processing.SupportedAnnotationTypes;
-            import javax.annotation.processing.SupportedSourceVersion;
-            import javax.lang.model.SourceVersion;
-            import javax.lang.model.element.TypeElement;
-            import javax.lang.model.element.Element;
-            import javax.tools.Diagnostic;
-
-            import java.util.Set;
-
-            @SupportedAnnotationTypes("com.example.DummyAnnotation")
-            @SupportedSourceVersion(SourceVersion.RELEASE_8)
-            public class DummyProcessor extends AbstractProcessor {
-                @Override
-                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-                    for (Element element : roundEnv.getElementsAnnotatedWith(DummyAnnotation.class)) {
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing: " + element.getSimpleName());
-                    }
-                    return true; // No further processing of this annotation type
-                }
-            }
-        """
-        // META-INF/services file for registering the annotation processor
-        file("processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << "com.example.DummyProcessor"
-
-        //
-        // 2. step: Create a simple project that uses the annotation processor
-        //
-        settingsFile << """\
-            include 'processor'
-        """
-        buildFile << """\
-        dependencies {
-            //annotationProcessor project(':processor')
-            annotationProcessor "org.immutables:value:2.+"
-        }
-
-        repositories {
-            mavenCentral()
-        }
-
-        java {
-            toolchain {
-                languageVersion = JavaLanguageVersion.of(8)
-            }
-        }
-
-        repositories {
-            mavenCentral()
-        }
-        """
-
-        writeJavaCausingTwoCompilationWarnings("Foo")
+        def generator = new ProblematicClassGenerator("Foo")
+        generator.addWarning()
+        generator.save()
+        possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
 
         when:
         executer.withArguments("--info")
@@ -482,6 +402,45 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
 
         then:
         outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            // In JDK8, the compiler will not simplify the type to just "String"
+            additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/29141")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    def "compiler warnings does not cause failure in problem mapping under JDK#jdk.javaVersionMajor"(Jvm jdk) {
+        given:
+        setupAnnotationProcessors(jdk.javaVersion)
+
+        def generator = new ProblematicClassGenerator("Foo")
+        generator.addWarning()
+        generator.save()
+        possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
+
+        when:
+        executer.withArguments("--info")
+        withInstallations(jdk)
+        succeeds(":compileJava")
+
+        then:
+        !result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            // In JDK11, the compiler will not simplify the type to just "String"
+            additionalData.asMap["formatted"].contains("redundant cast to String")
+        }
+
+        where:
+        jdk << AvailableJavaHomes.getAvailableJdks {
+            it.languageVersion.isJava9Compatible()
+        }
     }
 
     def "invalid flags should be reported as problems"() {
@@ -545,7 +504,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         assertedLocationCount += 1
         // Check if we expect this file location
         def occurrences = possibleFileLocations.get(fileLocationPath)
-        assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
+        assert occurrences, "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
         visitedFileLocations.putIfAbsent(fileLocationPath, 0)
         visitedFileLocations[fileLocationPath] += 1
 
@@ -632,6 +591,82 @@ public void error${errorIndex}() {
 }"""
             return sourceFile
         }
+    }
+
+    def setupAnnotationProcessors(JavaVersion testedJdkVersion) {
+        //
+        // 1. step: Create a simple annotation processor
+        //
+        file("processor/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${testedJdkVersion.getMajorVersionNumber()})
+                }
+            }
+        """
+        file("processor/src/main/java/DummyAnnotation.java") << """
+            package com.example;
+
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.TYPE)
+            public @interface DummyAnnotation {
+            }
+        """
+        // A simple annotation processor
+        file("processor/src/main/java/DummyProcessor.java") << """
+            package com.example;
+
+            import javax.annotation.processing.AbstractProcessor;
+            import javax.annotation.processing.RoundEnvironment;
+            import javax.annotation.processing.Processor;
+            import javax.annotation.processing.ProcessingEnvironment;
+            import javax.annotation.processing.SupportedAnnotationTypes;
+            import javax.annotation.processing.SupportedSourceVersion;
+            import javax.lang.model.SourceVersion;
+            import javax.lang.model.element.TypeElement;
+            import javax.lang.model.element.Element;
+            import javax.tools.Diagnostic;
+
+            import java.util.Set;
+
+            @SupportedAnnotationTypes("com.example.DummyAnnotation")
+            @SupportedSourceVersion(SourceVersion.RELEASE_${testedJdkVersion.getMajorVersionNumber()})
+            public class DummyProcessor extends AbstractProcessor {
+                @Override
+                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    return true; // No further processing of this annotation type
+                }
+            }
+        """
+        // META-INF/services file for registering the annotation processor
+        file("processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << "com.example.DummyProcessor"
+
+        //
+        // 2. step: Create a simple project that uses the annotation processor
+        //
+        settingsFile << """\
+            include 'processor'
+        """
+        buildFile << """\
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${testedJdkVersion.getMajorVersionNumber()})
+                }
+            }
+
+            dependencies {
+                annotationProcessor project(':processor')
+            }
+        """
     }
 
 }
