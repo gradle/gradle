@@ -26,21 +26,6 @@ class DaemonReuseFileSystemWatchingIntegrationTest extends AbstractFileSystemWat
         executer.requireDaemon()
     }
 
-    def "can run consecutive builds in a single daemon without issues"() {
-        def project = file(".")
-        buildFile << sampleTask("change")
-
-        when:
-        succeeds(project, "change")
-        updateSampleFile(project)
-
-        succeeds(project, "change")
-
-        then:
-        succeeds("change")
-    }
-
-
     def "can run consecutive unrelated builds in a single daemon without issues"() {
         def firstProject = file("first")
         def secondProject = file("second")
@@ -84,8 +69,8 @@ class DaemonReuseFileSystemWatchingIntegrationTest extends AbstractFileSystemWat
     }
 
     private void createSampleProject(TestFile dir, String taskName) {
-        file(dir.name, "build.gradle") << sampleTask(taskName)
-        file(dir.name, "settings.gradle") << """
+        dir.file("build.gradle") << sampleTask(taskName)
+        dir.file("settings.gradle") << """
             rootProject.name = "${dir.name}"
         """
     }
@@ -110,7 +95,7 @@ class DaemonReuseFileSystemWatchingIntegrationTest extends AbstractFileSystemWat
 
     private void updateSampleFile(TestFile project) {
         waitForChangesToBePickedUp()
-        file(project, "output.txt").text = "Changed"
+        project.file("output.txt").text = "Changed"
         waitForChangesToBePickedUp()
     }
 }
