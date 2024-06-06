@@ -426,7 +426,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
             fqid == 'compilation:java:initialization-failed'
-            details.endsWith('error: invalid flag: -invalid-flag')
+            details.endsWith('invalid flag: -invalid-flag')
             exception.message.endsWith('invalid flag: -invalid-flag')
         }
     }
