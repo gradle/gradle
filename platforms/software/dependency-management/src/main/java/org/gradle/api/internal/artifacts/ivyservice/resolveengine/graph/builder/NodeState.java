@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -40,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -128,11 +126,6 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
-    @VisibleForTesting // just for testing purposes
-    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
-        this(resultId, id, component, null, variant, selectedByVariantAwareResolution);
-    }
-
     public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
         this.nodeId = resultId;
         this.id = id;
@@ -142,9 +135,8 @@ public class NodeState implements DependencyGraphNode {
         this.metadata = variant.getMetadata();
         this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
-        this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
-        this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
-        component.addConfiguration(this);
+        this.moduleExclusions = resolveState.getModuleExclusions();
+        this.dependenciesMayChange = component.getModule().isVirtualPlatform();
     }
 
     // the enqueue and dequeue methods are used for performance reasons
@@ -1140,10 +1132,6 @@ public class NodeState implements DependencyGraphNode {
         assert component.getModule().isVirtualPlatform();
         virtualPlatformNeedsRefresh = true;
         resolveState.onFewerSelected(this);
-    }
-
-    public ImmutableAttributesFactory getAttributesFactory() {
-        return resolveState.getAttributesFactory();
     }
 
     /**
