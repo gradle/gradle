@@ -20,7 +20,9 @@ import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -31,7 +33,9 @@ import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeVariable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -62,6 +66,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
+
         List<MethodSpec> methods = requestsClassGroup.stream()
             .map(request -> mapToMethodSpec(request, onProcessedRequest, onFailure))
             .collect(Collectors.toList());
@@ -77,9 +82,14 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .getByType(PropertyUpgradeRequestExtra.class)
             .orElseThrow(() -> new RuntimeException(PropertyUpgradeRequestExtra.class.getSimpleName() + " should be present at this stage!"));
 
+
         try {
-            CallableInfo callable = request.getInterceptedCallable();
             ImplementationInfo implementation = request.getImplementationInfo();
+            if (implementationExtra.getBridgedMethod() != null) {
+                return mapToBridgedMethod(implementation.getName(), implementationExtra.getBridgedMethod());
+            }
+
+            CallableInfo callable = request.getInterceptedCallable();
             List<ParameterSpec> parameters = callable.getParameters().stream()
                 .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
                 .collect(Collectors.toList());
@@ -97,7 +107,30 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             onFailure.accept(new HasFailures.FailureInfo(request, e.getMessage()));
             throw e;
         }
+    }
 
+    private static MethodSpec mapToBridgedMethod(String methodName, ExecutableElement bridgedMethod) {
+        List<TypeVariableName> typeVariables = bridgedMethod.getTypeParameters().stream()
+            .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
+            .collect(Collectors.toList());
+        List<ParameterSpec> parameters = bridgedMethod.getParameters().stream()
+            .map(ParameterSpec::get)
+            .collect(Collectors.toList());
+        List<TypeName> exceptions = bridgedMethod.getThrownTypes().stream()
+            .map(TypeName::get)
+            .collect(Collectors.toList());
+        CodeBlock body = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
+            ? CodeBlock.of("$T.$N()", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName())
+            : CodeBlock.of("return $T.$N()", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName());
+        return MethodSpec.methodBuilder(methodName)
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addTypeVariables(typeVariables)
+            .addParameters(parameters)
+            .returns(TypeName.get(bridgedMethod.getReturnType()))
+            .varargs(bridgedMethod.isVarArgs())
+            .addExceptions(exceptions)
+            .addCode(body)
+            .build();
     }
 
     private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {
