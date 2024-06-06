@@ -139,9 +139,9 @@ files.from("dir2")
 println(files.elements.get()) // [.../dir1, .../dir2]
 ```
 
-`#from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter.
+`from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter.
 
-To forcefully override or prevent a convention (i.e., regardless of the order of those operations), use `#setFrom():
+To forcefully override or prevent a convention (i.e., regardless of the order of those operations), use `setFrom()`:
 
 ```kotlin
 val files = objects.fileCollection().convention("dir1")
@@ -259,7 +259,7 @@ A problem occurred configuring root project 'unified-prototype'.
        ...
 ```
 
-#### Fixed error reporting when repositories are disabled
+#### Fixed error reporting when repositories are unavailable
 
 When Gradle determines that a [particular repository is unavailable](userguide/writing_build_scripts.html#2_define_the_locations_where_dependencies_can_be_found) when requesting a dependency, it will stop trying to resolve any dependencies from that repository.
 This can prevent other dependencies from resolving successfully.
