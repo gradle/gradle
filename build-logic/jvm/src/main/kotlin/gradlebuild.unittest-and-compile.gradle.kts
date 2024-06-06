@@ -256,6 +256,8 @@ fun configureTests() {
         addOsAsInputs()
         configureRerun()
 
+        configureRerun()
+
         if (BuildEnvironment.isCiServer) {
             develocity.testRetry {
                 maxRetries.convention(determineMaxRetries())

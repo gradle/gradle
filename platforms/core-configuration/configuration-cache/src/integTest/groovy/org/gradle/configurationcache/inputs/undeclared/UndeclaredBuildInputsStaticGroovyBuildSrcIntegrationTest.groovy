@@ -16,6 +16,10 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {

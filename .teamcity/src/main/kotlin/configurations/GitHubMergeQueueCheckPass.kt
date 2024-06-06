@@ -28,13 +28,13 @@ class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init 
         publishBuildStatusToGithub(model)
     }
 
-    triggers.vcs {
-        quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
-        branchFilter = """
-+:gh-readonly-queue/${model.branch.branchName}/*
-+:${model.branch.branchName}
-"""
-    }
+//    triggers.vcs {
+//        quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
+//        branchFilter = """
+//+:gh-readonly-queue/${model.branch.branchName}/*
+//+:${model.branch.branchName}
+//"""
+//    }
 
     dependencies {
         snapshot(RelativeId(stageTriggerId(model, StageName.READY_FOR_NIGHTLY))) {
