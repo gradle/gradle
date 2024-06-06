@@ -34,7 +34,8 @@ import java.io.Writer
 internal
 enum class DiagnosticKind {
     PROBLEM,
-    INPUT
+    INPUT,
+    INCOMPATIBLE_TASK
 }
 
 
@@ -135,6 +136,7 @@ class JsonModelWriter(val writer: Writer) {
     fun keyFor(kind: DiagnosticKind) = when (kind) {
         DiagnosticKind.PROBLEM -> "problem"
         DiagnosticKind.INPUT -> "input"
+        DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
     }
 
     private
@@ -188,6 +190,12 @@ class JsonModelWriter(val writer: Writer) {
                 property("path", trace.path)
                 comma()
                 property("type", trace.type.name)
+            }
+
+            is PropertyTrace.TaskPath -> {
+                property("kind", "TaskPath")
+                comma()
+                property("path", trace.path)
             }
 
             is PropertyTrace.Bean -> {

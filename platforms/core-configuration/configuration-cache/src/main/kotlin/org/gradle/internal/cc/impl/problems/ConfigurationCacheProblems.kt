@@ -34,6 +34,8 @@ import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -70,8 +72,10 @@ class ConfigurationCacheProblems(
     val problemsService: InternalProblems,
 
     private
-    val failureFactory: FailureFactory
+    val problemFactory: ProblemFactory,
 
+    private
+    val failureFactory: FailureFactory
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -140,8 +144,12 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
-    override fun forIncompatibleTask(path: String): ProblemsListener {
-        incompatibleTasks.add(path)
+    override fun forIncompatibleTask(path: String, reason: String): ProblemsListener {
+        val firstProblem = incompatibleTasks.add(path)
+        if (firstProblem) {
+            // report the incompatible task itself
+            reportIncompatibleTask(path, reason)
+        }
         return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
@@ -152,6 +160,24 @@ class ConfigurationCacheProblems(
                 onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
         }
+    }
+
+    private
+    fun reportIncompatibleTask(path: String, reason: String) {
+        val problem = problemFactory
+            .problem {
+                text("task ")
+                reference(path)
+                text(" is incompatible with the configuration cache. ")
+                text("Reason: ")
+                text(reason)
+                text(".")
+            }
+            .mapLocation {
+                PropertyTrace.TaskPath(path)
+            }
+            .documentationSection(DocumentationSection.TaskOptOut).build()
+        onIncompatibleTask(problem)
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -205,6 +231,10 @@ class ConfigurationCacheProblems(
         this == ProblemSeverity.Suppressed -> Severity.ADVICE
         isFailOnProblems -> Severity.ERROR
         else -> Severity.WARNING
+    }
+
+    fun onIncompatibleTask(problem: PropertyProblem) {
+        report.onIncompatibleTask(problem)
     }
 
     override fun getId(): String {

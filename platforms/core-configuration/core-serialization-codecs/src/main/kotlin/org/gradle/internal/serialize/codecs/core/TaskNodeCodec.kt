@@ -234,7 +234,7 @@ suspend fun <T> T.withTaskOf(
             if (task.isCompatibleWithConfigurationCache) {
                 action()
             } else {
-                forIncompatibleType(task.identityPath.path, action)
+                forIncompatibleTask(task.identityPath.path, task.reasonTaskIsIncompatibleWithConfigurationCache.get(), action)
             }
         }
     }

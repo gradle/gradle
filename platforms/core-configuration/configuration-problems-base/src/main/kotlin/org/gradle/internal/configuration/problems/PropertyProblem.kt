@@ -44,6 +44,7 @@ enum class DocumentationSection(val anchor: String) {
     NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     NotYetImplementedBuildServiceInFingerprint("config_cache:not_yet_implemented:build_services_in_fingerprint"),
+    TaskOptOut("config_cache:task_opt_out"),
     RequirementsBuildListeners("config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
     RequirementsExternalProcess("config_cache:requirements:external_processes"),
@@ -127,6 +128,10 @@ sealed class PropertyTrace {
         val path: String
     ) : PropertyTrace()
 
+    class TaskPath(
+        val path: String
+    ) : PropertyTrace()
+
     class Bean(
         val type: Class<*>,
         val trace: PropertyTrace
@@ -206,7 +211,10 @@ sealed class PropertyTrace {
                 append(" of type ")
                 quoted(trace.type.name)
             }
-
+            is TaskPath -> {
+                append("task ")
+                quoted(trace.path)
+            }
             is BuildLogic -> {
                 append(trace.source.displayName)
                 trace.lineNumber?.let {
