@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
@@ -23,6 +25,7 @@ import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 
 class ModelToDocumentMutationPlannerTest {
@@ -51,7 +54,6 @@ class ModelToDocumentMutationPlannerTest {
 
     @Test
     fun `xxx`() { // TODO: rename
-
         val topLevelBlock = ParseTestUtil.parseAsTopLevelBlock(code)
 
         val document = convertBlockToDocument(topLevelBlock)
@@ -61,30 +63,28 @@ class ModelToDocumentMutationPlannerTest {
         val resolved = resolutionContainer(schema, resolver.trace, document)
 
         println(resolved)
-        /*planner.planModelMutations(resolved, listOf(
-            ModelMutationRequest(
-                ScopeLocation(listOf(
-                    ScopeLocationElement.InNestedScopes(
-                        NestedScopeSelector.ObjectsConfiguredBy(
-                            DefaultDataMemberFunction(
-                                TODO(),
-                                TODO(),
-                                TODO(),
-                                false,
-                                TODO()
-                            )
+
+        val planModelMutations = planner.planModelMutations(
+            document, resolved, listOf(
+                ModelMutationRequest(
+                    ScopeLocation(
+                        listOf(
+                            ScopeLocationElement.InAllNestedScopes
                         )
+                    ),
+                    ModelMutation.UnsetProperty(
+                        schema.property("TopLevelElement", "number")
                     )
-                )),
-                ModelMutation.UnsetProperty(
-                    DefaultDataProperty(
-                        "number",
-                        DataTypeRefInternal.DefaultType(DataTypeInternal.DefaultIntDataType),
-                        DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite,
-                        false
-                    ) // TODO: use the schema to get this object from
                 )
             )
-        ))*/
+        )
+        assertTrue(planModelMutations.documentMutations.size == 1) // TODO: better assert
+    }
+
+    private
+    fun AnalysisSchema.property(dataClassName: String, propertyName: String): DataProperty {
+        val dataClass = dataClassesByFqName.entries.first { it.key.simpleName == dataClassName }.value
+        val dataProperty = dataClass.properties.first { it.name == propertyName }
+        return dataProperty
     }
 }
