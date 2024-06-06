@@ -484,6 +484,23 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
     }
 
+    def "invalid flags should be reported as problems"() {
+        given:
+        writeJavaCausingTwoCompilationWarnings("Foo")
+        buildFile << "tasks.compileJava.options.compilerArgs += ['-invalid-flag']"
+
+        when:
+        fails("compileJava")
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'compilation:java:initialization-failed'
+            details.endsWith('invalid flag: -invalid-flag')
+            exception.message.endsWith('invalid flag: -invalid-flag')
+        }
+    }
+
     /**
      * Assert if a compilation problems looks like how we expect it to look like.
      * <p>
