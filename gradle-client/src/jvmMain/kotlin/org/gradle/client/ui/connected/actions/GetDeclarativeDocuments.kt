@@ -39,7 +39,6 @@ import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrig
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayOriginContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils
-import org.gradle.internal.declarativedsl.evaluator.main.AnalysisSequenceResult
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
 import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
@@ -122,12 +121,14 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 }
             },
             right = {
+                val sources = listOfNotNull(
+                    SourceFileViewInput(projectResult.sourceIdentifier().fileIdentifier, buildFileContent),
+                    SourceFileViewInput(settingsResult.sourceIdentifier().fileIdentifier, settingsFileContent)
+                        .takeIf { hasAnyConventionContent },
+                )
+
                 SourcesColumn(
-                    projectResult,
-                    buildFileContent,
-                    settingsResult,
-                    settingsFileContent,
-                    hasAnyConventionContent,
+                    sources,
                     highlightedSourceRangeByFileId
                 )
             },
@@ -136,32 +137,21 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
     @Composable
     private fun SourcesColumn(
-        projectResult: AnalysisSequenceResult,
-        projectFileContent: String,
-        settingsResult: AnalysisSequenceResult,
-        settingsFileContent: String,
-        hasAnyConventionUsage: Boolean,
+        sources: List<SourceFileViewInput>,
         highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>
     ) {
 
         Column {
-            val sources = listOfNotNull(
-                projectResult.sourceIdentifier().fileIdentifier to projectFileContent,
-                (settingsResult.sourceIdentifier().fileIdentifier to settingsFileContent).takeIf { hasAnyConventionUsage },
-            ).toMap()
-
             val sourceFileData by derivedStateOf {
-                sources.mapValues { (identifier, content) ->
+                sources.map { (identifier, content) ->
                     val highlightedRangeOrNull = highlightedSourceRangeByFileId.value[identifier]
                     SourceFileData(identifier, sourceFileAnnotatedString(highlightedRangeOrNull, content))
                 }
             }
 
-            val sourceFilesData = sourceFileData.values.toList()
-
-            sourceFilesData.forEachIndexed { index, data ->
+            sourceFileData.forEachIndexed { index, data ->
                 SourceFileTitleAndText(data.relativePath, data.annotatedSource)
-                if (index != sourceFilesData.lastIndex) {
+                if (index != sourceFileData.lastIndex) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -335,7 +325,6 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
                 .withClickTextRangeSelection(propertyNode, highlightingContext),
             text = "${property.name}: ${property.kotlinType.simpleName} = ${
-                // TODO: display non-literal values with a proper structure:
                 propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
             }"
         )
@@ -384,6 +373,11 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 private data class HighlightingContext(
     val overlayOriginContainer: OverlayOriginContainer,
     val highlightedSourceRange: MutableState<Map<String, IntRange>>
+)
+
+private data class SourceFileViewInput(
+    val fileIdentifier: String,
+    val fileContent: String
 )
 
 private fun Modifier.withHoverCursor() =
