@@ -48,16 +48,6 @@ For developing C++ projects, Gradle comes with a <<xcode_plugin.adoc#xcode_plugi
 CLion::
 JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-starts-2018-2-eap-sanitizers-gradle-db-performance/[C++ projects with Gradle].
 
-== Continuous integration
-
-We have dedicated guides showing you how to integrate a Gradle project with the following CI platforms:
-
- * <<jenkins.adoc#build_jenkins,Jenkins>>
- * <<teamcity.adoc#build_teamcity,TeamCity>>
- * <<travis-ci.adoc#build_travis,Travis CI>>
-
-Even if you don't use one of the above, you can almost certainly configure your CI platform to use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> scripts.
-
 == How to integrate with Gradle
 
 There are two main ways to integrate a tool with Gradle:
