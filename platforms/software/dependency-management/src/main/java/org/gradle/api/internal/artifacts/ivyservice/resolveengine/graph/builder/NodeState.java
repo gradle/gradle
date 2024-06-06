@@ -202,12 +202,7 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
         if (metadata instanceof LocalConfigurationGraphResolveMetadata) {
-            // Only when this node has a transitive incoming edge
-            for (EdgeState incomingEdge : incomingEdges) {
-                if (incomingEdge.isTransitive()) {
-                    return ((LocalConfigurationGraphResolveMetadata) metadata).getFiles();
-                }
-            }
+            return ((LocalConfigurationGraphResolveMetadata) metadata).getFiles();
         }
         return Collections.emptySet();
     }
