@@ -26,6 +26,7 @@ dependencies {
     distribution(project(":distributions-full"))
 
     externalApi(libs.groovy)
+    externalApi(libs.inject)
 }
 
 val testRepoLocation = layout.buildDirectory.dir("repos/test")

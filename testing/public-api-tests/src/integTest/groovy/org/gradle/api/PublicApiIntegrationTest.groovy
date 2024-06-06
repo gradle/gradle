@@ -60,10 +60,15 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
         file("src/main/java/org/example/CustomTask.java") << """
             package org.example;
 
+            import javax.inject.Inject;
             import org.gradle.api.DefaultTask;
+            import org.gradle.api.file.FileSystemOperations;
             import org.gradle.api.tasks.TaskAction;
 
-            public class CustomTask extends DefaultTask {
+            public abstract class CustomTask extends DefaultTask {
+                @Inject
+                public abstract FileSystemOperations getFileSystemOperations();
+
                 @TaskAction
                 public void customAction() {
                     System.out.println("Hello from custom task");
