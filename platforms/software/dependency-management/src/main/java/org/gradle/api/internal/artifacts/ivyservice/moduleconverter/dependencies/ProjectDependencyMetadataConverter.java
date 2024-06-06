@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -37,9 +39,14 @@ public class ProjectDependencyMetadataConverter extends AbstractDependencyMetada
     @Override
     public LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
-        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(),
+        ProjectInternal projectInternal = (ProjectInternal) projectDependency.getDependencyProject();
+        ProjectComponentIdentifier projectComponentIdentifier = projectInternal.getOwner().getComponentIdentifier();
+
+        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(
+            projectComponentIdentifier,
             ((AttributeContainerInternal) projectDependency.getAttributes()).asImmutable(),
-            projectDependency.getRequestedCapabilities());
+            projectDependency.getRequestedCapabilities()
+        );
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

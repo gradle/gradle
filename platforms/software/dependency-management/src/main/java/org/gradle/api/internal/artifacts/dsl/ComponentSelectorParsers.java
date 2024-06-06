@@ -21,9 +21,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
@@ -105,7 +107,8 @@ public class ComponentSelectorParsers {
 
         @Override
         public void convert(Project notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
-            result.converted(DefaultProjectComponentSelector.newSelector(notation, ImmutableAttributes.EMPTY, Collections.emptyList()));
+            ProjectComponentIdentifier projectComponentIdentifier = ((ProjectInternal) notation).getOwner().getComponentIdentifier();
+            result.converted(DefaultProjectComponentSelector.newSelector(projectComponentIdentifier, ImmutableAttributes.EMPTY, Collections.emptyList()));
         }
     }
 }

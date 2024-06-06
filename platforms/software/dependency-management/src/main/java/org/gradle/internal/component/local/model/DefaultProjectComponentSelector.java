@@ -15,10 +15,8 @@
  */
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
@@ -26,32 +24,38 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
     private final BuildIdentifier buildIdentifier;
     private final Path projectPath;
-    private final Path identityPath;
+    private final Path buildTreePath;
     private final String projectName;
     private final ImmutableAttributes attributes;
     private final List<Capability> requestedCapabilities;
     private String displayName;
 
-    public DefaultProjectComponentSelector(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
+    public DefaultProjectComponentSelector(
+        BuildIdentifier buildIdentifier,
+        Path buildTreePath,
+        Path projectPath,
+        String projectName,
+        ImmutableAttributes attributes,
+        List<Capability> requestedCapabilities
+    ) {
         assert buildIdentifier != null : "build cannot be null";
-        assert identityPath != null : "identity path cannot be null";
+        assert buildTreePath != null : "build tree path path cannot be null";
         assert projectPath != null : "project path cannot be null";
         assert projectName != null : "project name cannot be null";
         assert attributes != null : "attributes cannot be null";
         assert requestedCapabilities != null : "capabilities cannot be null";
+
         this.buildIdentifier = buildIdentifier;
-        this.identityPath = identityPath;
+        this.buildTreePath = buildTreePath;
         this.projectPath = projectPath;
         this.projectName = projectName;
         this.attributes = attributes;
@@ -61,13 +65,13 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @Override
     public String getDisplayName() {
         String prefix;
-        if (Objects.equals(identityPath, Path.ROOT)) {
+        if (Objects.equals(buildTreePath, Path.ROOT)) {
             prefix =  "root project";
         } else {
             prefix = "project";
         }
         if (displayName == null) {
-            displayName = prefix + " " + identityPath;
+            displayName = prefix + " " + buildTreePath;
         }
         return displayName;
     }
@@ -94,7 +98,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public Path getIdentityPath() {
-        return identityPath;
+        return buildTreePath;
     }
 
     @Override
@@ -116,7 +120,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
         if (identifier instanceof ProjectComponentIdentifier) {
             ProjectComponentIdentifierInternal projectComponentIdentifier = (ProjectComponentIdentifierInternal) identifier;
-            return projectComponentIdentifier.getIdentityPath().equals(identityPath);
+            return projectComponentIdentifier.getIdentityPath().equals(buildTreePath);
         }
 
         return false;
@@ -141,7 +145,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             return false;
         }
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
-        if (!identityPath.equals(that.identityPath)) {
+        if (!buildTreePath.equals(that.buildTreePath)) {
             return false;
         }
         if (!attributes.equals(that.attributes)) {
@@ -152,7 +156,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public int hashCode() {
-        return identityPath.hashCode();
+        return Objects.hash(buildTreePath, attributes, requestedCapabilities);
     }
 
     @Override
@@ -160,27 +164,27 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
-    public static ProjectComponentSelector newSelector(Project project, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
-        ProjectInternal projectInternal = (ProjectInternal) project;
-        ProjectComponentIdentifier projectComponentIdentifier = projectInternal.getOwner().getComponentIdentifier();
-        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName(), attributes, requestedCapabilities);
-    }
-
-    public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier) {
+    public static ProjectComponentSelector newSelector(
+        ProjectComponentIdentifier identifier,
+        ImmutableAttributes attributes,
+        List<Capability> requestedCapabilities
+    ) {
         DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
-        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), ImmutableAttributes.EMPTY, Collections.emptyList());
-    }
-
-    public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
-        DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
-        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), attributes, requestedCapabilities);
+        return new DefaultProjectComponentSelector(
+            projectComponentIdentifier.getBuild(),
+            projectComponentIdentifier.getIdentityPath(),
+            projectComponentIdentifier.projectPath(),
+            projectComponentIdentifier.getProjectName(),
+            attributes,
+            requestedCapabilities
+        );
     }
 
     public static ProjectComponentSelector withAttributes(ProjectComponentSelector selector, ImmutableAttributes attributes) {
         DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
         return new DefaultProjectComponentSelector(
             current.buildIdentifier,
-            current.identityPath,
+            current.buildTreePath,
             current.projectPath,
             current.projectName,
             attributes,
@@ -188,11 +192,11 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         );
     }
 
-    public static ComponentSelector withCapabilities(ProjectComponentSelector selector, List<Capability> requestedCapabilities) {
+    public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, List<Capability> requestedCapabilities) {
         DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
         return new DefaultProjectComponentSelector(
             current.buildIdentifier,
-            current.identityPath,
+            current.buildTreePath,
             current.projectPath,
             current.projectName,
             current.attributes,
@@ -200,7 +204,19 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         );
     }
 
+    public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
+        DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
+        return new DefaultProjectComponentSelector(
+            current.buildIdentifier,
+            current.buildTreePath,
+            current.projectPath,
+            current.projectName,
+            attributes,
+            requestedCapabilities
+        );
+    }
+
     public ProjectComponentIdentifier toIdentifier() {
-        return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, projectName);
+        return new DefaultProjectComponentIdentifier(buildIdentifier, buildTreePath, projectPath, projectName);
     }
 }

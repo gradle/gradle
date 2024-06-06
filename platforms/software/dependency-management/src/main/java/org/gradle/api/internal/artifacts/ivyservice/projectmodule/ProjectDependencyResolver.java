@@ -88,11 +88,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (isProjectModule(identifier)) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
-            if (component == null) {
-                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), () -> projectId + " not found."));
-            } else {
-                result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
-            }
+            result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
         }
     }
 
