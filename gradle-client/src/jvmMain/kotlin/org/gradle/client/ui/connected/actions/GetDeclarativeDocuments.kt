@@ -10,14 +10,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
 import org.gradle.client.core.gradle.dcl.analyzer
+import org.gradle.client.core.gradle.dcl.sourceIdentifier
+import org.gradle.client.core.gradle.dcl.type
 import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.LabelMedium
 import org.gradle.client.ui.composables.TitleLarge
@@ -25,14 +29,17 @@ import org.gradle.client.ui.composables.TitleMedium
 import org.gradle.client.ui.composables.TitleSmall
 import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
-import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved
+import org.gradle.internal.declarativedsl.dom.data.collectToMap
+import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrigin.*
+import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayOriginContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
-import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils.resolvedDocument
+import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils
+import org.gradle.internal.declarativedsl.evaluator.main.AnalysisSequenceResult
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
 import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
@@ -40,7 +47,6 @@ import java.io.File
 
 private const val NOTHING_DECLARED = "Nothing declared"
 
-@OptIn(ExperimentalFoundationApi::class)
 class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequisites> {
 
     override val displayName: String
@@ -53,34 +59,24 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     @Composable
     @Suppress("LongMethod")
     override fun ColumnScope.ModelContent(model: ResolvedDomPrerequisites) {
-
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
 
         val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
-
-        val buildFileRelativePath = selectedBuildFile.value.relativeTo(model.rootDir).path
-        val schema = model.analysisSchema
+        val settingsFileContent = remember(model.settingsFile) { model.settingsFile.readText() }
 
         val analyzer = analyzer(model)
-        val projectResult = analyzer.evaluate(selectedBuildFile.value.name, buildFileContent)
-        val dom = projectResult.stepResults.values.single().stepResultOrPartialResult.resolvedDocument()
-
-        val highlightedSourceRange = mutableStateOf<IntRange?>(null)
-
-        val highlightedSource by derivedStateOf {
-            buildAnnotatedString {
-                when (val range = highlightedSourceRange.value) {
-                    null -> append(buildFileContent)
-                    else -> {
-                        append(buildFileContent.substring(0, range.first))
-                        withStyle(style = SpanStyle(background = Color.Yellow)) {
-                            append(buildFileContent.substring(range))
-                        }
-                        append(buildFileContent.substring(range.last + 1))
-                    }
-                }
-            }
+        val projectResult = remember(selectedBuildFile.value, buildFileContent) {
+            analyzer.evaluate(selectedBuildFile.value.name, buildFileContent)
         }
+        val settingsResult = remember(model.settingsFile, settingsFileContent) {
+            analyzer.evaluate(model.settingsFile.name, settingsFileContent)
+        }
+        val domWithConventions = AnalysisDocumentUtils.documentWithConventions(settingsResult, projectResult)
+        val highlightedSourceRangeByFileId = mutableStateOf(mapOf<String, IntRange>())
+
+        val hasAnyConventionContent =
+            domWithConventions?.overlayNodeOriginContainer?.collectToMap(domWithConventions.document)
+                ?.any { it.value !is FromOverlay } == true
 
         TitleLarge(displayName)
         DeclarativeFileDropDown(
@@ -94,97 +90,150 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             verticallyScrollable = false,
             horizontallyScrollable = true,
             left = {
-                val softwareTypeNode = dom.singleSoftwareTypeNode
-                val softwareTypeSchema = schema.softwareTypeNamed(softwareTypeNode.name)
-                val softwareTypeType = schema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
+                if (domWithConventions != null) {
+                    val highlightingContext = HighlightingContext(
+                        domWithConventions.overlayNodeOriginContainer,
+                        highlightedSourceRangeByFileId
+                    )
 
-                TitleMedium(
-                    text = "Software Type: ${softwareTypeNode.name}",
-                    modifier = Modifier
-                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                        .onClick {
-                            highlightedSourceRange.value = softwareTypeNode.sourceData.indexRange
-                        }
-                )
-                MaterialTheme.spacing.VerticalLevel4()
-                Column {
-                    softwareTypeType.properties.forEach { property ->
-                        LabelMedium(
-                            modifier = Modifier
-                                .padding(bottom = MaterialTheme.spacing.level2)
-                                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                                .onClick {
-                                    highlightedSourceRange.value =
-                                        softwareTypeNode.propertySourceData(property.name)?.indexRange
-                                },
-                            text = "${property.name}: ${property.kotlinType.simpleName} = ${
-                                softwareTypeNode.propertyValue(property.name) ?: NOTHING_DECLARED
-                            }"
-                        )
-                    }
-                    Spacer(Modifier.size(MaterialTheme.spacing.level2))
-                    softwareTypeType.memberFunctions.accessAndConfigure.forEach { function ->
-                        val functionType = schema.configuredTypeOf(function.accessAndConfigureSemantics)
-                        val functionNode = softwareTypeNode.childElementNode(function.simpleName)
-                        TitleSmall(
-                            text = function.simpleName,
-                            modifier = Modifier
-                                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                                .onClick {
-                                    highlightedSourceRange.value = functionNode?.sourceData?.indexRange
-                                }
-                        )
+                    val softwareTypeNode = domWithConventions.document.singleSoftwareTypeNode
+                    val projectAnalysisSchema = projectResult.stepResults.values.single()
+                        .stepResultOrPartialResult.evaluationSchema.analysisSchema
+                    val softwareTypeSchema = projectAnalysisSchema.softwareTypeNamed(softwareTypeNode.name)
+                    val softwareTypeType =
+                        projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
+
+                    TitleMedium(
+                        text = "Software Type: ${softwareTypeNode.name}",
+                        modifier = Modifier
+                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                            .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
+                    )
+                    MaterialTheme.spacing.VerticalLevel4()
+                    Column {
                         ElementInfoOrNothingDeclared(
-                            schema,
-                            highlightedSourceRange,
-                            functionType,
-                            functionNode,
-                            dom.resolutionContainer,
-                            indentLevel = 1,
+                            softwareTypeType,
+                            softwareTypeNode,
+                            domWithConventions.overlayResolutionContainer,
+                            highlightingContext,
+                            0
                         )
-                        MaterialTheme.spacing.VerticalLevel2()
                     }
                 }
             },
             right = {
-                Column {
-                    TitleMedium(buildFileRelativePath)
-                    MaterialTheme.spacing.VerticalLevel4()
-                    SelectionContainer {
-                        Text(
-                            text = highlightedSource,
-                            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-                        )
-                    }
-                }
+                SourcesColumn(
+                    projectResult,
+                    buildFileContent,
+                    settingsResult,
+                    settingsFileContent,
+                    hasAnyConventionContent,
+                    highlightedSourceRangeByFileId
+                )
             },
         )
+    }
+
+    @Composable
+    private fun SourcesColumn(
+        projectResult: AnalysisSequenceResult,
+        projectFileContent: String,
+        settingsResult: AnalysisSequenceResult,
+        settingsFileContent: String,
+        hasAnyConventionUsage: Boolean,
+        highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>
+    ) {
+
+        Column {
+            val sources = listOfNotNull(
+                projectResult.sourceIdentifier().fileIdentifier to projectFileContent,
+                (settingsResult.sourceIdentifier().fileIdentifier to settingsFileContent).takeIf { hasAnyConventionUsage },
+            ).toMap()
+
+            val sourceFileData by derivedStateOf {
+                sources.mapValues { (identifier, content) ->
+                    val highlightedRangeOrNull = highlightedSourceRangeByFileId.value[identifier]
+                    SourceFileData(identifier, sourceFileAnnotatedString(highlightedRangeOrNull, content))
+                }
+            }
+
+            val sourceFilesData = sourceFileData.values.toList()
+
+            sourceFilesData.forEachIndexed { index, data ->
+                SourceFileTitleAndText(data.relativePath, data.annotatedSource)
+                if (index != sourceFilesData.lastIndex) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
+    }
+
+    private data class SourceFileData(
+        val relativePath: String,
+        val annotatedSource: AnnotatedString
+    )
+
+    private fun sourceFileAnnotatedString(
+        highlightedSourceRange: IntRange?,
+        fileContent: String
+    ) = buildAnnotatedString {
+        val range = highlightedSourceRange
+        when {
+            range == null -> append(fileContent)
+
+            else -> {
+                append(fileContent.substring(0, range.first))
+                withStyle(style = SpanStyle(background = Color.Yellow)) {
+                    append(fileContent.substring(range))
+                }
+                append(fileContent.substring(range.last + 1))
+            }
+        }
+    }
+
+    @Composable
+    private fun SourceFileTitleAndText(
+        fileRelativePath: String,
+        highlightedSource: AnnotatedString
+    ) {
+        TitleMedium(fileRelativePath)
+        MaterialTheme.spacing.VerticalLevel4()
+        SelectionContainer {
+            Text(
+                text = highlightedSource,
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+            )
+        }
     }
 
     private val indentDp = MaterialTheme.spacing.level2
 
     @Composable
     private fun ElementInfoOrNothingDeclared(
-        schema: AnalysisSchema,
-        highlightedSourceRange: MutableState<IntRange?>,
-        type: DataClass,
+        type: DataClass?,
         node: DeclarativeDocument.DocumentNode.ElementNode?,
         resolutionContainer: DocumentResolutionContainer,
+        highlightingContext: HighlightingContext,
         indentLevel: Int,
     ) {
         Column(Modifier.padding(start = indentLevel * indentDp)) {
-            if (node == null) {
+            if (node == null || type == null) {
                 LabelMedium(NOTHING_DECLARED)
             } else {
                 type.properties.forEach { property ->
-                    PropertyInfo(highlightedSourceRange, node, property)
+                    PropertyInfo(node.property(property.name), highlightingContext, property)
                 }
                 val accessAndConfigure = type.memberFunctions.accessAndConfigure
                 val accessAndConfigureNames = accessAndConfigure.map { it.simpleName }
                 accessAndConfigure.forEach { subFunction ->
                     ConfiguringFunctionInfo(
-                        schema, subFunction, node, highlightedSourceRange, resolutionContainer, indentLevel
+                        subFunction,
+                        node,
+                        resolutionContainer,
+                        highlightingContext,
+                        indentLevel
                     )
+                    MaterialTheme.spacing.VerticalLevel2()
                 }
                 val addAndConfigure = type.memberFunctions.addAndConfigure.filter { function ->
                     function.simpleName !in accessAndConfigureNames
@@ -193,9 +242,14 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 val elementsByAddAndConfigure = node.content
                     .filterIsInstance<DeclarativeDocument.DocumentNode.ElementNode>()
                     .filter { it.name in addAndConfigureByName }
-                
+
                 elementsByAddAndConfigure.forEach { element ->
-                    AddingFunctionInfo(element, resolutionContainer, highlightedSourceRange, schema, indentLevel)
+                    AddingFunctionInfo(
+                        element,
+                        resolutionContainer,
+                        highlightingContext,
+                        indentLevel
+                    )
                 }
             }
         }
@@ -205,11 +259,11 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     private fun AddingFunctionInfo(
         element: DeclarativeDocument.DocumentNode.ElementNode,
         resolutionContainer: DocumentResolutionContainer,
-        highlightedSourceRange: MutableState<IntRange?>,
-        schema: AnalysisSchema,
+        highlightingContext: HighlightingContext,
         indentLevel: Int
     ) {
-        val arguments = when (val valueNode = element.elementValues.single()) {
+        val arguments = when (val valueNode = element.elementValues.singleOrNull()) {
+            null -> ""
             is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
             is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
                 val args = valueNode.values.single() as DeclarativeDocument.ValueNode.LiteralValueNode
@@ -221,63 +275,68 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
         val elementTextRepresentation = "${element.name}($arguments)"
 
-        if (elementType == null || element.content.isNotEmpty()) {
+        if (elementType == null || element.content.isEmpty()) {
+            LabelMedium(
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                    .withHoverCursor()
+                    .withClickTextRangeSelection(element, highlightingContext),
+                text = elementTextRepresentation
+            )
+        } else {
             TitleSmall(
                 text = elementTextRepresentation,
                 modifier = Modifier
                     .withHoverCursor()
-                    .withClickTextRangeSelection(element, highlightedSourceRange)
-            )
-        } else {
-            LabelMedium(
-                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
-                    .withHoverCursor()
-                    .withClickTextRangeSelection(element, highlightedSourceRange),
-                text = elementTextRepresentation
+                    .withClickTextRangeSelection(element, highlightingContext)
             )
             ElementInfoOrNothingDeclared(
-                schema, highlightedSourceRange, elementType, element, resolutionContainer, indentLevel + 1
+                elementType,
+                element,
+                resolutionContainer,
+                highlightingContext,
+                indentLevel + 1
             )
         }
     }
 
     @Composable
     private fun ConfiguringFunctionInfo(
-        schema: AnalysisSchema,
         subFunction: SchemaMemberFunction,
-        node: DeclarativeDocument.DocumentNode.ElementNode,
-        highlightedSourceRange: MutableState<IntRange?>,
+        parentNode: DeclarativeDocument.DocumentNode.ElementNode,
         resolutionContainer: DocumentResolutionContainer,
+        highlightingContext: HighlightingContext,
         indentLevel: Int
     ) {
-        val functionType = schema.configuredTypeOf(subFunction.accessAndConfigureSemantics)
-        val functionNode = node.childElementNode(subFunction.simpleName)
+        val functionNode = parentNode.childElementNode(subFunction.simpleName)
+        val functionType = functionNode?.type(resolutionContainer) as? DataClass
         TitleSmall(
             text = subFunction.simpleName,
             modifier = Modifier
                 .withHoverCursor()
-                .withClickTextRangeSelection(functionNode, highlightedSourceRange)
+                .withClickTextRangeSelection(functionNode, highlightingContext)
         )
         ElementInfoOrNothingDeclared(
-            schema, highlightedSourceRange, functionType, functionNode, resolutionContainer, indentLevel + 1
+            functionType,
+            functionNode,
+            resolutionContainer,
+            highlightingContext,
+            indentLevel + 1
         )
     }
 
     @Composable
     private fun PropertyInfo(
-        highlightedSourceRange: MutableState<IntRange?>,
-        node: DeclarativeDocument.DocumentNode.ElementNode,
+        propertyNode: DeclarativeDocument.DocumentNode.PropertyNode?,
+        highlightingContext: HighlightingContext,
         property: DataProperty
     ) {
         LabelMedium(
             modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                 .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                .onClick {
-                    highlightedSourceRange.value =
-                        node.propertySourceData(property.name)?.indexRange
-                },
+                .withClickTextRangeSelection(propertyNode, highlightingContext),
             text = "${property.name}: ${property.kotlinType.simpleName} = ${
-                node.propertyValue(property.name) ?: NOTHING_DECLARED
+                // TODO: display non-literal values with a proper structure:
+                propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
             }"
         )
     }
@@ -322,11 +381,32 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     }
 }
 
+private data class HighlightingContext(
+    val overlayOriginContainer: OverlayOriginContainer,
+    val highlightedSourceRange: MutableState<Map<String, IntRange>>
+)
+
 private fun Modifier.withHoverCursor() =
     pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
 
 @OptIn(ExperimentalFoundationApi::class)
 private fun Modifier.withClickTextRangeSelection(
     node: DeclarativeDocument.DocumentNode?,
-    rangeState: MutableState<in IntRange?>
-) = onClick { rangeState.value = node?.sourceData?.indexRange }
+    highlightingContext: HighlightingContext
+) = onClick {
+    fun DeclarativeDocument.DocumentNode.sourceIdentifierToRange() =
+        sourceData.sourceIdentifier.fileIdentifier to sourceData.indexRange
+
+    highlightingContext.highlightedSourceRange.value = if (node == null) {
+        emptyMap()
+    } else {
+        val ownIdToRange = node.sourceIdentifierToRange()
+        when (val origin = highlightingContext.overlayOriginContainer.data(node)) {
+            is FromOverlay,
+            is FromUnderlay -> mapOf(ownIdToRange)
+
+            is MergedElements -> mapOf(ownIdToRange, origin.underlayElement.sourceIdentifierToRange())
+            is ShadowedProperty -> mapOf(ownIdToRange, origin.underlayProperty.sourceIdentifierToRange())
+        }
+    }
+}
