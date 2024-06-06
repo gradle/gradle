@@ -19,7 +19,11 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
+// Because of TestKit
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     // Need to pin this to a specific JVM version to avoid Kotlin complaining about using a different version to Java
     def jvm = AvailableJavaHomes.jdk17
@@ -33,6 +37,8 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             args("-Dorg.gradle.unsafe.target-gradle-api-version=$apiJarVersion")
             withInstallations(jvm)
         }
+
+        file("src/test/java/org/example/PublishedApiTestPluginTest.java") << pluginTestJava()
     }
 
     def "can compile Java code against public API"() {
@@ -46,7 +52,8 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             public class PublishedApiTestPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    project.getTasks().register("myTask", CustomTask.class);
+                    System.out.println("Hello from plugin");
+                    project.getTasks().register("customTask", CustomTask.class);
                 }
             }
         """
@@ -59,15 +66,13 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             public class CustomTask extends DefaultTask {
                 @TaskAction
                 public void customAction() {
-                    System.out.println("Hello from CustomTask");
+                    System.out.println("Hello from custom task");
                 }
             }
         """
 
         expect:
-        succeeds(":compileJava")
-        file("build/classes/java/main/org/example/CustomTask.class").assertIsFile()
-        file("build/classes/java/main/org/example/PublishedApiTestPlugin.class").assertIsFile()
+        succeeds(":test")
     }
 
     def "can compile Groovy code against public API"() {
@@ -83,6 +88,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 void apply(Project project) {
                     project.tasks.register("myTask", CustomTask) {
                         mapValues = ["alma": 1, "bela": 2]
+                        println("Hello from plugin")
                     }
                 }
             }
@@ -103,7 +109,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
                 @TaskAction
                 void customAction() {
-                    println("Hello from CustomTask")
+                    println("Hello from custom task")
                     println("- mapValues['alma'] = \${mapValues['alma']}")
                 }
             }
@@ -111,8 +117,6 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
         expect:
         succeeds(":compileGroovy")
-        file("build/classes/groovy/main/org/example/CustomTask.class").assertIsFile()
-        file("build/classes/groovy/main/org/example/PublishedApiTestPlugin.class").assertIsFile()
     }
 
     def "can compile Kotlin code against public API"() {
@@ -128,6 +132,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 override fun apply(project: Project) {
                     project.tasks.register("myTask", CustomTask::class.java) { task ->
                         task.mapValues.set(mapOf("alma" to 1, "bela" to 2))
+                        println("Hello from plugin")
                     }
                 }
             }
@@ -146,7 +151,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
                 @TaskAction
                 fun customAction() {
-                    println("Hello from CustomTask")
+                    println("Hello from custom task")
                     // println("- mapValues['alma'] = \${mapValues['alma']}")
                 }
             }
@@ -154,14 +159,13 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
         expect:
         succeeds(":compileKotlin")
-        file("build/classes/kotlin/main/org/example/CustomTask.class").assertIsFile()
-        file("build/classes/kotlin/main/org/example/PublishedApiTestPlugin.class").assertIsFile()
     }
 
     private configureApiWithPlugin(String pluginDefinition) {
         """
             plugins {
                 id("java-gradle-plugin")
+                id("jvm-test-suite")
                 $pluginDefinition
             }
 
@@ -174,8 +178,16 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             gradlePlugin {
                 plugins {
                     create("plugin") {
-                        id = "test.plugin"
+                        id = "org.example.test"
                         implementationClass = "org.example.PublishedApiTestPlugin"
+                    }
+                }
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
                     }
                 }
             }
@@ -185,6 +197,48 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                     url = uri("$apiJarRepoLocation")
                 }
                 mavenCentral()
+            }
+        """
+    }
+
+    private static String pluginTestJava() {
+        """
+            package org.example;
+
+            import org.gradle.testkit.runner.GradleRunner;
+            import org.gradle.testkit.runner.BuildResult;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.io.TempDir;
+
+            import java.io.File;
+            import java.io.IOException;
+            import java.nio.file.Files;
+
+            import static org.junit.jupiter.api.Assertions.assertTrue;
+
+            public class PublishedApiTestPluginTest {
+
+                @TempDir
+                File testProjectDir;
+
+                private void createBuildFile(String content) throws IOException {
+                    File buildFile = new File(testProjectDir, "build.gradle");
+                    Files.write(buildFile.toPath(), content.getBytes());
+                }
+
+                @Test
+                public void testCustomTask() throws IOException {
+                    createBuildFile("plugins { id 'org.example.test' }");
+
+                    BuildResult result = GradleRunner.create()
+                        .withProjectDir(testProjectDir)
+                        .withArguments("customTask")
+                        .withPluginClasspath()
+                        .build();
+
+                    assertTrue(result.getOutput().contains("Hello from plugin"));
+                    assertTrue(result.getOutput().contains("Hello from custom task"));
+                }
             }
         """
     }
