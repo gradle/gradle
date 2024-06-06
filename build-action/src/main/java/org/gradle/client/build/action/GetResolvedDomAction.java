@@ -18,20 +18,11 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
 
     @Override
     public ResolvedDomPrerequisites execute(BuildController controller) {
-        InterpretationSequence settingsSchema = getSettingsInterpretationSequence(controller);
-        InterpretationSequence projectSchema = getProjectInterpretationSequence(controller);
+        DeclarativeSchemaModel declarativeSchemaModel = controller.getModel(DeclarativeSchemaModel.class);
+        InterpretationSequence settingsSchema = declarativeSchemaModel.getSettingsSequence();
+        InterpretationSequence projectSchema = declarativeSchemaModel.getProjectSequence();
         Pair<File, List<File>> buildFiles = getDeclarativeBuildFiles(controller);
         return new ResolvedDomPrerequisitesImpl(settingsSchema, projectSchema, buildFiles.getLeft(), buildFiles.getRight());
-    }
-
-    private static InterpretationSequence getSettingsInterpretationSequence(BuildController controller) {
-        DeclarativeSchemaModel declarativeSchemaModel = controller.getModel(DeclarativeSchemaModel.class);
-        return declarativeSchemaModel.getSettingsSequence();
-    }
-
-    private static InterpretationSequence getProjectInterpretationSequence(BuildController controller) {
-        DeclarativeSchemaModel declarativeSchemaModel = controller.getModel(DeclarativeSchemaModel.class);
-        return declarativeSchemaModel.getProjectSequence();
     }
 
     private static Pair<File, List<File>> getDeclarativeBuildFiles(BuildController controller) {
