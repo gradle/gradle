@@ -390,7 +390,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         given:
         setupAnnotationProcessors(JavaVersion.VERSION_1_8)
 
-        writeJavaCausingTwoCompilationWarnings("Foo")
+        def generator = new ProblematicClassGenerator("Foo")
+        generator.addWarning()
+        generator.save()
+        possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
 
         when:
         executer.withArguments("--info")
@@ -406,13 +409,6 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             // In JDK8, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
         }
-        verifyAll(receivedProblem(1)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
-            // In JDK8, the compiler will not simplify the type to just "String"
-            additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
-        }
     }
 
     @Issue("https://github.com/gradle/gradle/pull/29141")
@@ -421,8 +417,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         given:
         setupAnnotationProcessors(jdk.javaVersion)
 
-        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
-        possibleFileLocations.put(fooFileLocation, 2)
+        def generator = new ProblematicClassGenerator("Foo")
+        generator.addWarning()
+        generator.save()
+        possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
 
         when:
         executer.withArguments("--info")
@@ -436,13 +434,6 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             // In JDK11, the compiler will not simplify the type to just "String"
-            additionalData.asMap["formatted"].contains("redundant cast to String")
-        }
-        verifyAll(receivedProblem(1)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
-            // In JDK11s, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to String")
         }
 
@@ -496,7 +487,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         assertedLocationCount += 1
         // Check if we expect this file location
         def occurrences = possibleFileLocations.get(fileLocationPath)
-        assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
+        assert occurrences, "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
         visitedFileLocations.putIfAbsent(fileLocationPath, 0)
         visitedFileLocations[fileLocationPath] += 1
 
