@@ -92,6 +92,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
+    implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
     implementation(project(":messaging"))
     implementation(project(":model-core"))

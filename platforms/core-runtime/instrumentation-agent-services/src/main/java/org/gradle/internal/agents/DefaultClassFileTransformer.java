@@ -16,6 +16,7 @@
 
 package org.gradle.internal.agents;
 
+import javax.annotation.Nullable;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,8 +24,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class DefaultClassFileTransformer implements ClassFileTransformer {
     private static final AtomicBoolean INSTALLED = new AtomicBoolean();
 
+    @Nullable
     @Override
-    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+    public byte[] transform(
+        @Nullable ClassLoader loader,
+        @Nullable String className,
+        @Nullable Class<?> classBeingRedefined,
+        @Nullable ProtectionDomain protectionDomain,
+        byte[] classfileBuffer
+    ) {
         if (!(loader instanceof InstrumentingClassLoader)) {
             return null;
         }

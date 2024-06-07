@@ -95,6 +95,7 @@ val core = platform("core") {
         subproject("gradle-cli-main")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
+        subproject("instrumentation-agent-services")
         subproject("instrumentation-declarations")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")

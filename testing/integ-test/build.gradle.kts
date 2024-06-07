@@ -8,6 +8,10 @@ dependencies {
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":build-option"))
     integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(projects.instrumentationAgentServices) {
+        because("Has a dedicated agent control test")
+        // TODO(mlopatkin) move the test to the agent library.
+    }
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":process-services"))

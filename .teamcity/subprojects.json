@@ -588,6 +588,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "instrumentation-agent-services",
+    "path": "platforms/core-runtime/instrumentation-agent-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "instrumentation-declarations",
     "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,

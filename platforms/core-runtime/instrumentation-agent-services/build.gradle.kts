@@ -18,20 +18,14 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Implementation of the Gradle daemon server"
+description = "Controls for the instrumentation agent potentially applied to the process"
 
 dependencies {
-    api(project(":launcher"))
-    api(project(":logging"))
-    api(project(":messaging"))
+    api(projects.stdlibJavaExtensions)
 
-    implementation(libs.guava)
-    implementation(project(":base-services"))
-    implementation(project(":concurrent"))
-    implementation(projects.instrumentationAgentServices)
-    implementation(project(":stdlib-java-extensions"))
-    implementation(project(":logging-api"))
-    implementation(project(":native"))
-    implementation(project(":serialization"))
-    implementation(project(":core"))
+    implementation(projects.baseServices)
+    implementation(projects.functional)
+
+    implementation(libs.jsr305)
+    implementation(libs.slf4jApi)
 }

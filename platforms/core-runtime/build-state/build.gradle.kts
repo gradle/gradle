@@ -21,6 +21,7 @@ plugins {
 description = "Types for build process and session state management"
 
 dependencies {
+    api(projects.instrumentationAgentServices)
     api(projects.serviceProvider)
     api(project(":core"))
     api(project(":base-services"))

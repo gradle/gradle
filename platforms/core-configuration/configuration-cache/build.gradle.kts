@@ -72,6 +72,7 @@ dependencies {
     implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.inputTracking)
+    implementation(projects.instrumentationAgentServices)
     implementation(projects.logging)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)

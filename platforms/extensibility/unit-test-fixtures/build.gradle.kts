@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":build-state"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
+    implementation(projects.instrumentationAgentServices)
     implementation(project(":stdlib-java-extensions"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
