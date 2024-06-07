@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.configurationcache.serialization.codecs.ClosureCodec
+import org.gradle.internal.serialize.codecs.core.ClosureCodec
 
 class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 

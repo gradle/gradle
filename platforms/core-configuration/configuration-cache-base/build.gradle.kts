@@ -23,9 +23,12 @@ description = "Configuration cache internal API shared between :configuration-ca
 dependencies {
     api(projects.configurationProblemsBase)
     api(projects.core)
+    api(projects.coreApi)
     api(projects.graphSerialization)
     api(projects.javaLanguageExtensions)
     api(projects.loggingApi)
 
     api(libs.kotlinStdlib)
+
+    implementation(projects.baseServices)
 }

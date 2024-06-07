@@ -17,7 +17,6 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
-import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.internal.event.ListenerManager

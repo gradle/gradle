@@ -19,14 +19,14 @@ package org.gradle.configurationcache.isolation
 import org.gradle.api.IsolatedAction
 import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.problems.AbstractProblemsListener
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configurationcache.base.logger
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.serialize.graph.BeanStateReaderLookup
+import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.DefaultReadContext
@@ -71,7 +71,7 @@ class SerializedIsolatedActionGraph<G>(
 internal
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
-    private val beanStateWriterLookup: DefaultBeanStateWriterLookup,
+    private val beanStateWriterLookup: BeanStateWriterLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun <G : Any> serialize(action: G): SerializedIsolatedActionGraph<G> {
@@ -118,7 +118,7 @@ class IsolatedActionSerializer(
 internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
-    private val beanStateReaderLookup: DefaultBeanStateReaderLookup,
+    private val beanStateReaderLookup: BeanStateReaderLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun <G : Any> deserialize(action: SerializedIsolatedActionGraph<G>): G =

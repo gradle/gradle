@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.internal.serialize.beans.services.BeanConstructors
 import org.gradle.configurationcache.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker

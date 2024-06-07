@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
-import org.gradle.configurationcache.serialization.codecs.JavaRecordCodec
+import org.gradle.internal.serialize.codecs.core.JavaRecordCodec
 import org.gradle.internal.serialize.codecs.guava.guavaTypes
 import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder

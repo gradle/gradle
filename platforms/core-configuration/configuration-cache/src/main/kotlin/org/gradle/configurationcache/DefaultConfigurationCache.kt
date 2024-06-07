@@ -28,9 +28,9 @@ import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.BuildTreeModelSideEffectStore
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.configurationcache.serialization.HostServiceProvider
-import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.configurationcache.serialization.service
+import org.gradle.internal.configurationcache.base.serialize.HostServiceProvider
+import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.configurationcache.base.serialize.service
 import org.gradle.configurationcache.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory

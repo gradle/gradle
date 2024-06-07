@@ -23,21 +23,21 @@ import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.serialization.Codecs
 import org.gradle.configurationcache.serialization.DefaultClassDecoder
 import org.gradle.configurationcache.serialization.DefaultClassEncoder
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
-import org.gradle.configurationcache.serialization.Codecs
-import org.gradle.configurationcache.serialization.service
-import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.configurationcache.base.serialize.service
+import org.gradle.internal.configurationcache.base.serialize.withGradleIsolate
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.BeanStateReaderLookup
+import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
@@ -67,8 +67,8 @@ class ConfigurationCacheIO internal constructor(
     private val host: DefaultConfigurationCache.Host,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val beanStateReaderLookup: DefaultBeanStateReaderLookup,
-    private val beanStateWriterLookup: DefaultBeanStateWriterLookup,
+    private val beanStateReaderLookup: BeanStateReaderLookup,
+    private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter
 ) {
     private

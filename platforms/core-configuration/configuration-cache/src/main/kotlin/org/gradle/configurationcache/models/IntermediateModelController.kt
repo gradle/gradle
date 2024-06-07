@@ -22,7 +22,7 @@ import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation

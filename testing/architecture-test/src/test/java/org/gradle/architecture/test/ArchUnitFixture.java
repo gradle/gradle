@@ -80,6 +80,7 @@ public interface ArchUnitFixture {
         "org.gradle.internal.extensions.core..",
         "org.gradle.internal.extensions.stdlib..",
         "org.gradle.internal.flow.services..",
+        "org.gradle.internal.serialize.beans..",
         "org.gradle.internal.serialize.codecs..",
         "org.gradle.internal.serialize.graph..",
         "org.gradle.kotlin..",
