@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-import org.gradle.util.internal.ToBeImplemented
+
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -156,13 +156,12 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/28204")
     def "access to #description delegated property value is causing a violation"() {
+        given:
         settingsFile << """
             include("a")
         """
-
         buildKotlinFile << """
             project.extensions.extraProperties["myProperty"] = "hello"
         """
@@ -170,14 +169,19 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         // Requires a sub-project
         file("a/build.gradle.kts") << """
             val myProperty: $type by project
-            println(myProperty) // actual access to the value is required
+            println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
         """
 
         when:
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall")
+        outputContains("myProperty: hello")
+
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project ':'")
+        }
 
         where:
         description    | type
