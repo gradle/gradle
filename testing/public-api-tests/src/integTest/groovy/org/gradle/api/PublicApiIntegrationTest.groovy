@@ -28,7 +28,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
     // Need to pin this to a specific JVM version to avoid Kotlin complaining about using a different version to Java
     def jvm = AvailableJavaHomes.jdk17
 
-    def apiJarRepoLocation = System.getProperty('integTest.apiJarRepoLocation')
+    def apiJarRepoLocation = new File(System.getProperty('integTest.apiJarRepoLocation'))
     def apiJarVersion = System.getProperty("integTest.distZipVersion")
     def kotlinVersion = System.getProperty("integTest.kotlinVersion")
 
@@ -209,7 +209,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             repositories {
                 maven {
-                    url = uri("$apiJarRepoLocation")
+                    url = uri("${apiJarRepoLocation.toURI()}")
                 }
                 mavenCentral()
             }
