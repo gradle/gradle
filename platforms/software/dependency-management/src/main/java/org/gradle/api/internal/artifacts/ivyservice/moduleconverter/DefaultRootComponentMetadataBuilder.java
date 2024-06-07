@@ -76,27 +76,36 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     public RootComponentState toRootComponent(String configurationName) {
         Module module = componentIdentity.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
-
-        // TODO: We should not ask the component for a resolvable configuration. Components should only
-        // expose variants -- which are by definition consumable only. Instead, we should create our own
-        // root variant and add it to a new one-off root component that holds only that root variant.
-        // The root variant should not live in a standard local component alongside other (consumable) variants.
-        @SuppressWarnings("deprecation")
-        LocalVariantGraphResolveState rootVariant = state.getConfigurationLegacy(configurationName);
-        if (rootVariant == null) {
-            throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, componentIdentifier));
-        }
+        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
 
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
-                return state;
+                return getComponentState(module, componentIdentifier, moduleVersionId);
             }
 
             @Override
             public VariantGraphResolveState getRootVariant() {
+                // TODO: We should not ask the component for a resolvable configuration. Components should only
+                // expose variants -- which are by definition consumable only. Instead, we should create our own
+                // root variant and add it to a new one-off root component that holds only that root variant.
+                // The root variant should not live in a standard local component alongside other (consumable) variants.
+                @SuppressWarnings("deprecation")
+                LocalVariantGraphResolveState rootVariant = getRootComponent().getConfigurationLegacy(configurationName);
+                if (rootVariant == null) {
+                    throw new IllegalArgumentException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
+                }
                 return rootVariant;
+            }
+
+            @Override
+            public ComponentIdentifier getComponentIdentifier() {
+                return componentIdentifier;
+            }
+
+            @Override
+            public ModuleVersionIdentifier getModuleVersionIdentifier() {
+                return moduleVersionId;
             }
         };
     }
@@ -106,17 +115,27 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         return componentIdentity;
     }
 
-    private LocalComponentGraphResolveState getComponentState(Module module, ComponentIdentifier componentIdentifier) {
+    private LocalComponentGraphResolveState getComponentState(
+        Module module,
+        ComponentIdentifier componentIdentifier,
+        ModuleVersionIdentifier moduleVersionIdentifier
+    ) {
         LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
         if (state == null) {
-            state = createComponentState(module, componentIdentifier);
+            state = createComponentState(module, componentIdentifier, moduleVersionIdentifier);
             holder.cache(state, shouldCacheResolutionState());
         }
         return state;
     }
 
-    private LocalComponentGraphResolveState createComponentState(Module module, ComponentIdentifier componentIdentifier) {
+    private LocalComponentGraphResolveState createComponentState(
+        Module module,
+        ComponentIdentifier componentIdentifier,
+        ModuleVersionIdentifier moduleVersionId
+    ) {
+        String status = module.getStatus();
         ProjectComponentIdentifier projectId = module.getProjectId();
+
         if (projectId != null) {
             ProjectState projectState = projectStateRegistry.stateFor(projectId);
             if (!projectState.hasMutableState()) {
@@ -124,21 +143,25 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             }
             return projectState.fromMutableState(project -> {
                 AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-                return createRootComponentMetadata(module, componentIdentifier, schema, project.getModel());
+                return createRootComponentMetadata(componentIdentifier, moduleVersionId, status, schema, project.getModel());
             });
         } else {
-            return createRootComponentMetadata(module, componentIdentifier, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE);
+            return createRootComponentMetadata(componentIdentifier, moduleVersionId, status, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE);
         }
     }
 
-    private LocalComponentGraphResolveState createRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
-        ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-
+    private LocalComponentGraphResolveState createRootComponentMetadata(
+        ComponentIdentifier componentIdentifier,
+        ModuleVersionIdentifier moduleVersionId,
+        String status,
+        AttributesSchemaInternal schema,
+        ModelContainer<?> model
+    ) {
         if (shouldCacheResolutionState()) {
-            return localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, module.getStatus(), schema);
+            return localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionId, configurationsProvider, status, schema);
         } else {
             // Mark the state as 'ad hoc' and not cacheable
-            return localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, module.getStatus(), schema);
+            return localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionId, configurationsProvider, status, schema);
         }
     }
 

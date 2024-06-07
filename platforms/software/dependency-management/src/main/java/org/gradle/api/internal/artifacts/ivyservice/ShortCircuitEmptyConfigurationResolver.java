@@ -24,15 +24,13 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -46,7 +44,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
@@ -56,15 +53,9 @@ import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildIdentifier thisBuild;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate) {
         this.delegate = delegate;
-        this.componentIdentifierFactory = componentIdentifierFactory;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.thisBuild = thisBuild;
     }
 
     @Override
@@ -114,8 +105,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     private static VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
-        LocalComponentGraphResolveState root = resolveContext.toRootComponent().getRootComponent();
-        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(root.getModuleVersionId(), root.getId(), resolveContext.getAttributes().asImmutable());
+        RootComponentMetadataBuilder.RootComponentState root = resolveContext.toRootComponent();
+        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
+            root.getModuleVersionIdentifier(),
+            root.getComponentIdentifier(),
+            resolveContext.getAttributes().asImmutable()
+        );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
