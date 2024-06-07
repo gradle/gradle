@@ -25,9 +25,18 @@ description = "Public API for Gradle"
 dependencies {
     distribution(project(":distributions-full"))
 
+    // Groovy is part of our API
     externalApi(libs.groovy)
+    // Required to inject services into tasks and other objects
     externalApi(libs.inject)
+    // Moslty used for nullability annotations
     externalApi(libs.jsr305)
+    // We use this to annotate type parameters as @Nullable
+    externalApi(libs.jetbrainsAnnotations)
+    // SLF4J logging is part of our public API
+    externalApi(libs.slf4jApi)
+    // We only need this because of AntTarget :o
+    externalApi(libs.ant)
 }
 
 val testRepoLocation = layout.buildDirectory.dir("repos/test")
