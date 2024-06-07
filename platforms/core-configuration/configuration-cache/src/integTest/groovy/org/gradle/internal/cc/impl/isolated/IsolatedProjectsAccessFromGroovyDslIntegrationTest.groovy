@@ -632,6 +632,37 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
+    @ToBeImplemented
+    def "property lookup via script objects tracks dynamic call context"() {
+        given:
+        settingsFile """
+            include("a")
+        """
+        buildFile """
+            project.extensions.extraProperties["projectProperty"] = "hello"
+        """
+
+        groovyFile "a/myscript.gradle", """
+            // plain access at the script top-level does not expose the issue
+            project.pluginManager.withPlugin('base', {
+                println("My property: " + projectProperty.foo)
+            })
+        """
+        groovyFile "a/build.gradle", """
+            plugins {
+                id "base"
+            }
+            apply from: 'myscript.gradle'
+        """
+
+        when:
+        isolatedProjectsFails("help")
+
+        then:
+        failureDescriptionContains("A problem occurred evaluating script.")
+        failureCauseContains("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall")
+    }
+
     def "build script can query basic details of projects in allprojects block"() {
         createDirs("a", "b")
         settingsFile << """
