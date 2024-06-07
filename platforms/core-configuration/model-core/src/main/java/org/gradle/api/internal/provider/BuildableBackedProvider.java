@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
 
@@ -48,6 +50,15 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
         // not a lambda for readability purposes.
         //noinspection Convert2Lambda
         return new ValueProducer() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                if (buildable instanceof TaskDependencyContainer) {
+                    ((TaskDependencyContainer) buildable).visitDependencies(context);
+                } else {
+                    ValueProducer.super.visitDependencies(context);
+                }
+            }
+
             @Override
             public void visitProducerTasks(Action<? super Task> visitor) {
                 for (Task dependency : buildableDependencies()) {

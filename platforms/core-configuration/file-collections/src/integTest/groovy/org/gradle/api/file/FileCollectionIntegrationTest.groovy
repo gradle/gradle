@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -513,7 +512,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
 
-    @ToBeImplemented
     @Issue('https://github.com/gradle/gradle/issues/29147')
     def "can connect transformed incoming elements of a configuration to task input ListProperty"() {
         withZipArtifactProducingSubprojects 'p1', 'p2'
@@ -551,17 +549,14 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             }
         '''
 
-        expect:
-        fails 'merge'
-// Expected behavior:
-//        when:
-//        run 'merge'
-//
-//        then:
-//        outputContains 'Transforming p1.zip'
-//        outputContains 'Transforming p2.zip'
-//        result.assertTasksExecuted ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
-//        file('merge.txt').text == 'p1.zip,p2.zip'
+        when:
+        run 'merge'
+
+        then:
+        outputContains 'Transforming p1.zip'
+        outputContains 'Transforming p2.zip'
+        result.assertTasksExecuted ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
+        file('merge.txt').text == 'p1.zip,p2.zip'
     }
 
     @Issue('https://github.com/gradle/gradle/issues/29147')
