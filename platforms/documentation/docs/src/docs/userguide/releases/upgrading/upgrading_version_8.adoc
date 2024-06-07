@@ -59,24 +59,17 @@ This means it was possible for some projects to compile without any declared dep
 We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
 If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
 
-==== Renaming of org.gradle.configurationcache.* packages
+==== Configuration cache implementation packages now under `org.gradle.internal`
 
-References to classes that are not API should be avoided at all costs, as their direct use is definitely unsupported,
-and Gradle internal implementation classes may be removed or renamed from a version to another without any warning.
+References to Gradle types that are not API should be avoided at all costs, as their direct use is definitely unsupported,
+and Gradle internal implementation classes may suffer breaking changes (or be renamed or removed) from a version to another without any warning.
 
-It is important that users are able to tell which parts of the Gradle codebase is API, and which parts are internal.
+It is important that users are able to tell which parts of the Gradle codebase are API, and which parts are internal.
 One way that is achieved is by having `internal` in implementation package names.
-However, the configuration cache subsystem was not following that pattern before this release.
+However, the configuration cache subsystem was not following that pattern before this release, which could be confusing to users.
 
-In order to address that, in the present release,
-several implementation packages have been renamed or split into new `internal` packages.
-Here is a (possibly partial) list of packages that have been renamed to or had their
-types moved to new packages with `internal` in their qualified names.
-
-* `org.gradle.configurationcache.flow`
-* `org.gradle.configurationcache.problems`
-* `org.gradle.configurationcache.serialization`
-* `org.gradle.configurationcache.extensions`
+In order to address that, in the present release, all code originally under `org.gradle.configurationcache*` packages
+(which was never API) has been moved to new internal (`org.gradle.internal.*`) packages.
 
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
