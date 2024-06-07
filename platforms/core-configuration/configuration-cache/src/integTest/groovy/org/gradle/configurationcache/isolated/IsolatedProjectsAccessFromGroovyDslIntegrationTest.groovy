@@ -554,8 +554,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    def 'user code in dynamic property lookup triggers a new isolation problem'() {
-        createDirs("sub", "sub/sub-sub")
+    def 'user code in #description dynamic property lookup triggers a new isolation problem'() {
         settingsFile << """
             include(":sub")
             include(":sub:sub-sub")
@@ -568,8 +567,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
                 Project p
                 @Inject Unusual(Project p) { this.p = p }
                 Object getBar() {
-                    // TODO: p.foo is not covered yet!
-                    p.property("foo")
+                    $lookup
                 }
             }
 
@@ -592,9 +590,14 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-sub")
-            problem("Build file 'sub/build.gradle': line 7: Project ':sub' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'sub/build.gradle': line 6: Project ':sub' cannot dynamically look up a property in the parent project ':'")
             problem("Build file 'sub/sub-sub/build.gradle': line 2: Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
         }
+
+        where:
+        description | lookup
+        "stringy"   | 'p.property("foo")'
+        "direct"    | 'p.foo'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22949")
