@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.internal.instrumentation.agent;
 
-class DisabledAgentStatus implements AgentStatus {
+import org.gradle.internal.lazy.Lazy;
+
+class DefaultAgentStatus implements AgentStatus {
+
+    private static final Lazy<Boolean> IS_AGENT_INSTRUMENTATION_ENABLED = Lazy.locking().of(AgentControl::isInstrumentationAgentApplied);
+
     @Override
     public boolean isAgentInstrumentationEnabled() {
-        return false;
+        return IS_AGENT_INSTRUMENTATION_ENABLED.get();
     }
 }

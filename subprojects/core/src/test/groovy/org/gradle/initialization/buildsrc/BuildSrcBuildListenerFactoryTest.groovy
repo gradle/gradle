@@ -23,7 +23,7 @@ import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.agents.AgentStatus
+import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

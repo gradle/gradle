@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;

@@ -1578,6 +1578,7 @@ Class <org.gradle.internal.actor.ActorFactory> is not annotated (directly or via
 Class <org.gradle.internal.actor.internal.DefaultActorFactory$BlockingActor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultActorFactory.java:0)
 Class <org.gradle.internal.actor.internal.DefaultActorFactory$NonBlockingActor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultActorFactory.java:0)
 Class <org.gradle.internal.actor.internal.DefaultActorFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultActorFactory.java:0)
+Class <org.gradle.internal.agents.InstrumentingClassLoader> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InstrumentingClassLoader.java:0)
 Class <org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AuthenticationSupportedInternal.java:0)
 Class <org.gradle.internal.authentication.AbstractAuthentication$DefaultHostAndPort> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractAuthentication.java:0)
 Class <org.gradle.internal.authentication.AbstractAuthentication> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractAuthentication.java:0)

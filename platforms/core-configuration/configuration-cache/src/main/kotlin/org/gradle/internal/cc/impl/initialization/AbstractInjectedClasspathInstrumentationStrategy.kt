@@ -16,8 +16,8 @@
 
 package org.gradle.internal.cc.impl.initialization
 
-import org.gradle.internal.agents.AgentUtils
 import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.instrumentation.agent.AgentUtils
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import java.lang.management.ManagementFactory
 

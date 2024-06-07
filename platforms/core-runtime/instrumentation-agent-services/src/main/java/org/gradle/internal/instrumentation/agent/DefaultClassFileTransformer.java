@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.internal.instrumentation.agent;
+
+import org.gradle.internal.agents.InstrumentingClassLoader;
 
 import javax.annotation.Nullable;
 import java.lang.instrument.ClassFileTransformer;

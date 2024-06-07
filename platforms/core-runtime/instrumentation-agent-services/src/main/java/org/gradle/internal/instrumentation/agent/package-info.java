@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
-
-import org.gradle.internal.lazy.Lazy;
-
-class DefaultAgentStatus implements AgentStatus {
-
-    private static final Lazy<Boolean> IS_AGENT_INSTRUMENTATION_ENABLED = Lazy.locking().of(AgentControl::isInstrumentationAgentApplied);
-
-    @Override
-    public boolean isAgentInstrumentationEnabled() {
-        return IS_AGENT_INSTRUMENTATION_ENABLED.get();
-    }
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.instrumentation.agent;

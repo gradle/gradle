@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.internal.instrumentation.agent;
 
 import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
