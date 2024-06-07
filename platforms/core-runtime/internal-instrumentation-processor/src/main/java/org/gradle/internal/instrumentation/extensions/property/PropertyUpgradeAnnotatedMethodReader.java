@@ -225,8 +225,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         AccessorType accessorType = method.getParameters().size() > 1
             ? AccessorType.SETTER
             : AccessorType.GETTER;
-        Type originalType = extractType(method.getReturnType());
-        boolean isFluentSetter = accessorType == AccessorType.SETTER && !originalType.equals(Type.VOID_TYPE);
+        Type returnType = extractType(method.getReturnType());
+        boolean isFluentSetter = accessorType == AccessorType.SETTER && !returnType .equals(Type.VOID_TYPE);
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
@@ -239,17 +239,25 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             innerClass.getSimpleName().toString()
         );
 
+        List<ParameterInfo> parameters = method.getParameters().stream()
+            .skip(1)
+            .map(parameter -> new ParameterInfoImpl(
+                parameter.getSimpleName().toString(),
+                TypeUtils.extractType(parameter.asType()),
+                METHOD_PARAMETER
+            ))
+            .collect(Collectors.toList());
         return new AccessorSpec(
             generatedClassName,
             accessorType,
             propertyName,
             methodName,
-            originalType,
+            returnType,
+            parameters,
             deprecationSpec,
             binaryCompatibility,
             isFluentSetter,
-            method
-        );
+            method);
     }
 
     private DeprecationSpec readDeprecationSpec(AnnotationMirror annotation) {
@@ -320,14 +328,39 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility
     ) {
-        boolean isFluentSetter = accessorType == AccessorType.SETTER
-            ? AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
-            .map(v -> (Boolean) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"))
-            : false;
+        Type returnType;
+        List<ParameterInfo> parameters;
+        boolean isFluentSetter;
+        switch (accessorType) {
+            case GETTER:
+                parameters = new ArrayList<>();
+                isFluentSetter = false;
+                returnType = originalType;
+                break;
+            case SETTER:
+                isFluentSetter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
+                    .map(v -> (Boolean) v.getValue())
+                    .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"));
+                parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
+                returnType = isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported accessor type: " + accessorType);
+        }
         String propertyName = getPropertyName(methodName);
         String generatedClassName = "org.gradle.internal.classpath.generated." + method.getEnclosingElement().getSimpleName() + "_Adapter";
-        return new AccessorSpec(generatedClassName, accessorType, propertyName, methodName, originalType, deprecationSpec, binaryCompatibility, isFluentSetter, null);
+        return new AccessorSpec(
+            generatedClassName,
+            accessorType,
+            propertyName,
+            methodName,
+            returnType,
+            parameters,
+            deprecationSpec,
+            binaryCompatibility,
+            isFluentSetter,
+            null
+        );
     }
 
     private static Type extractOriginalType(ExecutableElement method, AnnotationMirror annotation) {
@@ -367,10 +400,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String interceptorsClassName = getGroovyInterceptorsClassName();
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, BYTECODE_UPGRADE));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
-        Type originalType = accessor.originalType;
+        Type returnType = accessor.returnType;
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(GROOVY_PROPERTY_GETTER, method, originalType, accessor.propertyName, parameters),
-            extractImplementationInfo(accessor, method, originalType, accessor.methodName, "get", Collections.emptyList()),
+            extractCallableInfo(GROOVY_PROPERTY_GETTER, method, returnType, accessor.propertyName, parameters),
+            extractImplementationInfo(accessor, method, returnType, accessor.methodName, "get", Collections.emptyList()),
             extras
         );
     }
@@ -378,19 +411,18 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private CallInterceptionRequest createJvmGetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
         List<RequestExtra> extras = getJvmRequestExtras(accessor, method, accessor.binaryCompatibility);
         String callableName = accessor.methodName;
-        Type originalType = accessor.originalType;
+        Type returnType = accessor.returnType;
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(INSTANCE_METHOD, method, originalType, callableName, Collections.emptyList()),
-            extractImplementationInfo(accessor, method, originalType, accessor.methodName, "get", Collections.emptyList()),
+            extractCallableInfo(INSTANCE_METHOD, method, returnType, callableName, Collections.emptyList()),
+            extractImplementationInfo(accessor, method, returnType, accessor.methodName, "get", Collections.emptyList()),
             extras
         );
     }
 
     private CallInterceptionRequest createJvmSetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
-        Type originalType = accessor.originalType;
-        Type returnType = accessor.isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
+        Type returnType = accessor.returnType;
         String callableName = accessor.methodName;
-        List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
+        List<ParameterInfo> parameters = accessor.parameters;
         BinaryCompatibility binaryCompatibility = accessor.binaryCompatibility;
         List<RequestExtra> extras = getJvmRequestExtras(accessor, method, binaryCompatibility);
         return new CallInterceptionRequestImpl(
@@ -482,7 +514,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final String propertyName;
         private final AccessorType accessorType;
         private final String methodName;
-        private final Type originalType;
+        private final Type returnType;
+        private final List<ParameterInfo> parameters;
         private final boolean isFluentSetter;
         private final BinaryCompatibility binaryCompatibility;
         private final DeprecationSpec deprecationSpec;
@@ -493,7 +526,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             AccessorType accessorType,
             String propertyName,
             String methodName,
-            Type originalType,
+            Type returnType,
+            List<ParameterInfo> parameters,
             DeprecationSpec deprecationSpec,
             BinaryCompatibility binaryCompatibility,
             boolean isFluentSetter,
@@ -503,7 +537,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             this.propertyName = propertyName;
             this.accessorType = accessorType;
             this.methodName = methodName;
-            this.originalType = originalType;
+            this.returnType = returnType;
+            this.parameters = parameters;
             this.deprecationSpec = deprecationSpec;
             this.binaryCompatibility = binaryCompatibility;
             this.isFluentSetter = isFluentSetter;
