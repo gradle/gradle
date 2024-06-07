@@ -60,7 +60,7 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property (experimental)");
+    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property ('org.gradle.internal.transform-caching-disabled')");
 
     protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
@@ -83,7 +83,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
-    private final boolean disableCachingByProeprty;
+    private final boolean disableCachingByProperty;
 
     private BuildOperationContext operationContext;
 
@@ -92,14 +92,12 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-
         TransformExecutionListener transformExecutionListener,
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-
-        boolean disableCachingByProeprty
+        boolean disableCachingByProperty
     ) {
         this.transform = transform;
         this.inputArtifact = inputArtifact;
@@ -112,7 +110,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
-        this.disableCachingByProeprty = disableCachingByProeprty;
+        this.disableCachingByProperty = disableCachingByProperty;
     }
 
     @Override
@@ -303,7 +301,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     private Optional<CachingDisabledReason> maybeDisableCachingByProperty() {
-        if (disableCachingByProeprty) {
+        if (disableCachingByProperty) {
             return Optional.of(CACHING_DISABLED_REASON);
         }
 
