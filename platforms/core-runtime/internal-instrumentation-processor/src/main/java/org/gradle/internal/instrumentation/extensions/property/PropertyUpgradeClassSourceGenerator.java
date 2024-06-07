@@ -74,6 +74,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         return builder -> builder
             .addAnnotation(GENERATED_ANNOTATION.asClassName())
             .addModifiers(Modifier.PUBLIC)
+            .addJavadoc("Auto generated class. Should not be used directly.")
             .addMethods(methods);
     }
 
@@ -119,9 +120,12 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         List<TypeName> exceptions = bridgedMethod.getThrownTypes().stream()
             .map(TypeName::get)
             .collect(Collectors.toList());
+        String passedParameters = parameters.stream()
+            .map(parameterSpec -> parameterSpec.name)
+            .collect(Collectors.joining(", "));
         CodeBlock body = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
-            ? CodeBlock.of("$T.$N()", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName())
-            : CodeBlock.of("return $T.$N()", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName());
+            ? CodeBlock.of("$T.$N($L);", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
+            : CodeBlock.of("return $T.$N($L);", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
         return MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addTypeVariables(typeVariables)

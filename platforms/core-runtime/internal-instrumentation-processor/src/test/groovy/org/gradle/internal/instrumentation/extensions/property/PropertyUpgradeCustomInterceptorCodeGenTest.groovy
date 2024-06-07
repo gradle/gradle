@@ -59,12 +59,11 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
 
                     @BytecodeUpgrade
                     static Task maxErrors(Task task, int maxErrors) {
-                        return 0;
+                        return task;
                     }
 
                     @BytecodeUpgrade
                     static void setMaxErrors(Task task, int maxErrors) {
-                        return 0;
                     }
                 }
             }
@@ -75,21 +74,24 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
 
         then:
         def generatedClass = source """
-            package org.gradle.test;
-            import org.gradle.test.Task;
+             package org.gradle.test;
+             import org.gradle.api.Generated;
 
-            @Generated
-            public class \$\$BridgeFor\$\$Task\$TaskAdapter {
-                public static int access_get_getMaxErrors(Task self) {
-                    ${getDefaultDeprecation("Task", "maxErrors")}
-                    return self.getMaxErrors().getOrElse(0);
-                }
-
-                public static void access_set_setMaxErrors(Task self, int arg0) {
-                    ${getDefaultDeprecation("Task", "maxErrors")}
-                    self.getMaxErrors().set(arg0);
-                }
-            }
+             @Generated
+             public class \$\$BridgeFor\$\$Task\$\$TaskAdapter {
+                 public static int access_get_getMaxErrors(Task task) {
+                     return Task.TaskAdapter.getMaxErrors(task);
+                 }
+                 public static int access_get_maxErrors(Task task) {
+                     return Task.TaskAdapter.maxErrors(task);
+                 }
+                 public static Task access_set_maxErrors(Task task, int maxErrors) {
+                     return Task.TaskAdapter.maxErrors(task, maxErrors);
+                 }
+                 public static void access_set_setMaxErrors(Task task, int maxErrors) {
+                     Task.TaskAdapter.setMaxErrors(task, maxErrors);
+                 }
+             }
         """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)

@@ -19,6 +19,7 @@ package org.gradle.internal.instrumentation.processor.codegen;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
+import org.gradle.internal.instrumentation.util.NameUtil;
 import org.objectweb.asm.Type;
 
 import java.util.Collections;
@@ -83,6 +84,12 @@ public class TypeUtils {
     }
 
     public static ClassName className(Type type) {
-        return ClassName.bestGuess(type.getClassName().replace("$", "."));
+        // If type contains $$ as $$BridgeFor$$ we keep $$
+        // in the name instead of translating it to an inner class name
+        return NameUtil.getClassName(type.getClassName()
+            .replace("$$", "#")
+            .replace("$", ".")
+            .replace("#", "$$")
+        );
     }
 }

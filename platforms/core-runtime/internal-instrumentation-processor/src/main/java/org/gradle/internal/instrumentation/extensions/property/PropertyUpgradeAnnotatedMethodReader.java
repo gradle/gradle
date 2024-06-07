@@ -131,9 +131,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             for (AccessorSpec accessorSpec : accessorSpecs) {
                 switch (accessorSpec.accessorType) {
                     case GETTER:
-                        CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(accessorSpec, method);
+                        if (isGroovyProperty(accessorSpec.methodName)) {
+                            CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(accessorSpec, method);
+                            requests.add(groovyPropertyRequest);
+                        }
                         CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(accessorSpec, method);
-                        requests.add(groovyPropertyRequest);
                         requests.add(jvmGetterRequest);
                         break;
                     case SETTER:
@@ -197,7 +199,14 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
-        String generatedClassName = packageElement.getQualifiedName().toString() + ".$$BridgeFor$$" + topClass.getSimpleName().toString() + "$" + innerClass.getSimpleName().toString();
+
+        // Using $$, since if we use only $ we can have problems when resolving internal classes
+        String generatedClassName = String.format("%s.$$BridgeFor$$%s$$%s",
+            packageElement.getQualifiedName().toString(),
+            topClass.getSimpleName().toString(),
+            innerClass.getSimpleName().toString()
+        );
+
         return new AccessorSpec(
             generatedClassName,
             accessorType,
@@ -411,6 +420,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     private static String getPropertyName(ExecutableElement method) {
         return getPropertyName(method.getSimpleName().toString());
+    }
+
+    private static boolean isGroovyProperty(String methodName) {
+        return methodName.startsWith("get") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3));
     }
 
     private static String getPropertyName(String methodName) {
