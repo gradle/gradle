@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.agent;
 
-import org.gradle.internal.agents.InstrumentingClassLoader;
+import org.gradle.internal.classloader.InstrumentingClassLoader;
 
 import javax.annotation.Nullable;
 import java.lang.instrument.ClassFileTransformer;
