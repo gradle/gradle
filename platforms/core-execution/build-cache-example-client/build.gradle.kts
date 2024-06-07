@@ -42,7 +42,6 @@ dependencies {
     implementation(libs.guice)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
-    implementation(libs.slf4jSimple)
 }
 
 application {

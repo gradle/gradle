@@ -168,9 +168,4 @@ public class ExampleBuildCacheClient {
             return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
         }
     }
-
-    static {
-        // Workaround to make sure the dependency checker doesn't complain about slf4j-simple being unused
-        Class<?> ignored = org.slf4j.impl.SimpleLoggerFactory.class;
-    }
 }
