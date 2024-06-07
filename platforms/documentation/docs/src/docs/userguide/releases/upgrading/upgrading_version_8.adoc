@@ -59,6 +59,18 @@ This means it was possible for some projects to compile without any declared dep
 We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
 If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
 
+==== Configuration cache implementation packages now under `org.gradle.internal`
+
+References to Gradle types that are not part of the public API should be avoided, as their direct use is unsupported,
+and Gradle internal implementation classes may suffer breaking changes (or be renamed or removed) from one version to another without warning.
+
+It is important for users to distinguish between the API and internal parts of the Gradle codebase.
+This is typically achieved by including `internal` in the implementation package names.
+However, before this release, the configuration cache subsystem did not follow this pattern, potentially causing confusion.
+
+To address this issue, in the current release, all code originally under the `org.gradle.configurationcache*` packages
+(which was never API) has been moved to new internal packages (`org.gradle.internal.*`).
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
