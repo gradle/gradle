@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache.isolated
 
+
+import spock.lang.Issue
+
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -95,9 +98,9 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        invocation               | accessedProjects
-        "beforeProject"          | [":b"]
-        "afterProject"           | [":b"]
+        invocation      | accessedProjects
+        "beforeProject" | [":b"]
+        "afterProject"  | [":b"]
     }
 
     def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
@@ -151,5 +154,38 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28204")
+    def "access to #description delegated property value is causing a violation"() {
+        given:
+        settingsFile << """
+            include("a")
+        """
+        buildKotlinFile << """
+            project.extensions.extraProperties["myProperty"] = "hello"
+        """
+
+        // Requires a sub-project
+        file("a/build.gradle.kts") << """
+            val myProperty: $type by project
+            println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
+        """
+
+        when:
+        isolatedProjectsFails("help")
+
+        then:
+        outputContains("myProperty: hello")
+
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project ':'")
+        }
+
+        where:
+        description    | type
+        "nullable"     | "String?"
+        "non-nullable" | "String"
     }
 }
