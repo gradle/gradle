@@ -39,6 +39,7 @@ import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.GroovyBuildScriptTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.file.TestWorkspaceBuilder
@@ -184,11 +185,14 @@ abstract class AbstractIntegrationSpec extends Specification {
         }
     }
 
+    // TODO: might not need this comment, if the IJ issue is fixed
     /**
      * Want syntax highlighting inside of IntelliJ? Consider using {@link AbstractIntegrationSpec#buildFile(String)}
      */
-    TestFile getBuildFile() {
-        testDirectory.file(getDefaultBuildFileName())
+    TestFile getBuildFile() { // TODO: update the return type, and fix in the children classes
+        new GroovyBuildScriptTestFile(testDirectory, getDefaultBuildFileName())
+        // TODO: use a factory method on the `TestFile`
+//        testDirectory.file(getDefaultBuildFileName())
     }
 
     String getTestJunitCoordinates() {
@@ -232,6 +236,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     TestFile getBuildKotlinFile() {
+        // TODO: support KotlinBuildScriptTestFile
         testDirectory.file(defaultBuildKotlinFileName)
     }
 
@@ -269,6 +274,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
 
+    // TODO: introduce a separate Language annotation for the settings scripts
     protected TestFile getSettingsFile() {
         testDirectory.file(settingsFileName)
     }
