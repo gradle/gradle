@@ -50,6 +50,8 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -88,7 +90,9 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  */
 @NonNullApi
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
+
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -105,6 +109,13 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_PLUGINS_TASK_NAME = "validatePlugins";
+
+    /**
+     * Suppress adding the {@code DependencyHandler#gradleApi()} dependency.
+     *
+     * Experimental property used to test using an external Gradle API dependency.
+     */
+    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
@@ -137,8 +148,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
-        applyDependencies(project);
         GradlePluginDevelopmentExtension extension = createExtension(project);
+        applyDependencies(project);
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
@@ -155,7 +166,12 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration)));
     }
 
-    private void applyDependencies(Project project) {
+    private static void applyDependencies(Project project) {
+        // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
+        InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
+        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
+            return;
+        }
         DependencyHandler dependencies = project.getDependencies();
         dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
     }
