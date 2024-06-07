@@ -90,11 +90,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             }
 
             @Override
-            public String getRootConfigurationName() {
-                return configurationName;
-            }
-
-            @Override
             public VariantGraphResolveState getRootVariant() {
                 return rootVariant;
             }

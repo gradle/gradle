@@ -160,7 +160,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         VariantGraphResolveState rootVariant = root.getRootVariant();
         this.root = new RootNode(idGenerator.nextGraphNodeId(), rootComponent, this, syntheticDependencies, rootVariant);
         rootComponent.addNode(this.root);
-        ComponentVariantNodeIdentifier rootNodeId = new ComponentVariantNodeIdentifier(componentId, root.getRootConfigurationName());
+        ComponentVariantNodeIdentifier rootNodeId = new ComponentVariantNodeIdentifier(componentId, rootVariant.getName());
         nodes.put(rootNodeId, this.root);
     }
 
