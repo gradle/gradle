@@ -50,6 +50,8 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -107,7 +109,13 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_PLUGINS_TASK_NAME = "validatePlugins";
-    static final String EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = "org.gradle.unsafe.suppress-gradle-api";
+
+    /**
+     * Suppress adding the {@code DependencyHandler#gradleApi()} dependency.
+     *
+     * Experimental property used to test using an external Gradle API dependency.
+     */
+    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
@@ -159,17 +167,13 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private static void applyDependencies(Project project) {
-        Configuration apiConfiguration = JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration();
         // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
-        apiConfiguration.getDependencies().addLater(
-            project.getProviders().systemProperty(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY)
-                .map(value -> value.isEmpty() || value.equals("true"))
-                .orElse(false)
-                .map(suppress ->
-                    suppress ?
-                        null
-                        : project.getDependencies().gradleApi()
-                ));
+        InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
+        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
+            return;
+        }
+        DependencyHandler dependencies = project.getDependencies();
+        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {

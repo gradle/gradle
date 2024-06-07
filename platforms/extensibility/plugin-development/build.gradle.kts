@@ -31,6 +31,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.serviceProvider)
+    implementation(projects.buildOption)
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":hashing"))
