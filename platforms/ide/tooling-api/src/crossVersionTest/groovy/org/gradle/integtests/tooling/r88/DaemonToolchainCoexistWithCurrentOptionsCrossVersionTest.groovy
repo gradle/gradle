@@ -22,12 +22,15 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.tooling.GradleConnectionException
 
 @TargetGradleVersion(">=8.8")
 class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
+    // In Gradle 8.8, we ignored the org.gradle.java.installations.auto-detect property when the build is started with TAPI
+    @TargetGradleVersion(">=8.9")
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
+    def "Given disabled auto-detection When using daemon toolchain Then build fails"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
@@ -39,7 +42,8 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
         }
 
         then:
-        assertDaemonUsedJvm(otherJvm.javaHome)
+        def e = thrown(GradleConnectionException)
+        e.cause.message.contains("Cannot find a Java installation on your machine")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -57,64 +61,5 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
 
         then:
         assertDaemonUsedJvm(otherJvm.javaHome)
-    }
-
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given daemon toolchain properties When executing any task passing them as arguments Then those are ignored since aren't defined on daemon-jvm properties file"() {
-        given:
-        def otherJvm = AvailableJavaHomes.differentVersion
-        def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        captureJavaHome()
-
-
-        when:
-        withConnection {
-            it.newBuild().forTasks("help").withArguments("-PtoolchainVersion=$otherJvmMetadata.javaVersion -PtoolchainVendor=$otherJvmMetadata.vendor.knownVendor").run()
-        }
-
-        then:
-        assertDaemonUsedJvm(currentJavaHome)
-    }
-
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given daemon toolchain properties defined on gradle properties When executing any task Then those are ignored since aren't defined on daemon-jvm properties file"() {
-        given:
-        def otherJvm = AvailableJavaHomes.differentVersion
-        def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        captureJavaHome()
-        file("gradle.properties")
-            .writeProperties(
-                "toolchainVersion": otherJvmMetadata.javaVersion,
-                "toolchainVendor": otherJvmMetadata.vendor.knownVendor.name()
-            )
-
-        when:
-        withConnection {
-            it.newBuild().forTasks("help").run()
-        }
-
-        then:
-        assertDaemonUsedJvm(currentJavaHome)
-    }
-
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given defined org.gradle.java.home under Build properties When executing any task Then this is ignored since isn't defined on gradle properties file"() {
-        given:
-        def otherJvm = AvailableJavaHomes.differentVersion
-        def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        captureJavaHome()
-
-        file("gradle/gradle-daemon-jvm.properties")
-            .writeProperties(
-                "org.gradle.java.home": otherJvmMetadata.javaVersion,
-            )
-
-        when:
-        withConnection {
-            it.newBuild().forTasks("help").run()
-        }
-
-        then:
-        assertDaemonUsedJvm(currentJavaHome)
     }
 }

@@ -22,7 +22,15 @@ import org.gradle.test.fixtures.file.TestFile
 @SelfType(ToolingApiSpecification)
 trait DaemonJvmPropertiesFixture {
 
-    def currentJavaHome = new File(System.getProperty("java.home")).canonicalFile
+    File currentJavaHome = findJavaHome()
+
+    private File findJavaHome() {
+        def potentialJavaHome = new File(System.getProperty("java.home")).canonicalFile
+        if (potentialJavaHome.name.equalsIgnoreCase( "jre")) {
+            return potentialJavaHome.parentFile
+        }
+        return potentialJavaHome
+    }
 
     def setup() {
         requireDaemons()
