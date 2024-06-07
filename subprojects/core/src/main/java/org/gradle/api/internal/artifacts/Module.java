@@ -27,8 +27,25 @@ import javax.annotation.Nullable;
 public interface Module {
     String DEFAULT_STATUS = "integration";
 
+    /**
+     * Get the ID of the project that owns this module.
+     */
     @Nullable
-    ProjectComponentIdentifier getProjectId();
+    ProjectComponentIdentifier getOwner();
+
+    /**
+     * Get this module's componentId, if it is a project component ID. This may be null while
+     * {@link #getOwner} is not if a project owns a given module, but the module is not a
+     * project component. For example, detached configurations are owned by a project but are
+     * not project components.
+     *
+     * TODO: This should return a ComponentIdentifier and should not be nullable. But,
+     * since the implementations of this interface live in :core, they cannot access the
+     * constructor to ModuleComponentIdentifier. We should move Module and DependencyMetadataProvider
+     * to :dependency-management and fix this.
+     */
+    @Nullable
+    ProjectComponentIdentifier getComponentId();
 
     String getGroup();
 

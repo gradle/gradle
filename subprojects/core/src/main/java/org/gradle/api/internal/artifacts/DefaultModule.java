@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
+import javax.annotation.Nullable;
+
 public class DefaultModule implements Module {
     private final String group;
     private final String name;
@@ -56,8 +58,15 @@ public class DefaultModule implements Module {
         return status;
     }
 
+    @Nullable
     @Override
-    public ProjectComponentIdentifier getProjectId() {
+    public ProjectComponentIdentifier getOwner() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public ProjectComponentIdentifier getComponentId() {
         return null;
     }
 }

@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 
+import javax.annotation.Nullable;
+
 public class ProjectBackedModule implements Module {
 
     private final ProjectInternal project;
@@ -48,8 +50,14 @@ public class ProjectBackedModule implements Module {
     }
 
     @Override
-    public ProjectComponentIdentifier getProjectId() {
+    public ProjectComponentIdentifier getOwner() {
         return project.getOwner().getComponentIdentifier();
+    }
+
+    @Nullable
+    @Override
+    public ProjectComponentIdentifier getComponentId() {
+        return getOwner();
     }
 
     @Override

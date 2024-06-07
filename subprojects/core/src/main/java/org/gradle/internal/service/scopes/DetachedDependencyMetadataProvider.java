@@ -64,8 +64,15 @@ public class DetachedDependencyMetadataProvider implements DependencyMetaDataPro
 
         @Nullable
         @Override
-        public ProjectComponentIdentifier getProjectId() {
-            return module.getProjectId();
+        public ProjectComponentIdentifier getOwner() {
+            return module.getOwner();
+        }
+
+        @Nullable
+        @Override
+        public ProjectComponentIdentifier getComponentId() {
+            // Detached configurations have a module component ID and thus return null here.
+            return null;
         }
 
         @Override

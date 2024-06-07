@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -30,6 +30,7 @@ import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -42,7 +43,6 @@ import java.lang.ref.SoftReference;
 
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder, HoldsProjectState {
     private final DependencyMetaDataProvider componentIdentity;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
@@ -55,7 +55,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
      */
     private DefaultRootComponentMetadataBuilder(
         DependencyMetaDataProvider componentIdentity,
-        ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
@@ -63,7 +62,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         Factory factory
     ) {
         this.componentIdentity = componentIdentity;
-        this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
@@ -75,7 +73,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     @Override
     public RootComponentState toRootComponent(String configurationName) {
         Module module = componentIdentity.getModule();
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
+        ComponentIdentifier componentIdentifier = getComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
 
         return new RootComponentState() {
@@ -110,6 +108,17 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         };
     }
 
+    private static ComponentIdentifier getComponentIdentifier(Module module) {
+        ComponentIdentifier componentIdentifier = module.getComponentId();
+        if (componentIdentifier != null) {
+            return componentIdentifier;
+        }
+
+        return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(
+            module.getGroup(), module.getName()), module.getVersion()
+        );
+    }
+
     @Override
     public DependencyMetaDataProvider getComponentIdentity() {
         return componentIdentity;
@@ -134,7 +143,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionId
     ) {
         String status = module.getStatus();
-        ProjectComponentIdentifier projectId = module.getProjectId();
+        ProjectComponentIdentifier projectId = module.getOwner();
 
         if (projectId != null) {
             ProjectState projectState = projectStateRegistry.stateFor(projectId);
@@ -245,19 +254,16 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     public static class Factory {
-        private final ComponentIdentifierFactory componentIdentifierFactory;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ProjectStateRegistry projectStateRegistry;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
 
         @Inject
         public Factory(
-            ComponentIdentifierFactory componentIdentifierFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             ProjectStateRegistry projectStateRegistry,
             LocalComponentGraphResolveStateFactory localResolveStateFactory
         ) {
-            this.componentIdentifierFactory = componentIdentifierFactory;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.projectStateRegistry = projectStateRegistry;
             this.localResolveStateFactory = localResolveStateFactory;
@@ -266,7 +272,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         public RootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider, DependencyMetaDataProvider componentIdentity) {
             return new DefaultRootComponentMetadataBuilder(
                 componentIdentity,
-                componentIdentifierFactory,
                 moduleIdentifierFactory,
                 configurationsProvider,
                 projectStateRegistry,
