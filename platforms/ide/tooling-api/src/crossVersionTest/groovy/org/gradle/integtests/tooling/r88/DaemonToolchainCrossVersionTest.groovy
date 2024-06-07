@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
-import org.junit.Assume
 
 @TargetGradleVersion(">=8.8")
 class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
@@ -34,6 +33,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         def jdk8 = AvailableJavaHomes.jdk8
         writeJvmCriteria(jdk8.javaVersion.majorVersion)
         captureJavaHome()
+        withInstallations(jdk8.javaHome)
 
         when:
         withConnection {
@@ -50,6 +50,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
+        withInstallations(otherJvm.javaHome)
 
         when:
         withConnection {
@@ -60,13 +61,14 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {
         given:
+        def jdk11 = AvailableJavaHomes.getJdk11()
         // Java 10 is not available
-        def java10 = AvailableJavaHomes.getAvailableJdks { it.javaVersion == "10" }
-        Assume.assumeTrue(java10.isEmpty())
         writeJvmCriteria("10")
         captureJavaHome()
+        withInstallations(jdk11.javaHome)
 
         when:
         withConnection {

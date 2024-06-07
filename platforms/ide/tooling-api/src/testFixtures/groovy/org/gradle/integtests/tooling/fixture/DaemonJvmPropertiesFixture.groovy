@@ -36,6 +36,13 @@ trait DaemonJvmPropertiesFixture {
         requireDaemons()
     }
 
+    void withInstallations(File... jdks) {
+        file("gradle.properties").writeProperties(
+            "org.gradle.java.installations.auto-detect": "false",
+            "org.gradle.java.installations.paths": jdks.collect { it.canonicalPath }.join(",")
+        )
+    }
+
     void assertDaemonUsedJvm(File expectedJavaHome) {
         assert file("javaHome.txt").text == expectedJavaHome.canonicalPath
     }

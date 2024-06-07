@@ -38,12 +38,32 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
 
         when:
         withConnection {
-            it.newBuild().forTasks("help").withArguments("-Porg.gradle.java.installations.auto-detect=false").run()
+            it.newBuild().forTasks("help").withArguments("-Dorg.gradle.java.installations.auto-detect=false").run()
         }
 
         then:
         def e = thrown(GradleConnectionException)
         e.cause.message.contains("Cannot find a Java installation on your machine")
+    }
+
+    @TargetGradleVersion(">=8.9")
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given toolchain properties are provided then build succeds"() {
+        given:
+        def otherJvm = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJvm.javaVersion.majorVersion)
+        captureJavaHome()
+
+        when:
+        withConnection {
+            it.newBuild().forTasks("help").withArguments(
+                "-Dorg.gradle.java.installations.auto-detect=false",
+                "-Dorg.gradle.java.installations.paths=${otherJvm.javaHome.canonicalPath}"
+            ).run()
+        }
+
+        then:
+        assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
