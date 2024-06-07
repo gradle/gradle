@@ -26,6 +26,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
@@ -103,6 +104,7 @@ object BuildServices : ServiceRegistrationProvider {
         @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
+        internalOptions: InternalOptions,
         gradlePropertiesController: GradlePropertiesController,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
     ): KotlinScriptEvaluator =
@@ -126,6 +128,7 @@ object BuildServices : ServiceRegistrationProvider {
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
+            internalOptions,
             gradlePropertiesController,
             transformFactoryForLegacy
         )

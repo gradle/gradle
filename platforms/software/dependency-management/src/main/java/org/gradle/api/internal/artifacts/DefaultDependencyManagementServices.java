@@ -118,6 +118,7 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -259,6 +260,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         TransformInvocationFactory createTransformInvocationFactory(
             ExecutionEngine executionEngine,
             FileSystemAccess fileSystemAccess,
+            InternalOptions internalOptions,
             ImmutableTransformWorkspaceServices transformWorkspaceServices,
             TransformExecutionListener transformExecutionListener,
             FileCollectionFactory fileCollectionFactory,
@@ -269,6 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultTransformInvocationFactory(
                 executionEngine,
                 fileSystemAccess,
+                internalOptions,
                 transformExecutionListener,
                 transformWorkspaceServices,
                 fileCollectionFactory,
