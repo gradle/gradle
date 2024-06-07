@@ -17,6 +17,7 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.capitalize
+import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.testSplitExcludeTestClasses
 import gradlebuild.basics.testSplitIncludeTestClasses
@@ -195,9 +196,10 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
         })
     }
 
+    val environmentExtension = project.getBuildEnvironmentExtension()
     val integTestUseAgentSysPropName = "org.gradle.integtest.agent.allowed"
-    if (project.hasProperty(integTestUseAgentSysPropName)) {
-        val shouldUseAgent = (project.property(integTestUseAgentSysPropName) as? String).toBoolean()
+    if (environmentExtension.integtestAgentAllowed.isPresent) {
+        val shouldUseAgent = environmentExtension.integtestAgentAllowed.get().toBoolean()
         systemProperties[integTestUseAgentSysPropName] = shouldUseAgent.toString()
     }
 }
@@ -206,16 +208,17 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
 private
 fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
-    if (project.hasProperty("org.gradle.integtest.debug")) {
+    val environmentExtension = project.getBuildEnvironmentExtension()
+    if (environmentExtension.integtestDebug.isPresent) {
         systemProperties["org.gradle.integtest.debug"] = "true"
         testLogging.showStandardStreams = true
     }
     // TODO Move magic property out
-    if (project.hasProperty("org.gradle.integtest.verbose")) {
+    if (environmentExtension.integtestVerbose.isPresent) {
         testLogging.showStandardStreams = true
     }
     // TODO Move magic property out
-    if (project.hasProperty("org.gradle.integtest.launcher.debug")) {
+    if (environmentExtension.integtestLauncherDebug.isPresent) {
         systemProperties["org.gradle.integtest.launcher.debug"] = "true"
     }
 }
@@ -223,9 +226,10 @@ fun IntegrationTest.addDebugProperties() {
 
 fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
+    val extension = project.getBuildEnvironmentExtension()
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
-    if (project.hasProperty("testVersions")) {
-        systemProperties[integTestVersionsSysProp] = project.property("testVersions")
+    if (extension.testVersions.isPresent) {
+        systemProperties[integTestVersionsSysProp] = extension.testVersions.get()
     } else {
         systemProperties[integTestVersionsSysProp] = defaultVersions
     }

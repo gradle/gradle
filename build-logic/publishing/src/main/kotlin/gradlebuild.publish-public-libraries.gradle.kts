@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.getBuildEnvironmentExtension
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import java.time.Year
 
@@ -29,10 +30,10 @@ val artifactoryUrl
     get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
 
 val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
+    get() = getBuildEnvironmentExtension().artifactoryUserName.orNull
 
 val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
+    get() = getBuildEnvironmentExtension().artifactoryPassword.orNull
 
 publishing {
     publications {

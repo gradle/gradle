@@ -26,11 +26,11 @@ import org.gradle.kotlin.dsl.*
 
 
 // `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
-fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = extensions.findByType(BuildEnvironmentExtension::class.java)
+fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension = extensions.getByType(BuildEnvironmentExtension::class.java)
 
+fun Project.getBuildEnvironmentExtensionOrNull(): BuildEnvironmentExtension? = extensions.findByType(BuildEnvironmentExtension::class.java)
 
-fun Project.repoRoot(): Directory = getBuildEnvironmentExtension()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
-
+fun Project.repoRoot(): Directory = getBuildEnvironmentExtensionOrNull()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
 
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this
@@ -50,10 +50,10 @@ fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
 /**
  * We use command line Git instead of JGit, because JGit's `Repository.resolve` does not work with worktrees.
  */
-fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
+fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitBranch ?: objects.property(String::class.java)
 
 
-fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitCommitId ?: objects.property(String::class.java)
+fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitCommitId ?: objects.property(String::class.java)
 
 
 // pre-test/master/queue/alice/feature -> master
