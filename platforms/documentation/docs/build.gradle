@@ -39,7 +39,7 @@ configurations {
 }
 
 configurations.configureEach {
-    exclude([group: "slf4j", module: "slf4j-simple"])
+    exclude([group: "org.slf4j", module: "slf4j-simple"])
 }
 
 dependencies {
