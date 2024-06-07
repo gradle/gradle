@@ -47,6 +47,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -180,10 +181,40 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private List<AccessorSpec> readAccessorSpecsFromAdapter(Element element, AnnotationMirror annotationMirror) {
-        return TypeUtils.getExecutableElementsFromElements(Stream.of(element)).stream()
+        List<ExecutableElement> bridgedMethods = TypeUtils.getExecutableElementsFromElements(Stream.of(element)).stream()
             .filter(method -> method.getAnnotation(BytecodeUpgrade.class) != null)
+            .collect(Collectors.toList());
+        validateBridgedMethods(element, bridgedMethods);
+
+        return bridgedMethods.stream()
             .map(method -> bridgedMethodToAccessorSpec(method, annotationMirror))
             .collect(Collectors.toList());
+    }
+
+    private static void validateBridgedMethods(Element element, List<ExecutableElement> methods) {
+        List<String> errors = new ArrayList<>();
+        if (!isPackagePrivate(element)) {
+            errors.add(String.format("Adapter class '%s' should be package private, but it's not.", element));
+        }
+
+        for (ExecutableElement method : methods) {
+            if (!method.getModifiers().contains(Modifier.STATIC)) {
+                errors.add(String.format("Adapter method '%s.%s' should be static but it's not.", element, method));
+            }
+            if (!isPackagePrivate(method)) {
+                errors.add(String.format("Adapter method '%s.%s' should be package-private but it's not.", element, method));
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new AnnotationReadFailure(String.join("\n", errors));
+        }
+    }
+
+    private static boolean isPackagePrivate(Element element) {
+        return !element.getModifiers().contains(Modifier.PUBLIC)
+            && !element.getModifiers().contains(Modifier.PROTECTED)
+            && !element.getModifiers().contains(Modifier.PRIVATE);
     }
 
     private AccessorSpec bridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {

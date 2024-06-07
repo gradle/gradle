@@ -92,4 +92,48 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
     }
+
+    def "should fail compilation if adapter and it's methods are not package-private"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(adapter = Task.TaskAdapter.class)
+                public abstract Property<Integer> getMaxErrors();
+
+                public static class TaskAdapter {
+                    @BytecodeUpgrade
+                    public static int firstMethod(Task task) {
+                        return 0;
+                    }
+
+                    @BytecodeUpgrade
+                    int secondMethod(Task task) {
+                        return 0;
+                    }
+
+                    @BytecodeUpgrade
+                    private Task thirdMethod(Task task, int maxErrors) {
+                        return task;
+                    }
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        assertThat(compilation).hadErrorCount(1)
+        assertThat(compilation).hadErrorContaining("Adapter class 'org.gradle.test.Task.TaskAdapter' should be package private, but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.firstMethod(org.gradle.test.Task)' should be package-private but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.secondMethod(org.gradle.test.Task)' should be static but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.thirdMethod(org.gradle.test.Task,int)' should be package-private but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.thirdMethod(org.gradle.test.Task,int)' should be static but it's not.")
+    }
 }
