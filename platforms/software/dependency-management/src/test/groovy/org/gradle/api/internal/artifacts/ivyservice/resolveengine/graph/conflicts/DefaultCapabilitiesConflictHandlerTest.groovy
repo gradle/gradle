@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState
@@ -119,8 +118,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
             getMetadata() >> metadata
         }
 
-        def nodeId = new ResolvedConfigurationIdentifier(Mock(ModuleVersionIdentifier), "foo")
-        def node = new NodeState(id++, nodeId, cs, resolveState, state, true) {
+        def node = new NodeState(id++, cs, resolveState, state, true) {
             @Override
             boolean isSelected() {
                 return true
