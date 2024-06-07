@@ -55,7 +55,6 @@ public class DefaultConfigurationFactory {
     private final Instantiator instantiator;
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
-    private final DependencyMetaDataProvider metaDataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final DomainObjectContext domainObjectContext;
@@ -78,7 +77,6 @@ public class DefaultConfigurationFactory {
         Instantiator instantiator,
         ConfigurationResolver resolver,
         ListenerManager listenerManager,
-        DependencyMetaDataProvider metaDataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
         DomainObjectContext domainObjectContext,
@@ -98,7 +96,6 @@ public class DefaultConfigurationFactory {
         this.instantiator = instantiator;
         this.resolver = resolver;
         this.listenerManager = listenerManager;
-        this.metaDataProvider = metaDataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.domainObjectContext = domainObjectContext;
@@ -130,33 +127,32 @@ public class DefaultConfigurationFactory {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         DefaultUnlockedConfiguration instance = instantiator.newInstance(
-                DefaultUnlockedConfiguration.class,
-                domainObjectContext,
-                name,
-                configurationsProvider,
-                resolver,
-                dependencyResolutionListeners,
-                metaDataProvider,
-                componentIdentifierFactory,
-                dependencyLockingProvider,
-                resolutionStrategyFactory,
-                fileCollectionFactory,
+            DefaultUnlockedConfiguration.class,
+            domainObjectContext,
+            name,
+            configurationsProvider,
+            resolver,
+            dependencyResolutionListeners,
+            componentIdentifierFactory,
+            dependencyLockingProvider,
+            resolutionStrategyFactory,
+            fileCollectionFactory,
             buildOperationRunner,
-                instantiator,
-                artifactNotationParser,
-                capabilityNotationParser,
-                attributesFactory,
-                rootComponentMetadataBuilder,
-                exceptionContextualizer,
-                attributeDesugaring,
-                userCodeApplicationContext,
-                projectStateRegistry,
-                workerThreadRegistry,
-                domainObjectCollectionFactory,
-                calculatedValueFactory,
-                this,
-                taskDependencyFactory,
-                role
+            instantiator,
+            artifactNotationParser,
+            capabilityNotationParser,
+            attributesFactory,
+            rootComponentMetadataBuilder,
+            exceptionContextualizer,
+            attributeDesugaring,
+            userCodeApplicationContext,
+            projectStateRegistry,
+            workerThreadRegistry,
+            domainObjectCollectionFactory,
+            calculatedValueFactory,
+            this,
+            taskDependencyFactory,
+            role
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -180,7 +176,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
@@ -223,7 +218,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
@@ -266,7 +260,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,

@@ -37,7 +37,7 @@ import spock.lang.Specification
 
 class DefaultRootComponentMetadataBuilderTest extends Specification {
 
-    DependencyMetaDataProvider metaDataProvider = Mock() {
+    DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider) {
         getModule() >> Mock(Module)
     }
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
@@ -54,7 +54,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
     def builderFactory = new DefaultRootComponentMetadataBuilder.Factory(
-        metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
         projectStateRegistry,
@@ -66,7 +65,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         )
     )
 
-    def builder = builderFactory.create(configurationsProvider)
+    def builder = builderFactory.create(configurationsProvider, metaDataProvider)
 
     def "caches root component resolve state and metadata"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {

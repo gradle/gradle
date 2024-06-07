@@ -70,13 +70,12 @@ class DefaultConfigurationContainerTest extends Specification {
         getValidator() >> Mock(MutationValidator)
     }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> metadataBuilder
+        create(_, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
-        metaDataProvider,
         componentIdentifierFactory,
         lockingProvider,
         domainObjectContext,
@@ -101,6 +100,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,
         callbackActionDecorator,
+        metaDataProvider,
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)

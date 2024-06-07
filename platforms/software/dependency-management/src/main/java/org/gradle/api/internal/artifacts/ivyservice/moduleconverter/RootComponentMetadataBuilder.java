@@ -16,15 +16,34 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
+/**
+ * Builds the root component to use as the root of a dependency graph.
+ */
 public interface RootComponentMetadataBuilder {
+
+    /**
+     * Build the component, caching the result. Then return the component and the variant with the given name.
+     */
     RootComponentState toRootComponent(String configurationName);
 
-    RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider provider);
+    /**
+     * Create a new builder, that builds a new component with a new identity and configuration set
+     */
+    RootComponentMetadataBuilder newBuilder(DependencyMetaDataProvider identity, ConfigurationsProvider provider);
 
+    /**
+     * Get the identity of the component build by this builder.
+     */
+    DependencyMetaDataProvider getComponentIdentity();
+
+    /**
+     * Should be notified when the configuration container that this builder uses is modified.
+     */
     MutationValidator getValidator();
 
     interface RootComponentState {

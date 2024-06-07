@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -26,11 +25,9 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -49,6 +46,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
@@ -115,11 +113,9 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         );
     }
 
-    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
-        Module module = resolveContext.getModule();
-        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
+    private static VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
+        LocalComponentGraphResolveState root = resolveContext.toRootComponent().getRootComponent();
+        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(root.getModuleVersionId(), root.getId(), resolveContext.getAttributes().asImmutable());
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 

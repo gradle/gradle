@@ -41,7 +41,7 @@ import javax.inject.Inject;
 import java.lang.ref.SoftReference;
 
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder, HoldsProjectState {
-    private final DependencyMetaDataProvider metadataProvider;
+    private final DependencyMetaDataProvider componentIdentity;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ConfigurationsProvider configurationsProvider;
@@ -54,7 +54,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
      * Use {@link Factory#create} to create instances.
      */
     private DefaultRootComponentMetadataBuilder(
-        DependencyMetaDataProvider metadataProvider,
+        DependencyMetaDataProvider componentIdentity,
         ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ConfigurationsProvider configurationsProvider,
@@ -62,7 +62,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
         Factory factory
     ) {
-        this.metadataProvider = metadataProvider;
+        this.componentIdentity = componentIdentity;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.configurationsProvider = configurationsProvider;
@@ -74,7 +74,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     @Override
     public RootComponentState toRootComponent(String configurationName) {
-        Module module = metadataProvider.getModule();
+        Module module = componentIdentity.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
 
@@ -99,6 +99,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 return rootVariant;
             }
         };
+    }
+
+    @Override
+    public DependencyMetaDataProvider getComponentIdentity() {
+        return componentIdentity;
     }
 
     private LocalComponentGraphResolveState getComponentState(Module module, ComponentIdentifier componentIdentifier) {
@@ -145,8 +150,8 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     @Override
-    public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider provider) {
-        return factory.create(provider);
+    public RootComponentMetadataBuilder newBuilder(DependencyMetaDataProvider identity, ConfigurationsProvider provider) {
+        return factory.create(provider, identity);
     }
 
     @Override
@@ -217,7 +222,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     public static class Factory {
-        private final DependencyMetaDataProvider metaDataProvider;
         private final ComponentIdentifierFactory componentIdentifierFactory;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ProjectStateRegistry projectStateRegistry;
@@ -225,22 +229,20 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         @Inject
         public Factory(
-            DependencyMetaDataProvider metaDataProvider,
             ComponentIdentifierFactory componentIdentifierFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             ProjectStateRegistry projectStateRegistry,
             LocalComponentGraphResolveStateFactory localResolveStateFactory
         ) {
-            this.metaDataProvider = metaDataProvider;
             this.componentIdentifierFactory = componentIdentifierFactory;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.projectStateRegistry = projectStateRegistry;
             this.localResolveStateFactory = localResolveStateFactory;
         }
 
-        public RootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider) {
+        public RootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider, DependencyMetaDataProvider componentIdentity) {
             return new DefaultRootComponentMetadataBuilder(
-                metaDataProvider,
+                componentIdentity,
                 componentIdentifierFactory,
                 moduleIdentifierFactory,
                 configurationsProvider,

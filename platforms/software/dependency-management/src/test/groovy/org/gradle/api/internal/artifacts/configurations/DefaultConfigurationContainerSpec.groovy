@@ -67,13 +67,12 @@ class DefaultConfigurationContainerSpec extends Specification {
         getValidator() >> Mock(MutationValidator)
     }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> metadataBuilder
+        create(_, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
-        metaDataProvider,
         componentIdentifierFactory,
         dependencyLockingProvider,
         domainObjectContext,
@@ -93,13 +92,14 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
         domainObjectCollectionCallbackActionDecorator,
+        metaDataProvider,
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)
     )
 
     def setup() {
-        metadataBuilder.withConfigurationsProvider(_) >> metadataBuilder
+        metadataBuilder.newBuilder(_, _) >> metadataBuilder
     }
 
     def "adds and gets"() {
