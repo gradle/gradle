@@ -66,7 +66,7 @@ import java.util.Objects;
 /**
  * Global resolution state.
  */
-class ResolveState implements ComponentStateFactory<ComponentState> {
+public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final Map<ModuleIdentifier, ModuleResolveState> modules;
     private final Map<ResolvedConfigurationIdentifier, NodeState> nodes;
@@ -146,6 +146,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         // Create root component and module
         ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
         ComponentState rootComponent = rootModule.getVersion(moduleVersionId, rootComponentMetadata.getId());
+        rootComponent.setRoot();
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
@@ -157,6 +158,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         ResolvedConfigurationIdentifier rootNodeId = new ResolvedConfigurationIdentifier(moduleVersionId, root.getRootConfigurationName());
         VariantGraphResolveState rootVariant = root.getRootVariant();
         this.root = new RootNode(idGenerator.nextGraphNodeId(), rootComponent, rootNodeId, this, syntheticDependencies, rootVariant);
+        rootComponent.addNode(this.root);
         nodes.put(rootNodeId, this.root);
     }
 
@@ -205,9 +207,13 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.values();
     }
 
-    public NodeState getNode(ComponentState module, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
-        ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), variant.getName());
-        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.nextGraphNodeId(), id, module, this, variant, selectedByVariantAwareResolution));
+    public NodeState getNode(ComponentState component, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+        ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(component.getId(), variant.getName());
+        return nodes.computeIfAbsent(id, rci -> {
+            NodeState node = new NodeState(idGenerator.nextGraphNodeId(), id, component, this, variant, selectedByVariantAwareResolution);
+            component.addNode(node);
+            return node;
+        });
     }
 
     public Collection<SelectorState> getSelectors() {

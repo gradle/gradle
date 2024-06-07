@@ -33,7 +33,6 @@ class RootNode extends NodeState implements RootGraphNode {
 
     RootNode(long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
         super(resultId, id, moduleRevision, resolveState, root, false);
-        moduleRevision.setRoot();
         this.resolveOptimizations = resolveState.getResolveOptimizations();
         this.syntheticDependencies = syntheticDependencies;
     }
