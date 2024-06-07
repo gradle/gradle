@@ -106,8 +106,8 @@ public abstract class AvailableJavaHomes {
     }
 
     @Nullable
-    public static Jvm getJdk22() {
-        return getJdk(JavaVersion.VERSION_22);
+    public static Jvm getJdk23() {
+        return getJdk(JavaVersion.VERSION_23);
     }
 
     @Nullable
