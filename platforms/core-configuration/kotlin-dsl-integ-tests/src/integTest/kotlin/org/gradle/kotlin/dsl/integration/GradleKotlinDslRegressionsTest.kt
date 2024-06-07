@@ -193,7 +193,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
 
         buildAndFail("compileJava").apply {
             assertHasCause("Could not create an instance of type Build_gradle${'$'}FixOksocialOutput.")
-            assertHasCause("Class Build_gradle.FixOksocialOutput is a non-static inner class.")
+            assertHasCause("Class Build_gradle.FixOksocialOutput is a non-static inner class, it probably captures a variable from the outer scope.")
         }
     }
 
