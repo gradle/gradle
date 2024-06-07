@@ -151,8 +151,7 @@ dependencies {
         api(libs.plist)                 { version { strictly("1.27") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
-// TODO: Restore this after SLF4J-Simple is removed from docs:docsTestCompileClasspath
-// api(libs.slf4jSimple)           { version { rejectAll(); because("We only need the logging API, we supply our own binding, which cause duplicate binding on class path error") }}
+        api(libs.slf4jSimple)           { version { rejectAll(); because("We only need the logging API, we supply our own binding, which cause duplicate binding on class path error") }}
         api(libs.snakeyaml)             { version { strictly("2.0") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
