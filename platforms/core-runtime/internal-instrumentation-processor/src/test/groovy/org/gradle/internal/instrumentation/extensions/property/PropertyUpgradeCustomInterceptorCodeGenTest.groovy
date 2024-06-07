@@ -28,9 +28,6 @@ import static org.gradle.internal.instrumentation.api.declarations.InterceptorDe
 
 class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGenTest {
 
-    private static final String GENERATED_CLASSES_PACKAGE_NAME = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
-        .split("\\.").dropRight(1).join(".")
-
     def "should generate adapter for upgraded property with custom interception"() {
         given:
         def givenSource = source """
@@ -80,15 +77,19 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
              @Generated
              public class \$\$BridgeFor\$\$Task\$\$TaskAdapter {
                  public static int access_get_getMaxErrors(Task task) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                      return Task.TaskAdapter.getMaxErrors(task);
                  }
                  public static int access_get_maxErrors(Task task) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                      return Task.TaskAdapter.maxErrors(task);
                  }
                  public static Task access_set_maxErrors(Task task, int maxErrors) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                      return Task.TaskAdapter.maxErrors(task, maxErrors);
                  }
                  public static void access_set_setMaxErrors(Task task, int maxErrors) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                      Task.TaskAdapter.setMaxErrors(task, maxErrors);
                  }
              }
@@ -97,13 +98,5 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
-    }
-
-    private static String getDefaultDeprecation(String className, String propertyName) {
-        return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
-            ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
-            ".startingWithGradle9(\"this property is replaced with a lazy version\")\n" +
-            ".undocumented()\n" +
-            ".nagUser();";
     }
 }

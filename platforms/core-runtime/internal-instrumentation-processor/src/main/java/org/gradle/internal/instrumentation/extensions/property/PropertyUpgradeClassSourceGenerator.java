@@ -86,22 +86,25 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
 
         try {
             ImplementationInfo implementation = request.getImplementationInfo();
+            CallableInfo callable = request.getInterceptedCallable();
+
+            MethodSpec spec;
             if (implementationExtra.getBridgedMethod() != null) {
-                return mapToBridgedMethod(implementation.getName(), implementationExtra.getBridgedMethod());
+                spec = mapToBridgedMethod(implementation.getName(), implementationExtra, callable);
+            } else {
+                List<ParameterSpec> parameters = callable.getParameters().stream()
+                    .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
+                    .collect(Collectors.toList());
+                spec = MethodSpec.methodBuilder(implementation.getName())
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
+                    .addParameters(parameters)
+                    .addCode(generateMethodBody(implementation, callable, implementationExtra))
+                    .returns(typeName(callable.getReturnType().getType()))
+                    .addAnnotations(getAnnotations(implementationExtra))
+                    .build();
             }
 
-            CallableInfo callable = request.getInterceptedCallable();
-            List<ParameterSpec> parameters = callable.getParameters().stream()
-                .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
-                .collect(Collectors.toList());
-            MethodSpec spec = MethodSpec.methodBuilder(implementation.getName())
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
-                .addParameters(parameters)
-                .addCode(generateMethodBody(implementation, callable, implementationExtra))
-                .returns(typeName(callable.getReturnType().getType()))
-                .addAnnotations(getAnnotations(implementationExtra))
-                .build();
             onProcessedRequest.accept(request);
             return spec;
         } catch (Exception e) {
@@ -110,7 +113,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
     }
 
-    private static MethodSpec mapToBridgedMethod(String methodName, ExecutableElement bridgedMethod) {
+    private static MethodSpec mapToBridgedMethod(String methodName, PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
+        ExecutableElement bridgedMethod = implementationExtra.getBridgedMethod();
         List<TypeVariableName> typeVariables = bridgedMethod.getTypeParameters().stream()
             .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
             .collect(Collectors.toList());
@@ -123,9 +127,16 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         String passedParameters = parameters.stream()
             .map(parameterSpec -> parameterSpec.name)
             .collect(Collectors.joining(", "));
-        CodeBlock body = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
-            ? CodeBlock.of("$T.$N($L);", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
-            : CodeBlock.of("return $T.$N($L);", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
+
+        CodeBlock.Builder bodyBuilder = CodeBlock.builder();
+        if (implementationExtra.getDeprecationSpec().isEnabled()) {
+            bodyBuilder.addStatement(getDeprecationCodeBlock(implementationExtra, callable));
+        }
+        CodeBlock bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
+            ? CodeBlock.of("$T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
+            : CodeBlock.of("return $T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
+        bodyBuilder.addStatement(bridgeCall);
+
         return MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addTypeVariables(typeVariables)
@@ -133,7 +144,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .returns(TypeName.get(bridgedMethod.getReturnType()))
             .varargs(bridgedMethod.isVarArgs())
             .addExceptions(exceptions)
-            .addCode(body)
+            .addCode(bodyBuilder.build())
             .build();
     }
 

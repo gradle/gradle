@@ -93,8 +93,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         );
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
-        // Suppress some error prone warnings that are not important and would complicate the logic for code generation.
-
         return builder ->
             builder.addMethod(constructor)
                 .addAnnotation(GENERATED_ANNOTATION.asClassName())

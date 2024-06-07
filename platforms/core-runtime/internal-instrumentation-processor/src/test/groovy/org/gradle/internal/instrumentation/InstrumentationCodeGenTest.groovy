@@ -58,4 +58,12 @@ abstract class InstrumentationCodeGenTest extends Specification {
         }
         return javac().withOptions(COMPILE_OPTIONS)
     }
+
+    protected static String getDefaultPropertyUpgradeDeprecation(String className, String propertyName) {
+        return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
+            ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
+            ".startingWithGradle9(\"this property is replaced with a lazy version\")\n" +
+            ".undocumented()\n" +
+            ".nagUser();";
+    }
 }

@@ -200,7 +200,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
 
-        // Using $$, since if we use only $ we can have problems when resolving internal classes
+        // Using $$, since internal classes types has $ and due to
+        // that we have some problems translating from asm Type to javapoet TypeName
         String generatedClassName = String.format("%s.$$BridgeFor$$%s$$%s",
             packageElement.getQualifiedName().toString(),
             topClass.getSimpleName().toString(),
