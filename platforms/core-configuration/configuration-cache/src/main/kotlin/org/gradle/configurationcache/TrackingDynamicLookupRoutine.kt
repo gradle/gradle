@@ -61,6 +61,11 @@ class TrackingDynamicLookupRoutine(
             receiver.invokeMethod(name, *args)
         }
 
+    override fun tryGetProperty(receiver: DynamicObject, name: String): DynamicInvokeResult =
+        withDynamicCall(receiver) {
+            receiver.tryGetProperty(name)
+        }
+
     private
     fun <T> withDynamicCall(entryPoint: Any, action: () -> T): T =
         try {
