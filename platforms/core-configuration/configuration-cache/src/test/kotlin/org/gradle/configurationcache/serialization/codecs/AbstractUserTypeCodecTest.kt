@@ -18,28 +18,29 @@ package org.gradle.configurationcache.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.configurationcache.problems.AbstractProblemsListener
 import org.gradle.configurationcache.serialization.Codecs
-import org.gradle.internal.configuration.problems.ProblemsListener
-import org.gradle.internal.configuration.problems.PropertyProblem
-import org.gradle.internal.serialize.graph.Codec
 import org.gradle.configurationcache.serialization.DefaultClassDecoder
 import org.gradle.configurationcache.serialization.DefaultClassEncoder
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.beans.services.BeanConstructors
+import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
+import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
+import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
+import org.gradle.internal.serialize.graph.BeanStateReaderLookup
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.serialize.graph.MutableIsolateContext
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
-import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withIsolate
-import org.gradle.internal.io.NullOutputStream
-import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.TestUtil
@@ -194,7 +195,8 @@ abstract class AbstractUserTypeCodecTest {
 
 
 internal
-fun beanStateReaderLookupForTesting() = DefaultBeanStateReaderLookup(
-    BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
-    TestUtil.instantiatorFactory()
-)
+fun beanStateReaderLookupForTesting(): BeanStateReaderLookup =
+    DefaultBeanStateReaderLookup(
+        BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
+        TestUtil.instantiatorFactory()
+    )

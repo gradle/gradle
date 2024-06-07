@@ -32,9 +32,9 @@ import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configurationcache.serialization.Codecs
-import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.configurationcache.serialization.service
-import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.configurationcache.base.serialize.service
+import org.gradle.internal.configurationcache.base.serialize.withGradleIsolate
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails

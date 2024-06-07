@@ -24,13 +24,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.CollectionPropertyInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.beanStateReaderLookupForTesting
-import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
+import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.Cast.uncheckedNonnullCast
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
+import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
 import org.gradle.util.TestUtil.propertyFactory

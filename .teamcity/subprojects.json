@@ -49,6 +49,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "bean-serialization-services",
+    "path": "platforms/core-configuration/bean-serialization-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache",
     "path": "platforms/core-execution/build-cache",
     "unitTests": true,
@@ -233,6 +240,13 @@
   {
     "name": "core-platform",
     "path": "subprojects/core-platform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "core-serialization-codecs",
+    "path": "platforms/core-configuration/core-serialization-codecs",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

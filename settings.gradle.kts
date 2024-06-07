@@ -118,10 +118,12 @@ val core = platform("core") {
     module("core-configuration") {
         subproject("api-metadata")
         subproject("base-services-groovy")
+        subproject("bean-serialization-services")
         subproject("configuration-cache")
         subproject("configuration-cache-base")
         subproject("configuration-problems-base")
         subproject("core-kotlin-extensions")
+        subproject("core-serialization-codecs")
         subproject("declarative-dsl-api")
         subproject("declarative-dsl-core")
         subproject("declarative-dsl-evaluator")

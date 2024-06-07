@@ -22,7 +22,7 @@ import org.gradle.configurationcache.ConfigurationCacheIO
 import org.gradle.configurationcache.ConfigurationCacheStateStore
 import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
-import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.serialize.Decoder

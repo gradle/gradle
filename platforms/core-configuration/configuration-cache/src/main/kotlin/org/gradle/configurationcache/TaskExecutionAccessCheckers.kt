@@ -20,7 +20,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.execution.WorkExecutionTracker
 
 

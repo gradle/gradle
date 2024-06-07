@@ -24,15 +24,16 @@ description = "Efficient and extensible serialization for object graphs, with th
 
 dependencies {
     api(projects.configurationProblemsBase)
+    api(projects.javaLanguageExtensions)
     api(projects.loggingApi)
     api(projects.serialization)
-    api(libs.kotlinStdlib)
+
     api(libs.guava)
     api(libs.jsr305)
+    api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
     implementation(projects.problemsApi)
-    implementation(projects.javaLanguageExtensions)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.fastutil)

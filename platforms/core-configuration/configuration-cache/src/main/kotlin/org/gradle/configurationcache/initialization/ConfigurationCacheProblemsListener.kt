@@ -34,7 +34,7 @@ import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
+import org.gradle.configurationcache.Workarounds.canAccessConventions
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
