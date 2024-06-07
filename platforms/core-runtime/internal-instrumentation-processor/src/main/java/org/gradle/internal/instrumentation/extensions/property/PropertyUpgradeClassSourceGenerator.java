@@ -73,7 +73,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
 
         return builder -> builder
             .addAnnotation(GENERATED_ANNOTATION.asClassName())
-            .addModifiers(Modifier.PUBLIC)
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addJavadoc("Auto generated class. Should not be used directly.")
             .addMethods(methods);
     }
@@ -82,7 +82,6 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         PropertyUpgradeRequestExtra implementationExtra = request.getRequestExtras()
             .getByType(PropertyUpgradeRequestExtra.class)
             .orElseThrow(() -> new RuntimeException(PropertyUpgradeRequestExtra.class.getSimpleName() + " should be present at this stage!"));
-
 
         try {
             ImplementationInfo implementation = request.getImplementationInfo();

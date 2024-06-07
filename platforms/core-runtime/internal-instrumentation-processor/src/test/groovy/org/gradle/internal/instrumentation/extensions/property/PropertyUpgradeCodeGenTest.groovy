@@ -58,7 +58,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
-            public class Task_Adapter {
+            public final class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                     return self.getMaxErrors().getOrElse(0);
@@ -123,7 +123,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
-            public class Task_Adapter {
+            public final class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
                     return self.getIncremental().getOrElse(false);
@@ -175,7 +175,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
-            public class Task_Adapter {
+            public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
