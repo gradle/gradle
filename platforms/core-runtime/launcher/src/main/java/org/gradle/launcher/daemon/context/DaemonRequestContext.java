@@ -16,12 +16,10 @@
 
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -30,15 +28,17 @@ import java.util.Collection;
  * This contains the list of properties a client will consider when determining if a daemon is compatible.
  */
 public class DaemonRequestContext {
-    private final JavaInfo requestedJvm;
+    public static DaemonRequestContext from(DaemonParameters parameters) {
+        return new DaemonRequestContext(parameters.getRequestedJvmCriteria(), parameters.getEffectiveJvmArgs(), parameters.shouldApplyInstrumentationAgent(), parameters.getNativeServicesMode(), parameters.getPriority());
+    }
+
     private final DaemonJvmCriteria jvmCriteria;
     private final Collection<String> daemonOpts;
     private final boolean applyInstrumentationAgent;
     private final NativeServices.NativeServicesMode nativeServicesMode;
     private final DaemonParameters.Priority priority;
 
-    public DaemonRequestContext(@Nullable JavaInfo requestedJvm, @Nullable DaemonJvmCriteria jvmCriteria, Collection<String> daemonOpts, boolean applyInstrumentationAgent, NativeServices.NativeServicesMode nativeServicesMode, DaemonParameters.Priority priority) {
-        this.requestedJvm = requestedJvm;
+    public DaemonRequestContext(DaemonJvmCriteria jvmCriteria, Collection<String> daemonOpts, boolean applyInstrumentationAgent, NativeServices.NativeServicesMode nativeServicesMode, DaemonParameters.Priority priority) {
         this.jvmCriteria = jvmCriteria;
         this.daemonOpts = daemonOpts;
         this.applyInstrumentationAgent = applyInstrumentationAgent;
@@ -46,11 +46,6 @@ public class DaemonRequestContext {
         this.priority = priority;
     }
 
-    @Nullable
-    public JavaInfo getJavaHome() {
-        return requestedJvm;
-    }
-    @Nullable
     public DaemonJvmCriteria getJvmCriteria() {
         return jvmCriteria;
     }
@@ -74,8 +69,7 @@ public class DaemonRequestContext {
     @Override
     public String toString() {
         return "DaemonRequestContext{" +
-            "requestedJvm=" + requestedJvm +
-            ", jvmCriteria=" + jvmCriteria +
+            "jvmCriteria=" + jvmCriteria +
             ", daemonOpts=" + daemonOpts +
             ", applyInstrumentationAgent=" + applyInstrumentationAgent +
             ", nativeServicesMode=" + nativeServicesMode +

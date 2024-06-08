@@ -16,8 +16,6 @@
 package org.gradle.launcher.daemon.context
 
 
-import org.gradle.internal.jvm.JavaInfo
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -47,19 +45,11 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     DaemonRequestContext clientWants(Map args) {
-        clientWants(args.requestedJvm,
+        clientWants(args.jvmCriteria,
             args.daemonOpts ?: [],
             args.applyInstrumentationAgent ?: false,
             args.nativeServicesMode ?: NativeServices.NativeServicesMode.NOT_SET,
             args.priority?:DaemonParameters.Priority.NORMAL)
-    }
-
-    DaemonRequestContext clientWants(JavaInfo requestedJvm,
-                                     Collection<String> daemonOpts = Collections.emptyList(),
-                                     boolean applyInstrumentationAgent = false,
-                                     NativeServices.NativeServicesMode nativeServicesMode = NativeServices.NativeServicesMode.NOT_SET,
-                                     DaemonParameters.Priority priority = DaemonParameters.Priority.NORMAL) {
-        request = new DaemonRequestContext(requestedJvm, null, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
     }
 
     DaemonRequestContext clientWants(DaemonJvmCriteria jvmCriteria,
@@ -67,7 +57,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
                                      boolean applyInstrumentationAgent = false,
                                      NativeServices.NativeServicesMode nativeServicesMode = NativeServices.NativeServicesMode.NOT_SET,
                                      DaemonParameters.Priority priority = DaemonParameters.Priority.NORMAL) {
-        request = new DaemonRequestContext(null, jvmCriteria, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
+        request = new DaemonRequestContext(jvmCriteria, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
     }
 
     private boolean isCompatible() {
@@ -79,7 +69,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different java homes are incompatible"() {
-        clientWants(Jvm.forHome(javaHome))
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome))
 
         def daemonJdkHome = tmp.createDir("daemon-jdk")
         daemonJdkHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
@@ -92,7 +82,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different jvm criteria are incompatible"() {
-        clientWants(new DaemonJvmCriteria(JavaLanguageVersion.of(11), JvmVendorSpec.ADOPTIUM, JvmImplementation.VENDOR_SPECIFIC))
+        clientWants(new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(11), JvmVendorSpec.ADOPTIUM, JvmImplementation.VENDOR_SPECIFIC))
 
         candidate.javaVersion >> JavaLanguageVersion.of(15)
 
@@ -110,7 +100,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         assert linkToJdk.exists()
         assert javaHome.canonicalFile == linkToJdk.canonicalFile
 
-        clientWants(Jvm.forHome(javaHome))
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome))
 
         candidate.javaHome >> linkToJdk
         candidate.daemonOpts >> []
@@ -126,7 +116,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with same daemon opts are compatible"() {
-        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), ["-Xmx256m", "-Dfoo=foo"])
 
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> ["-Xmx256m", "-Dfoo=foo"]
@@ -139,7 +129,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with same daemon opts but different order are compatible"() {
-        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), ["-Xmx256m", "-Dfoo=foo"])
 
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> ["-Dfoo=foo", "-Xmx256m"]
@@ -152,7 +142,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different quantity of opts are not compatible"() {
-        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), ["-Xmx256m", "-Dfoo=foo"])
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> ["-Xmx256m"]
 
@@ -162,7 +152,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different daemon opts are incompatible"() {
-        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), ["-Xmx256m", "-Dfoo=foo"])
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> ["-Xmx256m", "-Dfoo=bar"]
 
@@ -172,7 +162,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different priority"() {
-        clientWants(requestedJvm: Jvm.forHome(javaHome), priority: DaemonParameters.Priority.LOW)
+        clientWants(jvmCriteria: new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), priority: DaemonParameters.Priority.LOW)
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> []
         candidate.priority >> DaemonParameters.Priority.NORMAL
@@ -183,7 +173,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "context with different agent status"() {
-        clientWants(requestedJvm: Jvm.forHome(javaHome), applyInstrumentationAgent: clientStatus)
+        clientWants(jvmCriteria: new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), applyInstrumentationAgent: clientStatus)
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> []
         candidate.priority >> DaemonParameters.Priority.NORMAL
@@ -198,7 +188,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "context with same agent status"() {
-        clientWants(requestedJvm: Jvm.forHome(javaHome), applyInstrumentationAgent: clientStatus)
+        clientWants(jvmCriteria: new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome), applyInstrumentationAgent: clientStatus)
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> []
         candidate.priority >> DaemonParameters.Priority.NORMAL

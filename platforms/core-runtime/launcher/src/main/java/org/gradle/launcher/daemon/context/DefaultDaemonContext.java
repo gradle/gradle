@@ -16,12 +16,12 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -129,7 +129,7 @@ public class DefaultDaemonContext implements DaemonContext {
 
     @Override
     public DaemonRequestContext toRequest() {
-        return new DaemonRequestContext(Jvm.forHome(javaHome), null, this.getDaemonOpts(), this.shouldApplyInstrumentationAgent(), this.getNativeServicesMode(), this.getPriority());
+        return new DaemonRequestContext(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.EXISTING_DAEMON, javaHome), this.getDaemonOpts(), this.shouldApplyInstrumentationAgent(), this.getNativeServicesMode(), this.getPriority());
     }
 
     static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
