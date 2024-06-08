@@ -24,6 +24,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -32,8 +33,6 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
@@ -52,12 +51,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     @Nullable
     private Try<T> instance;
     /**
-     * Lazily initialized when the first action is registered because not every service needs this.
      * Use {@link #getStopActions()} to get the list instead of reading the field directly.
      */
     @GuardedBy("instanceLock")
-    @Nullable
-    private List<Consumer<? super RegisteredBuildServiceProvider<T, P>>> stopActions;
+    private PersistentList<Consumer<? super RegisteredBuildServiceProvider<T, P>>> stopActions = PersistentList.of();
     private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
@@ -132,12 +129,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
      */
     public void beforeStopping(Consumer<? super RegisteredBuildServiceProvider<T, P>> stopAction) {
         synchronized (instanceLock) {
-            if (stopActions == null) {
-                // So far we expect at most one listener.
-                // If the number of the listeners goes up, the capacity number here should be increased.
-                stopActions = new ArrayList<>(1);
-            }
-            stopActions.add(stopAction);
+            stopActions = stopActions.plus(stopAction);
         }
     }
 
@@ -191,17 +183,15 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return ExecutionTimeValue.changingValue(this);
     }
 
-    private ImmutableList<Consumer<? super RegisteredBuildServiceProvider<T, P>>> getStopActions() {
+    private Iterable<Consumer<? super RegisteredBuildServiceProvider<T, P>>> getStopActions() {
         synchronized (instanceLock) {
-            if (stopActions != null) {
-                return ImmutableList.copyOf(stopActions);
-            }
+            return stopActions;
         }
-        return ImmutableList.of();
     }
 
     @Override
     public void maybeStop() {
+        // We don't want to call stop actions with the lock held.
         ExecutionResult<Void> stopResult = ExecutionResult.forEach(getStopActions(), action -> action.accept(this));
         synchronized (instanceLock) {
             try {
