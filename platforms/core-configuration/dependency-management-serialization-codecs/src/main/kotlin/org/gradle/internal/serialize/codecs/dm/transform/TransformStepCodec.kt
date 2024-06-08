@@ -20,7 +20,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.transform.Transform
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
-import org.gradle.internal.configurationcache.base.serialize.getProject
+import org.gradle.internal.cc.base.serialize.getProject
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext

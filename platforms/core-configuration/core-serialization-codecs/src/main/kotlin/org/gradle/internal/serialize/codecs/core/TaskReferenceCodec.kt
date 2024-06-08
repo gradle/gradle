@@ -19,7 +19,7 @@ package org.gradle.internal.serialize.codecs.core
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.logUnsupportedBaseType
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.internal.serialize.graph.Codec
