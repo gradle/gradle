@@ -29,7 +29,7 @@ import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.configurationcache.base.serialize.withGradleIsolate
+import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup

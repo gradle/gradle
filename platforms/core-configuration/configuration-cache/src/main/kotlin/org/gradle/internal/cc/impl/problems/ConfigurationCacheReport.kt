@@ -27,7 +27,7 @@ import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
 import org.gradle.internal.configuration.problems.FailureDecorator
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream

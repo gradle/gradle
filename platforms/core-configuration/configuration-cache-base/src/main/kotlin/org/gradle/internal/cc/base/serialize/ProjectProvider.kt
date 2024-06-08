@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.configurationcache.base
+package org.gradle.internal.cc.base.serialize
 
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.getSingletonProperty
 
 
-/**
- * Configuration Cache logger.
- */
-val logger: Logger = Logging.getLogger("org.gradle.configurationcache")
+typealias ProjectProvider = (String) -> ProjectInternal
+
+
+fun ReadContext.getProject(path: String): ProjectInternal =
+    getSingletonProperty<ProjectProvider>().invoke(path)

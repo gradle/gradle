@@ -30,7 +30,7 @@
  *  <p>Codecs may be implemented:
  *  <ul>
  *  <li>as a custom class that implements both encoding and decoding protocols in the same class
- *  <li>based on the combination of arbitrary encoder and decoder functions, as done via {@link org.gradle.configurationcache.serialization.CombinatorsKt#codec(kotlin.jvm.functions.Function3, kotlin.jvm.functions.Function2) codec(...)}
+ *  <li>based on the combination of arbitrary encoder and decoder functions, as done via {@link org.gradle.internal.serialize.graph.CombinatorsKt#codec(kotlin.jvm.functions.Function3, kotlin.jvm.functions.Function2) codec(...)}
  *  <li>or as composite/multi-type codecs, backed by a set of bindings, via {@link org.gradle.internal.serialize.graph.codecs.Bindings#build()} - see below for more on Bindings.
  *  </ul>
  *

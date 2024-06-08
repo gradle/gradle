@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
-import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope

@@ -46,8 +46,8 @@ import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
-import org.gradle.internal.configurationcache.base.logger
-import org.gradle.internal.configurationcache.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup

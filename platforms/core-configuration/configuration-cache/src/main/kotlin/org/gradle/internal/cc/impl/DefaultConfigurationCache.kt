@@ -32,9 +32,9 @@ import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.configurationcache.base.serialize.HostServiceProvider
-import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
-import org.gradle.internal.configurationcache.base.serialize.service
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
+import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
@@ -47,7 +47,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
-import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory

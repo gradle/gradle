@@ -21,7 +21,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheError
 import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.configuration.problems.PropertyProblem
-import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun

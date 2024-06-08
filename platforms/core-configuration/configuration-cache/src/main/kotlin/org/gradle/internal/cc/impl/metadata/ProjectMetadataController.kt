@@ -28,7 +28,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.DefaultConfigurationCache
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.models.ProjectStateStore
-import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.ownerService

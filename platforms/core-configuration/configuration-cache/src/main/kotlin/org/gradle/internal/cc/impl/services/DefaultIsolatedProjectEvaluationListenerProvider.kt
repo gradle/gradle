@@ -27,7 +27,7 @@ import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
 import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
 import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
 import org.gradle.internal.serialize.graph.IsolateOwner
-import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider

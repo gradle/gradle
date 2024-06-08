@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.configurationcache.base.services
+package org.gradle.internal.cc.base.services
 
 import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.ProblemFactory

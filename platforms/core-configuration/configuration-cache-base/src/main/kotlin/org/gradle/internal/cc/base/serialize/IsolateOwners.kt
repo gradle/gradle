@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.configurationcache.base.serialize
+package org.gradle.internal.cc.base.serialize
 
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal

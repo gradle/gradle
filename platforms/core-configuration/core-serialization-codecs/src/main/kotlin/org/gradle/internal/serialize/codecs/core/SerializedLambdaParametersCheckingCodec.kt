@@ -38,7 +38,7 @@ import kotlin.reflect.KClass
  * The lambda is encoded straightforwardly as a bean, and, upon decoding, the bean is expected to be the [SerializedLambda].
  * Beside the compliance checks, the values are encoded or decoded as beans without any special handling.
  *
- * @see [org.gradle.configurationcache.serialization.beans.unsupportedFieldDeclaredTypes]
+ * @see [org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes]
  */
 object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     override suspend fun ReadContext.decode(): SerializedLambda {

@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.cc.impl.CheckedFingerprint
-import org.gradle.internal.configurationcache.base.logger
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast

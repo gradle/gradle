@@ -25,7 +25,7 @@ import org.gradle.api.internal.provider.CollectionPropertyInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.cc.impl.serialization.codecs.beanStateReaderLookupForTesting
-import org.gradle.internal.configurationcache.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.Cast.uncheckedNonnullCast

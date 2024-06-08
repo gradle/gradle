@@ -18,9 +18,9 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.internal.cc.impl.serialization.ClassLoaderScopeSpec
+import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
 import org.gradle.internal.serialize.graph.ClassLoaderRole
-import org.gradle.internal.cc.impl.serialization.ScopeLookup
+import org.gradle.internal.cc.impl.serialize.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
