@@ -20,6 +20,6 @@
  *
  * For more details, see:
  *
- * {@link org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec}
+ * {@link org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec}
  */
 package org.gradle.internal.serialize.codecs.core.jos;

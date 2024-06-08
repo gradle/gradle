@@ -20,7 +20,7 @@ dependencies {
 
 tasks.processResources {
     from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
-        into("org/gradle/configurationcache/problems")
+        into("org/gradle/internal/cc/impl/problems")
         exclude("META-INF/**")
     }
 }
@@ -128,5 +128,5 @@ dependencies {
 }
 
 packageCycles {
-    excludePatterns.add("org/gradle/configurationcache/**")
+    excludePatterns.add("org/gradle/internal/cc/**")
 }
