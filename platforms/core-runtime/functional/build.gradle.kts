@@ -9,4 +9,5 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.javaLanguageExtensions)
+    implementation(libs.guava)
 }
