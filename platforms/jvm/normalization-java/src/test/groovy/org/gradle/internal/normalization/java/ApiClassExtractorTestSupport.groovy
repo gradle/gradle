@@ -18,11 +18,10 @@ package org.gradle.internal.normalization.java
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import org.objectweb.asm.ClassReader
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import javax.tools.DiagnosticCollector
 import javax.tools.JavaCompiler
@@ -102,8 +101,8 @@ class ApiClassExtractorTestSupport extends Specification {
     @Shared
     public JavaCompiler compiler = ToolProvider.systemJavaCompiler
 
-    @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @TempDir
+    File temporaryFolder
 
     // The default target version can be updated to a new version when necessary, as long as
     // you also update `ApiClassExtractorTest#target binary compatibility is maintained` with new assumptions.
@@ -122,7 +121,8 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     protected ApiContainer toApi(String targetVersion, List<String> packages, Map<String, String> sources) {
-        def dir = temporaryFolder.createDir('out')
+        def dir = new File(temporaryFolder, 'out')
+        dir.mkdirs()
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
         def task = compiler.getTask(
