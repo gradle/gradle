@@ -16,7 +16,7 @@
 
 package org.gradle.internal.normalization.java;
 
-import org.gradle.internal.hash.Hasher;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.normalization.java.impl.ApiMemberSelector;
 import org.gradle.internal.normalization.java.impl.ApiMemberWriter;
 import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapter;
@@ -43,28 +43,17 @@ public class ApiClassExtractor {
     }
 
     public ApiClassExtractor(Set<String> exportedPackages, ApiMemberWriterFactory apiMemberWriterFactory) {
-        this.exportedPackages = exportedPackages.isEmpty() ? null : exportedPackages;
+        this.exportedPackages = ImmutableSet.copyOf(exportedPackages);
         this.apiIncludesPackagePrivateMembers = exportedPackages.isEmpty();
         this.apiMemberWriterFactory = apiMemberWriterFactory;
     }
 
-    private boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
-        if (!ApiMemberSelector.isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
-            return false;
-        }
-        String originalClassName = originalClassReader.getClassName();
-        if (isLocalClass(originalClassName)) {
-            return false;
-        }
-        return exportedPackages == null
-            || exportedPackages.contains(packageNameOf(originalClassName));
+    public Set<String> getExportedPackages() {
+        return exportedPackages;
     }
 
     /**
      * Extracts an API class from a given original class.
-     *
-     * @param originalClassReader the reader containing the original class
-     * @return bytecode of the API class extracted from the original class. Returns {@link Optional#empty()} when class should not be included, due to some reason that is not known until visited.
      *
      * <p>Checks whether the class's package is in the list of packages
      * explicitly exported by the library (if any), and whether the class should be
@@ -73,6 +62,9 @@ public class ApiClassExtractor {
      * specification, then package-private classes are included in the public API. If the
      * list of exported packages is non-empty (i.e. the library has declared an
      * {@code api {...}} specification, then package-private classes are excluded.</p>
+     *
+     * @param originalClassReader the reader containing the original class
+     * @return bytecode of the API class extracted from the original class. Returns {@link Optional#empty()} when class should not be included, due to some reason that is not known until visited.
      */
     public Optional<byte[]> extractApiClassFrom(ClassReader originalClassReader) {
         if (!shouldExtractApiClassFrom(originalClassReader)) {
@@ -87,11 +79,16 @@ public class ApiClassExtractor {
         return Optional.of(apiClassWriter.toByteArray());
     }
 
-    public void appendConfigurationToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
-        if (exportedPackages != null) {
-            exportedPackages.forEach(hasher::putString);
+    private boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
+        if (!ApiMemberSelector.isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
+            return false;
         }
+        String originalClassName = originalClassReader.getClassName();
+        if (isLocalClass(originalClassName)) {
+            return false;
+        }
+        return exportedPackages.isEmpty()
+            || exportedPackages.contains(packageNameOf(originalClassName));
     }
 
     private static String packageNameOf(String internalClassName) {

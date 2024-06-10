@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -34,11 +35,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
-    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(new ApiClassExtractor(Collections.emptySet()));
+    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(new ApiClassExtractor(ImmutableSet.of()));
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
@@ -105,7 +105,8 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
-        extractor.appendConfigurationToHasher(hasher);
+        hasher.putString(extractor.getClass().getName());
+        extractor.getExportedPackages().forEach(hasher::putString);
     }
 
     private static class ZipEntryContent {

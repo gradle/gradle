@@ -52,8 +52,8 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         then:
         configurationHash1 != configurationHash2
 
-        1 * apiClassExtractor1.appendConfigurationToHasher(_) >> { args -> args[0].putString("first") }
-        1 * apiClassExtractor2.appendConfigurationToHasher(_) >> { args -> args[0].putString("second") }
+        1 * apiClassExtractor1.exportedPackages >> ["first"]
+        1 * apiClassExtractor2.exportedPackages >> ["second"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20398")
