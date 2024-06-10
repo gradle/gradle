@@ -500,6 +500,8 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
 
+        // TODO: Why do we detect a conflict between bcprov-jdk18on 1.71 and 1.72?
+
         capability("org.gradlex", "bouncycastle-bcprov") {
             forModule("org.bouncycastle:bcprov-jdk12")
             forModule("org.bouncycastle:bcprov-jdk18on")
@@ -523,6 +525,8 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         }
     }
+
+    // TODO: What happens when we attempt to replace a replaced component?
 
     // region test fixtures
 

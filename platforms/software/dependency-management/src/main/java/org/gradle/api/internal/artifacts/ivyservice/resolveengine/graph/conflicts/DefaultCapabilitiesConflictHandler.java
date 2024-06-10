@@ -239,6 +239,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                             public void reject() {
                                 ComponentState component = node.getComponent();
                                 component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.nodes));
+
+                                // TODO: Determine if we really need to select this rejected node.
+                                // How do we prevent the node from selecting its own dependencies when it
+                                // gets added to the graph?
+                                // Conceptually, it seems odd for a module to select a node that does not belong in the graph
+                                // however, this seems to be required currently for the sake of reporting the conflict
+                                // final graph visiting.
                                 component.selectAndRestartModule();
                             }
 
