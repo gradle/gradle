@@ -99,7 +99,6 @@
          <trusted-key id="1FA37FBE4453C1073E7EF61D6449005F96BC97A3" group="de.undercouch"/>
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>
-         <trusted-key id="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="28118C070CB22A0175A2E8D43D12CA2AC19F3181">
             <trusting group="com.fasterxml.jackson.core"/>
             <trusting group="com.fasterxml.woodstox"/>
@@ -286,9 +285,7 @@
          <trusted-key id="D5FC4D8E6FF704C573819555BF7CC7DEFE9389D7" group="com.github.docker-java"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
-         <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40">
-            <trusting group="^com[.]squareup($|([.].*))" regex="true"/>
-         </trusted-key>
+         <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE" group="org.jline"/>
          <trusted-key id="DDDEE87612E9FB95F5C8D91E411063A3A0FFD119">
             <trusting group="commons-beanutils"/>
@@ -330,6 +327,7 @@
             <trusting group="org.apache.maven"/>
             <trusting group="org.eclipse.aether"/>
          </trusted-key>
+         <trusted-key id="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="FC411CD3CB7DCB0ABC9801058118B3BCDB1A5000" group="jakarta.xml.bind" name="jakarta.xml.bind-api"/>
          <trusted-key id="FE72F1BFE9632B1FE049AC3E5BCD80B78ACD3A37" group="org.openjdk.jmc"/>
          <trusted-key id="FEB9209F2F2F3F4664841E55AC107B386692DADD" group="com.amazonaws"/>
@@ -622,6 +620,11 @@
                <ignored-key id="29579F18FA8FD93B" reason="Artifact has been overwritten on Maven Central"/>
             </ignored-keys>
             <sha256 value="2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6" origin="Verified by Bo"/>
+         </artifact>
+      </component>
+      <component group="com.google.j2objc" name="j2objc-annotations" version="2.8">
+         <artifact name="j2objc-annotations-2.8.jar">
+            <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
          </artifact>
       </component>
       <component group="com.google.protobuf" name="protobuf-java" version="3.0.0">
