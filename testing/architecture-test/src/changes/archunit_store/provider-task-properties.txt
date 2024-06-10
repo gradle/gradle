@@ -132,7 +132,6 @@ Method <org.gradle.api.tasks.compile.JavaCompile.getModularity()> does not have 
 Method <org.gradle.api.tasks.compile.JavaCompile.getOptions()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JavaCompile.java:0)
 Method <org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (AbstractConfigurationReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (AbstractConfigurationReportTask.java:0)
-Method <org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getConfigurations()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractDependencyReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getRenderer()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractDependencyReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()> does not have raw return type assignable to org.gradle.api.provider.Provider in (AbstractDependencyReportTask.java:0)
 Method <org.gradle.api.tasks.diagnostics.AbstractReportTask.getOutputFile()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractReportTask.java:0)
