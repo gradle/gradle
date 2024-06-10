@@ -92,7 +92,7 @@ class ModelToDocumentMutationPlannerTest {
             document, resolved,
             ModelMutation.SetPropertyValue(
                 schema.property("NestedReceiver", "number"),
-                newValue,
+                NewValueNodeProvider.Constant(newValue),
                 ModelMutation.IfPresentBehavior.Overwrite
             )
         )
@@ -167,11 +167,12 @@ class ModelToDocumentMutationPlannerTest {
         resolved: DocumentResolutionContainer,
         mutation: ModelMutation,
         scopeLocation: ScopeLocation = ScopeLocation(listOf(InAllNestedScopes))
-    ): ModelMutationPlan = planner.planModelMutations(document, resolved,
+    ): ModelMutationPlan = planner.planModelMutation(document, resolved,
         ModelMutationRequest(
             scopeLocation,
-            mutation
-        )
+            mutation,
+        ),
+        mutationArguments { }
     )
 
     private

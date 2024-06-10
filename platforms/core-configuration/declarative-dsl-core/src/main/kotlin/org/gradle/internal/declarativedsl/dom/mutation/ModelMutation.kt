@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.dom.mutation
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
-import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 
@@ -31,7 +31,12 @@ interface ModelMutationPlan {
 
 
 interface ModelToDocumentMutationPlanner {
-    fun planModelMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, mutationRequest: ModelMutationRequest): ModelMutationPlan
+    fun planModelMutation(
+        document: DeclarativeDocument,
+        resolution: DocumentResolutionContainer,
+        mutationRequest: ModelMutationRequest,
+        mutationArguments: MutationArgumentContainer
+    ): ModelMutationPlan
 }
 
 
@@ -50,7 +55,7 @@ sealed interface ModelMutation {
 
     data class SetPropertyValue(
         override val property: DataProperty,
-        val newValue: DeclarativeDocument.ValueNode,
+        val newValue: NewValueNodeProvider,
         val ifPresentBehavior: IfPresentBehavior,
     ) : ModelPropertyMutation
 
@@ -71,8 +76,24 @@ sealed interface ModelMutation {
 }
 
 
+sealed interface NewDocumentNodeProvider {
+    data class Constant(val documentNode: DocumentNode) : NewDocumentNodeProvider
+    fun interface ArgumentBased : NewDocumentNodeProvider {
+        fun produceDocumentNode(argumentContainer: MutationArgumentContainer): DocumentNode
+    }
+}
+
+
+sealed interface NewValueNodeProvider {
+    data class Constant(val valueNode: ValueNode) : NewValueNodeProvider
+    fun interface ArgumentBased : NewValueNodeProvider {
+        fun produceValueNode(argumentContainer: MutationArgumentContainer): ValueNode
+    }
+}
+
+
 data class UnsuccessfulModelMutation(
-    val mutation: DocumentMutation,
+    val mutationRequest: ModelMutationRequest,
     val failureReasons: List<ModelMutationFailureReason>
 )
 
@@ -82,14 +103,24 @@ sealed interface ModelMutationFailureReason
 
 internal
 class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
-    override fun planModelMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, mutationRequest: ModelMutationRequest): ModelMutationPlan =
+    override fun planModelMutation(
+        document: DeclarativeDocument,
+        resolution: DocumentResolutionContainer,
+        mutationRequest: ModelMutationRequest,
+        mutationArguments: MutationArgumentContainer
+    ): ModelMutationPlan =
         DefaultModelMutationPlan(
-            toDocumentMutations(document, resolution, mutationRequest),
+            toDocumentMutations(document, resolution, mutationRequest, mutationArguments),
             emptyList() // TODO
         )
 
     private
-    fun toDocumentMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, request: ModelMutationRequest): List<DocumentMutation> = when (request.mutation) {
+    fun toDocumentMutations(
+        document: DeclarativeDocument,
+        resolution: DocumentResolutionContainer,
+        request: ModelMutationRequest,
+        mutationArguments: MutationArgumentContainer
+    ): List<DocumentMutation> = when (request.mutation) {
         is ModelMutation.UnsetProperty ->
             withMatchingProperties(request, document, resolution) {
                 DocumentMutation.DocumentNodeTargetedMutation.RemoveNode(it)
@@ -97,13 +128,9 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
 
         is ModelMutation.SetPropertyValue ->
             withMatchingProperties(request, document, resolution) {
-                DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode(
-                    it,
-                    DefaultPropertyNode(
-                        it.name,
-                        it.sourceData, // TODO: just using the old source data doesn't necessarily make sense ...
-                        request.mutation.newValue
-                    )
+                DocumentMutation.ValueTargetedMutation.ReplaceValue(
+                    it.value,
+                    request.mutation.newValue.value(mutationArguments)
                 )
             }
 
@@ -119,6 +146,12 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                     )
                 }.toList()
         }
+    }
+
+    private
+    fun NewValueNodeProvider.value(argumentContainer: MutationArgumentContainer) = when (this) {
+        is NewValueNodeProvider.ArgumentBased -> produceValueNode(argumentContainer)
+        is NewValueNodeProvider.Constant -> valueNode
     }
 
     private
