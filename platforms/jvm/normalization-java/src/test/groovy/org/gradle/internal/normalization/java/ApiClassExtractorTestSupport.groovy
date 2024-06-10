@@ -18,7 +18,6 @@ package org.gradle.internal.normalization.java
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import org.gradle.internal.UncheckedException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.objectweb.asm.ClassReader
@@ -96,8 +95,8 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     @CompileStatic
-    static String toFileName(String name, boolean clazz=false) {
-        "${name.replace('.', '/')}.${clazz?'class':'java'}"
+    static String toFileName(String name, boolean clazz = false) {
+        "${name.replace('.', '/')}.${clazz ? 'class' : 'java'}"
     }
 
     @Shared
@@ -122,7 +121,7 @@ class ApiClassExtractorTestSupport extends Specification {
         toApi(DEFAULT_TARGET_VERSION, packages, sources)
     }
 
-    protected ApiContainer toApi(String targetVersion, List<String> packages,  Map<String, String> sources) {
+    protected ApiContainer toApi(String targetVersion, List<String> packages, Map<String, String> sources) {
         def dir = temporaryFolder.createDir('out')
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
@@ -204,12 +203,8 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     protected static <T> T createInstance(Class<T> c) {
-        try {
-            Constructor<T> constructor = c.getDeclaredConstructor()
-            constructor.setAccessible(true)
-            return constructor.newInstance()
-        } catch (Throwable e) {
-            throw UncheckedException.throwAsUncheckedException(e)
-        }
+        Constructor<T> constructor = c.getDeclaredConstructor()
+        constructor.setAccessible(true)
+        return constructor.newInstance()
     }
 }

@@ -52,7 +52,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(Exception)
-        e.cause.cause instanceof UnsupportedOperationException
+        e.cause instanceof UnsupportedOperationException
 
         where:
         modifier           | access
