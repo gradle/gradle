@@ -19,13 +19,13 @@ dependencies {
     api(project(":snapshots"))
 
     api(libs.jsr305)
-    api(libs.asm)
     api(libs.guava)
 
-    implementation(projects.stdlibJavaExtensions)
-    implementation("org.gradle:api-extractor")
+    api("org.gradle:api-extractor")
+
     implementation(project(":functional"))
 
+    implementation(libs.asm)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
