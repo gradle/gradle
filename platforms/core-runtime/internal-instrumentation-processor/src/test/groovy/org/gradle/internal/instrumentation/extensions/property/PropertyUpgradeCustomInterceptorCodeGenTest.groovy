@@ -23,7 +23,7 @@ import static com.google.testing.compile.CompilationSubject.assertThat
 
 class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGenTest {
 
-    def "should generate adapter for upgraded property with custom interception"() {
+    def "should generate bridge class for upgraded property with custom adapter"() {
         given:
         def givenSource = source """
             package org.gradle.test;
@@ -86,6 +86,65 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                      Task.TaskAdapter.setMaxErrors(task, maxErrors);
                  }
              }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
+
+    def "should generate interceptor for custom adapter"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(adapter = Task.TaskAdapter.class)
+                public abstract Property<Integer> getMaxErrors();
+
+                static class TaskAdapter {
+                    @BytecodeUpgrade
+                    static int getMaxErrors(Task task) {
+                        return 0;
+                    }
+
+                    @BytecodeUpgrade
+                    static Task maxErrors(Task task, int maxErrors) {
+                        return task;
+                    }
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package org.gradle.internal.classpath.generated;
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                 @Override
+                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                         if (name.equals("getMaxErrors") && descriptor.equals("()I") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_TASK_ADAPTER_TYPE, "access_get_getMaxErrors", "(Lorg/gradle/test/Task;)I");
+                             return true;
+                         }
+                         if (name.equals("maxErrors") && descriptor.equals("(I)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_TASK_ADAPTER_TYPE, "access_set_maxErrors", "(Lorg/gradle/test/Task;I)Lorg/gradle/test/Task;");
+                             return true;
+                         }
+                     }
+                     return false;
+                 }
+            }
         """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
