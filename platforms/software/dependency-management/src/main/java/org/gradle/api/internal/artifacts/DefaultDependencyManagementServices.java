@@ -389,6 +389,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Instantiator instantiator,
             CollectionCallbackActionDecorator callbackDecorator,
             DependencyMetaDataProvider dependencyMetaDataProvider,
+            DomainObjectContext domainObjectContext,
+            AttributesSchemaInternal attributesSchema,
             DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory
@@ -397,6 +399,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 instantiator,
                 callbackDecorator,
                 dependencyMetaDataProvider,
+                domainObjectContext,
+                attributesSchema,
                 rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
                 resolutionStrategyFactory

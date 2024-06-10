@@ -16,36 +16,21 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-
-import javax.annotation.Nullable;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
- * module.</p>
+ * Represents the identity of the component that a dependency management instance exposes.
+ *
+ * This is used both as the identity of the root component of a resolution, and the public identity
+ * of the components that a dependency management instance exposes.
+ *
+ * TODO: This could use a better name. Maybe something like LocalComponentIdentity
  */
 public interface Module {
-    String DEFAULT_STATUS = "integration";
-
     /**
-     * Get the ID of the project that owns this module.
+     * Get this module's componentId.
      */
-    @Nullable
-    ProjectComponentIdentifier getOwner();
-
-    /**
-     * Get this module's componentId, if it is a project component ID. This may be null while
-     * {@link #getOwner} is not if a project owns a given module, but the module is not a
-     * project component. For example, detached configurations are owned by a project but are
-     * not project components.
-     *
-     * TODO: This should return a ComponentIdentifier and should not be nullable. But,
-     * since the implementations of this interface live in :core, they cannot access the
-     * constructor to ModuleComponentIdentifier. We should move Module and DependencyMetadataProvider
-     * to :dependency-management and fix this.
-     */
-    @Nullable
-    ProjectComponentIdentifier getComponentId();
+    ComponentIdentifier getComponentId();
 
     String getGroup();
 

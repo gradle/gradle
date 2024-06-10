@@ -17,20 +17,14 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.EmptySchema;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -42,44 +36,54 @@ import javax.inject.Inject;
 import java.lang.ref.SoftReference;
 
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder, HoldsProjectState {
+    private final DomainObjectContext owner;
     private final DependencyMetaDataProvider componentIdentity;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ConfigurationsProvider configurationsProvider;
-    private final MetadataHolder holder;
-    private final ProjectStateRegistry projectStateRegistry;
+    private final AttributesSchemaInternal schema;
+
+    // Services
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
     private final DefaultRootComponentMetadataBuilder.Factory factory;
+
+    // State
+    private final MetadataHolder holder;
 
     /**
      * Use {@link Factory#create} to create instances.
      */
     private DefaultRootComponentMetadataBuilder(
+        DomainObjectContext owner,
         DependencyMetaDataProvider componentIdentity,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ConfigurationsProvider configurationsProvider,
-        ProjectStateRegistry projectStateRegistry,
+        AttributesSchemaInternal schema,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
         Factory factory
     ) {
+        this.owner = owner;
         this.componentIdentity = componentIdentity;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.configurationsProvider = configurationsProvider;
-        this.projectStateRegistry = projectStateRegistry;
+        this.schema = schema;
+
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.localResolveStateFactory = localResolveStateFactory;
         this.factory = factory;
+
         this.holder = new MetadataHolder();
     }
 
     @Override
     public RootComponentState toRootComponent(String configurationName) {
         Module module = componentIdentity.getModule();
-        ComponentIdentifier componentIdentifier = getComponentIdentifier(module);
+        String status = module.getStatus();
+        ComponentIdentifier componentIdentifier = module.getComponentId();
         ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
 
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
-                return getComponentState(module, componentIdentifier, moduleVersionId);
+                return getComponentState(owner, componentIdentifier, moduleVersionId, status, schema);
             }
 
             @Override
@@ -108,70 +112,36 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         };
     }
 
-    private static ComponentIdentifier getComponentIdentifier(Module module) {
-        ComponentIdentifier componentIdentifier = module.getComponentId();
-        if (componentIdentifier != null) {
-            return componentIdentifier;
-        }
-
-        return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(
-            module.getGroup(), module.getName()), module.getVersion()
-        );
-    }
-
     @Override
     public DependencyMetaDataProvider getComponentIdentity() {
         return componentIdentity;
     }
 
     private LocalComponentGraphResolveState getComponentState(
-        Module module,
+        DomainObjectContext domainObjectContext,
         ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionIdentifier
+        ModuleVersionIdentifier moduleVersionIdentifier,
+        String status,
+        AttributesSchemaInternal schema
     ) {
         LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
-        if (state == null) {
-            state = createComponentState(module, componentIdentifier, moduleVersionIdentifier);
-            holder.cache(state, shouldCacheResolutionState());
+        if (state != null) {
+            return state;
         }
-        return state;
-    }
 
-    private LocalComponentGraphResolveState createComponentState(
-        Module module,
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionId
-    ) {
-        String status = module.getStatus();
-        ProjectComponentIdentifier projectId = module.getOwner();
+        LocalComponentGraphResolveState result;
+        ModelContainer<?> model = domainObjectContext.getModel();
 
-        if (projectId != null) {
-            ProjectState projectState = projectStateRegistry.stateFor(projectId);
-            if (!projectState.hasMutableState()) {
-                throw new IllegalStateException("Thread should hold project lock for " + projectState.getDisplayName());
-            }
-            return projectState.fromMutableState(project -> {
-                AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-                return createRootComponentMetadata(componentIdentifier, moduleVersionId, status, schema, project.getModel());
-            });
-        } else {
-            return createRootComponentMetadata(componentIdentifier, moduleVersionId, status, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE);
-        }
-    }
-
-    private LocalComponentGraphResolveState createRootComponentMetadata(
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionId,
-        String status,
-        AttributesSchemaInternal schema,
-        ModelContainer<?> model
-    ) {
         if (shouldCacheResolutionState()) {
-            return localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionId, configurationsProvider, status, schema);
+            result = localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, status, schema);
+            holder.cache(result, true);
         } else {
             // Mark the state as 'ad hoc' and not cacheable
-            return localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionId, configurationsProvider, status, schema);
+            result = localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, status, schema);
+            holder.cache(result, false);
         }
+
+        return result;
     }
 
     private boolean shouldCacheResolutionState() {
@@ -183,7 +153,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     @Override
     public RootComponentMetadataBuilder newBuilder(DependencyMetaDataProvider identity, ConfigurationsProvider provider) {
-        return factory.create(provider, identity);
+        return factory.create(owner, provider, identity, schema);
     }
 
     @Override
@@ -255,26 +225,29 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     public static class Factory {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final ProjectStateRegistry projectStateRegistry;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
 
         @Inject
         public Factory(
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            ProjectStateRegistry projectStateRegistry,
             LocalComponentGraphResolveStateFactory localResolveStateFactory
         ) {
             this.moduleIdentifierFactory = moduleIdentifierFactory;
-            this.projectStateRegistry = projectStateRegistry;
             this.localResolveStateFactory = localResolveStateFactory;
         }
 
-        public RootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider, DependencyMetaDataProvider componentIdentity) {
+        public RootComponentMetadataBuilder create(
+            DomainObjectContext owner,
+            ConfigurationsProvider configurationsProvider,
+            DependencyMetaDataProvider componentIdentity,
+            AttributesSchemaInternal schema
+        ) {
             return new DefaultRootComponentMetadataBuilder(
+                owner,
                 componentIdentity,
-                moduleIdentifierFactory,
                 configurationsProvider,
-                projectStateRegistry,
+                schema,
+                moduleIdentifierFactory,
                 localResolveStateFactory,
                 this
             );

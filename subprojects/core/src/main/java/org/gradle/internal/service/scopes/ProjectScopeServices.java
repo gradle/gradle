@@ -23,8 +23,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -322,7 +320,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             fileResolver,
             fileCollectionFactory,
             dependencyMetaDataProvider,
-            buildLogicBuilder);
+            buildLogicBuilder
+        );
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 
@@ -386,20 +385,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new ProjectBackedModuleMetaDataProvider();
-    }
-
-    @Provides
     protected TypeConverter createTypeConverter(PathToFileResolver fileResolver) {
         return new DefaultTypeConverter(fileResolver);
-    }
-
-    private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
-        @Override
-        public Module getModule() {
-            return new ProjectBackedModule(project);
-        }
     }
 
     @Provides

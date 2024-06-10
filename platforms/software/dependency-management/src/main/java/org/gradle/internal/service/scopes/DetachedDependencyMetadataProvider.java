@@ -16,11 +16,11 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 /**
  * Represents the root component identity of a detached configuration.
@@ -62,17 +62,12 @@ public class DetachedDependencyMetadataProvider implements DependencyMetaDataPro
             this.suffix = suffix;
         }
 
-        @Nullable
         @Override
-        public ProjectComponentIdentifier getOwner() {
-            return module.getOwner();
-        }
-
-        @Nullable
-        @Override
-        public ProjectComponentIdentifier getComponentId() {
-            // Detached configurations have a module component ID and thus return null here.
-            return null;
+        public ComponentIdentifier getComponentId() {
+            return new DefaultModuleComponentIdentifier(
+                DefaultModuleIdentifier.newId(getGroup(), getName()),
+                getVersion()
+            );
         }
 
         @Override

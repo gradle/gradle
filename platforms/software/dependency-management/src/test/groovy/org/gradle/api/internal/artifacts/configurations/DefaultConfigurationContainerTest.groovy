@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -70,7 +71,7 @@ class DefaultConfigurationContainerTest extends Specification {
         getValidator() >> Mock(MutationValidator)
     }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_, _) >> metadataBuilder
+        create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
@@ -101,6 +102,8 @@ class DefaultConfigurationContainerTest extends Specification {
         instantiator,
         callbackActionDecorator,
         metaDataProvider,
+        RootScriptDomainObjectContext.INSTANCE,
+        EmptySchema.INSTANCE,
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)

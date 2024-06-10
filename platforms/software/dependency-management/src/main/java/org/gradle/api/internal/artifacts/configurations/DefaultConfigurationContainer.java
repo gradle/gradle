@@ -31,8 +31,10 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
@@ -43,6 +45,7 @@ import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -65,10 +68,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
 
+    @Inject
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,
         DependencyMetaDataProvider rootComponentIdentity,
+        DomainObjectContext owner,
+        AttributesSchemaInternal schema,
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory
@@ -79,7 +85,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.rootComponentIdentity = rootComponentIdentity;
 
-        this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this, rootComponentIdentity);
+        this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
         this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
         this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
