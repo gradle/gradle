@@ -32,6 +32,7 @@ import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+import org.objectweb.asm.Type;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -254,10 +255,10 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             default:
                 throw new UnsupportedOperationException("Generating set call for type: " + upgradedPropertyType.asType() + " is not supported");
         }
-        if (implementationExtra.isFluentSetter()) {
-            return CodeBlock.of("$N.$N()$N;\nreturn $N", SELF_PARAMETER_NAME, propertyGetterName, assignment, SELF_PARAMETER_NAME);
-        } else {
+        if (implementationExtra.getReturnType().equals(Type.VOID_TYPE)) {
             return CodeBlock.of("$N.$N()$N", SELF_PARAMETER_NAME, propertyGetterName, assignment);
+        } else {
+            return CodeBlock.of("$N.$N()$N;\nreturn $N", SELF_PARAMETER_NAME, propertyGetterName, assignment, SELF_PARAMETER_NAME);
         }
     }
 }

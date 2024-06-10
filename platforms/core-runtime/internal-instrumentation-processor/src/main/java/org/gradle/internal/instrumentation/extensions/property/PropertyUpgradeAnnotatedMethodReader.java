@@ -226,7 +226,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             ? AccessorType.SETTER
             : AccessorType.GETTER;
         Type returnType = extractType(method.getReturnType());
-        boolean isFluentSetter = accessorType == AccessorType.SETTER && !returnType .equals(Type.VOID_TYPE);
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
@@ -256,7 +255,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             parameters,
             deprecationSpec,
             binaryCompatibility,
-            isFluentSetter,
             method);
     }
 
@@ -330,18 +328,16 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     ) {
         Type returnType;
         List<ParameterInfo> parameters;
-        boolean isFluentSetter;
         switch (accessorType) {
             case GETTER:
                 parameters = new ArrayList<>();
-                isFluentSetter = false;
                 returnType = originalType;
                 break;
             case SETTER:
-                isFluentSetter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
+                parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
+                boolean isFluentSetter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
                     .map(v -> (Boolean) v.getValue())
                     .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"));
-                parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
                 returnType = isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
                 break;
             default:
@@ -358,7 +354,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             parameters,
             deprecationSpec,
             binaryCompatibility,
-            isFluentSetter,
             null
         );
     }
@@ -446,7 +441,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             propertyName,
             method.getSimpleName().toString(),
             methodDescriptor,
-            accessor.isFluentSetter,
+            accessor.returnType,
             implementationClass,
             accessor.propertyName,
             accessor.methodName,
@@ -516,7 +511,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final String methodName;
         private final Type returnType;
         private final List<ParameterInfo> parameters;
-        private final boolean isFluentSetter;
         private final BinaryCompatibility binaryCompatibility;
         private final DeprecationSpec deprecationSpec;
         private final ExecutableElement bridgedMethod;
@@ -530,7 +524,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             List<ParameterInfo> parameters,
             DeprecationSpec deprecationSpec,
             BinaryCompatibility binaryCompatibility,
-            boolean isFluentSetter,
             @Nullable ExecutableElement bridgedMethod
         ) {
             this.generatedClassName = generatedClassName;
@@ -541,7 +534,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             this.parameters = parameters;
             this.deprecationSpec = deprecationSpec;
             this.binaryCompatibility = binaryCompatibility;
-            this.isFluentSetter = isFluentSetter;
             this.bridgedMethod = bridgedMethod;
         }
     }
