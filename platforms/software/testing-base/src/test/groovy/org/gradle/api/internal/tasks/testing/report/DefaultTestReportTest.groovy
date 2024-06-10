@@ -42,7 +42,7 @@ class DefaultTestReportTest extends Specification {
     final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     def reportWithMaxThreads(int numThreads) {
-        buildOperationExecutor = BuildOperationExecutorSupport.builder(false, numThreads)
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(numThreads)
             .withRunner(buildOperationRunner)
             .withWorkerLeaseService(workerLeaseService)
             .build()

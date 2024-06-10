@@ -17,7 +17,38 @@
 package org.gradle.internal.logging.events;
 
 public class TextQuestionPromptEvent extends PromptOutputEvent {
-    public TextQuestionPromptEvent(long timestamp, String prompt) {
-        super(timestamp, prompt, true);
+    private final String question;
+    private final String defaultValue;
+
+    public TextQuestionPromptEvent(long timestamp, String question, String defaultValue) {
+        super(timestamp);
+        this.question = question;
+        this.defaultValue = defaultValue;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    @Override
+    public String getPrompt() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (default: ");
+        builder.append(defaultValue);
+        builder.append("): ");
+        return builder.toString();
+    }
+
+    @Override
+    public PromptResult<String> convert(String text) {
+        if (text.isEmpty()) {
+            return PromptResult.response(defaultValue);
+        }
+        return PromptResult.response(text);
     }
 }

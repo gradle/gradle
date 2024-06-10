@@ -16,6 +16,8 @@
 
 package org.gradle.api.services
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
@@ -23,6 +25,8 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.tasks.Input
@@ -36,13 +40,18 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -1002,6 +1011,7 @@ Hello, subproject1
         outputContains("Hello, subproject2")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "plugin applied to multiple projects can register a shared service"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -1563,6 +1573,130 @@ Hello, subproject1
         succeeds("hello")
         outputContains("Hello, World")
         outputContains("Resolving provider")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27099")
+    def "can apply service plugin in precompiled script plugins"() {
+        given:
+        createDir("plugins") {
+            file("settings.gradle.kts") << """
+                include("service-plugin")
+                include("convention-kotlin-plugin")
+                include("convention-groovy-plugin")
+            """
+            file("service-plugin/build.gradle.kts") << """
+                plugins {
+                    id("java-gradle-plugin")
+                }
+                gradlePlugin {
+                    plugins {
+                        create("servicePlugin") {
+                            id = "com.example.servicePlugin"
+                            implementationClass = "com.example.ServicePlugin"
+                        }
+                    }
+                }
+            """
+
+            file("service-plugin/src/main/java/com/example/ServicePlugin.java") << """
+                package com.example;
+
+                import ${BuildEventsListenerRegistry.name};
+                import ${BuildService.name};
+                import ${BuildServiceParameters.name};
+                import ${BuildServiceRegistry.name};
+                import ${FinishEvent.name};
+                import ${Inject.name};
+                import ${OperationCompletionListener.name};
+                import ${Plugin.name};
+                import ${Project.name};
+                import ${Property.name};
+                import ${Provider.name};
+
+                public abstract class ServicePlugin implements Plugin<Project> {
+                    interface Params extends BuildServiceParameters {
+                        Property<Integer> getIntValue();
+                    }
+
+                    public abstract static class MyService implements BuildService<Params>, OperationCompletionListener {
+                        @Override public void onFinish(FinishEvent event) {}
+                    }
+
+                    @Inject protected abstract BuildEventsListenerRegistry getListenerRegistry();
+
+                    @Inject protected abstract BuildServiceRegistry getSharedServices();
+
+                    @Override
+                    public void apply(Project project) {
+                        Provider<MyService> sp = getSharedServices().registerIfAbsent("myService", MyService.class);
+
+                        getListenerRegistry().onTaskCompletion(sp);
+                    }
+                }
+            """
+
+            file("convention-kotlin-plugin/build.gradle.kts") << """
+                plugins {
+                    `kotlin-dsl`
+                }
+
+                repositories {
+                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
+                }
+
+                dependencies {
+                    implementation(project(":service-plugin"))
+                }
+            """
+
+
+            file("convention-kotlin-plugin/src/main/kotlin/convention-kotlin-plugin.gradle.kts") << """
+                plugins {
+                    id("com.example.servicePlugin")
+                }
+            """
+
+            file("convention-groovy-plugin/build.gradle") << """
+                plugins {
+                    id("groovy-gradle-plugin")
+                }
+
+                repositories {
+                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
+                }
+
+                dependencies {
+                    implementation(project(":service-plugin"))
+                }
+            """
+
+
+            file("convention-groovy-plugin/src/main/groovy/convention-groovy-plugin.gradle") << """
+                plugins {
+                    id("com.example.servicePlugin")
+                }
+            """
+        }
+
+        settingsFile """
+            includeBuild("plugins")
+        """
+
+        buildFile """
+            plugins {
+                id("convention-groovy-plugin")
+                id("convention-kotlin-plugin")
+            }
+
+            tasks.register("hello") {
+                doLast {
+                    println("Hello!")
+                }
+            }
+        """
+
+        expect:
+        succeeds("hello")
     }
 
     private void enableStableConfigurationCache() {

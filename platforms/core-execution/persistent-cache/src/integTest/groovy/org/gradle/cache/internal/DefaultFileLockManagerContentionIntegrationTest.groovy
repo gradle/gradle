@@ -16,13 +16,13 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.cache.internal.locklistener.InetAddressProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
@@ -32,6 +32,7 @@ import org.gradle.internal.time.Time
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -363,8 +364,18 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         socketReceiverThread.start()
     }
 
-    def setupLockOwner(Action<FileLockReleasedSignal> whenContended = null) {
-        receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), addressFactory)
+    def setupLockOwner(Consumer<FileLockReleasedSignal> whenContended = null) {
+        receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), new InetAddressProvider() {
+            @Override
+            InetAddress getWildcardBindingAddress() {
+                return addressFactory.wildcardBindingAddress
+            }
+
+            @Override
+            Iterable<InetAddress> getCommunicationAddresses() {
+                return addressFactory.communicationAddresses
+            }
+        })
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }
             String getProcessDisplayName() { return "process" }

@@ -24,10 +24,10 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
@@ -59,12 +59,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasInjectVisitorContext;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
 public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
+
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
@@ -90,19 +92,21 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         );
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
+        // Suppress some error prone warnings that are not important and would complicate the logic for code generation.
+
         return builder ->
             builder.addMethod(constructor)
+                .addAnnotation(GENERATED_ANNOTATION.asClassName())
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
-                .addSuperinterface(JvmBytecodeCallInterceptor.class)
-                .addSuperinterface(interceptorType.getInterceptorMarkerInterface())
+                .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.class))
+                .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(INTERCEPTORS_REQUEST_TYPE)
                 .addField(METHOD_VISITOR_FIELD)
                 .addField(METADATA_FIELD)
                 .addField(CONTEXT_FIELD)
-                .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
                 .addFields(typeFieldByOwner.values())
@@ -121,8 +125,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .build();
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
-            .addSuperinterface(interceptorType.getInterceptorFactoryMarkerInterface())
+            .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.Factory.class))
+            .addSuperinterface(ClassName.get(interceptorType.getInterceptorFactoryMarkerInterface()))
             .addMethod(method)
             .build();
     }
@@ -162,8 +166,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         .addParameter(MethodVisitor.class, "methodVisitor")
         .addParameter(InstrumentationMetadata.class, "metadata")
         .addParameter(BytecodeInterceptorFilter.class, "context")
-        .addStatement("super(methodVisitor)")
-        .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
+        .addStatement("this.$N = new $T(methodVisitor)", METHOD_VISITOR_FIELD, MethodVisitorScope.class)
         .addStatement("this.$N = metadata", METADATA_FIELD)
         .addStatement("this.$N = context", CONTEXT_FIELD)
         .build();
@@ -189,20 +192,20 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         .addStatement("return $T.getObjectType(className).getClassName()", Type.class)
         .build();
 
-    private static final MethodSpec LOAD_BINARY_CLASS_NAME = MethodSpec.methodBuilder("loadOwnerBinaryClassName")
-        .addModifiers(Modifier.PRIVATE)
-        .returns(void.class)
-        .addParameter(String.class, "className")
-        .addStatement("_LDC($N(className))", BINARY_CLASS_NAME_OF)
-        .build();
-
     private static final FieldSpec INTERCEPTORS_REQUEST_TYPE =
         FieldSpec.builder(Type.class, "INTERCEPTORS_REQUEST_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
             .initializer("$T.getType($T.class)", Type.class, BytecodeInterceptorFilter.class)
             .build();
 
     private static final FieldSpec METHOD_VISITOR_FIELD =
-        FieldSpec.builder(MethodVisitor.class, "methodVisitor", Modifier.PRIVATE, Modifier.FINAL).build();
+        FieldSpec.builder(MethodVisitorScope.class, "mv", Modifier.PRIVATE, Modifier.FINAL).build();
+
+    private static final MethodSpec LOAD_BINARY_CLASS_NAME = MethodSpec.methodBuilder("loadOwnerBinaryClassName")
+        .addModifiers(Modifier.PRIVATE)
+        .returns(void.class)
+        .addParameter(String.class, "className")
+        .addStatement("$1N._LDC($2N(className))", METHOD_VISITOR_FIELD, BINARY_CLASS_NAME_OF)
+        .build();
 
     private static final FieldSpec METADATA_FIELD =
         FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
@@ -335,18 +338,18 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ISTORE), var$2L)", METHOD_VISITOR_FIELD, i, Opcodes.class);
         }
         // Duplicate the receiver without storing it into a local variable, then prepare the arguments for the original invocation:
-        code.addStatement("_DUP()");
+        code.addStatement("$N._DUP()", METHOD_VISITOR_FIELD);
         for (int i = 0; i < params.length; i++) {
             code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", METHOD_VISITOR_FIELD, i, Opcodes.class);
         }
         // Put the arguments to the stack again, for the "interceptor" invocation:
-        code.addStatement("_INVOKESPECIAL(owner, name, descriptor)");
+        code.addStatement("$N._INVOKESPECIAL(owner, name, descriptor)", METHOD_VISITOR_FIELD);
         for (int i = 0; i < params.length; i++) {
             code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", METHOD_VISITOR_FIELD, i, Opcodes.class);
         }
         maybeGenerateLoadBinaryClassNameCall(code, callable);
         maybeGenerateGetStaticInjectVisitorContext(code, callable);
-        code.addStatement("_INVOKESTATIC($N, $S, $S)", implOwnerField, implementationName, implementationDescriptor);
+        code.addStatement("$N._INVOKESTATIC($N, $S, $S)", METHOD_VISITOR_FIELD, implOwnerField, implementationName, implementationDescriptor);
     }
 
     private static void generateNormalInterceptedInvocation(FieldSpec ownerTypeField, CallableInfo callable, String implementationName, String implementationDescriptor, CodeBlock.Builder code) {
@@ -358,11 +361,11 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         if (parameters.size() > 1 && parameters.get(parameters.size() - 2).getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK) {
             // push the default mask equal to zero, meaning that no parameters have the default values
             code.add("// The interceptor expects a Kotlin default mask, add a zero argument:\n");
-            code.addStatement("_ICONST_0()");
+            code.addStatement("$N._ICONST_0()", METHOD_VISITOR_FIELD);
         }
         maybeGenerateLoadBinaryClassNameCall(code, callable);
         maybeGenerateGetStaticInjectVisitorContext(code, callable);
-        code.addStatement("_INVOKESTATIC($N, $S, $S)", ownerTypeField, implementationName, implementationDescriptor);
+        code.addStatement("$N._INVOKESTATIC($N, $S, $S)", METHOD_VISITOR_FIELD, ownerTypeField, implementationName, implementationDescriptor);
     }
 
     private static void generateKotlinDefaultInvocation(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder method) {
@@ -374,10 +377,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         String implementationName = request.getImplementationInfo().getName();
         String implementationDescriptor = request.getImplementationInfo().getDescriptor();
 
-        method.addStatement("_POP()"); // pops the default method signature marker
+        method.addStatement("$N._POP()", METHOD_VISITOR_FIELD); // pops the default method signature marker
         maybeGenerateLoadBinaryClassNameCall(method, interceptedCallable);
         maybeGenerateGetStaticInjectVisitorContext(method, interceptedCallable);
-        method.addStatement("_INVOKESTATIC($N, $S, $S)", ownerTypeField, implementationName, implementationDescriptor);
+        method.addStatement("$N._INVOKESTATIC($N, $S, $S)", METHOD_VISITOR_FIELD, ownerTypeField, implementationName, implementationDescriptor);
     }
 
     private static void validateSignature(CallableInfo callable) {
@@ -439,7 +442,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static void maybeGenerateGetStaticInjectVisitorContext(CodeBlock.Builder code, CallableInfo callableInfo) {
         if (hasInjectVisitorContext(callableInfo)) {
-            code.addStatement("_GETSTATIC($N, context.name(), $N.getDescriptor())", INTERCEPTORS_REQUEST_TYPE, INTERCEPTORS_REQUEST_TYPE);
+            code.addStatement("$N._GETSTATIC($N, context.name(), $N.getDescriptor())", METHOD_VISITOR_FIELD, INTERCEPTORS_REQUEST_TYPE, INTERCEPTORS_REQUEST_TYPE);
         }
     }
 

@@ -22,7 +22,7 @@ import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuild
 
 class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
+    def withSettingsPluginInBuildLogic() {
         settingsFile '''
             pluginManagement {
                 includeBuild 'build-logic'
@@ -44,6 +44,8 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def 'isolated beforeProject action given as Kotlin lambda can capture managed value'() {
         given:
+        withSettingsPluginInBuildLogic()
+
         createDir('build-logic') {
             file('settings.gradle.kts') << ''
             file('build.gradle.kts') << """
@@ -84,6 +86,8 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def 'isolated beforeProject action given as Java lambda can capture managed value'() {
         given:
+        withSettingsPluginInBuildLogic()
+
         createDir('build-logic') {
             groovyFile file('build.gradle'), '''
                 plugins {
@@ -138,5 +142,50 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         configuredTaskRunsCorrectly()
+    }
+
+    def "lifecycle beforeProject/afterProject run around project evaluation"() {
+        settingsFile """
+            include("a")
+
+            // register lifecycle callbacks first
+            gradle.lifecycle.beforeProject { println("lifecycle: gradle.lifecycle.beforeProject '\${it.path}'") }
+            gradle.lifecycle.afterProject { println("lifecycle: gradle.lifecycle.afterProject '\${it.path}'") }
+
+            // register eager callbacks
+            gradle.allprojects { println("lifecycle: gradle.allprojects '\${it.path}'") }
+            gradle.beforeProject { println("lifecycle: gradle.beforeProject '\${it.path}'") }
+            gradle.afterProject { println("lifecycle: gradle.afterProject '\${it.path}'") }
+        """
+
+        buildFile """
+            println("lifecycle: <evaluating> '\${project.path}'")
+            subprojects { println("lifecycle: <root>.subprojects '\${it.path}'") }
+        """
+
+        groovyFile "a/build.gradle", """
+            println("lifecycle: <evaluating> " + project)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        def lifecycleOutput = output.readLines().findAll { it.startsWith("lifecycle: ") }.join("\n")
+        lifecycleOutput == """
+lifecycle: gradle.allprojects ':'
+lifecycle: gradle.allprojects ':a'
+lifecycle: gradle.beforeProject ':'
+lifecycle: gradle.lifecycle.beforeProject ':'
+lifecycle: <evaluating> ':'
+lifecycle: <root>.subprojects ':a'
+lifecycle: gradle.afterProject ':'
+lifecycle: gradle.lifecycle.afterProject ':'
+lifecycle: gradle.beforeProject ':a'
+lifecycle: gradle.lifecycle.beforeProject ':a'
+lifecycle: <evaluating> project ':a'
+lifecycle: gradle.afterProject ':a'
+lifecycle: gradle.lifecycle.afterProject ':a'
+        """.trim()
     }
 }

@@ -78,7 +78,7 @@ class DefaultDaemonConnectorTest extends Specification {
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, JavaLanguageVersion.current(), javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
-        return new DaemonStartupInfo(daemonNum.toString(), null, null);
+        return new DaemonStartupInfo(daemonNum.toString(), Mock(), Mock());
     }
 
     def startIdleDaemon() {

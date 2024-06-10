@@ -59,7 +59,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions;
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class
 })
-@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 in samples yet")
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 in samples yet")
 /*
  * To run the samples tests:
  *

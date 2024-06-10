@@ -54,9 +54,10 @@ class PerformanceTest(
         this.name = "$description${if (performanceTestBuildSpec.withoutDependencies) " (without dependencies)" else ""}"
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os
+        val arch = performanceTestBuildSpec.arch
         val buildTypeThis = this
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
-        applyPerformanceTestSettings(os = os, arch = os.defaultArch, timeout = type.timeout)
+        applyPerformanceTestSettings(os = os, arch = arch, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
@@ -96,7 +97,8 @@ class PerformanceTest(
                                 "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
                                 "%performance.baselines%",
                                 extraParameters,
-                                os
+                                os,
+                                arch
                             ) + "-DenableTestDistribution=%enableTestDistribution%" +
                                 buildToolGradleParameters() +
                                 buildScanTag("PerformanceTest")

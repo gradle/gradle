@@ -5,74 +5,70 @@ plugins {
 
 description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 5 occurrences
-        "FutureReturnValueIgnored", // 2 occurrences
-        "InlineFormatString", // 1 occurrences
-        "LockNotBeforeTry", // 7 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "NarrowCalculation", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
-        "URLEqualsHashCode", // 3 occurrences
-        "UndefinedEquals", // 1 occurrences
-        "UnusedVariable", // 3 occurrences
-    )
-}
-
 dependencies {
+    api(project(":base-services"))
+    api(project(":build-events"))
+    api(project(":build-operations"))
+    api(project(":build-option"))
+    api(project(":build-state"))
+    api(project(":cli"))
+    api(project(":concurrent"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":daemon-protocol"))
+    api(project(":enterprise-logging"))
+    api(project(":execution"))
+    api(project(":file-collections"))
+    api(project(":file-watching"))
+    api(project(":files"))
+    api(project(":hashing"))
+    api(project(":java-language-extensions"))
+    api(project(":jvm-services"))
+    api(project(":logging"))
+    api(project(":logging-api"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":native"))
+    api(project(":persistent-cache"))
+    api(project(":process-services"))
+    api(project(":serialization"))
+    api(project(":service-provider"))
+    api(project(":snapshots"))
+    api(project(":time"))
     api(project(":toolchains-jvm-shared"))
+    api(project(":tooling-api"))
 
-    implementation(project(":base-services"))
-    implementation(project(":functional"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":enterprise-workers"))
-    implementation(project(":cli"))
-    implementation(project(":messaging"))
+    // This project contains the Gradle client, daemon and tooling API provider implementations.
+    // It should be split up, but for now, add dependencies on both the client and daemon pieces
+    api(project(":client-services"))
+    api(project(":daemon-services"))
+
+    api(libs.guava)
+    api(libs.jsr305)
+
     implementation(project(":build-configuration"))
-    implementation(project(":build-option"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":snapshots"))
-    implementation(project(":execution"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":model-core"))
-    implementation(project(":bootstrap"))
-    implementation(project(":jvm-services"))
-    implementation(project(":build-events"))
-    implementation(project(":tooling-api"))
-    implementation(project(":file-watching"))
+    implementation(project(":enterprise-operations"))
+    implementation(project(":functional"))
+    implementation(projects.io)
     implementation(project(":problems-api"))
-    implementation(project(":problems"))
-    implementation(project(":declarative-dsl-provider"))
+    implementation(project(":build-process-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.asm)
     implementation(libs.ant)
 
-    runtimeOnly(libs.asm)
+    runtimeOnly(project(":gradle-cli-main"))
+    runtimeOnly(project(":declarative-dsl-provider"))
+    runtimeOnly(project(":problems"))
+
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
 
-    manifestClasspath(project(":bootstrap"))
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":worker-services"))
-    manifestClasspath(project(":core-api"))
-    manifestClasspath(project(":core"))
-    manifestClasspath(project(":persistent-cache"))
-
-    agentsClasspath(project(":instrumentation-agent"))
+    // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    manifestClasspath(project(":gradle-cli-main"))
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))
@@ -84,6 +80,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":base-services-groovy")) // for 'Specs'
 
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":messaging")))

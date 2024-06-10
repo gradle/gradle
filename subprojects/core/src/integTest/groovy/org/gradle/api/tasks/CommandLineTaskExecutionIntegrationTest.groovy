@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "fails with badly formed task name"() {
@@ -43,6 +44,7 @@ class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         ":a::b"  | "Cannot locate tasks that match ':a::b'. The path should not include an empty segment (try ':a:b' instead)."
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Investigate")
     def "build logic can mutate the list of requested tasks"() {
         buildFile """
             gradle.startParameter.taskNames += ["last"]

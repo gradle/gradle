@@ -19,12 +19,10 @@ package org.gradle.integtests.tooling.r40
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 
-@ToolingApiVersion(">=4.0")
 @TargetGradleVersion(">=4.0")
 class StandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
     @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()

@@ -19,10 +19,12 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultDeprecationData
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
 import org.gradle.api.problems.internal.DefaultProblemId
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
@@ -38,7 +40,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId
-
 
 class DeprecationMessagesTest extends Specification {
 
@@ -83,7 +84,7 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
-        1 * problemEmitter.emit(createProblem(summary), identifier)
+        1 * problemEmitter.emit({ it.definition.id.displayName == 'Summary is deprecated.' }, identifier)
     }
 
     def "logs deprecation message with custom problem id"() {
@@ -99,14 +100,14 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
-        1 * problemEmitter.emit(createProblem(deprecationDisplayName), identifier)
+        1 * problemEmitter.emit({ it.definition.id.displayName == 'summary deprecation' }, identifier)
     }
 
     def createProblem(deprecationDisplayName) {
         def id = new DefaultProblemId(createDefaultDeprecationId(deprecationDisplayName), deprecationDisplayName, GradleCoreProblemGroup.deprecation())
         def definition = new DefaultProblemDefinition(id, Severity.WARNING, null)
 
-        return new DefaultProblem(definition, "Summary is deprecated.", [], [], "This is scheduled to be removed in Gradle 9.0.", null, ["type": "USER_CODE_DIRECT"])
+        return new DefaultProblem(definition, "Summary is deprecated.", [], [], "This is scheduled to be removed in Gradle 9.0.", null, new DefaultDeprecationData(DeprecationData.Type.USER_CODE_DIRECT))
     }
 
     def "logs deprecation message with advice"() {

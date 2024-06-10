@@ -46,6 +46,7 @@ public class DefaultBuildCacheKey implements BuildCacheKeyInternal {
     @Deprecated
     @Override
     public String getDisplayName() {
+        // TODO Switch to SimpleBuildCacheKey once this method is removed
         DeprecationLogger.deprecateMethod(BuildCacheKey.class, "getDisplayName()")
             .replaceWith("getHashCode()")
             .willBeRemovedInGradle9()

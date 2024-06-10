@@ -17,8 +17,9 @@ package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.configurationcache.isolated.IsolatedProjectsExecuterFixture
 
-class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
+class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest implements CodeNarcTestFixture, IsolatedProjectsExecuterFixture {
     @Override
     String getPluginName() {
         return "codenarc"
@@ -190,7 +191,23 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         'toolVersion'  | "codenarc { toolVersion '0.17' } "
     }
 
+    def "codenarc runs successfully for a child project with isolated projects"() {
+        given:
+        settingsFile << "include 'child:grand'"
+        writeBuildFile(file("child/grand/build.gradle"))
+        file("child/grand/src/main/groovy/Dummy.groovy") << "Dummy {}"
+        withIsolatedProjects()
+
+        expect:
+        succeeds(":child:grand:codenarcMain")
+        report(file("child/grand"), "main").exists()
+    }
+
     private void writeBuildFile() {
+        writeBuildFile(buildFile)
+    }
+
+    private static void writeBuildFile(File buildFile) {
         buildFile << """
             apply plugin: "groovy"
             apply plugin: "codenarc"

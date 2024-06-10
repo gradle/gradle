@@ -58,7 +58,6 @@ import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -66,6 +65,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -80,21 +80,23 @@ public class GradleScopeServices extends ScopedServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
         super(Scope.Gradle.class, "Gradle-scope services", parent);
         register(registration -> {
-            registration.add(DefaultBuildOutputCleanupRegistry.class);
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                pluginServiceRegistry.registerGradleServices(registration);
+            for (GradleModuleServices services : parent.getAll(GradleModuleServices.class)) {
+                services.registerGradleServices(registration);
             }
         });
     }
 
+    @Provides
     OptionReader createOptionReader() {
         return new OptionReader();
     }
 
+    @Provides
     CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader, BuildTaskSelector taskSelector, BuildState build) {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector, build);
     }
 
+    @Provides
     BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationRunner buildOperationRunner) {
         return new BuildOperationFiringBuildWorkerExecutor(
             new DryRunBuildExecutionAction(textOutputFactory,
@@ -102,42 +104,52 @@ public class GradleScopeServices extends ScopedServiceRegistry {
             buildOperationRunner);
     }
 
+    @Provides
     BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands) {
         return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector));
     }
 
+    @Provides
     TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationRunner buildOperationRunner, BuildModelParameters buildModelParameters) {
         return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationRunner, buildModelParameters);
     }
 
+    @Provides
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
         return new DefaultProjectFinder(gradle::getRootProject);
     }
 
+    @Provides
     LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
         return new LocalTaskNodeExecutor();
     }
 
+    @Provides
     WorkNodeExecutor createWorkNodeExecutor() {
         return new WorkNodeExecutor();
     }
 
+    @Provides
     ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
         return listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class);
     }
 
+    @Provides
     org.gradle.api.execution.TaskExecutionListener createTaskExecutionListener(ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> broadcast) {
         return broadcast.getSource();
     }
 
+    @Provides
     TaskListenerInternal createTaskListenerInternal(ListenerManager listenerManager) {
         return listenerManager.getBroadcaster(TaskListenerInternal.class);
     }
 
+    @Provides
     ListenerBroadcast<TaskExecutionGraphListener> createTaskExecutionGraphListenerBroadcast(ListenerManager listenerManager) {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
+    @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         List<NodeExecutor> nodeExecutors,
@@ -162,15 +174,18 @@ public class GradleScopeServices extends ScopedServiceRegistry {
         );
     }
 
+    @Provides
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
+    @Provides
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         PluginTarget target = new ImperativeOnlyPluginTarget<>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
+    @Provides
     FileContentCacheFactory createFileContentCacheFactory(
         GlobalCacheLocations globalCacheLocations,
         BuildScopedCacheBuilderFactory cacheBuilderFactory,
@@ -192,7 +207,8 @@ public class GradleScopeServices extends ScopedServiceRegistry {
         );
     }
 
-    protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
+    @Provides
+    ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
         return ConfigurationTargetIdentifier.of(gradle);
     }
 }

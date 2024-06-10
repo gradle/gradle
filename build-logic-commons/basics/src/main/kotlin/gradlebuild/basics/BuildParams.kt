@@ -66,6 +66,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 
@@ -261,6 +262,9 @@ val Project.maxTestDistributionRemoteExecutors: Int?
 
 val Project.maxTestDistributionLocalExecutors: Int?
     get() = gradleProperty(MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS).orNull?.toInt()
+
+val Project.toolchainInstallationPaths: String?
+    get() = gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY).orNull
 
 val Project.flakyTestStrategy: FlakyTestStrategy
     get() = gradleProperty(FLAKY_TEST).let {

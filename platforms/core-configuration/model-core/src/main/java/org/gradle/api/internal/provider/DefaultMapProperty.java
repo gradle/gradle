@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -71,7 +72,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
-        init(defaultValue, getDefaultConvention());
+        init();
+    }
+
+    private void init() {
+        defaultValue = emptySupplier();
+        init(defaultValue, noValueSupplier());
+    }
+
+    @Override
+    public MapSupplier<K, V> getDefaultValue() {
+        return defaultValue;
     }
 
     @Override
@@ -148,7 +159,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
         if (entries == null) {
-            doUnset(true);
+            unsetValueAndDefault();
         } else {
             setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
         }
@@ -285,15 +296,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapProperty<K, V> unset() {
-        doUnset(false);
-        return this;
+        return Cast.uncheckedNonnullCast(super.unset());
     }
 
-    private void doUnset(boolean changeDefault) {
-        super.unset();
-        if (changeDefault) {
-            defaultValue = noValueSupplier();
-        }
+    private void unsetValueAndDefault() {
+        // assign no-value default before restoring to it
+        defaultValue = noValueSupplier();
+        unset();
     }
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
@@ -323,7 +332,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), describeValue());
+        return String.format("Map(%s->%s, %s)", keyType.getSimpleName(), valueType.getSimpleName(), describeValue());
     }
 
     @Override

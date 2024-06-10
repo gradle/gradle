@@ -35,6 +35,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private final static Logger LOGGER = Logging.getLogger(DefaultArtifactCaches.class);
@@ -159,7 +160,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
 
         @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
+        public <T> T withFileLock(Supplier<? extends T> action) {
             return getDelegate().withFileLock(action);
         }
 
@@ -169,7 +170,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
+        public <T> T useCache(Supplier<? extends T> action) {
             return getDelegate().useCache(action);
         }
 

@@ -222,7 +222,8 @@ class ToolingApi implements TestRule {
             if (projectDir.name != "buildSrc") {
                 def settingsFile = projectDir.file('settings.gradle')
                 def settingsFileKts = projectDir.file('settings.gradle.kts')
-                assert (settingsFile.exists() || settingsFileKts.exists()): "the build must have a settings file"
+                def settingsFileDcl = projectDir.file('settings.gradle.dcl')
+                assert (settingsFile.exists() || settingsFileKts.exists() || settingsFileDcl.exists()): "the build must have a settings file"
             }
         }
         if (useSeparateDaemonBaseDir) {

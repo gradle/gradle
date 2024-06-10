@@ -22,7 +22,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
+import static ToBeFixedSpecInterceptor.iterationMatches
 import static org.junit.Assume.assumeTrue
 
 class UnsupportedWithConfigurationCacheRule implements TestRule {

@@ -25,12 +25,13 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.CALL_INTERCEPTOR_CLASS;
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.FILTERABLE_CALL_INTERCEPTOR;
 
 /**
  * Generates META-INF/services resource with all generated CallInterceptors so we can load them at runtime
@@ -58,7 +59,7 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
 
             @Override
             public String getName() {
-                return "META-INF/services/" + CALL_INTERCEPTOR_CLASS.canonicalName();
+                return "META-INF/services/" + FILTERABLE_CALL_INTERCEPTOR.canonicalName();
             }
 
             @Override
@@ -67,7 +68,7 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining("\n"));
-                try (Writer writer = new OutputStreamWriter(outputStream)) {
+                try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
                     writer.write(types);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);

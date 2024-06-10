@@ -171,8 +171,7 @@ public class MissingTaskDependencyDetector {
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
-            problem.typeIsIrrelevantInErrorMessage()
-                .id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+            problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase()))
                 .severity(Severity.ERROR)

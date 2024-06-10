@@ -17,11 +17,14 @@
 package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
+import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -30,19 +33,28 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
 public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
 
     protected final ServiceRegistry internalServices;
-    protected BuildServiceDetails<T, P> serviceDetails;
+    protected final BuildServiceDetails<T, P> serviceDetails;
 
-    @SuppressWarnings("rawtypes")
-    private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;
+    private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme;
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
     private final Listener listener;
+
+    private final Object instanceLock = new Object();
+    @GuardedBy("instanceLock")
+    @Nullable
     private Try<T> instance;
+    /**
+     * Use {@link #getStopActions()} to get the list instead of reading the field directly.
+     */
+    @GuardedBy("instanceLock")
+    private PersistentList<Consumer<? super RegisteredBuildServiceProvider<T, P>>> stopActions = PersistentList.of();
     private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
@@ -50,8 +62,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
-        @SuppressWarnings("rawtypes")
-        IsolationScheme<BuildService, BuildServiceParameters> isolationScheme,
+        IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme,
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
         ServiceRegistry internalServices,
@@ -107,6 +118,21 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         keepAlive = true;
     }
 
+    /**
+     * Registers a callback to be called just before the service represented by this provider is stopped.
+     * The callback runs even if the service wasn't created.
+     * This provider is used as a callback argument.
+     * <p>
+     * The service will only be stopped after completing all registered callbacks.
+     *
+     * @param stopAction the callback
+     */
+    public void beforeStopping(Consumer<? super RegisteredBuildServiceProvider<T, P>> stopAction) {
+        synchronized (instanceLock) {
+            stopActions = stopActions.plus(stopAction);
+        }
+    }
+
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         return Value.of(getInstance());
@@ -114,12 +140,12 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
 
     private T getInstance() {
         listener.beforeGet(this);
-        synchronized (this) {
+        synchronized (instanceLock) {
             if (instance == null) {
                 instance = instantiate();
             }
+            return instance.get();
         }
-        return instance.get();
     }
 
     private Try<T> instantiate() {
@@ -157,9 +183,17 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return ExecutionTimeValue.changingValue(this);
     }
 
+    private Iterable<Consumer<? super RegisteredBuildServiceProvider<T, P>>> getStopActions() {
+        synchronized (instanceLock) {
+            return stopActions;
+        }
+    }
+
     @Override
     public void maybeStop() {
-        synchronized (this) {
+        // We don't want to call stop actions with the lock held.
+        ExecutionResult<Void> stopResult = ExecutionResult.forEach(getStopActions(), action -> action.accept(this));
+        synchronized (instanceLock) {
             try {
                 if (instance != null) {
                     instance.ifSuccessful(t -> {
@@ -167,11 +201,14 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                             try {
                                 ((AutoCloseable) t).close();
                             } catch (Exception e) {
-                                throw new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                stopResult.getFailures().forEach(failure::addSuppressed);
+                                throw failure;
                             }
                         }
                     });
                 }
+                stopResult.rethrow();
             } finally {
                 instance = null;
             }

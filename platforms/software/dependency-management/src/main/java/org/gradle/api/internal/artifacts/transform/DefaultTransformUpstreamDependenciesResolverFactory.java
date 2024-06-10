@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -30,16 +30,17 @@ public class DefaultTransformUpstreamDependenciesResolverFactory implements Tran
     private final FilteredResultFactory filteredResultFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ConfigurationIdentity configurationIdentity;
-    private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
+    private final ResolutionResultProvider<ResolvedComponentResult> rootComponentProvider;
 
     public DefaultTransformUpstreamDependenciesResolverFactory(
-        ConfigurationIdentity configurationIdentity, ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
+        ConfigurationIdentity configurationIdentity,
+        ResolutionResultProvider<ResolvedComponentResult> rootComponentProvider,
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         FilteredResultFactory filteredResultFactory
     ) {
         this.configurationIdentity = configurationIdentity;
-        this.resolutionResultProvider = resolutionResultProvider;
+        this.rootComponentProvider = rootComponentProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -50,6 +51,6 @@ public class DefaultTransformUpstreamDependenciesResolverFactory implements Tran
         if (!transformChain.requiresDependencies()) {
             return NO_DEPENDENCIES_RESOLVER;
         }
-        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, configurationIdentity, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
+        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, configurationIdentity, rootComponentProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
     }
 }

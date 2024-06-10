@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.buildoption.DefaultInternalOptions
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -38,7 +38,7 @@ class DefaultPlanExecutorTest extends Specification {
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
-    def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, workerLeaseService, cancellationHandler, coordinationService, new DefaultInternalOptions([:]))
+    def executor = new DefaultPlanExecutor(new DefaultWorkerLimits(1), executorFactory, workerLeaseService, cancellationHandler, coordinationService, new DefaultInternalOptions([:]))
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)

@@ -22,7 +22,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,7 +46,6 @@ import java.util.Map;
 @ServiceScope(Scope.BuildTree.class)
 public class BuildProfile {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
     private static final long NOT_INITIALIZED_VALUE = -1L;
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
@@ -251,7 +249,8 @@ public class BuildProfile {
     }
 
     public String getBuildStartedDescription() {
-        return "Started on: " + DATE_FORMAT.format(valueOrBuildStartedTimeIfNotInitialized(buildStarted));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
+        return "Started on: " + dateFormat.format(valueOrBuildStartedTimeIfNotInitialized(buildStarted));
     }
 
     /*

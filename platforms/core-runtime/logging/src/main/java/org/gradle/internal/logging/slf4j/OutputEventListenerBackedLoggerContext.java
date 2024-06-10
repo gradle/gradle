@@ -103,6 +103,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         this.level.set(level);
     }
 
+    @SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
     private static class NoOpLogger implements org.gradle.api.logging.Logger {
 
         private final String name;

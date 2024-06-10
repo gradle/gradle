@@ -121,7 +121,7 @@ class ComponentResultSerializerTest extends Specification {
     }
 
     private ResolvedComponentResult deserialize(byte[] serialized) {
-        def builder = new DefaultResolutionResultBuilder()
+        def builder = new ResolutionResultGraphBuilder()
         serializer.readInto(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
         return builder.getRoot(0)
     }

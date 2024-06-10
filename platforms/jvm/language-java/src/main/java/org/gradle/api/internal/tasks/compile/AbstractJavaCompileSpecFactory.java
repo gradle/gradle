@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
@@ -59,7 +60,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         if (!toolchain.isCurrentJvm()) {
-            return getForkingSpec(toolchainJavaHome);
+            return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
         }
 
         return getDefaultSpec();
@@ -76,12 +77,19 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(forkExecutable));
         }
 
-        return getForkingSpec(fallbackJavaHome);
+        final int languageVersion;
+        if (toolchain != null) {
+            languageVersion = toolchain.getLanguageVersion().asInt();
+        } else {
+            languageVersion = JavaVersion.current().getMajorVersionNumber();
+        }
+
+        return getForkingSpec(fallbackJavaHome, languageVersion);
     }
 
     abstract protected T getCommandLineSpec(File executable);
 
-    abstract protected T getForkingSpec(File javaHome);
+    abstract protected T getForkingSpec(File javaHome, int javaLanguageVersion);
 
     abstract protected T getDefaultSpec();
 }

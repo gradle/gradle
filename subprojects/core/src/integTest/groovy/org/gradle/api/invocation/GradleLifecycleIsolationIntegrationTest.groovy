@@ -17,6 +17,7 @@
 package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 import org.gradle.internal.code.UserCodeApplicationContext
 
 class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
@@ -61,6 +62,124 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'sub with version from action'
         outputContains '[1: before root unspecified, 2: before root from action, 1: after root from script, 2: after root from script]'
         outputContains '[1: before sub unspecified, 2: before sub from action, 1: after sub from script, 2: after sub from script]'
+    }
+
+    def "lifecycle actions in Kotlin DSL allow using a function defined in a class"() {
+        createDirs("a", "b")
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include("a", "b")
+
+            object Helper {
+                fun printInfo(p: Project) {
+                    println("project name = " + p.name)
+                }
+            }
+
+            gradle.lifecycle.beforeProject {
+                Helper.printInfo(project)
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("project name = root")
+        outputContains("project name = a")
+        outputContains("project name = b")
+    }
+
+    def "lifecycle actions in Groovy DSL allow using #functionType function defined in a class"() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = "root"
+            include("a", "b")
+
+            class Helper {
+                $modifier def printInfo(Project p) {
+                    println("project name = " + p.name)
+                }
+            }
+
+            gradle.lifecycle.beforeProject {
+                ${owner}.printInfo(project)
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("project name = root")
+        outputContains("project name = a")
+        outputContains("project name = b")
+
+        where:
+        functionType | modifier  | owner
+        "regular"    | ""        | "new Helper()"
+        "static"     | "static " | "Helper"
+    }
+
+    @ToBeImplemented
+    def "lifecycle actions in Kotlin DSL allow using top-level build script function"() {
+        createDirs("a", "b")
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include("a", "b")
+
+            fun printInfo(p: Project) {
+                println("project name = " + p.name)
+            }
+
+            gradle.lifecycle.beforeProject {
+                printInfo(project)
+            }
+        """
+
+        when:
+        // TODO:isolated the test should succeed
+        fails("help")
+
+        then:
+        failure.assertHasCause("Failed to isolate 'GradleLifecycle' action: cannot serialize Gradle script object references as these are not supported with the configuration cache.")
+
+//        outputContains("project name = root")
+//        outputContains("project name = a")
+//        outputContains("project name = b")
+    }
+
+    @ToBeImplemented
+    def "lifecycle actions in Groovy DSL allow using #functionType top-level build script function"() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = "root"
+            include("a", "b")
+
+            $modifier def printInfo(Project p) {
+                println("project name = " + p.name)
+            }
+
+            gradle.lifecycle.beforeProject {
+                printInfo(project)
+            }
+        """
+
+        when:
+        // TODO:isolated the test should succeed
+        fails("help")
+
+        then:
+        failure.assertHasCause("No signature of method: org.gradle.api.Project.printInfo() is applicable for argument types: () values: []")
+
+//        outputContains("project name = root")
+//        outputContains("project name = a")
+//        outputContains("project name = b")
+
+        where:
+        functionType | modifier
+        "regular"    | ""
+        "static"     | "static "
     }
 
     def 'lifecycle actions preserve user code application context for scripts'() {

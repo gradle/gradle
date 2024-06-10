@@ -604,7 +604,7 @@ public class PomReader implements PomParent {
 
         public boolean isOptional() {
             Element e = getFirstChildElement(depElement, OPTIONAL);
-            return (e != null) && "true".equalsIgnoreCase(getTextContent(e));
+            return (e != null) && "true".equalsIgnoreCase(getTextContent(e).trim());
         }
     }
 

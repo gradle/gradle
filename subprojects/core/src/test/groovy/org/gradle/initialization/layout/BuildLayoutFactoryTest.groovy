@@ -16,16 +16,14 @@
 package org.gradle.initialization.layout
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.scripts.ScriptFileUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class BuildLayoutFactoryTest extends Specification {
 
-    static final def TEST_CASES = [
-        'settings.gradle',
-        'settings.gradle.kts'
-    ]
+    static final def TEST_CASES = ScriptFileUtil.getValidSettingsFileNames()
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

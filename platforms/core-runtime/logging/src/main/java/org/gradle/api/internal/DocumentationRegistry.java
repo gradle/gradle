@@ -29,7 +29,7 @@ public class DocumentationRegistry {
     public static final String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
     public static final String KOTLIN_DSL_URL_FORMAT = "%s/kotlin-dsl/gradle/%s";
-    public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
+    public static final String LEARN_MORE_STRING = "Learn more about Gradle by exploring our Samples at ";
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id. The location may be local or remote.

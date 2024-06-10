@@ -43,7 +43,6 @@ import static java.util.Objects.requireNonNull;
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
-
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;

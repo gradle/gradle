@@ -57,25 +57,28 @@ platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-ds
 platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
 
 # Core automation platform (Declarative DSL)
-platforms/core-configuration/declarative-dsl-api/               @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-core/              @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-provider/          @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-dsl
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
-platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
-platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
 
 # Core automation platform (core/execution)
 platforms/core-execution/                                   @gradle/bt-execution
-platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-dv-build-cache
 
 # Develocity integration
 platforms/enterprise/                                   @gradle/bt-build-scan @gradle/ge-build-insights

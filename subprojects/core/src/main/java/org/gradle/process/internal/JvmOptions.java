@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -187,7 +186,7 @@ public class JvmOptions {
     }
 
     public List<String> getJvmArgs() {
-        Builder<String> args = ImmutableList.builder();
+        ImmutableList.Builder<String> args = ImmutableList.builder();
         for (Object extraJvmArg : extraJvmArgs) {
             args.add(extraJvmArg.toString());
         }

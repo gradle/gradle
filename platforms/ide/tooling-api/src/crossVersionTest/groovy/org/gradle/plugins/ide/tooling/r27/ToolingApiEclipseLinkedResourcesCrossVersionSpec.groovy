@@ -22,7 +22,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseFileSeparators
 
-@TargetGradleVersion(">=2.7")
+@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
 
     def "can references sibling source folders"() {

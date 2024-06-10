@@ -15,8 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Transformer;
-import org.gradle.tooling.*;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 /**
@@ -26,11 +25,11 @@ import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
  */
 public class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
     private final ResultHandler<? super T> handler;
-    private final Transformer<GradleConnectionException, Throwable> exceptionTransformer;
+    private final ConnectionExceptionTransformer connectionExceptionTransformer;
 
-    protected ResultHandlerAdapter(ResultHandler<? super T> handler, Transformer<GradleConnectionException, Throwable> exceptionTransformer) {
+    protected ResultHandlerAdapter(ResultHandler<? super T> handler, ConnectionExceptionTransformer connectionExceptionTransformer) {
         this.handler = handler;
-        this.exceptionTransformer = exceptionTransformer;
+        this.connectionExceptionTransformer = connectionExceptionTransformer;
     }
 
     @Override
@@ -40,6 +39,6 @@ public class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
 
     @Override
     public void onFailure(Throwable failure) {
-        handler.onFailure(exceptionTransformer.transform(failure));
+        handler.onFailure(connectionExceptionTransformer.transform(failure));
     }
 }

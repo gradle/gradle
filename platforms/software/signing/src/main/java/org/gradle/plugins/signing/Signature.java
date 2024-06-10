@@ -37,7 +37,7 @@ import java.util.Date;
 import java.util.concurrent.Callable;
 
 import static com.google.common.util.concurrent.Callables.returning;
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * A digital signature file artifact.

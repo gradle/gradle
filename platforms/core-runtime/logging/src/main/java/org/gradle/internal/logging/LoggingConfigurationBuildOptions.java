@@ -154,7 +154,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
                 } else if (value.equalsIgnoreCase("full")) {
                     settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
                 } else {
-                    propertyOrigin.toOrigin(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of internal, all, or full");
+                    Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of internal, all, or full");
                 }
             }
         }

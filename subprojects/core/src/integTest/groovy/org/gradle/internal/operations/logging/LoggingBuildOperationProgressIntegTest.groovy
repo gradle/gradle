@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
@@ -387,6 +388,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         uniqueMessages.contains "finished operation"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Different amount of events for IP mode")
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'

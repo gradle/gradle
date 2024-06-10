@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
@@ -35,6 +36,9 @@ public interface InternalProblemContextDetails {
 
     List<InternalSolution> getSolutions();
 
+    @Nullable
     InternalFailure getFailure();
 
+    @Nullable
+    InternalContextualLabel getContextualLabel();
 }

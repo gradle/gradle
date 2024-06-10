@@ -185,7 +185,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         }
 
         if (targetPattern.equals("*")) {
-            for (String targetName : targetComponent.getMetadata().getConfigurationNames()) {
+            for (String targetName : targetComponent.getConfigurationNames()) {
                 ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetName);
                 if (configuration.getMetadata().isVisible()) {
                     maybeAddConfiguration(targetConfigurations, configuration);

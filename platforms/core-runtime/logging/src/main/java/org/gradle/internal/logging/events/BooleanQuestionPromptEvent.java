@@ -18,39 +18,53 @@ package org.gradle.internal.logging.events;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
-import org.gradle.internal.Either;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Locale;
 
 public class BooleanQuestionPromptEvent extends PromptOutputEvent {
     private static final List<String> LENIENT_YES_NO_CHOICES = Lists.newArrayList("yes", "no", "y", "n");
+    private final String question;
     private final boolean defaultValue;
-    private final String defaultString;
 
-    public BooleanQuestionPromptEvent(long timestamp, String prompt, boolean defaultValue, String defaultString) {
-        super(timestamp, prompt, true);
+    public BooleanQuestionPromptEvent(long timestamp, String question, boolean defaultValue) {
+        super(timestamp);
+        this.question = question;
         this.defaultValue = defaultValue;
-        this.defaultString = defaultString;
+    }
+
+    @Override
+    public String getPrompt() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (default: ");
+        String defaultString = defaultValue ? "yes" : "no";
+        builder.append(defaultString);
+        builder.append(") [");
+        builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
+        builder.append("] ");
+        return builder.toString();
+    }
+
+    public String getQuestion() {
+        return question;
     }
 
     public boolean getDefaultValue() {
         return defaultValue;
     }
 
-    public String getDefaultString() {
-        return defaultString;
-    }
-
     @Override
-    public Either<Boolean, String> convert(String text) {
+    public PromptResult<Boolean> convert(String text) {
         if (text.isEmpty()) {
-            return Either.left(defaultValue);
+            return PromptResult.response(defaultValue);
         }
         String trimmed = text.toLowerCase(Locale.US).trim();
         if (LENIENT_YES_NO_CHOICES.contains(trimmed)) {
-            return Either.left(BooleanUtils.toBoolean(trimmed));
+            return PromptResult.response(BooleanUtils.toBoolean(trimmed));
         }
-        return Either.right("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
+        String defaultString = defaultValue ? "yes" : "no";
+        return PromptResult.newPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
     }
 }

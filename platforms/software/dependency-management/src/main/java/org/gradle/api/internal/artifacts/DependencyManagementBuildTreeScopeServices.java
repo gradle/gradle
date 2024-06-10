@@ -77,7 +77,9 @@ import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -90,7 +92,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The set of dependency management services that are created per build tree.
  */
-class DependencyManagementBuildTreeScopeServices {
+class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(ProjectArtifactResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
@@ -106,14 +108,17 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(DefaultProjectLocalComponentProvider.class);
     }
 
+    @Provides
     SimpleMapInterner createStringInterner() {
         return SimpleMapInterner.threadSafe();
     }
 
+    @Provides
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
         return new BuildCommencedTimeProvider(startParameter);
     }
 
+    @Provides
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);
     }
@@ -128,6 +133,7 @@ class DependencyManagementBuildTreeScopeServices {
         );
     }
 
+    @Provides
     FileStoreAndIndexProvider createFileStoreAndIndexProvider(
         BuildCommencedTimeProvider timeProvider,
         ArtifactCachesProvider artifactCaches,
@@ -148,6 +154,7 @@ class DependencyManagementBuildTreeScopeServices {
             externalResourceFileStore, artifactIdentifierFileStore);
     }
 
+    @Provides
     ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
         Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
             MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
@@ -156,12 +163,14 @@ class DependencyManagementBuildTreeScopeServices {
         return new ModuleSourcesSerializer(codecs);
     }
 
+    @Provides
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
         File rootDirectory = buildLayout.getRootDirectory();
         File gradleDir = new File(rootDirectory, "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }
 
+    @Provides
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(
         BuildCommencedTimeProvider timeProvider,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,

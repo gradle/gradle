@@ -49,6 +49,8 @@ public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
     private static final Joiner KEBAB_JOINER = Joiner.on("-");
+
+    @SuppressWarnings("StringCaseLocaleUsage")
     private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
         @Override
         public String apply(String input) {

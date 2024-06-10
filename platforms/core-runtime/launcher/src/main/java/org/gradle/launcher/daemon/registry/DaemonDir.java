@@ -16,11 +16,14 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
+@ServiceScope(Scope.Global.class)
 public class DaemonDir {
     private final File baseDir;
     private final File versionedDir;

@@ -37,6 +37,8 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.buildprocess.BuildProcessState;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
@@ -46,10 +48,8 @@ import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -105,14 +105,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
-    protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
-        .scope(Scope.Global.class)
-        .displayName("Global services")
-        .parent(newCommandLineProcessLogging())
-        .parent(NativeServicesTestFixture.getInstance())
-        .parent(ValidationServicesFixture.getServices())
-        .provider(new GlobalScopeServices(true, AgentStatus.of(isAgentInstrumentationEnabled())))
-        .build();
+    protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
+        true,
+        AgentStatus.of(isAgentInstrumentationEnabled()),
+        ClassPath.EMPTY,
+        newCommandLineProcessLogging(),
+        NativeServicesTestFixture.getInstance(),
+        ValidationServicesFixture.getServices()
+    ).getServices();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
@@ -644,7 +644,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
-    private JavaVersion getJavaVersionFromJavaHome() {
+    protected final JavaVersion getJavaVersionFromJavaHome() {
         try {
             return JavaVersion.toVersion(JVM_VERSION_DETECTOR.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
         } catch (IllegalArgumentException | JavaHomeException e) {
@@ -1124,9 +1124,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         workingDir.createFile("settings.gradle");
     }
 
-    private boolean hasSettingsFile(TestFile dir) {
+    private static boolean hasSettingsFile(TestFile dir) {
         if (dir.isDirectory()) {
-            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile() || dir.file("settings.gradle.something").isFile();
+            String[] settingsFileNames = ScriptFileUtil.getValidSettingsFileNames();
+            for (String settingsFileName : settingsFileNames) {
+                if (dir.file(settingsFileName).isFile()) {
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -1408,6 +1413,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
+    @Override
     public GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action) {
         debugLauncher.setEnabled(true);
         action.execute(debugLauncher);

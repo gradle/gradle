@@ -673,10 +673,13 @@ task someTask(type: SomeTask) {
     }
 
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
+        enableProblemsApiCheck()
         expectReindentedValidationMessage()
         file("input-file.txt").touch()
-        file("input-dir").createDir()
-        buildFile << """
+
+        def inputDir = file("input-dir")
+        inputDir.createDir()
+        buildFile """
             task test {
                 inputs.${method}({ "$path" }) withPropertyName "input"
                 doLast {}
@@ -694,6 +697,20 @@ task someTask(type: SomeTask) {
                 .includeLink()
         })
 
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unexpected-input-file-type'
+            contextualLabel == "Property \'input\' $fileType \'${unexpected.absolutePath}\' is not a $fileType"
+            details == "Expected an input to be a $fileType but it was a ${getOppositeKind(fileType)}"
+            solutions == [
+                "Use a $fileType as an input",
+                "Declare the input as a ${getOppositeKind(fileType)} instead",
+            ].collect { it.toString() }
+            additionalData.asMap == [
+                'typeName': 'org.gradle.api.DefaultTask',
+                'propertyName': 'input',
+            ]
+        }
+
         where:
         method | path             | fileType
         "file" | "input-dir"      | "file"
@@ -701,6 +718,7 @@ task someTask(type: SomeTask) {
     }
 
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
+        enableProblemsApiCheck()
         expectReindentedValidationMessage()
         def outputDir = file("output-dir")
         outputDir.createDir()
@@ -720,6 +738,19 @@ task someTask(type: SomeTask) {
                 .includeLink()
         })
 
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:cannot-write-output'
+            contextualLabel == "Property \'output\' is not writable because \'${outputDir.absolutePath}\' is not a file"
+            details == 'Cannot write a file to a location pointing at a directory'
+            solutions == [
+                'Configure \'output\' to point to a file, not a directory',
+                'Annotate \'output\' with @OutputDirectory instead of @OutputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'org.gradle.api.DefaultTask',
+                'propertyName' : 'output',
+            ]
+        }
         where:
         method  | path
         "file"  | "output-dir"
@@ -727,6 +758,7 @@ task someTask(type: SomeTask) {
     }
 
     def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
+        enableProblemsApiCheck()
         expectReindentedValidationMessage()
         def outputFile = file("output-file.txt")
         outputFile.touch()
@@ -746,6 +778,16 @@ task someTask(type: SomeTask) {
                 .includeLink()
         })
 
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:cannot-write-output'
+            contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
+            details == "Expected \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
+            solutions == [ 'Make sure that the \'output\' is configured to a directory' ]
+            additionalData.asMap == [
+                'typeName' : 'org.gradle.api.DefaultTask',
+                'propertyName' : 'output',
+            ]
+        }
         where:
         method | path
         "dir"  | "output-file.txt"
@@ -754,6 +796,7 @@ task someTask(type: SomeTask) {
 
     @Issue("https://github.com/gradle/gradle/issues/15679")
     def "fileTrees with regular file roots cannot be used as output files"() {
+        enableProblemsApiCheck()
         expectReindentedValidationMessage()
         buildScript """
             task myTask {
@@ -777,6 +820,17 @@ task someTask(type: SomeTask) {
                 .dir(outputFile)
                 .includeLink()
         })
+
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:cannot-write-output'
+            contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
+            details == "Expected the root of the file tree \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
+            solutions == [ 'Make sure that the root of the file tree \'output\' is configured to a directory' ]
+            additionalData.asMap == [
+                'typeName' : 'org.gradle.api.DefaultTask',
+                'propertyName' : 'output',
+            ]
+        }
     }
 
     def "can specify null as an input property in ad-hoc task"() {

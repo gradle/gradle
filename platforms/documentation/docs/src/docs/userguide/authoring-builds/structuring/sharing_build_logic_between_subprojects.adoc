@@ -101,7 +101,7 @@ A typical project including `buildSrc` has the following layout:
 ├── buildSrc
 │   ├── src
 │   │   └──main
-│   │      └──kotlin
+│   │      └──groovy
 │   │         └──MyCustomTask.groovy    // <1>
 │   ├── shared.gradle   // <2>
 │   └── build.gradle
@@ -260,7 +260,7 @@ Let's take a look at an example project:
 │   ├── src
 │   │   └──main
 │   │      └──kotlin
-│   │         └──myproject.java-conventions.gradle  // <1>
+│   │         └──myproject.java-conventions.gradle.kts  // <1>
 │   └── build.gradle.kts
 ├── api
 │   ├── src
@@ -288,8 +288,8 @@ Let's take a look at an example project:
 ├── buildSrc
 │   ├── src
 │   │   └──main
-│   │      └──kotlin
-│   │         └──myproject.java-conventions.gradle.kts  // <1>
+│   │      └──groovy
+│   │         └──myproject.java-conventions.gradle  // <1>
 │   └── build.gradle
 ├── api
 │   ├── src

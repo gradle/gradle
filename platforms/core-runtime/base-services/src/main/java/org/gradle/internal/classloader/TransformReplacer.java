@@ -157,8 +157,9 @@ public class TransformReplacer implements Closeable {
     }
 
     private static class Loader implements Closeable {
+          // used in subclasses
         @Nullable
-        public byte[] loadTransformedClass(String className) throws IOException {
+        public byte[] loadTransformedClass(@SuppressWarnings("UnusedVariable") String className) throws IOException {
             return null;
         }
 
@@ -278,6 +279,7 @@ public class TransformReplacer implements Closeable {
 
         public static final String RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
 
+        @SuppressWarnings("ImmutableEnumChecker")
         private final byte[] markerBody;
 
         MarkerResource(byte[] markerBody) {

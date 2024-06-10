@@ -81,7 +81,7 @@ include 'a', 'b', 'c', 'd', 'e'
 """
     }
 
-    @ToolingApiVersion(">=4.8 <8.2")
+    @ToolingApiVersion(">=7.0 <8.2")
     @Issue("https://github.com/gradle/gradle/issues/17810")
     def "older Tooling API versions cannot free memory when executing a build action"() {
         when:

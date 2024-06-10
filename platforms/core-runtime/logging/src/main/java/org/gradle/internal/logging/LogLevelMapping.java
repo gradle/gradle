@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging;
 
-import org.apache.tools.ant.Project;
 import org.gradle.api.logging.LogLevel;
 
 import java.util.HashMap;
@@ -27,12 +26,14 @@ public final class LogLevelMapping {
     private LogLevelMapping() {
     }
 
+    @SuppressWarnings("DoubleBraceInitialization")
     public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J = new HashMap<Integer, LogLevel>() {
         {
-            put(Project.MSG_ERR, LogLevel.ERROR);
-            put(Project.MSG_WARN, LogLevel.WARN);
-            put(Project.MSG_INFO, LogLevel.INFO);
-            put(Project.MSG_DEBUG, LogLevel.DEBUG);
-            put(Project.MSG_VERBOSE, LogLevel.DEBUG);
+            // Project is `org.apache.tools.ant.Project`
+            put(0 /* Project.MSG_ERR */, LogLevel.ERROR);
+            put(1 /* Project.MSG_WARN */, LogLevel.WARN);
+            put(2 /* Project.MSG_INFO */, LogLevel.INFO);
+            put(4 /* Project.MSG_DEBUG */, LogLevel.DEBUG);
+            put(3 /* Project.MSG_VERBOSE */, LogLevel.DEBUG);
         }};
 }

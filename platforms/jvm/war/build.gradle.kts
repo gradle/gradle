@@ -30,6 +30,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":language-java"))
@@ -40,7 +41,6 @@ dependencies {
     implementation(project(":plugins-java"))
     implementation(project(":plugins-jvm-test-suite"))
 
-    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":testing-base"))
 
 

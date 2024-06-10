@@ -119,7 +119,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             file('build/resources/main'),
         ]
         def expectedExecutable = Jvm.current().javaExecutable.absolutePath
-        def expectedJavaVersion = JavaVersion.current().majorVersion.toInteger()
+        def expectedJavaVersion = JavaVersion.current().majorVersionNumber
         with(new JsonSlurper().parse(file('build/testTaskProperties.json')), Map) {
             usingJUnitPlatform == true
             forkEvery == 42

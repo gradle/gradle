@@ -112,7 +112,10 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
+                                // Interrupting the state lock thread means something changed,
+                                // so let's retry obtaining the lock.
+                                // Clear the interrupted flag.
+                                boolean ignored = Thread.interrupted();
                             }
                             startOperation(resourceLockState);
                             break;

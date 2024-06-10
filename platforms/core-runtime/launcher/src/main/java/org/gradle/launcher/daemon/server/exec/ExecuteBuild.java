@@ -17,14 +17,17 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
@@ -37,10 +40,10 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
-    final private BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter;
+    final private BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter;
     private final DaemonRunningStats runningStats;
 
-    public ExecuteBuild(BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
+    public ExecuteBuild(BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
         this.actionExecuter = actionExecuter;
         this.runningStats = runningStats;
     }
@@ -53,7 +56,9 @@ public class ExecuteBuild extends BuildCommandOnly {
         DaemonConnectionBackedEventConsumer buildEventConsumer = new DaemonConnectionBackedEventConsumer(execution);
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(build.getBuildRequestMetaData(), cancellationToken, buildEventConsumer);
+            DefaultBuildClientMetaData clientMetaData = new DefaultBuildClientMetaData(build.getBuildClientMetaData());
+            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractive());
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
             if (!build.getAction().getStartParameter().isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override

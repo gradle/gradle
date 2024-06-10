@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":dependency-management"))
     implementation(project(":ivy"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":maven"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
@@ -47,9 +48,6 @@ dependencies {
 
     testImplementation(project(":language-java")) {
         because("need to access JavaCompile task")
-    }
-    testImplementation(project(":plugins")) {
-        because("need to access JavaPluginExtension")
     }
 
     testImplementation(testFixtures(project(":core")))

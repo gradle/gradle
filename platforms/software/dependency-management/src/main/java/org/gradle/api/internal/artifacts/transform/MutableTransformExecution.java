@@ -46,11 +46,14 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        MutableWorkspaceProvider workspaceProvider
+        MutableWorkspaceProvider workspaceProvider,
+
+        boolean disableCachingByProperty
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter
+            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter,
+            disableCachingByProperty
         );
         this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
         this.producerBuildTreePath = producerProject.getBuildTreePath();

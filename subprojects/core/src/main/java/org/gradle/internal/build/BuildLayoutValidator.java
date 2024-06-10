@@ -31,6 +31,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidBuildFileNames;
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNames;
 
 @ServiceScope(Scope.BuildSession.class)
 public class BuildLayoutValidator {
@@ -68,8 +70,8 @@ public class BuildLayoutValidator {
         StringBuilder message = new StringBuilder("Directory '");
         message.append(startParameter.getCurrentDir())
             .append("' does not contain a Gradle build.\n\n")
-            .append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ")
-            .append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n\n")
+            .append("A Gradle build's root directory should contain one of the possible settings files: ").append(String.join(", ", getValidSettingsFileNames())).append(".")
+            .append("It may also contain one of the possible build files: ").append(String.join(", ", getValidBuildFileNames())).append(".\n\n")
             .append("To create a new Gradle build in this directory run '");
         clientMetaData.describeCommand(message, "init");
         message.append("'\n\n")

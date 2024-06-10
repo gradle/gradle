@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
@@ -45,6 +47,7 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.hi
  * print a warning log to the console informing the user of the issue and instructing them
  * on how to adjust daemon memory settings.
  */
+@ServiceScope(Scope.Global.class)
 public class HealthExpirationStrategy implements DaemonExpirationStrategy {
 
     /**
@@ -154,8 +157,8 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
             return false;
         }
 
+        statusLock.lock();
         try {
-            statusLock.lock();
             DaemonExpirationStatus previous = mostSevereStatus;
             mostSevereStatus = highestPriorityOf(previous, newStatus);
             return previous != mostSevereStatus;

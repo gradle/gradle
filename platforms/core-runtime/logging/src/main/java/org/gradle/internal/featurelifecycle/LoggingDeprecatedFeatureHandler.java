@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
@@ -103,7 +104,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
-                    .additionalData("type", usage.getType().name())
+                    .additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
+                        @Override
+                        public void execute(DeprecationDataSpec data) {
+                            data.type(usage.getType().toDeprecationDataType());
+                        }
+                    })
                     .severity(WARNING);
 
                 addPossibleLocation(diagnostics, problemSpec);
@@ -115,7 +121,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
-        if(usage.getProblemId() != null) {
+        if (usage.getProblemId() != null) {
             return usage.getProblemId();
         }
         return createDefaultDeprecationId(usage.getProblemIdDisplayName());
@@ -185,7 +191,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (warningMode == WarningMode.Summary && deprecationsFound) {
             LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{}",
                 WARNING_SUMMARY, DefaultGradleVersion.current().getNextMajorVersion().getVersion(),
-                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),
+                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(Locale.ROOT),
                 DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings"));
         }
     }

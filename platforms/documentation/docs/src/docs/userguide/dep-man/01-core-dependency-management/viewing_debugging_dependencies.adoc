@@ -120,6 +120,8 @@ The dependency configuration which resolves the given dependency.
 This parameter is optional for projects that use the <<java_plugin#java_plugin, Java plugin>>, since the plugin provides a default value of `compileClasspath`.
 `--single-path` (optional)::
 Render only a single path to the dependency.
+`--all-variants` (optional)::
+Render information about all variants, not only the selected variant.
 
 The following code snippet demonstrates how to run a dependency insight report for all paths to a dependency named "commons-codec" within the "scm" configuration:
 

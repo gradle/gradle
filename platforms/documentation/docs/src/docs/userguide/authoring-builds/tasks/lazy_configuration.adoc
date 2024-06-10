@@ -294,6 +294,58 @@ $ gradle show
 include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out[]
 ----
 
+=== Where to apply conventions from?
+
+There are several appropriate locations for setting a convention on a property at configuration time (i.e., before execution).
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites]"]
+====
+
+==== From a plugin's `apply()` method
+
+Plugin authors may configure a convention on a lazy property from a plugin's `apply()` method, while performing preliminary configuration of the task or extension defining the property.
+This works well for regular plugins (meant to be distributed and used in the wild), and internal <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins,convention plugins>> (which often configure properties defined by third party plugins in a uniform way for the entire build).
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-plugin]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-plugin]"]
+====
+
+==== From a build script
+
+Build engineers may configure a convention on a lazy property from shared build logic that is configuring tasks (for instance, from third-party plugins) in a standard way for the entire build.
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-buildscript]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-buildscript]"]
+====
+
+Note that for project-specific values, instead of conventions, you should prefer setting explicit values (using `Property.set(...)` or `ConfigurableFileCollection.setFrom(...)`, for instance),
+as conventions are only meant to define defaults.
+
+==== From the task initialization
+
+A task author may configure a convention on a lazy property from the task constructor or (if in Kotlin) initializer block.
+This approach works for properties with trivial defaults, but it is not appropriate if additional context (external to the task implementation) is required in order to set a suitable default.
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-constructor]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-constructor]"]
+====
+
+==== Next to the property declaration
+
+You may configure a convention on a lazy property next to the place where the property is declared.
+Note this option is not available for <<custom_gradle_types.adoc#managed_properties,managed properties>>, and has the same caveats as configuring a convention from the task constructor.
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-declaration]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-declaration]"]
+====
+
+
 [[unmodifiable_property]]
 == Making a property unmodifiable
 

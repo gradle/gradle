@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.text;
 
+import com.google.errorprone.annotations.FormatMethod;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.SystemProperties;
 
@@ -46,6 +47,7 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
         return this;
     }
 
+    @FormatMethod
     @Override
     public StyledTextOutput format(String pattern, Object... args) {
         text(String.format(pattern, args));
@@ -59,6 +61,7 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
         return this;
     }
 
+    @FormatMethod
     @Override
     public StyledTextOutput formatln(String pattern, Object... args) {
         format(pattern, args);

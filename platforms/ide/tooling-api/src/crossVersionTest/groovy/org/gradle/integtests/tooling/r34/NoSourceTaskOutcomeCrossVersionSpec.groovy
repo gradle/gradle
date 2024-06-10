@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r34
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSkippedResult
@@ -33,19 +32,8 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
             }"""
     }
 
-    @ToolingApiVersion('>=3.4')
     @TargetGradleVersion('>=3.4')
     def "tasks with no source is reported as NO-SOURCE"() {
-        when:
-        def taskEvents = ProgressEvents.create()
-        runBuild(taskEvents)
-        then:
-        skippedTaskResult(taskEvents).skipMessage == "NO-SOURCE"
-    }
-
-    @ToolingApiVersion('<3.4 >=3.0')
-    @TargetGradleVersion('>=3.4')
-    def "NO-SOURCE tasks with are reported as SKIPPED for older tapi versions"() {
         when:
         def taskEvents = ProgressEvents.create()
         runBuild(taskEvents)

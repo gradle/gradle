@@ -343,7 +343,18 @@ class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     boolean isHasTestDisplayNames() {
-        return isSameOrNewer("8.8")
+        return isSameOrNewer("8.8-rc-1")
+    }
+
+    @Override
+    boolean isSupportsCustomToolchainResolvers() {
+        return isSameOrNewer("7.6")
+    }
+
+    @Override
+    boolean isNonFlakyToolchainProvisioning() {
+        // Excluding potential 8.9 RCs
+        return !isSameOrOlder("8.8")
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

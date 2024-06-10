@@ -59,7 +59,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     @ToBeImplemented("https://github.com/gradle/gradle/issues/28203")
     def "native services are #description with systemProperties == #systemProperties"() {
         given:
-        executer.requireOwnGradleUserHomeDir("To not reuse native services").withNoExplicitNativeServicesDir()
+        // We set Gradle User Home to a different temporary directory that is outside
+        // a project dir to avoid file lock issues on Windows due to native services being loaded
+        executer.withGradleUserHomeDir(tmpDir.testDirectory).withNoExplicitNativeServicesDir()
         nativeDir = new File(executer.gradleUserHomeDir, 'native')
         executer.withArguments(systemProperties.collect { it.toString() })
         buildFile << """

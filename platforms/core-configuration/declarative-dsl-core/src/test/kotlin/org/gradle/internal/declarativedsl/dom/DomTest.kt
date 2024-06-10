@@ -16,12 +16,9 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
-import org.gradle.internal.declarativedsl.language.Block
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.intellij.lang.annotations.Language
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -45,13 +42,13 @@ object DomTest {
 
         assertEquals(
             """
-            element(myFun)[0..107]
-                property(a, literal(1)[16..17])[12..17]
-                property(b, valueFactory(f, literal(x)[28..31], valueFactory(z.f, literal(y)[37..40])[35..41])[26..42])[22..42]
-                property(c, literal(true)[51..55])[47..55]
-                element(nested)[60..90]
-                    property(x, literal(y)[81..84])[77..84]
-                element(factory, literal(1)[103..104])[95..105]
+            element(myFun)[0..106]
+                property(a, literal(1)[16..16])[12..16]
+                property(b, valueFactory(f, literal(x)[28..30], valueFactory(z.f, literal(y)[37..39])[35..40])[26..41])[22..41]
+                property(c, literal(true)[51..54])[47..54]
+                element(nested)[60..89]
+                    property(x, literal(y)[81..83])[77..83]
+                element(factory, literal(1)[103..103])[95..104]
 
             """.trimIndent(),
             DomPrettyPrinter(withSourceData = true).domAsString(convertBlockToDocument(tree))
@@ -97,33 +94,27 @@ object DomTest {
 
         assertEquals(
             """
-            element(myFun)[0..364]
-                property(a, literal(x)[16..19])[12..19]
-                error(UnsupportedSyntax(UnsupportedPropertyAccess)[24..29]
-                error(UnsupportedSyntax(ValueFactoryArgumentFormat)[34..48]
-                error(UnsupportedSyntax(ValueFactoryArgumentFormat)[53..78]
-                error(UnsupportedKotlinFeature(FunctionDeclaration)[92..95]
-                error(UnsupportedKotlinFeature(FunctionDeclaration), UnsupportedKotlinFeature(FunctionDeclaration)[237..240]
-                error(UnsupportedSyntax(DanglingExpr)[251..252]
-                error(UnsupportedSyntax(ElementWithExplicitReceiver)[259..262]
-                error(UnsupportedSyntax(AssignmentWithExplicitReceiver)[267..274]
-                error(UnsupportedSyntax(LocalVal)[279..288]
-                error(SyntaxError(Parsing failure, unexpected tokenType in expression: POSTFIX_EXPRESSION)[307..320]
-                error(SyntaxError(Unexpected tokens (use ';' to separate expressions on the same line))[320..321]
-                error(UnsupportedSyntax(UnsupportedThisValue)[326..334]
-                error(UnsupportedSyntax(UnsupportedNullValue)[339..347]
-                element(factory, literal(1)[360..361])[352..362]
+            element(myFun)[0..363]
+                property(a, literal(x)[16..18])[12..18]
+                error(UnsupportedSyntax(UnsupportedPropertyAccess)[24..28]
+                error(UnsupportedSyntax(ValueFactoryArgumentFormat)[34..47]
+                error(UnsupportedSyntax(ValueFactoryArgumentFormat)[53..77]
+                error(UnsupportedKotlinFeature(FunctionDeclaration)[92..94]
+                error(UnsupportedKotlinFeature(FunctionDeclaration), UnsupportedKotlinFeature(FunctionDeclaration)[237..239]
+                error(UnsupportedSyntax(DanglingExpr)[251..251]
+                error(UnsupportedSyntax(ElementWithExplicitReceiver)[259..261]
+                error(UnsupportedSyntax(AssignmentWithExplicitReceiver)[267..273]
+                error(UnsupportedSyntax(LocalVal)[279..287]
+                error(SyntaxError(Parsing failure, unexpected tokenType in expression: POSTFIX_EXPRESSION)[307..319]
+                error(SyntaxError(Unexpected tokens (use ';' to separate expressions on the same line))[320..320]
+                error(UnsupportedSyntax(UnsupportedThisValue)[326..333]
+                error(UnsupportedSyntax(UnsupportedNullValue)[339..346]
+                element(factory, literal(1)[360..360])[352..361]
 
             """.trimIndent(),
 
             DomPrettyPrinter(withSourceData = true).domAsString(convertBlockToDocument(tree))
         )
-    }
-
-    private
-    fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val (tree, sourceCode, sourceOffset) = parse(code)
-        return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }
 
     internal

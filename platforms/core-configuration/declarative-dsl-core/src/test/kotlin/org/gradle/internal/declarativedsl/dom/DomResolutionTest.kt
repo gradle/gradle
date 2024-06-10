@@ -20,15 +20,14 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.SchemaFunction
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.language.Block
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
+import org.gradle.internal.declarativedsl.dom.data.collectToMap
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -58,8 +57,8 @@ object DomResolutionTest {
         resolver.resolve(schema, emptyList(), topLevelBlock)
 
         val document = convertBlockToDocument(topLevelBlock)
-        val resolved = resolvedDocument(schema, resolver.trace, document)
-        val resolutions = collectResolutions(resolved)
+        val resolved = resolutionContainer(schema, resolver.trace, document)
+        val resolutions = resolved.collectToMap(document).values
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
@@ -78,33 +77,12 @@ object DomResolutionTest {
             PropertyAssignmentResolved -> TopLevelReceiver.complexValueTwo: ComplexValueTwo
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
-            PropertyConfiguringElementResolved -> configure NestedReceiver
+            ConfiguringElementResolved -> configure NestedReceiver
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
             """.trimIndent()
         )
-    }
-
-    @Test
-    fun `resolved document keeps the original structure and source data`() {
-        val resolver = tracingCodeResolver()
-
-        val topLevelBlock = parseAsTopLevelBlock(
-            """
-            addAndConfigure("test") {
-                number = 123
-            }
-            """.trimIndent()
-        )
-
-        val document = convertBlockToDocument(topLevelBlock)
-        resolver.resolve(schema, emptyList(), topLevelBlock)
-
-        val resolved = resolvedDocument(schema, resolver.trace, document)
-        val printer = DomTest.DomPrettyPrinter(withSourceData = true)
-
-        assertEquals(printer.domAsString(document), printer.domAsString(resolved))
     }
 
     @Test
@@ -132,8 +110,8 @@ object DomResolutionTest {
         resolver.resolve(schema, emptyList(), topLevelBlock)
 
         val document = convertBlockToDocument(topLevelBlock)
-        val resolved = resolvedDocument(schema, resolver.trace, document, strictReceiverChecks = true)
-        val resolutions = collectResolutions(resolved)
+        val resolved = resolutionContainer(schema, resolver.trace, document, strictReceiverChecks = true)
+        val resolutions = resolved.collectToMap(document).values
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
@@ -154,7 +132,7 @@ object DomResolutionTest {
             ElementNotResolved(UnresolvedSignature)
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
-            PropertyConfiguringElementResolved -> configure NestedReceiver
+            ConfiguringElementResolved -> configure NestedReceiver
             ElementNotResolved(CrossScopeAccess)
             LiteralValueResolved -> cross-scope
             ElementNotResolved(UnresolvedSignature)
@@ -167,51 +145,21 @@ object DomResolutionTest {
     val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses.toList())
 
     private
-    fun collectResolutions(resolvedDeclarativeDocument: ResolvedDeclarativeDocument) = buildList {
-        class Visitor {
-            fun visitNode(node: ResolvedDeclarativeDocument.ResolvedDocumentNode) {
-                add(node.resolution)
-                when (node) {
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode -> {
-                        node.elementValues.forEach(::visitValue)
-                        node.content.forEach(::visitNode)
-                    }
-
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedPropertyNode -> {
-                        visitValue(node.value)
-                    }
-
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedErrorNode -> Unit
-                }
-            }
-
-            fun visitValue(value: ResolvedDeclarativeDocument.ResolvedValueNode) {
-                add(value.resolution)
-                when (value) {
-                    is ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedLiteralValueNode -> Unit
-                    is ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedValueFactoryNode -> value.values.forEach(::visitValue)
-                }
-            }
-        }
-        Visitor().run { resolvedDeclarativeDocument.content.forEach(::visitNode) }
-    }
-
-    private
     fun resolutionPrettyString(resolution: DocumentResolution): String =
         resolution::class.simpleName + when (resolution) {
             is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
                 " -> element ${functionSignatureString(resolution.elementFactoryFunction)}"
 
-            is DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved ->
+            is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved ->
                 " -> configure ${resolution.elementType}"
 
             is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
-                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.type)}"
+                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
 
-            is DocumentResolution.ValueResolution.ValueFactoryResolution.ValueFactoryResolved ->
+            is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved ->
                 " -> ${functionSignatureString(resolution.function)}"
 
-            is DocumentResolution.ValueResolution.LiteralValueResolved -> " -> ${resolution.value}"
+            is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> " -> ${resolution.value}"
             is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
         }
 
@@ -297,10 +245,4 @@ object DomResolutionTest {
 
     private
     class MyNestedElement
-
-    private
-    fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val (tree, sourceCode, sourceOffset) = parse(code)
-        return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
-    }
 }

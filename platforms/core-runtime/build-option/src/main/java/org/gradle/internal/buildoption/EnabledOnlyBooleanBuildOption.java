@@ -39,7 +39,7 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         if (properties.get(property) != null) {
-            applyTo(settings, propertyOrigin.toOrigin(property));
+            applyTo(settings, Origin.forGradleProperty(property));
         }
     }
 

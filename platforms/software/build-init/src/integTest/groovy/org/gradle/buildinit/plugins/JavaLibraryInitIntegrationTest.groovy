@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
@@ -42,7 +43,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         def dslFixture = dslFixtureFor(scriptDsl)
         when:
-        run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -67,7 +68,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -88,7 +89,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         gradlePropertiesGenerated()
@@ -105,7 +106,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -129,7 +130,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -152,7 +153,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates sample source using junit-jupiter instead of junit with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -164,7 +165,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         buildFileSeparatesImplementationAndApi(dslFixture, 'junit.jupiter')
 
         when:
-        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -176,7 +176,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -186,7 +186,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         commonJvmFilesGenerated(scriptDsl as BuildInitDsl)
 
         when:
-        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -203,7 +202,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -214,7 +213,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         dslFixture.assertHasTestSuite('test')
 
         when:
-        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -231,7 +229,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
     @Requires(UnitTestPreconditions.Jdk17OrEarlier)
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -241,7 +239,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         commonJvmFilesGenerated(scriptDsl)
 
         when:
-        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -251,12 +248,12 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Requires(value = UnitTestPreconditions.Jdk17OrEarlier, reason = "Spock pulls an old version of Groovy that doesn't work with Java 18")
     def "creates sample source with package and spock and #scriptDsl build scripts with --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        // Spock pulls an old version of Groovy that doesn't work with Java 18, so use Java 17 instead of the default (Java 21)
-        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', "--java-version", "17")
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', "--java-version", JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -267,7 +264,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         dslFixture.assertHasTestSuite('test')
 
         when:
-        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:
@@ -295,7 +291,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
                 }
         """
         when:
-        run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--dsl', scriptDsl.id, '--overwrite', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("org/acme/SampleMain.java")
@@ -307,7 +303,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
-        executer.withToolchainDownloadEnabled()
         run("build")
 
         then:

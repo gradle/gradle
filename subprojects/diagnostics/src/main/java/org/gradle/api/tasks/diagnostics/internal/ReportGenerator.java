@@ -48,6 +48,18 @@ public final class ReportGenerator {
     }
 
     @FunctionalInterface
+    public interface ReportMarginaliaAction {
+        void execute() throws IOException;
+
+        ReportMarginaliaAction DO_NOTHING = new ReportMarginaliaAction() {
+            @Override
+            public void execute() throws IOException {
+                // Do nothing;
+            }
+        };
+    }
+
+    @FunctionalInterface
     public interface ReportAction<T> {
         void execute(T project) throws IOException;
     }
@@ -61,6 +73,16 @@ public final class ReportGenerator {
         Function<T, ProjectDetails> projectDetailsProvider,
         ReportAction<T> projectReportGenerator
     ) {
+        generateReport(projects, projectDetailsProvider, ReportMarginaliaAction.DO_NOTHING, projectReportGenerator, ReportMarginaliaAction.DO_NOTHING);
+    }
+
+    public <T> void generateReport(
+        Iterable<T> projects,
+        Function<T, ProjectDetails> projectDetailsProvider,
+        ReportMarginaliaAction projectReportHeaderGenerator,
+        ReportAction<T> projectReportGenerator,
+        ReportMarginaliaAction projectReportFooterGenerator
+    ) {
         try {
             ReportRenderer renderer = getRenderer();
             renderer.setClientMetaData(getClientMetaData());
@@ -70,12 +92,14 @@ public final class ReportGenerator {
             } else {
                 renderer.setOutput(getTextOutputFactory().create(getClass()));
             }
+            projectReportHeaderGenerator.execute();
             for (T project : projects) {
                 ProjectDetails projectDetails = projectDetailsProvider.apply(project);
                 renderer.startProject(projectDetails);
                 projectReportGenerator.execute(project);
                 renderer.completeProject(projectDetails);
             }
+            projectReportFooterGenerator.execute();
             renderer.complete();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
@@ -210,9 +209,9 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
-            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+            super(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
                 @Override
-                public String transform(Throwable throwable) {
+                public String getConnectionFailureMessage(Throwable throwable) {
                     return String.format("Could not execute tests using %s.", connection.getDisplayName());
                 }
             }));

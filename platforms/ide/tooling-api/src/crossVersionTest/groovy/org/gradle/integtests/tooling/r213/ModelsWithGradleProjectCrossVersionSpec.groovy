@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
@@ -30,7 +29,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion('>=3.3')
 class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
     static buildScopedModels = [GradleBuild, IdeaProject, BasicIdeaProject]
@@ -132,7 +130,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         assertProject(projectFromEclipseProject, rootMulti, ':x', 'x', ':', [])
     }
 
-    @TargetGradleVersion(">=2.6 <7.0")
+    @TargetGradleVersion(">=3.0 <7.0")
     def "ProjectConnection provides GradleProject for subproject of multi-project build with --no-search-upward"() {
         when:
         def rootDir = rootMulti.file("x")

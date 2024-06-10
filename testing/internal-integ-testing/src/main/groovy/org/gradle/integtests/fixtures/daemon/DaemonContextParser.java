@@ -25,28 +25,24 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.util.GradleVersion;
 
-import java.io.BufferedReader;
+import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class DaemonContextParser {
-    public static DaemonContext parseFromFile(File file, GradleVersion version) {
-        try (FileReader in = new FileReader(file);
-            BufferedReader reader = new BufferedReader(in)) {
-            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                DaemonContext context = parseFrom(line, version);
-                if (context != null) {
-                    return context;
-                }
-            }
-        } catch(IOException e) {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].", e);
+    @Nullable
+    public static DaemonContext parseFromFile(DaemonLogFile log, GradleVersion version) {
+        try (Stream<String> lines = log.lines()) {
+            return lines.map(line -> parseFrom(line, version)).filter(Objects::nonNull).findFirst().orElse(null);
+        } catch (IOException | UncheckedIOException e) {
+            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + log.getFile().getAbsolutePath() + "].", e);
         }
-        return null;
     }
 
     public static DaemonContext parseFromString(String source, GradleVersion version) {
@@ -57,6 +53,7 @@ public class DaemonContextParser {
         return context;
     }
 
+    @Nullable
     private static DaemonContext parseFrom(String source, GradleVersion version) {
         if (version.getBaseVersion().compareTo(GradleVersion.version("8.7")) <= 0) {
             return parseFrom87(source);
@@ -83,6 +80,7 @@ public class DaemonContextParser {
         }
     }
 
+    @Nullable
     private static DaemonContext parseFrom87(String source) {
         Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
             Pattern.MULTILINE + Pattern.DOTALL);

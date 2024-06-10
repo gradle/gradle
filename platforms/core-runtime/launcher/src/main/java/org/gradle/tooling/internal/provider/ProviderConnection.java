@@ -24,15 +24,14 @@ import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -40,6 +39,8 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
@@ -54,7 +55,7 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -99,17 +100,17 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
+@ServiceScope(Scope.Global.class)
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
     private final BuildLayoutFactory buildLayoutFactory;
     private final DaemonClientFactory daemonClientFactory;
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor;
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
-    private final ExecutorFactory executorFactory;
 
     private final JvmVersionDetector jvmVersionDetector;
     private GradleVersion consumerVersion;
@@ -118,13 +119,12 @@ public class ProviderConnection {
         ServiceRegistry sharedServices,
         BuildLayoutFactory buildLayoutFactory,
         DaemonClientFactory daemonClientFactory,
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor,
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
         JvmVersionDetector jvmVersionDetector,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader,
-        ExecutorFactory executorFactory
+        UserInputReader userInputReader
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -134,7 +134,6 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
-        this.executorFactory = executorFactory;
         this.jvmVersionDetector = jvmVersionDetector;
     }
 
@@ -259,10 +258,10 @@ public class ProviderConnection {
         Parameters parameters
     ) {
         try {
-            BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer = createExecuter(providerParameters, parameters);
+            BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> executor = createExecutor(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
-            BuildActionResult result = executer.execute(action, new ConnectionOperationParameters(parameters.daemonParams, parameters.tapiSystemProperties, providerParameters), buildRequestContext);
+            ClientBuildRequestContext context = new ClientBuildRequestContext(new GradleLauncherMetaData(), providerParameters.getStartTime(), interactive, cancellationToken, buildEventConsumer);
+            BuildActionResult result = executor.execute(action, new ConnectionOperationParameters(parameters.daemonParams, parameters.tapiSystemProperties, providerParameters), context);
             throwFailure(result);
             return payloadSerializer.deserialize(result.getResult());
         } finally {
@@ -294,9 +293,9 @@ public class ProviderConnection {
         throw new BuildExceptionVersion1(exception);
     }
 
-    private BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
+    private BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> createExecutor(ProviderOperationParameters operationParameters, Parameters params) {
         LoggingManagerInternal loggingManager;
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer;
+        BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor;
         InputStream standardInput = operationParameters.getStandardInput();
         if (standardInput == null) {
             standardInput = SafeStreams.emptyInput();
@@ -304,14 +303,14 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor, executorFactory));
+            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
         } else {
             LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
-            executer = clientServices.get(DaemonClient.class);
+            executor = clientServices.get(DaemonClient.class);
         }
-        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer), loggingManager);
+        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager);
     }
 
     // TODO: This needs to be shared with the regular launcher

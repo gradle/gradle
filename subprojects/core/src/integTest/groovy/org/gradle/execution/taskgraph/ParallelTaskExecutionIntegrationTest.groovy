@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -31,6 +32,7 @@ import spock.lang.Timeout
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @Requires(IntegTestPreconditions.NotParallelExecutor)
+@ToBeFixedForIsolatedProjects(because = "allprojects")
 // no point, always runs in parallel
 class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 

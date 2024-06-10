@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.RandomAccessFileInputStream;
+import org.gradle.internal.file.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 

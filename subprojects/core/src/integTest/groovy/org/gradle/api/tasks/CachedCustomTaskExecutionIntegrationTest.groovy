@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -783,6 +784,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     @Issue("https://github.com/gradle/gradle/issues/3537")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "concurrent access to local cache works"() {
         String[] projectNames = GroovyCollections.combinations(('a'..'p'), ('a'..'p'), ('a'..'d'))*.join("")
         println "Running with ${projectNames.size()} projects"

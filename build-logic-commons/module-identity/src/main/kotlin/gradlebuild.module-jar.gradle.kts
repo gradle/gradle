@@ -76,7 +76,8 @@ fun computeExternalDependenciesNotAccessibleFromProjectDependencies(
     while (queue.isNotEmpty()) {
         val dependency = when (val result = queue.removeFirst()) {
             is ResolvedDependencyResult -> result
-            else -> throw IllegalArgumentException("Expected ResolvedDependencyResult")
+            is UnresolvedDependencyResult -> throw result.failure
+            else -> throw AssertionError("Unknown dependency type: $result")
         }
 
         if (dependency.isConstraint) {

@@ -19,7 +19,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
-    testImplementation(libs.futureKotlin("stdlib"))
+    testImplementation(libs.kotlinStdlib)
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
@@ -30,21 +30,21 @@ dependencies {
     testRuntimeOnly(project(":distributions-full"))
 }
 
-val acceptedApiChangesFile = layout.projectDirectory.file("src/changes/accepted-public-api-changes.json")
+val acceptedApiChangesDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")
 
 val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
     group = "verification"
     description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-    apiChangesFile = acceptedApiChangesFile
+    apiChangesDirectory = acceptedApiChangesDirectory
 }
 
 val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
     group = "verification"
     description = "Sort the accepted api changes file alphabetically"
-    apiChangesFile = acceptedApiChangesFile
+    apiChangesDirectory = acceptedApiChangesDirectory
 }
 
-val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit_store")
+val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit-store")
 
 tasks {
     val reorderRuleStore by registering(ReorderArchUnitRulesTask::class) {
