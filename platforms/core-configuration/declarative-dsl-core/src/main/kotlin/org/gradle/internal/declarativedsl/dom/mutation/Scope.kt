@@ -125,11 +125,7 @@ sealed interface NestedScopeSelector {
     data class ObjectsConfiguredBy(val function: DataMemberFunction, val argumentsPattern: ArgumentsPattern = ArgumentsPattern.AnyArguments) : NestedScopeSelector {
         override fun matches(scopeElement: ScopeElement): Boolean =
             when (val elementResolution = scopeElement.elementNodes.second) {
-                is DocumentResolution.ElementResolution.SuccessfulElementResolution -> when (elementResolution) {
-                    is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved -> TODO()
-                    is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved -> elementResolution.elementFactoryFunction == function
-                }
-
+                is DocumentResolution.ElementResolution.SuccessfulElementResolution -> elementResolution.elementFactoryFunction == function
                 is DocumentResolution.ElementResolution.ElementNotResolved -> TODO()
             }
     }
