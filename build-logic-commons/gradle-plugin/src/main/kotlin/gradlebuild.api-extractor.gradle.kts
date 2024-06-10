@@ -2,6 +2,7 @@ import gradlebuild.commons.configureJavaToolChain
 
 plugins {
     `java-library`
+    groovy
 
 //    id("gradlebuild.arch-test")
 //    id("gradlebuild.ci-lifecycle")
@@ -20,4 +21,12 @@ java {
     configureJavaToolChain()
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useSpock()
+        }
+    }
 }
