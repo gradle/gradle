@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.dom.mutation
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
+import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 
@@ -30,7 +31,7 @@ interface ModelMutationPlan {
 
 
 interface ModelToDocumentMutationPlanner {
-    fun planModelMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, mutationRequests: List<ModelMutationRequest>): ModelMutationPlan
+    fun planModelMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, mutationRequest: ModelMutationRequest): ModelMutationPlan
 }
 
 
@@ -42,11 +43,16 @@ data class ModelMutationRequest(
 
 
 sealed interface ModelMutation {
+
+    sealed interface ModelPropertyMutation : ModelMutation {
+        val property: DataProperty
+    }
+
     data class SetPropertyValue(
-        val property: DataProperty,
+        override val property: DataProperty,
         val newValue: DeclarativeDocument.ValueNode,
         val ifPresentBehavior: IfPresentBehavior,
-    ) : ModelMutation
+    ) : ModelPropertyMutation
 
     data class AddElement(
         val newElement: DocumentNode.ElementNode,
@@ -54,8 +60,8 @@ sealed interface ModelMutation {
     ) : ModelMutation
 
     data class UnsetProperty(
-        val property: DataProperty
-    ) : ModelMutation
+        override val property: DataProperty
+    ) : ModelPropertyMutation
 
     sealed interface IfPresentBehavior {
         data object Overwrite : IfPresentBehavior
@@ -76,37 +82,68 @@ sealed interface ModelMutationFailureReason
 
 internal
 class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
-    override fun planModelMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, mutationRequests: List<ModelMutationRequest>): ModelMutationPlan =
+    override fun planModelMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, mutationRequest: ModelMutationRequest): ModelMutationPlan =
         DefaultModelMutationPlan(
-            mutationRequests.flatMap { toDocumentMutation(document, resolution, it) },
+            toDocumentMutations(document, resolution, mutationRequest),
             emptyList() // TODO
         )
 
     private
-    fun toDocumentMutation(document: DeclarativeDocument, resolution: DocumentResolutionContainer, request: ModelMutationRequest): List<DocumentMutation> = when (request.mutation) {
-        is ModelMutation.UnsetProperty -> {
+    fun toDocumentMutations(document: DeclarativeDocument, resolution: DocumentResolutionContainer, request: ModelMutationRequest): List<DocumentMutation> = when (request.mutation) {
+        is ModelMutation.UnsetProperty ->
+            withMatchingProperties(request, document, resolution) {
+                DocumentMutation.DocumentNodeTargetedMutation.RemoveNode(it)
+            }
+
+        is ModelMutation.SetPropertyValue ->
+            withMatchingProperties(request, document, resolution) {
+                DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode(
+                    it,
+                    DefaultPropertyNode(
+                        it.name,
+                        it.sourceData, // TODO: just using the old source data doesn't necessarily make sense ...
+                        request.mutation.newValue
+                    )
+                )
+            }
+
+        is ModelMutation.AddElement -> {
             val matchingScopes = request.location.match(document, resolution)
-            val candidatePropertyNodes = matchingScopes
+            matchingScopes
                 .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
-                .flatMap { scope ->
-                    val lastScopeElement = scope.elements.last()
-                    lastScopeElement.elementNodes.first.content.filterIsInstance<DocumentNode.PropertyNode>()
-                }
-                .toSet()
-
-            val targetProperty = request.mutation.property
-            candidatePropertyNodes
-                .filter {
-                    val propertyResolution = resolution.data(it) as DocumentResolution.PropertyResolution.PropertyAssignmentResolved // TODO: handle when this cast fails
-                    propertyResolution.property === targetProperty // TODO: why does simple equals not work here?
-                }
-                .map {
-                    DocumentMutation.DocumentNodeTargetedMutation.RemoveNode(it)
-                }
+                .map { scope -> scope.elements.last().elementNodes }
+                .map { elementResolution ->
+                    DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(
+                        elementResolution.first,
+                        listOf(request.mutation.newElement)
+                    )
+                }.toList()
         }
+    }
 
-        is ModelMutation.AddElement -> TODO()
-        is ModelMutation.SetPropertyValue -> TODO()
+    private
+    fun withMatchingProperties(
+        request: ModelMutationRequest,
+        document: DeclarativeDocument,
+        resolution: DocumentResolutionContainer,
+        mapToMutation: (DocumentNode.PropertyNode) -> DocumentMutation
+    ): List<DocumentMutation> {
+        val matchingScopes = request.location.match(document, resolution)
+        val candidatePropertyNodes = matchingScopes
+            .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
+            .map { scope -> scope.elements.last() }
+            .flatMap { lastScopeElement ->
+                lastScopeElement.elementNodes.first.content.filterIsInstance<DocumentNode.PropertyNode>()
+            }
+            .toSet()
+
+        val targetProperty = (request.mutation as ModelMutation.ModelPropertyMutation).property
+        return candidatePropertyNodes
+            .filter {
+                val propertyResolution = resolution.data(it) as DocumentResolution.PropertyResolution.PropertyAssignmentResolved // TODO: handle when this cast fails
+                propertyResolution.property === targetProperty // TODO: why does simple equals not work here?
+            }
+            .map(mapToMutation)
     }
 }
 

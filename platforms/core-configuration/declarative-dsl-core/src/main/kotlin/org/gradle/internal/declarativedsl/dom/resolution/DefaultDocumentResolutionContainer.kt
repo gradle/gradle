@@ -162,7 +162,7 @@ class DocumentResolver(
             when (val semantics = function.semantics) {
                 is FunctionSemantics.AccessAndConfigure -> {
                     val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
-                    ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved(configuredType)
+                    ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved(configuredType, function as SchemaMemberFunction)
                 }
 
                 is FunctionSemantics.NewObjectFunctionSemantics -> {

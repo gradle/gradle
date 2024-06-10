@@ -117,11 +117,7 @@ sealed interface NestedScopeSelector {
     data class NestedObjectsOfType(val type: DataClass) : NestedScopeSelector {
         override fun matches(scopeElement: ScopeElement): Boolean =
             when (val elementResolution = scopeElement.elementNodes.second) {
-                is DocumentResolution.ElementResolution.SuccessfulElementResolution -> when (elementResolution) {
-                    is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved -> elementResolution.elementType == type
-                    is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved -> false
-                }
-
+                is DocumentResolution.ElementResolution.SuccessfulElementResolution -> elementResolution.elementType == type
                 is DocumentResolution.ElementResolution.ElementNotResolved -> TODO()
             }
     }
@@ -130,7 +126,7 @@ sealed interface NestedScopeSelector {
         override fun matches(scopeElement: ScopeElement): Boolean =
             when (val elementResolution = scopeElement.elementNodes.second) {
                 is DocumentResolution.ElementResolution.SuccessfulElementResolution -> when (elementResolution) {
-                    is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved -> false
+                    is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved -> TODO()
                     is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved -> elementResolution.elementFactoryFunction == function
                 }
 

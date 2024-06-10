@@ -18,10 +18,8 @@ package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
-import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
-import org.gradle.internal.declarativedsl.dom.DocumentNodeContainer
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock
@@ -529,12 +527,6 @@ object DocumentTextMutationPlannerTest {
 
         assertTrue { plan.unsuccessfulDocumentMutations.isEmpty() }
     }
-
-    private
-    fun DocumentNodeContainer.elementNamed(name: String): ElementNode = content.single { it is ElementNode && it.name == name } as ElementNode
-
-    private
-    fun DocumentNodeContainer.propertyNamed(name: String): PropertyNode = content.single { it is PropertyNode && it.name == name } as PropertyNode
 
     private
     fun nodeFromText(code: String): DocumentNode =

@@ -18,14 +18,13 @@ package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 @Suppress("unused", "UNUSED_PARAMETER")
 class TestApi {
 
-    class TopLevelReceiver {
+    abstract class TopLevelReceiver {
 
         @Adding
         fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit) = TopLevelElement().also {
@@ -43,23 +42,19 @@ class TestApi {
         lateinit var complexValueTwo: ComplexValueTwo
 
         @Adding
-        fun justAdd(name: String): TopLevelElement = TopLevelElement()
+        abstract fun justAdd(name: String): TopLevelElement
 
         @Configuring
-        fun nested(configure: NestedReceiver.() -> Unit) = configure(nested)
+        abstract fun nested(configure: NestedReceiver.() -> Unit)
 
         @Restricted
-        fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne = ComplexValueOne()
+        abstract fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne
 
         @Restricted
-        fun two(name: String): ComplexValueTwo = ComplexValueTwo()
+        abstract fun two(name: String): ComplexValueTwo
 
         @get:Restricted
         val utils: Utils = Utils()
-
-        @get:Restricted
-        @get:HiddenInDeclarativeDsl
-        val nested = NestedReceiver()
     }
 
     class ComplexValueOne

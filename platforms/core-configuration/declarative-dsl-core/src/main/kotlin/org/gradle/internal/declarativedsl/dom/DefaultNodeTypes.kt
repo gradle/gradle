@@ -20,7 +20,7 @@ import org.gradle.internal.declarativedsl.language.SourceData
 
 
 internal
-class DefaultPropertyNode(
+data class DefaultPropertyNode(
     override val name: String,
     override val sourceData: SourceData,
     override val value: DeclarativeDocument.ValueNode
@@ -30,7 +30,7 @@ class DefaultPropertyNode(
 
 
 internal
-class DefaultElementNode(
+data class DefaultElementNode(
     override val name: String,
     override val sourceData: SourceData,
     override val elementValues: List<DeclarativeDocument.ValueNode>,
