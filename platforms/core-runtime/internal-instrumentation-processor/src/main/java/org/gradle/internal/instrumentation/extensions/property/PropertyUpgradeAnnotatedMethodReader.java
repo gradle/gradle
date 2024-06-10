@@ -161,7 +161,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .map(v -> types.asElement((TypeMirror) v.getValue()))
             .orElseThrow(() -> new IllegalArgumentException("Missing adapter value"));
         if (!element.getSimpleName().toString().equals(DefaultValue.class.getSimpleName())) {
-            return readAccessorSpecsFromAdapter(element, annotationMirror);
+            return readAccessorSpecsFromAdapter(element, method.getEnclosingElement(), annotationMirror);
         }
 
         List<AnnotationMirror> replacedAccessors = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "replacedAccessors")
@@ -180,29 +180,35 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private List<AccessorSpec> readAccessorSpecsFromAdapter(Element element, AnnotationMirror annotationMirror) {
-        List<ExecutableElement> bridgedMethods = TypeUtils.getExecutableElementsFromElements(Stream.of(element)).stream()
+    private List<AccessorSpec> readAccessorSpecsFromAdapter(Element adapter, Element upgradedElement, AnnotationMirror annotationMirror) {
+        List<ExecutableElement> bridgedMethods = TypeUtils.getExecutableElementsFromElements(Stream.of(adapter)).stream()
             .filter(method -> method.getAnnotation(BytecodeUpgrade.class) != null)
             .collect(Collectors.toList());
-        validateBridgedMethods(element, bridgedMethods);
+        validateBridgedMethods(adapter, upgradedElement, bridgedMethods);
 
         return bridgedMethods.stream()
             .map(method -> bridgedMethodToAccessorSpec(method, annotationMirror))
             .collect(Collectors.toList());
     }
 
-    private static void validateBridgedMethods(Element element, List<ExecutableElement> methods) {
+    private static void validateBridgedMethods(Element adapter, Element upgradedElement, List<ExecutableElement> methods) {
         List<String> errors = new ArrayList<>();
-        if (!isPackagePrivate(element)) {
-            errors.add(String.format("Adapter class '%s' should be package private, but it's not.", element));
+        if (!isPackagePrivate(adapter)) {
+            errors.add(String.format("Adapter class '%s' should be package private, but it's not.", adapter));
         }
 
+        Type upgradedType = TypeUtils.extractType(upgradedElement.asType());
         for (ExecutableElement method : methods) {
+            if (method.getParameters().isEmpty()) {
+                errors.add(String.format("Adapter method '%s.%s' has no parameters, but it should have at least one of type '%s'.", adapter, method, upgradedElement));
+            } else if (!TypeUtils.extractType(method.getParameters().get(0).asType()).equals(upgradedType)) {
+                errors.add(String.format("Adapter method '%s.%s' should have first parameter of type '%s', but first parameter is of type '%s'.", adapter, method, upgradedElement, method.getParameters().get(0).asType()));
+            }
             if (!method.getModifiers().contains(Modifier.STATIC)) {
-                errors.add(String.format("Adapter method '%s.%s' should be static but it's not.", element, method));
+                errors.add(String.format("Adapter method '%s.%s' should be static but it's not.", adapter, method));
             }
             if (!isPackagePrivate(method)) {
-                errors.add(String.format("Adapter method '%s.%s' should be package-private but it's not.", element, method));
+                errors.add(String.format("Adapter method '%s.%s' should be package-private but it's not.", adapter, method));
             }
         }
 

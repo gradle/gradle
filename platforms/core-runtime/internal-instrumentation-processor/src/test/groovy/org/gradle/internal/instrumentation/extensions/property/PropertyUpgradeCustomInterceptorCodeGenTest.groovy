@@ -180,6 +180,16 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                     private Task thirdMethod(Task task, int maxErrors) {
                         return task;
                     }
+
+                    @BytecodeUpgrade
+                    static int forthMethod() {
+                        return 0;
+                    }
+
+                    @BytecodeUpgrade
+                    static int fifthMethod(int param) {
+                        return 0;
+                    }
                 }
             }
         """
@@ -194,5 +204,7 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
         assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.secondMethod(org.gradle.test.Task)' should be static but it's not.")
         assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.thirdMethod(org.gradle.test.Task,int)' should be package-private but it's not.")
         assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.thirdMethod(org.gradle.test.Task,int)' should be static but it's not.")
+        assertThat(compilation).hadErrorContaining("'org.gradle.test.Task.TaskAdapter.forthMethod()' has no parameters, but it should have at least one of type 'org.gradle.test.Task'.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.TaskAdapter.fifthMethod(int)' should have first parameter of type 'org.gradle.test.Task', but first parameter is of type 'int'.")
     }
 }
