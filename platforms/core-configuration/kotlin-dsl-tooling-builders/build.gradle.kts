@@ -9,7 +9,7 @@ dependencies {
     api(project(":core"))
     api(libs.kotlinStdlib)
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(project(":kotlin-dsl"))
     implementation(project(":base-services"))

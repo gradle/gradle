@@ -25,7 +25,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.graphSerialization)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
 
     api(libs.kotlinStdlib)

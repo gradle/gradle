@@ -32,7 +32,7 @@ dependencies {
     api(project(":file-collections"))
     api(project(":files"))
     api(project(":hashing"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":model-core"))
     api(project(":native"))

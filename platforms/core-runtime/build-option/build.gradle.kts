@@ -10,7 +10,7 @@ dependencies {
     api(libs.jsr305)
 
     api(project(":cli"))
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":messaging"))
 
     implementation(project(":base-services"))

@@ -23,7 +23,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":file-collections"))
     api(project(":ide"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":language-native"))
     api(project(":platform-base"))
     api(project(":platform-native"))

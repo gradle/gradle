@@ -679,13 +679,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "java-language-extensions",
-    "path": "platforms/core-runtime/java-language-extensions",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": true,
@@ -1110,6 +1103,13 @@
     "path": "testing/soak",
     "unitTests": false,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "stdlib-java-extensions",
+    "path": "platforms/core-runtime/stdlib-java-extensions",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

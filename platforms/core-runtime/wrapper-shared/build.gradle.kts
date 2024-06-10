@@ -8,7 +8,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
 
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
 
     implementation(project(":files")) {
         because("We need org.gradle.internal.file.PathTraversalChecker")

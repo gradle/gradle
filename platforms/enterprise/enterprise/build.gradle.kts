@@ -24,7 +24,7 @@ dependencies {
     api(project(":daemon-services"))
     api(project(":enterprise-logging"))
     api(project(":file-collections"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":jvm-services"))
     api(project(":launcher"))
     api(project(":model-core"))

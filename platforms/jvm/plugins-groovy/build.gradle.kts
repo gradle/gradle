@@ -16,7 +16,7 @@ dependencies {
     api(project(":model-core"))
     api(project(":build-process-services"))
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":file-collections"))
     implementation(project(":language-groovy"))
     implementation(project(":language-jvm"))

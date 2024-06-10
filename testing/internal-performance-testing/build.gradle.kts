@@ -30,7 +30,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":internal-integ-testing"))
     api(project(":internal-testing"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":persistent-cache"))
     api(project(":time"))

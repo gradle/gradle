@@ -24,7 +24,7 @@ dependencies {
     api(projects.serviceProvider)
     api(project(":core"))
     api(project(":base-services"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":daemon-protocol"))
     api(project(":logging"))
 

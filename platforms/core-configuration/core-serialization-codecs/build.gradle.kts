@@ -29,7 +29,7 @@ dependencies {
     api(projects.fileCollections)
     api(projects.flowServices)
     api(projects.graphSerialization)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.modelCore)
     api(projects.snapshots)

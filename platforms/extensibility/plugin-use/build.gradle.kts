@@ -15,7 +15,7 @@ dependencies {
     api(project(":core"))
     api(project(":dependency-management"))
     api(project(":file-collections"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":messaging"))
     api(project(":model-core"))

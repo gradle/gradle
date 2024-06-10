@@ -40,7 +40,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":dependency-management"))
     api(project(":file-temp"))
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":logging-api"))
     api(project(":messaging"))
     api(project(":model-core"))

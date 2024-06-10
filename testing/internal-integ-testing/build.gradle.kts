@@ -28,7 +28,7 @@ dependencies {
     api(project(":internal-testing")) {
         because("Part of the public API")
     }
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":jvm-services")) {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }

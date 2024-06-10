@@ -12,7 +12,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.groovy)
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":core-api"))
 
     implementation(libs.guava)

@@ -5,7 +5,7 @@ plugins {
 description = "Services and types used to setup a build process from a Gradle distribution."
 
 dependencies {
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":base-services"))
     api(libs.jsr305)
 

@@ -5,7 +5,7 @@ plugins {
 description = "Implementation of types that represent containers of files"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":base-services"))
     api(project(":core-api"))
     api(project(":files"))

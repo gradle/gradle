@@ -24,7 +24,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":file-temp"))
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.nativePlatformFileEvents)
     implementation(libs.slf4jApi)

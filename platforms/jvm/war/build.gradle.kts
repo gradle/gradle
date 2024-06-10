@@ -30,7 +30,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":language-java"))

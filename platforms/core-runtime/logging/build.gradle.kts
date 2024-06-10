@@ -8,7 +8,7 @@ description = "Logging infrastructure"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(projects.serviceProvider)
     api(projects.time)

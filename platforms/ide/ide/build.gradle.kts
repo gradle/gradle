@@ -19,7 +19,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":dependency-management"))
     api(project(":file-collections"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":model-core"))
     api(project(":platform-jvm"))
     api(project(":service-provider"))

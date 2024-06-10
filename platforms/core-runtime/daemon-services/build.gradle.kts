@@ -22,7 +22,7 @@ description = "Services used by the Gradle daemon to interact with the client"
 
 dependencies {
     api(projects.baseServices)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(libs.jsr305)
     api(project(":time"))

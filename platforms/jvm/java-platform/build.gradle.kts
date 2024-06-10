@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":dependency-management"))
     implementation(project(":ivy"))
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":maven"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
