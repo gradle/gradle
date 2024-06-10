@@ -269,7 +269,7 @@ fun configureTests() {
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
-            server = uri("https://ge.gradle.org")
+            server = uri("https://dv-td-dogfooding.grdev.net")
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
                 enabled = true
@@ -281,12 +281,12 @@ fun configureTests() {
 
                 if (BuildEnvironment.isCiServer) {
                     when {
-                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding")
-                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding")
-                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding")
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding-staging")
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding-staging")
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding-staging")
                     }
                 } else {
-                    requirements = listOf("gbt-dogfooding")
+                    requirements = listOf("gbt-dogfooding-staging")
                 }
             }
         }
