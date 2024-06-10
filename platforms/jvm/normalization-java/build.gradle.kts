@@ -23,6 +23,7 @@ dependencies {
     api(libs.guava)
 
     implementation(projects.stdlibJavaExtensions)
+    implementation("org.gradle:api-extractor")
     implementation(project(":functional"))
 
     implementation(libs.slf4jApi)
