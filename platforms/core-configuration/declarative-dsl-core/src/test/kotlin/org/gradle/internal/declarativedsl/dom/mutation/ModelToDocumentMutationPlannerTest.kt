@@ -156,6 +156,11 @@ class ModelToDocumentMutationPlannerTest {
         )
     }
 
+    // TODO: use ReplaceValue instead of ReplaceNode, when possible
+    // TODO: unsuccessfulModelMutations related behaviour & tests
+    // TODO: set property and there isn't actually one, so it shoudl fail or insert one, depending on the request
+    // TODO: mutations in top level blocks
+
     private
     fun requestMutation(
         document: DeclarativeDocument,
