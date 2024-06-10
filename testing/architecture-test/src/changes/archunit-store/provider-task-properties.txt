@@ -37,7 +37,6 @@ Method <org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getRepositor
 Method <org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GenerateBuildDashboard.java:0)
 Method <org.gradle.api.reporting.GenerateBuildDashboard.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GenerateBuildDashboard.java:0)
 Method <org.gradle.api.reporting.GenerateBuildDashboard.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GenerateBuildDashboard.java:0)
-Method <org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getProjects()> does not have raw return type assignable to org.gradle.api.provider.Property in (HtmlDependencyReportTask.java:0)
 Method <org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (HtmlDependencyReportTask.java:0)
 Method <org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (HtmlDependencyReportTask.java:0)
 Method <org.gradle.api.reporting.dependents.DependentComponentsReport.getComponents()> does not have raw return type assignable to org.gradle.api.provider.Property in (DependentComponentsReport.java:0)
