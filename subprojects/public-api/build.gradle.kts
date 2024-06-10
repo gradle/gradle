@@ -40,10 +40,6 @@ dependencies {
 }
 
 val testRepoLocation = layout.buildDirectory.dir("repos/test")
-open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
-val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
-val testGradleRepo = softwareComponentFactory.adhoc("testGradleRepo")
-components.add(testGradleRepo)
 
 publishing {
     publications {
@@ -57,16 +53,6 @@ publishing {
                     fromResolutionOf(configurations.externalRuntimeClasspath.get())
                 }
             }
-
-            pom {
-                name = moduleIdentity.baseName.map { "${project.group}:$it"}
-            }
-        }
-
-        create<MavenPublication>("test") {
-            artifactId = moduleIdentity.baseName.get()
-
-            from(components["testGradleRepo"])
 
             pom {
                 name = moduleIdentity.baseName.map { "${project.group}:$it"}
@@ -92,10 +78,6 @@ val testRepoElements = configurations.consumable("testRepoElements") {
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
     }
-}
-
-(components["testGradleRepo"] as AdhocComponentWithVariants).addVariantsFromConfiguration(testRepoElements.get()) {
-    mapToOptional() // The POM should not include dependencies of this configuration
 }
 
 // TODO De-duplicate this
