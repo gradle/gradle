@@ -22,7 +22,6 @@ import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
-import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
 import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
@@ -99,10 +98,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertEquals(
             listOf(
-                DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode(
-                    propertyNode,
-                    DefaultPropertyNode(propertyNode.name, propertyNode.sourceData, newValue)
-                )
+                DocumentMutation.ValueTargetedMutation.ReplaceValue(propertyNode.value, newValue)
             ),
             planModelMutations.documentMutations
         )
@@ -156,7 +152,6 @@ class ModelToDocumentMutationPlannerTest {
         )
     }
 
-    // TODO: use ReplaceValue instead of ReplaceNode, when possible
     // TODO: unsuccessfulModelMutations related behaviour & tests
     // TODO: set property and there isn't actually one, so it shoudl fail or insert one, depending on the request
     // TODO: mutations in top level blocks
