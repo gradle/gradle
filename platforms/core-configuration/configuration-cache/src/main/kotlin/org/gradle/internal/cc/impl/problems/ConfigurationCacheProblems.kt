@@ -20,6 +20,12 @@ import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemSpec
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.LOAD
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.STORE
@@ -28,13 +34,13 @@ import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.initialization.RootBuildLifecycleListener
-import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.deprecation.DeprecationMessageBuilder
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
@@ -59,6 +65,9 @@ class ConfigurationCacheProblems(
 
     private
     val listenerManager: ListenerManager,
+
+    private
+    val problemsService: InternalProblems,
 
     private
     val failureFactory: FailureFactory
@@ -152,8 +161,50 @@ class ConfigurationCacheProblems(
     private
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         if (summarizer.onProblem(problem, severity)) {
+            problemsService.onProblem(problem, severity)
             report.onProblem(problem)
         }
+    }
+
+    private
+    fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+        val message = problem.message.toString()
+        internalReporter.create {
+            id(
+                "configuration-cache-" + DeprecationMessageBuilder.createDefaultDeprecationId(message),
+                message,
+                GradleCoreProblemGroup.validation()
+            )
+            contextualLabel(message)
+            documentOfProblem(problem)
+            locationOfProblem(problem)
+            severity(severity.toProblemSeverity())
+        }.also { internalReporter.report(it) }
+    }
+
+    private
+    fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
+        problem.documentationSection?.let {
+            documentedAt(Documentation.userManual("configuration_cache", it.anchor).toString())
+        }
+    }
+
+    private
+    fun ProblemSpec.locationOfProblem(problem: PropertyProblem) {
+        val trace = problem.trace.buildLogic()
+        if (trace?.lineNumber != null) {
+            lineInFileLocation(trace.source.displayName, trace.lineNumber!!)
+        }
+    }
+
+    private
+    fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
+
+    private
+    fun ProblemSeverity.toProblemSeverity() = when {
+        this == ProblemSeverity.Suppressed -> Severity.ADVICE
+        isFailOnProblems -> Severity.ERROR
+        else -> Severity.WARNING
     }
 
     override fun getId(): String {
