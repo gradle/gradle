@@ -19,7 +19,15 @@ package org.gradle.internal.declarativedsl.schemaUtils
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty1
+import kotlin.reflect.KType
+import kotlin.reflect.full.extensionReceiverParameter
+import kotlin.reflect.full.instanceParameter
 
 
 inline fun <reified T> AnalysisSchema.findTypeFor(): DataClass? =
@@ -48,6 +56,22 @@ fun DataClass.propertyNamed(name: String): DataProperty =
         ?: throw NoSuchElementException("no property named $name was found in the type $this")
 
 
+fun AnalysisSchema.findPropertyFor(propertyReference: KProperty1<*, *>): DataProperty? {
+    val receiverType = propertyReference.instanceParameter?.type?.classifier as? KClass<*>
+        ?: return null
+    return findTypeFor(receiverType.java)?.findPropertyNamed(propertyReference.name)
+}
+
+
+fun AnalysisSchema.propertyFor(propertyReference: KProperty1<*, *>): DataProperty {
+    val receiverType = propertyReference.instanceParameter?.type?.classifier as? KClass<*>
+        ?: throw NoSuchElementException("the property $propertyReference has no receiver type, can't find a match in the schema")
+    val receiverDataClass = findTypeFor(receiverType.java)
+        ?: throw NoSuchElementException("the receiver type $receiverType for $propertyReference is not in the schema")
+    return receiverDataClass.propertyNamed(propertyReference.name)
+}
+
+
 fun DataClass.hasFunctionNamed(name: String): Boolean =
     memberFunctions.any { it.simpleName == name }
 
@@ -59,3 +83,61 @@ fun DataClass.hasFunctionNamed(name: String): Boolean =
  */
 fun DataClass.singleFunctionNamed(name: String): SchemaMemberFunction =
     memberFunctions.single { it.simpleName == name }
+
+
+fun AnalysisSchema.functionFor(functionReference: KFunction<*>): SchemaMemberFunction {
+    val functions = findFunctionsFor(functionReference)
+    return when (functions.size) {
+        0 -> throw NoSuchElementException("no schema function found that matches $functionReference")
+        1 -> functions.single()
+        else -> throw NoSuchElementException("multiple schema functions match the $functionReference: ${functions.joinToString("\n") { "* $it" }}")
+    }
+}
+
+
+fun AnalysisSchema.findFunctionFor(functionReference: KFunction<*>): SchemaMemberFunction? {
+    val functions = findFunctionsFor(functionReference)
+    return when (functions.size) {
+        1 -> return functions.single()
+        else -> null
+    }
+}
+
+
+private
+fun AnalysisSchema.findFunctionsFor(functionReference: KFunction<*>): List<SchemaMemberFunction> {
+    require(functionReference.extensionReceiverParameter == null) { "extension function $functionReference cannot be matched in the schema" }
+
+    val receiverType = functionReference.instanceParameter?.type?.classifier as? KClass<*>
+        ?: throw NoSuchElementException("the function $functionReference has no receiver type, can't find a match in the schema")
+    val receiverDataClass = findTypeFor(receiverType.java)
+        ?: throw NoSuchElementException("the receiver type $receiverType for $functionReference is not in the schema")
+
+    val functionReferenceParameters = functionReference.parameters.filter { it != functionReference.instanceParameter }
+    val matchingSchemaFunctions = receiverDataClass.memberFunctions.filter { schemaFunction ->
+        schemaFunction.simpleName == functionReference.name &&
+            // sub-setting it this way, because there might also be a lambda parameter in the KFunction, and we don't have a way to understand it here
+            schemaFunction.parameters.all { schemaParam ->
+                functionReferenceParameters.any { kParam ->
+                    kParam.name == schemaParam.name && findTypeFor(kParam.type)?.matchesRef(schemaParam.type) == true
+                }
+            }
+    }
+    return matchingSchemaFunctions
+}
+
+
+private
+fun AnalysisSchema.findTypeFor(kType: KType): DataClass? {
+    val classifier = kType.classifier
+    return if (classifier is KClass<*>) {
+        findTypeFor(classifier.java)
+    } else null
+}
+
+
+private
+fun DataType.matchesRef(ref: DataTypeRef): Boolean = when (ref) {
+    is DataTypeRef.Name -> this is DataClass && this.name == ref.fqName
+    is DataTypeRef.Type -> this == ref.dataType
+}

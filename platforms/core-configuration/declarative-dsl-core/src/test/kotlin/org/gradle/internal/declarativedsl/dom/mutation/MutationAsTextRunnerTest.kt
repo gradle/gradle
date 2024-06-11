@@ -23,12 +23,17 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
+import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
+import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.ObjectsConfiguredBy
+import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaUtils.findFunctionFor
+import org.gradle.internal.declarativedsl.schemaUtils.findPropertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
-import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
+import org.gradle.internal.declarativedsl.schemaUtils.functionFor
+import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -94,23 +99,25 @@ object MutationAsTextRunnerTest {
         override val description: String = "Set the new values for x and y based on the parameters"
         override val parameters: List<MutationParameter<*>> = emptyList()
 
-        override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
-            projectAnalysisSchema.findTypeFor<NestedOne>() != null && projectAnalysisSchema.findTypeFor<NestedTwo>() != null
+        override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = with(projectAnalysisSchema) {
+            findTypeFor<TopLevel>() != null &&
+                findPropertyFor(NestedOne::x) != null &&
+                findFunctionFor(NestedOne::nestedTwo) != null &&
+                findPropertyFor(NestedTwo::y) != null
+        }
+
 
         override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = with(projectAnalysisSchema) {
-            val nestedOne = typeFor<NestedOne>()
-            val nestedOneX = nestedOne.propertyNamed("x")
-
-            val nestedTwo = typeFor<NestedTwo>()
-            val nestedTwoY = nestedTwo.propertyNamed("y")
+            val nestedOneX = propertyFor(NestedOne::x)
+            val nestedTwoY = propertyFor(NestedTwo::y)
 
             listOf(
                 ModelMutationRequest(
-                    ScopeLocation(listOf(InAllNestedScopes)),
+                    ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())))),
                     ModelMutation.SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! }, Ignore)
                 ),
                 ModelMutationRequest(
-                    ScopeLocation(listOf(InAllNestedScopes)),
+                    ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())), InNestedScopes(ObjectsConfiguredBy(functionFor(NestedOne::nestedTwo))))),
                     ModelMutation.SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! }, Ignore)
                 )
             )

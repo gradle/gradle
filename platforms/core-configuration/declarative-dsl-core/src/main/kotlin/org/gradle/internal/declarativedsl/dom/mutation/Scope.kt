@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
@@ -122,7 +121,7 @@ sealed interface NestedScopeSelector {
             }
     }
 
-    data class ObjectsConfiguredBy(val function: DataMemberFunction, val argumentsPattern: ArgumentsPattern = ArgumentsPattern.AnyArguments) : NestedScopeSelector {
+    data class ObjectsConfiguredBy(val function: SchemaMemberFunction, val argumentsPattern: ArgumentsPattern = ArgumentsPattern.AnyArguments) : NestedScopeSelector {
         override fun matches(scopeElement: ScopeElement): Boolean =
             when (val elementResolution = scopeElement.elementNodes.second) {
                 is DocumentResolution.ElementResolution.SuccessfulElementResolution -> elementResolution.elementFactoryFunction == function
