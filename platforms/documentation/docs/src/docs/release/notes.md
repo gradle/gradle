@@ -159,9 +159,6 @@ The [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.ht
 
 More information about this option is available in the [TestNG documentation](https://testng.org/#_command_line_parameters).
 
-Build authoring improvements
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
