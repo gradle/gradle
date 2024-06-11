@@ -4,6 +4,7 @@
     <list size="2">
       <item index="0" class="java.lang.String" itemvalue="com.tngtech.archunit.junit.ArchTest" />
       <item index="1" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
+      <item index="1" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
     </list>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
