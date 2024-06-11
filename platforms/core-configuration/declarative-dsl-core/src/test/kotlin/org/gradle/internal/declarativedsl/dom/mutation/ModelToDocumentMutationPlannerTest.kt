@@ -16,23 +16,22 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
 import org.gradle.internal.declarativedsl.dom.TestApi
-import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
-import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
 import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
-import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
-import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
+import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
+import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import kotlin.test.Test
@@ -65,33 +64,20 @@ class ModelToDocumentMutationPlannerTest {
     val schema = schemaFromTypes(TestApi.TopLevelReceiver::class, TestApi::class.nestedClasses.toList())
 
     private
-    val document: DeclarativeDocument
+    val resolved: DocumentWithResolution = documentWithResolution(schema, ParseTestUtil.parse(code))
 
     private
-    val resolved: DocumentResolutionContainer
-
-    init {
-        val topLevelBlock = ParseTestUtil.parseAsTopLevelBlock(code)
-
-        document = convertBlockToDocument(topLevelBlock)
-
-        val resolver = tracingCodeResolver()
-        resolver.resolve(schema, emptyList(), topLevelBlock)
-        resolved = resolutionContainer(schema, resolver.trace, document)
-    }
-
-    private
-    val nonsenseSourceData = document.elementNamed("justAdd").sourceData // TODO: in lots of cases it just doesn't make sense to need sourceData as mutation inputs
+    val document = resolved.document
 
     @Test
     fun `set property value`() {
         val newValue = DefaultLiteralNode(
             "789",
-            nonsenseSourceData
+            SyntheticallyProduced
         )
 
         val mutationPlan = planMutation(
-            document, resolved,
+            resolved,
             mutationRequest(
                 ModelMutation.SetPropertyValue(
                     schema.propertyFor(TestApi.NestedReceiver::number),
@@ -103,17 +89,14 @@ class ModelToDocumentMutationPlannerTest {
 
         assertSuccessfulMutation(
             mutationPlan,
-            ValueTargetedMutation.ReplaceValue(
-                document.elementNamed("nested").propertyNamed("number").value,
-                newValue
-            )
+            ReplaceValue(document.elementNamed("nested").propertyNamed("number").value) { newValue }
         )
     }
 
     @Test
     fun `unset property`() {
         val mutationPlan = planMutation(
-            document, resolved,
+            resolved,
             mutationRequest(
                 ModelMutation.UnsetProperty(
                     schema.propertyFor(TestApi.TopLevelElement::number)
@@ -128,20 +111,60 @@ class ModelToDocumentMutationPlannerTest {
     }
 
     @Test
+    fun `add configuring element if absent - when present`() {
+        val nestedConfigureElementPresent = documentWithResolution(
+            schema, ParseTestUtil.parse(
+                """
+                nested {
+                    number = 456
+                    add()
+                    configure { } // <- it's already here
+                }
+                """.trimIndent()
+            )
+        )
+
+        val mutationPlan = planMutation(nestedConfigureElementPresent, addNestedConfigureBlock())
+
+        // Expected to do nothing:
+        assertEquals(emptyList(), mutationPlan.documentMutations)
+        assertEquals(emptyList(), mutationPlan.unsuccessfulModelMutations)
+    }
+
+    @Test
+    fun `add configuring element if absent - when absent`() {
+        val mutationPlan = planMutation(
+            resolved,
+            addNestedConfigureBlock()
+        )
+
+        // Expected to do insert a configuring block:
+        assertSuccessfulMutation(
+            mutationPlan,
+            AddChildrenToEndOfBlock(document.elementNamed("nested")) { listOf(DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())) }
+        )
+    }
+
+    private
+    fun addNestedConfigureBlock() = mutationRequest(
+        ModelMutation.AddConfiguringBlockIfAbsent(schema.functionFor(TestApi.NestedReceiver::configure)),
+        ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>()))))
+    )
+
+    @Test
     fun `add element`() {
         val newElementNode = DefaultElementNode(
             "newAdd",
-            nonsenseSourceData,
-            listOf(DefaultLiteralNode("yolo", nonsenseSourceData)),
+            SyntheticallyProduced,
+            listOf(DefaultLiteralNode("yolo", SyntheticallyProduced)),
             emptyList()
         )
 
         val mutationPlan = planMutation(
-            document, resolved,
+            resolved,
             mutationRequest(
-                ModelMutation.AddElement(
+                ModelMutation.AddNewElement(
                     NewElementNodeProvider.Constant(newElementNode),
-                    ModelMutation.IfPresentBehavior.FailAndReport
                 ),
                 ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>()))))
             )
@@ -149,7 +172,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertSuccessfulMutation(
             mutationPlan,
-            AddChildrenToEndOfBlock(document.elementNamed("nested"), listOf(newElementNode))
+            AddChildrenToEndOfBlock(document.elementNamed("nested")) { listOf(newElementNode) }
         )
     }
 
@@ -158,12 +181,12 @@ class ModelToDocumentMutationPlannerTest {
         val request = mutationRequest(
             ModelMutation.SetPropertyValue(
                 schema.propertyFor(TestApi.NestedReceiver::number),
-                NewValueNodeProvider.Constant(DefaultLiteralNode("789", nonsenseSourceData)),
+                NewValueNodeProvider.Constant(DefaultLiteralNode("789", SyntheticallyProduced)),
                 ModelMutation.IfPresentBehavior.Overwrite
             ),
             ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.TopLevelElement>()))))
         )
-        val mutationPlan = planMutation(document, resolved, request)
+        val mutationPlan = planMutation(resolved, request)
 
         assertFailedMutation(
             mutationPlan,
@@ -181,21 +204,19 @@ class ModelToDocumentMutationPlannerTest {
         )
 
         val request = mutationRequest(
-            ModelMutation.AddElement(
-                NewElementNodeProvider.Constant(DefaultElementNode(
-                    "newAdd",
-                    nonsenseSourceData,
-                    listOf(DefaultLiteralNode("yolo", nonsenseSourceData)),
-                    emptyList()
-                )),
-                ModelMutation.IfPresentBehavior.FailAndReport
+            ModelMutation.AddNewElement(
+                NewElementNodeProvider.Constant(
+                    DefaultElementNode(
+                        "newAdd",
+                        SyntheticallyProduced,
+                        listOf(DefaultLiteralNode("yolo", SyntheticallyProduced)),
+                        emptyList()
+                    )
+                ),
             ),
             invalidScopeLocation
         )
-        val mutationPlan = planMutation(
-            document, resolved,
-            request
-        )
+        val mutationPlan = planMutation(resolved, request)
 
         assertFailedMutation(
             mutationPlan,
@@ -214,18 +235,22 @@ class ModelToDocumentMutationPlannerTest {
 
     private
     fun planMutation(
-        document: DeclarativeDocument,
-        resolved: DocumentResolutionContainer,
+        documentWithResolution: DocumentWithResolution,
         mutationRequest: ModelMutationRequest
-    ): ModelMutationPlan = planner.planModelMutation(document, resolved, mutationRequest, mutationArguments { })
+    ): ModelMutationPlan = planner.planModelMutation(documentWithResolution, mutationRequest, mutationArguments { })
 
     private
     fun assertSuccessfulMutation(planModelMutations: ModelMutationPlan, expectedDocumentMutation: DocumentMutation) {
-        assertEquals(
-            listOf(expectedDocumentMutation),
-            planModelMutations.documentMutations
-        )
+        assertTrue(isEquivalentMutation(expectedDocumentMutation, planModelMutations.documentMutations.single()))
         assertTrue { planModelMutations.unsuccessfulModelMutations.isEmpty() }
+    }
+
+    private
+    fun isEquivalentMutation(expected: DocumentMutation, actual: DocumentMutation) = when (expected) {
+        is AddChildrenToEndOfBlock -> actual is AddChildrenToEndOfBlock && expected.targetNode == actual.targetNode && expected.nodes() == actual.nodes()
+        is ReplaceValue -> actual is ReplaceValue && expected.targetValue == actual.targetValue && expected.replaceWithValue() == actual.replaceWithValue()
+        is RemoveNode -> expected == actual
+        else -> throw UnsupportedOperationException("cannot check for the expected mutation $expected")
     }
 
     private

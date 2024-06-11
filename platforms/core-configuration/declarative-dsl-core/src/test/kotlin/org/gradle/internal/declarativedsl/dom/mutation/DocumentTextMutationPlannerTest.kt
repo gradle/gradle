@@ -91,7 +91,7 @@ object DocumentTextMutationPlannerTest {
     fun `can plan renaming an element and removing a node inside its content at the same time`() {
         val plan = planner.planDocumentMutations(
             simpleDocument, listOf(
-                ElementNodeCallMutation(simpleDocument.elementNamed("g"), CallMutation.RenameCall("g0")),
+                ElementNodeCallMutation(simpleDocument.elementNamed("g"), CallMutation.RenameCall { "g0" }),
                 RemoveNode(simpleDocument.elementNamed("g").elementNamed("j"))
             )
         )
@@ -115,11 +115,11 @@ object DocumentTextMutationPlannerTest {
     fun `can plan renaming of multiple nodes of various kinds`() {
         val plan = planner.planDocumentMutations(
             simpleDocument, listOf(
-                ElementNodeCallMutation(simpleDocument.elementNamed("f"), CallMutation.RenameCall("f0")),
-                RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k"), "k0"),
+                ElementNodeCallMutation(simpleDocument.elementNamed("f"), CallMutation.RenameCall { "f0" }),
+                RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k")) { "k0" },
                 ValueNodeCallMutation(
                     (simpleDocument.elementNamed("g").elementNamed("j").elementValues.single()) as ValueFactoryNode,
-                    CallMutation.RenameCall("jj0")
+                    CallMutation.RenameCall { "jj0" }
                 )
             )
         )
@@ -145,7 +145,7 @@ object DocumentTextMutationPlannerTest {
         val mutations = listOf(
             RemoveNode(simpleDocument.elementNamed("g")),
             RemoveNode(simpleDocument.elementNamed("g").propertyNamed("k")),
-            RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k"), "k0")
+            RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k")) { "k0" }
         )
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
 
@@ -168,8 +168,8 @@ object DocumentTextMutationPlannerTest {
         val propertyNode = simpleDocument.elementNamed("g").propertyNamed("k")
 
         val mutations = listOf(
-            RenamePropertyNode(propertyNode, "k0"),
-            RenamePropertyNode(propertyNode, "k1")
+            RenamePropertyNode(propertyNode) { "k0" },
+            RenamePropertyNode(propertyNode) { "k1" }
         )
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
 
@@ -194,8 +194,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node replacement`() {
         val mutations = listOf(
-            ReplaceNode(simpleDocument.elementNamed("f"), nodeFromText("f0(1)")),
-            ReplaceNode(simpleDocument.elementNamed("g"), nodeFromText("g0(2) { h0(3) }"))
+            ReplaceNode(simpleDocument.elementNamed("f")) { nodeFromText("f0(1)") },
+            ReplaceNode(simpleDocument.elementNamed("g")) { nodeFromText("g0(2) { h0(3) }") }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -218,8 +218,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion before another node`() {
         val mutations = listOf(
-            InsertNodesBeforeNode(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))),
-            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j"), listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")))
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode()"), nodeFromText("oneMore()")) },
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j")) { listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -250,8 +250,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion after another node`() {
         val mutations = listOf(
-            InsertNodesAfterNode(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))),
-            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j"), listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")))
+            InsertNodesAfterNode(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode()"), nodeFromText("oneMore()")) },
+            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j")) { listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -282,7 +282,7 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into the block start`() {
         val mutations = listOf(
-            AddChildrenToStartOfBlock(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))),
+            AddChildrenToStartOfBlock(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -309,7 +309,7 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into the block end`() {
         val mutations = listOf(
-            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g"), listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))),
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -337,8 +337,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into an element that does not have content yet`() {
         val mutations = listOf(
-            AddChildrenToStartOfBlock(simpleDocument.elementNamed("f"), listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))),
-            AddChildrenToEndOfBlock(simpleDocument.elementNamed("l"), listOf(nodeFromText("newNode3()"), nodeFromText("newNode4()"))),
+            AddChildrenToStartOfBlock(simpleDocument.elementNamed("f")) { listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")) },
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("l")) { listOf(nodeFromText("newNode3()"), nodeFromText("newNode4()")) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -370,8 +370,8 @@ object DocumentTextMutationPlannerTest {
     fun `of two mutations replacing a single node the first is applied and the second is reported as superseded`() {
         val f = simpleDocument.elementNamed("f")
         val mutations = listOf(
-            ReplaceNode(f, nodeFromText("newNode1()")),
-            ReplaceNode(f, nodeFromText("newNode2()")),
+            ReplaceNode(f) { nodeFromText("newNode1()") },
+            ReplaceNode(f) { nodeFromText("newNode2()") },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -398,10 +398,10 @@ object DocumentTextMutationPlannerTest {
         val f = simpleDocument.elementNamed("f")
         val mutations = listOf(
             // Also provide them mixed wrt start and end:
-            AddChildrenToEndOfBlock(f, listOf(nodeFromText("newNode3()"))), // expected to go before newNode4() and after newNode2()
-            AddChildrenToStartOfBlock(f, listOf(nodeFromText("newNode1()"))),
-            AddChildrenToStartOfBlock(f, listOf(nodeFromText("newNode2()"))), // expected to go before newNode1()
-            AddChildrenToEndOfBlock(f, listOf(nodeFromText("newNode4()"))),
+            AddChildrenToEndOfBlock(f) { listOf(nodeFromText("newNode3()")) }, // expected to go before newNode4() and after newNode2()
+            AddChildrenToStartOfBlock(f) { listOf(nodeFromText("newNode1()")) },
+            AddChildrenToStartOfBlock(f) { listOf(nodeFromText("newNode2()")) }, // expected to go before newNode1()
+            AddChildrenToEndOfBlock(f) { listOf(nodeFromText("newNode4()")) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -432,8 +432,8 @@ object DocumentTextMutationPlannerTest {
     fun `can simultaneously rename a property and replace its value`() {
         val property = simpleDocument.elementNamed("g").propertyNamed("k")
         val mutations = listOf(
-            RenamePropertyNode(property, "k0"),
-            ReplaceValue(property.value, valueFromText("foo0(5)"))
+            RenamePropertyNode(property) { "k0" },
+            ReplaceValue(property.value) { valueFromText("foo0(5)") }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -459,8 +459,8 @@ object DocumentTextMutationPlannerTest {
     fun `replacement of a value that has already been replaced is reported`() {
         val property = simpleDocument.elementNamed("g").propertyNamed("k")
         val mutations = listOf(
-            ReplaceValue(property.value, valueFromText("replaced1()")),
-            ReplaceValue(property.value, valueFromText("replaced2()"))
+            ReplaceValue(property.value) { valueFromText("replaced1()") },
+            ReplaceValue(property.value) { valueFromText("replaced2()") }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -494,15 +494,15 @@ object DocumentTextMutationPlannerTest {
 
         val mutations = listOf(
             // For an element with non-empty content:
-            ElementNodeCallMutation(g, CallMutation.RenameCall("gRenamed")),
-            ReplaceValue(g.elementValues[0], valueFromText("replaced()")),
-            ReplaceNode(g.elementNamed("h"), nodeFromText("hReplaced()")),
-            ReplaceValue(g.elementNamed("j").elementValues[0], valueFromText("alsoReplaced()")),
+            ElementNodeCallMutation(g, CallMutation.RenameCall { "gRenamed" }),
+            ReplaceValue(g.elementValues[0]) { valueFromText("replaced()") },
+            ReplaceNode(g.elementNamed("h")) { nodeFromText("hReplaced()") },
+            ReplaceValue(g.elementNamed("j").elementValues[0]) { valueFromText("alsoReplaced()") },
 
             // And also for an element with empty content:
-            ElementNodeCallMutation(f, CallMutation.RenameCall("fRenamed")),
-            AddChildrenToEndOfBlock(f, listOf(nodeFromText("added()"))),
-            ReplaceValue(f.elementValues[0], valueFromText("replaced()")),
+            ElementNodeCallMutation(f, CallMutation.RenameCall { "fRenamed" }),
+            AddChildrenToEndOfBlock(f) { listOf(nodeFromText("added()")) },
+            ReplaceValue(f.elementValues[0]) { valueFromText("replaced()") },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)

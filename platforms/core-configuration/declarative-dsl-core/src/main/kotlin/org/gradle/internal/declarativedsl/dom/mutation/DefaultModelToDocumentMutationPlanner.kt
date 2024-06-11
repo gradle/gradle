@@ -16,55 +16,71 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
-import org.gradle.internal.declarativedsl.dom.DocumentResolution
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
+import org.gradle.internal.declarativedsl.dom.DefaultElementNode
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
+import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 
 
 internal
 class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
     override fun planModelMutation(
-        document: DeclarativeDocument,
-        resolution: DocumentResolutionContainer,
+        documentWithResolution: DocumentWithResolution,
         mutationRequest: ModelMutationRequest,
         mutationArguments: MutationArgumentContainer
     ): ModelMutationPlan =
-        toDocumentMutations(document, resolution, mutationRequest, mutationArguments)
+        toDocumentMutations(documentWithResolution, mutationRequest, mutationArguments)
 
     private
     fun toDocumentMutations(
-        document: DeclarativeDocument,
-        resolution: DocumentResolutionContainer,
+        documentWithResolution: DocumentWithResolution,
         request: ModelMutationRequest,
         mutationArguments: MutationArgumentContainer
     ): ModelMutationPlan {
-        val scopeLocationMatcher = ScopeLocationMatcher(DocumentWithResolution(document, resolution))
+        val scopeLocationMatcher = ScopeLocationMatcher(documentWithResolution)
+        val resolution = documentWithResolution.resolutionContainer
 
-        return when (request.mutation) {
+        return when (val mutation = request.mutation) {
             is ModelMutation.UnsetProperty ->
-                withMatchingProperties(scopeLocationMatcher, resolution, request) {
+                withMatchingProperties(scopeLocationMatcher, resolution, request, mutation.property) {
                     DocumentMutation.DocumentNodeTargetedMutation.RemoveNode(it)
                 }
 
             is ModelMutation.SetPropertyValue ->
-                withMatchingProperties(scopeLocationMatcher, resolution, request) {
-                    DocumentMutation.ValueTargetedMutation.ReplaceValue(
-                        it.value,
-                        request.mutation.newValue.value(mutationArguments)
-                    )
+                withMatchingProperties(scopeLocationMatcher, resolution, request, mutation.property) {
+                    DocumentMutation.ValueTargetedMutation.ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) }
                 }
 
-            is ModelMutation.AddElement -> withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
+            is ModelMutation.AddConfiguringBlockIfAbsent -> {
+                withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
+                    val matchingNodeFinder = MatchingNodeFinder(resolution)
+                    val insertions = matchingScopes
+                        .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
+                        .filter { matchingNodeFinder.findMatchingConfiguringElements(it, mutation.function).isEmpty() }
+                        .map {
+                            DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(it.elements.last()) {
+                                listOf(DefaultElementNode(mutation.function.simpleName, SyntheticallyProduced, emptyList(), emptyList()))
+                            }
+                        }
+                    DefaultModelMutationPlan(insertions, emptyList())
+                }
+            }
+
+            is ModelMutation.AddNewElement -> withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
                 DefaultModelMutationPlan(
                     matchingScopes
                         .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
                         .map { scope -> scope.elements.last() }
                         .map { scopeElement ->
-                            DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(
-                                scopeElement,
-                                listOf(request.mutation.newElement.element(mutationArguments))
-                            )
+                            DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(scopeElement) {
+                                listOf(mutation.newElement.element(mutationArguments))
+                            }
                         }.toList(),
                     emptyList()
                 )
@@ -102,24 +118,12 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
         scopeLocationMatcher: ScopeLocationMatcher,
         resolution: DocumentResolutionContainer,
         request: ModelMutationRequest,
-        mapPropertyToDocumentMutation: (DeclarativeDocument.DocumentNode.PropertyNode) -> DocumentMutation
+        property: DataProperty,
+        mapPropertyToDocumentMutation: (PropertyNode) -> DocumentMutation
     ): ModelMutationPlan {
         return withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
-            val candidatePropertyNodes = matchingScopes
-                .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
-                .map { scope -> scope.elements.last() }
-                .flatMap { lastScopeElement ->
-                    lastScopeElement.content.filterIsInstance<DeclarativeDocument.DocumentNode.PropertyNode>()
-                }
-                .toSet()
-
-
-            val targetProperty = (request.mutation as ModelMutation.ModelPropertyMutation).property
-            val matchedPropertyNodes = candidatePropertyNodes
-                .filter {
-                    val propertyResolution = resolution.data(it) as DocumentResolution.PropertyResolution.PropertyAssignmentResolved // TODO: handle when this cast fails
-                    propertyResolution.property === targetProperty // TODO: why does simple equals not work here?
-                }
+            val matchingNodeFinder = MatchingNodeFinder(resolution)
+            val matchedPropertyNodes = matchingScopes.flatMap { matchingNodeFinder.findMatchingPropertyNodes(it, property) }
 
             when {
                 matchedPropertyNodes.isEmpty() -> DefaultModelMutationPlan(
@@ -131,4 +135,26 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
             }
         }
     }
+}
+
+
+internal
+class MatchingNodeFinder(val resolution: DocumentResolutionContainer) {
+    fun findMatchingPropertyNodes(
+        scope: Scope,
+        property: DataProperty
+    ): List<PropertyNode> {
+        return scope.elements.lastOrNull()?.content.orEmpty()
+            .filterIsInstance<PropertyNode>()
+            // TODO: subtype's properties should also match – bring a subtyping-aware member matcher here
+            .filter { (resolution.data(it) as? PropertyAssignmentResolved)?.property === property }
+    }
+
+    fun findMatchingConfiguringElements(
+        scope: Scope,
+        function: SchemaMemberFunction
+    ): List<ElementNode> =
+        scope.elements.lastOrNull()?.content.orEmpty()
+            .filterIsInstance<ElementNode>()
+            .filter { ((resolution.data(it) as? ConfiguringElementResolved)?.elementFactoryFunction === function) }
 }

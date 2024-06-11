@@ -21,70 +21,68 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
-@Suppress("unused", "UNUSED_PARAMETER")
+@Suppress("unused")
 class TestApi {
 
-    abstract class TopLevelReceiver {
+    interface TopLevelReceiver {
 
         @Adding
-        fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit) = TopLevelElement().also {
-            it.name = name
-            configure(it)
-        }
+        fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit): TopLevelElement
 
         @get:Restricted
-        lateinit var complexValueOne: ComplexValueOne
+        var complexValueOne: ComplexValueOne
 
         @get:Restricted
-        lateinit var complexValueOneFromUtils: ComplexValueOne
+        var complexValueOneFromUtils: ComplexValueOne
 
         @get:Restricted
-        lateinit var complexValueTwo: ComplexValueTwo
+        var complexValueTwo: ComplexValueTwo
 
         @Adding
-        abstract fun justAdd(name: String): TopLevelElement
+        fun justAdd(name: String): TopLevelElement
 
         @Configuring
-        abstract fun nested(configure: NestedReceiver.() -> Unit)
+        fun nested(configure: NestedReceiver.() -> Unit)
 
         @Restricted
-        abstract fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne
+        fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne
 
         @Restricted
-        abstract fun two(name: String): ComplexValueTwo
+        fun two(name: String): ComplexValueTwo
 
         @get:Restricted
-        val utils: Utils = Utils()
+        val utils: Utils
     }
 
     class ComplexValueOne
 
     class ComplexValueTwo
 
-    @Suppress("unused")
-    class TopLevelElement {
+    interface TopLevelElement {
         @get:Restricted
-        var name: String = ""
+        var name: String
 
         @get:Restricted
-        var number: Int = 0
+        var number: Int
     }
 
-    @Suppress("unused")
-    class NestedReceiver {
+    interface NestedReceiver {
         @get:Restricted
-        var number: Int = 0
+        var number: Int
 
         @Adding
-        fun add(): MyNestedElement = MyNestedElement()
+        fun add(): MyNestedElement
+
+        @Configuring
+        fun configure(configure: NestedReceiver.() -> Unit)
     }
 
-    class Utils {
+    interface Utils {
         @Restricted
-        fun oneUtil(): ComplexValueOne = ComplexValueOne()
+        fun oneUtil(): ComplexValueOne
     }
 
-    class MyNestedElement
+    interface MyNestedElement
 }
 
 

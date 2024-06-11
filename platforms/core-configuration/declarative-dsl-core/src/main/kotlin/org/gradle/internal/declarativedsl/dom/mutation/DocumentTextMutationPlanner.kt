@@ -159,7 +159,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                         insertAfter.getOrPut(mutation.targetNode.content.last(), ::mutableListOf).add(NodeInsertion.ByInsertNodesToEnd(mutation))
                     } else {
                         // We do not use insertBefore or insertAfter because further mutations can add more items to them, and the order will become incorrect.
-                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(mutation.nodes)
+                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(mutation.nodes())
                         nodesToRemove.add(mutation.targetNode)
                         // No need to mark the element as tainted: its content is empty, and its values are clean, we can still mutate them.
                     }
@@ -169,14 +169,14 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                     if (mutation.targetNode.content.isNotEmpty()) {
                         insertBefore.getOrPut(mutation.targetNode.content.first(), ::mutableListOf).add(0, NodeInsertion.ByInsertNodesToStart(mutation))
                     } else {
-                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(0, mutation.nodes)
+                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(0, mutation.nodes())
                         nodesToRemove.add(mutation.targetNode)
                     }
                 }
 
                 is ElementNodeCallMutation -> {
                     if (mutation.callMutation is CallMutation.RenameCall) {
-                        newNamesForElements[mutation.targetNode] = mutation.callMutation.newName
+                        newNamesForElements[mutation.targetNode] = mutation.callMutation.newName()
                     }
                 }
 
@@ -190,7 +190,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                 }
 
                 is RenamePropertyNode -> {
-                    newNamesForProperties[mutation.targetNode] = mutation.newName
+                    newNamesForProperties[mutation.targetNode] = mutation.newName()
                 }
 
                 is DocumentMutation.DocumentNodeTargetedMutation.RemoveNode -> {
@@ -207,15 +207,15 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                 is ValueNodeCallMutation -> {
                     when (mutation.callMutation) {
                         is CallMutation.RenameCall ->
-                            newNamesForValueFactories[mutation.targetValue] = mutation.callMutation.newName
+                            newNamesForValueFactories[mutation.targetValue] = mutation.callMutation.newName()
 
                         is CallMutation.ReplaceCallArgumentMutation ->
-                            recordValueReplacement(mutation.targetValue.values[mutation.callMutation.argumentAtIndex], mutation.callMutation.replaceWithValue)
+                            recordValueReplacement(mutation.targetValue.values[mutation.callMutation.argumentAtIndex], mutation.callMutation.replaceWithValue())
                     }
                 }
 
                 is DocumentMutation.ValueTargetedMutation.ReplaceValue -> {
-                    recordValueReplacement(mutation.targetValue, mutation.replaceWithValue)
+                    recordValueReplacement(mutation.targetValue, mutation.replaceWithValue())
                 }
             }
 
@@ -239,31 +239,31 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
         class ByInsertNodesBefore(
             val mutation: InsertNodesBeforeNode,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
         }
 
         class ByInsertNodesToStart(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
         }
 
         class ByInsertNodesAfter(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.InsertNodesAfterNode,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
         }
 
         class ByInsertNodesToEnd(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes
+            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
         }
 
         class ByReplaceNode(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = listOf(mutation.replaceWithNode)
+            override fun getNewNodes(): List<DocumentNode> = listOf(mutation.replaceWithNode())
         }
 
         class ByReplacingElementInAddingContent(

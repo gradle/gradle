@@ -17,10 +17,11 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
-import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 
 
 interface ModelMutationPlan {
@@ -31,8 +32,7 @@ interface ModelMutationPlan {
 
 interface ModelToDocumentMutationPlanner {
     fun planModelMutation(
-        document: DeclarativeDocument,
-        resolution: DocumentResolutionContainer,
+        documentWithResolution: DocumentWithResolution,
         mutationRequest: ModelMutationRequest,
         mutationArguments: MutationArgumentContainer
     ): ModelMutationPlan
@@ -58,10 +58,22 @@ sealed interface ModelMutation {
         val ifPresentBehavior: IfPresentBehavior,
     ) : ModelPropertyMutation
 
-    data class AddElement(
-        val newElement: NewElementNodeProvider,
-        val ifPresentBehavior: IfPresentBehavior
+    data class AddNewElement(
+        val newElement: NewElementNodeProvider
     ) : ModelMutation
+
+    data class AddConfiguringBlockIfAbsent(
+        val function: SchemaMemberFunction
+    ) : ModelMutation {
+        init {
+            require(function.semantics is FunctionSemantics.AccessAndConfigure) {
+                "only configuring functions are allowed in ${this::class.simpleName} mutations, got $function"
+            }
+            require(function.parameters.isEmpty()) {
+                "only functions with no value parameters are allowed in ${this::class.simpleName} mutations, got $function"
+            }
+        }
+    }
 
     data class UnsetProperty(
         override val property: DataProperty

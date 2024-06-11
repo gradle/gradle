@@ -45,8 +45,7 @@ class MutationAsTextRunner {
         return MutationRunResult(buildList {
             mutationSequence.map { modelMutation ->
                 val plan = modelMutationPlanner.planModelMutation(
-                    currentDocument.document,
-                    currentDocument.resolutionContainer,
+                    currentDocument,
                     modelMutation,
                     mutationArguments
                 )

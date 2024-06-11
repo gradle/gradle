@@ -21,8 +21,8 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
 
 
 sealed interface CallMutation {
-    data class RenameCall(val newName: String) : CallMutation
-    data class ReplaceCallArgumentMutation(val argumentAtIndex: Int, val replaceWithValue: ValueNode) : CallMutation
+    data class RenameCall(val newName: () -> String) : CallMutation
+    data class ReplaceCallArgumentMutation(val argumentAtIndex: Int, val replaceWithValue: () -> ValueNode) : CallMutation
     // TODO: mutations for adding and removing arguments?
 }
 
@@ -36,14 +36,14 @@ sealed interface DocumentMutation {
         val targetNode: DocumentNode
 
         data class RemoveNode(override val targetNode: DocumentNode) : DocumentNodeTargetedMutation
-        data class ReplaceNode(override val targetNode: DocumentNode, val replaceWithNode: DocumentNode) : DocumentNodeTargetedMutation
-        data class InsertNodesAfterNode(override val targetNode: DocumentNode, val nodes: List<DocumentNode>) : DocumentNodeTargetedMutation
-        data class InsertNodesBeforeNode(override val targetNode: DocumentNode, val nodes: List<DocumentNode>) : DocumentNodeTargetedMutation
+        data class ReplaceNode(override val targetNode: DocumentNode, val replaceWithNode: () -> DocumentNode) : DocumentNodeTargetedMutation
+        data class InsertNodesAfterNode(override val targetNode: DocumentNode, val nodes: () -> List<DocumentNode>) : DocumentNodeTargetedMutation
+        data class InsertNodesBeforeNode(override val targetNode: DocumentNode, val nodes: () -> List<DocumentNode>) : DocumentNodeTargetedMutation
 
         sealed interface PropertyNodeMutation : DocumentNodeTargetedMutation {
             override val targetNode: DocumentNode.PropertyNode
 
-            data class RenamePropertyNode(override val targetNode: DocumentNode.PropertyNode, val newName: String) : PropertyNodeMutation
+            data class RenamePropertyNode(override val targetNode: DocumentNode.PropertyNode, val newName: () -> String) : PropertyNodeMutation
         }
 
         sealed interface ElementNodeMutation : DocumentNodeTargetedMutation {
@@ -52,15 +52,15 @@ sealed interface DocumentMutation {
             data class ElementNodeCallMutation(override val targetNode: DocumentNode.ElementNode, override val callMutation: CallMutation) : ElementNodeMutation, HasCallMutation
 
             // These might be needed when [targetNode] does not have any children; for now, these are comment-hostile.
-            data class AddChildrenToEndOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: List<DocumentNode>) : ElementNodeMutation
-            data class AddChildrenToStartOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: List<DocumentNode>) : ElementNodeMutation
+            data class AddChildrenToEndOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: () -> List<DocumentNode>) : ElementNodeMutation
+            data class AddChildrenToStartOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: () -> List<DocumentNode>) : ElementNodeMutation
         }
     }
 
     sealed interface ValueTargetedMutation : DocumentMutation {
         val targetValue: ValueNode
 
-        data class ReplaceValue(override val targetValue: ValueNode, val replaceWithValue: ValueNode) : ValueTargetedMutation
+        data class ReplaceValue(override val targetValue: ValueNode, val replaceWithValue: () -> ValueNode) : ValueTargetedMutation
 
         sealed interface ValueFactoryNodeMutation : ValueTargetedMutation {
             override val targetValue: ValueNode.ValueFactoryNode
