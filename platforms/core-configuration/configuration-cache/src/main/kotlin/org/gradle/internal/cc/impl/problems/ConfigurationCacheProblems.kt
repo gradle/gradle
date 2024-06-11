@@ -168,10 +168,7 @@ class ConfigurationCacheProblems(
             .problem {
                 text("task ")
                 reference(path)
-                text(" is incompatible with the configuration cache. ")
-                text("Reason: ")
-                text(reason)
-                text(".")
+                text(" is incompatible with the configuration cache. Reason: $reason.")
             }
             .mapLocation {
                 PropertyTrace.TaskPath(path)
