@@ -64,9 +64,9 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
     def "configuration cache report includes incompatible tasks"() {
         given:
         buildFile '''
-        task reportedlyIncompatible {
-            notCompatibleWithConfigurationCache("declaring myself as not compatible")
-        }
+            task reportedlyIncompatible {
+                notCompatibleWithConfigurationCache("declaring myself as not compatible")
+            }
         '''
 
         when:
