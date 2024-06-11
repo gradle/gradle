@@ -99,7 +99,7 @@ val core = platform("core") {
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
         subproject("io")
-        subproject("java-language-extensions")
+        subproject("stdlib-java-extensions")
         subproject("launcher")
         subproject("logging")
         subproject("logging-api")

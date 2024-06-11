@@ -45,7 +45,7 @@ dependencies {
     api(project(":build-operations"))
     api(project(":concurrent"))
     api(project(":enterprise-logging"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":messaging"))
     api(project(":time"))

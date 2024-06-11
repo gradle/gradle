@@ -28,7 +28,7 @@ app {
 dependencies {
     implementation(project(":build-process-services"))
 
-    manifestClasspath(projects.javaLanguageExtensions)
+    manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(project(":build-process-services"))
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":concurrent"))

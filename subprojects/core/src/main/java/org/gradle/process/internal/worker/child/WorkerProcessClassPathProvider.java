@@ -107,7 +107,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-snapshots",
         "gradle-serialization",
         "gradle-time",
-        "gradle-java-language-extensions",
+        "gradle-stdlib-java-extensions",
         "gradle-build-operations"
     };
 

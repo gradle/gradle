@@ -8,7 +8,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(projects.serviceProvider)
     api(project(":base-services"))

@@ -10,7 +10,7 @@ dependencies {
     performanceTestImplementation(project(":base-services"))
     performanceTestImplementation(project(":core"))
     performanceTestImplementation(project(":internal-testing"))
-    performanceTestImplementation(project(":java-language-extensions"))
+    performanceTestImplementation(project(":stdlib-java-extensions"))
     performanceTestImplementation(project(":tooling-api"))
 
     performanceTestImplementation(testFixtures(project(":tooling-api")))

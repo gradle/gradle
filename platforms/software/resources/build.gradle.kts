@@ -12,7 +12,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":build-operations"))
     api(project(":hashing"))
     api(project(":base-services"))

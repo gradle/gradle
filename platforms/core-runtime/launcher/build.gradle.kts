@@ -22,7 +22,7 @@ dependencies {
     api(project(":file-watching"))
     api(project(":files"))
     api(project(":hashing"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":jvm-services"))
     api(project(":logging"))
     api(project(":logging-api"))

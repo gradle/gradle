@@ -34,7 +34,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.slf4jApi)
-    implementation(project(":java-language-extensions"))
+    implementation(project(":stdlib-java-extensions"))
 
     testImplementation(testFixtures(project(":core"))) {
         because("ConcurrentSpecification")
