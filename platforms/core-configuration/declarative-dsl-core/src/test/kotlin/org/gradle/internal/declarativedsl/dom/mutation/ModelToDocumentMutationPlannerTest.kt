@@ -24,9 +24,12 @@ import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
 import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation
+import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
+import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
 import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
@@ -34,6 +37,7 @@ import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 class ModelToDocumentMutationPlannerTest {
@@ -81,45 +85,45 @@ class ModelToDocumentMutationPlannerTest {
 
     @Test
     fun `set property value`() {
-        val propertyNode = document.elementNamed("nested").propertyNamed("number")
         val newValue = DefaultLiteralNode(
             "789",
             nonsenseSourceData
         )
 
-        val planModelMutations = requestMutation(
+        val mutationPlan = planMutation(
             document, resolved,
-            ModelMutation.SetPropertyValue(
-                schema.property("NestedReceiver", "number"),
-                NewValueNodeProvider.Constant(newValue),
-                ModelMutation.IfPresentBehavior.Overwrite
+            mutationRequest(
+                ModelMutation.SetPropertyValue(
+                    schema.property("NestedReceiver", "number"),
+                    NewValueNodeProvider.Constant(newValue),
+                    ModelMutation.IfPresentBehavior.Overwrite
+                )
             )
         )
 
-        assertEquals(
-            listOf(
-                DocumentMutation.ValueTargetedMutation.ReplaceValue(propertyNode.value, newValue)
-            ),
-            planModelMutations.documentMutations
+        assertSuccessfulMutation(
+            mutationPlan,
+            ValueTargetedMutation.ReplaceValue(
+                document.elementNamed("nested").propertyNamed("number").value,
+                newValue
+            )
         )
     }
 
     @Test
     fun `unset property`() {
-        val planModelMutations = requestMutation(
+        val mutationPlan = planMutation(
             document, resolved,
-            ModelMutation.UnsetProperty(
-                schema.property("TopLevelElement", "number")
+            mutationRequest(
+                ModelMutation.UnsetProperty(
+                    schema.property("TopLevelElement", "number")
+                )
             )
         )
 
-        assertEquals(
-            listOf(
-                RemoveNode(
-                    document.elementNamed("addAndConfigure").propertyNamed("number")
-                )
-            ),
-            planModelMutations.documentMutations
+        assertSuccessfulMutation(
+            mutationPlan,
+            RemoveNode(document.elementNamed("addAndConfigure").propertyNamed("number"))
         )
     }
 
@@ -132,43 +136,106 @@ class ModelToDocumentMutationPlannerTest {
             emptyList()
         )
 
-        val planModelMutations = requestMutation(
+        val mutationPlan = planMutation(
             document, resolved,
-            ModelMutation.AddElement(
-                newElementNode,
-                ModelMutation.IfPresentBehavior.FailAndReport
-            ),
-            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.dataClass("NestedReceiver")))))
+            mutationRequest(
+                ModelMutation.AddElement(
+                    newElementNode,
+                    ModelMutation.IfPresentBehavior.FailAndReport
+                ),
+                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.dataClass("NestedReceiver")))))
+            )
         )
 
-        assertEquals(
-            listOf(
-                DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(
-                    document.elementNamed("nested"),
-                    listOf(newElementNode)
-                )
-            ),
-            planModelMutations.documentMutations
+        assertSuccessfulMutation(
+            mutationPlan,
+            AddChildrenToEndOfBlock(document.elementNamed("nested"), listOf(newElementNode))
         )
     }
 
-    // TODO: unsuccessfulModelMutations related behaviour & tests
+    @Test
+    fun `property not found`() {
+        val request = mutationRequest(
+            ModelMutation.SetPropertyValue(
+                schema.property("NestedReceiver", "number"),
+                NewValueNodeProvider.Constant(DefaultLiteralNode("789", nonsenseSourceData)),
+                ModelMutation.IfPresentBehavior.Overwrite
+            ),
+            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.dataClass("TopLevelElement")))))
+        )
+        val mutationPlan = planMutation(document, resolved, request)
+
+        assertFailedMutation(
+            mutationPlan,
+            UnsuccessfulModelMutation(request, listOf(TargetPropertyNotFound))
+        )
+    }
+
+    @Test
+    fun `no matching scope`() {
+        val invalidScopeLocation = ScopeLocation(
+            listOf(
+                InNestedScopes(NestedObjectsOfType(schema.dataClass("NestedReceiver"))),
+                InNestedScopes(NestedObjectsOfType(schema.dataClass("TopLevelElement")))
+            )
+        )
+
+        val request = mutationRequest(
+            ModelMutation.AddElement(
+                DefaultElementNode(
+                    "newAdd",
+                    nonsenseSourceData,
+                    listOf(DefaultLiteralNode("yolo", nonsenseSourceData)),
+                    emptyList()
+                ),
+                ModelMutation.IfPresentBehavior.FailAndReport
+            ),
+            invalidScopeLocation
+        )
+        val mutationPlan = planMutation(
+            document, resolved,
+            request
+        )
+
+        assertFailedMutation(
+            mutationPlan,
+            UnsuccessfulModelMutation(request, listOf(ScopeLocationNotMatched))
+        )
+    }
+
+    private
+    fun mutationRequest(
+        mutation: ModelMutation,
+        scopeLocation: ScopeLocation = ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes))
+    ) = ModelMutationRequest(scopeLocation, mutation)
+
     // TODO: set property and there isn't actually one, so it shoudl fail or insert one, depending on the request
     // TODO: mutations in top level blocks
 
     private
-    fun requestMutation(
+    fun planMutation(
         document: DeclarativeDocument,
         resolved: DocumentResolutionContainer,
-        mutation: ModelMutation,
-        scopeLocation: ScopeLocation = ScopeLocation(listOf(InAllNestedScopes))
-    ): ModelMutationPlan = planner.planModelMutation(document, resolved,
-        ModelMutationRequest(
-            scopeLocation,
-            mutation,
-        ),
-        mutationArguments { }
-    )
+        mutationRequest: ModelMutationRequest
+    ): ModelMutationPlan = planner.planModelMutation(document, resolved, mutationRequest, mutationArguments { })
+
+    private
+    fun assertSuccessfulMutation(planModelMutations: ModelMutationPlan, expectedDocumentMutation: DocumentMutation) {
+        assertEquals(
+            listOf(expectedDocumentMutation),
+            planModelMutations.documentMutations
+        )
+        assertTrue { planModelMutations.unsuccessfulModelMutations.isEmpty() }
+    }
+
+    private
+    fun assertFailedMutation(planModelMutations: ModelMutationPlan, expectedFailure: UnsuccessfulModelMutation) {
+        assertTrue { planModelMutations.documentMutations.isEmpty() }
+        assertEquals(
+            listOf(expectedFailure),
+            planModelMutations.unsuccessfulModelMutations
+        )
+    }
 
     private
     fun AnalysisSchema.property(dataClassName: String, propertyName: String): DataProperty {
