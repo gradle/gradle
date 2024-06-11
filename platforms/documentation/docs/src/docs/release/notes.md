@@ -148,6 +148,14 @@ The [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.ht
 
 More information about this option is available in the [TestNG documentation](https://testng.org/#_command_line_parameters).
 
+### Adoption of the Problems API with Java compilation
+
+The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+This change will supply the IDEs and Tooling API clients with structured, rich information about compilation issues.
+
+The feature should not have any visible impact on the usual build output, with JDK8 being an exception: in certain conditions the output message might slightly differ from the previous one (see [#29501](https://github.com/gradle/gradle/issues/29501)).
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
