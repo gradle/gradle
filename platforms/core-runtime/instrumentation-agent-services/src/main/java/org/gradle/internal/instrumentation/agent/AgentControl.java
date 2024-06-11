@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.internal.instrumentation.agent;
 
 import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
@@ -88,10 +88,9 @@ class AgentControl {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T callStaticAgentMethod(Method method, Object... args) {
+    private static boolean callStaticAgentMethod(Method method, Object... args) {
         try {
-            return (T) method.invoke(null, args);
+            return (boolean) method.invoke(null, args);
         } catch (IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         } catch (InvocationTargetException e) {

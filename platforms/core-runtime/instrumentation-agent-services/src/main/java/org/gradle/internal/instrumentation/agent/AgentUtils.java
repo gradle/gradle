@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.internal.instrumentation.agent;
 
 /**
  * Common utilities used for Gradle's own Java agents.

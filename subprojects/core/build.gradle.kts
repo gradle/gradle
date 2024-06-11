@@ -73,9 +73,10 @@ errorprone {
 
 dependencies {
     api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
+    api(projects.instrumentationAgentServices)
     api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))

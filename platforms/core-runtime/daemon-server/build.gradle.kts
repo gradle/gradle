@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.guava)
     implementation(project(":base-services"))
     implementation(project(":concurrent"))
+    implementation(projects.instrumentationAgentServices)
     implementation(project(":stdlib-java-extensions"))
     implementation(project(":logging-api"))
     implementation(project(":native"))

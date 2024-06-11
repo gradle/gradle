@@ -96,7 +96,7 @@ class TapiAgentInstrumentationCrossVersionSpec extends ToolingApiSpecification {
 
     private void withDumpAgentStatusTask() {
         buildFile  """
-            import org.gradle.internal.agents.AgentStatus
+            import org.gradle.internal.instrumentation.agent.AgentStatus
 
             tasks.register('hello') {
                 doLast {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+package org.gradle.internal.classloader;
 
 import javax.annotation.Nullable;
 import java.security.ProtectionDomain;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents;
+plugins {
+    id("gradlebuild.distribution.implementation-java")
+}
 
-class DisabledAgentStatus implements AgentStatus {
-    @Override
-    public boolean isAgentInstrumentationEnabled() {
-        return false;
-    }
+description = "Controls for the instrumentation agent potentially applied to the process"
+
+dependencies {
+    api(projects.stdlibJavaExtensions)
+
+    implementation(projects.baseServices)
+    implementation(projects.functional)
+
+    implementation(libs.jsr305)
+    implementation(libs.slf4jApi)
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
