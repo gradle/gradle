@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
@@ -35,6 +33,8 @@ import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionConta
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -94,7 +94,7 @@ class ModelToDocumentMutationPlannerTest {
             document, resolved,
             mutationRequest(
                 ModelMutation.SetPropertyValue(
-                    schema.property("NestedReceiver", "number"),
+                    schema.propertyFor(TestApi.NestedReceiver::number),
                     NewValueNodeProvider.Constant(newValue),
                     ModelMutation.IfPresentBehavior.Overwrite
                 )
@@ -116,7 +116,7 @@ class ModelToDocumentMutationPlannerTest {
             document, resolved,
             mutationRequest(
                 ModelMutation.UnsetProperty(
-                    schema.property("TopLevelElement", "number")
+                    schema.propertyFor(TestApi.TopLevelElement::number)
                 )
             )
         )
@@ -140,10 +140,10 @@ class ModelToDocumentMutationPlannerTest {
             document, resolved,
             mutationRequest(
                 ModelMutation.AddElement(
-                    newElementNode,
+                    NewElementNodeProvider.Constant(newElementNode),
                     ModelMutation.IfPresentBehavior.FailAndReport
                 ),
-                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.dataClass("NestedReceiver")))))
+                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>()))))
             )
         )
 
@@ -157,11 +157,11 @@ class ModelToDocumentMutationPlannerTest {
     fun `property not found`() {
         val request = mutationRequest(
             ModelMutation.SetPropertyValue(
-                schema.property("NestedReceiver", "number"),
+                schema.propertyFor(TestApi.NestedReceiver::number),
                 NewValueNodeProvider.Constant(DefaultLiteralNode("789", nonsenseSourceData)),
                 ModelMutation.IfPresentBehavior.Overwrite
             ),
-            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.dataClass("TopLevelElement")))))
+            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.TopLevelElement>()))))
         )
         val mutationPlan = planMutation(document, resolved, request)
 
@@ -175,19 +175,19 @@ class ModelToDocumentMutationPlannerTest {
     fun `no matching scope`() {
         val invalidScopeLocation = ScopeLocation(
             listOf(
-                InNestedScopes(NestedObjectsOfType(schema.dataClass("NestedReceiver"))),
-                InNestedScopes(NestedObjectsOfType(schema.dataClass("TopLevelElement")))
+                InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>())),
+                InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.TopLevelElement>()))
             )
         )
 
         val request = mutationRequest(
             ModelMutation.AddElement(
-                DefaultElementNode(
+                NewElementNodeProvider.Constant(DefaultElementNode(
                     "newAdd",
                     nonsenseSourceData,
                     listOf(DefaultLiteralNode("yolo", nonsenseSourceData)),
                     emptyList()
-                ),
+                )),
                 ModelMutation.IfPresentBehavior.FailAndReport
             ),
             invalidScopeLocation
@@ -236,14 +236,4 @@ class ModelToDocumentMutationPlannerTest {
             planModelMutations.unsuccessfulModelMutations
         )
     }
-
-    private
-    fun AnalysisSchema.property(dataClassName: String, propertyName: String): DataProperty {
-        val dataClass = dataClass(dataClassName)
-        val dataProperty = dataClass.properties.first { it.name == propertyName }
-        return dataProperty
-    }
-
-    private
-    fun AnalysisSchema.dataClass(name: String) = dataClassesByFqName.entries.first { it.key.simpleName == name }.value
 }

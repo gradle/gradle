@@ -19,21 +19,20 @@ package org.gradle.internal.declarativedsl.dom.mutation
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
-import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
-import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
-import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApiAbc.A
+import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApiAbc.B
+import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApiAbc.C
+import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.junit.Test
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
@@ -52,7 +51,7 @@ class ScopeLocationTest {
     fun `deeply nested blocks`() {
         val schema = schemaFromTypes(TestApiAbc.TopLevelReceiver::class, TestApiAbc::class.nestedClasses.toList())
 
-        val topLevelBlock = ParseTestUtil.parseAsTopLevelBlock(
+        val topLevelBlock = ParseTestUtil.parse(
             """
                 a { // resolved to #a
                     b { // resolved to a#b
@@ -61,129 +60,111 @@ class ScopeLocationTest {
                 }
             """.trimIndent())
 
-        val document = convertBlockToDocument(topLevelBlock)
+        val resolved = documentWithResolution(schema, topLevelBlock)
 
-        val resolver = tracingCodeResolver()
-        resolver.resolve(schema, emptyList(), topLevelBlock)
-        val resolved = resolutionContainer(schema, resolver.trace, document)
-
-        val elementResolutions: Map<String, ElementResolution> = toStringKeyedElementResolutions(document, resolved)
+        val elementResolutions: Map<String, ElementNode> = toStringKeyedElements(resolved.document)
         val elementA = elementResolutions["a"]!!
         val elementB = elementResolutions["b"]!!
         val elementC = elementResolutions["c"]!!
 
+        val locationMatcher = ScopeLocationMatcher(resolved)
+
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
                     InAllNestedScopes
                 )
             ),
-            document,
-            resolved,
             setOf(
                 Scope.topLevel(),
-                Scope.nestedBlocks(elementA),
-                Scope.nestedBlocks(elementA, elementB),
-                Scope.nestedBlocks(elementA, elementB, elementC)
+                Scope(listOf(elementA)),
+                nestedBlocks(elementA, elementB),
+                nestedBlocks(elementA, elementB, elementC)
             )
         )
 
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("A")))
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<A>()))
                 )
             ),
-            document,
-            resolved,
-            setOf(Scope.nestedBlocks(elementA))
+            setOf(nestedBlocks(elementA))
         )
 
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("B")))
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>()))
                 )
             ),
-            document,
-            resolved,
             setOf()
         )
 
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("B"))),
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("C")))
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>())),
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<C>()))
                 )
             ),
-            document,
-            resolved,
             setOf()
         )
 
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
                     InAllNestedScopes,
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("B"))),
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("C")))
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>())),
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<C>()))
                 )
             ),
-            document,
-            resolved,
-            setOf(Scope.nestedBlocks(elementA, elementB, elementC))
+            setOf(nestedBlocks(elementA, elementB, elementC))
         )
 
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("A"))),
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<A>())),
                     InAllNestedScopes,
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("C")))
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<C>()))
                 )
             ),
-            document,
-            resolved,
-            setOf(Scope.nestedBlocks(elementA, elementB, elementC))
+            setOf(nestedBlocks(elementA, elementB, elementC))
         )
 
         assertScopeLocationMatch(
+            locationMatcher,
             ScopeLocation(
                 listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("A"))),
-                    InNestedScopes(NestedObjectsOfType(schema.dataClass("B")))
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<A>())),
+                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>()))
                 )
             ),
-            document,
-            resolved,
-            setOf(Scope.nestedBlocks(elementA, elementB))
+            setOf(nestedBlocks(elementA, elementB))
         )
     }
 
     private
-    fun toStringKeyedElementResolutions(document: DeclarativeDocument, resolution: DocumentResolutionContainer): Map<String, ElementResolution> =
-        document.elementNodes().associate { it.name to (it to resolution.data(it)) }
+    fun toStringKeyedElements(document: DeclarativeDocument): Map<String, ElementNode> =
+        document.elementNodes().associate { it.name to it }
 
     private
     fun assertScopeLocationMatch(
+        locationMatcher: ScopeLocationMatcher,
         scopeLocation: ScopeLocation,
-        document: DeclarativeDocument,
-        resolution: DocumentResolutionContainer,
         expectedScopes: Set<Scope>
     ) {
         assertEquals(
             expectedScopes,
-            scopeLocation.match(document, resolution)
+            locationMatcher.match(scopeLocation)
         )
-    }
-
-    private
-    fun AnalysisSchema.dataClass(description: String): DataClass {
-        return dataClassesByFqName.entries
-            .first {
-                it.key.simpleName == description
-            }.value
     }
 
     private
@@ -207,8 +188,11 @@ class ScopeLocationTest {
         return nodes
     }
 
-    class TestApiAbc {
+    private
+    fun nestedBlocks(vararg elementNodes: ElementNode): Scope =
+        Scope(elementNodes.toList())
 
+    class TestApiAbc {
         class TopLevelReceiver {
 
             @Configuring
