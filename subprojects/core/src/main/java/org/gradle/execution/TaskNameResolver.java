@@ -23,9 +23,11 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,9 +39,12 @@ public class TaskNameResolver {
      * Non-exhaustively searches for at least one task with the given name, by not evaluating projects before searching.
      */
     public boolean tryFindUnqualifiedTaskCheaply(String name, ProjectInternal project) {
+        List<Project> allprojects = new ArrayList<>(project.getChildProjectsUnchecked().values());
+        allprojects.add(project);
+
         // don't evaluate children, see if we know it's without validating it
-        for (Project project1 : project.getAllprojects()) {
-            if (project1.getTasks().getNames().contains(name)) {
+        for (Project p : allprojects) {
+            if (p.getTasks().getNames().contains(name)) {
                 return true;
             }
         }
