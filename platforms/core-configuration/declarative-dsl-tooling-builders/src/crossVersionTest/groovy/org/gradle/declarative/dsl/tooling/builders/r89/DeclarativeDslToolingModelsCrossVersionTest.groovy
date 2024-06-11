@@ -16,7 +16,6 @@
 
 package org.gradle.declarative.dsl.tooling.builders.r89
 
-import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -255,7 +254,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
+            import org.gradle.api.internal.plugins.software.SoftwareType;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
@@ -288,7 +287,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
+            import org.gradle.api.internal.plugins.software.SoftwareType;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
