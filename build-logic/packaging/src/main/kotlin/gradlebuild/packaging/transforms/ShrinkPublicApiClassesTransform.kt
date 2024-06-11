@@ -105,7 +105,7 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
         if (name.equals("META-INF/services/org.codehaus.groovy.transform.ASTTransformation")) {
             return Optional.of(ContentFilter.VERBATIM)
         }
-        if (name.matches(Regex("META-INF/.*\\.kotlin_module"))) {
+        if (name.matches(KOTLIN_MODULE_PATH)) {
             return Optional.of(ContentFilter.VERBATIM)
         }
         return Optional.empty()
@@ -115,5 +115,9 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     enum class ContentFilter {
         VERBATIM,
         API_ONLY
+    }
+
+    companion object {
+        val KOTLIN_MODULE_PATH = Regex("META-INF/.*\\.kotlin_module")
     }
 }
