@@ -35,7 +35,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private static List<Class<?>> supportedAdditionalDataTypes = ImmutableList.<Class<?>>of(
         GeneralDataSpec.class,
         DeprecationDataSpec.class,
-        TypeValidationDataSpec.class
+        TypeValidationDataSpec.class,
+        PropertyTraceDataSpec.class
     );
     private ProblemStream problemStream;
 

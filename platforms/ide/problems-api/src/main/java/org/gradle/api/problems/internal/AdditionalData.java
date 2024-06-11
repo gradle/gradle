@@ -28,6 +28,7 @@ import org.gradle.api.Incubating;
  *     <li>{@link org.gradle.api.problems.internal.GeneralData}</li>
  *     <li>{@link org.gradle.api.problems.internal.TypeValidationData}</li>
  *     <li>{@link org.gradle.api.problems.internal.DeprecationData}</li>
+ *     <li>{@link org.gradle.api.problems.internal.PropertyTraceData}</li>
  * </ul>
  *
  * @see InternalProblemSpec#additionalData(Class, Action)

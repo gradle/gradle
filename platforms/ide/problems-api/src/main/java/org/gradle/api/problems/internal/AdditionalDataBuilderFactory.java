@@ -29,6 +29,8 @@ public class AdditionalDataBuilderFactory {
             return (AdditionalDataBuilder<T>) DefaultDeprecationData.builder();
         } else if (GeneralDataSpec.class.isAssignableFrom(type)) {
             return (AdditionalDataBuilder<T>) DefaultGeneralData.builder();
+        } else if (PropertyTraceDataSpec.class.isAssignableFrom(type)) {
+            return (AdditionalDataBuilder<T>) DefaultPropertyTraceData.builder();
         } else {
             throw new IllegalArgumentException("Unsupported type: " + type);
         }
@@ -43,6 +45,8 @@ public class AdditionalDataBuilderFactory {
             return (AdditionalDataBuilder<S>) DefaultDeprecationData.builder((DeprecationData) instance);
         } else if (GeneralData.class.isInstance(instance)) {
             return (AdditionalDataBuilder<S>) DefaultGeneralData.builder((GeneralData) instance);
+        } else if(PropertyTraceData.class.isInstance(instance)) {
+            return (AdditionalDataBuilder<S>) DefaultPropertyTraceData.builder((PropertyTraceData) instance);
         } else {
             throw new IllegalArgumentException("Unsupported instance: " + instance);
         }
