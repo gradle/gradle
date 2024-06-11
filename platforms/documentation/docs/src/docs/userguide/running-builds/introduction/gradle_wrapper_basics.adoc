@@ -71,6 +71,43 @@ $ gradlew.bat build
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
+[[sec:view_the_wrapper]]
+== Understanding the Wrapper files
+
+The following files are part of the Gradle Wrapper:
+
+[source,text]
+----
+.
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar  // <1>
+│       └── gradle-wrapper.properties   // <2>
+├── gradlew // <3>
+└── gradlew.bat // <4>
+----
+<1> `gradle-wrapper.jar`: This is a small JAR file that contains the Gradle Wrapper code. It is responsible for downloading and installing the correct version of Gradle for a project if it's not already installed.
+<2> `gradle-wrapper.properties`: This file contains configuration properties for the Gradle Wrapper, such as the distribution URL (where to download Gradle from) and the distribution type (ZIP or TARBALL).
+<3> `gradlew`: This is a shell script (Unix-based systems) that acts as a wrapper around `gradle-wrapper.jar`. It is used to execute Gradle tasks on Unix-based systems without needing to manually install Gradle.
+<4> `gradlew.bat`: This is a batch script (Windows) that serves the same purpose as `gradlew` but is used on Windows systems.
+
+IMPORTANT: You should never alter these files.
+
+If you want to view or update the Gradle version of your project, use the command line.
+Do not edit the wrapper files manually:
+
+[source, bash]
+----
+$ ./gradlew --version
+$ ./gradlew wrapper --gradle-version 7.2
+----
+
+[source, cmd]
+----
+$ gradlew.bat --version
+$ gradlew.bat wrapper --gradle-version 7.2
+----
+
 Consult the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper reference>> to learn more.
 
 [.text-right]
