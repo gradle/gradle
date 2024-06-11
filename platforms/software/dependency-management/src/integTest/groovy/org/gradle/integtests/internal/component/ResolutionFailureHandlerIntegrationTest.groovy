@@ -379,7 +379,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // endregion dependencyInsight failures
 
     // region error showcase
-    @spock.lang.Ignore("This test is used to generate a summary of all possible errors, it shouldn't usually be run as part of testing")
+    //@spock.lang.Ignore("This test is used to generate a summary of all possible errors, it shouldn't usually be run as part of testing")
     def "generate resolution failure showcase report"() {
         given:
         // Escape to the root of the dependency-management project, to put these reports in build output dir so it isn't auto-deleted when test completes

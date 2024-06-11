@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -99,7 +100,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     }
 
     protected static Factory<String> format(String messageFormat, ComponentSelector selector) {
-        return () -> String.format(messageFormat, selector.getDisplayName());
+        return () -> String.format(messageFormat, ProjectPathClarifyingDescriber.describe(selector));
     }
 
     /**
@@ -130,7 +131,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     }
 
     private String toString(ComponentIdentifier identifier) {
-        return identifier.getDisplayName();
+        return ProjectPathClarifyingDescriber.describe(identifier);
     }
 
     protected ModuleVersionResolveException createCopy() {

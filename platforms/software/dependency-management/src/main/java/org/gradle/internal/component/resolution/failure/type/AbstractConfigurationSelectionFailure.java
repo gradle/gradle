@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
+
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a configuration is requested
  * by name on a project dependency and does not exist on the target project.
@@ -31,10 +33,10 @@ public abstract class AbstractConfigurationSelectionFailure implements Resolutio
 
     @Override
     public String getRequestedName() {
-        return requestedConfigurationName;
+        return ProjectPathClarifyingDescriber.describe(requestedConfigurationName);
     }
 
     public String getRequestedComponentDisplayName() {
-        return requestedComponentName;
+        return ProjectPathClarifyingDescriber.describe(requestedComponentName);
     }
 }

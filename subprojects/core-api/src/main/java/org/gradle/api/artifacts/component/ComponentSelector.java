@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.component;
 
+import org.gradle.api.Describable;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -28,13 +29,14 @@ import java.util.List;
  * @since 1.10
  */
 @UsedByScanPlugin
-public interface ComponentSelector {
+public interface ComponentSelector extends Describable {
     /**
      * Returns a human-consumable display name for this selector.
      *
      * @return Display name
      * @since 1.10
      */
+    @Override
     String getDisplayName();
 
     /**
