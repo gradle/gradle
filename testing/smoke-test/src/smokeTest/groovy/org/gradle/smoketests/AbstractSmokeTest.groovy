@@ -36,7 +36,6 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -284,11 +283,8 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     private static List<String> repoMirrorParameters() {
-        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
         return [
-            '--init-script', mirrorInitScriptPath,
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
-            "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
         ]
     }
 
