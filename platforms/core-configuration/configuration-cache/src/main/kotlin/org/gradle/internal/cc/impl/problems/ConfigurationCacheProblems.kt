@@ -182,20 +182,18 @@ class ConfigurationCacheProblems(
                 "configuration-cache-" + DeprecationMessageBuilder.createDefaultDeprecationId(message),
                 message,
                 GradleCoreProblemGroup.validation()
-            ) // TODO (reinhold) display name might be too elaborate
+            )
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
-            // additionalData()
         }.also { internalReporter.report(it) }
-        // TODO (reinhold) add report taking Action<InternalProblemSpec> as parameter?
     }
 
     private
     fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
         problem.documentationSection?.let {
-            documentedAt(Documentation.userManual("configuration_cache", it.anchor).toString()) // TODO (reinhold) not sure?
+            documentedAt(Documentation.userManual("configuration_cache", it.anchor).toString())
         }
     }
 

@@ -63,7 +63,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         configurationCacheRunLenient '-Pdummy=true', 'run'
 
         then:
-        verifyAll(receivedProblem(0)) {
+        verifyAll(receivedProblem) {
             fqid == REGISTRATION_UNSUPPORTED
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
@@ -83,7 +83,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, "-D$MAX_PROBLEMS_GRADLE_PROP=0", 'run'
 
         then:
-        verifyAll(receivedProblem(0)) {
+        verifyAll(receivedProblem) {
             fqid == REGISTRATION_UNSUPPORTED
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
@@ -105,7 +105,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         configurationCacheRun("run")
 
         then:
-        verifyAll(receivedProblem(0)) {
+        verifyAll(receivedProblem) {
             fqid == 'validation:configuration-cache-invocation-of-task-project-at-execution-time-is-unsupported'
             contextualLabel == "invocation of 'Task.project' at execution time is unsupported."
             definition.severity == Severity.ADVICE
