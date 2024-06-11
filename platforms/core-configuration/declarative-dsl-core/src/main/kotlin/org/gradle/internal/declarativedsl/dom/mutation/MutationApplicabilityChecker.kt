@@ -20,6 +20,9 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ErrorNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
+import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.ElementNodeCallMutation
@@ -65,8 +68,8 @@ class MutationApplicabilityChecker(
                     node.elementValues.forEach { visitValue(it, node) }
                     node.content.forEach(::visitDocumentNode)
                 }
-                is DocumentNode.PropertyNode -> visitValue(node.value, node)
-                is DocumentNode.ErrorNode -> Unit
+                is PropertyNode -> visitValue(node.value, node)
+                is ErrorNode -> Unit
             }
         }
 
@@ -105,3 +108,36 @@ sealed interface MutationApplicability {
     data class ScopeWithoutAffectedNodes(val scope: ElementNode) : MutationApplicability
     data class AffectedNode(val node: DocumentNode) : MutationApplicability
 }
+
+
+fun MutationDefinitionCatalog.applicabilityFor(
+    documentSchema: AnalysisSchema,
+    document: DocumentWithResolution
+): NodeData<List<ApplicableMutation>> {
+    val allMutations = mutationDefinitionsById.values
+    val applicabilityChecker = MutationApplicabilityChecker(documentSchema, document)
+    val applicabilityListsByMutation = allMutations.associateWith(applicabilityChecker::checkApplicability)
+
+    val data = buildMap<DocumentNode, MutableList<ApplicableMutation>> {
+        applicabilityListsByMutation.forEach { (mutation, applicabilityList) ->
+            applicabilityList.forEach { applicability ->
+                when (applicability) {
+                    is AffectedNode -> getOrPut(applicability.node, ::mutableListOf).add(ApplicableMutation(mutation, applicability))
+                    is MutationApplicability.ScopeWithoutAffectedNodes -> getOrPut(applicability.scope, ::mutableListOf).add(ApplicableMutation(mutation, applicability))
+                }
+            }
+        }
+    }
+
+    return object : NodeData<List<ApplicableMutation>> {
+        override fun data(node: ElementNode): List<ApplicableMutation> = data[node].orEmpty()
+        override fun data(node: PropertyNode): List<ApplicableMutation> = data[node].orEmpty()
+        override fun data(node: ErrorNode): List<ApplicableMutation> = data[node].orEmpty()
+    }
+}
+
+
+data class ApplicableMutation(
+    val mutationDefinition: MutationDefinition,
+    val applicability: MutationApplicability
+)
