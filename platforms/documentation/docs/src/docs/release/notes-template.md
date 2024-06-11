@@ -17,9 +17,7 @@ Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announ
 
 Switch your build to use Gradle @version@ by updating your wrapper:
 
-`SHA=$(curl https://services.gradle.org/distributions/gradle-@version@-bin.zip.sha256 -J -L)`
-
-`./gradlew wrapper --gradle-version=@version@ --gradle-distribution-sha256-sum=$SHA`
+`./gradlew wrapper --gradle-version=@version@`
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
