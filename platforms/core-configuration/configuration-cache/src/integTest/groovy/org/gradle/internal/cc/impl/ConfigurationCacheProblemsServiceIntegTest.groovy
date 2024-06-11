@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.problems.Severity
+import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 

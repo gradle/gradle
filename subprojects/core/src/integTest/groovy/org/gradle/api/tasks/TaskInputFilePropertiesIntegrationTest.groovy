@@ -25,6 +25,8 @@ import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
@@ -144,6 +146,10 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         expect:
         fails "customTask"
+        if(GradleContextualExecuter.configCache){
+            failure.assertThatDescription(containsString("Task `:customTask` of type `CustomTask`: cannot serialize object of type 'org.gradle.api.DefaultTask', " +
+                "a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."))
+        }
         failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         failureDescriptionContains(unsupportedNotation {
             type('CustomTask').property('input')
