@@ -23,9 +23,12 @@ import org.gradle.api.Generated
 /**
  * $$BridgeFor$$ classes generated for bytecode upgrade instrumentation
  */
-class BridgeForClassesFilter implements ClassFilter {
+class BridgeForBytecodeUpgradeAdapterClassFilter implements ClassFilter {
+
+    private static final BRIDGE_CLASS_PREFIX = "\$\$BridgeFor\$\$"
+
     @Override
     boolean matches(CtClass ctClass) {
-        return ctClass.name.contains("\$\$BridgeFor\$\$") && ctClass.hasAnnotation(Generated.class)
+        return ctClass.name.contains(BRIDGE_CLASS_PREFIX) && ctClass.hasAnnotation(Generated.class)
     }
 }

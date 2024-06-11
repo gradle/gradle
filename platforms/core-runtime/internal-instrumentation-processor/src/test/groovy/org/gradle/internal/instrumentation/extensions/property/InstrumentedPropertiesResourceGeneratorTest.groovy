@@ -48,10 +48,10 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
                 public abstract Property<String> getSourceCompatibility();
                 @ReplacesEagerProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
-                @ReplacesEagerProperty(adapter = Task.MinErrorsAdapter.class)
+                @ReplacesEagerProperty(adapter = Task.GetMinErrorsAdapter.class)
                 public abstract Property<Integer> getMinErrors();
 
-                static class MinErrorsAdapter {
+                static class GetMinErrorsAdapter {
                     @BytecodeUpgrade
                     static int minErrors(Task task) {
                         return 0;
