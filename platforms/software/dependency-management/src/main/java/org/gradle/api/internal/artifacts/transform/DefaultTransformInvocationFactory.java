@@ -26,6 +26,8 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
+import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -37,11 +39,15 @@ import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class DefaultTransformInvocationFactory implements TransformInvocationFactory {
+    private static final StringInternalOption CACHING_DISABLED_PROPERTY = new StringInternalOption("org.gradle.internal.transform-caching-disabled", null);
 
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
+    private final InternalOptions internalOptions;
     private final TransformExecutionListener transformExecutionListener;
     private final ImmutableTransformWorkspaceServices immutableWorkspaceServices;
     private final FileCollectionFactory fileCollectionFactory;
@@ -52,6 +58,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     public DefaultTransformInvocationFactory(
         ExecutionEngine executionEngine,
         FileSystemAccess fileSystemAccess,
+        InternalOptions internalOptions,
         TransformExecutionListener transformExecutionListener,
         ImmutableTransformWorkspaceServices immutableWorkspaceServices,
         FileCollectionFactory fileCollectionFactory,
@@ -61,6 +68,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         this.executionEngine = executionEngine;
         this.fileSystemAccess = fileSystemAccess;
+        this.internalOptions = internalOptions;
         this.transformExecutionListener = transformExecutionListener;
         this.immutableWorkspaceServices = immutableWorkspaceServices;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -81,6 +89,8 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         Cache<Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
+
+        boolean cachingDisabledByProperty = isCachingDisabledByProperty(transform);
 
         // TODO This is a workaround for script compilation that is triggered via the "early" execution
         //      engine created in DependencyManagementBuildScopeServices. We should unify the execution
@@ -103,7 +113,9 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 fileCollectionFactory,
                 inputFingerprinter,
                 fileSystemAccess,
-                immutableWorkspaceServices.getWorkspaceProvider()
+                immutableWorkspaceServices.getWorkspaceProvider(),
+
+                cachingDisabledByProperty
             );
             effectiveEngine = executionEngine;
         } else {
@@ -122,7 +134,9 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     progressEventEmitter,
                     fileCollectionFactory,
                     inputFingerprinter,
-                    immutableWorkspaceServices.getWorkspaceProvider()
+                    immutableWorkspaceServices.getWorkspaceProvider(),
+
+                    cachingDisabledByProperty
                 );
             } else {
                 // Incremental project artifact transforms run in project-bound mutable workspace
@@ -140,7 +154,9 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     progressEventEmitter,
                     fileCollectionFactory,
                     inputFingerprinter,
-                    workspaceServices.getWorkspaceProvider()
+                    workspaceServices.getWorkspaceProvider(),
+
+                    cachingDisabledByProperty
                 );
             }
         }
@@ -159,5 +175,18 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         } else {
             return null;
         }
+    }
+
+    private boolean isCachingDisabledByProperty(Transform transform) {
+        String experimentalProperty = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
+        if (experimentalProperty != null) {
+            if (experimentalProperty.isEmpty() || experimentalProperty.equals("true")) {
+                return true;
+            }
+            List<String> disabledTransformClasses = Arrays.asList(experimentalProperty.split(","));
+            return disabledTransformClasses.contains(transform.getImplementationClass().getName());
+        }
+
+        return false;
     }
 }

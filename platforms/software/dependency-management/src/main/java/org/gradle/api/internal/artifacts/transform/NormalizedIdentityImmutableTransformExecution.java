@@ -42,11 +42,14 @@ class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExe
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        ImmutableWorkspaceProvider workspaceProvider
+        ImmutableWorkspaceProvider workspaceProvider,
+
+        boolean disableCachingByProperty
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter
+            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter,
+            disableCachingByProperty
         );
         this.workspaceProvider = workspaceProvider;
     }

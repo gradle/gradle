@@ -16,7 +16,7 @@ dependencies {
     api(project(":core"))
     api(project(":core-api"))
     api(project(":files"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":model-core"))
     api(project(":platform-jvm"))
@@ -31,6 +31,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.serviceProvider)
+    implementation(projects.buildOption)
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":hashing"))

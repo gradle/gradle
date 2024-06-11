@@ -38,6 +38,13 @@ configurations {
     docsTestRuntimeClasspath.extendsFrom(integTestDistributionRuntimeOnly)
 }
 
+configurations.docsTestImplementation {
+    // The 'gradlebuild.generate-samples' plugin uses the 'org.gradle.samples' plugin from the old gradle/guides build, which pulls in slf4j-simple, which we don't want.
+    // Because this is done directly by the plugin application logic, we can't use a ComponentMetadataRule to exclude it.
+    // See: https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesDocumentationPlugin.java#L335
+    exclude([group: "org.slf4j", module: "slf4j-simple"])
+}
+
 dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly project(":distributions-full")
@@ -66,10 +73,6 @@ dependencies {
     docsTestImplementation libs.junit
 
     integTestDistributionRuntimeOnly project(":distributions-full")
-}
-
-configurations.docsTestRuntimeClasspath {
-    exclude group: "org.slf4j", module: "slf4j-simple"
 }
 
 asciidoctorj {

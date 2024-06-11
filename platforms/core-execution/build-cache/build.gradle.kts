@@ -18,7 +18,7 @@ dependencies {
 
     api(libs.jsr305)
 
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     implementation(libs.commonsIo)
     api(libs.guava)
     implementation(libs.slf4jApi)

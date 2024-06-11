@@ -28,6 +28,7 @@ class CustomModelStreamingBuildAction<T> implements BuildAction<T> {
         this.value = value;
     }
 
+    @Override
     public T execute(BuildController controller) {
         controller.send(new CustomModel(value));
         return controller.getModel(type);

@@ -25,5 +25,5 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.slf4jApi)
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
 }

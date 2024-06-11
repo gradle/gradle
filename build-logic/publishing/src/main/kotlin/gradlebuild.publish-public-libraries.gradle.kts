@@ -19,20 +19,12 @@ import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
+    id("gradlebuild.publish-defaults")
     id("signing")
     `maven-publish`
 }
 
 configureJavadocVariant()
-
-val artifactoryUrl
-    get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
-
-val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
-
-val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
 
 publishing {
     publications {
@@ -40,18 +32,10 @@ publishing {
             configureGradleModulePublication()
         }
     }
-    repositories {
-        maven {
-            name = "remote"
-            val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
-            url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
-            credentials {
-                username = artifactoryUserName
-                password = artifactoryUserPassword
-            }
-        }
+
+    plugins.withId("gradlebuild.shaded-jar") {
+        publishNormalizedToLocalRepository()
     }
-    configurePublishingTasks()
 }
 
 val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
@@ -95,57 +79,7 @@ fun MavenPublication.configureGradleModulePublication() {
 
     pom {
         packaging = "jar"
-        name = "org.gradle:gradle-${project.name}"
-        description = provider {
-            require(project.description != null) { "You must set the description of published project ${project.name}" }
-            project.description
-        }
-        url = "https://gradle.org"
-        licenses {
-            license {
-                name = "Apache-2.0"
-                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            }
-        }
-        developers {
-            developer {
-                name = "The Gradle team"
-                organization = "Gradle Inc."
-                organizationUrl = "https://gradle.org"
-            }
-        }
-        scm {
-            connection = "scm:git:git://github.com/gradle/gradle.git"
-            developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
-            url = "https://github.com/gradle/gradle"
-        }
-    }
-}
-
-fun Project.configurePublishingTasks() {
-    tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
-        onlyIf { !project.hasProperty("noUpload") }
-        failEarlyIfUrlOrCredentialsAreNotSet(this)
-    }
-
-    plugins.withId("gradlebuild.shaded-jar") {
-        publishNormalizedToLocalRepository()
-    }
-}
-
-fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
-    gradle.taskGraph.whenReady {
-        if (hasTask(publish)) {
-            if (artifactoryUrl.isEmpty()) {
-                throw GradleException("artifactoryUrl is not set!")
-            }
-            if (artifactoryUserName.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserName is not set!")
-            }
-            if (artifactoryUserPassword.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserPassword is not set!")
-            }
-        }
+        name = moduleIdentity.baseName.map { "${project.group}:$it" }
     }
 }
 

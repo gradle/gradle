@@ -7,7 +7,7 @@ plugins {
 description = "Local build cache implementation"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":build-cache"))
     api(project(":build-cache-spi"))
     api(project(":files"))

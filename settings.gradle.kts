@@ -53,6 +53,11 @@ unassigned {
     subproject("distributions-full")
 }
 
+// Public API publishing
+unassigned {
+    subproject("public-api")
+}
+
 // Gradle implementation projects
 unassigned {
     subproject("core")
@@ -90,11 +95,12 @@ val core = platform("core") {
         subproject("gradle-cli-main")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
+        subproject("instrumentation-agent-services")
         subproject("instrumentation-declarations")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
         subproject("io")
-        subproject("java-language-extensions")
+        subproject("stdlib-java-extensions")
         subproject("launcher")
         subproject("logging")
         subproject("logging-api")
@@ -113,10 +119,12 @@ val core = platform("core") {
     module("core-configuration") {
         subproject("api-metadata")
         subproject("base-services-groovy")
+        subproject("bean-serialization-services")
         subproject("configuration-cache")
         subproject("configuration-cache-base")
         subproject("configuration-problems-base")
         subproject("core-kotlin-extensions")
+        subproject("core-serialization-codecs")
         subproject("declarative-dsl-api")
         subproject("declarative-dsl-core")
         subproject("declarative-dsl-evaluator")
@@ -282,6 +290,7 @@ testing {
     subproject("internal-testing")
     subproject("performance")
     subproject("precondition-tester")
+    subproject("public-api-tests")
     subproject("soak")
     subproject("smoke-ide-test") // eventually should be owned by IDEX team
     subproject("smoke-test")

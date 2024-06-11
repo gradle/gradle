@@ -11,7 +11,7 @@ dependencies {
     api(project(":core"))
     api(project(":core-api"))
     api(project(":hashing"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":logging-api"))
     api(project(":messaging"))

@@ -10,7 +10,7 @@ description = """Persistent caches on disk and cross process locking.
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(project(":build-operations"))
     api(project(":files"))

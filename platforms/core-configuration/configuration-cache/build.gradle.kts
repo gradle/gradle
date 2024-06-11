@@ -20,7 +20,7 @@ dependencies {
 
 tasks.processResources {
     from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
-        into("org/gradle/configurationcache/problems")
+        into("org/gradle/internal/cc/impl/problems")
         exclude("META-INF/**")
     }
 }
@@ -31,28 +31,23 @@ tasks.configCacheIntegTest {
 }
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
-    api(projects.serviceProvider)
-    api(projects.configurationProblemsBase)
     api(project(":base-services"))
-    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":build-option"))
+    api(projects.concurrent)
+    api(projects.configurationCacheBase)
+    api(projects.configurationProblemsBase)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))
-    api(project(":file-collections"))
     api(project(":file-temp"))
-    api(projects.graphSerialization)
-    api(project(":logging"))
+    api(projects.stdlibJavaExtensions)
     api(project(":logging-api"))
     api(project(":messaging"))
     api(project(":model-core"))
-    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":native"))
-    api(project(":persistent-cache"))
     api(project(":plugin-use"))
     api(project(":resources"))
+    api(projects.serviceProvider)
     api(project(":snapshots"))
 
     api(libs.groovy)
@@ -60,31 +55,33 @@ dependencies {
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-events"))
-    implementation(project(":build-operations"))
-    implementation(projects.configurationCacheBase)
+    implementation(projects.beanSerializationServices)
+    implementation(projects.buildEvents)
+    implementation(projects.buildOperations)
     implementation(projects.coreKotlinExtensions)
+    implementation(projects.coreSerializationCodecs)
     implementation(projects.dependencyManagementSerializationCodecs)
-    implementation(project(":enterprise-operations"))
-    implementation(project(":execution"))
-    implementation(project(":files"))
-    implementation(project(":file-watching"))
-    implementation(project(":functional"))
+    implementation(projects.enterpriseOperations)
+    implementation(projects.execution)
+    implementation(projects.fileCollections)
+    implementation(projects.fileWatching)
+    implementation(projects.files)
     implementation(projects.flowServices)
+    implementation(projects.functional)
+    implementation(projects.graphSerialization)
     implementation(projects.guavaSerializationCodecs)
-    implementation(project(":hashing"))
-    implementation(project(":input-tracking"))
-    implementation(project(":platform-jvm"))
+    implementation(projects.hashing)
+    implementation(projects.inputTracking)
+    implementation(projects.instrumentationAgentServices)
+    implementation(projects.logging)
+    implementation(projects.persistentCache)
     implementation(projects.problemsApi)
-    implementation(project(":process-services"))
-    implementation(project(":publish"))
+    implementation(projects.processServices)
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
-    implementation(project(":tooling-api"))
+    implementation(projects.toolingApi)
 
-    implementation(libs.asm)
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
     implementation(libs.guava)
@@ -132,5 +129,5 @@ dependencies {
 }
 
 packageCycles {
-    excludePatterns.add("org/gradle/configurationcache/**")
+    excludePatterns.add("org/gradle/internal/cc/**")
 }

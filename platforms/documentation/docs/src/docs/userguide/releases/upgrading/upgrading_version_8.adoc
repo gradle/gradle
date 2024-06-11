@@ -59,6 +59,18 @@ This means it was possible for some projects to compile without any declared dep
 We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
 If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
 
+==== Configuration cache implementation packages now under `org.gradle.internal`
+
+References to Gradle types that are not part of the public API should be avoided, as their direct use is unsupported,
+and Gradle internal implementation classes may suffer breaking changes (or be renamed or removed) from one version to another without warning.
+
+It is important for users to distinguish between the API and internal parts of the Gradle codebase.
+This is typically achieved by including `internal` in the implementation package names.
+However, before this release, the configuration cache subsystem did not follow this pattern, potentially causing confusion.
+
+To address this issue, in the current release, all code originally under the `org.gradle.configurationcache*` packages
+(which was never API) has been moved to new internal packages (`org.gradle.internal.*`).
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
@@ -350,6 +362,15 @@ Replacements that better handle conventions are under consideration for a future
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.21.html[Groovy 3.0.21].
 
 Since the previous version was 3.0.17, the https://groovy-lang.org/changelogs/changelog-3.0.18.html[3.0.18] and https://groovy-lang.org/changelogs/changelog-3.0.19.html[3.0.19], and https://groovy-lang.org/changelogs/changelog-3.0.20.html[3.0.20] changes are also included.
+
+Some changes in static type checking have resulted in source-code incompatibilities. One of these occurs if you were casting a closure to an `Action` without generics. Starting with 3.0.18, this now results in the parameter of the closure being `Object` instead of any explicit type specified. This can be fixed by adding the appropriate type to the cast, and the redundant parameter declaration can be removed:
+```groovy
+// Before
+tasks.create("foo", { Task it -> it.description "Foo task" } as Action)
+
+// Fixed
+tasks.create("foo", { it.description "Foo task" } as Action<Task>)
+```
 
 ==== Upgrade to ASM 9.7
 

@@ -26,7 +26,7 @@ dependencies {
     api(project(":logging-api"))
     api(project(":serialization"))
     api(project(":logging"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
 
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon
     api(project(":core-api"))

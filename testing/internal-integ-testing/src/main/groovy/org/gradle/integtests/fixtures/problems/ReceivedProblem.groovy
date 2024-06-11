@@ -88,6 +88,10 @@ class ReceivedProblem implements Problem {
         definition
     }
 
+    Severity getSeverity() {
+        definition.severity
+    }
+
     // The content of the problem definition is tested in `KnownProblemIds`; in the integration tests we only want to verify if we receive a problem with the expected identifier.
     String getFqid() {
         definition.id.fqid

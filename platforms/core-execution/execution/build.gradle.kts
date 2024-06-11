@@ -10,7 +10,7 @@ dependencies {
     api(libs.slf4jApi)
 
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     compileOnly(libs.errorProneAnnotations)
     api(project(":base-services"))

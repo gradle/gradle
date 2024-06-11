@@ -12,7 +12,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":jvm-services"))
     api(project(":toolchains-jvm-shared"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
 
     implementation(project(":base-services"))
     implementation(project(":logging"))

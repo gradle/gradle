@@ -24,7 +24,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":base-services"))
     api(project(":core-api"))
     api(project(":file-collections"))

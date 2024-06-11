@@ -72,16 +72,23 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
+        boolean hasTransitiveIncomingEdge = false;
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
+            hasTransitiveIncomingEdge |= dependency.isTransitive();
             if (dependency.contributesArtifacts()) {
                 DependencyGraphNode parent = dependency.getFrom();
                 ArtifactsForNode artifacts = resolveVariantArtifacts(dependency, node);
                 artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
             }
         }
-        for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
-            int id = nextId++;
-            artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, artifactTypeRegistry, calculatedValueContainerFactory));
+
+        if (node.isRoot() || hasTransitiveIncomingEdge) {
+            // Since file dependencies are not modeled as actual edges, we need to verify
+            // there are edges to this node that would follow this file dependency.
+            for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
+                int id = nextId++;
+                artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, artifactTypeRegistry, calculatedValueContainerFactory));
+            }
         }
     }
 

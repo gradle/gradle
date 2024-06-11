@@ -31,6 +31,7 @@ class BlockingModelSendingBuildAction implements BuildAction<CustomModel> {
         this.uri = uri;
     }
 
+    @Override
     public CustomModel execute(BuildController controller) {
         System.out.println("ACTION STARTED");
         GradleProject gradleProject = controller.getModel(GradleProject.class);

@@ -33,7 +33,7 @@ dependencies {
     implementation(projects.files)
     implementation(projects.functional)
     implementation(projects.hashing)
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.persistentCache)
     implementation(projects.snapshots)
 
@@ -42,7 +42,6 @@ dependencies {
     implementation(libs.guice)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
-    implementation(libs.slf4jSimple)
 }
 
 application {

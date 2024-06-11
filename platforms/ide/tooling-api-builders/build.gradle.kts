@@ -30,7 +30,7 @@ dependencies {
     api(project(":core"))
     api(project(":daemon-protocol"))
     api(project(":enterprise-operations"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":problems-api"))
     api(project(":service-provider"))
     api(project(":tooling-api"))

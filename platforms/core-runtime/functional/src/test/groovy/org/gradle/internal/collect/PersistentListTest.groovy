@@ -16,6 +16,7 @@
 
 package org.gradle.internal.collect
 
+import com.google.common.collect.ImmutableList
 import spock.lang.Specification
 
 class PersistentListTest extends Specification {
@@ -49,6 +50,19 @@ class PersistentListTest extends Specification {
         then:
         newList == elements
         listOf(elements) == PersistentList.of(*elements)
+
+        where:
+        elements << [
+            [],
+            ["a"],
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"]
+        ]
+    }
+
+    def "iterator iterates the elements #elements"() {
+        expect:
+        ImmutableList.copyOf(listOf(elements)) == elements
 
         where:
         elements << [

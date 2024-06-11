@@ -240,7 +240,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.internal.service.scopes.GradleUserHomeScopeServices
             import org.gradle.workers.WorkParameters
             import org.gradle.workers.WorkAction
-            import org.gradle.internal.agents.AgentStatus
+            import org.gradle.internal.instrumentation.agent.AgentStatus
             import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 
             abstract class WorkerTask extends DefaultTask {

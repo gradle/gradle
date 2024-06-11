@@ -24,7 +24,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)

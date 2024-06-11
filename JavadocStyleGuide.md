@@ -212,7 +212,7 @@ In order to label the coding language used in the multi-line snippet, you can us
  */
 ```
 
-To automatically test your code blocks and multi-line snippets, you must add the `autoTested` class to the <pre> tag.
+To automatically test your code blocks and multi-line snippets, you must add the `autoTested` class to the `<pre>` tag.
 Your project must have a test class that extends [`AbstractAutoTestedSamplesTest`](https://github.com/gradle/gradle/blob/master/testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/AbstractAutoTestedSamplesTest.groovy) to run them:
 
 ```java

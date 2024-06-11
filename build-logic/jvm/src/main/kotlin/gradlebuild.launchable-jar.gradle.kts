@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.configureAsJarClasspath
+import gradlebuild.configureAsRuntimeJarClasspath
 
 plugins {
     java
@@ -29,15 +29,18 @@ interface LaunchableJar {
 
 val app = extensions.create<LaunchableJar>("app")
 
-val manifestClasspath by configurations.creating {
+val manifestClasspath = configurations.dependencyScope("manifestClasspath")
+val resolveManifestClasspath = configurations.resolvable("resolveManifestClasspath") {
     isTransitive = false
-
-    configureAsJarClasspath(objects)
+    extendsFrom(manifestClasspath.get())
+    configureAsRuntimeJarClasspath(objects)
 }
 
 tasks.jar.configure {
-    val classpath = manifestClasspath.elements.map { classpathDependency ->
-        classpathDependency.joinToString(" ") { it.asFile.name }
+    val classpath = resolveManifestClasspath.flatMap { configuration ->
+        configuration.elements.map { classpathDependency ->
+            classpathDependency.joinToString(" ") { it.asFile.name }
+        }
     }
     manifest.attributes("Class-Path" to classpath)
     if (app.mainClassName.isPresent) {

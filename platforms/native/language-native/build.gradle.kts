@@ -27,7 +27,7 @@ dependencies {
     api(project(":file-collections"))
     api(project(":file-temp"))
     api(project(":hashing"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":model-core"))
     api(project(":persistent-cache"))
     api(project(":platform-base"))

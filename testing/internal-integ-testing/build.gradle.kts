@@ -28,7 +28,7 @@ dependencies {
     api(project(":internal-testing")) {
         because("Part of the public API")
     }
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":jvm-services")) {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
@@ -69,7 +69,6 @@ dependencies {
     }
     api(libs.samplesCheck) {
         exclude(module = "groovy-all")
-        exclude(module = "slf4j-simple")
     }
     api(libs.samplesDiscovery)
     api(libs.servletApi)
@@ -93,6 +92,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
+    implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
     implementation(project(":messaging"))
     implementation(project(":model-core"))

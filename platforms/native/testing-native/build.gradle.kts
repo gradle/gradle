@@ -16,7 +16,7 @@ dependencies {
     api(project(":core"))
     api(project(":core-api"))
     api(project(":diagnostics"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":language-native"))
     api(project(":model-core"))
     api(project(":native"))

@@ -60,6 +60,8 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
+    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property ('org.gradle.internal.transform-caching-disabled')");
+
     protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
@@ -81,6 +83,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
+    private final boolean disableCachingByProperty;
 
     private BuildOperationContext operationContext;
 
@@ -89,12 +92,12 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-
         TransformExecutionListener transformExecutionListener,
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter
+        InputFingerprinter inputFingerprinter,
+        boolean disableCachingByProperty
     ) {
         this.transform = transform;
         this.inputArtifact = inputArtifact;
@@ -107,6 +110,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.disableCachingByProperty = disableCachingByProperty;
     }
 
     @Override
@@ -292,8 +296,16 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     @Override
     public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
         return transform.isCacheable()
-            ? Optional.empty()
+            ? maybeDisableCachingByProperty()
             : Optional.of(NOT_CACHEABLE);
+    }
+
+    private Optional<CachingDisabledReason> maybeDisableCachingByProperty() {
+        if (disableCachingByProperty) {
+            return Optional.of(CACHING_DISABLED_REASON);
+        }
+
+        return Optional.empty();
     }
 
     @Override
