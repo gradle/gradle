@@ -36,9 +36,13 @@ dependencies {
     testCompileOnly(libs.jetbrainsAnnotations)
 
     testImplementation(libs.compileTesting)
-    testImplementation(project(":core"))
+    testImplementation(projects.core)
+    testImplementation(testFixtures(projects.core))
     // TODO remove this
     testImplementation(libs.jetbrainsAnnotations)
+    testRuntimeOnly(project(":distributions-core")) {
+        because("Because we use TestUtil")
+    }
 }
 
 tasks.named<Test>("test").configure {

@@ -207,4 +207,79 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
         assertThat(compilation).hadErrorContaining("'org.gradle.test.Task.GetMaxErrorsAdapter.forthMethod()' has no parameters, but it should have at least one of type 'org.gradle.test.Task'.")
         assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.GetMaxErrorsAdapter.fifthMethod(int)' should have first parameter of type 'org.gradle.test.Task', but first parameter is of type 'int'.")
     }
+
+    def "should correctly intercept Java code"() {
+        given:
+        def newTask = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(adapter = Task.GetMaxErrorsAdapter.class)
+                public abstract Property<Integer> getMaxErrors();
+
+                static class GetMaxErrorsAdapter {
+                    @BytecodeUpgrade
+                    static int getMaxErrors(Task task) {
+                        return task.getMaxErrors().getOrElse(0);
+                    }
+
+                    @BytecodeUpgrade
+                    static Task maxErrors(Task task, int maxErrors) {
+                        task.getMaxErrors().set(maxErrors);
+                        return task;
+                    }
+                }
+            }
+        """
+        def oldTask = source """
+            package org.gradle.test;
+
+            public class Task {
+                public int getMaxErrors() {
+                    return 0;
+                }
+                public Task maxErrors(int maxErrors) {
+                    return this;
+                }
+            }
+        """
+        def taskRunner = source """
+            package org.gradle.test;
+
+            import org.gradle.util.TestUtil;
+            import java.lang.Runnable;
+
+            public class TaskRunner implements Runnable {
+                public void run() {
+                    Task task = TestUtil.newInstance(Task.class);
+                    assert task.getMaxErrors() == 0;
+                    assert task.maxErrors(5).getClass().equals(task.getClass());
+                    assert task.getMaxErrors() == 5;
+                }
+            }
+        """
+
+        when:
+        Compilation oldTaskCompilation = compile(oldTask, taskRunner)
+        Compilation newTaskCompilation = compile(newTask)
+
+        then:
+        assertThat(oldTaskCompilation).succeeded()
+        assertThat(newTaskCompilation).succeeded()
+
+        when:
+        Runnable instrumentedTaskRunner = instrumentRunnerJavaClass(
+            "org.gradle.test.TaskRunner",
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject\$Factory",
+            oldTaskCompilation,
+            newTaskCompilation
+        )
+
+        then:
+        instrumentedTaskRunner.run()
+    }
 }
