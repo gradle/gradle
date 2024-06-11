@@ -51,9 +51,9 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
 
     @Override
     public FileType getType() {
-        if (normalizedContentHash == DIR_SIGNATURE) {
+        if (normalizedContentHash.equals(DIR_SIGNATURE)) {
             return FileType.Directory;
-        } else if (normalizedContentHash == MISSING_FILE_SIGNATURE) {
+        } else if (normalizedContentHash.equals(MISSING_FILE_SIGNATURE)) {
             return FileType.Missing;
         } else {
             return FileType.RegularFile;

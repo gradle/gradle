@@ -30,8 +30,6 @@ public interface RootComponentMetadataBuilder {
     interface RootComponentState {
         LocalComponentGraphResolveState getRootComponent();
 
-        String getRootConfigurationName();
-
         VariantGraphResolveState getRootVariant();
     }
 }

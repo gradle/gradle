@@ -13,6 +13,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -27,7 +28,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services-groovy")) {
         because("Required for Specs")
     }

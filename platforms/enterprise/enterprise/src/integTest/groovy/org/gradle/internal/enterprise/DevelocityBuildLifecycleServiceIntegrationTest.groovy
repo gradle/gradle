@@ -17,8 +17,8 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -52,8 +52,8 @@ class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegration
         outputDoesNotContain("Configuring ':included")
     }
 
-    @IgnoreIf(
-        value = { GradleContextualExecuter.isolatedProjects },
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
         reason = "accessing `tasks` from subprojects is in violation of Isolated Projects"
     )
     def "lifecycle applied build logic runs before subprojects configuration logic"() {

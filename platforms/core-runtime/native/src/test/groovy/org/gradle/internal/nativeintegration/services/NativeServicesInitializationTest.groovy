@@ -18,8 +18,11 @@ package org.gradle.internal.nativeintegration.services
 
 import net.rubygrapefruit.platform.Native
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.internal.Cast
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
@@ -34,12 +37,15 @@ class NativeServicesInitializationTest extends Specification {
         // that's guaranteed not to have been initialized before
         URL[] jars = [
             jar(NativeServices),
+            jar(ServiceRegistration),
             jar(ServiceRegistry),
             jar(Native),
             jar(LoggerFactory),
             jar(Chmod),
             jar(TemporaryFileProvider),
-            jar(Inject)
+            jar(Cast),
+            jar(Inject),
+            jar(Stoppable)
         ]
         ClassLoader classLoader = new URLClassLoader(jars, null as ClassLoader)
         Class nativeServicesClass = classLoader.loadClass(NativeServices.getName())

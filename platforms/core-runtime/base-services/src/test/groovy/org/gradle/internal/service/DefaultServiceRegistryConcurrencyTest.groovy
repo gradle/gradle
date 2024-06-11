@@ -22,19 +22,23 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
     def "multiple threads can locate services"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object() {
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             String createString(Integer value) {
                 return value.toString()
             }
 
+            @Provides
             Integer createInteger() {
                 return 12
             }
 
+            @Provides
             Long createLong(BigDecimal value) {
                 return value.longValue()
             }
 
+            @Provides
             BigDecimal createBigDecimal() {
                 return 123
             }
@@ -51,19 +55,23 @@ class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
 
     def "multiple threads can locate factories"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object() {
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             Factory<String> createString(BigDecimal value) {
                 return { value.toString() } as Factory
             }
 
+            @Provides
             Factory<Integer> createInteger(Long value) {
                 return { 12 } as Factory
             }
 
+            @Provides
             Long createLong() {
                 return 2L
             }
 
+            @Provides
             BigDecimal createBigDecimal() {
                 return 123
             }
@@ -80,19 +88,23 @@ class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
 
     def "multiple threads can locate all services"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object() {
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             String createString(Integer value) {
                 return value.toString()
             }
 
+            @Provides
             Integer createInteger() {
                 return 12
             }
 
+            @Provides
             String createOther(BigDecimal value) {
                 return value.toString()
             }
 
+            @Provides
             BigDecimal createBigDecimal() {
                 return 123
             }

@@ -43,6 +43,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
@@ -126,6 +127,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         DomainObjectSet.class,
         DependencyCollector.class
     );
+
+    private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
+        Nested.class,
+        SoftwareType.class
+    );
+
     private static final Object[] NO_PARAMS = new Object[0];
 
     private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
@@ -404,7 +411,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isManagedProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || property.hasAnnotation(Nested.class));
+        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || hasNestedAnnotation(property));
+    }
+
+    private static boolean hasNestedAnnotation(PropertyMetadata property) {
+        return NESTED_ANNOTATION_TYPES.stream().anyMatch(property::hasAnnotation);
     }
 
     private static boolean isEagerAttachProperty(PropertyMetadata property) {
@@ -422,7 +433,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
         // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || hasNestedAnnotation(property));
     }
 
     private static boolean isNameProperty(PropertyMetadata property) {
@@ -445,7 +456,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isAttachableType(MethodMetadata method) {
-        return Provider.class.isAssignableFrom(method.getReturnType()) || method.method.getAnnotation(Nested.class) != null;
+        return Provider.class.isAssignableFrom(method.getReturnType()) || hasNestedAnnotation(method);
+    }
+
+    private static boolean hasNestedAnnotation(MethodMetadata method) {
+        return NESTED_ANNOTATION_TYPES.stream().anyMatch(annotation -> method.method.getAnnotation(annotation) != null);
     }
 
     private boolean isRoleType(PropertyMetadata property) {
@@ -762,6 +777,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ClassGenerationHandler {
+         // used in subclasses
         void startType(Class<?> type) {
         }
 
@@ -1182,8 +1198,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // For ConfigurableFileCollection we generate setters just for readonly properties,
             // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).
             // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between these two cases in setFromAnyValue method.
-            if (property.isReadable() && hasPropertyType(property) ||
-                property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+            if ((property.isReadable() && hasPropertyType(property)) ||
+                (property.isReadOnly() && isConfigurableFileCollectionType(property.getType()))) {
                 lazyGroovySupportTyped.add(property);
             }
         }

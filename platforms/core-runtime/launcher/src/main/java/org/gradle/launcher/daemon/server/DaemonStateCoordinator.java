@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -83,7 +84,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         condition.signalAll();
     }
 
-    boolean awaitStop() {
+    DaemonStopState awaitStop() {
         lock.lock();
         try {
             while (true) {
@@ -96,7 +97,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                             break;
                         case Canceled:
                             LOGGER.debug("cancel requested.");
-                            cancelNow();
+                            DaemonStopState state = cancelNow();
+                            if (state != null) {
+                                // Could not cancel cleanly, so stop
+                                return state;
+                            }
+                            // Else, cancelled cleanly, so keep doing work
                             break;
                         case Broken:
                             throw new IllegalStateException("This daemon is in a broken state.");
@@ -106,7 +112,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                             break;
                         case Stopped:
                             LOGGER.debug("daemon has stopped.");
-                            return true;
+                            return DaemonStopState.Clean;
+                        case ForceStopped:
+                            LOGGER.debug("daemon has been force stopped.");
+                            return DaemonStopState.Forced;
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -119,19 +128,19 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     @Override
     public void requestStop(String reason) {
-        if (!(state == State.StopRequested || state == State.Stopped)) {
-            LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
-            lock.lock();
-            try {
+        lock.lock();
+        try {
+            if (state != State.StopRequested && state != State.Stopped && state != State.ForceStopped) {
+                LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
                 if (state == State.Busy) {
-                    LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", state == State.Busy);
+                    LOGGER.debug("Stop as soon as idle requested. The daemon is busy");
                     beginStopping();
                 } else {
                     stopNow(reason);
                 }
-            } finally {
-                lock.unlock();
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -158,15 +167,21 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         try {
             switch (state) {
                 case Idle:
+                    LOGGER.debug("Marking daemon stopped due to {}. The daemon is not running a build", reason);
+                    stopReason = reason;
+                    setState(State.Stopped);
+                    break;
                 case Busy:
                 case Canceled:
                 case Broken:
                 case StopRequested:
-                    LOGGER.debug("Marking daemon stopped due to {}. The daemon is running a build: {}", reason, state == State.Busy);
+                    LOGGER.debug("Marking daemon stopped due to {}. The daemon is running a build", reason);
                     stopReason = reason;
-                    setState(State.Stopped);
+                    setState(State.ForceStopped);
                     break;
                 case Stopped:
+                case ForceStopped:
+                    // Already stopped
                     break;
                 default:
                     throw new IllegalStateException("Daemon is in unexpected state: " + state);
@@ -186,6 +201,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 break;
             case StopRequested:
             case Stopped:
+            case ForceStopped:
                 break;
             default:
                 throw new IllegalStateException("Daemon is in unexpected state: " + state);
@@ -222,11 +238,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
         lock.lock();
         try {
-            while(true) {
+            while (true) {
                 try {
                     switch (state) {
                         case Idle:
                         case Stopped:
+                        case ForceStopped:
                             return;
                         case Busy:
                         case Canceled:
@@ -245,7 +262,11 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    private void cancelNow() {
+    /**
+     * @return null if the current build could be cancelled cleanly, otherwise the result of stopping the daemon
+     */
+    @Nullable
+    private DaemonStopState cancelNow() {
         CountdownTimer timer = Time.startCountdownTimer(cancelTimeoutMs);
 
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
@@ -262,7 +283,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     switch (state) {
                         case Idle:
                             LOGGER.debug("Cancel: daemon is idle now.");
-                            return;
+                            return null;
                         case Busy:
                         case Canceled:
                         case StopRequested:
@@ -273,7 +294,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                             throw new IllegalStateException("This daemon is in a broken state.");
                         case Stopped:
                             LOGGER.debug("Cancel: daemon has stopped.");
-                            return;
+                            return DaemonStopState.Clean;
+                        case ForceStopped:
+                            LOGGER.debug("Cancel: daemon has been force stopped.");
+                            return DaemonStopState.Forced;
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -281,6 +305,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             }
             LOGGER.debug("Cancel: daemon is still busy after grace period. Will force stop.");
             stopNow("cancel requested but timed out");
+            return DaemonStopState.Forced;
         } finally {
             lock.unlock();
         }
@@ -290,15 +315,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void runCommand(final Runnable command, String commandDisplayName) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName);
         try {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        command.run();
-                        onCommandSuccessful();
-                    } catch (Throwable t) {
-                        onCommandFailed(t);
-                    }
+            executor.execute(() -> {
+                try {
+                    command.run();
+                    onCommandSuccessful();
+                } catch (Throwable t) {
+                    onCommandFailed(t);
                 }
             });
             waitForCommandCompletion();
@@ -326,6 +348,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             }
             switch (state) {
                 case Stopped:
+                case ForceStopped:
                     throw new DaemonStoppedException(stopReason);
                 case Broken:
                     throw new DaemonUnavailableException("This daemon is broken and will stop.");
@@ -366,10 +389,13 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 case StopRequested:
                     throw new DaemonUnavailableException("This daemon is currently stopping.");
                 case Stopped:
+                case ForceStopped:
                     throw new DaemonUnavailableException("This daemon has stopped.");
                 case Busy:
                 case Canceled:
                     throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
+                case Idle:
+                    break;
             }
 
             LOGGER.debug("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
@@ -411,9 +437,11 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     }
                     break;
                 case StopRequested:
+                    setState(State.Idle);
                     stopNow("command completed and stop requested");
                     break;
                 case Stopped:
+                case ForceStopped:
                     break;
                 default:
                     throw new IllegalStateException("Daemon is in unexpected state: " + state);
@@ -431,7 +459,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private double getIdleMinutes() {
         lock.lock();
         try {
-            return idleTimer.getElapsedMillis() / 1000 / 60;
+            return idleTimer.getElapsedMillis() / 1000.0 / 60.0;
         } finally {
             lock.unlock();
         }

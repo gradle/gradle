@@ -51,6 +51,7 @@ import javax.annotation.Nullable;
  * This class is thread-safe, though it only tracks pending exceptions per-thread.
  */
 public class TransformErrorHandler {
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ClassNotFoundException> lastError = new ThreadLocal<ClassNotFoundException>();
     private final String classLoaderName;
 

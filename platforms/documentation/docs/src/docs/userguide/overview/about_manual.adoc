@@ -27,7 +27,7 @@ Information on Gradle releases and how to install Gradle is found on the <<insta
 
 The Gradle User Manual is broken down into the following sections:
 
-<<command_line_interface.adoc#command_line_interface,Running Gradle Builds>> :: Learn Gradle basics and how to use Gradle to build your project.
+<<getting_started_eng.adoc#introduction,Running Gradle Builds>> :: Learn Gradle basics and how to use Gradle to build your project.
 <<build_lifecycle.adoc#build_lifecycle,Authoring Gradle Builds>> :: Develop tasks and plugins to customize your build.
 <<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>> :: Use Gradle with your Java project.
 <<dependency_management_terminology.adoc#dependency_management_terminology,Working with Dependencies>> :: Add dependencies to your build.

@@ -16,67 +16,12 @@
 
 package org.gradle.internal.declarativedsl.project
 
-
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
 
 class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
-
-    def 'can apply plugins in declarative DSL'() {
-        file("build.gradle.something") << """
-            plugins {
-                id("java")
-            }
-        """
-
-        when:
-        run("compileJava")
-
-        then:
-        succeeds()
-    }
-
-    def 'can declare dependencies on other projects with #kind notation'() {
-        given:
-        file("settings.gradle.something") << """
-            rootProject.name = "test"
-            include(":a")
-            include(":b")
-
-            $settingsFlags
-        """
-
-        file("a/build.gradle.something") << """
-            plugins {
-                id("java")
-            }
-        """
-
-        file("b/build.gradle.something") << """
-            plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation($dependency)
-                api($dependency)
-                compileOnly($dependency)
-                runtimeOnly($dependency)
-                testImplementation($dependency)
-                testCompileOnly($dependency)
-            }
-        """
-
-        when:
-        run(":b:compileJava")
-
-        then:
-        executed(":a:compileJava", ":b:compileJava")
-
-        where:
-        kind        | dependency        | settingsFlags
-        "string"    | "project(\":a\")" | ""
-        "type-safe" | "projects.a"      | "enableFeaturePreview(\"TYPESAFE_PROJECT_ACCESSORS\")\n"
-    }
 
     def 'schema is written during project files interpretation with declarative DSL'() {
         given:
@@ -84,31 +29,22 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             include(":sub")
         """)
 
-        file("build.gradle.something") << """
-        plugins {
-        }
-        """
+        file("build.gradle.dcl") << ""
 
-        file("sub/build.gradle.something") << """
-        plugins {
-        }
-        """
+        file("sub/build.gradle.dcl") << ""
 
         when:
         run(":help")
 
         then:
         [
-            file(".gradle/restricted-schema/plugins.something.schema"),
-            file(".gradle/restricted-schema/project.something.schema"),
-            file("sub/.gradle/restricted-schema/plugins.something.schema"),
-            file("sub/.gradle/restricted-schema/project.something.schema")
+            file(".gradle/declarative-schema/project.dcl.schema"),
         ].every { it.isFile() && it.text != "" }
     }
 
     def 'can configure a custom plugin extension in declarative DSL for a plugin written in #language'() {
         given:
-        file("buildSrc/build.gradle.kts") << """
+        file("build-logic/build.gradle.kts") << """
             plugins {
                 `java-gradle-plugin`
                 ${if (language == "kotlin") { "`kotlin-dsl`" } else { "" }}
@@ -120,13 +56,18 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
                         id = "com.example.restricted"
                         implementationClass = "com.example.restricted.RestrictedPlugin"
                     }
+                    create("softwareTypeRegistrator") {
+                        id = "com.example.restricted.ecosystem"
+                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
+                    }
                 }
             }
         """
 
         file(extensionFile) << extensionCode
 
-        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
             package com.example.restricted;
 
             import org.gradle.api.DefaultTask;
@@ -134,20 +75,22 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import ${SoftwareType.class.name};
 
-            public class RestrictedPlugin implements Plugin<Project> {
+            public abstract class RestrictedPlugin implements Plugin<Project> {
+                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
+                public abstract Extension getRestricted();
+
                 @Override
                 public void apply(Project target) {
-                    Extension restricted = target.getExtensions().create("restricted", Extension.class);
-
                     target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
-                        Property<Extension.Point> referencePoint = restricted.getReferencePoint();
-                        Extension.Access acc = restricted.getPrimaryAccess();
-                        ListProperty<Extension.Access> secondaryAccess = restricted.getSecondaryAccess();
+                        Property<Extension.Point> referencePoint = getRestricted().getReferencePoint();
+                        Extension.Access acc = getRestricted().getPrimaryAccess();
+                        ListProperty<Extension.Access> secondaryAccess = getRestricted().getSecondaryAccess();
 
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + restricted.getId().get());
-                            Extension.Point point = referencePoint.getOrElse(restricted.point(-1, -1));
+                            System.out.println("id = " + getRestricted().getId().get());
+                            Extension.Point point = referencePoint.getOrElse(getRestricted().point(-1, -1));
                             System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
                             System.out.println("primaryAccess = { " +
                                     acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
@@ -164,11 +107,16 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             }
         """
 
-        file("build.gradle.something") << """
-            plugins {
-                id("com.example.restricted")
+        file("settings.gradle.dcl") << """
+            pluginManagement {
+                includeBuild("build-logic")
             }
+            plugins {
+                id("com.example.restricted.ecosystem")
+            }
+        """
 
+        file("build.gradle.dcl") << """
             restricted {
                 id = "test"
 
@@ -210,8 +158,8 @@ secondaryAccess { three, true, true}"""
         "kotlin" | KOTLIN_PLUGIN_EXTENSION_FILENAME | KOTLIN_PLUGIN_EXTENSION
     }
 
-    private static final JAVA_PLUGIN_EXTENSION_FILENAME = "buildSrc/src/main/java/com/example/restricted/Extension.java"
-    private static final KOTLIN_PLUGIN_EXTENSION_FILENAME = "buildSrc/src/main/kotlin/com/example/restricted/Extension.kt"
+    private static final JAVA_PLUGIN_EXTENSION_FILENAME = "build-logic/src/main/java/com/example/restricted/Extension.java"
+    private static final KOTLIN_PLUGIN_EXTENSION_FILENAME = "build-logic/src/main/kotlin/com/example/restricted/Extension.kt"
 
     @Language("java")
     private static final JAVA_PLUGIN_EXTENSION = """
@@ -380,16 +328,9 @@ secondaryAccess { three, true, true}"""
         }
     """
 
-    def 'reports #kind errors in project file #part'() {
+    def 'reports #kind errors in project file'() {
         given:
-        file("build.gradle.something") << """
-        plugins {
-            id("java")
-            $pluginsCode
-        }
-
-        $bodyCode
-        """
+        file("build.gradle.dcl") << bodyCode
 
         when:
         def failure = fails(":help")
@@ -398,12 +339,29 @@ secondaryAccess { three, true, true}"""
         failure.assertHasErrorOutput(expectedMessage)
 
         where:
-        kind               | part          | pluginsCode              | bodyCode              | expectedMessage
-        "syntax"           | "plugins DSL" | "..."                    | ""                    | "3:13: parsing error: Expecting an element"
-        "language feature" | "plugins DSL" | "@A id(\"application\")" | ""                    | "3:13: unsupported language feature: AnnotationUsage"
-        "semantic"         | "plugins DSL" | "x = 1"                  | ""                    | "3:13: unresolved reference 'x'"
-        "syntax"           | "body"        | ""                       | "..."                 | "4:9: parsing error: Expecting an element"
-        "language feature" | "body"        | ""                       | "@A dependencies { }" | "4:9: unsupported language feature: AnnotationUsage"
-        "semantic"         | "body"        | ""                       | "x = 1"               | "4:9: unresolved reference 'x'"
+        kind               | bodyCode              | expectedMessage
+        "syntax"           | "..."                 | "1:1: parsing error: Expecting an element"
+        "language feature" | "@A dependencies { }" | "1:1: unsupported language feature: AnnotationUsage"
+        "semantic"         | "x = 1"               | "1:1: unresolved reference 'x'"
+    }
+
+    private String defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin() {
+        return """
+        package com.example.restricted;
+
+        import org.gradle.api.DefaultTask;
+        import org.gradle.api.Plugin;
+        import org.gradle.api.initialization.Settings;
+        import org.gradle.api.internal.SettingsInternal;
+        import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+        import ${RegistersSoftwareTypes.class.name};
+
+        @RegistersSoftwareTypes({ RestrictedPlugin.class })
+        abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+            @Override
+            public void apply(Settings target) {
+            }
+        }
+        """
     }
 }

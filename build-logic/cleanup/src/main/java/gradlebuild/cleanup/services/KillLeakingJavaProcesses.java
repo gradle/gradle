@@ -102,7 +102,7 @@ public class KillLeakingJavaProcesses {
 
         cleanPsOutputAndThreaddumpFilesFromPreviousRun(rootProjectDir);
 
-        List<String> psOutput = ps(rootProjectDir);
+        List<String> psOutput = ps();
 
         writePsOutputToFile(rootProjectDir, psOutput);
 
@@ -161,7 +161,7 @@ public class KillLeakingJavaProcesses {
 
     static void forEachLeakingJavaProcess(File rootProjectDir, BiConsumer<String, String> action) {
         Pattern commandLineArgsPattern = Pattern.compile(generateLeakingProcessKillPattern(rootProjectDir.getPath()));
-        forEachJavaProcess(ps(rootProjectDir), commandLineArgsPattern, action);
+        forEachJavaProcess(ps(), commandLineArgsPattern, action);
     }
 
     private static void forEachJavaProcess(List<String> psOutput, Pattern commandLineArgsPattern, BiConsumer<String, String> action) {
@@ -179,7 +179,7 @@ public class KillLeakingJavaProcesses {
         });
     }
 
-    private static List<String> ps(File rootProjectDir) {
+    private static List<String> ps() {
         return run(determinePsCommand()).assertZeroExit().stdout.lines().collect(Collectors.toList());
     }
 

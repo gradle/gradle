@@ -40,10 +40,8 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
     protected Result runClientAction(ClientAction action, BuildTreeLifecycleController buildController) {
         ActionAdapter adapter = new ActionAdapter(action, payloadSerializer);
         try {
-            ActionResults actionResults = buildController.fromBuildModel(action.isRunTasks(), adapter);
-            // The result may have been cached and the actions not executed; push the results to the client if required
-            adapter.maybeApplyResult(actionResults);
-            return Result.of(action.getResult());
+            SerializedPayload result = buildController.fromBuildModel(action.isRunTasks(), adapter);
+            return Result.of(result);
         } catch (RuntimeException e) {
             RuntimeException clientFailure = e;
             if (adapter.actionFailure != null) {
@@ -68,26 +66,10 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         boolean isRunTasks();
     }
 
-    private static class ActionResults {
-        @Nullable
-        final SerializedPayload projectsLoadedResult;
-
-        @Nullable
-        final SerializedPayload buildFinishedResult;
-
-        ActionResults(@Nullable SerializedPayload projectsLoadedResult, @Nullable SerializedPayload buildFinishedResult) {
-            this.projectsLoadedResult = projectsLoadedResult;
-            this.buildFinishedResult = buildFinishedResult;
-        }
-    }
-
-    private class ActionAdapter implements BuildTreeModelAction<ActionResults> {
+    private class ActionAdapter implements BuildTreeModelAction<SerializedPayload> {
         private final ClientAction clientAction;
         private final PayloadSerializer payloadSerializer;
-        SerializedPayload projectsEvaluatedResult;
-        SerializedPayload buildFinishedResult;
         RuntimeException actionFailure;
-        boolean executed;
 
         ActionAdapter(ClientAction clientAction, PayloadSerializer payloadSerializer) {
             this.clientAction = clientAction;
@@ -96,48 +78,37 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
 
         @Override
         public void beforeTasks(BuildTreeModelController controller) {
-            projectsEvaluatedResult = runAction(controller, clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
+            runAction(controller, clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
         }
 
         @Override
-        public ActionResults fromBuildModel(BuildTreeModelController controller) {
-            buildFinishedResult = runAction(controller, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
-            executed = true;
-            return new ActionResults(projectsEvaluatedResult, buildFinishedResult);
+        public SerializedPayload fromBuildModel(BuildTreeModelController controller) {
+            runAction(controller, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
+            return clientAction.getResult();
         }
 
-        public void maybeApplyResult(ActionResults actionResults) {
-            if (executed) {
+        private void runAction(BuildTreeModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
+            if (action == null || actionFailure != null) {
                 return;
             }
-            // Using a cached result
-            if (actionResults.projectsLoadedResult != null) {
-                clientAction.collectActionResult(actionResults.projectsLoadedResult, PhasedActionResult.Phase.PROJECTS_LOADED);
-            }
-            if (actionResults.buildFinishedResult != null) {
-                clientAction.collectActionResult(actionResults.buildFinishedResult, PhasedActionResult.Phase.BUILD_FINISHED);
-            }
-        }
 
-        @SuppressWarnings("deprecation")
-        private SerializedPayload runAction(BuildTreeModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
-            if (action == null || actionFailure != null) {
-                return null;
-            }
             DefaultBuildController internalBuildController = buildControllerFactory.controllerFor(controller);
             try {
-                Object result;
-                if (action instanceof InternalBuildActionVersion2<?>) {
-                    result = ((InternalBuildActionVersion2) action).execute(internalBuildController);
-                } else {
-                    result = ((org.gradle.tooling.internal.protocol.InternalBuildAction) action).execute(internalBuildController);
-                }
+                Object result = executeAction(action, internalBuildController);
                 SerializedPayload serializedResult = payloadSerializer.serialize(result);
                 clientAction.collectActionResult(serializedResult, phase);
-                return serializedResult;
             } catch (RuntimeException e) {
                 actionFailure = e;
                 throw e;
+            }
+        }
+
+        @SuppressWarnings({"rawtypes", "deprecation"})
+        private Object executeAction(Object action, DefaultBuildController internalBuildController) {
+            if (action instanceof InternalBuildActionVersion2<?>) {
+                return ((InternalBuildActionVersion2) action).execute(internalBuildController);
+            } else {
+                return ((org.gradle.tooling.internal.protocol.InternalBuildAction) action).execute(internalBuildController);
             }
         }
     }

@@ -23,7 +23,7 @@ description = "Plugin used to package a project as a distribution."
 dependencies {
     api(libs.inject)
 
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))

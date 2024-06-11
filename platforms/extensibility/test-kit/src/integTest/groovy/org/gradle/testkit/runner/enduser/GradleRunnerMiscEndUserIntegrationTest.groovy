@@ -64,9 +64,11 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 || f.name.contains("commons-io")
                 || f.name.contains("guava")
                 || f.name.contains("gradle-base-services")
+                || f.name.contains("gradle-java-language-extensions")
                 || f.name.contains("gradle-file-temp")
                 || f.name.contains("gradle-tooling-api")
                 || f.name.contains("gradle-core")
+                || f.name.contains("gradle-build-process-services")
             ) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }

@@ -43,6 +43,7 @@ abstract class ValueSourceBasedSpec extends Specification {
         TestUtil.instantiatorFactory(),
         isolatableFactory,
         Mock(GradleProperties),
+        TestUtil.calculatedValueContainerFactory(),
         execOperations,
         TestUtil.services()
     )

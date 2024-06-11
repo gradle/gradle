@@ -24,7 +24,7 @@ class GradleBuildCrossVersionTestConfigurationCacheSmokeTest extends AbstractGra
         given:
         def tasks = [
             ':configuration-cache:embeddedCrossVersionTest',
-            '--tests=org.gradle.configurationcache.ConfigurationCacheCrossVersionTest'
+            '--tests=org.gradle.internal.cc.impl.ConfigurationCacheCrossVersionTest'
         ]
 
         when:

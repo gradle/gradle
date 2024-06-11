@@ -17,8 +17,12 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.internal.time.Time
+import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.util.GradleVersion
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
 
@@ -26,7 +30,7 @@ class TestableDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
     private final DaemonRegistryStateProbe registryProbe
 
-    TestableDaemon(File daemonLog, DaemonRegistry registry, GradleVersion version) {
+    TestableDaemon(DaemonLogFile daemonLog, DaemonRegistry registry, GradleVersion version) {
         super(daemonLog, version)
         this.logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
         this.registryProbe = new DaemonRegistryStateProbe(registry, context)
@@ -70,16 +74,18 @@ Current registry state is ${lastRegistryState} and current log state is ${lastLo
         registryProbe.resetToken()
     }
 
-    String getLog() {
-        return logFileProbe.log
-    }
-
     @Override
-    File getLogFile() {
-        return logFileProbe.logFile
-    }
-
     int getPort() {
-        return logFileProbe.port
+        Pattern pattern = Pattern.compile("^.*" + DaemonMessages.ADVERTISING_DAEMON + ".*port:(\\d+).*",
+            Pattern.MULTILINE + Pattern.DOTALL);
+
+        Matcher matcher = pattern.matcher(daemonLog.text);
+        assert matcher.matches(): "Unable to find daemon address in the daemon log. Daemon: $context"
+
+        try {
+            return Integer.parseInt(matcher.group(1))
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Unexpected format of the port number found in the daemon log. Daemon: $context")
+        }
     }
 }

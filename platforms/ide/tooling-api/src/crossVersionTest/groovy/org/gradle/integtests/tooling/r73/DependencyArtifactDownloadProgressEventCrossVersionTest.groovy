@@ -242,7 +242,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operation("Download ${modules.projectB.artifact.uri}")
     }
 
-    @ToolingApiVersion(">=3.5 <7.3")
+    @ToolingApiVersion(">=7.0 <7.3")
     def "generates generic events for older tooling api clients"() {
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
 

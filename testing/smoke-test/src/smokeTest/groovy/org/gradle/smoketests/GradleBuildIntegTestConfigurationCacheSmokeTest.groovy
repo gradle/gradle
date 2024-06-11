@@ -23,7 +23,7 @@ class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         given: "tasks whose configuration can only be loaded in the original daemon"
         def supportedTasks = [
             ":configuration-cache:embeddedIntegTest",
-            "--tests=org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
+            "--tests=org.gradle.internal.cc.impl.ConfigurationCacheDebugLogIntegrationTest"
         ]
 
         when:
@@ -41,6 +41,6 @@ class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         then:
         result.assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.FROM_CACHE
-        assertTestClassExecutedIn "platforms/core-configuration/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
+        assertTestClassExecutedIn "platforms/core-configuration/configuration-cache", "org.gradle.internal.cc.impl.ConfigurationCacheDebugLogIntegrationTest"
     }
 }

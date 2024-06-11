@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -34,13 +33,13 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
 
     public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
-        Transformer<RuntimeException, RuntimeException> exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
+        CancellationExceptionTransformer exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
         modelProducer = createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
         actionRunner = new CancellableActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
-    private ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+    private ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, CancellationExceptionTransformer exceptionTransformer) {
         return new PluginClasspathInjectionSupportedCheckModelProducer(
                 new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer),
                 getVersionDetails()

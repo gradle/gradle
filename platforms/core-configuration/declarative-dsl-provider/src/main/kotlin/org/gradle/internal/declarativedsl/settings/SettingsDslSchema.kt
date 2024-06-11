@@ -19,55 +19,65 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.plus
-import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.plugins.isTopLevelPluginsBlock
-import org.gradle.internal.declarativedsl.project.ThirdPartyExtensionsComponent
-import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun settingsInterpretationSequence(
     settings: SettingsInternal,
     targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource
+    scriptSource: ScriptSource,
+    softwareTypeRegistry: SoftwareTypeRegistry
 ): InterpretationSequence =
-    InterpretationSequence(
+    DefaultInterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStep("settingsPluginManagement", settings) { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", settings, targetScope, scriptSource) { it.services },
-            SimpleInterpretationSequenceStep("settings", settings) { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
+            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
+            conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
+            SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
         )
     )
 
 
 internal
-fun pluginManagementEvaluationSchema(): EvaluationSchema =
-    buildEvaluationSchema(Settings::class, gradleDslGeneralSchemaComponent(), isTopLevelPluginManagementBlock)
+fun pluginManagementEvaluationSchema(): EvaluationAndConversionSchema =
+    buildEvaluationAndConversionSchema(
+        Settings::class,
+        isTopLevelPluginManagementBlock,
+        schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema
+    )
 
 
+/** TODO: Instead of [SettingsInternal], this should rely on the public API of [Settings];
+ *  missing single-arg [Settings.include] (or missing vararg support) prevents this from happening,
+ *  and we use the [SettingsInternal.include] single-argument workaround for now. */
 internal
-fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
-    val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
-        /** TODO: Instead of [SettingsInternal], this should rely on the public API of [Settings];
-         *  missing single-arg [Settings.include] (or missing vararg support) prevents this from happening,
-         *  and we use the [SettingsInternal.include] single-argument workaround for now. */
-        ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension")
-
-    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
-}
+fun settingsEvaluationSchema(settings: Settings): EvaluationAndConversionSchema =
+    buildEvaluationAndConversionSchema(
+        SettingsInternal::class,
+        ignoreTopLevelPluginsPluginManagementAndConventions
+    ) {
+        gradleDslGeneralSchema()
+        thirdPartyExtensions(SettingsInternal::class, settings)
+    }
 
 
 private
@@ -79,4 +89,8 @@ val isTopLevelPluginManagementBlock = isTopLevelElement.implies(isPluginManageme
 
 
 private
-val ignoreTopLevelPluginsAndPluginManagement = isTopLevelElement.implies(isPluginManagementCall.not().and(isTopLevelPluginsBlock.not()))
+val ignoreTopLevelPluginsPluginManagementAndConventions = isTopLevelElement.implies(
+    isPluginManagementCall.not()
+        .and(isTopLevelPluginsBlock.not())
+        .and(isConventionsConfiguringCall.not())
+)

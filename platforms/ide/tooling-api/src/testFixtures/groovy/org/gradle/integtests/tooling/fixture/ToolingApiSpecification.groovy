@@ -59,10 +59,13 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  *     <li>{@link ToolingApiVersion} - specifies the tooling API consumer versions that the test is compatible with.
  *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
+ *
+ * The supported ranges for the tooling API versions and for the target Gradle versions are documented in the Gradle user guide.
+ * For up-to-date information, check the 'Compatibility of Java and Gradle versions` section of the 'Third-party Tools' chapter.
+ * The parameters of the @ToolingApiVersion and the @TargetGradleVersion annotations on this class should always match with the documentation.
  */
 @ToolingApiTest
 @CleanupTestDirectory
-// The lowest tested version should be the first release of the previous major.
 @ToolingApiVersion('>=7.0')
 @TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)

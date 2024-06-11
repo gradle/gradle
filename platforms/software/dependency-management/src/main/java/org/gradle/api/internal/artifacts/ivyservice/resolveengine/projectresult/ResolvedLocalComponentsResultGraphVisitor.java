@@ -70,7 +70,7 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
             // This check is here for historical reasons, as removing it would be a breaking change.
             // We should just leave this here, since this observation mechanism is being replaced anyway.
             if (projectComponentId.getBuild().equals(thisBuild)) {
-                resolvedProjectConfigurations.add(new ResolvedProjectConfiguration(projectComponentId.getIdentityPath(), node.getResolvedConfigurationId().getConfiguration()));
+                resolvedProjectConfigurations.add(new ResolvedProjectConfiguration(projectComponentId.getIdentityPath(), node.getMetadata().getName()));
             }
         }
     }

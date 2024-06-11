@@ -22,4 +22,6 @@ public interface ForkingJavaCompileSpec {
 
     File getJavaHome();
 
+    int getJavaLanguageVersion();
+
 }

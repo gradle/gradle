@@ -36,7 +36,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         DefaultPluginManager.CORE_PLUGIN_PREFIX + getPluginName()
     }
 
-    String getMainTask() {
+    def getMainTask() {
         return "assemble"
     }
 
@@ -51,7 +51,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])
-    def "can apply plugin unqualified"() {
+    void "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
 

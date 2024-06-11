@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.BuildRequestContext
+import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext
 import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.console.GlobalUserInputReceiver
@@ -26,6 +26,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.daemon.protocol.Build
 import org.gradle.launcher.daemon.protocol.BuildStarted
 import org.gradle.launcher.daemon.protocol.Cancel
@@ -47,13 +48,13 @@ class DaemonClientTest extends ConcurrentSpecification {
     final def idGenerator = new UUIDGenerator()
     final ProcessEnvironment processEnvironment = Mock()
     final GlobalUserInputReceiver userInput = Stub()
-    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, executorFactory, idGenerator, processEnvironment)
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, idGenerator, processEnvironment)
 
     def "executes action"() {
         def resultMessage = Stub(BuildActionResult)
 
         when:
-        def result = client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        def result = client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         result == resultMessage
@@ -72,7 +73,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         RuntimeException e = thrown()
@@ -90,7 +91,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
     def "fails with an exception when build is cancelled and daemon is forcefully stopped"() {
         def cancellationToken = Mock(BuildCancellationToken)
-        def buildRequestContext = Stub(BuildRequestContext) {
+        def buildRequestContext = Stub(ClientBuildRequestContext) {
             getCancellationToken() >> cancellationToken
         }
 
@@ -123,7 +124,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -140,7 +141,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -159,7 +160,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -172,6 +173,28 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * connection._
     }
 
+    def "reports daemon disappeared when result is null and cannot write further message to connection"() {
+        def parameters = Stub(BuildActionParameters)
+        parameters.currentDir >> new File(".")
+
+        when:
+        client.execute(Stub(BuildAction), parameters, Stub(ClientBuildRequestContext))
+
+        then:
+        thrown(DaemonDisappearedException)
+
+        and:
+        connector.connect(compatibilitySpec) >> connection
+        _ * connection.daemon >> Stub(DaemonConnectDetails)
+        1 * connection.dispatch({ it instanceof Build })
+        1 * connection.receive() >> new BuildStarted(new DaemonDiagnostics(new File("log"), 123L))
+        1 * connection.receive() >> null
+        1 * connection.markSuspect()
+        1 * connection.dispatch({ it instanceof CloseInput })
+        1 * connection.stop()
+        0 * connection._
+    }
+
     def "does not loop forever finding usable daemons"() {
         given:
         connector.connect(compatibilitySpec) >> connection
@@ -180,7 +203,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         connection.receive() >> Mock(DaemonUnavailable)
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         thrown(NoUsableDaemonFoundException)
@@ -198,7 +221,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         connection2.receive() >> Mock(DaemonUnavailable)
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(BuildRequestContext))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters), Stub(ClientBuildRequestContext))
 
         then:
         1 * connection.stop()

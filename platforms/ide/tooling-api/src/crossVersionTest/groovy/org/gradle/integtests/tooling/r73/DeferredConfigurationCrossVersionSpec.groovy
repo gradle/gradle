@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @TargetGradleVersion(">=7.3")
 class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
@@ -44,7 +43,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertNotOutput(prefix)
     }
 
-    @ToolingApiVersion(">=4.8")
     def "does not configure build when phased action does not query any models"() {
         setupBuild()
 
@@ -88,7 +86,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertNotOutput(rootProjectMessage)
     }
 
-    @ToolingApiVersion(">=4.8")
     def "runs settings scripts and does not configure projects when phased action queries GradleProject model"() {
         setupBuild()
 
@@ -133,7 +130,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertOutputContains(rootProjectMessage)
     }
 
-    @ToolingApiVersion(">=4.8")
     def "configures projects when phased action queries some other model"() {
         setupBuild()
 

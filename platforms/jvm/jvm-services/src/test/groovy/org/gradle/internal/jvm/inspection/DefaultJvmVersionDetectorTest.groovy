@@ -38,17 +38,17 @@ class DefaultJvmVersionDetectorTest extends Specification {
 
     def "can determine version of current jvm"() {
         expect:
-        detector.getJavaVersionMajor(Jvm.current()) == Integer.parseInt(JavaVersion.current().majorVersion)
+        detector.getJavaVersionMajor(Jvm.current()) == JavaVersion.current().majorVersionNumber
     }
 
     def "can determine version of java command for current jvm"() {
         expect:
-        detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path) == Integer.parseInt(JavaVersion.current().majorVersion)
+        detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path) == JavaVersion.current().majorVersionNumber
     }
 
     def "can determine version of java command without file extension"() {
         expect:
-        detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path.replace(".exe", "")) == Integer.parseInt(JavaVersion.current().majorVersion)
+        detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path.replace(".exe", "")) == JavaVersion.current().majorVersionNumber
     }
 
     def "fails for unknown java command"() {

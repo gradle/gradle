@@ -27,6 +27,8 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -34,9 +36,16 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
@@ -59,6 +68,9 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected abstract SoftwareTypeRegistry getSoftwareTypeRegistry();
+
     /**
      * Report model.
      *
@@ -68,6 +80,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     public static final class ProjectReportModel {
         private final ProjectDetails project;
         private final List<ProjectReportModel> children;
+        private final List<SoftwareTypeImplementation<?>> softwareTypes;
         private final boolean isRootProject;
         private final String tasksTaskPath;
         private final String rootProjectProjectsTaskPath;
@@ -76,6 +89,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         private ProjectReportModel(
             ProjectDetails project,
             List<ProjectReportModel> children,
+            List<SoftwareTypeImplementation<?>> softwareTypes,
             boolean isRootProject,
             String tasksTaskPath,
             String rootProjectProjectsTaskPath,
@@ -83,10 +97,21 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         ) {
             this.project = project;
             this.children = children;
+            this.softwareTypes = softwareTypes;
             this.isRootProject = isRootProject;
             this.tasksTaskPath = tasksTaskPath;
             this.rootProjectProjectsTaskPath = rootProjectProjectsTaskPath;
             this.includedBuildIdentityPaths = includedBuildIdentityPaths;
+        }
+
+        /**
+         * Investigates this project and all it's children to return the combined set
+         * of all {@link SoftwareTypeImplementation}s registered by plugins used by them.
+         */
+        private Set<SoftwareTypeImplementation<?>> getAllSoftwareTypes() {
+            Set<SoftwareTypeImplementation<?>> allSoftwareTypes = new HashSet<>(softwareTypes);
+            children.forEach(p -> allSoftwareTypes.addAll(p.getAllSoftwareTypes()));
+            return allSoftwareTypes;
         }
     }
 
@@ -95,11 +120,23 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         return new ProjectReportModel(
             ProjectDetails.of(project),
             calculateChildrenProjectsFor(project),
+            getSoftwareTypesForProject(project),
             project == project.getRootProject(),
             project.absoluteProjectPath(ProjectInternal.TASKS_TASK),
             project.getRootProject().absoluteProjectPath(ProjectInternal.PROJECTS_TASK),
             calculateIncludedBuildIdentityPaths()
         );
+    }
+
+    private List<SoftwareTypeImplementation<?>> getSoftwareTypesForProject(Project project) {
+        List<SoftwareTypeImplementation<?>> results = new ArrayList<>(1);
+        getSoftwareTypeRegistry().getSoftwareTypeImplementations().forEach(registeredType -> {
+            Class<?> softwareType = registeredType.getModelPublicType();
+            if (project.getExtensions().findByType(softwareType) != null) {
+                results.add(registeredType);
+            }
+        });
+        return results;
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
@@ -121,10 +158,43 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     @Override
+    protected void generateReportHeaderFor(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
+        renderSoftwareTypeInfo(modelsByProjectDetails);
+        renderSectionTitle("Projects");
+    }
+
+    private void renderSectionTitle(String sectionName) {
+        StyledTextOutput styledTextOutput = getRenderer().getTextOutput();
+        styledTextOutput.println();
+        styledTextOutput.withStyle(Header).append(sectionName).append(":");
+        styledTextOutput.println();
+    }
+
+    @Override
     protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
         renderProjectTree(model);
         renderIncludedBuilds(model);
-        renderHelp(project, model);
+        renderHelp(model);
+    }
+
+    private void renderSoftwareTypeInfo(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
+        List<SoftwareTypeImplementation<?>> softwareTypes = modelsByProjectDetails.values().stream()
+            .flatMap(model -> model.getAllSoftwareTypes().stream())
+            .sorted(Comparator.comparing(SoftwareTypeImplementation::getSoftwareType))
+            .collect(Collectors.toList());
+
+        StyledTextOutput styledTextOutput = getRenderer().getTextOutput();
+        if (!softwareTypes.isEmpty()) {
+            renderSectionTitle("Available software types");
+            styledTextOutput.println();
+
+            softwareTypes.forEach(type -> {
+                styledTextOutput.withStyle(Identifier).text(type.getSoftwareType());
+                styledTextOutput.append(" (").append(type.getModelPublicType().getName()).append(")").println();
+                styledTextOutput.append("        ").append("Defined in: ").append(type.getPluginClass().getName()).println();
+                styledTextOutput.append("        ").append("Registered by: ").append(type.getRegisteringPluginClass().getName()).println();
+            });
+        }
     }
 
     private void renderProjectTree(ProjectReportModel model) {
@@ -144,16 +214,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     ) {
         renderer.visit(styledTextOutput -> {
             styledTextOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
-            String projectDescription = model.project.getDescription();
-            if (projectDescription != null && !projectDescription.isEmpty()) {
-                String description = projectDescription.trim();
-                int newlineInDescription = description.indexOf('\n');
-                if (newlineInDescription > 0) {
-                    textOutput.withStyle(Description).text(" - " + description.substring(0, newlineInDescription) + "...");
-                } else {
-                    textOutput.withStyle(Description).text(" - " + description);
-                }
-            }
+            renderProjectType(model, textOutput);
+            renderProjectDescription(model, textOutput);
         }, lastChild);
         renderer.startChildren();
         for (ProjectReportModel child : model.children) {
@@ -162,14 +224,33 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         renderer.completeChildren();
     }
 
+    private void renderProjectType(ProjectReportModel model, StyledTextOutput textOutput) {
+        if (!model.softwareTypes.isEmpty()) {
+            assert model.softwareTypes.size() == 1;
+            textOutput.append(" (").append(model.softwareTypes.get(0).getSoftwareType()).append(")");
+        }
+    }
+
+    private void renderProjectDescription(ProjectReportModel model, StyledTextOutput textOutput) {
+        String projectDescription = model.project.getDescription();
+        if (projectDescription != null && !projectDescription.isEmpty()) {
+            String description = projectDescription.trim();
+            int newlineInDescription = description.indexOf('\n');
+            if (newlineInDescription > 0) {
+                textOutput.withStyle(Description).text(" - " + description.substring(0, newlineInDescription) + "...");
+            } else {
+                textOutput.withStyle(Description).text(" - " + description);
+            }
+        }
+    }
+
     private void renderIncludedBuilds(ProjectReportModel model) {
         StyledTextOutput textOutput = getRenderer().getTextOutput();
         if (model.isRootProject) {
             int index = 0;
             if (!model.includedBuildIdentityPaths.isEmpty()) {
                 GraphRenderer renderer = new GraphRenderer(textOutput);
-                textOutput.println();
-                textOutput.text("Included builds");
+                renderSectionTitle("Included builds");
                 textOutput.println();
                 renderer.startChildren();
                 for (Path includedBuildIdentityPath : model.includedBuildIdentityPaths) {
@@ -184,7 +265,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         }
     }
 
-    private void renderHelp(ProjectDetails project, ProjectReportModel model) {
+    private void renderHelp(ProjectReportModel model) {
         BuildClientMetaData metaData = getClientMetaData();
         StyledTextOutput textOutput = getRenderer().getTextOutput();
 

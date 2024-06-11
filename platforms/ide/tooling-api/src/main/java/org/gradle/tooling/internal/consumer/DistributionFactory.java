@@ -215,7 +215,7 @@ public class DistributionFactory {
         @Override
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
-            return registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
+            return registry.getModule("gradle-tooling-api-provider").getAllRequiredModulesClasspath();
         }
     }
 }

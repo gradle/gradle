@@ -25,17 +25,9 @@ description = """Problem SPI implementations.
 
 dependencies {
     api(project(":problems-api"))
-
-    implementation(libs.guava)
-    implementation(libs.inject)
-
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":enterprise-operations")) {
-        because("ExecuteTaskBuildOperationType is used in the problem reporting infrastructure")
-    }
+    api(project(":build-operations"))
+    api(project(":java-language-extensions"))
+    api(project(":service-provider"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))

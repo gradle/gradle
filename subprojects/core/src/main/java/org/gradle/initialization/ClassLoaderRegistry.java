@@ -16,7 +16,10 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface ClassLoaderRegistry {
     /**
      * Returns the root class loader shared by all builds. This class loader exposes the Gradle API and APIs for the built-in plugins.

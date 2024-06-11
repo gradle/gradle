@@ -29,7 +29,6 @@ import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
-import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
 @ToolingApiVersion(">=8.7")
@@ -52,7 +51,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
-    @TargetGradleVersion(">=8.6") //  8.5 sends problem events via InternalProblemDetails but we ignore it in BuildProgressListenerAdapter
+    @TargetGradleVersion(">=8.6 <8.9") //  8.5 sends problem events via InternalProblemDetails but we ignore it in BuildProgressListenerAdapter
     def "Failing executions produce problems"() {
         setup:
         buildFile """
@@ -82,7 +81,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 2
     }
 
-    @TargetGradleVersion(">=8.5")
+    @TargetGradleVersion(">=8.5 <8.9")
     @ToolingApiVersion("=8.7")
     def "Problems expose details via Tooling API events with failure"() {
         given:
@@ -103,9 +102,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask().collect{ it.descriptor }
 
         then:
-        assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
-        def location = problems[0].locations[1]
-        problems[0].failure == null
+        problems.size() == 0
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -137,6 +134,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
+    @ToolingApiVersion(">=8.7 <8.9")
     @TargetGradleVersion("=8.7")
     def "Can serialize groovy compilation error"() {
         buildFile """
@@ -167,6 +165,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].category.category == 'compilation'
     }
 
+    @ToolingApiVersion(">=8.7 <8.9")
     @TargetGradleVersion("=8.6")
     def "8.6 version doesn't send failure"() {
         buildFile """

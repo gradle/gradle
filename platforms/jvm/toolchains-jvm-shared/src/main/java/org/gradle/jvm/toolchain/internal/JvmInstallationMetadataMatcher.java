@@ -25,7 +25,6 @@ import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import java.util.function.Predicate;
 
-@SuppressWarnings("UnnecessaryLambda")
 public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallationMetadata> {
     private final JavaLanguageVersion languageVersion;
     private final DefaultJvmVendorSpec vendorSpec;
@@ -43,7 +42,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
 
     @Override
     public boolean test(JvmInstallationMetadata metadata) {
-        Predicate<JvmInstallationMetadata> predicate = languagePredicate().and(vendorPredicate()).and(implementationPredicate());
+        Predicate<JvmInstallationMetadata> predicate = languagePredicate().and(vendorPredicate()).and(this::implementationTest);
         return predicate.test(metadata);
     }
 
@@ -51,18 +50,6 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
         return metadata -> {
             JavaLanguageVersion actualVersion = JavaToolchain.getJavaLanguageVersion(metadata);
             return actualVersion.equals(languageVersion);
-        };
-    }
-
-    private Predicate<? super JvmInstallationMetadata> implementationPredicate() {
-        return metadata -> {
-            if (jvmImplementation == JvmImplementation.VENDOR_SPECIFIC) {
-                return true;
-            }
-
-            final boolean j9Requested = isJ9ExplicitlyRequested() || isJ9RequestedViaVendor();
-            final boolean isJ9Vm = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
-            return j9Requested == isJ9Vm;
         };
     }
 
@@ -78,4 +65,13 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
         return vendorSpec;
     }
 
+    private boolean implementationTest(JvmInstallationMetadata metadata) {
+        if (jvmImplementation == JvmImplementation.VENDOR_SPECIFIC) {
+            return true;
+        }
+
+        final boolean j9Requested = isJ9ExplicitlyRequested() || isJ9RequestedViaVendor();
+        final boolean isJ9Vm = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
+        return j9Requested == isJ9Vm;
+    }
 }

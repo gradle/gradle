@@ -16,6 +16,7 @@
 
 package org.gradle.internal.properties.annotations;
 
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,8 @@ public interface TypeMetadata {
     boolean hasAnnotatedProperties();
 
     PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
+
+    TypeAnnotationMetadata getTypeAnnotationMetadata();
 
     /**
      * Returns the type this {@link TypeMetadata} belongs to.

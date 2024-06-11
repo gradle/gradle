@@ -20,12 +20,13 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -80,7 +81,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
         immutableAttributesFactory,
-        Stub(ResolveExceptionContextualizer),
+        Stub(ResolveExceptionMapper),
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),

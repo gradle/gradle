@@ -20,14 +20,12 @@ import org.gradle.api.Action
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.util.GradleVersion
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
 

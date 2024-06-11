@@ -19,7 +19,7 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 
 import javax.annotation.Nonnull;
@@ -39,7 +39,7 @@ public class GradleEnterprisePluginAutoApplicationListener implements PluginRequ
 
     @Override
     public void pluginApplied(@Nonnull PluginRequestInternal pluginRequest) {
-        if (pluginRequest.getOrigin() == AUTO_APPLIED && AutoAppliedGradleEnterprisePlugin.ID.equals(pluginRequest.getId())) {
+        if (pluginRequest.getOrigin() == AUTO_APPLIED && AutoAppliedDevelocityPlugin.ID.equals(pluginRequest.getId())) {
             status.markAsAutoApplied();
         }
     }

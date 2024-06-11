@@ -16,22 +16,23 @@
 
 package org.gradle.jvm.toolchain
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmVendor
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJvmInstallationMetadata
-import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.TOOLCHAIN_WITH_VERSION
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.JAVA_VERSION
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.TOOLCHAIN_WITH_VERSION
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.multiUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
+@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
 
     static JdkRepository jdkRepository
@@ -63,8 +64,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         settingsFile << settingsForBuildWithSubprojects(singleUrlResolverCode(uri))
 
         def jdkMetadata = getJvmInstallationMetadata(jdkRepository.getJdk())
-        setupSubproject("subproject1", "Foo", jdkMetadata.vendor)
-        setupSubproject("subproject2", "Bar", jdkMetadata.vendor)
+        setupSubproject("subproject1", "Foo", jdkMetadata)
+        setupSubproject("subproject2", "Bar", jdkMetadata)
 
         when:
         result = executer
@@ -75,7 +76,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         !result.plainTextOutput.matches("(?s).*The existing installation will be replaced by the new download.*")
     }
 
-    @Requires(IntegTestPreconditions.Jdk17FromMultipleVendors)
+    @Requires(IntegTestPreconditions.DifferentJdksFromMultipleVendors)
     def "multiple subprojects with different toolchain definitions"() {
         given:
         def otherJdk = getJdkWithDifferentVendor()
@@ -86,9 +87,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         settingsFile << settingsForBuildWithSubprojects(multiUrlResolverCode(uri, otherUri))
 
         def jdkMetadata = getJvmInstallationMetadata(jdkRepository.getJdk())
-        setupSubproject("subproject1", "Foo", jdkMetadata.vendor)
+        setupSubproject("subproject1", "Foo", jdkMetadata)
         def otherJdkMetadata = getJvmInstallationMetadata(otherJdk)
-        setupSubproject("subproject2", "Bar", otherJdkMetadata.vendor)
+        setupSubproject("subproject2", "Bar", otherJdkMetadata)
 
         when:
         result = executer
@@ -98,15 +99,16 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
 
         then:
-        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${jdkMetadata.javaHome.fileName}.*")
-        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${otherJdkMetadata.javaHome.fileName}.*")
+        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${DefaultJdkCacheDirectory.getInstallFolderName(jdkMetadata)}.*")
+        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${DefaultJdkCacheDirectory.getInstallFolderName(otherJdkMetadata)}.*")
         otherJdkRepository.stop()
     }
 
     private Jvm getJdkWithDifferentVendor() {
         def jdkMetadata = getJvmInstallationMetadata(jdkRepository.getJdk())
-        def filterForOtherJdk = metadata -> jdkRepository.getJdk().getJavaHome() != metadata.javaHome &&
-            JAVA_VERSION == metadata.languageVersion && metadata.vendor.rawVendor != jdkMetadata.vendor.rawVendor
+        def filterForOtherJdk = (JvmInstallationMetadata metadata) -> !AvailableJavaHomes.isCurrentJavaHome(metadata) &&
+            jdkRepository.getJdk().getJavaHome().toPath().toAbsolutePath() != metadata.javaHome.toAbsolutePath() &&
+            metadata.vendor.rawVendor != jdkMetadata.vendor.rawVendor
         AvailableJavaHomes.getAvailableJdks(filterForOtherJdk).stream().findFirst().orElseThrow()
     }
 
@@ -121,7 +123,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         """
     }
 
-    private void setupSubproject(String subprojectName, String className, JvmVendor vendor) {
+    private void setupSubproject(String subprojectName, String className, JvmInstallationMetadata metadata) {
         file("${subprojectName}/build.gradle") << """
             plugins {
                 id 'java'
@@ -129,8 +131,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
-                    vendor = JvmVendorSpec.matching("${vendor.rawVendor}")
+                    languageVersion = JavaLanguageVersion.of(${metadata.languageVersion.majorVersion})
+                    vendor = JvmVendorSpec.matching("${metadata.vendor.rawVendor}")
                 }
             }
         """

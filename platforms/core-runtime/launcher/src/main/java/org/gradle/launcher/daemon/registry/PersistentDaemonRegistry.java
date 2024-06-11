@@ -128,8 +128,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     @Override
     public void remove(final Address address) {
         lock.lock();
-        LOGGER.debug("Removing daemon address: {}", address);
         try {
+            LOGGER.debug("Removing daemon address: {}", address);
             cache.update(new ObjectHolder.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
@@ -148,8 +148,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     @Override
     public void markState(final Address address, final State state) {
         lock.lock();
-        LOGGER.debug("Marking busy by address: {}", address);
         try {
+            LOGGER.debug("Marking busy by address: {}", address);
             cache.update(new ObjectHolder.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
@@ -168,8 +168,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     @Override
     public void storeStopEvent(final DaemonStopEvent stopEvent) {
         lock.lock();
-        LOGGER.debug("Storing daemon stop event with timestamp {}", stopEvent.getTimestamp().getTime());
         try {
+            LOGGER.debug("Storing daemon stop event with timestamp {}", stopEvent.getTimestamp().getTime());
             cache.update(new ObjectHolder.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent content) {
@@ -188,8 +188,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     @Override
     public List<DaemonStopEvent> getStopEvents() {
         lock.lock();
-        LOGGER.debug("Getting daemon stop events");
         try {
+            LOGGER.debug("Getting daemon stop events");
             DaemonRegistryContent content = cache.get();
             if (content == null) { // no daemon process has started yet
                 return new LinkedList<DaemonStopEvent>();
@@ -203,8 +203,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     @Override
     public void removeStopEvents(final Collection<DaemonStopEvent> events) {
         lock.lock();
-        LOGGER.info("Removing {} daemon stop events from registry", events.size());
         try {
+            LOGGER.info("Removing {} daemon stop events from registry", events.size());
             cache.update(new ObjectHolder.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent content) {
@@ -227,8 +227,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         final State state = info.getState();
 
         lock.lock();
-        LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {
+            LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
             cache.update(new ObjectHolder.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {

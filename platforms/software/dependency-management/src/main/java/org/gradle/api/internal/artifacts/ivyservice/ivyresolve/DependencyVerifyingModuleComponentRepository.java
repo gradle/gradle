@@ -36,8 +36,8 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
@@ -126,17 +126,18 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, tmp);
             AtomicBoolean ignore = new AtomicBoolean();
             if (hasUsableResult(tmp)) {
-                tmp.getMetaData().getSources().withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
+                ModuleSources sources = tmp.getMetaData().prepareForArtifactResolution().getArtifactMetadata().getSources();
+                sources.withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
                     ModuleComponentArtifactIdentifier artifact = metadataFileSource.getArtifactId();
                     if (isExternalArtifactId(artifact)) {
-                        tmp.getMetaData().getSources().withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
+                        sources.withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
                             if (hashSource.isPresent()) {
                                 boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
                                     if (artifactFile != null && artifactFile.exists()) {
                                         // it's possible that the file is null if it has been removed from the cache for example
-                                        Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(tmp.getMetaData().getSources(), artifact);
+                                        Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
                                         operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
                                     } else {
                                         ignore.set(true);
@@ -200,7 +201,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             delegate.resolveArtifactsWithType(component, artifactType, result);
         }
 

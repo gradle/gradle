@@ -19,12 +19,15 @@ package org.gradle.launcher.daemon.client;
 import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.bootstrap.DaemonStartupCommunication;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 
 import java.util.List;
 
+@ServiceScope(Scope.Global.class)
 public class DaemonGreeter {
     private final DocumentationRegistry documentationRegistry;
 

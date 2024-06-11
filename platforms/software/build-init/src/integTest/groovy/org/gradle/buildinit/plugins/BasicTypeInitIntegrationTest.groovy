@@ -76,7 +76,7 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
         when:
         def gitignoreFile = targetDir.file(".gitignore")
         gitignoreFile << "*.class${System.lineSeparator()}existingIgnores"
-        run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id)
+        run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         gitignoreFile.file

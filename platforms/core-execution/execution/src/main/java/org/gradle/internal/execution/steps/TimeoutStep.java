@@ -56,6 +56,7 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
         }
     }
 
+    @SuppressWarnings("Finally")
     private R executeWithTimeout(UnitOfWork work, C context, Duration timeout) {
         Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout, work, currentBuildOperationRef.get());
         try {

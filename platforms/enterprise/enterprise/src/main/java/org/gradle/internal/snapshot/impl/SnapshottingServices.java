@@ -17,9 +17,9 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class SnapshottingServices extends AbstractPluginServiceRegistry {
+public class SnapshottingServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {

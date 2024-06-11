@@ -32,6 +32,8 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     DependencyGraphSelector getSelector();
 
+    boolean isTransitive();
+
     ExcludeSpec getExclusions();
 
     boolean contributesArtifacts();

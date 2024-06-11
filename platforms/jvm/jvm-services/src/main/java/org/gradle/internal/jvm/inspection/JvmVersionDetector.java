@@ -17,10 +17,13 @@
 package org.gradle.internal.jvm.inspection;
 
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Probes a JVM installation to determine the Java version it provides.
  */
+@ServiceScope(Scope.Global.class)
 public interface JvmVersionDetector {
     /**
      * Probes the Java version for the given JVM installation.

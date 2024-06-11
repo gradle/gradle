@@ -85,7 +85,7 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
     }
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
-    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
+    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
@@ -174,7 +174,16 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
         setUpAgentIfNeeded(testType, executer)
+        disableIfNeeded(testType, executer)
     }
+
+
+internal
+fun IntegrationTest.disableIfNeeded(testType: TestType, executer: String) {
+    if (testType == TestType.INTEGRATION && executer == "isolatedProjects") {
+        isEnabled = false
+    }
+}
 
 
 private

@@ -16,20 +16,28 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.internal.Either;
+import org.gradle.util.internal.TextUtil;
+
+import java.util.List;
 
 public class SelectOptionPromptEvent extends PromptOutputEvent {
-    private final int optionCount;
+    private final String question;
+    private final List<String> options;
     private final int defaultOption;
 
-    public SelectOptionPromptEvent(long timestamp, String prompt, int optionCount, int defaultOption) {
-        super(timestamp, prompt, true);
-        this.optionCount = optionCount;
+    public SelectOptionPromptEvent(long timestamp, String question, List<String> options, int defaultOption) {
+        super(timestamp);
+        this.question = question;
+        this.options = options;
         this.defaultOption = defaultOption;
     }
 
-    public int getOptionCount() {
-        return optionCount;
+    public String getQuestion() {
+        return question;
+    }
+
+    public List<String> getOptions() {
+        return options;
     }
 
     public int getDefaultOption() {
@@ -37,17 +45,38 @@ public class SelectOptionPromptEvent extends PromptOutputEvent {
     }
 
     @Override
-    public Either<Integer, String> convert(String text) {
+    public String getPrompt() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(":");
+        builder.append(TextUtil.getPlatformLineSeparator());
+        for (int i = 0; i < options.size(); i++) {
+            builder.append("  ");
+            builder.append(i + 1);
+            builder.append(": ");
+            builder.append(options.get(i));
+            builder.append(TextUtil.getPlatformLineSeparator());
+        }
+        builder.append("Enter selection (default: ");
+        builder.append(options.get(defaultOption));
+        builder.append(") [1..");
+        builder.append(options.size());
+        builder.append("] ");
+        return builder.toString();
+    }
+
+    @Override
+    public PromptResult<Integer> convert(String text) {
         if (text.isEmpty()) {
-            return Either.left(defaultOption);
+            return PromptResult.response(defaultOption);
         }
         String trimmed = text.trim();
         if (trimmed.matches("\\d+")) {
             int value = Integer.parseInt(trimmed);
-            if (value > 0 && value <= optionCount) {
-                return Either.left(value);
+            if (value > 0 && value <= options.size()) {
+                return PromptResult.response(value - 1);
             }
         }
-        return Either.right("Please enter a value between 1 and " + optionCount + ": ");
+        return PromptResult.newPrompt("Please enter a value between 1 and " + options.size() + ": ");
     }
 }

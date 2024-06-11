@@ -15,8 +15,6 @@ errorprone {
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 2 occurrences
-        "StringSplitter", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
         "UnusedTypeParameter", // 1 occurrences
@@ -25,27 +23,37 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":diagnostics"))
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":diagnostics"))
+    api(project(":file-collections"))
+    api(project(":files"))
+    api(project(":hashing"))
+    api(project(":java-language-extensions"))
+    api(project(":logging"))
+    api(project(":model-core"))
+    api(project(":native"))
+    api(project(":platform-base"))
+    api(project(":workers"))
 
-    implementation(libs.nativePlatform)
-    implementation(libs.groovy)
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
+    api(libs.jsr305)
+    api(libs.inject)
+    api(libs.nativePlatform)
+    api(libs.slf4jApi)
+
+    implementation(project(":enterprise-logging"))
+    implementation(projects.io)
+    implementation(project(":logging-api"))
+    implementation(project(":process-services"))
+
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.snakeyaml)
     implementation(libs.gson)
-    implementation(libs.inject)
+    implementation(libs.guava)
+    implementation(libs.snakeyaml)
 
     testFixturesApi(project(":resources"))
     testFixturesApi(testFixtures(project(":ide")))

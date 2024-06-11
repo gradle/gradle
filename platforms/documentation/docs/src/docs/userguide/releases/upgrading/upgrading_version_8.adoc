@@ -35,6 +35,42 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.9]]
+== Upgrading from 8.8 and earlier
+
+=== Potential breaking changes
+
+==== Change to toolchain provisioning
+In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**. This could lead to strange behavior with the toolchain. In Gradle 8.9, the toolchain is now fully provisioned before the marker file is written. However, in order to not detect potentially broken toolchains, a different marker file (`.ready`) is used. This means that all of your existing toolchains will be re-provisioned the first time you use them with Gradle 8.9. Gradle 8.9 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned. This means that if you go back to an older version of Gradle, a 8.9-provisioned toolchain will **not** be re-provisioned.
+
+==== Upgrade to Kotlin 1.9.23
+
+The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
+
+==== Change the encoding of daemon log files
+In previous versions of Gradle, the daemon log file, located at `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`, was encoded with the default JVM encoding.
+To prevent clients that may use different default encoding from reading data incorrectly, this file is now always encoded with UTF-8.
+This change may affect third-party tools trying to read this file.
+
+==== Compiling against Gradle implementation classpath
+
+In previous versions of Gradle, it was possible for Java projects that had no declared dependencies to implicitly compile against Gradle's runtime classes.
+This means it was possible for some projects to compile without any declared dependencies even though they referenced Gradle runtime classes.
+We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
+If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
+
+==== Configuration cache implementation packages now under `org.gradle.internal`
+
+References to Gradle types that are not part of the public API should be avoided, as their direct use is unsupported,
+and Gradle internal implementation classes may suffer breaking changes (or be renamed or removed) from one version to another without warning.
+
+It is important for users to distinguish between the API and internal parts of the Gradle codebase.
+This is typically achieved by including `internal` in the implementation package names.
+However, before this release, the configuration cache subsystem did not follow this pattern, potentially causing confusion.
+
+To address this issue, in the current release, all code originally under the `org.gradle.configurationcache*` packages
+(which was never API) has been moved to new internal packages (`org.gradle.internal.*`).
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 

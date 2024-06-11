@@ -22,9 +22,9 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
-import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.testDistributionEnabled
@@ -198,6 +198,10 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
+        // Required by JdkTools and JdkJavaCompiler
+        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"))
+        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"))
+
         if (isUnitTest() || usesEmbeddedExecuter()) {
             jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
         } else {
@@ -250,15 +254,12 @@ fun configureTests() {
 
         configureJvmForTest()
         addOsAsInputs()
+        configureRerun()
 
         if (BuildEnvironment.isCiServer) {
-            configureRerun()
             develocity.testRetry {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures = determineMaxFailures()
-            }
-            doFirst {
-                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
             }
         }
 

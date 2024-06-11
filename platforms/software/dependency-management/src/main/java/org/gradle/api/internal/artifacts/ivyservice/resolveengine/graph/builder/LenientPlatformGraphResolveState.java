@@ -32,7 +32,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
+import org.gradle.internal.component.model.DefaultExternalComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LenientPlatformGraphResolveState extends DefaultComponentGraphResolveState<LenientPlatformResolveMetadata, LenientPlatformResolveMetadata> {
+public class LenientPlatformGraphResolveState extends DefaultExternalComponentGraphResolveState<LenientPlatformResolveMetadata, LenientPlatformResolveMetadata> {
     private final ComponentIdGenerator componentIdGenerator;
     private final ResolveState resolveState;
 

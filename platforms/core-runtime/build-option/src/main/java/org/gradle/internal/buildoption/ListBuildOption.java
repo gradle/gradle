@@ -44,7 +44,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandL
 
         if (value != null) {
             String[] splitValues = value.split("\\s*,\\s*");
-            applyTo(Arrays.asList(splitValues), settings, propertyOrigin.toOrigin(property));
+            applyTo(Arrays.asList(splitValues), settings, Origin.forGradleProperty(property));
         }
     }
 

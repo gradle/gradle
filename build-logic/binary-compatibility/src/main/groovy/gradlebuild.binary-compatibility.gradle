@@ -47,8 +47,15 @@ repositories {
     }
 }
 
-def apiChangesJsonFile = layout.projectDirectory.file("src/changes/accepted-public-api-changes.json")
-def acceptedViolations = AcceptedApiChanges.parse(providers.fileContents(apiChangesJsonFile).asText.get())
+// We support multiple accepted public api changes JSON files, but "accepted-public-api-changes.json"
+// is the "main" one that is also shown in HTML report
+def apiChangesJsonDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")
+def mainApiChangesJsonFile = apiChangesJsonDirectory.file("accepted-public-api-changes.json")
+def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonDirectory.asFile.listFiles()
+    .findAll { it.name.endsWith(".json") }
+    .collect { providers.fileContents(apiChangesJsonDirectory.file(it.name)).asText.get() }
+)
+
 def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -111,10 +118,6 @@ dependencies {
     dependencies.registerTransform(FindGradleJars) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
-        parameters {
-            currentJars.from(currentDistroJars)
-            currentVersion.set(baseVersion)
-        }
     }
 }
 
@@ -155,12 +158,12 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         it.destinationDir = file("$buildDir/reports/binary-compatibility")
         it.reportName = "report.html"
         it.description = """
-            <p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
+            <p>See the <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">documentation</a> for more details.</p>
             <p>
             We check the binary compatibility by comparing the current code’s binary interfaces
             against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH (from `released-version.json` on this branch)
             AND LOWER THAN CURRENT BASE VERSION (from `version.txt` on this branch).
-            The difference must identically match <a href="${apiChangesJsonFile.asFile.path}">accepted-public-api-changes.json</a>, no more, no less - otherwise the task will fail.
+            The difference must identically match <a href="${mainApiChangesJsonFile.asFile.path}">accepted-public-api-changes.json</a> like .json file in <a href="${apiChangesJsonDirectory.asFile.path}">accepted-changes</a> directory, no more, no less - otherwise the task will fail.
             </p>
             ${writeFilterPreset(project)}
 """.stripIndent()
@@ -173,7 +176,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         acceptedViolations,
         apiSourceFolders,
         baseVersion.get(),
-        apiChangesJsonFile.asFile,
+        mainApiChangesJsonFile.asFile,
         rootProject.layout.projectDirectory,
         currentUpgradedPropertiesFile.get().asFile,
         baselineUpgradedPropertiesFile.get().asFile
@@ -183,7 +186,7 @@ tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
 tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
     description = 'Cleans up all existing accepted API changes.'
-    jsonFile = apiChangesJsonFile.asFile
+    jsonFileDirectory = apiChangesJsonDirectory
 }
 
 static List<String> toPatterns(List<String> packages) {

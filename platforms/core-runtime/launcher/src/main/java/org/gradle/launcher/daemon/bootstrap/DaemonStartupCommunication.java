@@ -43,6 +43,7 @@ public class DaemonStartupCommunication {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
+    @SuppressWarnings("DefaultCharset")
     public void printDaemonStarted(PrintStream target, Long pid, String uid, Address address, File daemonLog) {
 
         // Encode as ascii
@@ -68,6 +69,7 @@ public class DaemonStartupCommunication {
         //btw. the ibm vm+winXP also has some issues detecting closed streams by the child but we handle this problem differently.
     }
 
+    @SuppressWarnings("DefaultCharset")
     public DaemonStartupInfo readDiagnostics(String message) {
         //Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
         if (!message.startsWith(daemonGreeting())) {

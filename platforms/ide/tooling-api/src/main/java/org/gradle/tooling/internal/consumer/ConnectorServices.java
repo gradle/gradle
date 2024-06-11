@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.tooling.CancellationTokenSource;
@@ -57,8 +58,8 @@ public class ConnectorServices {
         singletonRegistry = new ConnectorServiceRegistry();
     }
 
-    @SuppressWarnings("UnusedMethod")
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
+        @Provides
         protected Factory<DefaultGradleConnector> createConnectorFactory(final ConnectionFactory connectionFactory, final DistributionFactory distributionFactory) {
             return new Factory<DefaultGradleConnector>() {
                 @Override
@@ -68,34 +69,42 @@ public class ConnectorServices {
             };
         }
 
+        @Provides
         protected ExecutorFactory createExecutorFactory() {
             return new DefaultExecutorFactory();
         }
 
+        @Provides
         protected ExecutorServiceFactory createExecutorServiceFactory() {
             return new DefaultExecutorServiceFactory();
         }
 
+        @Provides
         protected Clock createTimeProvider() {
             return Time.clock();
         }
 
+        @Provides
         protected DistributionFactory createDistributionFactory(Clock clock) {
             return new DistributionFactory(clock);
         }
 
+        @Provides
         protected ToolingImplementationLoader createToolingImplementationLoader() {
             return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
+        @Provides
         protected BuildOperationIdFactory createBuildOperationIdFactory() {
             return new DefaultBuildOperationIdFactory();
         }
 
+        @Provides
         protected LoggingProvider createLoggingProvider(Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
             return new SynchronizedLogging(clock, buildOperationIdFactory);
         }
 
+        @Provides
         protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
             return new ConnectionFactory(toolingImplementationLoader, executorFactory, loggingProvider);
         }

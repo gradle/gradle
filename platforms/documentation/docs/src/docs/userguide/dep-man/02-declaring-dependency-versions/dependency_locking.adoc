@@ -209,7 +209,7 @@ It takes a comma (`,`) separated list of module notations.
 In this mode, the existing lock state is still used as input to resolution, filtering out the modules targeted by the update.
 
 ----
-❯ gradle classes --update-locks org.apache.commons:commons-lang3,org.slf4j:slf4j-api
+❯ gradle dependencies --update-locks org.apache.commons:commons-lang3,org.slf4j:slf4j-api
 ----
 
 Wildcards, indicated with `*`, can be used in the group or module name. They can be the only character or appear at the end of the group or module respectively.

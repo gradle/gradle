@@ -27,8 +27,9 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.time.Clock
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -36,10 +37,11 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonRequestContext
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
-import org.gradle.launcher.exec.BuildActionExecuter
+import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.RunInProcess
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -57,11 +59,11 @@ class BuildActionsFactoryTest extends Specification {
 
     def setup() {
         def factoryLoggingManager = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
-        loggingServices.add(Clock, Mock(Clock))
         loggingServices.add(OutputEventListener, Mock(OutputEventListener))
         loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
         loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
-        loggingServices.addProvider(new Object() {
+        loggingServices.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             Factory<LoggingManagerInternal> createFactory() {
                 return factoryLoggingManager
             }
@@ -187,7 +189,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof InProcessUserInputHandlingExecutor
+        assert executor instanceof RunInProcess
     }
 
     void isSingleUseDaemon(def action) {
@@ -201,8 +203,8 @@ class BuildActionsFactoryTest extends Specification {
         return action.runnable
     }
 
-    private BuildActionExecuter unwrapExecutor(Runnable runnable) {
+    private BuildActionExecutor unwrapExecutor(Runnable runnable) {
         assert runnable instanceof RunBuildAction
-        return runnable.executer
+        return runnable.executor
     }
 }

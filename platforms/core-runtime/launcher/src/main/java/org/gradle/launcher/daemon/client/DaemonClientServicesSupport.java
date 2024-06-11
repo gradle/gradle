@@ -30,6 +30,7 @@ import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -66,42 +67,52 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return buildStandardInput;
     }
 
+    @Provides
     DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator<UUID> idGenerator) {
         return new DaemonStopClient(connector, idGenerator);
     }
 
+    @Provides
     NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
         return new NotifyDaemonAboutChangedPathsClient(connector, idGenerator, daemonRegistry);
     }
 
+    @Provides
     ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
         return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
     }
 
+    @Provides
     IdGenerator<UUID> createIdGenerator() {
         return new UUIDGenerator();
     }
 
+    @Provides
     OutgoingConnector createOutgoingConnector() {
         return new TcpOutgoingConnector();
     }
 
+    @Provides
     Clock createClock() {
         return Time.clock();
     }
 
+    @Provides
     BuildOperationIdFactory createBuildOperationIdFactory() {
         return new DefaultBuildOperationIdFactory();
     }
 
+    @Provides
     ProgressLoggerFactory createProgressLoggerFactory(Clock clock, BuildOperationIdFactory buildOperationIdFactory, OutputEventListener outputEventListener) {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
+    @Provides
     DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
         return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
     }
 
+    @Provides
     DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
         return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, daemonJavaToolchainQueryService);
     }

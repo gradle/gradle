@@ -39,11 +39,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty(originalType = int.class)
+                @ReplacesEagerProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
             }
         """
@@ -56,12 +57,15 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
             import org.gradle.test.Task;
 
+            @Generated
             public class Task_Adapter {
-                public static int access_get_maxErrors(Task self) {
+                public static int access_get_getMaxErrors(Task self) {
+                    ${getDefaultDeprecation("Task", "maxErrors")}
                     return self.getMaxErrors().getOrElse(0);
                 }
 
-                public static void access_set_maxErrors(Task self, int arg0) {
+                public static void access_set_setMaxErrors(Task self, int arg0) {
+                    ${getDefaultDeprecation("Task", "maxErrors")}
                     self.getMaxErrors().set(arg0);
                 }
             }
@@ -69,7 +73,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
-            .hasSourceEquivalentTo(generatedClass)
+            .containsElementsIn(generatedClass)
     }
 
     def "should auto generate adapter for upgraded property with boolean"() {
@@ -79,11 +83,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
+                @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
                 public abstract Property<Boolean> getIncremental();
             }
         """
@@ -94,17 +98,19 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("isIncremental") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_incremental", "(Lorg/gradle/test/Task;)Z");
+                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_isIncremental", "(Lorg/gradle/test/Task;)Z");
                              return true;
                          }
                         if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
+                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setIncremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
                              return true;
                          }
                     }
@@ -116,12 +122,15 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
             import org.gradle.test.Task;
 
+            @Generated
             public class Task_Adapter {
-                public static boolean access_get_incremental(Task self) {
+                public static boolean access_get_isIncremental(Task self) {
+                    ${getDefaultDeprecation("Task", "incremental")}
                     return self.getIncremental().getOrElse(false);
                 }
 
-                public static Task access_set_incremental(Task self, boolean arg0) {
+                public static Task access_set_setIncremental(Task self, boolean arg0) {
+                    ${getDefaultDeprecation("Task", "incremental")}
                     self.getIncremental().set(arg0);
                     return self;
                 }
@@ -133,7 +142,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .containsElementsIn(generatedClass)
         assertThat(compilation)
             .generatedSourceFile(fqName(adapterClass))
-            .hasSourceEquivalentTo(adapterClass)
+            .containsElementsIn(adapterClass)
     }
 
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
@@ -144,11 +153,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.provider.*;
             import org.gradle.api.file.*;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty${PRIMITIVE_TYPES.contains(originalType) ? "(originalType = ${originalType}.class)" : ""}
+                @ReplacesEagerProperty${PRIMITIVE_TYPES.contains(originalType) ? "(originalType = ${originalType}.class)" : ""}
                 public abstract $upgradedType getProperty();
             }
         """
@@ -158,19 +167,24 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         boolean hasSuppressWarnings = originalType in ["List", "Map", "Set"]
+        String getterPrefix = originalType == "boolean" ? "is" : "get"
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             ${imports.collect { "import $it.name;" }.join("\n")}
+            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.test.Task;
 
+            @Generated
             public class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
-                public static $originalType access_get_property(Task self) {
+                public static $originalType access_get_${getterPrefix}Property(Task self) {
+                    ${getDefaultDeprecation("Task", "property")}
                     return $getCall;
                 }
 
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
-                public static void access_set_property(Task self, $originalType arg0) {
+                public static void access_set_setProperty(Task self, $originalType arg0) {
+                    ${getDefaultDeprecation("Task", "property")}
                     self.getProperty()$setCall;
                 }
             }
@@ -178,7 +192,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
-            .hasSourceEquivalentTo(generatedClass)
+            .containsElementsIn(generatedClass)
 
         where:
         upgradedType                  | originalType     | getCall                                          | setCall            | imports
@@ -206,7 +220,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<String> getTargetCompatibility();
             }
         """
@@ -217,17 +231,19 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("getTargetCompatibility") && descriptor.equals("()Ljava/lang/String;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_targetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
+                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getTargetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
                              return true;
                          }
                          if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                           _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_targetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
+                           mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setTargetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
                            return true;
                        }
                     }
@@ -241,16 +257,16 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .containsElementsIn(generatedClass)
     }
 
-    def "should visit classes annotated with just @UpgradedProperty on properties"() {
+    def "should visit classes annotated with just @ReplacesEagerProperty on properties"() {
         given:
         def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<Integer> getMaxErrors();
             }
         """
@@ -263,16 +279,16 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).generatedSourceFile("${GENERATED_CLASSES_PACKAGE_NAME}.Task_Adapter")
     }
 
-    def "should fail if @UpgradedProperty is not a simple getter"() {
+    def "should fail if @ReplacesEagerProperty is not a simple getter"() {
         given:
         def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<Integer> getMaxErrors(String arg0);
             }
         """
@@ -282,6 +298,71 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         assertThat(compilation).failed()
-        assertThat(compilation).hadErrorContaining("Method 'org.gradle.test.Task.getMaxErrors(java.lang.String)' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.")
+        assertThat(compilation).hadErrorContaining("Method 'org.gradle.test.Task.getMaxErrors(java.lang.String)' annotated with @ReplacesEagerProperty should be a simple getter: name should start with 'get' and method should not have any parameters.")
+    }
+
+    def "should generate interceptor for upgraded property with original accessors with different names"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+            import java.io.File;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(replacedAccessors = {
+                    @ReplacedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.SETTER, name = "setDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.SETTER, name = "destinationDir", originalType = File.class)
+                })
+                public abstract DirectoryProperty getDestinationDirectory();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                                               String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                        if (name.equals("getDestinationDir") && descriptor.equals("()Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getDestinationDir", "(Lorg/gradle/test/Task;)Ljava/io/File;");
+                            return true;
+                        }
+                        if (name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            return true;
+                        }
+                        if (name.equals("destinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
+
+    private static String getDefaultDeprecation(String className, String propertyName) {
+        return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
+            ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
+            ".startingWithGradle9(\"this property is replaced with a lazy version\")\n" +
+            ".undocumented()\n" +
+            ".nagUser();";
     }
 }

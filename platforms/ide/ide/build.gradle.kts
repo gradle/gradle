@@ -10,41 +10,43 @@ errorprone {
         "LoopOverCharArray", // 1 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
         "StringCaseLocaleUsage", // 2 occurrences
-        "StringSplitter", // 1 occurrences
     )
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":java-language-extensions"))
+    api(project(":model-core"))
+    api(project(":platform-jvm"))
+    api(project(":service-provider"))
+    api(project(":tooling-api"))
+
+    api(libs.guava)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":base-services-groovy"))
-    implementation(project(":dependency-management"))
-    implementation(project(":plugins"))
+    implementation(project(":ear"))
+    implementation(project(":language-java"))
+    implementation(project(":logging-api"))
+    implementation(project(":platform-base"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":scala"))
-    implementation(project(":ear"))
     implementation(project(":war"))
-    implementation(project(":tooling-api"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
 
-    implementation(libs.groovy)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.inject)
+
+
+    runtimeOnly(project(":language-jvm"))
+    runtimeOnly(project(":testing-base"))
+    runtimeOnly(project(":testing-jvm"))
 
     testFixturesApi(project(":base-services")) {
         because("test fixtures export the Action class")

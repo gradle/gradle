@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -47,7 +47,7 @@ object FunctionBinding {
                     param == kFunction.instanceParameter -> put(param, receiver)
                     param == kFunction.extensionReceiverParameter -> put(param, receiver)
 
-                    hasLambda && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
+                    (hasLambda || param.isOptional) && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
                         val newCaptor = configureLambdaHandler.produceValueCaptor(param.type)
                         check(captor == null) { "multiple lambda argument captors are not supported" }
                         captor = newCaptor

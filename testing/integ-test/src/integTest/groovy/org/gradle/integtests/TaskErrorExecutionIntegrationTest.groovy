@@ -120,7 +120,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken")
     }
 
-    def "reports task validation failure"() {
+    def "reports type validation failure"() {
         enableProblemsApiCheck()
         buildFile << '''
             class CustomTask extends DefaultTask {
@@ -147,7 +147,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
                 'Assign a value to \'destFile\'',
                 'Mark property \'destFile\' as optional',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'CustomTask',
                 'propertyName' : 'destFile',
             ]
@@ -159,7 +159,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
                 'Assign a value to \'srcFile\'',
                 'Mark property \'srcFile\' as optional',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'CustomTask',
                 'propertyName' : 'srcFile',
             ]
@@ -183,9 +183,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "someTest"
 
         then:
-        verifyAll(receivedProblem(0)) {
+        verifyAll(receivedProblem) {
             fqid == 'task-selection:no-matches'
             contextualLabel == "Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'."
+            additionalData.asMap == ['requestedPath' : 'someTest']
         }
         failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
@@ -199,9 +200,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails ":someTest"
         then:
-        verifyAll(receivedProblem(0)) {
+        verifyAll(receivedProblem) {
             fqid == 'task-selection:no-matches'
             contextualLabel == "Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'."
+            additionalData.asMap == ['requestedPath' : ':someTest']
         }
         failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
@@ -215,9 +217,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "a:someTest"
         then:
-        verifyAll(receivedProblem(0)) {
+        verifyAll(receivedProblem) {
             fqid == 'task-selection:no-matches'
             contextualLabel == "Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'."
+            additionalData.asMap == ['requestedPath' : 'a:someTest']
         }
         failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
@@ -230,6 +233,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports ambiguous task"() {
+        enableProblemsApiCheck()
         createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'test'
@@ -252,8 +256,14 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             SCAN,
             GET_HELP
         )
+        verifyAll(receivedProblem) {
+            fqid == 'task-selection:ambiguous-matches'
+            contextualLabel == 'Task \'soTa\' is ambiguous in root project \'test\' and its subprojects. Candidates are: \'someTaskA\', \'someTaskAll\', \'someTaskB\'.'
+            additionalData.asMap == ['requestedPath' : 'soTa']
+        }
 
         when:
+        resetProblemApiCheck()
         fails "a:soTa"
         then:
         failure.assertHasDescription("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
@@ -264,9 +274,15 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             SCAN,
             GET_HELP
         )
+        verifyAll(receivedProblem) {
+            fqid == 'task-selection:ambiguous-matches'
+            contextualLabel == 'Cannot locate tasks that match \'a:soTa\' as task \'soTa\' is ambiguous in project \':a\'. Candidates are: \'someTaskA\', \'someTaskAll\'.'
+            additionalData.asMap == ['requestedPath' : 'a:soTa']
+        }
     }
 
     def "reports unknown project"() {
+        enableProblemsApiCheck()
         createDirs("projA", "projB")
         settingsFile << """
             rootProject.name = 'test'
@@ -288,9 +304,17 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             SCAN,
             GET_HELP
         )
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'task-selection:no-matches'
+            contextualLabel == 'Cannot locate tasks that match \'prog:someTask\' as project \'prog\' not found in root project \'test\'. Some candidates are: \'projA\', \'projB\'.'
+            additionalData.asMap == ['requestedPath' : 'prog:someTask']
+        }
     }
 
     def "reports ambiguous project"() {
+        enableProblemsApiCheck()
         createDirs("projA", "projB")
         settingsFile << """
             rootProject.name = 'test'
@@ -312,5 +336,12 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             SCAN,
             GET_HELP
         )
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'task-selection:ambiguous-matches'
+            contextualLabel == 'Cannot locate tasks that match \'proj:someTask\' as project \'proj\' is ambiguous in root project \'test\'. Candidates are: \'projA\', \'projB\'.'
+            additionalData.asMap == ['requestedPath' : 'proj:someTask']
+        }
     }
 }

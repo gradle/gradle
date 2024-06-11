@@ -26,6 +26,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<CurrentApplication> currentApplication = new ThreadLocal<CurrentApplication>();
 
     @Override

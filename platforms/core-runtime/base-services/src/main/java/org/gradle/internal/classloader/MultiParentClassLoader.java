@@ -116,6 +116,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         return null;
     }
 
+    @SuppressWarnings("URLEqualsHashCode")
     @Override
     public Enumeration<URL> getResources(String name) throws IOException {
         Set<URL> resources = new LinkedHashSet<URL>();

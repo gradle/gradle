@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
@@ -25,14 +26,18 @@ import javax.annotation.Nullable;
 public interface InternalProblemSpec extends ProblemSpec {
 
     /**
-     * Specifies arbitrary data associated with this problem.
+     * Attaches additional data describing the problem.
      * <p>
-     * The only supported value type is {@link String}. Future Gradle versions may support additional types.
+     * Only the types listed for {@link AdditionalData} can be used as arguments, otherwise an invalid problem report will be created.
+     * <p>
+     * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
      *
+     * @param specType the type of the additional data configurer (see the AdditionalDataSpec interface for the list of supported types)
+     * @param config  The action configuring the additional data
      * @return this
-     * @throws RuntimeException for null values and for values with unsupported type.
+     * @param <U> The type of the configurator object that will be applied to the additional data
      */
-    InternalProblemSpec additionalData(String key, Object value);
+    <U extends AdditionalDataSpec> InternalProblemSpec additionalData(Class<? extends U> specType, Action<? super U> config);
 
     /**
      * Declares that this problem was emitted by a task with the given path.

@@ -37,16 +37,19 @@ import static org.gradle.internal.exceptions.StyledException.style;
 public abstract class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
+    private static final String NO_VARIANTS_EXIST_PREFIX = "Creating consumable variants is explained in more detail at ";
+    private static final String NO_VARIANTS_EXIST_SECTION = "sec:resolvable-consumable-configs";
 
     @Override
     public VariantSelectionException describeFailure(IncompatibleGraphVariantFailure failure, Optional<AttributesSchemaInternal> schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
-        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+        FailureSubType failureSubType = FailureSubType.determineFailureSubType(failure);
+        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure, failureSubType);
+        List<String> resolutions = buildResolutions(failureSubType);
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    protected String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure failure) {
+    private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure failure, FailureSubType failureSubType) {
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, failure.getRequestedName());
         if (failure.getRequestedAttributes().isEmpty()) {
@@ -54,18 +57,37 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
         } else {
             formatter.node("No matching variant of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + " but:");
         }
+
         formatter.startChildren();
-        if (failure.noCandidatesHaveAttributes()) {
-            formatter.node("None of the variants have attributes.");
-        } else {
-            // We're sorting the names of the configurations and later attributes
-            // to make sure the output is consistently the same between invocations
-            for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
-                formatUnselectableVariant(candidate, formatter, describer);
-            }
+        switch (failureSubType) {
+            case NO_VARIANTS_EXIST:
+                formatter.node("No variants exist.");
+                break;
+            case NO_VARIANTS_HAVE_ATTRIBUTES:
+                formatter.node("None of the variants have attributes.");
+                break;
+            case NO_VARIANT_MATCHES_REQUESTED_ATTRIBUTES:
+                // We're sorting the names of the configurations and later attributes
+                // to make sure the output is consistently the same between invocations
+                for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
+                    formatUnselectableVariant(candidate, formatter, describer);
+                }
+                break;
+            default:
+                throw new IllegalStateException("Unknown failure sub type: " + failureSubType);
         }
         formatter.endChildren();
+
         return formatter.toString();
+    }
+
+    private List<String> buildResolutions(FailureSubType failureSubType) {
+        if (failureSubType == FailureSubType.NO_VARIANTS_EXIST) {
+            String suggestReviewCreatingConsumableConfigs = NO_VARIANTS_EXIST_PREFIX + getDocumentationRegistry().getDocumentationFor("declaring_dependencies", NO_VARIANTS_EXIST_SECTION) + ".";
+            return buildResolutions(suggestReviewCreatingConsumableConfigs, suggestReviewAlgorithm());
+        } else {
+            return buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+        }
     }
 
     private void formatUnselectableVariant(
@@ -77,5 +99,22 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
         formatAttributeMatchesForIncompatibility(assessedCandidate, formatter, describer);
+    }
+
+    private enum FailureSubType {
+        NO_VARIANTS_EXIST,
+        NO_VARIANTS_HAVE_ATTRIBUTES,
+        NO_VARIANT_MATCHES_REQUESTED_ATTRIBUTES;
+
+        public static FailureSubType determineFailureSubType(IncompatibleGraphVariantFailure failure) {
+            if (failure.getCandidates().isEmpty()) {
+                return FailureSubType.NO_VARIANTS_EXIST;
+            }
+            if (failure.noCandidatesHaveAttributes()) {
+                return FailureSubType.NO_VARIANTS_HAVE_ATTRIBUTES;
+            } else {
+                return FailureSubType.NO_VARIANT_MATCHES_REQUESTED_ATTRIBUTES;
+            }
+        }
     }
 }

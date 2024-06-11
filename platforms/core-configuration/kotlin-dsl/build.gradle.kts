@@ -10,30 +10,27 @@ description = "Kotlin DSL Provider"
 dependencies {
 
     api(project(":kotlin-dsl-tooling-models"))
-    api(libs.futureKotlin("stdlib"))
-    api(libs.futureKotlin("reflect"))
+    api(libs.kotlinStdlib)
+    api(libs.kotlinReflect)
 
+    implementation(projects.io)
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
-    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
     implementation(project(":files"))
     implementation(project(":resources"))
-    implementation(project(":build-cache"))
     implementation(project(":tooling-api"))
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
-    implementation(project(":wrapper-shared"))
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
@@ -44,17 +41,13 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.asm)
 
-    implementation(libs.futureKotlin("compiler-embeddable"))
+    implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.futureKotlin("script-runtime"))
-    implementation(libs.futureKotlin("daemon-embeddable"))
 
     implementation(libs.futureKotlin("scripting-common")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("scripting-jvm")) {
-        isTransitive = false
-    }
-    implementation(libs.futureKotlin("scripting-jvm-host")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("scripting-compiler-embeddable")) {
@@ -115,7 +108,7 @@ dependencies {
 
     testFixturesImplementation(testFixtures(project(":hashing")))
 
-    testFixturesImplementation(libs.futureKotlin("compiler-embeddable"))
+    testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.mockitoKotlin)

@@ -16,17 +16,34 @@
 
 package org.gradle.api.publish.internal.service;
 
+import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class PublishServices extends AbstractPluginServiceRegistry {
+public class PublishServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultProjectDependencyPublicationResolver.class);
         registration.add(DuplicatePublicationTracker.class);
         registration.add(DefaultDependencyCoordinateResolverFactory.class);
+    }
+
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalScopeServices());
+    }
+
+    private static class GlobalScopeServices implements ServiceRegistrationProvider {
+        @Provides
+        SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory) {
+            return new DefaultSoftwareComponentFactory(objectFactory);
+        }
     }
 }

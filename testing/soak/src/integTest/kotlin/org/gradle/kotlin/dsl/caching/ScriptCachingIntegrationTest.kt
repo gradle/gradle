@@ -272,6 +272,39 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         assertThat(daemonFixture.daemons).hasSize(1)
     }
 
+    @Test
+    fun `writes build cache entries`() {
+        expectCacheEntriesWritten(2, false)
+    }
+
+    @Test
+    fun `writes no build cache entries when script caching disabled`() {
+        expectCacheEntriesWritten(0, true)
+    }
+
+    private
+    fun expectCacheEntriesWritten(expectedEntryCount: Int, scriptCachingDisabled: Boolean) {
+        withOwnGradleUserHomeDir("verifying local build cache content") {
+            withSettings(randomScriptContent())
+            withBuildScriptIn(".", randomScriptContent())
+
+            val result = buildForCacheInspection("help", "--build-cache", "--info", "-Dorg.gradle.internal.kotlin-script-caching-disabled=$scriptCachingDisabled")
+
+            if (scriptCachingDisabled) {
+                result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
+                result.assertOutputContains("Caching of Kotlin script compilation disabled by property")
+            } else {
+                result.assertOutputContains("Stored cache entry for Kotlin DSL script compilation")
+                result.assertNotOutput("Caching of Kotlin script compilation disabled by property")
+            }
+
+            val localBuildCacheDir = executer.gradleUserHomeDir.resolve("caches/build-cache-1")
+            val localBuildCacheFiles = localBuildCacheDir.list { _, fileName -> fileName != "gc.properties" && fileName != "build-cache-1.lock" }
+
+            assertThat(localBuildCacheFiles).hasSize(expectedEntryCount)
+        }
+    }
+
     private
     fun withMultiProjectBuild(
         settings: String = randomScriptContent(),

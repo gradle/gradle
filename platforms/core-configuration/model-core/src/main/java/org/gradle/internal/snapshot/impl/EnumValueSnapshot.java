@@ -20,13 +20,15 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
+import javax.annotation.Nullable;
+
 public class EnumValueSnapshot implements ValueSnapshot {
     private final String className;
     private final String name;
 
     public EnumValueSnapshot(Enum<?> value) {
         // Don't retain the value, to allow ClassLoader to be collected
-        this.className = value.getClass().getName();
+        this.className = value.getDeclaringClass().getName();
         this.name = value.name();
     }
 
@@ -44,19 +46,17 @@ public class EnumValueSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+    public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
         if (isEqualEnum(value)) {
             return this;
         }
         return snapshotter.snapshot(value);
     }
 
-    private boolean isEqualEnum(Object value) {
-        if (value instanceof Enum) {
+    private boolean isEqualEnum(@Nullable Object value) {
+        if (value instanceof Enum<?>) {
             Enum<?> enumValue = (Enum<?>) value;
-            if (enumValue.name().equals(name) && enumValue.getClass().getName().equals(className)) {
-                return true;
-            }
+            return enumValue.name().equals(name) && enumValue.getDeclaringClass().getName().equals(className);
         }
         return false;
     }

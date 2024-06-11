@@ -17,7 +17,7 @@
 package org.gradle.cache.internal.btree;
 
 import com.google.common.io.CountingInputStream;
-import org.gradle.internal.io.RandomAccessFileInputStream;
+import org.gradle.internal.file.RandomAccessFileInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
