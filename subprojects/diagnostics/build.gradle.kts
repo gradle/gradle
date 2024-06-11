@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
