@@ -100,8 +100,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
-    private boolean isRefreshKeys;
-    private boolean isExportKeys;
+    private boolean refreshKeys;
+    private boolean exportKeys;
     private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
     /**
@@ -266,8 +266,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.writeDependencyVerifications = writeDependencyVerifications;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
         p.verificationMode = verificationMode;
-        p.isRefreshKeys = isRefreshKeys;
-        p.isExportKeys = isExportKeys;
+        p.refreshKeys = refreshKeys;
+        p.exportKeys = exportKeys;
         p.welcomeMessageConfiguration = welcomeMessageConfiguration;
         return p;
     }
@@ -735,6 +735,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         return "StartParameter{"
             + "taskRequests=" + taskRequests
             + ", excludedTaskNames=" + excludedTaskNames
+            + ", buildProjectDependencies=" + buildProjectDependencies
             + ", currentDir=" + currentDir
             + ", projectDir=" + projectDir
             + ", projectProperties=" + projectProperties
@@ -743,19 +744,32 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", gradleHome=" + gradleHomeDir
             + ", logLevel=" + getLogLevel()
             + ", showStacktrace=" + getShowStacktrace()
+            + ", settingsFile=" + settingsFile
             + ", buildFile=" + buildFile
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
+            + ", profile=" + profile
+            + ", continueOnFailure=" + continueOnFailure
             + ", offline=" + offline
+            + ", projectCacheDir=" + projectCacheDir
             + ", refreshDependencies=" + refreshDependencies
+            + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", buildCacheDebugLogging=" + buildCacheDebugLogging
             + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
             + ", configureOnDemand=" + configureOnDemand
+            + ", continuous=" + continuous
             + ", maxWorkerCount=" + getMaxWorkerCount()
-            + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", includedBuilds=" + includedBuilds
+            + ", buildScan=" + buildScan
+            + ", noBuildScan=" + noBuildScan
             + ", writeDependencyLocks=" + writeDependencyLocks
+            + ", writeDependencyVerifications=" + writeDependencyVerifications
+            + ", lockedDependenciesToUpdate=" + lockedDependenciesToUpdate
             + ", verificationMode=" + verificationMode
-            + ", refreshKeys=" + isRefreshKeys
+            + ", refreshKeys=" + refreshKeys
+            + ", exportKeys=" + exportKeys
+            + ", welcomeMessageConfiguration=" + welcomeMessageConfiguration
             + '}';
     }
 
@@ -923,7 +937,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public void setRefreshKeys(boolean refresh) {
-        isRefreshKeys = refresh;
+        refreshKeys = refresh;
     }
 
     /**
@@ -932,7 +946,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public boolean isRefreshKeys() {
-        return isRefreshKeys;
+        return refreshKeys;
     }
 
     /**
@@ -946,7 +960,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public boolean isExportKeys() {
-        return isExportKeys;
+        return exportKeys;
     }
 
     /**
@@ -960,7 +974,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public void setExportKeys(boolean exportKeys) {
-        isExportKeys = exportKeys;
+        this.exportKeys = exportKeys;
     }
 
     /**
