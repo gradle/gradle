@@ -359,8 +359,6 @@ final class ConfigurationCacheProblemsFixture {
             // Build file 'build.gradle'
             case "BuildLogic": return trace['location'].toString().capitalize()
             case "BuildLogicClass": return trace['type']
-            // Task :some-task-path
-            case "TaskPath":  return "Task ${trace['path']}"
             default: return "Gradle runtime"
         }
     }
@@ -568,6 +566,11 @@ abstract class ItemSpec {
 
     static class ExpectingSome extends ItemSpec {
 
+
+        @Override
+        String toString() {
+            return itemMatchers.join(", ")
+        }
         final List<Matcher<String>> itemMatchers
 
         ExpectingSome(List<Matcher<String>> itemMatchers = []) {
@@ -692,7 +695,7 @@ class HasConfigurationCacheProblemsSpec {
     }
 
     HasConfigurationCacheProblemsSpec withIncompatibleTask(String task, String reason) {
-        incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("Task ${task}:"), endsWith(reason)))
+        incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("${task}: task `${task}` of type "), endsWith(reason)))
         return this
     }
 

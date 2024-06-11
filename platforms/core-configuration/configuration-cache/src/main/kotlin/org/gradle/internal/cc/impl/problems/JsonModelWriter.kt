@@ -192,12 +192,6 @@ class JsonModelWriter(val writer: Writer) {
                 property("type", trace.type.name)
             }
 
-            is PropertyTrace.TaskPath -> {
-                property("kind", "TaskPath")
-                comma()
-                property("path", trace.path)
-            }
-
             is PropertyTrace.Bean -> {
                 property("kind", "Bean")
                 comma()

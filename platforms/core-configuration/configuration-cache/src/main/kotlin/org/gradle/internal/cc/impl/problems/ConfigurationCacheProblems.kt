@@ -103,7 +103,7 @@ class ConfigurationCacheProblems(
     var updatedProjects = 0
 
     private
-    var incompatibleTasks = newConcurrentHashSet<String>()
+    var incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -144,11 +144,12 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
-    override fun forIncompatibleTask(path: String, reason: String): ProblemsListener {
-        val firstProblem = incompatibleTasks.add(path)
-        if (firstProblem) {
-            // report the incompatible task itself
-            reportIncompatibleTask(path, reason)
+    override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
+        val notSeenBefore = incompatibleTasks.add(trace)
+        if (notSeenBefore) {
+            // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
+            // report the incompatible task itself the first time only
+            reportIncompatibleTask(trace, reason)
         }
         return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
@@ -163,15 +164,14 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun reportIncompatibleTask(path: String, reason: String) {
+    fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
         val problem = problemFactory
             .problem {
-                text("task ")
-                reference(path)
+                text(trace.containingUserCode)
                 text(" is incompatible with the configuration cache. Reason: $reason.")
             }
             .mapLocation {
-                PropertyTrace.TaskPath(path)
+                trace
             }
             .documentationSection(DocumentationSection.TaskOptOut).build()
         onIncompatibleTask(problem)

@@ -110,62 +110,77 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 
 sealed class PropertyTrace {
 
-    object Unknown : PropertyTrace()
+    object Unknown : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    object Gradle : PropertyTrace()
+    object Gradle : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    class BuildLogic(
+    data class BuildLogic(
         val source: DisplayName,
         val lineNumber: Int? = null
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    class BuildLogicClass(
+    data class BuildLogicClass(
         val name: String
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    class Task(
+    data class Task(
         val type: Class<*>,
         val path: String
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    class TaskPath(
-        val path: String
-    ) : PropertyTrace()
-
-    class Bean(
+    data class Bean(
         val type: Class<*>,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    class Property(
+    data class Property(
         val kind: PropertyKind,
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    class Project(
+    data class Project(
         val path: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    class SystemProperty(
+    data class SystemProperty(
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    override fun toString(): String =
+    protected
+    fun asString(): String =
         StringBuilder().apply {
             sequence.forEach {
                 appendStringOf(it)
@@ -210,10 +225,6 @@ sealed class PropertyTrace {
                 quoted(trace.path)
                 append(" of type ")
                 quoted(trace.type.name)
-            }
-            is TaskPath -> {
-                append("task ")
-                quoted(trace.path)
             }
             is BuildLogic -> {
                 append(trace.source.displayName)

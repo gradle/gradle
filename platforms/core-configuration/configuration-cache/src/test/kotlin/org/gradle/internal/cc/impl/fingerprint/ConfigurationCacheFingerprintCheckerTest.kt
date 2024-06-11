@@ -371,7 +371,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onError(error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
-        override suspend fun forIncompatibleTask(path: String, reason: String, action: suspend () -> Unit) =
+        override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =
@@ -502,7 +502,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun pop(): Unit =
             undefined()
 
-        override suspend fun forIncompatibleTask(path: String, reason: String, action: suspend () -> Unit) =
+        override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
             undefined()
 
         override fun readInt(): Int =
