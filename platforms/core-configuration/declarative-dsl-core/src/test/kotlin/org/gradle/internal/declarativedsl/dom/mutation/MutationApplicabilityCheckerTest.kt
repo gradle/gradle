@@ -169,84 +169,91 @@ object MutationApplicabilityCheckerTest {
     }
 
     private
-    val schema = schemaFromTypes(TopLevel::class, this::class.nestedClasses)
+    val schema = schemaFromTypes(TopLevel::class, listOf(TopLevel::class, Nested::class))
+}
 
-    private
-    val setX = object : MutationDefinition {
-        override val id: String = "com.example.setx"
-        override val name: String = "set x"
-        override val description: String = "sets x in all nested objects"
 
-        override val parameters: List<MutationParameter<*>> = emptyList()
+private
+val setX = object : MutationDefinition {
+    override val id: String = "com.example.setx"
+    override val name: String = "set x"
+    override val description: String = "sets x in all nested objects"
 
-        override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+    override val parameters: List<MutationParameter<*>> = emptyList()
 
-        override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
-            ModelMutationRequest(
-                ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes)),
-                ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!), ifPresentBehavior = Ignore)
-            )
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
+        ModelMutationRequest(
+            ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes)),
+            ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!), ifPresentBehavior = Ignore)
         )
-    }
+    )
+}
 
-    private
-    val addF = object : MutationDefinition {
-        override val id: String = "com.example.addf"
-        override val name: String = "add f"
-        override val description: String = "adds f in all nested objects"
 
-        override val parameters: List<MutationParameter<*>> = emptyList()
+private
+val addF = object : MutationDefinition {
+    override val id: String = "com.example.addf"
+    override val name: String = "add f"
+    override val description: String = "adds f in all nested objects"
 
-        override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+    override val parameters: List<MutationParameter<*>> = emptyList()
 
-        override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
-            ModelMutationRequest(
-                ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes)),
-                ModelMutation.AddNewElement(NewElementNodeProvider.Constant(elementFromString("f()")!!))
-            )
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
+        ModelMutationRequest(
+            ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes)),
+            ModelMutation.AddNewElement(NewElementNodeProvider.Constant(elementFromString("f()")!!))
         )
-    }
+    )
+}
 
-    private
-    val addCIfAbsentThenAddF = object : MutationDefinition {
-        override val id: String = "com.example.addAndSet"
-        override val name: String = "add c { } and add f() in it"
-        override val description: String = "add c { } block to nested { } if it is not there yet, in that block, add f()"
 
-        override val parameters: List<MutationParameter<*>> = emptyList()
+private
+val addCIfAbsentThenAddF = object : MutationDefinition {
+    override val id: String = "com.example.addAndSet"
+    override val name: String = "add c { } and add f() in it"
+    override val description: String = "add c { } block to nested { } if it is not there yet, in that block, add f()"
 
-        override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+    override val parameters: List<MutationParameter<*>> = emptyList()
 
-        override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
-            ModelMutationRequest(
-                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(projectAnalysisSchema.typeFor<Nested>())))),
-                AddConfiguringBlockIfAbsent(projectAnalysisSchema.functionFor(Nested::c))
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
+        ModelMutationRequest(
+            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(projectAnalysisSchema.typeFor<Nested>())))),
+            AddConfiguringBlockIfAbsent(projectAnalysisSchema.functionFor(Nested::c))
+        ),
+        ModelMutationRequest(
+            ScopeLocation(
+                listOf(
+                    InNestedScopes(ObjectsConfiguredBy(projectAnalysisSchema.functionFor(TopLevel::nested))),
+                    InNestedScopes(ObjectsConfiguredBy(projectAnalysisSchema.functionFor(Nested::c)))
+                )
             ),
-            ModelMutationRequest(
-                ScopeLocation(
-                    listOf(
-                        InNestedScopes(ObjectsConfiguredBy(projectAnalysisSchema.functionFor(TopLevel::nested))),
-                        InNestedScopes(ObjectsConfiguredBy(projectAnalysisSchema.functionFor(Nested::c)))
-                    )
-                ),
-                ModelMutation.AddNewElement(NewElementNodeProvider.Constant(elementFromString("f()")!!))
-            )
+            ModelMutation.AddNewElement(NewElementNodeProvider.Constant(elementFromString("f()")!!))
         )
-    }
+    )
+}
 
-    interface TopLevel {
-        @Configuring
-        fun nested(configure: Nested.() -> Unit)
-    }
 
-    interface Nested {
-        @get:Restricted
-        var x: Int
+internal
+interface TopLevel {
+    @Configuring
+    fun nested(configure: Nested.() -> Unit)
+}
 
-        @Adding
-        fun f(configure: Nested.() -> Unit): Nested
 
-        @Configuring
-        fun c(configure: Nested.() -> Unit): Nested
-    }
+internal
+interface Nested {
+    @get:Restricted
+    var x: Int
+
+    @Adding
+    fun f(configure: Nested.() -> Unit): Nested
+
+    @Configuring
+    fun c(configure: Nested.() -> Unit): Nested
 }

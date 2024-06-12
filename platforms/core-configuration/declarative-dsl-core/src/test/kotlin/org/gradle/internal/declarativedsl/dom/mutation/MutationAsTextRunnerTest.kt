@@ -80,68 +80,73 @@ object MutationAsTextRunnerTest {
     }
 
     private
-    val schema = object : EvaluationSchema {
-        override val analysisSchema = schemaFromTypes(TopLevel::class, MutationAsTextRunnerTest::class.nestedClasses)
-        override val operationGenerationId = DefaultOperationGenerationId.finalEvaluation
-        override val analysisStatementFilter = analyzeEverything
-    }
-
-    private
     val runner = MutationAsTextRunner()
-
-    private
-    val mutationDefinition = object : MutationDefinition {
-        val xParam = MutationParameter("x", "new value for x", MutationParameterKind.IntParameter)
-        val yParam = MutationParameter("y", "new value for y", MutationParameterKind.IntParameter)
-
-        override val id: String = "com.example.mutation"
-        override val name: String = "Example mutation"
-        override val description: String = "Set the new values for x and y based on the parameters"
-        override val parameters: List<MutationParameter<*>> = emptyList()
-
-        override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = with(projectAnalysisSchema) {
-            findTypeFor<TopLevel>() != null &&
-                findPropertyFor(NestedOne::x) != null &&
-                findFunctionFor(NestedOne::nestedTwo) != null &&
-                findPropertyFor(NestedTwo::y) != null
-        }
+}
 
 
-        override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = with(projectAnalysisSchema) {
-            val nestedOneX = propertyFor(NestedOne::x)
-            val nestedTwoY = propertyFor(NestedTwo::y)
+private
+val mutationDefinition = object : MutationDefinition {
+    val xParam = MutationParameter("x", "new value for x", MutationParameterKind.IntParameter)
+    val yParam = MutationParameter("y", "new value for y", MutationParameterKind.IntParameter)
 
-            listOf(
-                ModelMutationRequest(
-                    ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())))),
-                    ModelMutation.SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! }, Ignore)
-                ),
-                ModelMutationRequest(
-                    ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())), InNestedScopes(ObjectsConfiguredBy(functionFor(NestedOne::nestedTwo))))),
-                    ModelMutation.SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! }, Ignore)
-                )
+    override val id: String = "com.example.mutation"
+    override val name: String = "Example mutation"
+    override val description: String = "Set the new values for x and y based on the parameters"
+    override val parameters: List<MutationParameter<*>> = emptyList()
+
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = with(projectAnalysisSchema) {
+        findTypeFor<TopLevelReceiverForMutations>() != null &&
+            findPropertyFor(NestedOne::x) != null &&
+            findFunctionFor(NestedOne::nestedTwo) != null &&
+            findPropertyFor(NestedTwo::y) != null
+    }
+
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = with(projectAnalysisSchema) {
+        val nestedOneX = propertyFor(NestedOne::x)
+        val nestedTwoY = propertyFor(NestedTwo::y)
+
+        listOf(
+            ModelMutationRequest(
+                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())))),
+                ModelMutation.SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! }, Ignore)
+            ),
+            ModelMutationRequest(
+                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())), InNestedScopes(ObjectsConfiguredBy(functionFor(NestedOne::nestedTwo))))),
+                ModelMutation.SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! }, Ignore)
             )
-        }
+        )
     }
+}
 
-    internal
-    interface TopLevel {
-        @Configuring
-        fun nestedOne(configure: NestedOne.() -> Unit)
-    }
 
-    internal
-    interface NestedOne {
-        @get:Restricted
-        var x: Int
+private
+val schema = object : EvaluationSchema {
+    override val analysisSchema = schemaFromTypes(TopLevelReceiverForMutations::class, listOf(TopLevelReceiverForMutations::class, NestedOne::class, NestedTwo::class))
+    override val operationGenerationId = DefaultOperationGenerationId.finalEvaluation
+    override val analysisStatementFilter = analyzeEverything
+}
 
-        @Configuring
-        fun nestedTwo(configure: NestedTwo.() -> Unit)
-    }
 
-    internal
-    interface NestedTwo {
-        @get:Restricted
-        var y: Int
-    }
+internal
+interface TopLevelReceiverForMutations {
+    @Configuring
+    fun nestedOne(configure: NestedOne.() -> Unit)
+}
+
+
+internal
+interface NestedOne {
+    @get:Restricted
+    var x: Int
+
+    @Configuring
+    fun nestedTwo(configure: NestedTwo.() -> Unit)
+}
+
+
+internal
+interface NestedTwo {
+    @get:Restricted
+    var y: Int
 }
