@@ -34,7 +34,15 @@ public interface SoftwareTypeImplementation<T> {
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
+    void applyWithContext(Project project, ApplicationContext context);
+
     void addConvention(Convention<?> rule);
 
     List<Convention<?>> getConventions();
+
+    List<Convention<?>> getConventionsForCurrentContext();
+
+    enum ApplicationContext {
+        DECLARATIVE, IMPERATIVE
+    }
 }

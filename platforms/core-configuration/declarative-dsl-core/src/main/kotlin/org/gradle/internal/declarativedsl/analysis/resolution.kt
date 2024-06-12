@@ -22,6 +22,15 @@ data class ResolutionResult(
 )
 
 
+fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = ResolutionResult(
+    receiver,
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList()
+)
+
+
 data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin)
 
 

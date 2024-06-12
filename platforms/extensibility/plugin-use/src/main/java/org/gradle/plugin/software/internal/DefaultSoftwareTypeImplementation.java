@@ -24,6 +24,7 @@ import org.gradle.api.initialization.Settings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Represents a resolved software type implementation.  Used by declarative DSL to understand which model types should be exposed for
@@ -36,6 +37,13 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
 
     private final List<Convention<?>> conventionRules = new ArrayList<>();
+
+    // We use the application context to control which conventions are applied when the plugin is applied.  When the plugin is applied from
+    // a declarative script, the declarative script processing will apply any conventions from a declarative settings script, so we want to omit
+    // any declarative conventions during plugin application.  However, when the plugin is applied from a non-declarative script, we want to
+    // apply all conventions during plugin application (including declarative conventions).
+    // TODO - this feels clunky - we should find a better way to handle this.
+    private static final ThreadLocal<ApplicationContext> APPLICATION_CONTEXT = ThreadLocal.withInitial(() -> ApplicationContext.IMPERATIVE);
 
     public DefaultSoftwareTypeImplementation(String softwareType,
                                              Class<? extends T> modelPublicType,
@@ -75,6 +83,28 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     @Override
     public List<Convention<?>> getConventions() {
         return ImmutableList.copyOf(conventionRules);
+    }
+
+    @Override
+    public void applyWithContext(Project project, ApplicationContext context) {
+        ApplicationContext before = APPLICATION_CONTEXT.get();
+        try {
+            APPLICATION_CONTEXT.set(context);
+            project.getPluginManager().apply(getPluginClass());
+        } finally {
+            APPLICATION_CONTEXT.set(before);
+        }
+    }
+
+    @Override
+    public List<Convention<?>> getConventionsForCurrentContext() {
+        // If we are in a declarative context, we want to omit any declarative conventions from the list of conventions to apply (i.e. the
+        // declarative script processing will handle applying those conventions).  Otherwise, we want to apply all conventions.
+        if (APPLICATION_CONTEXT.get() == ApplicationContext.DECLARATIVE) {
+            return ImmutableList.copyOf(conventionRules.stream().filter(convention -> !(convention instanceof DeclarativeConvention)).collect(Collectors.toList()));
+        } else {
+            return getConventions();
+        }
     }
 
     @Override

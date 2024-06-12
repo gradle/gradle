@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -77,8 +78,10 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     }
 
     @Override
-    public boolean isRegistered(Class<? extends Plugin<Project>> pluginClass) {
-        return pluginClasses.values().stream().anyMatch(registeredPlugins -> registeredPlugins.stream().anyMatch(registeredPlugin -> registeredPlugin.isAssignableFrom(pluginClass)));
+    public Optional<SoftwareTypeImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass) {
+        return getSoftwareTypeImplementations().values().stream()
+            .filter(softwareTypeImplementation -> softwareTypeImplementation.getPluginClass().isAssignableFrom(pluginClass))
+            .findFirst();
     }
 
     private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {

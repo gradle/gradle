@@ -39,21 +39,30 @@ class ConventionApplicationHandler(private val softwareTypeConventionRepository:
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         // Find all the software types that are referenced in the build file
-        val referencedSoftwareTypes = findUsedSoftwareTypeNames(resolutionResult)
+        val conventionResolutionResults = findUsedSoftwareTypeNames(resolutionResult)
             .mapNotNull(softwareTypeConventionRepository::findConventions)
 
-        with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
-            // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
-            val conventionAssignments = applyAssignmentConventions(referencedSoftwareTypes)
-            val conventionAdditions = applyAdditionConventions(referencedSoftwareTypes)
-            val conventionNestedObjectAccess = applyNestedObjectAccessConvention(referencedSoftwareTypes)
+        return processResolutionResultWithConventions(resolutionResult, conventionResolutionResults)
+    }
 
-            // Return a resolution result with the convention operations added
-            return resolutionResult.copy(
-                conventionAssignments = resolutionResult.conventionAssignments + conventionAssignments,
-                conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
-                conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
-            )
+    companion object {
+        fun processResolutionResultWithConventions(
+            resolutionResult: ResolutionResult,
+            conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>
+        ): ResolutionResult {
+            with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
+                // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
+                val conventionAssignments = applyAssignmentConventions(conventionResolutionResults)
+                val conventionAdditions = applyAdditionConventions(conventionResolutionResults)
+                val conventionNestedObjectAccess = applyNestedObjectAccessConvention(conventionResolutionResults)
+
+                // Return a resolution result with the convention operations added
+                return resolutionResult.copy(
+                    conventionAssignments = resolutionResult.conventionAssignments + conventionAssignments,
+                    conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
+                    conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
+                )
+            }
         }
     }
 }
@@ -88,10 +97,10 @@ class ConventionTransformer(
     fun transfer(origin: ObjectOrigin) = replaceReceivers(origin, ::isConventionsCall, targetBaseReceiver)
 
     fun applyAssignmentConventions(
-        referencedSoftwareTypes: List<SoftwareTypeConventionResolutionResults>
+        conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>
     ): List<AssignmentRecord> =
-        referencedSoftwareTypes.flatMap { softwareType ->
-            softwareType.assignments.map { assignmentRecord ->
+        conventionResolutionResults.flatMap { convention ->
+            convention.assignments.map { assignmentRecord ->
                 assignmentRecord.copy(
                     lhs = assignmentRecord.lhs.copy(receiverObject = transfer(assignmentRecord.lhs.receiverObject)),
                     rhs = transfer(assignmentRecord.rhs)
@@ -100,19 +109,19 @@ class ConventionTransformer(
         }
 
     fun applyAdditionConventions(
-        referencedSoftwareTypes: List<SoftwareTypeConventionResolutionResults>,
+        conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>,
     ): List<DataAdditionRecord> =
-        referencedSoftwareTypes.flatMap { softwareType ->
-            softwareType.additions.map { additionRecord ->
+        conventionResolutionResults.flatMap { convention ->
+            convention.additions.map { additionRecord ->
                 DataAdditionRecord(transfer(additionRecord.container), transfer(additionRecord.dataObject))
             }
         }
 
     fun applyNestedObjectAccessConvention(
-        referencedSoftwareTypes: List<SoftwareTypeConventionResolutionResults>
+        conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>
     ): List<NestedObjectAccessRecord> =
-        referencedSoftwareTypes.flatMap { softwareType ->
-            softwareType.nestedObjectAccess.map { accessRecord ->
+        conventionResolutionResults.flatMap { convention ->
+            convention.nestedObjectAccess.map { accessRecord ->
                 NestedObjectAccessRecord(
                     container = transfer(accessRecord.container),
                     // Expect that the type remains the same: the only thing that will be mapped to a different type is the `conventions { ... }`

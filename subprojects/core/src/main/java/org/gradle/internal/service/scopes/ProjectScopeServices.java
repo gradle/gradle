@@ -39,6 +39,11 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+<<<<<<< HEAD
+=======
+import org.gradle.api.internal.plugins.AddSoftwareTypesAsExtensionsPluginTarget;
+import org.gradle.api.internal.plugins.ApplySoftwareTypeConventionsPluginTarget;
+>>>>>>> 447482b8afd (Allow declarative conventions to be applied in non-declarative scripts)
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -101,6 +106,7 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
+import org.gradle.plugin.software.internal.ConventionHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
@@ -227,13 +233,20 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry
+        SoftwareTypeRegistry softwareTypeRegistry,
+        List<ConventionHandler> conventionHandlers
     ) {
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
             new ImperativeOnlyPluginTarget<>(project),
             modelRuleExtractor,
             modelRuleSourceDetector
+        );
+        PluginTarget pluginTarget = new ApplySoftwareTypeConventionsPluginTarget(
+            project,
+            ruleBasedTarget,
+            softwareTypeRegistry,
+            conventionHandlers
         );
         return instantiator.newInstance(
             DefaultPluginManager.class,
@@ -242,7 +255,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
                 instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
                 pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
-            ruleBasedTarget,
+            pluginTarget,
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,

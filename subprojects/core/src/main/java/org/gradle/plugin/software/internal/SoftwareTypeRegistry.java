@@ -23,6 +23,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Allows registration of software types implemented by plugins.
@@ -44,5 +45,5 @@ public interface SoftwareTypeRegistry {
     /**
      * Returns whether a plugin is registered as providing a software type or not.
      */
-    boolean isRegistered(Class<? extends Plugin<Project>> pluginClass);
+    Optional<SoftwareTypeImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
 }
