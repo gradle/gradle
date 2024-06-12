@@ -21,7 +21,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -75,7 +75,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @return The files. Never returns null.
      */
     @Internal
-    @ToBeKeptEagerProperty(because = "Should be deprecated, users should use getTargetFiles()")
+    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()")
     public Set<Object> getDelete() {
         return paths.getFrom();
     }

@@ -21,7 +21,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -112,7 +112,7 @@ public interface MavenPublication extends Publication {
      *
      * @return The POM that will be published.
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested like property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     MavenPom getPom();
 
     /**
@@ -266,7 +266,7 @@ public interface MavenPublication extends Publication {
      * Returns the complete set of artifacts for this publication.
      * @return the artifacts.
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested like property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     MavenArtifactSet getArtifacts();
 
     /**

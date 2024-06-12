@@ -28,7 +28,7 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -146,6 +146,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     }
 
     @Internal
-    @ToBeKeptEagerProperty(because = "ConfigurationContainer is injected type")
+    @NotToBeReplacedByLazyProperty(because = "ConfigurationContainer is injected type")
     public abstract ConfigurationContainer getTaskConfigurations();
 }

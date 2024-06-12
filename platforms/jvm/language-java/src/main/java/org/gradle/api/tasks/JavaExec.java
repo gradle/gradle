@@ -29,7 +29,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -540,7 +540,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public ModularitySpec getModularity() {
         return modularity;
     }

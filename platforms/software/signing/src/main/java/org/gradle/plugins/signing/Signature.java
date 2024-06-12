@@ -28,7 +28,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
@@ -405,7 +405,7 @@ public class Signature extends AbstractPublishArtifact {
 
     @Internal
     @Override
-    @ToBeKeptEagerProperty(because = "Returning TaskDependency")
+    @NotToBeReplacedByLazyProperty(because = "Returning TaskDependency")
     public TaskDependency getBuildDependencies() {
         return super.getBuildDependencies();
     }

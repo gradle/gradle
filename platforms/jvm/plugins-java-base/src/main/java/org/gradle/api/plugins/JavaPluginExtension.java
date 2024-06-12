@@ -26,7 +26,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -159,7 +159,7 @@ public interface JavaPluginExtension {
      *
      * @since 6.4
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     ModularitySpec getModularity();
 
     /**
@@ -170,7 +170,7 @@ public interface JavaPluginExtension {
      *
      * @since 6.7
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     JavaToolchainSpec getToolchain();
 
     /**
@@ -285,7 +285,7 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     SourceSetContainer getSourceSets();
 
     /**

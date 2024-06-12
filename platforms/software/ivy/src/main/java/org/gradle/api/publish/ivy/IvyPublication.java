@@ -21,7 +21,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -111,7 +111,7 @@ public interface IvyPublication extends Publication {
      *
      * @return The module descriptor that will be published.
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested like property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     IvyModuleDescriptorSpec getDescriptor();
 
     /**
@@ -186,7 +186,7 @@ public interface IvyPublication extends Publication {
      * Returns the complete set of configurations for this publication.
      * @return the configurations
      */
-    @ToBeKeptEagerProperty(because = "Container property")
+    @NotToBeReplacedByLazyProperty(because = "Container property")
     IvyConfigurationContainer getConfigurations();
 
     /**

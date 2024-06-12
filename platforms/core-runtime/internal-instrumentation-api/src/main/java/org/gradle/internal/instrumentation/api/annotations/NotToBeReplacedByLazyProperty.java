@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
-public @interface ToBeKeptEagerProperty {
+public @interface NotToBeReplacedByLazyProperty {
 
     /**
      * Reason why this property will be kept eager.

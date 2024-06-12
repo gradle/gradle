@@ -29,7 +29,7 @@ import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -50,7 +50,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     @Nested
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public ScalaCompileOptions getScalaCompileOptions() {
         return (ScalaCompileOptions) super.getScalaCompileOptions();
     }

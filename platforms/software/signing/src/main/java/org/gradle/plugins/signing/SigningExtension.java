@@ -36,7 +36,7 @@ import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -105,7 +105,7 @@ public abstract class SigningExtension {
         project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
     }
 
-    @ToBeKeptEagerProperty(because = "Read-only property returning project")
+    @NotToBeReplacedByLazyProperty(because = "Read-only property returning project")
     public final Project getProject() {
         return project;
     }

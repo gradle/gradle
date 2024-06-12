@@ -19,7 +19,7 @@ package org.gradle.plugin.devel;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -40,7 +40,7 @@ public abstract class PluginDeclaration implements Named {
     }
 
     @Override
-    @ToBeKeptEagerProperty(because = "Final property from Named interface")
+    @NotToBeReplacedByLazyProperty(because = "Final property from Named interface")
     public String getName() {
         return name;
     }

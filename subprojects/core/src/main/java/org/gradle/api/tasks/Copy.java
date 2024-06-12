@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -86,7 +86,7 @@ public abstract class Copy extends AbstractCopyTask {
     }
 
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested like property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public DestinationRootCopySpec getRootSpec() {
         return (DestinationRootCopySpec) super.getRootSpec();
     }

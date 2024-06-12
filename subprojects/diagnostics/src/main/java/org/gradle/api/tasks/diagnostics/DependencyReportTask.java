@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.work.DisableCachingByDefault;
 public abstract class DependencyReportTask extends AbstractDependencyReportTask {
 
     @Override
-    @ToBeKeptEagerProperty(because = "ConfigurationContainer is injected type")
+    @NotToBeReplacedByLazyProperty(because = "ConfigurationContainer is injected type")
     public ConfigurationContainer getTaskConfigurations() {
         return getProject().getConfigurations();
     }

@@ -56,7 +56,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -328,7 +328,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * @since 6.4
      */
     @Nested
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public ModularitySpec getModularity() {
         return modularity;
     }
@@ -340,7 +340,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      */
     @Nested
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public CompileOptions getOptions() {
         return compileOptions;
     }

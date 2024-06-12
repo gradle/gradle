@@ -33,7 +33,7 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationRep
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Cached;
@@ -70,7 +70,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
      */
     @Override
     @Nested
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public final ConfigurationReports getReports() {
         return reports;
     }

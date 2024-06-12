@@ -45,7 +45,7 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -176,7 +176,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     @Internal
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested like property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public CopySpecInternal getRootSpec() {
         return rootSpec;
     }

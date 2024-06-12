@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Marks that a property will be replaced with a lazy property.
- * This is a complementary annotation to {@link ToBeKeptEagerProperty}.
+ * This is a complementary annotation to {@link NotToBeReplacedByLazyProperty}.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})

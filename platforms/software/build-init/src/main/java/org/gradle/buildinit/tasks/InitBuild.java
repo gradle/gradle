@@ -49,7 +49,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -267,7 +267,7 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "comments", description = "Include clarifying comments in files.")
     public abstract Property<Boolean> getComments();
 
-    @ToBeKeptEagerProperty(because = "Injected service")
+    @NotToBeReplacedByLazyProperty(because = "Injected service")
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
         if (projectLayoutRegistry == null) {
             projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);

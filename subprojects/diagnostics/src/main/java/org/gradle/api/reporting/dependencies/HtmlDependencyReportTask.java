@@ -37,7 +37,7 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.serialization.Cached;
@@ -103,7 +103,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
 
     @Nested
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public DependencyReportContainer getReports() {
         return reports;
     }

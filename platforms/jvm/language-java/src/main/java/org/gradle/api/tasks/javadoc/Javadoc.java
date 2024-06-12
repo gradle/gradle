@@ -46,7 +46,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -353,7 +353,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 6.4
      */
     @Nested
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public ModularitySpec getModularity() {
         return modularity;
     }
@@ -364,7 +364,7 @@ public abstract class Javadoc extends SourceTask {
      * @return The options. Never returns null.
      */
     @Nested
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public MinimalJavadocOptions getOptions() {
         return options;
     }

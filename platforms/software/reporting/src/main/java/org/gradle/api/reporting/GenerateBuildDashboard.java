@@ -30,7 +30,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -137,7 +137,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
      */
     @Nested
     @Override
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public BuildDashboardReports getReports() {
         return reports;
     }

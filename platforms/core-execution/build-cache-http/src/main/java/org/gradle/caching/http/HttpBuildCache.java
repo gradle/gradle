@@ -18,7 +18,7 @@ package org.gradle.caching.http;
 
 import org.gradle.api.Action;
 import org.gradle.caching.configuration.AbstractBuildCache;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -96,7 +96,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Returns the credentials used to access the HTTP cache backend.
      */
-    @ToBeKeptEagerProperty(because = "Read-only nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public HttpBuildCacheCredentials getCredentials() {
         return credentials;
     }

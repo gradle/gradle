@@ -39,7 +39,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.ModelElement;
@@ -169,7 +169,7 @@ public class ProviderMigrationArchitectureTest {
         .and().doNotHaveRawReturnType(assignableTo(Provider.class))
         .and().doNotHaveRawReturnType(assignableTo(ConfigurableFileCollection.class))
         .should().beAnnotatedWith(ToBeReplacedByLazyProperty.class)
-        .orShould().beAnnotatedWith(ToBeKeptEagerProperty.class));
+        .orShould().beAnnotatedWith(NotToBeReplacedByLazyProperty.class));
 
     private static HaveLazyReturnType haveProviderReturnType() {
         return new HaveLazyReturnType(Property.class, Provider.class);
