@@ -25,7 +25,6 @@ dependencies {
 
     implementation(project(":functional"))
 
-    implementation(libs.asm)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
