@@ -18,10 +18,8 @@ package org.gradle.api.internal.changedetection.state
 
 import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.file.archive.ZipEntry
-import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.tools.normalization.java.ApiClassExtractor
@@ -36,24 +34,6 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
 
     def setup() {
         temporaryDirectory.create()
-    }
-
-    def "api class extractors affect the configuration hash"() {
-        def apiClassExtractor1 = Mock(ApiClassExtractor)
-        def apiClassExtractor2 = Mock(ApiClassExtractor)
-
-        def resourceHasher1 = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor1)
-        def resourceHasher2 = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor2)
-
-        when:
-        def configurationHash1 = configurationHashOf(resourceHasher1)
-        def configurationHash2 = configurationHashOf(resourceHasher2)
-
-        then:
-        configurationHash1 != configurationHash2
-
-        1 * apiClassExtractor1.exportedPackages >> ["first"]
-        1 * apiClassExtractor2.exportedPackages >> ["second"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20398")
@@ -75,7 +55,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * fileSnapshotContext.getSnapshot() >> fileSnapshot
         2 * fileSnapshot.getName() >> file.name
         1 * fileSnapshot.getAbsolutePath() >> file.absolutePath
-        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         1 * fileSnapshot.getHash()
@@ -100,7 +80,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * zipEntryContext.getEntry() >> zipEntry
         2 * zipEntry.getName() >> 'String.class'
         1 * zipEntry.getContent() >> classContent
-        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         hash == Hashing.hashBytes(classContent)
@@ -127,7 +107,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * fileSnapshotContext.getSnapshot() >> fileSnapshot
         1 * fileSnapshot.getName() >> file.name
         1 * fileSnapshot.getAbsolutePath() >> file.absolutePath
-        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         def e = thrown(Exception)
@@ -148,17 +128,11 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * zipEntryContext.getEntry() >> zipEntry
         2 * zipEntry.getName() >> 'String.class'
         1 * zipEntry.getContent() >> bytesOf(String.class)
-        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         def e = thrown(Exception)
         e.message == "Boom!"
-    }
-
-    private static HashCode configurationHashOf(ConfigurableNormalizer normalizer) {
-        def hasher = Hashing.md5().newHasher()
-        normalizer.appendConfigurationToHasher(hasher)
-        return hasher.hash()
     }
 
     private static byte[] bytesOf(Class<?> clazz) {
