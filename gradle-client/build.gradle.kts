@@ -21,17 +21,7 @@ val appQualifiedName = "org.gradle.client"
 val appUUID = file("app-uuid.txt").readText().trim()
 
 kotlin {
-    jvm {
-        compilations.named("main") {
-            tasks.withType<JavaExec>().all { 
-                if (name == "jvmRun") {
-                    setClasspath(runtimeDependencyFiles.filter {
-                        !it.name.startsWith("gradle-api-")
-                    })
-                }
-            }
-        }
-    }
+    jvm()
     sourceSets {
 
         all {
