@@ -16,6 +16,7 @@
 
 package gradlebuild.packaging.transforms
 
+import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -43,6 +44,7 @@ import java.util.zip.ZipFile
  * - `META-INF/services/org.codehaus.groovy.transform.ASTTransformation`
  * - `META-INF/\*.kotlin_module`
  */
+@CacheableTransform
 abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApiClassesTransform.Parameters> {
 
     interface Parameters : TransformParameters {
