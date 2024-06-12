@@ -70,6 +70,27 @@ class CompositeStoppableTest extends Specification {
         e == failure1
     }
 
+    def stopsAllElementsWhenClosingInResponseToAnExceptionAndMultipleFailToStop() {
+        RuntimeException original = new RuntimeException()
+
+        Stoppable a = Mock()
+        Stoppable b = Mock()
+        RuntimeException failure1 = new RuntimeException()
+        RuntimeException failure2 = new RuntimeException()
+        stoppable.addFailure(original)
+        stoppable.add(a)
+        stoppable.add(b)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.stop() >> { throw failure1 }
+        1 * b.stop() >> { throw failure2 }
+        def e = thrown(RuntimeException)
+        e == original
+    }
+
     def closesACloseableElement() {
         Closeable a = Mock()
         Stoppable b = Mock()

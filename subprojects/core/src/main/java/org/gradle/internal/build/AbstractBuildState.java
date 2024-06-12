@@ -29,7 +29,6 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState, Closeable {
@@ -57,7 +56,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         buildServices.close();
     }
 

@@ -53,6 +53,16 @@ public class CompositeStoppable implements Stoppable {
         return new CompositeStoppable().add(elements);
     }
 
+    public CompositeStoppable addFailure(final Throwable failure) {
+        add(new Closeable() {
+            @Override
+            public void close() {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+        });
+        return this;
+    }
+
     public CompositeStoppable add(Iterable<?> elements) {
         for (Object closeable : elements) {
             add(closeable);
