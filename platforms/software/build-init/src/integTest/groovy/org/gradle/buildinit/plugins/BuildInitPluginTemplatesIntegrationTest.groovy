@@ -137,7 +137,7 @@ class BuildInitPluginTemplatesIntegrationTest extends AbstractInitIntegrationSpe
                             project.tasks.withType(InitBuild).configureEach { task ->
                                 task.doLast {
                                     if (task.templateUrl.isPresent()) {
-                                        project.logger.lifecycle("Generating project from template at: \${templateUrl.get()}")
+                                        logger.lifecycle("Generating project from template at: \${templateUrl.get()}")
                                     }
                                 }
                             }

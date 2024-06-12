@@ -27,6 +27,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
@@ -289,6 +290,10 @@ public abstract class InitBuild extends DefaultTask {
         return projectLayoutRegistry;
     }
 
+    private Gradle getGradle() {
+        return getServices().get(Gradle.class);
+    }
+
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
@@ -301,7 +306,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private void validateTemplatesPluginIsApplied() {
         @SuppressWarnings("rawtypes")
-        java.util.Optional<Plugin> templatesPlugin = getProject().getGradle().getPlugins().stream()
+        java.util.Optional<Plugin> templatesPlugin = getGradle().getPlugins().stream()
             .filter(p -> Objects.equals(p.getClass().getSimpleName(), "GradleTemplatesPlugin"))
             .findFirst();
 
