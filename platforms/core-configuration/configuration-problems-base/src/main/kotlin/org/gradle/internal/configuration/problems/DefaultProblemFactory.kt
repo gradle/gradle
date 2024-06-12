@@ -90,7 +90,7 @@ class DefaultProblemFactory(
     fun locationForCaller(consumer: String?, diagnostics: ProblemDiagnostics): PropertyTrace {
         val location = diagnostics.location
         return if (location != null) {
-            PropertyTrace.BuildLogic(location.sourceShortDisplayName, location.lineNumber)
+            PropertyTrace.BuildLogic(location)
         } else {
             locationForCaller(consumer, diagnostics.source)
         }
@@ -99,7 +99,7 @@ class DefaultProblemFactory(
     private
     fun locationForCaller(consumer: String?, source: UserCodeSource?): PropertyTrace {
         return if (source != null) {
-            PropertyTrace.BuildLogic(source.displayName, null)
+            PropertyTrace.BuildLogic(source)
         } else if (consumer != null) {
             PropertyTrace.BuildLogicClass(consumer)
         } else {

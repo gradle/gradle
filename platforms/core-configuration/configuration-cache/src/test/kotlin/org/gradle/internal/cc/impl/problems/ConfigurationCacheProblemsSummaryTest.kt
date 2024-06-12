@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import org.gradle.internal.Describables
+import org.gradle.internal.code.DefaultUserCodeSource
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -76,7 +77,7 @@ class ConfigurationCacheProblemsSummaryTest {
 
     private
     fun buildLogicProblem(location: String, message: String) = PropertyProblem(
-        PropertyTrace.BuildLogic(Describables.of(location), 1),
+        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(location), null)),
         StructuredMessage.build { text(message) }
     )
 }

@@ -103,7 +103,7 @@ class ConfigurationCacheProblems(
     var updatedProjects = 0
 
     private
-    var incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
+    val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction

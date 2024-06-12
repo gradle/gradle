@@ -17,7 +17,9 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.internal.DisplayName
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.problems.failure.Failure
+import org.gradle.problems.Location
 import kotlin.reflect.KClass
 
 
@@ -108,20 +110,33 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 }
 
 
+/**
+ * Subtypes are expected to support [PropertyTrace.equals] and [PropertyTrace.hashCode].
+ *
+ * Subclasses also must provide custom `toString()` implementations,
+ * which should invoke [PropertyTrace.asString].
+ */
 sealed class PropertyTrace {
 
     object Unknown : PropertyTrace() {
         override fun toString(): String = asString()
+        override fun equals(other: Any?): Boolean = other === this
+        override fun hashCode(): Int = 0
     }
 
     object Gradle : PropertyTrace() {
         override fun toString(): String = asString()
+        override fun equals(other: Any?): Boolean = other === this
+        override fun hashCode(): Int = 0
     }
 
-    data class BuildLogic(
+    @Suppress("DataClassPrivateConstructor")
+    data class BuildLogic private constructor(
         val source: DisplayName,
         val lineNumber: Int? = null
     ) : PropertyTrace() {
+        constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
+        constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
         override fun toString(): String = asString()
     }
 
@@ -179,6 +194,15 @@ sealed class PropertyTrace {
         override fun toString(): String = asString()
     }
 
+    abstract override fun toString(): String
+
+    abstract override fun equals(other: Any?): Boolean
+
+    abstract override fun hashCode(): Int
+
+    /**
+     * The shared logic for implementing `toString()` in subclasses.
+     */
     protected
     fun asString(): String =
         StringBuilder().apply {

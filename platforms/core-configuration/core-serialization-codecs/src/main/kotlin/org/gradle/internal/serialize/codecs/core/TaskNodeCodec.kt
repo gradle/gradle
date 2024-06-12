@@ -230,12 +230,11 @@ suspend fun <T> T.withTaskOf(
     action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwners.OwnerTask(task), codec) {
-        val taskTrace = PropertyTrace.Task(taskType, task.identityPath.path)
-        withPropertyTrace(taskTrace) {
+        withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
                 action()
             } else {
-                forIncompatibleTask(taskTrace, task.reasonTaskIsIncompatibleWithConfigurationCache.get(), action)
+                forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get(), action)
             }
         }
     }
