@@ -331,7 +331,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
    > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
      Required by:
-         project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
+         project : (the root project) > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
       > Dependency requires at least JVM runtime version 17. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
