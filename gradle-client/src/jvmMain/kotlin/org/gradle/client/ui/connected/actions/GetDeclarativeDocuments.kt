@@ -4,8 +4,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -19,14 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
+import org.gradle.client.core.gradle.dcl.MutationUtils
 import org.gradle.client.core.gradle.dcl.analyzer
 import org.gradle.client.core.gradle.dcl.sourceIdentifier
 import org.gradle.client.core.gradle.dcl.type
 import org.gradle.client.ui.build.BuildTextField
-import org.gradle.client.ui.composables.LabelMedium
-import org.gradle.client.ui.composables.TitleLarge
-import org.gradle.client.ui.composables.TitleMedium
-import org.gradle.client.ui.composables.TitleSmall
+import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.DataClass
@@ -34,7 +35,10 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved
+import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
+import org.gradle.internal.declarativedsl.dom.mutation.ApplicableMutation
+import org.gradle.internal.declarativedsl.dom.mutation.MutationDefinition
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrigin.*
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayOriginContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
@@ -59,8 +63,10 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     @Suppress("LongMethod")
     override fun ColumnScope.ModelContent(model: ResolvedDomPrerequisites) {
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
+        val fileUpdatesCount = remember { mutableStateOf<Long>(0) }
 
-        val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
+        val buildFileContent =
+            remember(selectedBuildFile.value, fileUpdatesCount.value) { selectedBuildFile.value.readText() }
         val settingsFileContent = remember(model.settingsFile) { model.settingsFile.readText() }
 
         val analyzer = analyzer(model)
@@ -71,6 +77,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             analyzer.evaluate(model.settingsFile.name, settingsFileContent)
         }
         val domWithConventions = AnalysisDocumentUtils.documentWithConventions(settingsResult, projectResult)
+
         val highlightedSourceRangeByFileId = mutableStateOf(mapOf<String, IntRange>())
 
         val hasAnyConventionContent =
@@ -90,14 +97,20 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             horizontallyScrollable = true,
             left = {
                 if (domWithConventions != null) {
+                    val projectEvaluationSchema = projectResult.stepResults.values.single()
+                        .stepResultOrPartialResult.evaluationSchema
+
+                    val projectAnalysisSchema = projectEvaluationSchema.analysisSchema
+
+                    val mutationApplicability =
+                        MutationUtils.checkApplicabilityForOverlay(projectAnalysisSchema, domWithConventions)
+
                     val highlightingContext = HighlightingContext(
                         domWithConventions.overlayNodeOriginContainer,
                         highlightedSourceRangeByFileId
                     )
 
                     val softwareTypeNode = domWithConventions.document.singleSoftwareTypeNode
-                    val projectAnalysisSchema = projectResult.stepResults.values.single()
-                        .stepResultOrPartialResult.evaluationSchema.analysisSchema
                     val softwareTypeSchema = projectAnalysisSchema.softwareTypeNamed(softwareTypeNode.name)
                     val softwareTypeType =
                         projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
@@ -109,14 +122,27 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                             .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
                     )
                     MaterialTheme.spacing.VerticalLevel4()
+
                     Column {
-                        ElementInfoOrNothingDeclared(
-                            softwareTypeType,
-                            softwareTypeNode,
-                            domWithConventions.overlayResolutionContainer,
-                            highlightingContext,
-                            0
-                        )
+                        with(
+                            ModelTreeRendering(
+                                domWithConventions.overlayResolutionContainer,
+                                highlightingContext,
+                                mutationApplicability,
+                                onRunMutation = {
+                                    MutationUtils.runMutation(
+                                        selectedBuildFile.value,
+                                        domWithConventions.inputOverlay,
+                                        projectEvaluationSchema,
+                                        it
+                                    )
+                                    // Trigger recomposition:
+                                    fileUpdatesCount.value += 1
+                                }
+                            )
+                        ) {
+                            ElementInfoOrNothingDeclared(softwareTypeType, softwareTypeNode, 0)
+                        }
                     }
                 }
             },
@@ -198,12 +224,18 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
     private val indentDp = MaterialTheme.spacing.level2
 
+    private
+    class ModelTreeRendering(
+        val resolutionContainer: DocumentResolutionContainer,
+        val highlightingContext: HighlightingContext,
+        val mutationApplicability: NodeData<List<ApplicableMutation>>,
+        val onRunMutation: (MutationDefinition) -> Unit
+    )
+
     @Composable
-    private fun ElementInfoOrNothingDeclared(
+    private fun ModelTreeRendering.ElementInfoOrNothingDeclared(
         type: DataClass?,
         node: DeclarativeDocument.DocumentNode.ElementNode?,
-        resolutionContainer: DocumentResolutionContainer,
-        highlightingContext: HighlightingContext,
         indentLevel: Int,
     ) {
         Column(Modifier.padding(start = indentLevel * indentDp)) {
@@ -211,18 +243,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 LabelMedium(NOTHING_DECLARED)
             } else {
                 type.properties.forEach { property ->
-                    PropertyInfo(node.property(property.name), highlightingContext, property)
+                    PropertyInfo(node.property(property.name), property)
                 }
                 val accessAndConfigure = type.memberFunctions.accessAndConfigure
                 val accessAndConfigureNames = accessAndConfigure.map { it.simpleName }
                 accessAndConfigure.forEach { subFunction ->
-                    ConfiguringFunctionInfo(
-                        subFunction,
-                        node,
-                        resolutionContainer,
-                        highlightingContext,
-                        indentLevel
-                    )
+                    ConfiguringFunctionInfo(subFunction, node, indentLevel)
                     MaterialTheme.spacing.VerticalLevel2()
                 }
                 val addAndConfigure = type.memberFunctions.addAndConfigure.filter { function ->
@@ -234,22 +260,15 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                     .filter { it.name in addAndConfigureByName }
 
                 elementsByAddAndConfigure.forEach { element ->
-                    AddingFunctionInfo(
-                        element,
-                        resolutionContainer,
-                        highlightingContext,
-                        indentLevel
-                    )
+                    AddingFunctionInfo(element, indentLevel)
                 }
             }
         }
     }
 
     @Composable
-    private fun AddingFunctionInfo(
+    private fun ModelTreeRendering.AddingFunctionInfo(
         element: DeclarativeDocument.DocumentNode.ElementNode,
-        resolutionContainer: DocumentResolutionContainer,
-        highlightingContext: HighlightingContext,
         indentLevel: Int
     ) {
         val arguments = when (val valueNode = element.elementValues.singleOrNull()) {
@@ -265,69 +284,107 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
         val elementTextRepresentation = "${element.name}($arguments)"
 
-        if (elementType == null || element.content.isEmpty()) {
-            LabelMedium(
-                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
-                    .withHoverCursor()
-                    .withClickTextRangeSelection(element, highlightingContext),
-                text = elementTextRepresentation
-            )
-        } else {
-            TitleSmall(
-                text = elementTextRepresentation,
-                modifier = Modifier
-                    .withHoverCursor()
-                    .withClickTextRangeSelection(element, highlightingContext)
-            )
+        val isEmpty = elementType == null || element.content.isEmpty()
+        WithApplicableMutations(element) {
+            if (isEmpty) {
+                LabelMedium(
+                    modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                        .withHoverCursor()
+                        .withClickTextRangeSelection(element, highlightingContext),
+                    text = elementTextRepresentation
+                )
+            } else {
+                TitleSmall(
+                    text = elementTextRepresentation,
+                    modifier = Modifier
+                        .withHoverCursor()
+                        .withClickTextRangeSelection(element, highlightingContext)
+                )
+            }
+        }
+        if (!isEmpty) {
             ElementInfoOrNothingDeclared(
                 elementType,
                 element,
-                resolutionContainer,
-                highlightingContext,
                 indentLevel + 1
             )
         }
     }
 
     @Composable
-    private fun ConfiguringFunctionInfo(
+    private fun ModelTreeRendering.ConfiguringFunctionInfo(
         subFunction: SchemaMemberFunction,
         parentNode: DeclarativeDocument.DocumentNode.ElementNode,
-        resolutionContainer: DocumentResolutionContainer,
-        highlightingContext: HighlightingContext,
         indentLevel: Int
     ) {
         val functionNode = parentNode.childElementNode(subFunction.simpleName)
         val functionType = functionNode?.type(resolutionContainer) as? DataClass
-        TitleSmall(
-            text = subFunction.simpleName,
-            modifier = Modifier
-                .withHoverCursor()
-                .withClickTextRangeSelection(functionNode, highlightingContext)
-        )
+        WithApplicableMutations(functionNode) {
+            TitleSmall(
+                text = subFunction.simpleName,
+                modifier = Modifier
+                    .withHoverCursor()
+                    .withClickTextRangeSelection(functionNode, highlightingContext)
+            )
+        }
         ElementInfoOrNothingDeclared(
             functionType,
             functionNode,
-            resolutionContainer,
-            highlightingContext,
             indentLevel + 1
         )
     }
 
     @Composable
-    private fun PropertyInfo(
+    private fun ModelTreeRendering.WithApplicableMutations(
+        element: DeclarativeDocument.DocumentNode?,
+        content: @Composable () -> Unit
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level1),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            content()
+
+            if (element != null) {
+                ApplicableMutations(element)
+            }
+        }
+    }
+
+    @Composable
+    private fun ModelTreeRendering.PropertyInfo(
         propertyNode: DeclarativeDocument.DocumentNode.PropertyNode?,
-        highlightingContext: HighlightingContext,
         property: DataProperty
     ) {
-        LabelMedium(
-            modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
-                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                .withClickTextRangeSelection(propertyNode, highlightingContext),
-            text = "${property.name}: ${property.kotlinType.simpleName} = ${
-                propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
-            }"
-        )
+        WithApplicableMutations(propertyNode) {
+            LabelMedium(
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                    .withHoverCursor()
+                    .withClickTextRangeSelection(propertyNode, highlightingContext),
+                text = "${property.name}: ${property.kotlinType.simpleName} = ${
+                    propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
+                }"
+            )
+        }
+    }
+
+    @Composable
+    private fun ModelTreeRendering.ApplicableMutations(node: DeclarativeDocument.DocumentNode) {
+        mutationApplicability.data(node).forEach {
+            val tooltip = "Apply mutation: ${it.mutationDefinition.name}"
+            PlainTextTooltip(tooltip) {
+                IconButton(
+                    modifier = Modifier.padding(0.dp).sizeIn(maxWidth = 24.dp, maxHeight = 24.dp),
+                    onClick = { onRunMutation(it.mutationDefinition) }
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        modifier = Modifier.size(24.dp),
+                        contentDescription = tooltip
+                    )
+                }
+            }
+        }
     }
 
     @Composable

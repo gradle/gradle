@@ -1,6 +1,7 @@
 package org.gradle.client.demo.mutations
 
 import org.gradle.api.experimental.android.application.AndroidApplication
+import org.gradle.api.experimental.android.library.AndroidLibrary
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.*
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior
@@ -8,7 +9,9 @@ import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.Neste
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
+import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
+import org.jetbrains.kotlin.cfg.pseudocode.and
 
 object SetVersionCodeMutation : MutationDefinition {
     override val id: String = "org.gradle.client.demo.mutations.versionCode"
@@ -33,9 +36,83 @@ object SetVersionCodeMutation : MutationDefinition {
                 ModelMutationRequest(
                     ScopeLocation(listOf(InAllNestedScopes, InNestedScopes(NestedObjectsOfType(androidApplication)))),
                     ModelMutation.SetPropertyValue(
-                        versionCode, 
-                        NewValueNodeProvider.ArgumentBased { args -> valueFromString("" + args[versionCodeParam])!! }, 
+                        versionCode,
+                        NewValueNodeProvider.ArgumentBased { args -> valueFromString("" + args[versionCodeParam])!! },
                         IfPresentBehavior.Overwrite
+                    ),
+                )
+            )
+        }
+}
+
+object SetNamespaceMutation : MutationDefinition {
+    override val id: String = "org.gradle.client.demo.mutations.namespace"
+    override val name: String = "Set the library namespace"
+    override val description: String = "Updates the namespace in an Android library"
+
+    val newNamespaceParam =
+        MutationParameter("new namespace", "new value for versionCode", MutationParameterKind.StringParameter)
+
+    override val parameters: List<MutationParameter<*>>
+        get() = listOf(newNamespaceParam)
+
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
+        projectAnalysisSchema.findTypeFor<AndroidLibrary>() != null
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+        with(projectAnalysisSchema) {
+            val androidLibrary = typeFor<AndroidLibrary>()
+            val namespace = androidLibrary.propertyFromGetter(AndroidLibrary::getNamespace)
+
+            listOf(
+                ModelMutationRequest(
+                    ScopeLocation(listOf(InAllNestedScopes, InNestedScopes(NestedObjectsOfType(androidLibrary)))),
+                    ModelMutation.SetPropertyValue(
+                        namespace,
+                        NewValueNodeProvider.ArgumentBased { args ->
+                            valueFromString("\"" + args[newNamespaceParam] + "\"")!!
+                        },
+                        IfPresentBehavior.Overwrite
+                    ),
+                )
+            )
+        }
+}
+
+object AddDependencyMutation : MutationDefinition {
+    override val id: String = "org.gradle.client.demo.mutations.dependency"
+    override val name: String = "Add a dependency"
+    override val description: String = "Add a dependency to the dependencies block"
+
+    val dependencyCoordinatesParam =
+        MutationParameter(
+            "dependency coordinates",
+            "coordinates of the dependency to add",
+            MutationParameterKind.StringParameter
+        )
+
+    override val parameters: List<MutationParameter<*>>
+        get() = listOf(dependencyCoordinatesParam)
+
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
+        projectAnalysisSchema.findTypeFor<AndroidLibrary>() != null
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+        with(projectAnalysisSchema) {
+            val androidLibrary = typeFor<AndroidLibrary>()
+            val androidLibraryDependencies = projectAnalysisSchema.functionFor(AndroidLibrary::dependencies)
+
+            listOf(
+                ModelMutationRequest(
+                    ScopeLocation(listOf(
+                        InAllNestedScopes,
+                        InNestedScopes(NestedObjectsOfType(androidLibrary)),
+                        InNestedScopes(NestedScopeSelector.ObjectsConfiguredBy(androidLibraryDependencies))
+                    )),
+                    ModelMutation.AddNewElement(
+                        NewElementNodeProvider.ArgumentBased { args ->
+                            elementFromString("implementation(\"" + args[dependencyCoordinatesParam] + "\")")!!
+                        }
                     ),
                 )
             )
