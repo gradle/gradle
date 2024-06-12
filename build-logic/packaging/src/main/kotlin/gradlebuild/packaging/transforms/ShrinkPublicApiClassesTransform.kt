@@ -25,7 +25,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.internal.normalization.java.ApiClassExtractor
+import org.gradle.internal.tools.normalization.java.ApiClassExtractor
 import java.io.File
 import java.io.InputStream
 import java.util.Optional
