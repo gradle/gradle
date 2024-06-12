@@ -44,7 +44,6 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
         }
 
         public DefaultPropertyTraceDataBuilder() {
-
         }
 
         @Override

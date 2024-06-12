@@ -82,7 +82,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
-            return invalidProblem("unsupported-additional-data", "Unsupported additional data type", "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + supportedAdditionalDataTypes);
+            return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + supportedAdditionalDataTypes);
         }
 
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();

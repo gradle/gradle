@@ -58,6 +58,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             locations[0].line == 2
             locations[1].path == "build file '${buildFile.absolutePath}'"
             locations[1].line == 2
+            additionalData.asMap.trace == "build file 'build.gradle': line 2"
         }
 
         when:

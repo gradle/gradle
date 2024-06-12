@@ -39,7 +39,7 @@ public class AdditionalDataBuilderFactory {
     @SuppressWarnings("unchecked")
     public static <S extends AdditionalData> AdditionalDataBuilder<S>  builderFor(S instance) {
         Preconditions.checkNotNull(instance);
-        if (TypeValidationData.class.isInstance(instance)) {
+        if (instance instanceof TypeValidationData) {
             return (AdditionalDataBuilder<S>) DefaultTypeValidationData.builder((TypeValidationData) instance);
         } else if (DeprecationData.class.isInstance(instance)) {
             return (AdditionalDataBuilder<S>) DefaultDeprecationData.builder((DeprecationData) instance);
