@@ -68,7 +68,9 @@ class ApiClassExtractorTestSupport extends Specification {
         public final Map<String, GeneratedClass> classes
 
         ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
-            this.apiClassExtractor = new ApiClassExtractor(packages.empty ? { true } : packages::contains)
+            this.apiClassExtractor = packages.empty
+                ? ApiClassExtractor.forJavaWithoutPackageFiltering()
+                : ApiClassExtractor.forJava { packages.contains(it) }
             this.classes = classes
         }
 

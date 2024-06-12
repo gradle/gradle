@@ -49,7 +49,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(Exception)
-        e.cause instanceof UnsupportedOperationException
+        e.cause instanceof Error
     }
 
     def "should not remove protected method"() {
@@ -73,8 +73,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(Exception)
-        e.cause instanceof UnsupportedOperationException
-
+        e.cause instanceof Error
     }
 
     def "should remove private method"() {
@@ -198,19 +197,19 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(Exception)
-        e.cause instanceof UnsupportedOperationException
+        e.cause instanceof Error
 
         when:
         extractedA.STATIC_IN_A()
 
         then:
-        thrown(UnsupportedOperationException)
+        thrown(Error)
 
         when:
         extractedB.STATIC_IN_B()
 
         then:
-        thrown(UnsupportedOperationException)
+        thrown(Error)
 
     }
 
@@ -242,8 +241,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         clazz.forceInit()
 
         then:
-        ex = thrown(UnsupportedOperationException)
-        ex.message =~ /You tried to call a method on an API class/
+        ex = thrown(Error)
+        ex.message == null
     }
 
     void "constant initial value for #type is #expected"() {
@@ -317,7 +316,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(Exception)
-        e.cause instanceof UnsupportedOperationException
+        e.cause instanceof Error
     }
 
     def "should not remove protected field"() {
@@ -341,7 +340,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(Exception)
-        e.cause instanceof UnsupportedOperationException
+        e.cause instanceof Error
     }
 
     def "should remove private field"() {

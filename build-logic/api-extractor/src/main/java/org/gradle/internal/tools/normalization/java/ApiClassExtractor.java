@@ -49,11 +49,11 @@ public class ApiClassExtractor {
         return new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter));
     }
 
-    protected ApiClassExtractor(ApiMemberWriterFactory apiMemberWriterFactory) {
+    public ApiClassExtractor(ApiMemberWriterFactory apiMemberWriterFactory) {
         this(packageName -> true, true, apiMemberWriterFactory);
     }
 
-    protected ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
+    public ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
         this.packageNameFilter = packageNameFilter;
         this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
         this.apiMemberWriterFactory = apiMemberWriterFactory;
