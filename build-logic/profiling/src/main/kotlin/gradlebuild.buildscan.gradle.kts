@@ -62,19 +62,26 @@ inline fun buildScan(configure: BuildScanConfiguration.() -> Unit) {
 }
 
 extractCiData()
-
-if (project.testDistributionEnabled) {
-    buildScan?.tag("TEST_DISTRIBUTION")
-}
-
-if (project.predictiveTestSelectionEnabled.orNull == true) {
-    buildScan?.tag("PTS")
-}
-
 extractWatchFsData()
 
-if (logicalBranch.orNull != buildBranch.orNull) {
-    buildScan?.tag("PRE_TESTED_COMMIT")
+buildScan {
+    val testDistributionEnabled = project.testDistributionEnabled
+    val predictiveTestSelectionEnabled = project.predictiveTestSelectionEnabled
+    val logicalBranch = project.logicalBranch
+    val buildBranch = project.buildBranch
+
+    // TODO(https://github.com/gradle/gradle/issues/25474) background would be better, but it makes branch an input to CC because of the bug.
+    buildFinished {
+        if (testDistributionEnabled) {
+            tag("TEST_DISTRIBUTION")
+        }
+        if (predictiveTestSelectionEnabled.getOrElse(false)) {
+            tag("PTS")
+        }
+        if (logicalBranch.orNull != buildBranch.orNull) {
+            tag("PRE_TESTED_COMMIT")
+        }
+    }
 }
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
