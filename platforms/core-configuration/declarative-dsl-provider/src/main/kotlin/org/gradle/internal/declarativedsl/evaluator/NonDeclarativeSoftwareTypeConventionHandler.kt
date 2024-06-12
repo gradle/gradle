@@ -16,8 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
-import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
@@ -26,22 +25,17 @@ import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedC
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
+import org.gradle.internal.declarativedsl.evaluator.runner.AbstractAnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
-import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.Evaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
-import org.gradle.internal.declarativedsl.evaluator.runner.InterpretationSequenceStepRunner
+import org.gradle.internal.declarativedsl.evaluator.runner.ParseAndResolveResult
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
 import org.gradle.plugin.software.internal.ConventionHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -85,37 +79,15 @@ class NonDeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: Software
 }
 
 
-class ApplyConventionsOnlyAnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult> {
-    override fun runInterpretationSequenceStep(
-        scriptIdentifier: String,
-        scriptSource: String,
-        step: InterpretationSequenceStep,
-        stepContext: AnalysisStepContext
-    ): EvaluationResult<AnalysisStepResult> {
-        val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
-
+private
+class ApplyConventionsOnlyAnalysisStepRunner : AbstractAnalysisStepRunner() {
+    override fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String, failureReasons: MutableList<NotEvaluated.StageFailure>): ParseAndResolveResult {
         // Create a synthetic top level receiver
         val topLevelBlock = Block(emptyList(), emptySourceData())
-        val topLevelReceiver = ObjectOrigin.TopLevelReceiver(step.evaluationSchemaForStep.analysisSchema.topLevelReceiverType, topLevelBlock)
-
-        // Apply resolution handlers (which includes the convention handler)
-        val postProcessingFeatures = step.features.filterIsInstance<InterpretationStepFeature.ResolutionResultPostprocessing>()
-        val resultHandlers = stepContext.supportedResolutionResultHandlers.filter { processor -> postProcessingFeatures.any(processor::shouldHandleFeature) }
-        val resolutionResult = resultHandlers.fold(emptyResolutionResultForReceiver(topLevelReceiver)) { acc, it -> it.processResolutionResult(acc) }
-
-        // Create an analysis result
-        val assignmentTrace = AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(resolutionResult)
-        val assignmentErrors = assignmentTrace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
-        if (assignmentErrors.isNotEmpty()) {
-            failureReasons += AssignmentErrors(assignmentErrors)
-        }
         val languageTreeResult = LanguageTreeResult(emptyList(), topLevelBlock, emptyList(), emptyList())
-        val analysisResult = AnalysisStepResult(step.evaluationSchemaForStep, languageTreeResult, resolutionResult, emptyResolutionTrace(), assignmentTrace)
+        val topLevelReceiver = ObjectOrigin.TopLevelReceiver(evaluationSchema.analysisSchema.topLevelReceiverType, topLevelBlock)
 
-        return when {
-            failureReasons.isNotEmpty() -> NotEvaluated(failureReasons, partialStepResult = analysisResult)
-            else -> Evaluated(analysisResult)
-        }
+        return ParseAndResolveResult(languageTreeResult, emptyResolutionResultForReceiver(topLevelReceiver), emptyResolutionTrace())
     }
 }
 

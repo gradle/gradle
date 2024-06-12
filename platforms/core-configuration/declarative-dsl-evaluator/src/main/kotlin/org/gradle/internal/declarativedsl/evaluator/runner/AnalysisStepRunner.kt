@@ -16,10 +16,12 @@
 
 package org.gradle.internal.declarativedsl.evaluator.runner
 
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.DocumentChecks
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
@@ -36,7 +38,16 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
 
-open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult> {
+data class ParseAndResolveResult(
+    val languageModel: LanguageTreeResult,
+    val resolution: ResolutionResult,
+    val resolutionTrace: ResolutionTrace
+)
+
+
+abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult> {
+    abstract fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String, failureReasons: MutableList<NotEvaluated.StageFailure>): ParseAndResolveResult
+
     override fun runInterpretationSequenceStep(
         scriptIdentifier: String,
         scriptSource: String,
@@ -47,24 +58,14 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
 
         val evaluationSchema = step.evaluationSchemaForStep
 
-        val resolver = tracingCodeResolver(evaluationSchema.operationGenerationId, evaluationSchema.analysisStatementFilter)
-
-        val languageModel = languageModelFromLightParser(scriptIdentifier, scriptSource)
-
-        if (languageModel.allFailures.isNotEmpty()) {
-            failureReasons += FailuresInLanguageTree(languageModel.allFailures)
-        }
-        val initialResolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
-        if (initialResolution.errors.isNotEmpty()) {
-            failureReasons += NotEvaluated.StageFailure.FailuresInResolution(initialResolution.errors)
-        }
+        val parseAndResolveResult = parseAndResolve(evaluationSchema, scriptIdentifier, scriptSource, failureReasons)
 
         val postProcessingFeatures = step.features.filterIsInstance<InterpretationStepFeature.ResolutionResultPostprocessing>()
         val resultHandlers = stepContext.supportedResolutionResultHandlers.filter { processor -> postProcessingFeatures.any(processor::shouldHandleFeature) }
-        val resolution = resultHandlers.fold(initialResolution) { acc, it -> it.processResolutionResult(acc) }
+        val resolution = resultHandlers.fold(parseAndResolveResult.resolution) { acc, it -> it.processResolutionResult(acc) }
 
-        val document = languageModel.toDocument()
-        val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, resolver.trace, document)
+        val document = parseAndResolveResult.languageModel.toDocument()
+        val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, parseAndResolveResult.resolutionTrace, document)
 
         val checkFeatures = step.features.filterIsInstance<DocumentChecks>()
         val checkResults = stepContext.supportedDocumentChecks.filter { checkFeatures.any(it::shouldHandleFeature) }
@@ -80,7 +81,7 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
             failureReasons += AssignmentErrors(assignmentErrors)
         }
 
-        val analysisResult = AnalysisStepResult(evaluationSchema, languageModel, resolution, resolver.trace, assignmentTrace)
+        val analysisResult = AnalysisStepResult(evaluationSchema, parseAndResolveResult.languageModel, resolution, parseAndResolveResult.resolutionTrace, assignmentTrace)
 
         return when {
             failureReasons.isNotEmpty() -> NotEvaluated(failureReasons, partialStepResult = analysisResult)
@@ -91,6 +92,24 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
     private
     fun assignmentTrace(result: ResolutionResult) =
         AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
+}
+
+
+open class AnalysisStepRunner : AbstractAnalysisStepRunner() {
+    override fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String, failureReasons: MutableList<NotEvaluated.StageFailure>): ParseAndResolveResult {
+        val resolver = tracingCodeResolver(evaluationSchema.operationGenerationId, evaluationSchema.analysisStatementFilter)
+
+        val languageModel = languageModelFromLightParser(scriptIdentifier, scriptSource)
+
+        if (languageModel.allFailures.isNotEmpty()) {
+            failureReasons += FailuresInLanguageTree(languageModel.allFailures)
+        }
+        val initialResolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
+        if (initialResolution.errors.isNotEmpty()) {
+            failureReasons += NotEvaluated.StageFailure.FailuresInResolution(initialResolution.errors)
+        }
+        return ParseAndResolveResult(languageModel, initialResolution, resolver.trace)
+    }
 
     private
     fun languageModelFromLightParser(scriptIdentifier: String, scriptSource: String): LanguageTreeResult {
