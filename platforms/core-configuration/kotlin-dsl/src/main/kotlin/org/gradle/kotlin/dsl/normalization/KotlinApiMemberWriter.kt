@@ -32,12 +32,17 @@ import org.gradle.internal.tools.api.impl.MethodMember
 import org.gradle.internal.tools.api.impl.SimpleAnnotationValue
 import org.objectweb.asm.ClassVisitor
 
+
 class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) : JavaApiMemberWriter(apiMemberAdapter) {
 
-    private val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
+    private
+    val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
 
-    private val inlineFunctions: MutableSet<String> = HashSet()
-    private val internalFunctions: MutableSet<String> = HashSet()
+    private
+    val inlineFunctions: MutableSet<String> = HashSet()
+
+    private
+    val internalFunctions: MutableSet<String> = HashSet()
 
     companion object {
         fun adapter(): (ClassVisitor) -> KotlinApiMemberWriter {
