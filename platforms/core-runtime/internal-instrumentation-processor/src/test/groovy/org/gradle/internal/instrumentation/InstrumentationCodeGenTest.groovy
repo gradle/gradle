@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation
 
+import com.google.common.io.ByteStreams
 import com.google.testing.compile.Compilation
 import com.google.testing.compile.JavaFileObjects
 import org.gradle.api.JavaVersion
@@ -81,28 +82,28 @@ abstract class InstrumentationCodeGenTest extends Specification {
             ".nagUser();";
     }
 
-    protected JavaFileObject findClassFile(String className, Compilation compilation) {
-        return compilation.generatedFile(StandardLocation.CLASS_OUTPUT, className.replace(".", "/") + ".class").get()
-    }
-
     protected <T> T instrumentRunnerJavaClass(String runnerClassName, String interceptorFactoryClassName, Compilation oldClassesCompilation, Compilation newClassesCompilation) {
         List<File> newClasspath = fromCompilationToClasspath(newClassesCompilation)
         JvmBytecodeCallInterceptor.Factory interceptorFactory = newInstance(interceptorFactoryClassName, newClasspath)
-        JavaFileObject taskCallerFileObject = findClassFile(runnerClassName, oldClassesCompilation)
+        JavaFileObject taskCallerFileObject = findClassJavaFileObject(runnerClassName, oldClassesCompilation)
         List<File> classpathWithInstrumentedClass = instrumentClass(taskCallerFileObject, interceptorFactory)
         return newInstance(runnerClassName, newClasspath + classpathWithInstrumentedClass)
     }
 
     protected List<File> fromCompilationToClasspath(Compilation compilation) {
         File classpath = new File(tempFolder, UUID.randomUUID().toString())
-        compilation.generatedFiles().stream()
+        compilation.generatedFiles()
             .findAll { it.kind == JavaFileObject.Kind.CLASS }
             .each {
-                def classFile = new File(classpath, (it as JavaFileObject).name.replace("/CLASS_OUTPUT/", ""))
+                def classFile = new File(classpath, it.name.replace("/CLASS_OUTPUT/", ""))
                 classFile.parentFile.mkdirs()
-                classFile.bytes = (it as JavaFileObject).openInputStream().readAllBytes()
+                classFile.bytes = ByteStreams.toByteArray(it.openInputStream())
             }
         return [classpath]
+    }
+
+    protected JavaFileObject findClassJavaFileObject(String className, Compilation compilation) {
+        return compilation.generatedFile(StandardLocation.CLASS_OUTPUT, className.replace(".", "/") + ".class").get()
     }
 
     protected <T> T newInstance(String className, List<File> classpath) {
@@ -118,7 +119,7 @@ abstract class InstrumentationCodeGenTest extends Specification {
     protected List<File> instrumentClass(JavaFileObject classToInstrument, JvmBytecodeCallInterceptor.Factory interceptorFactory) {
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
         TestInstrumentingVisitor classVisitor = new TestInstrumentingVisitor(interceptorFactory, classWriter)
-        new ClassReader(classToInstrument.openInputStream().readAllBytes()).accept(classVisitor, 0)
+        new ClassReader(ByteStreams.toByteArray(classToInstrument.openInputStream())).accept(classVisitor, 0)
         File classpath = new File(tempFolder, UUID.randomUUID().toString())
         File classFile = new File(classpath, classToInstrument.name.replace("/CLASS_OUTPUT/", ""))
         classFile.parentFile.mkdirs()
