@@ -39,7 +39,7 @@ class TestNGOptionsTest extends Specification {
             listeners.empty
             parallel == null
             threadCount == -1
-            suiteThreadPoolSize == 1
+            suiteThreadPoolSize.get() == 1
             suiteName == 'Gradle suite'
             testName == 'Gradle test'
             configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY
@@ -84,7 +84,7 @@ class TestNGOptionsTest extends Specification {
             listeners == source.listeners
             parallel == source.parallel
             threadCount == source.threadCount
-            suiteThreadPoolSize == source.suiteThreadPoolSize
+            suiteThreadPoolSize.get() == source.suiteThreadPoolSize.get()
             useDefaultListeners == source.useDefaultListeners
             threadPoolFactoryClass == source.threadPoolFactoryClass
             suiteName == source.suiteName
@@ -105,7 +105,7 @@ class TestNGOptionsTest extends Specification {
             setListeners([prefix + "Listener"] as Set)
             setParallel(prefix + "Parallel")
             setThreadCount(intValue)
-            setSuiteThreadPoolSize(intValue)
+            getSuiteThreadPoolSize().set(intValue)
             setUseDefaultListeners(booleanValue)
             setThreadPoolFactoryClass(prefix + "ThreadPoolFactoryClass")
             setSuiteName(prefix + "SuiteName")
