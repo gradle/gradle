@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java.impl;
+package org.gradle.internal.tools.api.impl;
 
 public class InnerClassMember extends AccessibleMember implements Comparable<InnerClassMember> {
 

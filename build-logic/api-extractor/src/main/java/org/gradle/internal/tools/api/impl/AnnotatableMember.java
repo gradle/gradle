@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java.impl;
+package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;

@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java.impl;
+package org.gradle.internal.tools.api.impl;
 
-public class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
+public class ParameterAnnotationMember extends AnnotationMember {
 
-    public AnnotationAnnotationValue(String name, AnnotationMember value) {
-        super(name, value);
+    private final int parameter;
+
+    public ParameterAnnotationMember(String name, boolean visible, int parameter) {
+        super(name, visible);
+        this.parameter = parameter;
+    }
+
+    public int getParameter() {
+        return parameter;
+    }
+
+    @Override
+    public int compareTo(AnnotationMember o) {
+        return super.compare(o)
+            .compare(parameter, ((ParameterAnnotationMember) o).parameter)
+            .result();
     }
 }

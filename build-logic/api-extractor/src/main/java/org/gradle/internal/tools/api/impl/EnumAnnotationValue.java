@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java.impl;
+package org.gradle.internal.tools.api.impl;
 
-public class SimpleAnnotationValue extends AnnotationValue<Object> {
+public class EnumAnnotationValue extends SimpleAnnotationValue {
 
-    public SimpleAnnotationValue(String name, Object value) {
+    private final String typeDesc;
+
+    public EnumAnnotationValue(String name, String value, String typeDesc) {
         super(name, value);
+        this.typeDesc = typeDesc;
+    }
+
+    public String getTypeDesc() {
+        return typeDesc;
     }
 }

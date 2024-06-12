@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java;
+package org.gradle.internal.tools.api;
 
-import org.gradle.internal.tools.normalization.java.impl.ApiMemberSelector;
-import org.gradle.internal.tools.normalization.java.impl.ApiMemberWriter;
-import org.gradle.internal.tools.normalization.java.impl.MethodStubbingApiMemberAdapter;
+import org.gradle.internal.tools.api.impl.ApiMemberSelector;
+import org.gradle.internal.tools.api.impl.ApiMemberWriter;
+import org.gradle.internal.tools.api.impl.MethodStubbingApiMemberAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 

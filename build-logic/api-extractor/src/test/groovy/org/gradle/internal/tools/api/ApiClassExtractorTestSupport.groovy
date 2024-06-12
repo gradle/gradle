@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java
+package org.gradle.internal.tools.api
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor

@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java.impl;
+package org.gradle.internal.tools.api.impl;
 
-public class ParameterAnnotationMember extends AnnotationMember {
+public abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
 
-    private final int parameter;
+    private final V value;
 
-    public ParameterAnnotationMember(String name, boolean visible, int parameter) {
-        super(name, visible);
-        this.parameter = parameter;
+    public AnnotationValue(String name, V value) {
+        super(name);
+        this.value = value;
     }
 
-    public int getParameter() {
-        return parameter;
+    public V getValue() {
+        return value;
     }
 
     @Override
-    public int compareTo(AnnotationMember o) {
-        return super.compare(o)
-            .compare(parameter, ((ParameterAnnotationMember) o).parameter)
-            .result();
+    public int compareTo(AnnotationValue<?> o) {
+        return super.compare(o).result();
     }
 }

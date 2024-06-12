@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tools.normalization.java;
+package org.gradle.internal.tools.api.impl;
 
-import org.gradle.internal.tools.normalization.java.impl.ApiMemberWriter;
-import org.objectweb.asm.ClassWriter;
+public class SimpleAnnotationValue extends AnnotationValue<Object> {
 
-public interface ApiMemberWriterFactory {
-    ApiMemberWriter makeApiMemberWriter(ClassWriter classWriter);
+    public SimpleAnnotationValue(String name, Object value) {
+        super(name, value);
+    }
 }

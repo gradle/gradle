@@ -24,7 +24,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.tools.normalization.java.ApiClassExtractor;
+import org.gradle.internal.tools.api.ApiClassExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

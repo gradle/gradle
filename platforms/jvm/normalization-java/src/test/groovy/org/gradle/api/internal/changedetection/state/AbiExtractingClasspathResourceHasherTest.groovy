@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.tools.normalization.java.ApiClassExtractor
+import org.gradle.internal.tools.api.ApiClassExtractor
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Issue
