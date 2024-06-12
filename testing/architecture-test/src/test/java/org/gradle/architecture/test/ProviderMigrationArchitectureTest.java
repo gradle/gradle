@@ -30,6 +30,7 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import org.gradle.StartParameter;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -51,7 +52,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
@@ -138,38 +141,46 @@ public class ProviderMigrationArchitectureTest {
         .that(are(task_properties))
         .should().notHaveRawReturnType(TextResource.class));
 
+    private static final DescribedPredicate<JavaMethod> predicate_for_methods_that_should_be_annotated = are(mutable_public_API_properties.or(task_properties))
+        // We won't upgrade deprecated methods and classes
+        .and(not(annotatedWith(Deprecated.class)))
+        .and(not(declaredIn(annotatedWith(Deprecated.class))))
+        // A lazy type
+        .and(not(declaredIn(ConfigurableFileTree.class)))
+        // Exceptions should not be upgraded
+        .and(not(declaredIn(assignableTo(Exception.class))))
+        // Dependency management
+        .and(not(declaredIn(resideInAPackage("org.gradle.api.artifacts.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.api.attributes"))))
+        // Software model
+        .and(not(declaredIn(assignableTo(ModelElement.class))))
+        // IDE Plugins
+        .and(not(declaredIn(resideInAPackage("org.gradle.ide.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.plugins.ide.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.tooling.."))))
+        // Kotlin DSL
+        .and(not(declaredIn(resideInAPackage("org.gradle.kotlin.dsl"))))
+        // Native
+        .and(not(declaredIn(resideInAPackage("org.gradle.nativeplatform.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.language.nativeplatform.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.language.swift.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.language.rc.."))))
+        .and(not(declaredIn(resideInAPackage("org.gradle.language.assembler.."))))
+        .and(not(have(rawReturnType(assignableTo(Provider.class)))))
+        .and(not(have(rawReturnType(assignableTo(NamedDomainObjectContainer.class)))))
+        .and(not(have(rawReturnType(assignableTo(ConfigurableFileCollection.class)))));
+
     @ArchTest
     public static final ArchRule public_api_properties_should_have_migration_annotation = freeze(methods()
-        .that(are(mutable_public_API_properties.or(task_properties))
-            // We won't upgrade deprecated methods and classes
-            .and(not(annotatedWith(Deprecated.class)))
-            .and(not(declaredIn(annotatedWith(Deprecated.class))))
-            // A lazy type
-            .and(not(declaredIn(ConfigurableFileTree.class)))
-            // Exceptions should not be upgraded
-            .and(not(declaredIn(assignableTo(Exception.class))))
-            // Dependency management
-            .and(not(declaredIn(resideInAPackage("org.gradle.api.artifacts.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.api.attributes"))))
-            // Software model
-            .and(not(declaredIn(assignableTo(ModelElement.class))))
-            // IDE Plugins
-            .and(not(declaredIn(resideInAPackage("org.gradle.ide.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.plugins.ide.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.tooling.."))))
-            // Kotlin DSL
-            .and(not(declaredIn(resideInAPackage("org.gradle.kotlin.dsl"))))
-            // Native
-            .and(not(declaredIn(resideInAPackage("org.gradle.nativeplatform.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.language.nativeplatform.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.language.swift.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.language.rc.."))))
-            .and(not(declaredIn(resideInAPackage("org.gradle.language.assembler.."))))
-        )
-        .and().doNotHaveRawReturnType(assignableTo(Provider.class))
-        .and().doNotHaveRawReturnType(assignableTo(ConfigurableFileCollection.class))
+        .that(predicate_for_methods_that_should_be_annotated)
         .should().beAnnotatedWith(ToBeReplacedByLazyProperty.class)
         .orShould().beAnnotatedWith(NotToBeReplacedByLazyProperty.class));
+
+    @ArchTest
+    public static final ArchRule non_public_api_properties_should_not_have_migration_annotation = freeze(methods()
+        .that(not(predicate_for_methods_that_should_be_annotated))
+        .should().notBeAnnotatedWith(ToBeReplacedByLazyProperty.class)
+        .andShould().notBeAnnotatedWith(NotToBeReplacedByLazyProperty.class));
 
     private static HaveLazyReturnType haveProviderReturnType() {
         return new HaveLazyReturnType(Property.class, Provider.class);
