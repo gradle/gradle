@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
 
 /**
- * A base implementation of the Invocation that provides everything except {@link #callOriginal()}.
+ * A simple implementation of the Invocation that accepts a lambda for {@link #callNext()} implementation.
  *
  * @param <R> the type of the receiver
  */
@@ -35,10 +35,10 @@ public final class InvocationImpl<R> implements Invocation {
     private final Object[] args;
     private final ThrowingSupplier callOriginal;
 
-    public InvocationImpl(R receiver, Object[] args, ThrowingSupplier callOriginal) {
+    public InvocationImpl(R receiver, Object[] args, ThrowingSupplier callNext) {
         this.receiver = receiver;
         this.args = args;
-        this.callOriginal = callOriginal;
+        this.callOriginal = callNext;
     }
 
     @Override

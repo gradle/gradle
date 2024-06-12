@@ -38,7 +38,7 @@ public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor 
     @Nullable
     public final Object intercept(Invocation invocation, String consumer) throws Throwable {
         if (!expectedReceiver.equals(invocation.getReceiver())) {
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
         return interceptSafe(invocation, consumer);
     }

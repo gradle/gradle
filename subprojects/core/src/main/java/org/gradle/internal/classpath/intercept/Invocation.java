@@ -68,11 +68,14 @@ public interface Invocation {
     }
 
     /**
-     * Forwards the call to the original Groovy implementation and returns the result.
+     * Forwards the call to the next handler and returns the result.
+     * Used by interceptors when they decide that this invocation doesn't match their interception criteria or to delegate the actual call.
+     * In simple cases, the next handler just calls the original Groovy implementation.
+     * However, some invocation implementation may delegate to other interceptors.
      *
-     * @return the value produced by the original Groovy implementation
-     * @throws Throwable if the original Groovy implementation throws
+     * @return the value produced by the next handler
+     * @throws Throwable if the next handler throws
      */
     @Nullable
-    Object callOriginal() throws Throwable;
+    Object callNext() throws Throwable;
 }

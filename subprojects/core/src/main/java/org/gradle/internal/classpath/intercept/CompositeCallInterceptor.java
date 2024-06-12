@@ -54,7 +54,7 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
 
             @Override
             @Nullable
-            public Object callOriginal() throws Throwable {
+            public Object callNext() throws Throwable {
                 return second.intercept(invocation, consumer);
             }
         }, consumer);

@@ -61,7 +61,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
                     return realConstructorInterceptor.intercept(invocation, consumer);
                 }
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     };
 

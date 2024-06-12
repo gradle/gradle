@@ -60,7 +60,7 @@ class MethodHandleInvocation implements Invocation {
 
     @Override
     @Nullable
-    public Object callOriginal() throws Throwable {
+    public Object callNext() throws Throwable {
         return original.invokeExact(originalArgs);
     }
 }

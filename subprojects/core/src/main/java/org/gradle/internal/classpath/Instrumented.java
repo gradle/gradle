@@ -497,7 +497,7 @@ public class Instrumented {
                 case 2:
                     return getInteger(invocation.getArgument(0).toString(), (Integer) invocation.getArgument(1), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -517,7 +517,7 @@ public class Instrumented {
                 case 2:
                     return getLong(invocation.getArgument(0).toString(), (Long) invocation.getArgument(1), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -534,7 +534,7 @@ public class Instrumented {
             if (invocation.getArgsCount() == 1) {
                 return getBoolean(invocation.getArgument(0).toString(), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -554,7 +554,7 @@ public class Instrumented {
                 case 2:
                     return systemProperty(invocation.getArgument(0).toString(), convertToString(invocation.getArgument(1)), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -571,7 +571,7 @@ public class Instrumented {
             if (invocation.getArgsCount() == 2) {
                 return setSystemProperty(convertToString(invocation.getArgument(0)), convertToString(invocation.getArgument(1)), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -590,7 +590,7 @@ public class Instrumented {
             if (invocation.getArgsCount() == 0) {
                 return systemProperties(consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -608,7 +608,7 @@ public class Instrumented {
                 setSystemProperties((Properties) invocation.getArgument(0), consumer);
                 return null;
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -625,7 +625,7 @@ public class Instrumented {
             if (invocation.getArgsCount() == 1) {
                 return clearSystemProperty(convertToString(invocation.getArgument(0)), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -645,7 +645,7 @@ public class Instrumented {
                 case 1:
                     return getenv(convertToString(invocation.getArgument(0)), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -670,7 +670,7 @@ public class Instrumented {
                     }
                 }
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
 
         private Optional<Process> tryCallExec(Object runtimeArg, Object commandArg, @Nullable Object envpArg, @Nullable Object fileArg, String consumer) throws Throwable {
@@ -717,7 +717,7 @@ public class Instrumented {
 
             if (nonCommandArgsCount != 0 && nonCommandArgsCount != 2) {
                 // This is an unsupported overload, skip interception.
-                return invocation.callOriginal();
+                return invocation.callNext();
             }
 
             Object commandArg = isStaticCall ? invocation.getArgument(0) : invocation.getReceiver();
@@ -729,7 +729,7 @@ public class Instrumented {
                     return result.get();
                 }
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
 
         private Optional<Process> tryCallExecute(Object commandArg, @Nullable Object envpArg, @Nullable Object fileArg, String consumer) throws Throwable {
@@ -780,7 +780,7 @@ public class Instrumented {
             if (receiver instanceof ProcessBuilder) {
                 return start((ProcessBuilder) receiver, consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 
@@ -798,7 +798,7 @@ public class Instrumented {
             if (invocation.getArgsCount() == 1 && invocation.getArgument(0) instanceof List) {
                 return startPipeline((List<ProcessBuilder>) invocation.getArgument(0), consumer);
             }
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
     }
 }
