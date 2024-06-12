@@ -357,7 +357,7 @@ class ClassChangeFixture(val initialClass: ClassFixture, val changedClass: Class
 
     private
     fun extractApiBytes(classBytes: ByteArray) =
-        apiClassExtractor.extractApiClassFromReader(ClassReader(classBytes)).get()
+        apiClassExtractor.extractApiClassFrom(classBytes).get()
 }
 
 
