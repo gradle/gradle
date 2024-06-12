@@ -34,6 +34,7 @@ import org.gradle.internal.tools.normalization.java.impl.MethodStubbingApiMember
 import org.gradle.internal.tools.normalization.java.impl.SimpleAnnotationValue
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.ClassWriter
 import java.util.Optional
 
 
@@ -43,7 +44,7 @@ class KotlinApiClassExtractor : ApiClassExtractor(
     { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
 ) {
 
-    override fun extractApiClassFrom(originalClassReader: ClassReader): Optional<ByteArray> {
+    override fun extractApiClassFrom(originalClassReader: ClassReader): Optional<ClassWriter> {
         try {
             return super.extractApiClassFrom(originalClassReader)
         } catch (e: CompileAvoidanceException) {

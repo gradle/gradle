@@ -68,10 +68,11 @@ public class ApiClassExtractor {
      */
     public Optional<byte[]> extractApiClassFrom(byte[] originalClassBytes) {
         ClassReader originalClassReader = new ClassReader(originalClassBytes);
-        return extractApiClassFrom(originalClassReader);
+        return extractApiClassFrom(originalClassReader)
+            .map(ClassWriter::toByteArray);
     }
 
-    protected Optional<byte[]> extractApiClassFrom(ClassReader originalClassReader) {
+    protected Optional<ClassWriter> extractApiClassFrom(ClassReader originalClassReader) {
         if (!shouldExtractApiClassFrom(originalClassReader)) {
             return Optional.empty();
         }
@@ -81,7 +82,7 @@ public class ApiClassExtractor {
         if (visitor.isPrivateInnerClass()) {
             return Optional.empty();
         }
-        return Optional.of(apiClassWriter.toByteArray());
+        return Optional.of(apiClassWriter);
     }
 
     private boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
