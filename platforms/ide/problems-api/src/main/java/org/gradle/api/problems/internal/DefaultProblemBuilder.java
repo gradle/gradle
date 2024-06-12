@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
@@ -34,12 +32,6 @@ import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
 
-    private static BiMap<Class<?>, Class<?>> supportedAdditionalDataTypes = ImmutableBiMap.<Class<?>, Class<?>>of(
-        GeneralDataSpec.class, GeneralData.class,
-        DeprecationDataSpec.class, DeprecationData.class,
-        TypeValidationDataSpec.class, TypeValidationData.class,
-        PropertyTraceDataSpec.class, PropertyTraceData.class
-    );
     private ProblemStream problemStream;
 
     private ProblemId id;
@@ -85,7 +77,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
-                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + supportedAdditionalDataTypes);
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + AdditionalDataBuilderFactory.supportedAdditionalDataTypes);
         }
 
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
@@ -253,18 +245,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (!supportedAdditionalDataTypes.containsKey(specType)) {
-            additionalData = new UnsupportedAdditionalDataSpec(specType);
-        } else if (additionalData == null) {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(specType);
-            config.execute((U) additionalDatabuilder);
-            additionalData = additionalDatabuilder.build();
-        } else if(specType.equals(supportedAdditionalDataTypes.inverse().get(additionalData.getClass()))) {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(specType, additionalData);
+        if (AdditionalDataBuilderFactory.supportedAdditionalDataTypes.containsKey(specType)) {
+            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDatabuilder);
             additionalData = additionalDatabuilder.build();
         } else {
-            throw new IllegalArgumentException("Additional data of type " + additionalData.getClass() + " is already set");
+            additionalData = new UnsupportedAdditionalDataSpec(specType);
         }
         return this;
     }
