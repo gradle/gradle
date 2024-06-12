@@ -71,6 +71,11 @@ However, before this release, the configuration cache subsystem did not follow t
 To address this issue, in the current release, all code originally under the `org.gradle.configurationcache*` packages
 (which was never API) has been moved to new internal packages (`org.gradle.internal.*`).
 
+=== File-system watching on macOS 11 (Big Sur) and earlier is disabled
+
+Since Gradle 8.8 file-system watching has only been supported on macOS 12 (Monterey) and later.
+We've now added a check to disable file-system watching on macOS 11 (Big Sur) and earlier automatically.
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
