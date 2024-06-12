@@ -18,6 +18,8 @@ package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a single invocation of the intercepted method/constructor/property.
  */
@@ -30,6 +32,7 @@ public interface Invocation {
      * @return the receiver of the method
      * @see CallSite
      */
+    @Nullable
     Object getReceiver();
 
     /**
@@ -45,6 +48,7 @@ public interface Invocation {
      * @param pos the position of the argument
      * @return the unwrapped value of the argument
      */
+    @Nullable
     Object getArgument(int pos);
 
     /**
@@ -58,6 +62,7 @@ public interface Invocation {
      * @param pos the position of the argument
      * @return the unwrapped value of the argument or {@code null} if {@code pos >= getArgsCount()}
      */
+    @Nullable
     default Object getOptionalArgument(int pos) {
         return pos < getArgsCount() ? getArgument(pos) : null;
     }
@@ -68,5 +73,6 @@ public interface Invocation {
      * @return the value produced by the original Groovy implementation
      * @throws Throwable if the original Groovy implementation throws
      */
+    @Nullable
     Object callOriginal() throws Throwable;
 }

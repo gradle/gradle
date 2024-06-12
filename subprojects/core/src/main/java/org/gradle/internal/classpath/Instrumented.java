@@ -661,9 +661,13 @@ public class Instrumented {
         public Object intercept(Invocation invocation, String consumer) throws Throwable {
             int argsCount = invocation.getArgsCount();
             if (1 <= argsCount && argsCount <= 3) {
-                Optional<Process> result = tryCallExec(invocation.getReceiver(), invocation.getArgument(0), invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
-                if (result.isPresent()) {
-                    return result.get();
+                Object runtimeArg = invocation.getReceiver();
+                Object commandArg = invocation.getArgument(0);
+                if (runtimeArg != null && commandArg != null) {
+                    Optional<Process> result = tryCallExec(runtimeArg, commandArg, invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
+                    if (result.isPresent()) {
+                        return result.get();
+                    }
                 }
             }
             return invocation.callOriginal();
@@ -705,7 +709,7 @@ public class Instrumented {
         public Object intercept(Invocation invocation, String consumer) throws Throwable {
             // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
             // "Extension" calls have command as a receiver and optional arguments as arguments.
-            boolean isStaticCall = invocation.getReceiver().equals(ProcessGroovyMethods.class);
+            boolean isStaticCall = ProcessGroovyMethods.class.equals(invocation.getReceiver());
             int argsCount = invocation.getArgsCount();
             // Offset accounts for the command being in the list of arguments.
             int nonCommandArgsOffset = isStaticCall ? 1 : 0;
@@ -717,11 +721,13 @@ public class Instrumented {
             }
 
             Object commandArg = isStaticCall ? invocation.getArgument(0) : invocation.getReceiver();
-            Object envpArg = invocation.getOptionalArgument(nonCommandArgsOffset);
-            Object fileArg = invocation.getOptionalArgument(nonCommandArgsOffset + 1);
-            Optional<Process> result = tryCallExecute(commandArg, envpArg, fileArg, consumer);
-            if (result.isPresent()) {
-                return result.get();
+            if (commandArg != null) {
+                Object envpArg = invocation.getOptionalArgument(nonCommandArgsOffset);
+                Object fileArg = invocation.getOptionalArgument(nonCommandArgsOffset + 1);
+                Optional<Process> result = tryCallExecute(commandArg, envpArg, fileArg, consumer);
+                if (result.isPresent()) {
+                    return result.get();
+                }
             }
             return invocation.callOriginal();
         }

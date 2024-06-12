@@ -20,20 +20,18 @@ import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
-import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
+import org.gradle.internal.classpath.intercept.InvocationImpl;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
@@ -78,19 +76,11 @@ public class GroovyDynamicDispatchInterceptors {
         CallInterceptorResolver interceptorResolver = ClosureCallInterceptorResolver.of(interceptorFilter);
         CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
-            @NonNullApi
-            class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
-                public SetPropertyInvocationImpl(Object receiver, Object[] args) {
-                    super(receiver, args);
-                }
-
-                @Override
-                public @Nullable Object callOriginal() throws Throwable {
-                    ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
-                    return null;
-                }
-            }
-            interceptor.intercept(new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}), consumer);
+            Object[] args = new Object[]{messageArgument};
+            interceptor.intercept(new InvocationImpl<>(receiver, args, () -> {
+                ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+                return null;
+            }), consumer);
         } else {
             ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
         }
