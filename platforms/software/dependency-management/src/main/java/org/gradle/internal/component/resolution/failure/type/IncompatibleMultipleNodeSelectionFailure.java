@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 
 import java.util.List;
@@ -28,8 +29,8 @@ import java.util.List;
 public final class IncompatibleMultipleNodeSelectionFailure extends AbstractVariantSelectionFailure {
     private final ImmutableList<AssessedCandidate> assessedCandidates;
 
-    public IncompatibleMultipleNodeSelectionFailure(String requestedName, List<AssessedCandidate> assessedCandidates) {
-        super(requestedName);
+    public IncompatibleMultipleNodeSelectionFailure(Describable requested, List<AssessedCandidate> assessedCandidates) {
+        super(requested);
         this.assessedCandidates = ImmutableList.copyOf(assessedCandidates);
     }
 

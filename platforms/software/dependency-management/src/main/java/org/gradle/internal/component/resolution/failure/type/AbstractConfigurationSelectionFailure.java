@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
 
 /**
@@ -26,17 +27,17 @@ public abstract class AbstractConfigurationSelectionFailure implements Resolutio
     private final String requestedConfigurationName;
     private final String requestedComponentName;
 
-    public AbstractConfigurationSelectionFailure(String requestedConfigurationName, String requestedComponentName) {
-        this.requestedConfigurationName = requestedConfigurationName;
-        this.requestedComponentName = requestedComponentName;
+    public AbstractConfigurationSelectionFailure(String requestedConfigurationName, Describable requestedComponent) {
+        this.requestedConfigurationName = ProjectPathClarifyingDescriber.describe(requestedConfigurationName);
+        this.requestedComponentName = ProjectPathClarifyingDescriber.describe(requestedComponent);
     }
 
     @Override
     public String getRequestedName() {
-        return ProjectPathClarifyingDescriber.describe(requestedConfigurationName);
+        return requestedConfigurationName;
     }
 
     public String getRequestedComponentDisplayName() {
-        return ProjectPathClarifyingDescriber.describe(requestedComponentName);
+        return requestedComponentName;
     }
 }

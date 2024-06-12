@@ -91,7 +91,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             // Request is ambiguous. Rerun matching again, except capture an explanation this time for reporting.
             TraceDiscardedVariants newExpBuilder = new TraceDiscardedVariants();
             matches = matcher.matches(variants, componentRequested, newExpBuilder);
-            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, matches);
+            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable(), componentRequested, matches);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -108,14 +108,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable(), componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noMatchingArtifactVariantFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, variants);
+        throw failureProcessor.noMatchingArtifactVariantFailure(schema, matcher, producer.asDescribable(), componentRequested, variants);
     }
 
     /**

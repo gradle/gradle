@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
 
 /**
@@ -25,12 +26,12 @@ import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
 public abstract class AbstractVariantSelectionFailure implements ResolutionFailure {
     private final String requestedName;
 
-    public AbstractVariantSelectionFailure(String requestedName) {
-        this.requestedName = requestedName;
+    public AbstractVariantSelectionFailure(Describable requested) {
+        this.requestedName = ProjectPathClarifyingDescriber.describe(requested);
     }
 
     @Override
     public String getRequestedName() {
-        return ProjectPathClarifyingDescriber.describe(requestedName);
+        return requestedName;
     }
 }

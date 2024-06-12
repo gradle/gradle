@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
@@ -29,8 +30,8 @@ import java.util.List;
 public final class VariantAwareAmbiguousResolutionFailure extends AmbiguousResolutionFailure {
     private final ModuleVersionIdentifier targetComponentId;
 
-    public VariantAwareAmbiguousResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
-        super(requestedName, requestedAttributes, candidates);
+    public VariantAwareAmbiguousResolutionFailure(Describable requested, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
+        super(requested, requestedAttributes, candidates);
         this.targetComponentId = targetComponentId;
     }
 
