@@ -284,7 +284,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem.additionalData.asMap == ['key': 'value']
     }
 
-    def "can emit a problem with generic additional data and have a second call with additional data with a different spec type"() {
+    def "cannot set addtional data with different type"() {
         given:
         withReportProblemTask """
             problems.forNamespace('org.example.plugin').reporting {
@@ -302,10 +302,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        receivedProblem.additionalData.asMap == [
-            'key': 'value',
-            'key2': 'value2'
-        ]
+        thrown(RuntimeException)
     }
 
     def "cannot emit a problem with invalid additional data"() {

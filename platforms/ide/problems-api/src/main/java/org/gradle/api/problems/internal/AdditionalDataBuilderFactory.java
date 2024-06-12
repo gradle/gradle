@@ -37,15 +37,15 @@ public class AdditionalDataBuilderFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <S extends AdditionalData> AdditionalDataBuilder<S>  builderFor(S instance) {
-        Preconditions.checkNotNull(instance);
-        if (instance instanceof TypeValidationData) {
+    public static <S extends AdditionalData, U extends AdditionalDataSpec> AdditionalDataBuilder<S>  builderFor(Class<? extends U> type, S instance) {
+        Preconditions.checkNotNull(type);
+        if (TypeValidationDataSpec.class.isAssignableFrom(type)) {
             return (AdditionalDataBuilder<S>) DefaultTypeValidationData.builder((TypeValidationData) instance);
-        } else if (DeprecationData.class.isInstance(instance)) {
+        } else if (DeprecationDataSpec.class.isAssignableFrom(type)) {
             return (AdditionalDataBuilder<S>) DefaultDeprecationData.builder((DeprecationData) instance);
-        } else if (GeneralData.class.isInstance(instance)) {
+        } else if (GeneralDataSpec.class.isAssignableFrom(type)) {
             return (AdditionalDataBuilder<S>) DefaultGeneralData.builder((GeneralData) instance);
-        } else if(PropertyTraceData.class.isInstance(instance)) {
+        } else if (PropertyTraceDataSpec.class.isAssignableFrom(type)) {
             return (AdditionalDataBuilder<S>) DefaultPropertyTraceData.builder((PropertyTraceData) instance);
         } else {
             throw new IllegalArgumentException("Unsupported instance: " + instance);
