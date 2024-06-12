@@ -15,12 +15,30 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import com.google.common.base.StandardSystemProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
+import java.util.regex.Pattern
+
 class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
+    def "reports Build JVM information"() {
+        when:
+        run(":buildEnvironment")
+
+        then:
+        // Not asserting over the exact output, just that important info is printed
+        JvmVendor currentVendor = JvmVendor.fromString(StandardSystemProperty.JAVA_VM_VENDOR.value())
+        output.matches(
+            "(\n|.)*Build JVM: ${Pattern.quote(currentVendor.displayName)} .*${Pattern.quote(StandardSystemProperty.JAVA_VM_VERSION.value())}.*\\n" +
+                ".*Location:\\s+${Pattern.quote(StandardSystemProperty.JAVA_HOME.value())}.*\\n" +
+                ".*Language Version:\\s+${Jvm.current().javaVersionMajor}.*\\n" +
+                ".*Vendor:\\s+${Pattern.quote(currentVendor.displayName)}.*\\n" +
+                ".*Architecture:\\s+${Pattern.quote(StandardSystemProperty.OS_ARCH.value())}.*\\n" +
+                ".*Is JDK:\\s+${Jvm.current().jdk}.*(\\n|.)*"
+        )
     }
 
     @LeaksFileHandles("Putting an generated Jar on the classpath of the buildscript")
@@ -72,7 +90,7 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run(":impl:buildEnvironment")
 
         then:
-        output.contains """
+        outputContains """
 classpath
 \\--- org:toplevel2:1.0
      +--- org:leaf3:1.0
@@ -82,7 +100,7 @@ classpath
         run(":client:buildEnvironment")
 
         then:
-        output.contains """
+        outputContains """
 classpath
 No dependencies
 """
@@ -91,7 +109,7 @@ No dependencies
         run(":buildEnvironment")
 
         then:
-        output.contains """
+        outputContains """
 classpath
 \\--- org:toplevel1:1.0
      +--- org:leaf1:1.0
