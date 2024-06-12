@@ -46,6 +46,8 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
 
     private String internalClassName;
 
+    private boolean generatedAnyMethod;
+
     public MethodStubbingApiMemberAdapter(ClassWriter cv) {
         super(Opcodes.ASM9, cv);
     }
@@ -54,9 +56,14 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         internalClassName = name;
-        if ((access & ACC_INTERFACE) == 0) {
+    }
+
+    @Override
+    public void visitEnd() {
+        if (generatedAnyMethod) {
             generateUnsupportedOperationExceptionMethod();
         }
+        super.visitEnd();
     }
 
     @Override
@@ -69,6 +76,7 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
             mv.visitInsn(ATHROW);
             mv.visitMaxs(1, 0);
             mv.visitEnd();
+            generatedAnyMethod = true;
         }
         return mv;
     }
