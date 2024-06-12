@@ -31,7 +31,7 @@ public class ExecutionServices extends AbstractGradleModuleServices {
     }
 
     @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        registration.addProvider(new ExecutionGradleServices());
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new ExecutionBuildServices());
     }
 }

@@ -95,7 +95,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
-public class ExecutionGradleServices implements ServiceRegistrationProvider {
+public class ExecutionBuildServices implements ServiceRegistrationProvider {
     @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
