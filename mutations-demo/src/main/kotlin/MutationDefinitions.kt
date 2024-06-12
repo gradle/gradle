@@ -8,10 +8,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBe
 import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
-import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
-import org.gradle.internal.declarativedsl.schemaUtils.functionFor
-import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import org.jetbrains.kotlin.cfg.pseudocode.and
+import org.gradle.internal.declarativedsl.schemaUtils.*
 
 object SetVersionCodeMutation : MutationDefinition {
     override val id: String = "org.gradle.client.demo.mutations.versionCode"
@@ -30,7 +27,7 @@ object SetVersionCodeMutation : MutationDefinition {
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         with(projectAnalysisSchema) {
             val androidApplication = typeFor<AndroidApplication>()
-            val versionCode = androidApplication.propertyFromGetter(AndroidApplication::getVersionCode)
+            val versionCode = androidApplication.propertyNamed("versionCode")
 
             listOf(
                 ModelMutationRequest(
@@ -62,7 +59,7 @@ object SetNamespaceMutation : MutationDefinition {
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         with(projectAnalysisSchema) {
             val androidLibrary = typeFor<AndroidLibrary>()
-            val namespace = androidLibrary.propertyFromGetter(AndroidLibrary::getNamespace)
+            val namespace = androidLibrary.propertyNamed("namespace")
 
             listOf(
                 ModelMutationRequest(
@@ -100,7 +97,7 @@ object AddDependencyMutation : MutationDefinition {
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         with(projectAnalysisSchema) {
             val androidLibrary = typeFor<AndroidLibrary>()
-            val androidLibraryDependencies = projectAnalysisSchema.functionFor(AndroidLibrary::dependencies)
+            val androidLibraryDependencies = androidLibrary.singleFunctionNamed("dependencies")
 
             listOf(
                 ModelMutationRequest(

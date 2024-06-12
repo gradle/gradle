@@ -29,9 +29,10 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        gradlePluginPortal() {
+        gradlePluginPortal {
             content { 
                 includeGroup("org.gradle.toolchains")
+                includeGroup("org.gradle.experimental")
             }
         }
         maven(url = "https://repo.gradle.org/gradle/libs-releases") {
@@ -45,12 +46,6 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
-    }
-}
-
-includeBuild("declarative-gradle/unified-prototype/unified-plugin") {
-    dependencySubstitution { 
-        substitute(module("org.gradle.experimental:plugin-android")).using(project(":plugin-android"))
     }
 }
 
