@@ -42,6 +42,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -49,6 +50,7 @@ import org.gradle.model.ModelElement;
 
 import javax.inject.Inject;
 
+import static com.tngtech.archunit.base.DescribedPredicate.and;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -58,6 +60,7 @@ import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicat
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.gradle.architecture.test.ArchUnitFixture.annotatedMaybeInSupertypeWith;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
@@ -147,6 +150,11 @@ public class ProviderMigrationArchitectureTest {
         // We won't upgrade deprecated methods and classes
         .and(not(annotatedWith(Deprecated.class)))
         .and(not(declaredIn(annotatedWith(Deprecated.class))))
+        // Skip Nested properties that are not Iterables
+        .and(not(and(
+            annotatedMaybeInSupertypeWith(Nested.class),
+            not(have(rawReturnType(assignableTo(Iterable.class))))
+        )))
         // A lazy type
         .and(not(declaredIn(ConfigurableFileTree.class)))
         // Exceptions should not be upgraded
