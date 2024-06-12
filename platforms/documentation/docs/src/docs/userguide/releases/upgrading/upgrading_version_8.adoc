@@ -41,6 +41,7 @@ The previous step will help you identify potential problems by issuing deprecati
 === Potential breaking changes
 
 ==== Change to toolchain provisioning
+
 In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**. This could lead to strange behavior with the toolchain. In Gradle 8.9, the toolchain is fully provisioned before the marker file is written. However, to not detect potentially broken toolchains, a different marker file (`.ready`) is used. This means all your existing toolchains will be re-provisioned the first time you use them with Gradle 8.9. Gradle 8.9 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned. This means that if you return to an older version of Gradle, an 8.9-provisioned toolchain will **not** be re-provisioned.
 
 ==== Upgrade to Kotlin 1.9.23
@@ -48,6 +49,7 @@ In previous versions of Gradle, toolchain provisioning could leave a partially p
 The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
 
 ==== Change the encoding of daemon log files
+
 In previous versions of Gradle, the daemon log file, located at `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`, was encoded with the default JVM encoding.
 This file is now always encoded with UTF-8 to prevent clients who may use different default encodings from reading data incorrectly.
 This change may affect third-party tools trying to read this file.
@@ -672,7 +674,7 @@ Publishing dependencies with an explicit artifact with a name different from the
 This behavior is still permitted when publishing to Ivy repositories.
 It will result in an error in Gradle 9.0.
 
-Currently, when publishing to Maven repositories, Gradle will interpret the dependency below as if it were declared with coordinates `org:notfoo:1.0`.
+When publishing to Maven repositories, Gradle will interpret the dependency below as if it were declared with coordinates `org:notfoo:1.0`:
 
 =====
 [.multi-language-sample]
@@ -732,12 +734,13 @@ dependencies {
 
 [[deprecated_artifact_identifier]]
 ==== Deprecated `ArtifactIdentifier`
+
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
 
 [[dependency_mutate_dependency_collector_after_finalize]]
 ==== Deprecate mutating `DependencyCollector` dependencies after observation
 
-Starting in Gradle 9.0, mutating dependencies sourced from a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[DependencyCollector] after those dependencies have been observed will result in an error.
+Starting in Gradle 9.0, mutating dependencies sourced from a link:{javadocPath}/org/gradle/API/artifacts/DSL/DependencyCollector.html[DependencyCollector], after those dependencies have been observed, will result in an error.
 The `DependencyCollector` interface is used to declare dependencies within the test suites DSL.
 
 Consider the following example where a test suite's dependency is mutated after it is observed:
@@ -822,7 +825,7 @@ In general, the `groovy-base` plugin should be applied whenever working with Gro
 
 ==== Provider.filter
 
-The type of the argument passed to `Provider.filter` is changed from `Predicate` to `Spec` for a more consistent API.
+The type of argument passed to `Provider.filter` is changed from `Predicate` to `Spec` for a more consistent API.
 This change should not affect anyone using `Provider.filter` with a lambda expression.
 However, this might affect plugin authors if they don't use SAM conversions to create a lambda.
 
@@ -839,21 +842,21 @@ These members will be removed in Gradle 9.0:
 [[depending_on_root_configuration]]
 ==== Deprecated depending on resolved configuration
 
-When resolving a `Configuration`, it is sometimes possible to select that same configuration as a variant.
+When resolving a `Configuration`, selecting that same configuration as a variant is sometimes possible.
 Configurations should be used for one purpose (resolution, consumption or dependency declarations), so this can only occur when a configuration is marked as both consumable and resolvable.
 
-This can lead to confusing circular dependency graphs, as the configuration being resolved is used for two different purposes.
+This can lead to circular dependency graphs, as the resolved configuration is used for two purposes.
 
 To avoid this problem, plugins should mark all resolvable configurations as `canBeConsumed=false` or use the `resolvable(String)` configuration factory method when creating configurations meant for resolution.
 
-In Gradle 9.0, consuming configurations in this manner will no longer be allowed and will result in an error.
+In Gradle 9.0, consuming configurations in this manner will no longer be allowed and result in an error.
 
 [[deprecated_missing_project_directory]]
 ==== Including projects without an existing directory
 
 Gradle will warn if a project is added to the build where the associated `projectDir` does not exist or is not writable.
 Starting with version 9.0, Gradle will not run builds if a project directory is missing or read-only.
-If you intend to dynamically synthesize projects make sure to create directories for them as well:
+If you intend to dynamically synthesize projects, make sure to create directories for them as well:
 
 =====
 [.multi-language-sample]
@@ -876,7 +879,6 @@ project(":project-without-directory").projectDir.mkdirs()
 ======
 =====
 
-
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 
@@ -889,11 +891,11 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 ==== XML parsing now requires recent parsers
 
 Gradle 8.4 now configures XML parsers with security features enabled.
-If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
+If your build logic depends on old XML parsers that don't support secure parsing, your build may fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
 If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
-For example, in OpenJDK this can be done by adding the following to `gradle.properties`:
+In OpenJDK, for example, this can be done by adding the following to `gradle.properties`:
 ```
 systemProp.javax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl
 systemProp.javax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
@@ -945,7 +947,7 @@ ear {
 ======
 =====
 
-If you happen to use `asNode()` instead of `asElement()` then nothing changes given `asNode()` simply ignores external DTDs.
+If you happen to use `asNode()` instead of `asElement()`, then nothing changes, given `asNode()` simply ignores external DTDs.
 
 You can work around this by running your build with the `javax.xml.accessExternalDTD` system property set to `http`.
 
@@ -993,11 +995,11 @@ See <<#project_builddir, the deprecation entry>> for details.
 
 The `TestLauncher` interface is part of the Tooling API, specialized for running tests.
 It is a logical extension of the `BuildLauncher` that can only launch tasks.
-A discrepancy has been reported in their behavior: if the same failing test is executed, `BuildLauncher` will report a build failure but `TestLauncher` won't.
+A discrepancy has been reported in their behavior: if the same failing test is executed, `BuildLauncher` will report a build failure, but `TestLauncher` won't.
 Originally, this was a design decision in order to continue the execution and run the tests in all test tasks and not stop at the first failure.
 At the same time, this behavior can be confusing for users as they can experience a failing test in a successful build.
 To make the two APIs more uniform, we made `TestLauncher` also fail the build, which is a potential breaking change.
-To continue the test execution even if a test task failed, Tooling API clients should explicitly pass `--continue` to the build.
+Tooling API clients should explicitly pass `--continue` to the build to continue the test execution even if a test task fails.
 
 [[legacy_attribute_snapshotting]]
 ==== Fixed variant selection behavior with `ArtifactView` and `ArtifactCollection`
@@ -1005,7 +1007,8 @@ To continue the test execution even if a test task failed, Tooling API clients s
 The dependency resolution APIs for selecting different artifacts or files (`Configuration.getIncoming().artifactView { }` and `Configuration.getIncoming().getArtifacts()`) captured immutable copies of the underlying `Configuration`'s attributes to use for variant selection.
 If the `Configuration`'s attributes were changed after these methods were called, the artifacts selected by these methods could be unexpected.
 
-Consider the case where the set of attributes on a `Configuration` is changed after an `ArtifactView` is created.
+Consider the case where the set of attributes on a `Configuration` is changed after an `ArtifactView` is created:
+
 ====
 [.multi-language-sample]
 =====
@@ -1035,7 +1038,7 @@ configurations {
 ====
 
 The `inputFiles` property of `myTask` uses an artifact view to select a different type of artifact from the configuration `classpath`.
-Since the artifact view was created before the attributes were added to the configuration, Gradle was not able to select the correct artifact.
+Since the artifact view was created before the attributes were added to the configuration, Gradle could not select the correct artifact.
 
 Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
 
@@ -1043,7 +1046,7 @@ Some builds may have worked around this by also putting the additional attribute
 ==== Upgrade to Kotlin 1.9.0
 
 The embedded Kotlin has been updated from 1.8.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.0[Kotlin 1.9.0].
-The Kotlin language and API levels for the Kotlin DSL are still set to 1.8 for backwards compatibility.
+The Kotlin language and API levels for the Kotlin DSL are still set to 1.8 for backward compatibility.
 See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22] and link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
 Kotlin 1.9 dropped support for Kotlin language and API level 1.3.
@@ -1063,8 +1066,8 @@ The value for property 'languageVersion' is final and cannot be changed any furt
 The value for property 'vendor' is final and cannot be changed any further.
 ```
 
-This situation may arise when plugins or build logic eagerly queries an existing JVM Configuration's attributes to create a new Configuration with the same attributes.
-Previously, this logic would have omitted the two above noted attributes entirely, while now the same logic will copy the attributes and finalize the project's Java toolchain.
+This situation may arise when plugins or build logic eagerly query an existing JVM Configuration's attributes to create a new Configuration with the same attributes.
+Previously, this logic would have omitted the two above-noted attributes entirely, while now, the same logic will copy the attributes and finalize the project's Java toolchain.
 To avoid early toolchain finalization, attribute-copying logic should be updated to query the source Configuration's attributes lazily:
 
 =====
@@ -1103,7 +1106,6 @@ configurations {
 ======
 =====
 
-
 === Deprecations
 
 [[project_builddir]]
@@ -1117,13 +1119,13 @@ It is replaced by a `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.ht
 See the `link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
 
 Note that, at this stage, Gradle will not print deprecation warnings if you still use `Project.buildDir`.
-We know this is a big change and want to give time for authors of major plugins to move away from its usage first.
+We know this is a big change, and we want to give the authors of major plugins time to stop using it.
 
-The switch from a `File` to a `DirectoryProperty` requires adaptations in build logic.
+Switching from a `File` to a `DirectoryProperty` requires adaptations in build logic.
 The main impact is that you cannot use the property inside a `String` to expand it.
-Instead, you should leverage the `dir` and `file` methods to compute the location you want.
+Instead, you should leverage the `dir` and `file` methods to compute your desired location.
 
-Here is an example for creating a file, where the following:
+Here is an example of creating a file where the following:
 
 =====
 [.multi-language-sample]
@@ -1146,7 +1148,7 @@ file("$buildDir/myOutput.txt")
 ======
 =====
 
-should be replaced by:
+Should be replaced by:
 
 =====
 [.multi-language-sample]
@@ -1181,7 +1183,7 @@ output.map { it.asFile.path }
 ======
 =====
 
-Here is another example for creating a directory, where the following:
+Here is another example for creating a directory where the following:
 
 =====
 [.multi-language-sample]
@@ -1204,7 +1206,7 @@ file("$buildDir/outputLocation")
 ======
 =====
 
-should be replaced by:
+Should be replaced by:
 
 =====
 [.multi-language-sample]
@@ -1487,7 +1489,7 @@ Current usages of these methods should migrate to `link:{javadocPath}/org/gradle
 
 Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] are called inconsistently with the configuration's intended usage.
 
-This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements.
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable and to unlock further speed and memory improvements.
 
 Currently, the following methods should only be called with these listed allowed usages:
 
@@ -1505,7 +1507,7 @@ This list is likely to grow in future releases.
 
 Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited.
 
-Also note that although it is not currently restricted, the `getDependencies()` method is really only intended for use with DECLARABLE configurations.
+Also note that although it is not currently restricted, the `getDependencies()` method is only intended for use with DECLARABLE configurations.
 The `getAllDependencies()` method, which retrieves all declared dependencies on a configuration and any superconfigurations, will not be restricted to any particular usage.
 
 [[deprecated_access_to_conventions]]
@@ -1526,10 +1528,10 @@ Doing so will now emit a deprecation warning.
 This will become an error in Gradle 9.0.
 You should prefer accessing the extensions and their properties instead.
 
-For specific examples see the next sections.
+For specific examples, see the next sections.
 
 Prominent community plugins already migrated to using extensions to provide custom DSLs.
-Some of them still registers conventions for backwards compatibility.
+Some of them still register conventions for backward compatibility.
 Registering conventions does not emit a deprecation warning yet to provide a migration window.
 Future Gradle versions will do.
 
@@ -1540,11 +1542,11 @@ To fix this these plugins should be recompiled with Gradle >= 8.2 or changed to 
 ==== Deprecated `base` plugin conventions
 
 The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 9.0.
-For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+For more context, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The conventions are replaced by the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
-The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
-Those methods are available in the extension only to maintain backwards compatibility.
+The old convention object defines the `distsDirName,` `libsDirName`, and `archivesBaseName` properties with simple getter and setter methods.
+Those methods are available in the extension only to maintain backward compatibility.
 Build scripts should solely use the properties of type `Property`:
 
 ====
@@ -1585,8 +1587,8 @@ base {
 [[application_convention_deprecation]]
 ==== Deprecated `application` plugin conventions
 
-The convention properties contributed by the `application` plugin have been deprecated and scheduled for removal in Gradle 9.0.
-For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+The convention properties the `application` plugin contributed have been deprecated and scheduled for removal in Gradle 9.0.
+For more context, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -1653,8 +1655,8 @@ application {
 [[java_convention_deprecation]]
 ==== Deprecated `java` plugin conventions
 
-The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 9.0.
-For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+The convention properties the `java` plugin contributed have been deprecated and scheduled for removal in Gradle 9.0.
+For more context, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -1724,7 +1726,7 @@ java {
 ==== Deprecated `war` plugin conventions
 
 The convention properties contributed by the `war` plugin have been deprecated and scheduled for removal in Gradle 9.0.
-For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+For more context, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -1757,7 +1759,7 @@ webAppDirName = 'src/main/webapp' // Accessing a convention
 =====
 ====
 
-Clients should configure the `war` task  directly.
+Clients should configure the `war` task directly.
 Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
 
 ====
@@ -1795,7 +1797,7 @@ war {
 ==== Deprecated `ear` plugin conventions
 
 The convention properties contributed by the `ear` plugin have been deprecated and scheduled for removal in Gradle 9.0.
-For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+For more context, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -1866,7 +1868,7 @@ ear {
 ==== Deprecated `project-report` plugin conventions
 
 The convention properties contributed by the `project-reports` plugin have been deprecated and scheduled for removal in Gradle 9.0.
-For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+For more context, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -1946,15 +1948,11 @@ Obtain the set of all configurations from the project's `configurations` contain
 [[test_framework_implementation_dependencies]]
 ==== Relying on automatic test framework implementation dependencies
 
-In some cases, Gradle will load JVM test framework dependencies from the Gradle distribution in order to
-execute tests.
-This existing behavior can lead to test framework dependency version conflicts on the test
-classpath.
-To avoid these conflicts, this behavior is deprecated and will be removed in Gradle 9.0. Tests
-using TestNG are unaffected.
+In some cases, Gradle will load JVM test framework dependencies from the Gradle distribution to execute tests.
+This existing behavior can lead to test framework dependency version conflicts on the test classpath.
+To avoid these conflicts, this behavior is deprecated and will be removed in Gradle 9.0. Tests using TestNG are unaffected.
 
-In order to prepare for this change in behavior, either declare the required dependencies explicitly,
-or migrate to link:jvm_test_suite_plugin.html[Test Suites], where these dependencies are managed automatically.
+To prepare for this change in behavior, either declare the required dependencies explicitly or migrate to link:jvm_test_suite_plugin.html[Test Suites], where these dependencies are managed automatically.
 
 ===== Test Suites
 
@@ -2045,6 +2043,7 @@ Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelec
 
 [[cache_marking]]
 === CACHEDIR.TAG files are created in global cache directories
+
 Gradle now emits a `CACHEDIR.TAG` file in some global cache directories, as specified in <<directory_layout#dir:gradle_user_home:cache_marking>>.
 
 This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle User Home:
@@ -2081,8 +2080,8 @@ beforeSettings { settings ->
 [[configuration_caching_options_renamed]]
 === Configuration cache options renamed
 
-In this release, the configuration cache feature was promoted from incubating to stable, and as such, all properties
-originally mentioned in the feature documentation (which had an `unsafe` part in their names, e.g. `org.gradle.unsafe.configuration-cache`) were renamed, in some cases, by just removing the `unsafe` bit.
+In this release, the configuration cache feature was promoted from incubating to stable.
+As such, all properties originally mentioned in the feature documentation (which had an `unsafe` part in their names, e.g., `org.gradle.unsafe.configuration-cache`) were renamed, in some cases, by removing the `unsafe` part of the name.
 
 [cols="1,1", options="header"]
 |===
@@ -2148,7 +2147,7 @@ Execution failed for task ':compileKotlin'.
 > Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. The 'freeCompilerArgs' property has been reassigned. It must instead be appended to. Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this.
 ----
 
-You must change this to adding your custom compiler arguments to the lazy configuration properties of the Kotlin Gradle Plugin in order for them to be appended to the ones required by the `kotlin-dsl` plugin:
+You must change this to adding your custom compiler arguments to the lazy configuration properties of the Kotlin Gradle Plugin for them to be appended to the ones required by the `kotlin-dsl` plugin:
 
 ====
 [.multi-language-sample]
@@ -2169,11 +2168,11 @@ tasks.withType(KotlinCompile::class).configureEach {
 =====
 ====
 
-If you were already adding to `freeCompilerArgs` instead of setting its value, then you should not experience a build failure.
+If you were already adding to `freeCompilerArgs` instead of setting its value, you should not experience a build failure.
 
 ==== New API introduced may clash with existing Gradle DSL code
 
-When a new property or method is added to an existing type in the Gradle DSL, it may clash with names already in use in user code.
+When a new property or method is added to an existing type in the Gradle DSL, it may clash with names already used in user code.
 
 When a name clash occurs, one solution is to rename the element in user code.
 
@@ -2526,6 +2525,7 @@ See the <<configuration_cache#config_cache:requirements:disallowed_types,configu
 
 [[test_task_fail_on_no_test_executed]]
 ==== Deprecated running test task successfully when no test executed
+
 Running the `Test` task successfully when no test was executed is now deprecated and will become an error in Gradle 9.
 Note that it is not an error when no test sources are present, in this case the `test` task is simply skipped. It is only an error when test sources are present, but no test was selected for execution.
 This is changed to avoid accidental successful test runs due to erroneous configuration.
