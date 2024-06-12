@@ -194,7 +194,7 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void maybeConfigurePluginManagement(Gradle gradle) {
-                    if (gradle.gradleVersion >= "4.4") {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
                         gradle.settingsEvaluated { Settings settings ->
                             withMirrors(settings.pluginManagement.repositories)
                         }
