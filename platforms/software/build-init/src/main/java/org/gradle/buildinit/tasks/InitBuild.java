@@ -21,6 +21,7 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
@@ -87,6 +88,8 @@ public abstract class InitBuild extends DefaultTask {
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+    private final Property<String> templateUrl = getProject().getObjects().property(String.class);
+
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
@@ -260,6 +263,24 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "comments", description = "Include clarifying comments in files.")
     public abstract Property<Boolean> getComments();
 
+    /**
+     * The URL of a git repository that build init should checkout to use as a template to generate the project.
+     * <p>
+     * This property can be set via the command-line options '--template' and will override all other options if present.
+     * <p>
+     * Using template generation requires applying the GradleTemplatesPlugin Gradle plugin in an initscript; otherwise
+     * use of this property is an error.
+     *
+     * @since 8.10
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "template", description = "Supply a git repository containing a template to use to generate the project.")
+    public Property<String> getTemplateUrl() {
+        return templateUrl;
+    }
+
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
         if (projectLayoutRegistry == null) {
             projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);
@@ -271,6 +292,25 @@ public abstract class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
+        if (getTemplateUrl().isPresent()) {
+            validateTemplatesPluginIsApplied();
+        } else {
+            doProceduralProjectGeneration(inputHandler);
+        }
+    }
+
+    private void validateTemplatesPluginIsApplied() {
+        @SuppressWarnings("rawtypes")
+        java.util.Optional<Plugin> templatesPlugin = getProject().getGradle().getPlugins().stream()
+            .filter(p -> Objects.equals(p.getClass().getSimpleName(), "GradleTemplatesPlugin"))
+            .findFirst();
+
+        if (!templatesPlugin.isPresent()) {
+            throw new GradleException("Template-based project generation requires the 'GradleTemplatesPlugin' plugin to be applied via an init script.");
+        }
+    }
+
+    private void doProceduralProjectGeneration(UserInputHandler inputHandler) {
         GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings).get();
 
         boolean userInterrupted = inputHandler.interrupted();

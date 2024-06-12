@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.MatcherAssert.assertThat
@@ -104,6 +105,18 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         <version>2.5</version>
         <packaging>jar</packaging>
       </project>"""
+    }
+
+    protected ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
+        def tasks = ['init', '--dsl', dsl.id]
+        tasks.addAll(initOptions)
+        run tasks
+    }
+
+    protected ExecutionResult initFailsWith(BuildInitDsl dsl, String... initOptions) {
+        def tasks = ['init', '--dsl', dsl.id]
+        tasks.addAll(initOptions)
+        fails(*tasks)
     }
 
     private void mavenCentralRepositoryDeclared(BuildInitDsl scriptDsl) {
