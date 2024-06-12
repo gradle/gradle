@@ -164,6 +164,7 @@ class RepoScriptBlockUtil {
         return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
+            import org.gradle.util.GradleVersion
 
             apply plugin: MirrorPlugin
 
@@ -184,7 +185,7 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void applyToAllProjects(Gradle gradle, Closure projectClosure) {
-                    if (gradle.gradleVersion >= "8.8") {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("8.8")) {
                         gradle.lifecycle.beforeProject(projectClosure)
                     } else {
                         gradle.allprojects(projectClosure)
