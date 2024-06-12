@@ -33,10 +33,10 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
             import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
             public abstract class Task {
-                @ReplacesEagerProperty(adapter = Task.GetMaxErrorsAdapter.class)
+                @ReplacesEagerProperty(adapter = Task.MaxErrorsAdapter.class)
                 public abstract Property<Integer> getMaxErrors();
 
-                static class GetMaxErrorsAdapter {
+                static class MaxErrorsAdapter {
                     @BytecodeUpgrade
                     static int maxErrors(Task task) {
                         return 0;
@@ -68,22 +68,22 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
              import org.gradle.api.Generated;
 
              @Generated
-             public final class \$\$BridgeFor\$\$Task\$\$GetMaxErrorsAdapter {
+             public final class \$\$BridgeFor\$\$Task\$\$MaxErrorsAdapter {
                  public static int access_get_getMaxErrors(Task task) {
                      ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
-                     return Task.GetMaxErrorsAdapter.getMaxErrors(task);
+                     return Task.MaxErrorsAdapter.getMaxErrors(task);
                  }
                  public static int access_get_maxErrors(Task task) {
                      ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
-                     return Task.GetMaxErrorsAdapter.maxErrors(task);
+                     return Task.MaxErrorsAdapter.maxErrors(task);
                  }
                  public static Task access_set_maxErrors(Task task, int maxErrors) {
                      ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
-                     return Task.GetMaxErrorsAdapter.maxErrors(task, maxErrors);
+                     return Task.MaxErrorsAdapter.maxErrors(task, maxErrors);
                  }
                  public static void access_set_setMaxErrors(Task task, int maxErrors) {
                      ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
-                     Task.GetMaxErrorsAdapter.setMaxErrors(task, maxErrors);
+                     Task.MaxErrorsAdapter.setMaxErrors(task, maxErrors);
                  }
              }
         """
@@ -103,10 +103,10 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
             import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
             public abstract class Task {
-                @ReplacesEagerProperty(adapter = Task.GetMaxErrorsAdapter.class)
+                @ReplacesEagerProperty(adapter = Task.MaxErrorsAdapter.class)
                 public abstract Property<Integer> getMaxErrors();
 
-                static class GetMaxErrorsAdapter {
+                static class MaxErrorsAdapter {
                     @BytecodeUpgrade
                     static int getMaxErrors(Task task) {
                         return 0;
@@ -134,11 +134,11 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                          String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                      if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("getMaxErrors") && descriptor.equals("()I") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_GET_MAX_ERRORS_ADAPTER_TYPE, "access_get_getMaxErrors", "(Lorg/gradle/test/Task;)I");
+                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_get_getMaxErrors", "(Lorg/gradle/test/Task;)I");
                              return true;
                          }
                          if (name.equals("maxErrors") && descriptor.equals("(I)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_GET_MAX_ERRORS_ADAPTER_TYPE, "access_set_maxErrors", "(Lorg/gradle/test/Task;I)Lorg/gradle/test/Task;");
+                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_set_maxErrors", "(Lorg/gradle/test/Task;I)Lorg/gradle/test/Task;");
                              return true;
                          }
                      }
@@ -162,10 +162,10 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
             import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
             public abstract class Task {
-                @ReplacesEagerProperty(adapter = Task.GetMaxErrorsAdapter.class)
+                @ReplacesEagerProperty(adapter = Task.MaxErrorsAdapter.class)
                 public abstract Property<Integer> getMaxErrors();
 
-                public static class GetMaxErrorsAdapter {
+                public static class MaxErrorsAdapter {
                     @BytecodeUpgrade
                     public static int firstMethod(Task task) {
                         return 0;
@@ -199,13 +199,13 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
 
         then:
         assertThat(compilation).hadErrorCount(1)
-        assertThat(compilation).hadErrorContaining("Adapter class 'org.gradle.test.Task.GetMaxErrorsAdapter' should be package private, but it's not.")
-        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.GetMaxErrorsAdapter.firstMethod(org.gradle.test.Task)' should be package-private but it's not.")
-        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.GetMaxErrorsAdapter.secondMethod(org.gradle.test.Task)' should be static but it's not.")
-        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.GetMaxErrorsAdapter.thirdMethod(org.gradle.test.Task,int)' should be package-private but it's not.")
-        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.GetMaxErrorsAdapter.thirdMethod(org.gradle.test.Task,int)' should be static but it's not.")
-        assertThat(compilation).hadErrorContaining("'org.gradle.test.Task.GetMaxErrorsAdapter.forthMethod()' has no parameters, but it should have at least one of type 'org.gradle.test.Task'.")
-        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.GetMaxErrorsAdapter.fifthMethod(int)' should have first parameter of type 'org.gradle.test.Task', but first parameter is of type 'int'.")
+        assertThat(compilation).hadErrorContaining("Adapter class 'org.gradle.test.Task.MaxErrorsAdapter' should be package private, but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.MaxErrorsAdapter.firstMethod(org.gradle.test.Task)' should be package-private but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.MaxErrorsAdapter.secondMethod(org.gradle.test.Task)' should be static but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.MaxErrorsAdapter.thirdMethod(org.gradle.test.Task,int)' should be package-private but it's not.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.MaxErrorsAdapter.thirdMethod(org.gradle.test.Task,int)' should be static but it's not.")
+        assertThat(compilation).hadErrorContaining("'org.gradle.test.Task.MaxErrorsAdapter.forthMethod()' has no parameters, but it should have at least one of type 'org.gradle.test.Task'.")
+        assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.MaxErrorsAdapter.fifthMethod(int)' should have first parameter of type 'org.gradle.test.Task', but first parameter is of type 'int'.")
     }
 
     def "should correctly intercept Java code"() {
@@ -218,10 +218,10 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
             import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
             public abstract class Task {
-                @ReplacesEagerProperty(adapter = Task.GetMaxErrorsAdapter.class)
+                @ReplacesEagerProperty(adapter = Task.MaxErrorsAdapter.class)
                 public abstract Property<Integer> getMaxErrors();
 
-                static class GetMaxErrorsAdapter {
+                static class MaxErrorsAdapter {
                     @BytecodeUpgrade
                     static int getMaxErrors(Task task) {
                         return task.getMaxErrors().getOrElse(0);
@@ -257,7 +257,7 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                 public void run() {
                     Task task = TestUtil.newInstance(Task.class);
                     assert task.getMaxErrors() == 0;
-                    assert task.maxErrors(5).getClass().equals(task.getClass());
+                    assert task.maxErrors(5) == task;
                     assert task.getMaxErrors() == 5;
                 }
             }
