@@ -25,7 +25,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.internal.impldep.org.objectweb.asm.ClassReader
 import org.gradle.internal.normalization.java.ApiClassExtractor
 import java.io.File
 import java.io.InputStream
@@ -80,7 +79,7 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
 
     private
     fun ApiClassExtractor.extractApiClassFrom(input: InputStream) =
-        extractApiClassFrom(ClassReader(input.readAllBytes()))
+        extractApiClassFrom(input.readAllBytes())
 
     private
     fun File.withOutputStream(path: String, action: (output: java.io.OutputStream) -> Unit) {

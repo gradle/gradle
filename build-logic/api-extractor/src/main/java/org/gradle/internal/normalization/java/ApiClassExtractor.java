@@ -63,10 +63,15 @@ public class ApiClassExtractor {
      * list of exported packages is non-empty (i.e. the library has declared an
      * {@code api {...}} specification, then package-private classes are excluded.</p>
      *
-     * @param originalClassReader the reader containing the original class
+     * @param originalClassBytes the bytecode of the original class
      * @return bytecode of the API class extracted from the original class. Returns {@link Optional#empty()} when class should not be included, due to some reason that is not known until visited.
      */
-    public Optional<byte[]> extractApiClassFrom(ClassReader originalClassReader) {
+    public Optional<byte[]> extractApiClassFrom(byte[] originalClassBytes) {
+        ClassReader originalClassReader = new ClassReader(originalClassBytes);
+        return extractApiClassFrom(originalClassReader);
+    }
+
+    protected Optional<byte[]> extractApiClassFrom(ClassReader originalClassReader) {
         if (!shouldExtractApiClassFrom(originalClassReader)) {
             return Optional.empty();
         }
