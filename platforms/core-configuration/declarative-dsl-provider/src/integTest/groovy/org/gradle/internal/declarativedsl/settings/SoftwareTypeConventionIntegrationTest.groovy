@@ -285,13 +285,13 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("""id = test\nbar = convention""")
     }
 
-    def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file"() {
+    def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
         file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
 
-        file("build.gradle.kts") << """
+        file("build.gradle${extension}") << """
             plugins { id("com.example.test-software-type-impl") }
         """
 
@@ -300,6 +300,11 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         outputContains("""id = convention\nbar = convention""")
+
+        where:
+        type     | extension
+        "groovy" | ""
+        "kotlin" | ".kts"
     }
 
     @NotYetImplemented
