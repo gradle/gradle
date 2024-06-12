@@ -83,6 +83,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -378,10 +379,10 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
         InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
         ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
-        return new ResolutionFailureHandler(failureDescriberRegistry);
+        return new ResolutionFailureHandler(failureDescriberRegistry, problemsService);
     }
 
     @Provides

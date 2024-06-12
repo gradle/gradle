@@ -17,15 +17,16 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.Describable;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
- * A {@link ResolutionFailure} that represents the an unknown, catch-all failure that occurred during variant selection.
+ * A {@link ResolutionFailure} that represents an unknown, catch-all failure that occurred during variant selection.
  */
 public final class UnknownArtifactSelectionFailure extends AbstractVariantSelectionFailure {
     private final Exception cause;
 
     public UnknownArtifactSelectionFailure(Describable requested, Exception cause) {
-        super(requested);
+        super(ResolutionFailureProblemId.UNKNOWN_ARTIFACT_SELECTION, requested);
         this.cause = cause;
     }
 

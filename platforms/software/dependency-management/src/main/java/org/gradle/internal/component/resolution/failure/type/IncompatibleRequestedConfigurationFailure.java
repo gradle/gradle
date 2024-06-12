@@ -18,6 +18,7 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -28,6 +29,6 @@ import java.util.List;
  */
 public final class IncompatibleRequestedConfigurationFailure extends IncompatibleResolutionFailure {
     public IncompatibleRequestedConfigurationFailure(Describable requested, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(requested, requestedAttributes, candidates);
+        super(ResolutionFailureProblemId.INCOMPATIBLE_REQUESTED_CONFIGURATION, requested, requestedAttributes, candidates);
     }
 }

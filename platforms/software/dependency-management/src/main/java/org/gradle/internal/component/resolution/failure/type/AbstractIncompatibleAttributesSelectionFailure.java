@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure.type;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
@@ -27,8 +28,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 public abstract class AbstractIncompatibleAttributesSelectionFailure extends AbstractVariantSelectionFailure {
     private final ImmutableAttributes requestedAttributes;
 
-    public AbstractIncompatibleAttributesSelectionFailure(Describable requested, AttributeContainerInternal requestedAttributes) {
-        super(requested);
+    public AbstractIncompatibleAttributesSelectionFailure(ResolutionFailureProblemId problemId, Describable requested, AttributeContainerInternal requestedAttributes) {
+        super(problemId, requested);
         this.requestedAttributes = requestedAttributes.asImmutable();
     }
 

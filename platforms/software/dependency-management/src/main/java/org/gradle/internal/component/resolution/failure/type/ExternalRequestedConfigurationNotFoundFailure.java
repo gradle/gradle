@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
  * A {@link ResolutionFailure} that represents a specialization of {@link RequestedConfigurationNotFoundFailure} when
@@ -26,7 +27,7 @@ public final class ExternalRequestedConfigurationNotFoundFailure extends Request
     private final String fromConfigurationName;
 
     public ExternalRequestedConfigurationNotFoundFailure(String requestedName, ComponentIdentifier requestedComponent, String fromConfigurationName) {
-        super(requestedName, requestedComponent);
+        super(ResolutionFailureProblemId.EXTERNAL_REQUESTED_CONFIGURATION_NOT_FOUND, requestedName, requestedComponent);
         this.fromConfigurationName = fromConfigurationName;
     }
 

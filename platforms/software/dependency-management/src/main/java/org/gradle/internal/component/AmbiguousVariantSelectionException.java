@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component;
 
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 
@@ -30,7 +31,17 @@ import java.util.Collections;
  */
 @Deprecated
 public abstract class AmbiguousVariantSelectionException extends ArtifactVariantSelectionException {
-    private static final ResolutionFailure EMPTY_RESOLUTION_FAILURE = () -> "Empty failure";
+    private static final ResolutionFailure EMPTY_RESOLUTION_FAILURE = new ResolutionFailure() {
+        @Override
+        public String getRequestedName() {
+            return "Empty failure";
+        }
+
+        @Override
+        public ResolutionFailureProblemId getProblemId() {
+            return ResolutionFailureProblemId.AMBIGUOUS_RESOLUTION;
+        }
+    };
 
     public AmbiguousVariantSelectionException(String message) {
         super(message, EMPTY_RESOLUTION_FAILURE, Collections.emptyList());

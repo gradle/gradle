@@ -18,16 +18,24 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
  * that are not compatible with any of the available variants.
  */
 public abstract class AbstractVariantSelectionFailure implements ResolutionFailure {
+    private final ResolutionFailureProblemId problemId;
     private final String requestedName;
 
-    public AbstractVariantSelectionFailure(Describable requested) {
+    public AbstractVariantSelectionFailure(ResolutionFailureProblemId problemId, Describable requested) {
+        this.problemId = problemId;
         this.requestedName = ProjectPathClarifyingDescriber.describe(requested);
+    }
+
+    @Override
+    public ResolutionFailureProblemId getProblemId() {
+        return problemId;
     }
 
     @Override

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.Describable;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
  * A {@link ResolutionFailure} that represents the situation when the selected configuration
@@ -26,6 +27,6 @@ import org.gradle.api.Describable;
  */
 public final class ConfigurationNotConsumableFailure extends AbstractConfigurationSelectionFailure {
     public ConfigurationNotConsumableFailure(String requestedConfigurationName, Describable requestedComponent) {
-        super(requestedConfigurationName, requestedComponent);
+        super(ResolutionFailureProblemId.CONFIGURATION_NOT_CONSUMABLE, requestedConfigurationName, requestedComponent);
     }
 }

@@ -18,18 +18,26 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.ProjectPathClarifyingDescriber;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a configuration is requested
  * by name on a project dependency and does not exist on the target project.
  */
 public abstract class AbstractConfigurationSelectionFailure implements ResolutionFailure {
+    private final ResolutionFailureProblemId problemId;
     private final String requestedConfigurationName;
     private final String requestedComponentName;
 
-    public AbstractConfigurationSelectionFailure(String requestedConfigurationName, Describable requestedComponent) {
+    public AbstractConfigurationSelectionFailure(ResolutionFailureProblemId problemId, String requestedConfigurationName, Describable requestedComponent) {
+        this.problemId = problemId;
         this.requestedConfigurationName = ProjectPathClarifyingDescriber.describe(requestedConfigurationName);
         this.requestedComponentName = ProjectPathClarifyingDescriber.describe(requestedComponent);
+    }
+
+    @Override
+    public ResolutionFailureProblemId getProblemId() {
+        return problemId;
     }
 
     @Override

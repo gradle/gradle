@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+
 /**
  * Represents a specific type of failure that can occur during dependency resolution and
  * contains contextual information specific to that type of failure.
@@ -31,4 +33,12 @@ public interface ResolutionFailure {
      * @return the name of the requested component or configuration
      */
     String getRequestedName();
+
+    /**
+     * Returns the problem id associated with this failure, for use in identifying the failure and
+     * reporting it to the Problems API.
+     *
+     * @return the problem id
+     */
+    ResolutionFailureProblemId getProblemId();
 }

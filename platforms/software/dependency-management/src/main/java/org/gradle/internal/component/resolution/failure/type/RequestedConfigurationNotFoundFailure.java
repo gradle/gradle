@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 
 /**
  * A {@link ResolutionFailure} that represents the situation when a configuration is requested
@@ -24,6 +25,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  */
 public class RequestedConfigurationNotFoundFailure extends AbstractConfigurationSelectionFailure {
     public RequestedConfigurationNotFoundFailure(String requestedConfigurationName, ComponentIdentifier requestedComponent) {
-        super(requestedConfigurationName, requestedComponent);
+        this(ResolutionFailureProblemId.REQUESTED_CONFIGURATION_NOT_FOUND, requestedConfigurationName, requestedComponent);
+    }
+
+    public RequestedConfigurationNotFoundFailure(ResolutionFailureProblemId problemId, String requestedConfigurationName, ComponentIdentifier requestedComponent) {
+        super(problemId, requestedConfigurationName, requestedComponent);
     }
 }

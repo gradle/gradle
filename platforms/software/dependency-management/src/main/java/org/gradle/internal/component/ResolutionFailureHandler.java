@@ -28,6 +28,9 @@ import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
@@ -52,6 +55,7 @@ import org.gradle.internal.component.resolution.failure.type.RequestedConfigurat
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +63,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
  * Provides a central location for handling failures encountered during
@@ -80,9 +87,11 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
+    private final InternalProblems problemsService;
 
-    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry) {
+    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry, InternalProblems problemsService) {
         this.defaultFailureDescribers = failureDescriberRegistry;
+        this.problemsService = problemsService;
     }
 
     // region Artifact Variant Selection Failures
@@ -189,7 +198,7 @@ public class ResolutionFailureHandler {
         // It might make sense to do this for other similar failures that do not have dynamic failure handling.
         ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(configurationName, componentId);
         String message = String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
+        throw reportExceptionAsProblem(new ConfigurationSelectionException(message, failure, Collections.emptyList()));
     }
 
     // endregion Configuration by name
@@ -216,6 +225,19 @@ public class ResolutionFailureHandler {
             .filter(describer -> describer.canDescribeFailure(failure))
             .findFirst()
             .map(describer -> describer.describeFailure(failure, schema))
+            .map(this::reportExceptionAsProblem)
             .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+    }
+
+    private AbstractResolutionFailureException reportExceptionAsProblem(AbstractResolutionFailureException exception) {
+        Problem problem = problemsService.getInternalReporter().create(builder -> {
+            builder.id(TextUtil.screamingSnakeToKebabCase(exception.getFailure().getProblemId().name()), "variant resolution error", GradleCoreProblemGroup.variantResolution())
+                .contextualLabel(exception.getMessage())
+                .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
+                .severity(ERROR);
+        });
+        problemsService.getInternalReporter().report(problem);
+
+        return exception;
     }
 }
