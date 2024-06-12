@@ -47,7 +47,7 @@ object MutationUtils {
             mutationDefinition.parameters.forEach { param ->
                 when (param.kind) {
                     MutationParameterKind.IntParameter ->
-                        argument(param as MutationParameter<Int>, 42)
+                        argument(param as MutationParameter<Int>, DEFAULT_INT)
 
                     MutationParameterKind.StringParameter ->
                         argument(param as MutationParameter<String>, "com.example.foo.bar")
@@ -64,6 +64,8 @@ object MutationUtils {
             file.writeText(it.newDocumentText)
         }
     }
+    
+    private const val DEFAULT_INT = 42
 }
 
 private fun <T> emptyListNodeDataContainer(): NodeData<List<T>> = object : NodeData<List<T>> {
@@ -75,7 +77,7 @@ private fun <T> emptyListNodeDataContainer(): NodeData<List<T>> = object : NodeD
 
 /**
  * Copy-pasted from `gradle/gradle`
- * TODO: Consider making it a public utility there
+ * We should onsider making it a public utility there
  */
 internal class OverlayRoutedNodeDataContainer<DNode, DElement : DNode, DProperty : DNode, DError : DNode>(
     private val overlayOriginContainer: OverlayOriginContainer,

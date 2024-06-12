@@ -166,7 +166,6 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
         sources: List<SourceFileViewInput>,
         highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>
     ) {
-
         Column {
             val sourceFileData by derivedStateOf {
                 sources.map { (identifier, content) ->
@@ -221,19 +220,58 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             )
         }
     }
-
-    private val indentDp = MaterialTheme.spacing.level2
-
-    private
-    class ModelTreeRendering(
-        val resolutionContainer: DocumentResolutionContainer,
-        val highlightingContext: HighlightingContext,
-        val mutationApplicability: NodeData<List<ApplicableMutation>>,
-        val onRunMutation: (MutationDefinition) -> Unit
-    )
-
+    
     @Composable
-    private fun ModelTreeRendering.ElementInfoOrNothingDeclared(
+    @OptIn(ExperimentalMaterial3Api::class)
+    private fun DeclarativeFileDropDown(
+        rootDir: File,
+        declarativeBuildFiles: List<File>,
+        state: MutableState<File>
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            BuildTextField(
+                modifier = Modifier.menuAnchor(),
+                value = state.value.relativeTo(rootDir).path,
+                onValueChange = { state.value = rootDir.resolve(it) },
+                readOnly = true,
+                label = { Text("Project definitions") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                declarativeBuildFiles.forEach { file ->
+                    DropdownMenuItem(
+                        text = { Text(file.relativeTo(rootDir).path) },
+                        onClick = {
+                            state.value = file
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private
+class ModelTreeRendering(
+    val resolutionContainer: DocumentResolutionContainer,
+    val highlightingContext: HighlightingContext,
+    val mutationApplicability: NodeData<List<ApplicableMutation>>,
+    val onRunMutation: (MutationDefinition) -> Unit
+) {
+    private val indentDp = MaterialTheme.spacing.level2
+    
+    @Composable
+    fun ModelTreeRendering.ElementInfoOrNothingDeclared(
         type: DataClass?,
         node: DeclarativeDocument.DocumentNode.ElementNode?,
         indentLevel: Int,
@@ -334,8 +372,26 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
         )
     }
 
+
     @Composable
-    private fun ModelTreeRendering.WithApplicableMutations(
+    private fun PropertyInfo(
+        propertyNode: DeclarativeDocument.DocumentNode.PropertyNode?,
+        property: DataProperty
+    ) {
+        WithApplicableMutations(propertyNode) {
+            LabelMedium(
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                    .withHoverCursor()
+                    .withClickTextRangeSelection(propertyNode, highlightingContext),
+                text = "${property.name}: ${property.kotlinType.simpleName} = ${
+                    propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
+                }"
+            )
+        }
+    }
+    
+    @Composable
+    private fun WithApplicableMutations(
         element: DeclarativeDocument.DocumentNode?,
         content: @Composable () -> Unit
     ) {
@@ -352,24 +408,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     }
 
     @Composable
-    private fun ModelTreeRendering.PropertyInfo(
-        propertyNode: DeclarativeDocument.DocumentNode.PropertyNode?,
-        property: DataProperty
-    ) {
-        WithApplicableMutations(propertyNode) {
-            LabelMedium(
-                modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
-                    .withHoverCursor()
-                    .withClickTextRangeSelection(propertyNode, highlightingContext),
-                text = "${property.name}: ${property.kotlinType.simpleName} = ${
-                    propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
-                }"
-            )
-        }
-    }
-
-    @Composable
-    private fun ModelTreeRendering.ApplicableMutations(node: DeclarativeDocument.DocumentNode) {
+    private fun ApplicableMutations(node: DeclarativeDocument.DocumentNode) {
         mutationApplicability.data(node).forEach {
             val tooltip = "Apply mutation: ${it.mutationDefinition.name}"
             PlainTextTooltip(tooltip) {
@@ -381,45 +420,6 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                         Icons.Default.Edit,
                         modifier = Modifier.size(24.dp),
                         contentDescription = tooltip
-                    )
-                }
-            }
-        }
-    }
-
-    @Composable
-    @OptIn(ExperimentalMaterial3Api::class)
-    private fun DeclarativeFileDropDown(
-        rootDir: File,
-        declarativeBuildFiles: List<File>,
-        state: MutableState<File>
-    ) {
-        var expanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            BuildTextField(
-                modifier = Modifier.menuAnchor(),
-                value = state.value.relativeTo(rootDir).path,
-                onValueChange = { state.value = rootDir.resolve(it) },
-                readOnly = true,
-                label = { Text("Project definitions") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                declarativeBuildFiles.forEach { file ->
-                    DropdownMenuItem(
-                        text = { Text(file.relativeTo(rootDir).path) },
-                        onClick = {
-                            state.value = file
-                            expanded = false
-                        },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     )
                 }
             }
