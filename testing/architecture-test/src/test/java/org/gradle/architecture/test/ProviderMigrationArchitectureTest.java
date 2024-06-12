@@ -30,7 +30,8 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import org.gradle.StartParameter;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -40,6 +41,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -141,7 +143,7 @@ public class ProviderMigrationArchitectureTest {
         .that(are(task_properties))
         .should().notHaveRawReturnType(TextResource.class));
 
-    private static final DescribedPredicate<JavaMethod> predicate_for_methods_that_should_be_annotated = are(mutable_public_API_properties.or(task_properties))
+    private static final DescribedPredicate<JavaMethod> predicate_for_methods_that_should_have_migration_annotation = are(mutable_public_API_properties.or(task_properties))
         // We won't upgrade deprecated methods and classes
         .and(not(annotatedWith(Deprecated.class)))
         .and(not(declaredIn(annotatedWith(Deprecated.class))))
@@ -167,18 +169,26 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(resideInAPackage("org.gradle.language.rc.."))))
         .and(not(declaredIn(resideInAPackage("org.gradle.language.assembler.."))))
         .and(not(have(rawReturnType(assignableTo(Provider.class)))))
-        .and(not(have(rawReturnType(assignableTo(NamedDomainObjectContainer.class)))))
+        .and(not(have(rawReturnType(assignableTo(DomainObjectSet.class)))))
+        .and(not(have(rawReturnType(assignableTo(Project.class)))))
+        .and(not(have(rawReturnType(assignableTo(TaskDependency.class)))))
         .and(not(have(rawReturnType(assignableTo(ConfigurableFileCollection.class)))));
 
+    /**
+     * Checks that public api properties have {@link ToBeReplacedByLazyProperty} or {@link NotToBeReplacedByLazyProperty} annotation.
+     */
     @ArchTest
     public static final ArchRule public_api_properties_should_have_migration_annotation = freeze(methods()
-        .that(predicate_for_methods_that_should_be_annotated)
+        .that(predicate_for_methods_that_should_have_migration_annotation)
         .should().beAnnotatedWith(ToBeReplacedByLazyProperty.class)
         .orShould().beAnnotatedWith(NotToBeReplacedByLazyProperty.class));
 
+    /**
+     * A reverse of {@link #public_api_properties_should_have_migration_annotation}, so we know what types we annotated additionally or accidentally.
+     */
     @ArchTest
-    public static final ArchRule non_public_api_properties_should_not_have_migration_annotation = freeze(methods()
-        .that(not(predicate_for_methods_that_should_be_annotated))
+    public static final ArchRule public_api_properties_should_not_have_migration_annotation = freeze(methods()
+        .that(not(predicate_for_methods_that_should_have_migration_annotation))
         .should().notBeAnnotatedWith(ToBeReplacedByLazyProperty.class)
         .andShould().notBeAnnotatedWith(NotToBeReplacedByLazyProperty.class));
 
