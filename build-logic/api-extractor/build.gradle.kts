@@ -10,7 +10,7 @@ dependencies {
     //      but doing so causes a lot of Kotlin tests like ManagedPropertyJavaInterOpIntegrationTest fail
     //      with an error about a missing method:
     //      kotlinx.metadata.jvm.KotlinClassMetadata kotlinx.metadata.jvm.KotlinClassMetadata$Companion.read(kotlinx.metadata.jvm.KotlinClassHeader)
-    implementation("org.ow2.asm:asm-tree:9.7")
+    implementation("org.ow2.asm:asm:9.7")
     implementation("com.google.guava:guava:32.1.2-jre") {
         exclude("org.checkerframework", "checker-qual")
         exclude("com.google.errorprone", "error_prone_annotations")
