@@ -3,8 +3,11 @@ package org.gradle.client
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.configureSwingGlobalsForCompose
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
@@ -66,7 +69,11 @@ class GradleClientMain(
         }
 
         application {
-            Window(onCloseRequest = ::exitApplication, title = APPLICATION_DISPLAY_NAME) {
+            val windowState = rememberWindowState(size = DpSize(1800.dp, 1200.dp))
+
+            Window(
+                state = windowState,
+                onCloseRequest = ::exitApplication, title = APPLICATION_DISPLAY_NAME) {
                 LaunchedEffect(Unit) {
                     logger.atInfo().log { "$APPLICATION_DISPLAY_NAME started!" }
                 }
