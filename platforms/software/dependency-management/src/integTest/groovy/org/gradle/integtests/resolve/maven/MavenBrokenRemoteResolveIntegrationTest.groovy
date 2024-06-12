@@ -209,13 +209,13 @@ task showMissing {
 Searched in the following locations:
   - ${moduleA.pom.uri}
 Required by:
-    project : > group:projectC:0.99
-    project : > project :child1 > group:projectD:1.0GA""")
+    project : (the root project) > group:projectC:0.99
+    project : (the root project) > project :child1 > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
 Required by:
-    project : > project :child1 > group:projectD:1.0GA""")
+    project : (the root project) > project :child1 > group:projectD:1.0GA""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
