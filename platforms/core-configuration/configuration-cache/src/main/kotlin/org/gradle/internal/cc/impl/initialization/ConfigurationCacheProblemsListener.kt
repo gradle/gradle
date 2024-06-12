@@ -136,17 +136,9 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun locationForTask(location: PropertyTrace, task: TaskInternal) =
         when (location) {
-            is PropertyTrace.BuildLogic -> {
-                location
-            }
-
-            is PropertyTrace.Task -> {
-                location
-            }
-
-            else -> {
-                locationForTask(task)
-            }
+            is PropertyTrace.BuildLogic -> location
+            is PropertyTrace.Task -> location
+            else -> locationForTask(task)
         }
 
     private
