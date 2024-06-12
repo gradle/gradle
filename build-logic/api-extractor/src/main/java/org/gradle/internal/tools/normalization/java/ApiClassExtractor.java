@@ -75,11 +75,11 @@ public class ApiClassExtractor {
      */
     public Optional<byte[]> extractApiClassFrom(byte[] originalClassBytes) {
         ClassReader originalClassReader = new ClassReader(originalClassBytes);
-        return extractApiClassFrom(originalClassReader)
+        return extractApiClassFromReader(originalClassReader)
             .map(ClassWriter::toByteArray);
     }
 
-    protected Optional<ClassWriter> extractApiClassFrom(ClassReader originalClassReader) {
+    protected Optional<ClassWriter> extractApiClassFromReader(ClassReader originalClassReader) {
         if (!shouldExtractApiClassFrom(originalClassReader)) {
             return Optional.empty();
         }

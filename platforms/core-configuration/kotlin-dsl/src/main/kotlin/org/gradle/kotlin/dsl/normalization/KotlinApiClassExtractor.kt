@@ -43,9 +43,9 @@ class KotlinApiClassExtractor : ApiClassExtractor(
     { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
 ) {
 
-    override fun extractApiClassFrom(originalClassReader: ClassReader): Optional<ClassWriter> {
+    override fun extractApiClassFromReader(originalClassReader: ClassReader): Optional<ClassWriter> {
         try {
-            return super.extractApiClassFrom(originalClassReader)
+            return super.extractApiClassFromReader(originalClassReader)
         } catch (e: CompileAvoidanceException) {
             val className = originalClassReader.className
             throw CompileAvoidanceException.withClass(className, e)

@@ -75,7 +75,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * fileSnapshotContext.getSnapshot() >> fileSnapshot
         2 * fileSnapshot.getName() >> file.name
         1 * fileSnapshot.getAbsolutePath() >> file.absolutePath
-        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         1 * fileSnapshot.getHash()
@@ -100,7 +100,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * zipEntryContext.getEntry() >> zipEntry
         2 * zipEntry.getName() >> 'String.class'
         1 * zipEntry.getContent() >> classContent
-        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         hash == Hashing.hashBytes(classContent)
@@ -127,7 +127,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * fileSnapshotContext.getSnapshot() >> fileSnapshot
         1 * fileSnapshot.getName() >> file.name
         1 * fileSnapshot.getAbsolutePath() >> file.absolutePath
-        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         def e = thrown(Exception)
@@ -148,7 +148,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * zipEntryContext.getEntry() >> zipEntry
         2 * zipEntry.getName() >> 'String.class'
         1 * zipEntry.getContent() >> bytesOf(String.class)
-        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+        1 * apiClassExtractor.extractApiClassFromReader(_) >> { args -> throw new Exception("Boom!") }
 
         and:
         def e = thrown(Exception)
