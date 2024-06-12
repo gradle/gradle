@@ -17,7 +17,6 @@
 package org.gradle.internal.tools.api;
 
 import org.gradle.internal.tools.api.impl.ApiMemberSelector;
-import org.gradle.internal.tools.api.impl.ApiMemberWriter;
 import org.gradle.internal.tools.api.impl.MethodStubbingApiMemberAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -37,23 +36,27 @@ public class ApiClassExtractor {
     private final boolean apiIncludesPackagePrivateMembers;
     private final ApiMemberWriterFactory apiMemberWriterFactory;
 
-    public static ApiClassExtractor forJavaWithoutPackageFiltering() {
-        return new ApiClassExtractor(name -> true, true, ApiClassExtractor::createJavaApiMemberWriter);
+    public static class BuilderWithLanguage {
+        private final ApiMemberWriterFactory apiMemberWriterFactory;
+
+        BuilderWithLanguage(ApiMemberWriterFactory apiMemberWriterFactory) {
+            this.apiMemberWriterFactory = apiMemberWriterFactory;
+        }
+
+        public ApiClassExtractor includePackagesMatching(Predicate<String> packageNameFilter) {
+            return new ApiClassExtractor(packageNameFilter, false, apiMemberWriterFactory);
+        }
+
+        public ApiClassExtractor includeAllPackages() {
+            return new ApiClassExtractor(name -> true, true, apiMemberWriterFactory);
+        }
     }
 
-    public static ApiClassExtractor forJava(Predicate<String> packageNameFilter) {
-        return new ApiClassExtractor(packageNameFilter, false, ApiClassExtractor::createJavaApiMemberWriter);
+    public static BuilderWithLanguage withWriter(ApiMemberWriterAdapter writerCreator) {
+        return new BuilderWithLanguage(classWriter -> writerCreator.createWriter(new MethodStubbingApiMemberAdapter(classWriter)));
     }
 
-    private static ApiMemberWriter createJavaApiMemberWriter(ClassWriter classWriter) {
-        return new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter));
-    }
-
-    public ApiClassExtractor(ApiMemberWriterFactory apiMemberWriterFactory) {
-        this(packageName -> true, true, apiMemberWriterFactory);
-    }
-
-    public ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
+    private ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
         this.packageNameFilter = packageNameFilter;
         this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
         this.apiMemberWriterFactory = apiMemberWriterFactory;
@@ -84,8 +87,13 @@ public class ApiClassExtractor {
             return Optional.empty();
         }
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        ApiMemberSelector visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
-        originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        ApiMemberSelector visitor;
+        try {
+            visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
+            originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        } catch (ApiClassExtractionException e) {
+            throw e.withClass(originalClassReader.getClassName());
+        }
         if (visitor.isPrivateInnerClass()) {
             return Optional.empty();
         }

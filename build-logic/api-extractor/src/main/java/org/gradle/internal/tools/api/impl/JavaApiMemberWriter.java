@@ -16,6 +16,8 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import org.gradle.internal.tools.api.ApiMemberWriter;
+import org.gradle.internal.tools.api.ApiMemberWriterAdapter;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -24,18 +26,25 @@ import org.objectweb.asm.ModuleVisitor;
 
 import java.util.Set;
 
-public class ApiMemberWriter {
+public class JavaApiMemberWriter implements ApiMemberWriter {
 
     private final ClassVisitor apiMemberAdapter;
 
-    public ApiMemberWriter(ClassVisitor apiMemberAdapter) {
+    protected JavaApiMemberWriter(ClassVisitor apiMemberAdapter) {
         this.apiMemberAdapter = apiMemberAdapter;
     }
 
+    // This method is needed to avoid exposing ASM in the public API of this class
+    public static ApiMemberWriterAdapter adapter() {
+        return JavaApiMemberWriter::new;
+    }
+
+    @Override
     public ModuleVisitor writeModule(String name, int access, String version) {
         return apiMemberAdapter.visitModule(name, access, version);
     }
 
+    @Override
     public void writeClass(ClassMember classMember, Set<MethodMember> methods, Set<FieldMember> fields, Set<InnerClassMember> innerClasses) {
         apiMemberAdapter.visit(
             classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(),
@@ -60,7 +69,8 @@ public class ApiMemberWriter {
         apiMemberAdapter.visitEnd();
     }
 
-    protected void writeMethod(MethodMember method) {
+    @Override
+    public void writeMethod(MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
@@ -69,7 +79,8 @@ public class ApiMemberWriter {
         mv.visitEnd();
     }
 
-    protected void writeClassAnnotations(Set<AnnotationMember> annotationMembers) {
+    @Override
+    public void writeClassAnnotations(Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
             AnnotationVisitor annotationVisitor =
                 apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
@@ -77,7 +88,8 @@ public class ApiMemberWriter {
         }
     }
 
-    private void writeMethodAnnotations(MethodVisitor mv, Set<AnnotationMember> annotationMembers) {
+    @Override
+    public void writeMethodAnnotations(MethodVisitor mv, Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
             AnnotationVisitor annotationVisitor;
             if (annotation instanceof ParameterAnnotationMember) {
@@ -91,21 +103,24 @@ public class ApiMemberWriter {
         }
     }
 
-    private void writeFieldAnnotations(FieldVisitor fv, Set<AnnotationMember> annotationMembers) {
+    @Override
+    public void writeFieldAnnotations(FieldVisitor fv, Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
             AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getName(), annotation.isVisible());
             writeAnnotationValues(annotation, annotationVisitor);
         }
     }
 
-    private void writeAnnotationValues(AnnotationMember annotation, AnnotationVisitor annotationVisitor) {
+    @Override
+    public void writeAnnotationValues(AnnotationMember annotation, AnnotationVisitor annotationVisitor) {
         for (AnnotationValue<?> value : annotation.getValues()) {
             writeAnnotationValue(annotationVisitor, value);
         }
         annotationVisitor.visitEnd();
     }
 
-    private void writeAnnotationValue(AnnotationVisitor annotationVisitor, AnnotationValue<?> value) {
+    @Override
+    public void writeAnnotationValue(AnnotationVisitor annotationVisitor, AnnotationValue<?> value) {
         String name = value.getName();
         if (value instanceof EnumAnnotationValue) {
             annotationVisitor.visitEnum(name, ((EnumAnnotationValue) value).getTypeDesc(), (String) value.getValue());

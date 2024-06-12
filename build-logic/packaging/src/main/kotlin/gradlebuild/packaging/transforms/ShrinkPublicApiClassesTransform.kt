@@ -27,6 +27,7 @@ import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.internal.tools.api.ApiClassExtractor
+import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
 import java.io.File
 import java.io.InputStream
 import java.util.Optional
@@ -57,9 +58,11 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     abstract val inputArtifact: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val apiClassExtractor = ApiClassExtractor.forJava { name ->
-            parameters.publicApiPackages.get().any { name == it || name.startsWith("$it.") }
-        }
+        val apiClassExtractor = ApiClassExtractor
+            .withWriter(JavaApiMemberWriter.adapter())
+            .includePackagesMatching { name ->
+                parameters.publicApiPackages.get().any { name == it || name.startsWith("$it.") }
+            }
         val jarFile = inputArtifact.get().asFile
         val zipFile = ZipFile(jarFile)
         val outputRoot = outputs.dir("public-api")

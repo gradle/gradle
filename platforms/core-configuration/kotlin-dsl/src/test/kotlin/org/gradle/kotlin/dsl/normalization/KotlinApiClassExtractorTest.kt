@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.normalization
 
+import org.gradle.internal.tools.api.ApiClassExtractionException
+import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileToDirectory
@@ -49,7 +51,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
     }
 
     // test throws until we can detect lambdas in inline functions and treat them as ABI
-    @Test(expected = CompileAvoidanceException::class)
+    @Test(expected = ApiClassExtractionException::class)
     fun `changes to inline method bodies change generated API class`() {
         givenChangingClass(
             "Foo",
@@ -69,7 +71,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
     }
 
     // test throws until we can detect lambdas in inline functions and treat them as ABI
-    @Test(expected = CompileAvoidanceException::class)
+    @Test(expected = ApiClassExtractionException::class)
     fun `changes to standalone inline method bodies change generated API class`() {
         givenChangingScript(
             "Foo",
@@ -325,7 +327,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
 private
 class ClassChangeFixture(val initialClass: ClassFixture, val changedClass: ClassFixture) {
     private
-    val apiClassExtractor = KotlinApiClassExtractor()
+    val apiClassExtractor = ApiClassExtractor.withWriter(KotlinApiMemberWriter.adapter()).includeAllPackages()
 
     val initialApiClassBytes = extractApiBytes(initialClass.bytes)
     val changedApiClassBytes = extractApiBytes(changedClass.bytes)

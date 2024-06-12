@@ -18,6 +18,7 @@ package org.gradle.internal.tools.api
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
+import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -68,9 +69,11 @@ class ApiClassExtractorTestSupport extends Specification {
         public final Map<String, GeneratedClass> classes
 
         ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
-            this.apiClassExtractor = packages.empty
-                ? ApiClassExtractor.forJavaWithoutPackageFiltering()
-                : ApiClassExtractor.forJava { packages.contains(it) }
+            this.apiClassExtractor = ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).with { builder ->
+                packages.empty
+                    ? builder.includeAllPackages()
+                    : builder.includePackagesMatching { packages.contains(it) }
+            }
             this.classes = classes
         }
 

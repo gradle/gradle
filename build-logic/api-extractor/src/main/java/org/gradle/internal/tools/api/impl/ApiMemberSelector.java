@@ -16,6 +16,7 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import org.gradle.internal.tools.api.ApiMemberWriter;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;

@@ -21,46 +21,29 @@ import kotlinx.metadata.KmDeclarationContainer
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.signature
-import org.gradle.api.GradleException
-import org.gradle.internal.tools.api.ApiClassExtractor
+import org.gradle.internal.tools.api.ApiClassExtractionException
 import org.gradle.internal.tools.api.impl.AnnotationMember
-import org.gradle.internal.tools.api.impl.ApiMemberWriter
 import org.gradle.internal.tools.api.impl.ArrayAnnotationValue
 import org.gradle.internal.tools.api.impl.ClassMember
 import org.gradle.internal.tools.api.impl.FieldMember
 import org.gradle.internal.tools.api.impl.InnerClassMember
+import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
 import org.gradle.internal.tools.api.impl.MethodMember
-import org.gradle.internal.tools.api.impl.MethodStubbingApiMemberAdapter
 import org.gradle.internal.tools.api.impl.SimpleAnnotationValue
-import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.ClassWriter
-import java.util.Optional
 
+class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) : JavaApiMemberWriter(apiMemberAdapter) {
 
-internal
-class KotlinApiClassExtractor : ApiClassExtractor(
-    { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
-) {
+    private val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
 
-    override fun extractApiClassFromReader(originalClassReader: ClassReader): Optional<ClassWriter> {
-        try {
-            return super.extractApiClassFromReader(originalClassReader)
-        } catch (e: CompileAvoidanceException) {
-            val className = originalClassReader.className
-            throw CompileAvoidanceException.withClass(className, e)
+    private val inlineFunctions: MutableSet<String> = HashSet()
+    private val internalFunctions: MutableSet<String> = HashSet()
+
+    companion object {
+        fun adapter(): (ClassVisitor) -> KotlinApiMemberWriter {
+            return ::KotlinApiMemberWriter
         }
     }
-}
-
-
-private
-class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(apiMemberAdapter) {
-
-    val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
-
-    val inlineFunctions: MutableSet<String> = HashSet()
-    val internalFunctions: MutableSet<String> = HashSet()
 
     override fun writeClass(classMember: ClassMember, methods: Set<MethodMember>, fields: Set<FieldMember>, innerClasses: Set<InnerClassMember>) {
         classMember.annotations.firstOrNull {
@@ -75,11 +58,14 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                     // The resulting facade class contains references to classes generated from each script pointing to this class.
                     // Each of those classes is visited separately and have KotlinClassMetadata.MultiFileClassPart on them
                 }
+
                 is KotlinClassMetadata.SyntheticClass -> {
                 }
+
                 is KotlinClassMetadata.Unknown -> {
-                    throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
+                    throw ApiClassExtractionException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
                 }
+
                 null -> Unit
             }
         }
@@ -94,7 +80,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     override fun writeMethod(method: MethodMember) {
         when {
             method.isInternal() -> return
-            method.isInline() -> throw CompileAvoidanceException.publicInlineFunction(method)
+            method.isInline() -> throw publicInlineFunction(method)
             else -> super.writeMethod(method)
         }
     }
@@ -118,7 +104,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     fun KmDeclarationContainer.extractInternalFunctions() {
         internalFunctions.addAll(
             this.functions.asSequence()
-                .filter { Flag.Common.IS_INTERNAL(it.flags) }
+                .filter { Flag.IS_INTERNAL(it.flags) }
                 .mapNotNull { it.signature?.asString() }
         )
     }
@@ -143,6 +129,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                         "pn" -> packageName = it.value as String
                         "xi" -> extraInt = it.value as Int
                     }
+
                 is ArrayAnnotationValue ->
                     when (it.name) {
                         "d1" -> data1 = it.value.map { arrayItem -> arrayItem.value as String }.toTypedArray()
@@ -161,14 +148,8 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
 
     private
     fun MethodMember.isInline() = inlineFunctions.contains(this.binarySignature())
-}
 
-
-internal
-class CompileAvoidanceException(message: String) : GradleException(message) {
-
-    companion object Factory {
-        fun publicInlineFunction(inlineFunction: MethodMember) = CompileAvoidanceException("inline fun ${inlineFunction.name}(): compile avoidance is not supported with public inline functions")
-        fun withClass(className: String, e: CompileAvoidanceException) = CompileAvoidanceException("class $className: ${e.message}")
-    }
+    private
+    fun publicInlineFunction(inlineFunction: MethodMember) =
+        ApiClassExtractionException("inline fun ${inlineFunction.name}(): compile avoidance is not supported with public inline functions")
 }

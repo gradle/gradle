@@ -25,6 +25,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.tools.api.ApiClassExtractor;
+import org.gradle.internal.tools.api.impl.JavaApiMemberWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ import java.nio.file.Paths;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
-    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(ApiClassExtractor.forJavaWithoutPackageFiltering());
+    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).includeAllPackages());
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
