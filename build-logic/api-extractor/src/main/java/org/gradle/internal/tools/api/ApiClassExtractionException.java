@@ -23,6 +23,6 @@ public class ApiClassExtractionException extends RuntimeException {
     }
 
     public ApiClassExtractionException withClass(String className) {
-        return new ApiClassExtractionException("Class: " + className);
+        return new ApiClassExtractionException("class " + className + ": " + getMessage());
     }
 }
