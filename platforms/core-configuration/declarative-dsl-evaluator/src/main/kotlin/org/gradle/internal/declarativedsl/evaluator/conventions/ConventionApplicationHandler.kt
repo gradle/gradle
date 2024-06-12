@@ -32,40 +32,37 @@ import java.io.Serializable
 class ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication, Serializable
 
 
-class ConventionApplicationHandler(private val softwareTypeConventionRepository: SoftwareTypeConventionRepository) : ResolutionResultHandler {
+class ConventionApplicationHandler(
+    private val softwareTypeConventionRepository: SoftwareTypeConventionRepository,
+    private val conventionResolutionResults: (resolutionResult: ResolutionResult) -> List<SoftwareTypeConventionResolutionResults> = conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository)
+) : ResolutionResultHandler {
+
     override fun shouldHandleFeature(feature: InterpretationStepFeature.ResolutionResultPostprocessing) =
         // Use an is-check, as the implementation might be a proxy
         feature is InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        // Find all the software types that are referenced in the build file
-        val conventionResolutionResults = findUsedSoftwareTypeNames(resolutionResult)
-            .mapNotNull(softwareTypeConventionRepository::findConventions)
+        with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
+            val conventionResolutionResultsToApply = conventionResolutionResults(resolutionResult)
+            // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
+            val conventionAssignments = applyAssignmentConventions(conventionResolutionResultsToApply)
+            val conventionAdditions = applyAdditionConventions(conventionResolutionResultsToApply)
+            val conventionNestedObjectAccess = applyNestedObjectAccessConvention(conventionResolutionResultsToApply)
 
-        return processResolutionResultWithConventions(resolutionResult, conventionResolutionResults)
-    }
-
-    companion object {
-        fun processResolutionResultWithConventions(
-            resolutionResult: ResolutionResult,
-            conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>
-        ): ResolutionResult {
-            with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
-                // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
-                val conventionAssignments = applyAssignmentConventions(conventionResolutionResults)
-                val conventionAdditions = applyAdditionConventions(conventionResolutionResults)
-                val conventionNestedObjectAccess = applyNestedObjectAccessConvention(conventionResolutionResults)
-
-                // Return a resolution result with the convention operations added
-                return resolutionResult.copy(
-                    conventionAssignments = resolutionResult.conventionAssignments + conventionAssignments,
-                    conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
-                    conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
-                )
-            }
+            // Return a resolution result with the convention operations added
+            return resolutionResult.copy(
+                conventionAssignments = resolutionResult.conventionAssignments + conventionAssignments,
+                conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
+                conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
+            )
         }
     }
 }
+
+
+private
+fun conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository: SoftwareTypeConventionRepository) =
+    { resolutionResult: ResolutionResult -> findUsedSoftwareTypeNames(resolutionResult).mapNotNull(softwareTypeConventionRepository::findConventions) }
 
 
 internal

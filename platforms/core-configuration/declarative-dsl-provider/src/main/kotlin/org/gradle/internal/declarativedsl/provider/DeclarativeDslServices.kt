@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.provider
 import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.layout.BuildLayoutConfiguration
 import org.gradle.initialization.layout.BuildLayoutFactory
-import org.gradle.internal.declarativedsl.conventions.NonDeclarativeConventionHandler
+import org.gradle.internal.declarativedsl.evaluator.NonDeclarativeSoftwareTypeConventionHandler
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.StoringInterpretationSchemaBuilder
@@ -57,7 +57,7 @@ object BuildServices : ServiceRegistrationProvider {
     fun createExterncalConventionApplicationHandler(
         softwareTypeRegistry: SoftwareTypeRegistry
     ): ConventionHandler {
-        return NonDeclarativeConventionHandler(softwareTypeRegistry)
+        return NonDeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry)
     }
 
     private

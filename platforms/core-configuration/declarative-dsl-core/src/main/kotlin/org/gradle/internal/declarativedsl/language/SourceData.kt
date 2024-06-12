@@ -25,23 +25,6 @@ interface SourceData {
     val endColumn: Int
 
     fun text(): String
-
-    companion object {
-        val NONE = object : SourceData {
-            override val sourceIdentifier: SourceIdentifier
-                get() = SourceIdentifier("<none>")
-            override val indexRange: IntRange
-                get() = IntRange.EMPTY
-            override val lineRange: IntRange
-                get() = IntRange.EMPTY
-            override val startColumn: Int
-                get() = -1
-            override val endColumn: Int
-                get() = -1
-
-            override fun text(): String = "<none>"
-        }
-    }
 }
 
 
