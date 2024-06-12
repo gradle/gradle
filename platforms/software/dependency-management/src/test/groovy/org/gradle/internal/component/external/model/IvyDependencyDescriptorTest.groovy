@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -407,7 +408,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when target component does not have matching configurations"() {
-        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
+        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry(), Stub(InternalProblems))
         def toId = Stub(ComponentIdentifier) {
             getDisplayName() >> "thing b"
         }
