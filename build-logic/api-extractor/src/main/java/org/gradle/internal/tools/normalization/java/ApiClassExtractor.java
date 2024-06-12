@@ -16,7 +16,6 @@
 
 package org.gradle.internal.tools.normalization.java;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.tools.normalization.java.impl.ApiMemberSelector;
 import org.gradle.internal.tools.normalization.java.impl.ApiMemberWriter;
 import org.gradle.internal.tools.normalization.java.impl.MethodStubbingApiMemberAdapter;
@@ -24,7 +23,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -34,22 +33,30 @@ public class ApiClassExtractor {
 
     private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
-    private final Set<String> exportedPackages;
+    private final Predicate<String> packageNameFilter;
     private final boolean apiIncludesPackagePrivateMembers;
     private final ApiMemberWriterFactory apiMemberWriterFactory;
 
-    public ApiClassExtractor(Set<String> exportedPackages) {
-        this(exportedPackages, classWriter -> new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter)));
+    public static ApiClassExtractor forJavaWithoutPackageFiltering() {
+        return new ApiClassExtractor(name -> true, true, ApiClassExtractor::createJavaApiMemberWriter);
     }
 
-    public ApiClassExtractor(Set<String> exportedPackages, ApiMemberWriterFactory apiMemberWriterFactory) {
-        this.exportedPackages = ImmutableSet.copyOf(exportedPackages);
-        this.apiIncludesPackagePrivateMembers = exportedPackages.isEmpty();
+    public static ApiClassExtractor forJava(Predicate<String> packageNameFilter) {
+        return new ApiClassExtractor(packageNameFilter, false, ApiClassExtractor::createJavaApiMemberWriter);
+    }
+
+    private static ApiMemberWriter createJavaApiMemberWriter(ClassWriter classWriter) {
+        return new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter));
+    }
+
+    protected ApiClassExtractor(ApiMemberWriterFactory apiMemberWriterFactory) {
+        this(packageName -> true, true, apiMemberWriterFactory);
+    }
+
+    protected ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
+        this.packageNameFilter = packageNameFilter;
+        this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
         this.apiMemberWriterFactory = apiMemberWriterFactory;
-    }
-
-    public Set<String> getExportedPackages() {
-        return exportedPackages;
     }
 
     /**
@@ -93,8 +100,7 @@ public class ApiClassExtractor {
         if (isLocalClass(originalClassName)) {
             return false;
         }
-        return exportedPackages.isEmpty()
-            || exportedPackages.contains(packageNameOf(originalClassName));
+        return packageNameFilter.test(packageNameOf(originalClassName));
     }
 
     private static String packageNameOf(String internalClassName) {

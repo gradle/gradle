@@ -55,7 +55,7 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     abstract val inputArtifact: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val apiClassExtractor = ApiClassExtractor(parameters.publicApiPackages.get())
+        val apiClassExtractor = ApiClassExtractor.forJava { name -> name.equals("org.gradle") || name.startsWith("org.gradle.") }
         val jarFile = inputArtifact.get().asFile
         val zipFile = ZipFile(jarFile)
         val outputRoot = outputs.dir("public-api")
@@ -92,7 +92,8 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     fun ZipEntry.filtering(): Optional<ContentFilter> {
         if (name.endsWith(".class")) {
             if (name.endsWith("/module-info.class")
-                || name.endsWith("/package-info.class")) {
+                || name.endsWith("/package-info.class")
+            ) {
                 return Optional.of(ContentFilter.VERBATIM)
             } else {
                 return Optional.of(ContentFilter.API_ONLY)

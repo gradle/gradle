@@ -40,7 +40,6 @@ import java.util.Optional
 
 internal
 class KotlinApiClassExtractor : ApiClassExtractor(
-    emptySet(),
     { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
 ) {
 

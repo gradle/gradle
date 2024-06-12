@@ -18,7 +18,6 @@ package org.gradle.internal.tools.normalization.java
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import org.objectweb.asm.ClassReader
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -69,20 +68,20 @@ class ApiClassExtractorTestSupport extends Specification {
         public final Map<String, GeneratedClass> classes
 
         ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
-            this.apiClassExtractor = new ApiClassExtractor(packages.toSet())
+            this.apiClassExtractor = new ApiClassExtractor(packages.empty ? { true } : packages::contains)
             this.classes = classes
         }
 
         protected Class<?> extractAndLoadApiClassFrom(GeneratedClass clazz) {
-            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).get())
+            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(clazz.bytes).get())
         }
 
         protected byte[] extractApiClassFrom(GeneratedClass clazz) {
-            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).get()
+            apiClassExtractor.extractApiClassFrom(clazz.bytes).get()
         }
 
         protected boolean isApiClassExtractedFrom(GeneratedClass clazz) {
-            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)).isPresent()
+            apiClassExtractor.extractApiClassFrom(clazz.bytes).isPresent()
         }
     }
 

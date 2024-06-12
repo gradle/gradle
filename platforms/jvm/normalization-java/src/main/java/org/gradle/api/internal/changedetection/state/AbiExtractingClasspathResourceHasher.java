@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -37,7 +36,7 @@ import java.nio.file.Paths;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
-    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(new ApiClassExtractor(ImmutableSet.of()));
+    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(ApiClassExtractor.forJavaWithoutPackageFiltering());
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
@@ -96,7 +95,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         return fallbackStrategy.handle(new ZipEntryContent(zipEntry.getName(), content), entry -> hashClassBytes(content));
     }
 
-    private boolean isNotClassFile(String name) {
+    private static boolean isNotClassFile(String name) {
         return !name.endsWith(".class");
     }
 
@@ -104,7 +103,6 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
         hasher.putString(extractor.getClass().getName());
-        extractor.getExportedPackages().forEach(hasher::putString);
     }
 
     private static class ZipEntryContent {
@@ -135,7 +133,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
             HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) {
                 try {
                     return function.apply(zipEntry);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", zipEntry.name, e);
                     return Hashing.hashBytes(zipEntry.content);
                 }
@@ -156,7 +154,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         };
 
         @Nullable
-        abstract  HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
+        abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
 
         @Nullable
         abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException;
