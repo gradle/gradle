@@ -24,7 +24,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 
-@TargetGradleVersion(">=8.8")
+// 8.8 did not support configuring the set of available Java homes or disabling auto-detection
+@TargetGradleVersion(">=8.9")
 class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
     @Requires(IntegTestPreconditions.Java8HomeAvailable)

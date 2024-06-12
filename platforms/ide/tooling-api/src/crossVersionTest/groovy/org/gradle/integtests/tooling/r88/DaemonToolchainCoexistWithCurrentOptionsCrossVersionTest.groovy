@@ -24,31 +24,12 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 
-@TargetGradleVersion(">=8.8")
+// 8.8 did not support configuring the set of available Java homes or disabling auto-detection
+@TargetGradleVersion(">=8.9")
 class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
-    // In Gradle 8.8, we ignored the org.gradle.java.installations.auto-detect property when the build is started with TAPI
-    @TargetGradleVersion(">=8.9")
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given disabled auto-detection When using daemon toolchain Then build fails"() {
-        given:
-        def otherJvm = AvailableJavaHomes.differentVersion
-        writeJvmCriteria(otherJvm.javaVersion.majorVersion)
-        captureJavaHome()
-
-        when:
-        withConnection {
-            it.newBuild().forTasks("help").withArguments("-Dorg.gradle.java.installations.auto-detect=false").run()
-        }
-
-        then:
-        def e = thrown(GradleConnectionException)
-        e.cause.message.contains("Cannot find a Java installation on your machine")
-    }
-
-    @TargetGradleVersion(">=8.9")
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given toolchain properties are provided then build succeds"() {
+    def "Given toolchain properties are provided then build succeeds"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
@@ -67,6 +48,25 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given disabled auto-detection When using daemon toolchain Then build fails"() {
+        given:
+        // We don't want to be able to find an already running compatible daemon
+        requireIsolatedDaemons()
+        def otherJvm = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJvm.javaVersion.majorVersion)
+        captureJavaHome()
+
+        when:
+        withConnection {
+            it.newBuild().forTasks("help").withArguments("-Dorg.gradle.java.installations.auto-detect=false").run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.cause.message.contains("Cannot find a Java installation on your machine")
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -76,7 +76,10 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
 
         when:
         withConnection {
-            it.newBuild().forTasks("help").run()
+            it.newBuild().forTasks("help").withArguments(
+                "-Dorg.gradle.java.installations.auto-detect=false",
+                "-Dorg.gradle.java.installations.paths=${otherJvm.javaHome.canonicalPath}"
+            ).run()
         }
 
         then:
