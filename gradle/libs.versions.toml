@@ -4,10 +4,11 @@ kotlinx-coroutines = "1.7.3"
 kotlinx-serialization = "1.6.2"
 compose-plugin = "1.6.1"
 decompose = "3.0.0-alpha07"
-gradle-tooling = "8.9-20240605161044+0000"
-declarative-dsl = "8.9-20240605161044+0000"
+gradle-tooling = "8.9-branch-sigushkin_declarative_dsl_mutations-20240612080413+0000"
+declarative-dsl = "8.9-branch-sigushkin_declarative_dsl_mutations-20240612080413+0000"
 sqldelight = "2.0.1"
 ktor = "2.3.9"
+unified-prototype = "0.1.2-SNAPSHOT"
 
 [libraries]
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
@@ -25,9 +26,10 @@ decompose-decompose = { module = "com.arkivanov.decompose:decompose", version.re
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version = "1.3.0" }
 gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
-gradle-declarative-dsl-core = { module = "org.gradle:gradle-declarative-dsl-tooling-models", version.ref = "declarative-dsl" }
+gradle-declarative-dsl-core = { module = "org.gradle:gradle-declarative-dsl-core", version.ref = "declarative-dsl" }
 gradle-declarative-dsl-evaluator = { module = "org.gradle:gradle-declarative-dsl-evaluator", version.ref = "declarative-dsl" }
-gradle-declarative-dsl-tooling-models = { module = "org.gradle:gradle-declarative-dsl-core", version.ref = "declarative-dsl" }
+gradle-declarative-dsl-tooling-models = { module = "org.gradle:gradle-declarative-dsl-tooling-models", version.ref = "declarative-dsl" }
+gradle-prototypes-plugins-android = { module = "org.gradle.experimental:plugin-android", version.ref = "unified-prototype" }
 material3WindowSizeClassMultiplatform = { module = "dev.chrisbanes.material3:material3-window-size-class-multiplatform", version = "0.3.1" }
 materialKolor = { module = "com.materialkolor:material-kolor", version = "1.4.4" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
@@ -36,6 +38,7 @@ junit-junit = { module = "junit:junit", version = "4.13.2" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

@@ -25,6 +25,13 @@ dependencyResolutionManagement {
         google {
             content {
                 includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
+        gradlePluginPortal() {
+            content { 
+                includeGroup("org.gradle.toolchains")
             }
         }
         maven(url = "https://repo.gradle.org/gradle/libs-releases") {
@@ -41,6 +48,12 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("declarative-gradle/unified-prototype/unified-plugin") {
+    dependencySubstitution { 
+        substitute(module("org.gradle.experimental:plugin-android")).using(project(":plugin-android"))
+    }
+}
+
 // move this to daemon toolchain once Gradle supports it
 require(JavaVersion.current() == JavaVersion.VERSION_17) {
     "This build requires Java 17, currently using ${JavaVersion.current()}"
@@ -50,3 +63,4 @@ rootProject.name = "gradle-client-root"
 
 include(":gradle-client")
 include(":build-action")
+include(":mutations-demo")

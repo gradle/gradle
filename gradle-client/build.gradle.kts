@@ -36,6 +36,7 @@ kotlin {
         jvmMain.dependencies {
 
             implementation(project(":build-action"))
+            implementation(project(":mutations-demo"))
 
             implementation(libs.gradle.tooling.api)
 

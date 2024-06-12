@@ -1,0 +1,4 @@
+[submodule "declarative-gradle"]
+	path = declarative-gradle
+	url = https://github.com/gradle/declarative-gradle
+	branch = main
