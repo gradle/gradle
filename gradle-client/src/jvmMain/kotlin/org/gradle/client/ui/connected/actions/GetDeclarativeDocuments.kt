@@ -107,14 +107,6 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                     val softwareTypeType =
                         projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
 
-                    TitleMedium(
-                        text = "Software Type: ${softwareTypeNode.name}",
-                        modifier = Modifier
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                            .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
-                    )
-                    MaterialTheme.spacing.VerticalLevel4()
-
                     Column {
                         with(
                             ModelTreeRendering(
@@ -134,6 +126,16 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                                 }
                             )
                         ) {
+                            WithApplicableMutations(softwareTypeNode) {
+                                TitleMedium(
+                                    text = "Software Type: ${softwareTypeNode.name}",
+                                    modifier = Modifier
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                                        .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
+                                )
+                            }
+                            MaterialTheme.spacing.VerticalLevel4()
+
                             ElementInfoOrNothingDeclared(softwareTypeType, softwareTypeNode, 0)
                         }
                     }
@@ -332,7 +334,7 @@ class ModelTreeRendering(
     }
 
     @Composable
-    private fun WithApplicableMutations(
+    fun WithApplicableMutations(
         element: DeclarativeDocument.DocumentNode?,
         content: @Composable () -> Unit
     ) {
