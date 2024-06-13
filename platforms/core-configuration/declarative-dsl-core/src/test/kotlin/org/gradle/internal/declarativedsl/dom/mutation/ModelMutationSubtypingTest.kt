@@ -18,10 +18,6 @@ package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.ObjectsConfiguredBy
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -48,7 +44,7 @@ object ModelMutationSubtypingTest {
         val doc = documentWithResolution(schema, ParseTestUtil.parse(code))
 
         val mutation = ModelMutationRequest(
-            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<NestedSuper>())))),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<NestedSuper>()),
             ModelMutation.SetPropertyValue(schema.propertyFor(NestedSuper::x), NewValueNodeProvider.Constant(valueFromString("1")!!), ModelMutation.IfPresentBehavior.Overwrite)
         )
 
@@ -72,12 +68,7 @@ object ModelMutationSubtypingTest {
         val doc = documentWithResolution(schema, ParseTestUtil.parse(code))
 
         val mutation = ModelMutationRequest(
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<NestedSub>())),
-                    InNestedScopes(ObjectsConfiguredBy(schema.functionFor(NestedSuper::nestedNotInHierarchy))),
-                )
-            ),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<NestedSub>()).inObjectsConfiguredBy(schema.functionFor(NestedSuper::nestedNotInHierarchy)),
             ModelMutation.SetPropertyValue(schema.propertyFor(NotInHierarchy::x), NewValueNodeProvider.Constant(valueFromString("1")!!), ModelMutation.IfPresentBehavior.Overwrite)
         )
 
@@ -101,12 +92,7 @@ object ModelMutationSubtypingTest {
         val doc = documentWithResolution(schema, ParseTestUtil.parse(code))
 
         val mutation = ModelMutationRequest(
-            ScopeLocation(
-                listOf(
-                    InAllNestedScopes,
-                    InNestedScopes(ObjectsConfiguredBy(schema.functionFor(NestedSub::nestedNotInHierarchy))),
-                )
-            ),
+            ScopeLocation.inAnyScope().inObjectsConfiguredBy(schema.functionFor(NestedSub::nestedNotInHierarchy)),
             ModelMutation.SetPropertyValue(schema.propertyFor(NotInHierarchy::x), NewValueNodeProvider.Constant(valueFromString("1")!!), ModelMutation.IfPresentBehavior.Overwrite)
         )
 
@@ -127,12 +113,7 @@ object ModelMutationSubtypingTest {
         val doc = documentWithResolution(schema, ParseTestUtil.parse(code))
 
         val mutation = ModelMutationRequest(
-            ScopeLocation(
-                listOf(
-                    InAllNestedScopes,
-                    InNestedScopes(ObjectsConfiguredBy(schema.functionFor(NestedSub::nestedNotInHierarchy))),
-                )
-            ),
+            ScopeLocation.inAnyScope().inObjectsConfiguredBy(schema.functionFor(NestedSub::nestedNotInHierarchy)),
             ModelMutation.SetPropertyValue(
                 schema.propertyFor(NestedSuper::x), // <- this is a property of NestedSuper, while the scope points to NotInHierarchy
                 NewValueNodeProvider.Constant(valueFromString("1")!!),

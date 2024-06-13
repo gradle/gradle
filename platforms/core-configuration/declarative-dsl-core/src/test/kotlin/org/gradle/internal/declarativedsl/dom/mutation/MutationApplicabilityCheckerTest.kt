@@ -22,9 +22,6 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.AddConfiguringBlockIfAbsent
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.ObjectsConfiguredBy
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -185,7 +182,7 @@ val setX = object : MutationDefinition {
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
         ModelMutationRequest(
-            ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes)),
+            ScopeLocation.inAnyScope(),
             ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!), ifPresentBehavior = Ignore)
         )
     )
@@ -204,7 +201,7 @@ val addF = object : MutationDefinition {
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
         ModelMutationRequest(
-            ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes)),
+            ScopeLocation.fromTopLevel().alsoInNestedScopes(),
             ModelMutation.AddNewElement(NewElementNodeProvider.Constant(elementFromString("f()")!!))
         )
     )
@@ -223,16 +220,14 @@ val addCIfAbsentThenAddF = object : MutationDefinition {
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
         ModelMutationRequest(
-            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(projectAnalysisSchema.typeFor<Nested>())))),
+            ScopeLocation.fromTopLevel().inObjectsOfType(projectAnalysisSchema.typeFor<Nested>()),
             AddConfiguringBlockIfAbsent(projectAnalysisSchema.functionFor(Nested::c))
         ),
         ModelMutationRequest(
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(ObjectsConfiguredBy(projectAnalysisSchema.functionFor(TopLevel::nested))),
-                    InNestedScopes(ObjectsConfiguredBy(projectAnalysisSchema.functionFor(Nested::c)))
-                )
-            ),
+            ScopeLocation.fromTopLevel()
+                .inObjectsConfiguredBy(projectAnalysisSchema.functionFor(TopLevel::nested))
+                .alsoInNestedScopes()
+                .inObjectsConfiguredBy(projectAnalysisSchema.functionFor(Nested::c)),
             ModelMutation.AddNewElement(NewElementNodeProvider.Constant(elementFromString("f()")!!))
         )
     )

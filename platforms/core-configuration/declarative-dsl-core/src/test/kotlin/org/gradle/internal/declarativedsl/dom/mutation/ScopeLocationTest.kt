@@ -22,9 +22,6 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InAllNestedScopes
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApiAbc.A
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApiAbc.B
 import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApiAbc.C
@@ -72,11 +69,7 @@ class ScopeLocationTest {
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InAllNestedScopes
-                )
-            ),
+            ScopeLocation.inAnyScope(),
             setOf(
                 Scope.topLevel(),
                 Scope(listOf(elementA)),
@@ -87,67 +80,37 @@ class ScopeLocationTest {
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<A>()))
-                )
-            ),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<A>()),
             setOf(nestedBlocks(elementA))
         )
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>()))
-                )
-            ),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<B>()),
             setOf()
         )
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>())),
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<C>()))
-                )
-            ),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<B>()).inObjectsOfType(schema.typeFor<C>()),
             setOf()
         )
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InAllNestedScopes,
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>())),
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<C>()))
-                )
-            ),
+            ScopeLocation.inAnyScope().inObjectsOfType(schema.typeFor<B>()).inObjectsOfType(schema.typeFor<C>()),
             setOf(nestedBlocks(elementA, elementB, elementC))
         )
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<A>())),
-                    InAllNestedScopes,
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<C>()))
-                )
-            ),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<A>()).alsoInNestedScopes().inObjectsOfType(schema.typeFor<C>()),
             setOf(nestedBlocks(elementA, elementB, elementC))
         )
 
         assertScopeLocationMatch(
             locationMatcher,
-            ScopeLocation(
-                listOf(
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<A>())),
-                    InNestedScopes(NestedObjectsOfType(schema.typeFor<B>()))
-                )
-            ),
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<A>()).inObjectsOfType(schema.typeFor<B>()),
             setOf(nestedBlocks(elementA, elementB))
         )
     }

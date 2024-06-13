@@ -24,8 +24,6 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.Document
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
@@ -148,7 +146,7 @@ class ModelToDocumentMutationPlannerTest {
     private
     fun addNestedConfigureBlock() = mutationRequest(
         ModelMutation.AddConfiguringBlockIfAbsent(schema.functionFor(TestApi.NestedReceiver::configure)),
-        ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>()))))
+        ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<TestApi.NestedReceiver>())
     )
 
     @Test
@@ -166,7 +164,7 @@ class ModelToDocumentMutationPlannerTest {
                 ModelMutation.AddNewElement(
                     NewElementNodeProvider.Constant(newElementNode),
                 ),
-                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>()))))
+                ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<TestApi.NestedReceiver>())
             )
         )
 
@@ -184,7 +182,7 @@ class ModelToDocumentMutationPlannerTest {
                 NewValueNodeProvider.Constant(DefaultLiteralNode("789", SyntheticallyProduced)),
                 ModelMutation.IfPresentBehavior.Overwrite
             ),
-            ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.TopLevelElement>()))))
+            ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<TestApi.TopLevelElement>())
         )
         val mutationPlan = planMutation(resolved, request)
 
@@ -196,12 +194,9 @@ class ModelToDocumentMutationPlannerTest {
 
     @Test
     fun `no matching scope`() {
-        val invalidScopeLocation = ScopeLocation(
-            listOf(
-                InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.NestedReceiver>())),
-                InNestedScopes(NestedObjectsOfType(schema.typeFor<TestApi.TopLevelElement>()))
-            )
-        )
+        val invalidScopeLocation = ScopeLocation.fromTopLevel()
+            .inObjectsOfType(schema.typeFor<TestApi.NestedReceiver>())
+            .inObjectsOfType(schema.typeFor<TestApi.TopLevelElement>())
 
         val request = mutationRequest(
             ModelMutation.AddNewElement(
@@ -227,7 +222,7 @@ class ModelToDocumentMutationPlannerTest {
     private
     fun mutationRequest(
         mutation: ModelMutation,
-        scopeLocation: ScopeLocation = ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes))
+        scopeLocation: ScopeLocation = ScopeLocation.fromTopLevel().alsoInNestedScopes()
     ) = ModelMutationRequest(scopeLocation, mutation)
 
     // TODO: set property and there isn't actually one, so it shoudl fail or insert one, depending on the request

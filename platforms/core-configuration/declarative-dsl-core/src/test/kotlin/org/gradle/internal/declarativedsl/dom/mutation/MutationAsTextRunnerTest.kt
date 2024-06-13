@@ -23,9 +23,6 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
-import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.ObjectsConfiguredBy
-import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationElement.InNestedScopes
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -108,11 +105,11 @@ val mutationDefinition = object : MutationDefinition {
 
         listOf(
             ModelMutationRequest(
-                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())))),
+                ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()),
                 ModelMutation.SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! }, Ignore)
             ),
             ModelMutationRequest(
-                ScopeLocation(listOf(InNestedScopes(NestedObjectsOfType(typeFor<NestedOne>())), InNestedScopes(ObjectsConfiguredBy(functionFor(NestedOne::nestedTwo))))),
+                ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()).inObjectsConfiguredBy(functionFor(NestedOne::nestedTwo)),
                 ModelMutation.SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! }, Ignore)
             )
         )

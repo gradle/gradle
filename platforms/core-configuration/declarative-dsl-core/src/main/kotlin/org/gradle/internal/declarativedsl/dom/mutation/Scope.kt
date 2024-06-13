@@ -23,7 +23,21 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.mutation.TypedMember.TypedFunction
 
 
-data class ScopeLocation(val elements: List<ScopeLocationElement>)
+data class ScopeLocation(val elements: List<ScopeLocationElement>) {
+    companion object {
+        fun fromTopLevel(): ScopeLocation = ScopeLocation(listOf())
+        fun inAnyScope(): ScopeLocation = ScopeLocation(listOf(ScopeLocationElement.InAllNestedScopes))
+    }
+}
+
+
+fun ScopeLocation.alsoInNestedScopes() = ScopeLocation(this.elements + ScopeLocationElement.InAllNestedScopes)
+
+
+fun ScopeLocation.inObjectsOfType(dataClass: DataClass) = ScopeLocation(this.elements + ScopeLocationElement.InNestedScopes(NestedScopeSelector.NestedObjectsOfType(dataClass)))
+
+
+fun ScopeLocation.inObjectsConfiguredBy(function: TypedFunction) = ScopeLocation(this.elements + ScopeLocationElement.InNestedScopes(NestedScopeSelector.ObjectsConfiguredBy(function)))
 
 
 sealed interface ScopeLocationElement {
