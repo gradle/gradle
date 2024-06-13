@@ -32,9 +32,11 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
     }
 
     @Override
+    @Nullable
     public Object intercept(Invocation invocation, String consumer) throws Throwable {
         return first.intercept(new Invocation() {
             @Override
+            @Nullable
             public Object getReceiver() {
                 return invocation.getReceiver();
             }
@@ -45,12 +47,14 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
             }
 
             @Override
+            @Nullable
             public Object getArgument(int pos) {
                 return invocation.getArgument(pos);
             }
 
             @Override
-            public Object callOriginal() throws Throwable {
+            @Nullable
+            public Object callNext() throws Throwable {
                 return second.intercept(invocation, consumer);
             }
         }, consumer);

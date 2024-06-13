@@ -16,24 +16,33 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import javax.annotation.Nullable;
+
 import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
 
 /**
- * A base implementation of the Invocation that provides everything except {@link #callOriginal()}.
+ * A simple implementation of the Invocation that accepts a lambda for {@link #callNext()} implementation.
  *
  * @param <R> the type of the receiver
  */
-public abstract class AbstractInvocation<R> implements Invocation {
-    protected final R receiver;
-    protected final Object[] args;
+public final class InvocationImpl<R> implements Invocation {
+    @FunctionalInterface
+    public interface ThrowingSupplier {
+        @Nullable Object get() throws Throwable;
+    }
 
-    public AbstractInvocation(R receiver, Object[] args) {
+    private final R receiver;
+    private final Object[] args;
+    private final ThrowingSupplier callOriginal;
+
+    public InvocationImpl(R receiver, Object[] args, ThrowingSupplier callNext) {
         this.receiver = receiver;
         this.args = args;
+        this.callOriginal = callNext;
     }
 
     @Override
-    public Object getReceiver() {
+    public R getReceiver() {
         return receiver;
     }
 
@@ -43,8 +52,14 @@ public abstract class AbstractInvocation<R> implements Invocation {
     }
 
     @Override
+    @Nullable
     public Object getArgument(int pos) {
         return unwrap(args[pos]);
     }
 
+    @Override
+    @Nullable
+    public Object callNext() throws Throwable {
+        return callOriginal.get();
+    }
 }
