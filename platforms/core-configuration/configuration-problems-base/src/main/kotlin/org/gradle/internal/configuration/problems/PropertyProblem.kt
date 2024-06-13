@@ -127,7 +127,7 @@ sealed class PropertyTrace {
     object Gradle : PropertyTrace() {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
-        override fun hashCode(): Int = 0
+        override fun hashCode(): Int = 1
     }
 
     @Suppress("DataClassPrivateConstructor")
