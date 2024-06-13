@@ -51,7 +51,7 @@ public class SupportedEncryptionAlgorithm {
      * Get the default cipher.
      */
     public static EncryptionAlgorithm getDefault() {
-        return AES_GCM_NO_PADDING;
+        return AES_CTR_NO_PADDING;
     }
 
     /**
