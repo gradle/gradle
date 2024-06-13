@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @EventScope(Scope.Build.class)
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface OutputChangeListener {
     /**
      * Invoked when some locations on disk have been changed or are about to be changed.

@@ -57,11 +57,6 @@ public class AbstractGradleModuleServices implements GradleModuleServices {
     }
 
     @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
     public void registerProjectServices(ServiceRegistration registration) {
 
     }
