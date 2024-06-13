@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated;
+package org.gradle.internal.cc.impl.actions;
 
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModel;
 import org.gradle.tooling.BuildAction;
@@ -22,29 +22,20 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-public class FetchCustomModelForTargetProject implements BuildAction<SomeToolingModel> {
+import java.util.ArrayList;
+import java.util.List;
 
-    private final String targetProject;
-
-    public FetchCustomModelForTargetProject(String targetProject) {
-        this.targetProject = targetProject;
-    }
-
+public class FetchCustomModelForEachProject implements BuildAction<List<SomeToolingModel>> {
     @Override
-    public SomeToolingModel execute(BuildController controller) {
+    public List<SomeToolingModel> execute(BuildController controller) {
+        List<SomeToolingModel> result = new ArrayList<>();
         GradleBuild buildModel = controller.getBuildModel();
         for (BasicGradleProject project : buildModel.getProjects()) {
-            if (targetProject.equals(project.getBuildTreePath())) {
-                return controller.getModel(project, SomeToolingModel.class);
+            SomeToolingModel model = controller.findModel(project, SomeToolingModel.class);
+            if (model != null) {
+                result.add(model);
             }
         }
-        for (GradleBuild editableBuild : buildModel.getEditableBuilds()) {
-            for (BasicGradleProject project : editableBuild.getProjects()) {
-                if (targetProject.equals(project.getBuildTreePath())) {
-                    return controller.getModel(project, SomeToolingModel.class);
-                }
-            }
-        }
-        return null;
+        return result;
     }
 }

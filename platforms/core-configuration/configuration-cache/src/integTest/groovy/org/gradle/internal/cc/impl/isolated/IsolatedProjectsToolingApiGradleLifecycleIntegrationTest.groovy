@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
+
 
 class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 

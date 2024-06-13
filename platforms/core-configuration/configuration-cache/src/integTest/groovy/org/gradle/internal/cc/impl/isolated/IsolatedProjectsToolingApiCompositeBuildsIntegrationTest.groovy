@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProjectInTree
+
 class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
     def "invalidates cached state when plugin in buildSrc changes"() {

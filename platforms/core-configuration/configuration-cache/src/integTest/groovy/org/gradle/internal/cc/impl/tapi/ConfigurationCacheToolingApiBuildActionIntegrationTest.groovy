@@ -16,10 +16,10 @@
 
 package org.gradle.internal.cc.impl.tapi
 
-import org.gradle.internal.cc.impl.isolated.FailingBuildAction
-import org.gradle.internal.cc.impl.isolated.FetchCustomModelForEachProject
-import org.gradle.internal.cc.impl.isolated.FetchCustomModelForTargetProject
-import org.gradle.internal.cc.impl.isolated.FetchModelsMultipleTimesForEachProject
+import org.gradle.internal.cc.impl.actions.FailingBuildAction
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForTargetProject
+import org.gradle.internal.cc.impl.actions.FetchModelsMultipleTimesForEachProject
 
 class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
 

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.internal.cc.impl.actions.CustomModelStreamingBuildAction
+import org.gradle.internal.cc.impl.actions.ModelStreamingBuildAction
 import org.gradle.internal.cc.impl.fixtures.CustomModel
 import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.model.GradleProject

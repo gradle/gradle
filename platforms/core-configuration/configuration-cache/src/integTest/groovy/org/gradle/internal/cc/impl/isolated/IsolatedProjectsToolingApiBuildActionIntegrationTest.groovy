@@ -16,6 +16,10 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.internal.cc.impl.actions.FailingBuildAction
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForTargetProject
+import org.gradle.internal.cc.impl.actions.FetchModelsMultipleTimesForEachProject
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {

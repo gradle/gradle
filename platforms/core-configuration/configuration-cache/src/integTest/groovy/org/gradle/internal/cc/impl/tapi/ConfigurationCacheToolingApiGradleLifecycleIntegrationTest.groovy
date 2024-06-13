@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.tapi
 
-import org.gradle.internal.cc.impl.isolated.FetchCustomModelForEachProject
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
 
 
 class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
