@@ -25,8 +25,8 @@ class KnownProblemIds {
             def pattern = it.key
             definition.id.fqid ==~ pattern
         }?.value
-        assert knownDefinition != null : "Unknown problem id: ${definition.id.fqid}"
-        assert definition.id.displayName ==~ knownDefinition: "Unexpected display name for problem"
+        assert knownDefinition != null, "Unknown problem id: ${definition.id.fqid}"
+        assert definition.id.displayName ==~ knownDefinition, "Unexpected display name for problem: expected '${knownDefinition}', got '${definition.id.displayName}'"
 
         def groupFqid = groupOf(definition.id.fqid)
         while (groupFqid != null) {
@@ -75,8 +75,12 @@ class KnownProblemIds {
         'problems-api:missing-id' : 'Problem id must be specified',
         'problems-api:unsupported-additional-data' : 'Unsupported additional data type',
         'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
-        // Flexible category, as the category id's last component, and the message, will be supplied by the compiler
-        'compilation:java:.+' : '.+',
+        // Flexible java compilation categories
+        // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
+        // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
+        'compilation:java:compiler-err-.+' : 'Java compilation error',
+        'compilation:java:compiler-warn-.+' : 'Java compilation warning',
+        'compilation:java:compiler-note-.+' : 'Java compilation note',
         'dependency-version-catalog:alias-not-finished' : 'version catalog error',
         'dependency-version-catalog:invalid-dependency-notation' : 'Dependency version catalog problem',
         'dependency-version-catalog:reserved-alias-name' : 'version catalog error',
