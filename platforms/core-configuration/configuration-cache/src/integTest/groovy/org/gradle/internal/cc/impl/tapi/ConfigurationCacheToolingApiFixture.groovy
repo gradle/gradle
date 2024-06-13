@@ -198,7 +198,12 @@ class ConfigurationCacheToolingApiFixture {
 
     static class StateStoreWithProblemsDetails extends ConfigurationCacheFixture.StateStoreWithProblemsDetails implements HasIntermediateDetails {}
 
-    static class StateDiscardedWithProblemsDetails extends ConfigurationCacheFixture.StateDiscardedWithProblemsDetails implements HasIntermediateDetails {}
+    static class StateDiscardedWithProblemsDetails extends ConfigurationCacheFixture.StateDiscardedWithProblemsDetails implements HasIntermediateDetails {
+        StateDiscardedWithProblemsDetails() {
+            runsTasks = false
+            loadsOnStore = false
+        }
+    }
 
     static class StoreRecreateDetails extends ConfigurationCacheFixture.StateRecreateDetails implements HasIntermediateDetails {
         StoreRecreateDetails() {
