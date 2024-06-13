@@ -45,6 +45,10 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
         executer.withArguments(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *moreExecuterArgs)
     }
 
+    void withConfigurationCacheLenient(String... moreExecuterArgs) {
+        executer.withArguments(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING,WARN_PROBLEMS_CLI_OPT, *moreExecuterArgs)
+    }
+
     void configurationCacheRun(String... tasks) {
         run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *tasks)
     }
