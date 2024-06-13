@@ -16,15 +16,15 @@
 
 = Isolated Projects
 
-_Isolated Projects_ is a pre-alpha Gradle feature that extends the configuration cache to further improve performance, particularly the performance of Android Studio and IDEA sync.
+Isolated Projects is a pre-alpha Gradle feature that extends the configuration cache to further improve performance, particularly the performance of Android Studio and IDEA sync.
 
-When _isolated projects_ is enabled, the configuration model of Gradle projects are "isolated" from each other.
+When Isolated Projects is enabled, the configuration model of Gradle projects are "isolated" from each other.
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of another project.
 This allows configuration and tooling model creation for each project to safely run in parallel, with the result cached and invalidated independently for each project.
 
 == Status as of Gradle 8.9
 
-When _isolated projects_ is enabled, Gradle applies two levels of caching during IDE sync:
+When Isolated Projects is enabled, Gradle applies two levels of caching during IDE sync:
 
 1. Gradle starts by applying coarse-grained caching.
 +
@@ -43,10 +43,10 @@ This work is done in parallel for each project.
 
 == Current limitations
 
-_Isolated projects_ is a pre-alpha feature, and as such, the current implementation has a number of limitations.
-These will addressed in future Gradle releases:
+Isolated Projects is a pre-alpha feature, and as such, the current implementation has a number of limitations.
+These will be addressed in future Gradle releases:
 
-* Gradle, IntelliJ IDEA, Android Studio, and Kotlin plugins are not yet 100% compatible with _isolated projects_, so you should expect to see some violations reported. The teams are actively working on fixing these incompatibilities.
+* Gradle, IntelliJ IDEA, Android Studio, and Kotlin plugins are not yet 100% compatible with Isolated Projects, so you should expect to see some violations reported. The teams are actively working on fixing these incompatibilities.
 * Parallel configuration and fine-grained caching are not applied to task execution. They are only applied to IDE sync.
 * Changes to included builds invalidate all cached results, even when the change would not affect the cached results.
 * The implementation does not exploit the isolation to limit peak memory consumption. Currently, peak memory consumption is a function of how many projects must be configured.
@@ -54,7 +54,7 @@ These will addressed in future Gradle releases:
 
 == How do I use it?
 
-You will need Gradle 8.5 or later to use _isolated projects_, preferably a recent nightly.
+You will need Gradle 8.5 or later to use Isolated Projects, preferably a recent nightly.
 You should also use the most recent version of IDEA or Android Studio.
 
 The feature is off by default.
@@ -75,11 +75,11 @@ The configuration cache command-line options can be used to control how Gradle h
 
 You can also use `-Dorg.gradle.internal.invalidate-coupled-projects=false` to force parallel configuration when there are access problems.
 
-Note that these options disable the validation that makes execution parallel- and caching-safe when _isolated projects_ is enabled, so you may see some unexpected behavior when using them.
+Note that these options disable the validation that makes execution parallel- and caching-safe when Isolated Projects is enabled, so you may see some unexpected behavior when using them.
 
 == Build logic constraints
 
-_Isolated projects_ prevents build logic from accessing the state of another project.
+Isolated Projects prevents build logic from accessing the state of another project.
 This includes:
 
 * Using most methods on the `Project` type. A small number of methods that return immutable information about the project are allowed:
@@ -95,5 +95,5 @@ This includes:
 ** `subprojects()` overloads
 ** `allprojects()` overloads
 
-Note that _isolated projects_ is a pre-alpha feature.
+Note that Isolated Projects is a pre-alpha feature.
 These constraints are not final and can change at any time.
