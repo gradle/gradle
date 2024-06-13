@@ -61,8 +61,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
-import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
-import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasInjectVisitorContext;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
@@ -249,7 +247,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         documentInterceptorGeneratedCode(request, code);
         matchAndInterceptStandardCallableSignature(request, implTypeField, code, callableName, interceptedCallableDescriptor, matchOpcodeExpression);
 
-        if (interceptedCallable.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK)) {
+        if (interceptedCallable.hasKotlinDefaultMaskParam()) {
             matchAndInterceptKotlinDefaultSignature(request, implTypeField, code, callableName, interceptedCallable, matchOpcodeExpression);
         }
     }
@@ -387,7 +385,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             throw new Failure("Groovy property access cannot be intercepted in JVM calls");
         }
 
-        boolean hasInjectVisitorContext = hasInjectVisitorContext(callable);
+        boolean hasInjectVisitorContext = callable.hasInjectVisitorContextParam();
         if (hasInjectVisitorContext) {
             ParameterInfo lastParameter = callable.getParameters().get(callable.getParameters().size() - 1);
             if (lastParameter.getKind() != ParameterKindInfo.INJECT_VISITOR_CONTEXT) {
@@ -401,7 +399,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             }
         }
 
-        boolean hasCallerClassName = hasCallerClassName(callable);
+        boolean hasCallerClassName = callable.hasCallerClassNameParam();
         if (hasCallerClassName) {
             int expectedIndex = hasInjectVisitorContext ? callable.getParameters().size() - 2 : callable.getParameters().size() - 1;
             if (callable.getParameters().get(expectedIndex).getKind() != ParameterKindInfo.CALLER_CLASS_NAME) {
@@ -412,7 +410,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             }
         }
 
-        if (callable.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK)) {
+        if (callable.hasKotlinDefaultMaskParam()) {
             // TODO support @AfterConstructor with Kotlin default mask? Kotlin constructors have a special DefaultConstructorMarker as the last argument
             if (callable.getKind() != CallableKindInfo.STATIC_METHOD && callable.getKind() != CallableKindInfo.INSTANCE_METHOD) {
                 throw new Failure(
@@ -434,13 +432,13 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
-        if (hasCallerClassName(callableInfo)) {
+        if (callableInfo.hasCallerClassNameParam()) {
             code.addStatement("$N(className)", LOAD_BINARY_CLASS_NAME);
         }
     }
 
     private static void maybeGenerateGetStaticInjectVisitorContext(CodeBlock.Builder code, CallableInfo callableInfo) {
-        if (hasInjectVisitorContext(callableInfo)) {
+        if (callableInfo.hasInjectVisitorContextParam()) {
             code.addStatement("$N._GETSTATIC($N, context.name(), $N.getDescriptor())", METHOD_VISITOR_FIELD, INTERCEPTORS_REQUEST_TYPE, INTERCEPTORS_REQUEST_TYPE);
         }
     }
