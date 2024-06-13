@@ -272,7 +272,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             this.className = owner.className;
             this.asNode = asNode;
             this.interceptorFilter = externalInterceptors.getOriginalFilter();
-            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
+            this.externalInterceptors = externalInterceptors.getInterceptors(classData);
         }
 
         @Override
@@ -288,7 +288,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             }
 
             for (JvmBytecodeCallInterceptor generatedInterceptor : externalInterceptors) {
-                if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
+                if (generatedInterceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
                     return;
                 }
             }

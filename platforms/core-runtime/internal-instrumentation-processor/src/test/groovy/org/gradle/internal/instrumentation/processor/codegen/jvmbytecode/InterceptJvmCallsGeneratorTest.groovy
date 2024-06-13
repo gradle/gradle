@@ -55,7 +55,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             @Generated
             public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
-                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/api/Rule")) {
                         if (name.equals("getDescription") && descriptor.equals("()Ljava/lang/String;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
@@ -190,7 +190,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             @Generated
             public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
-                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
@@ -242,7 +242,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             @Generated
             public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
-                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("exists") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {

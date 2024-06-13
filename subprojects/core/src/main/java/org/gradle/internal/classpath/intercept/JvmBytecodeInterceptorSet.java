@@ -19,13 +19,12 @@ package org.gradle.internal.classpath.intercept;
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
-import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
 public interface JvmBytecodeInterceptorSet {
 
-    List<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
+    List<JvmBytecodeCallInterceptor> getInterceptors(ClassData classData);
 
     BytecodeInterceptorFilter getOriginalFilter();
 }

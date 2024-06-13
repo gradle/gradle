@@ -19,9 +19,9 @@ plugins {
 }
 
 dependencies {
+    api(projects.baseAsm)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.asm)
     api(libs.asmTree)
 
     runtimeOnly(libs.groovy)
