@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Will be replaced by JUnit Platform's {@link org.junit.platform.engine.discovery.DiscoverySelectors#parseAll(Collection <String>)} once 5.10.3 is released
+ * Will be replaced by JUnit Platform's {@link org.junit.platform.engine.discovery.DiscoverySelectors#parseAll(Collection <String>)} once 5.11 is released
  * PR https://github.com/junit-team/junit5/pull/3737
  */
 public class JUnitPlatformSelectorParser {
