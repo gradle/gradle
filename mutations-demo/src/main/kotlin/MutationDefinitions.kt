@@ -1,6 +1,7 @@
 package org.gradle.client.demo.mutations
 
 import org.gradle.api.experimental.android.application.AndroidApplication
+import org.gradle.api.experimental.android.extensions.testing.Testing
 import org.gradle.api.experimental.android.library.AndroidLibrary
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.*
@@ -76,8 +77,37 @@ object SetNamespaceMutation : MutationDefinition {
         }
 }
 
-object AddDependencyMutation : MutationDefinition {
-    override val id: String = "org.gradle.client.demo.mutations.dependency"
+val addTestingDependencyMutation =
+    AddDependencyMutation("org.gradle.client.demo.mutations.addDependency.testing") { schema ->
+        val androidLibrary = schema.typeFor<AndroidLibrary>()
+        val androidTesting = androidLibrary.singleFunctionNamed("testing")
+        val testingType = schema.typeFor<Testing>()
+        val testingDependencies = testingType.singleFunctionNamed("dependencies")
+
+        ScopeLocation(
+            listOf(
+                InNestedScopes(NestedObjectsOfType(androidLibrary)),
+                InNestedScopes(NestedScopeSelector.ObjectsConfiguredBy(androidTesting)),
+                InNestedScopes(NestedScopeSelector.ObjectsConfiguredBy(testingDependencies))
+            )
+        )
+    }
+
+val addTopLevelDependencyMutation =
+    AddDependencyMutation("org.gradle.client.demo.mutations.addDependency.topLevel") { schema ->
+        val androidLibrary = schema.typeFor<AndroidLibrary>()
+        val androidLibraryDependencies = androidLibrary.singleFunctionNamed("dependencies")
+
+        ScopeLocation(
+            listOf(
+                InNestedScopes(NestedObjectsOfType(androidLibrary)),
+                InNestedScopes(NestedScopeSelector.ObjectsConfiguredBy(androidLibraryDependencies))
+            )
+        )
+    }
+
+class AddDependencyMutation(override val id: String, private val scopeLocation: (AnalysisSchema) -> ScopeLocation) :
+    MutationDefinition {
     override val name: String = "Add a dependency"
     override val description: String = "Add a dependency to the dependencies block"
 
@@ -96,16 +126,9 @@ object AddDependencyMutation : MutationDefinition {
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         with(projectAnalysisSchema) {
-            val androidLibrary = typeFor<AndroidLibrary>()
-            val androidLibraryDependencies = androidLibrary.singleFunctionNamed("dependencies")
-
             listOf(
                 ModelMutationRequest(
-                    ScopeLocation(listOf(
-                        InAllNestedScopes,
-                        InNestedScopes(NestedObjectsOfType(androidLibrary)),
-                        InNestedScopes(NestedScopeSelector.ObjectsConfiguredBy(androidLibraryDependencies))
-                    )),
+                    scopeLocation(projectAnalysisSchema),
                     ModelMutation.AddNewElement(
                         NewElementNodeProvider.ArgumentBased { args ->
                             elementFromString("implementation(\"" + args[dependencyCoordinatesParam] + "\")")!!

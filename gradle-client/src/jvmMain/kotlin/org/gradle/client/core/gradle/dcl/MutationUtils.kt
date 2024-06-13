@@ -1,8 +1,6 @@
 package org.gradle.client.core.gradle.dcl
 
-import org.gradle.client.demo.mutations.AddDependencyMutation
-import org.gradle.client.demo.mutations.SetNamespaceMutation
-import org.gradle.client.demo.mutations.SetVersionCodeMutation
+import org.gradle.client.demo.mutations.*
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
@@ -19,7 +17,8 @@ object MutationUtils {
     val mutationCatalog = DefaultMutationDefinitionCatalog().apply {
         registerMutationDefinition(SetVersionCodeMutation)
         registerMutationDefinition(SetNamespaceMutation)
-        registerMutationDefinition(AddDependencyMutation)
+        registerMutationDefinition(addTopLevelDependencyMutation)
+        registerMutationDefinition(addTestingDependencyMutation)
     }
 
     fun checkApplicabilityForOverlay(
