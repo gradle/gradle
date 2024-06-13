@@ -108,7 +108,7 @@ In the example above, <<working_with_files.adoc#sec:copying_files, CopySpec>> de
 
 Gradle provides a robust set of APIs to simplify handling files, managing file dependencies, generating reports, and more. <<working_with_files.adoc#sec:copying_files, CopySpec>> is simply one example.
 
-File operations are covered in <<working_with_files.adoc,Working With Files>>.
+File operations are covered in <<working_with_files.adoc#working_with_files, Working With Files>>.
 
 [[sec:publishing_distributions]]
 == Publishing
