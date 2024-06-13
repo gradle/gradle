@@ -1,9 +1,6 @@
 package org.gradle.client.core.gradle.dcl
 
-import org.gradle.client.demo.mutations.SetNamespaceMutation
-import org.gradle.client.demo.mutations.SetVersionCodeMutation
-import org.gradle.client.demo.mutations.addTestingDependencyMutation
-import org.gradle.client.demo.mutations.addTopLevelDependencyMutation
+import org.gradle.client.demo.mutations.*
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
@@ -20,7 +17,8 @@ object MutationUtils {
     val mutationCatalog = DefaultMutationDefinitionCatalog().apply {
         registerMutationDefinition(SetVersionCodeMutation)
         registerMutationDefinition(SetNamespaceMutation)
-        registerMutationDefinition(addTopLevelDependencyMutation)
+        registerMutationDefinition(addLibraryDependencyMutation)
+        registerMutationDefinition(addApplicationDependencyMutation)
         registerMutationDefinition(addTestingDependencyMutation)
     }
 
@@ -52,8 +50,6 @@ object MutationUtils {
             file.writeText(it.newDocumentText)
         }
     }
-
-    private const val DEFAULT_INT = 42
 }
 
 private fun <T> emptyListNodeDataContainer(): NodeData<List<T>> = object : NodeData<List<T>> {
@@ -65,7 +61,7 @@ private fun <T> emptyListNodeDataContainer(): NodeData<List<T>> = object : NodeD
 
 /**
  * Copy-pasted from `gradle/gradle`
- * We should onsider making it a public utility there
+ * We should consider making it a public utility there
  */
 internal class OverlayRoutedNodeDataContainer<DNode, DElement : DNode, DProperty : DNode, DError : DNode>(
     private val overlayOriginContainer: OverlayOriginContainer,

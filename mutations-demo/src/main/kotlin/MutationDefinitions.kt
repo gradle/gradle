@@ -1,5 +1,6 @@
 package org.gradle.client.demo.mutations
 
+import org.gradle.api.experimental.android.AndroidSoftware
 import org.gradle.api.experimental.android.application.AndroidApplication
 import org.gradle.api.experimental.android.extensions.testing.Testing
 import org.gradle.api.experimental.android.library.AndroidLibrary
@@ -7,6 +8,7 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.*
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior
 import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
+import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 
@@ -22,7 +24,7 @@ object SetVersionCodeMutation : MutationDefinition {
         get() = listOf(versionCodeParam)
 
     override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
-        projectAnalysisSchema.findTypeFor<AndroidApplication>() != null
+        hasAndroidSoftwareType(projectAnalysisSchema)
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         with(projectAnalysisSchema) {
@@ -32,7 +34,7 @@ object SetVersionCodeMutation : MutationDefinition {
                 ModelMutationRequest(
                     ScopeLocation.inAnyScope().inObjectsOfType(androidApplication),
                     ModelMutation.SetPropertyValue(
-                        androidApplication.property("versionCode"),
+                        androidApplication.propertyNamed("versionCode"),
                         NewValueNodeProvider.ArgumentBased { args -> valueFromString("" + args[versionCodeParam])!! },
                         IfPresentBehavior.Overwrite
                     ),
@@ -53,17 +55,17 @@ object SetNamespaceMutation : MutationDefinition {
         get() = listOf(newNamespaceParam)
 
     override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
-        projectAnalysisSchema.findTypeFor<AndroidLibrary>() != null
+        hasAndroidSoftwareType(projectAnalysisSchema)
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         with(projectAnalysisSchema) {
-            val androidLibrary = typeFor<AndroidLibrary>()
+            val android = typeFor<AndroidSoftware>()
 
             listOf(
                 ModelMutationRequest(
-                    ScopeLocation.inAnyScope().inObjectsOfType(androidLibrary),
+                    ScopeLocation.inAnyScope().inObjectsOfType(android),
                     ModelMutation.SetPropertyValue(
-                        androidLibrary.property("namespace"),
+                        android.propertyNamed("namespace"),
                         NewValueNodeProvider.ArgumentBased { args ->
                             valueFromString("\"" + args[newNamespaceParam] + "\"")!!
                         },
@@ -78,23 +80,34 @@ val addTestingDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.testing"
     ) {
-        val androidLibrary = typeFor<AndroidLibrary>()
+        val android = typeFor<AndroidSoftware>()
 
         ScopeLocation.fromTopLevel()
-            .inObjectsOfType(androidLibrary)
-            .inObjectsConfiguredBy(androidLibrary.singleFunctionNamed("testing"))
+            .inObjectsOfType(android)
+            .inObjectsConfiguredBy(android.singleFunctionNamed("testing"))
             .inObjectsConfiguredBy(typeFor<Testing>().singleFunctionNamed("dependencies"))
     }
 
-val addTopLevelDependencyMutation =
+val addLibraryDependencyMutation =
     AddDependencyMutation(
-        "org.gradle.client.demo.mutations.addDependency.topLevel"
+        "org.gradle.client.demo.mutations.addDependency.topLevel.library"
     ) {
         val androidLibrary = typeFor<AndroidLibrary>()
 
         ScopeLocation.fromTopLevel()
             .inObjectsOfType(androidLibrary)
             .inObjectsConfiguredBy(androidLibrary.singleFunctionNamed("dependencies"))
+    }
+
+val addApplicationDependencyMutation =
+    AddDependencyMutation(
+        "org.gradle.client.demo.mutations.addDependency.topLevel.application"
+    ) {
+        val androidApplication = typeFor<AndroidApplication>()
+
+        ScopeLocation.fromTopLevel()
+            .inObjectsOfType(androidApplication)
+            .inObjectsConfiguredBy(androidApplication.singleFunctionNamed("dependencies"))
     }
 
 class AddDependencyMutation(override val id: String, private val scopeLocation: AnalysisSchema.() -> ScopeLocation) :
@@ -113,7 +126,7 @@ class AddDependencyMutation(override val id: String, private val scopeLocation: 
         get() = listOf(dependencyCoordinatesParam)
 
     override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
-        projectAnalysisSchema.findTypeFor<AndroidLibrary>() != null
+        hasAndroidSoftwareType(projectAnalysisSchema)
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
         listOf(
@@ -127,3 +140,6 @@ class AddDependencyMutation(override val id: String, private val scopeLocation: 
             )
         )
 }
+
+private fun hasAndroidSoftwareType(projectAnalysisSchema: AnalysisSchema) =
+    projectAnalysisSchema.findTypeFor<AndroidSoftware>() != null
