@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.r89
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.integtests.tooling.fixture.CompositeModel
 import org.gradle.integtests.tooling.fixture.DeepChildModel
 import org.gradle.integtests.tooling.fixture.ShallowChildModel
@@ -25,6 +27,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.BaseModel
 import org.gradle.integtests.tooling.fixture.VeryDeepChildModel
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+
+import javax.inject.Inject
 
 @ToolingApiVersion(">=8.9")
 @TargetGradleVersion('>=6.4') // that's when support for precompiled script plugins in Groovy has been added (used in this test)
@@ -101,8 +107,8 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
         file("plugins/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
-            import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import org.gradle.api.Project
+            import ${ToolingModelBuilder.name}
+            import ${Project.name}
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
@@ -139,8 +145,8 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
         file("plugins/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
-            import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import org.gradle.api.Project
+            import ${ToolingModelBuilder.name}
+            import ${Project.name}
 
             import org.gradle.integtests.tooling.fixture.DefaultCompositeModel
             import org.gradle.integtests.tooling.fixture.DefaultModel
@@ -179,10 +185,10 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
         file("$targetBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
 
-            import org.gradle.api.Project
-            import org.gradle.api.Plugin
-            import javax.inject.Inject
-            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+            import ${Project.name}
+            import ${Plugin.name}
+            import ${Inject.name}
+            import ${ToolingModelBuilderRegistry.name}
 
             abstract class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
