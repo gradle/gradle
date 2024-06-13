@@ -130,7 +130,11 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    val severity = if (kind == DiagnosticKind.PROBLEM) ProblemSeverity.Failure else ProblemSeverity.Info
+                    val severity = when (kind) {
+                        DiagnosticKind.PROBLEM -> ProblemSeverity.Failure
+                        DiagnosticKind.INCOMPATIBLE_TASK -> ProblemSeverity.Warning
+                        DiagnosticKind.INPUT -> ProblemSeverity.Info
+                    }
                     writer.writeDiagnostic(kind, decorate(problem, severity))
                 }
                 return this
@@ -273,6 +277,12 @@ class ConfigurationCacheReport(
     fun onProblem(problem: PropertyProblem) {
         modifyState {
             onDiagnostic(DiagnosticKind.PROBLEM, problem)
+        }
+    }
+
+    fun onIncompatibleTask(problem: PropertyProblem) {
+        modifyState {
+            onDiagnostic(DiagnosticKind.INCOMPATIBLE_TASK, problem)
         }
     }
 
