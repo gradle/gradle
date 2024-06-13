@@ -469,7 +469,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter usingInitScript(File initScript) {
-        initScripts.add(initScript);
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            initScripts.add(initScript);
+        }
         return this;
     }
 
