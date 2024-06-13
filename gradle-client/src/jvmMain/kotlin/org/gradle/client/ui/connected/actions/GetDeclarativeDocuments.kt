@@ -3,7 +3,6 @@ package org.gradle.client.ui.connected.actions
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.onClick
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -16,7 +15,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -129,12 +127,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                                 domWithConventions.overlayResolutionContainer,
                                 highlightingContext,
                                 mutationApplicability,
-                                onRunMutation = {
+                                onRunMutation = { mutationDefinition ->
                                     MutationUtils.runMutation(
                                         selectedBuildFile.value,
                                         domWithConventions.inputOverlay,
                                         projectEvaluationSchema,
-                                        it
+                                        mutationDefinition
                                     )
                                     // Trigger recomposition:
                                     fileUpdatesCount.value += 1
@@ -174,11 +172,9 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 }
             }
 
-            sourceFileData.forEachIndexed { index, data ->
+            sourceFileData.forEach { data ->
                 SourceFileTitleAndText(data.relativePath, data.annotatedSource)
-                if (index != sourceFileData.lastIndex) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+                MaterialTheme.spacing.VerticalLevel4()
             }
         }
     }
@@ -213,14 +209,9 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     ) {
         TitleMedium(fileRelativePath)
         MaterialTheme.spacing.VerticalLevel4()
-        SelectionContainer {
-            Text(
-                text = highlightedSource,
-                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-            )
-        }
+        CodeBlock(Modifier.fillMaxWidth(), highlightedSource)
     }
-    
+
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     private fun DeclarativeFileDropDown(
@@ -269,7 +260,7 @@ class ModelTreeRendering(
     val onRunMutation: (MutationDefinition) -> Unit
 ) {
     private val indentDp = MaterialTheme.spacing.level2
-    
+
     @Composable
     fun ModelTreeRendering.ElementInfoOrNothingDeclared(
         type: DataClass?,
@@ -389,7 +380,7 @@ class ModelTreeRendering(
             )
         }
     }
-    
+
     @Composable
     private fun WithApplicableMutations(
         element: DeclarativeDocument.DocumentNode?,

@@ -1,9 +1,15 @@
 package org.gradle.client.ui.composables
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import org.gradle.client.ui.theme.spacing
 
 @Composable
 fun TitleLarge(text: String, modifier: Modifier = Modifier) {
@@ -57,4 +63,26 @@ fun LabelMedium(text: String, modifier: Modifier = Modifier) {
         text = text,
         style = MaterialTheme.typography.labelMedium,
     )
+}
+
+@Composable
+fun CodeBlock(
+    modifier: Modifier = Modifier,
+    code: AnnotatedString
+) {
+    Surface(
+        tonalElevation = MaterialTheme.spacing.level1,
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.extraSmall,
+        modifier = modifier
+    ) {
+        SelectionContainer {
+            Text(
+                text = code,
+                modifier = Modifier.padding(MaterialTheme.spacing.level2),
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+            )
+        }
+    }
 }

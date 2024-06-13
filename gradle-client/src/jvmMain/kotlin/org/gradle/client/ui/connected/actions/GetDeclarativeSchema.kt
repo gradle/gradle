@@ -2,14 +2,14 @@ package org.gradle.client.ui.connected.actions
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.buildAnnotatedString
 import org.gradle.client.ui.build.BuildTextField
+import org.gradle.client.ui.composables.CodeBlock
 import org.gradle.client.ui.composables.TitleLarge
 import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
@@ -44,12 +44,7 @@ class GetDeclarativeSchema : GetModelAction<DeclarativeSchemaModel> {
         val description = buildString {
             appendDescription(model.projectSchema, softwareTypeSchema)
         }
-        SelectionContainer {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-            )
-        }
+        CodeBlock(Modifier.fillMaxWidth(), buildAnnotatedString { append(description) })
     }
 
     private val indentChars = "    "
