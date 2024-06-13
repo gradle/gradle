@@ -32,20 +32,6 @@ fun softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry: Software
 }
 
 
-/**
- * This registry is used by {@link NonDeclarativeConventionHandler} to avoid applying declarative conventions when applying
- * plugins from a declarative context (i.e. the declarative script processing will handle applying the conventions).  In other words, this
- * registry will only return declarative conventions when a software type plugin is applied from an imperative context (i.e. a non-declarative script).
- */
-internal
-fun softwareTypeRegistryBasedConventionRepositoryWithContext(softwareTypeRegistry: SoftwareTypeRegistry): SoftwareTypeConventionRepository = object : SoftwareTypeConventionRepository {
-    override fun findConventions(softwareTypeName: String): SoftwareTypeConventionResolutionResults? =
-        softwareTypeRegistry.softwareTypeImplementations[softwareTypeName]?.let { softwareType ->
-            conventionResolutionResultsFrom(softwareTypeName, softwareType.conventionsForCurrentContext)
-        }
-}
-
-
 private
 fun conventionResolutionResultsFrom(softwareTypeName: String, conventions: List<Convention<*>>): SoftwareTypeConventionResolutionResults {
     val assignments = buildList {

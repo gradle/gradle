@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator
+package org.gradle.internal.declarativedsl.evaluator.conventions
 
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
-import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedConventionRepositoryWithContext
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
+import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedConventionRepository
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeDslNotEvaluatedException
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AbstractAnalysisStepRunner
@@ -42,20 +42,20 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 /**
- * A {@link ConventionHandler} for applying declarative conventions in a non-declarative context (e.g. a plugin applied from a non-declarative script).
+ * A {@link ConventionHandler} for applying declarative conventions.
  */
-class NonDeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) : ConventionHandler {
+class SoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) : ConventionHandler {
     private
     val step = projectInterpretationSequenceStep(softwareTypeRegistry)
     private
-    val conventionRepository = softwareTypeRegistryBasedConventionRepositoryWithContext(softwareTypeRegistry)
+    val conventionRepository = softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry)
 
     override fun apply(target: Any, softwareTypeName: String) {
         val analysisStepRunner = ApplyConventionsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
             setOf(
-                ConventionApplicationHandler(conventionRepository) { listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls() }
+                ConventionApplicationHandler { listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls() }
             )
         )
 

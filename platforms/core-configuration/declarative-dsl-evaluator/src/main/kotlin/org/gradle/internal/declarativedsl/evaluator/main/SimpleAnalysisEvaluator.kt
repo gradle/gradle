@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.evaluator.main
 
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
@@ -52,7 +51,7 @@ class SimpleAnalysisEvaluator(
     private
     val analysisContext = AnalysisStepContext(
         supportedDocumentChecks = emptyList(), // TODO: move the settings blocks check here,
-        supportedResolutionResultHandlers = listOf(ConventionDefinitionCollector(conventionStorage), ConventionApplicationHandler(conventionStorage))
+        supportedResolutionResultHandlers = listOf(ConventionDefinitionCollector(conventionStorage))
     )
 
     fun evaluate(

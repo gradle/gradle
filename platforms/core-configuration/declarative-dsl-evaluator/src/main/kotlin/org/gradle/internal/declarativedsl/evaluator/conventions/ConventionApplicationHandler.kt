@@ -33,8 +33,7 @@ class ConventionApplication : InterpretationStepFeature.ResolutionResultPostproc
 
 
 class ConventionApplicationHandler(
-    private val softwareTypeConventionRepository: SoftwareTypeConventionRepository,
-    private val conventionResolutionResults: (resolutionResult: ResolutionResult) -> List<SoftwareTypeConventionResolutionResults> = conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository)
+    private val conventionResolutionResults: (resolutionResult: ResolutionResult) -> List<SoftwareTypeConventionResolutionResults>
 ) : ResolutionResultHandler {
 
     override fun shouldHandleFeature(feature: InterpretationStepFeature.ResolutionResultPostprocessing) =
@@ -58,11 +57,6 @@ class ConventionApplicationHandler(
         }
     }
 }
-
-
-private
-fun conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository: SoftwareTypeConventionRepository) =
-    { resolutionResult: ResolutionResult -> findUsedSoftwareTypeNames(resolutionResult).mapNotNull(softwareTypeConventionRepository::findConventions) }
 
 
 internal
