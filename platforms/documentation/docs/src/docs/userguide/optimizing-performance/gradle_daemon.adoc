@@ -301,8 +301,6 @@ NOTE: For more information about build environments, see <<build_environment.ado
 
 The Daemon can reduce build times by 15-75% when you build the same project repeatedly.
 
-TIP: To understand the Daemon's impact on your builds, you can profile your build with `--profile`.
-
 In between builds, the Daemon waits idly for the next build.
 As a result, your machine only loads Gradle into memory once for multiple builds instead of once per build.
 This is a significant performance optimization.

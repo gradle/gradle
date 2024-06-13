@@ -1186,7 +1186,8 @@ Here are all available annotations in detail:
 |Property is a one or more input files or directories that represent a Java compile classpath
 
 |`@OutputFile`
-|Property is an output file for the taskfootnote:1[This notation is used to indicate that a task may create a file. If the task has previously created this file, but its inputs change, the task's "output state" is reflected accordingly.]
+|Property is an output file for the taskfootnote:1[This notation is used to declare that a task may produce a specific output file. This annotation is typically applied to a property in a task class that represents the output file.
+When a task with an @OutputFile-annotated property is executed, Gradle will check if the specified output file exists. If the file does not exist, or if the task's inputs (as defined by @Input annotations) changed, Gradle will consider the task out-of-date and will execute it to regenerate the output file.]
 
 |`@OutputFiles`
 |Property is one or more output files for the task

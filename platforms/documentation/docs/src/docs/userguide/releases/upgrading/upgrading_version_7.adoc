@@ -336,7 +336,7 @@ Most public classes for plugins, tasks and extensions have been made abstract.
 This was done to make it easier to remove boilerplate from Gradle's implementation.
 
 Plugins that are affected by this change should make their classes abstract as well.
-Gradle uses runtime class decoration to implement abstract methods as long as the object is instantiated via `ObjectFactory` or some other automatic mechanism (like <<custom_gradle_types.adoc#managed_properties,managed properties>>).
+Gradle uses runtime class decoration to implement abstract methods as long as the object is instantiated via `ObjectFactory` or some other automatic mechanism (like <<properties_providers.adoc#managed_properties,managed properties>>).
 Those methods should never be directly implemented.
 
 ==== Wrapper task configuration
