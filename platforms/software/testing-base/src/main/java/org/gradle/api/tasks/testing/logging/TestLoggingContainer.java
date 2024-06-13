@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing.logging;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -56,6 +57,7 @@ public interface TestLoggingContainer extends TestLogging {
      *
      * @return logging options for debug level
      */
+    @Internal
     @ToBeReplacedByLazyProperty
     TestLogging getDebug();
 
@@ -78,6 +80,7 @@ public interface TestLoggingContainer extends TestLogging {
      *
      * @return logging options for info level
      */
+    @Internal
     @ToBeReplacedByLazyProperty
     TestLogging getInfo();
 
@@ -100,6 +103,7 @@ public interface TestLoggingContainer extends TestLogging {
      *
      * @return logging options for lifecycle level
      */
+    @Internal
     @ToBeReplacedByLazyProperty
     TestLogging getLifecycle();
 
@@ -122,6 +126,7 @@ public interface TestLoggingContainer extends TestLogging {
      *
      * @return logging options for warn level
      */
+    @Internal
     @ToBeReplacedByLazyProperty
     TestLogging getWarn();
 
@@ -144,6 +149,7 @@ public interface TestLoggingContainer extends TestLogging {
      *
      * @return logging options for quiet level
      */
+    @Internal
     @ToBeReplacedByLazyProperty
     TestLogging getQuiet();
 
@@ -166,6 +172,7 @@ public interface TestLoggingContainer extends TestLogging {
      *
      * @return logging options for error level
      */
+    @Internal
     @ToBeReplacedByLazyProperty
     TestLogging getError();
 

@@ -17,8 +17,8 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * Returns the URI to the cache.
      */
     @Nullable
-    @ToBeReplacedByLazyProperty
+    @Nested
     public URI getUrl() {
         return url;
     }
@@ -96,7 +96,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Returns the credentials used to access the HTTP cache backend.
      */
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
+    @Nested
     public HttpBuildCacheCredentials getCredentials() {
         return credentials;
     }

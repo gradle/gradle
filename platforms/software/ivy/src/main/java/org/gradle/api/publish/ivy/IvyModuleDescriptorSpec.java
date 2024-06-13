@@ -18,8 +18,8 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -102,7 +102,7 @@ public interface IvyModuleDescriptorSpec {
     /**
      * Returns the extra info element spec for this publication
      */
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
+    @Nested
     IvyExtraInfoSpec getExtraInfo();
 
     /**
