@@ -27,7 +27,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         settingsFile << """
             rootProject.name = 'root'
         """
-        createDirs("a", "b")
+        createDirs("a", "b") // avoid missing subproject directories warning
     }
 
     def "caches creation of custom tooling model"() {
