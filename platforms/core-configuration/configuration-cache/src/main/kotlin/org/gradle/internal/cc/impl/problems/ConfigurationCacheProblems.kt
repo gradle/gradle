@@ -104,6 +104,9 @@ class ConfigurationCacheProblems(
     private
     lateinit var cacheAction: ConfigurationCacheAction
 
+    private
+    lateinit var cacheActionDescription: String
+
     val shouldDiscardEntry: Boolean
         get() {
             if (cacheAction == LOAD) {
@@ -126,8 +129,9 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun action(action: ConfigurationCacheAction) {
+    fun action(action: ConfigurationCacheAction, actionDescription: String) {
         cacheAction = action
+        cacheActionDescription = actionDescription
     }
 
     fun failingBuildDueToSerializationError() {
@@ -238,10 +242,7 @@ class ConfigurationCacheProblems(
         val summary = summarizer.get()
         val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
-        val cacheActionText = cacheAction.summaryText()
-        val requestedTasks = startParameter.requestedTasksOrDefault()
-        val buildDisplayName = buildName
-        val details = ConfigurationCacheReportDetails(buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
+        val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, details)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
@@ -253,11 +254,18 @@ class ConfigurationCacheProblems(
             null -> {
                 val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
-                log(summary.textForConsole(cacheActionText, htmlReportFile))
+                log(summary.textForConsole(details.cacheAction, htmlReportFile))
             }
 
             else -> validationFailures.accept(failure)
         }
+    }
+
+    private
+    fun detailsFor(summary: Summary): ConfigurationCacheReportDetails {
+        val cacheActionText = cacheAction.summaryText()
+        val requestedTasks = startParameter.requestedTasksOrDefault()
+        return ConfigurationCacheReportDetails(buildName, cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
     }
 
     private

@@ -16,9 +16,11 @@
 
 package org.gradle.internal.cc.impl.problems
 
+
 data class ConfigurationCacheReportDetails(
     val buildDisplayName: String?,
     val cacheAction: String,
+    val cacheActionDescription: String,
     val requestedTasks: String?,
     val totalProblemCount: Int
 )

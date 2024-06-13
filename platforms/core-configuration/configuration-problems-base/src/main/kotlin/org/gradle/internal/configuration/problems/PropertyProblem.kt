@@ -74,6 +74,8 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 
     companion object {
 
+        fun forText(text: String) = StructuredMessage(listOf(Fragment.Text(text)))
+
         fun build(builder: StructuredMessageBuilder) = StructuredMessage(
             Builder().apply(builder).fragments
         )
