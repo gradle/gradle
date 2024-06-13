@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.internal.SupportedEncryptionAlgorithm
 
 import java.nio.charset.StandardCharsets
 
@@ -65,11 +66,10 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateLoaded()
 
         where:
-        encryptionTransformation | source
-        "AES/ECB/PKCS5PADDING"   | EncryptionKind.KEYSTORE
-        "AES/CBC/PKCS5PADDING"   | EncryptionKind.KEYSTORE
-        "AES/ECB/PKCS5PADDING"   | EncryptionKind.ENV_VAR
-        "AES/CBC/PKCS5PADDING"   | EncryptionKind.ENV_VAR
+        [encryptionTransformation, source] << [
+            SupportedEncryptionAlgorithm.getAll().collect { it.transformation },
+            [EncryptionKind.KEYSTORE, EncryptionKind.ENV_VAR]
+        ].combinations()
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
@@ -250,7 +250,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         // since the key is not fully validated until needed, we only get an error when encrypting
-        failure.assertHasDescription("Error while encrypting")
+        failure.assertHasDescription("Invalid AES key length: 35 bytes")
         // exception error message varies across JCE implementations, but the exception class is predictable
         containsLine(result.error, matchesRegexp(".*java.security.InvalidKeyException.*"))
     }
