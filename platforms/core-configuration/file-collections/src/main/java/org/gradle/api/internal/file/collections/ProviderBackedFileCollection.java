@@ -50,7 +50,7 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
     public void visitDependencies(TaskDependencyResolveContext context) {
         ValueSupplier.ValueProducer producer = provider.getProducer();
         if (producer.isKnown()) {
-            producer.visitProducerTasks(context);
+            producer.visitDependencies(context);
         } else {
             // Producer is unknown, so unpack the value
             UnpackingVisitor unpackingVisitor = new UnpackingVisitor(context::add, resolver, taskDependencyFactory, patternSetFactory);
