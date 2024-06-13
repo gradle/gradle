@@ -58,6 +58,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.internal.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -515,6 +516,14 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
             @Override
             public boolean useFileSystemWatching() {
+                OperatingSystem operatingSystem = OperatingSystem.current();
+                if (operatingSystem.isMacOsX()) {
+                    String version = operatingSystem.getVersion();
+                    if (VersionNumber.parse(version).getMajor() < 12) {
+                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                        return false;
+                    }
+                }
                 return isFeatureEnabled(NativeFeatures.FILE_SYSTEM_WATCHING);
             }
         };
