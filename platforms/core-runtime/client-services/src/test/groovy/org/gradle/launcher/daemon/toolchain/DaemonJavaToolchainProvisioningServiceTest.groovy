@@ -22,9 +22,12 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException
+import org.gradle.platform.Architecture
+import org.gradle.platform.OperatingSystem
 import org.gradle.platform.internal.CurrentBuildPlatform
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -60,6 +63,9 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         progressLogger.start(_ as String, null) >> progressLogger
         progressLoggerFactory.newOperation(_ as Class<DaemonJavaToolchainProvisioningService>) >> progressLogger
+
+        buildPlatform.operatingSystem >> OperatingSystem.LINUX
+        buildPlatform.architecture >> Architecture.AARCH64
     }
 
     def "cache is properly locked around provisioning a jdk"() {
@@ -103,7 +109,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         0 * progressLogger.start("Installing toolchain", null)
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningNotConfiguredException.class)
     }
 
     def "fails downloading from not provided platform toolchain url"() {
@@ -116,7 +122,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         0 * progressLogger.start("Installing toolchain", null)
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainDownloadException.class)
     }
 
     def "fails downloading from invalid provided platform toolchain url"() {
@@ -129,7 +135,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         0 * progressLogger.start("Installing toolchain", null)
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainDownloadException.class)
     }
 
     def "downloads from url"() {

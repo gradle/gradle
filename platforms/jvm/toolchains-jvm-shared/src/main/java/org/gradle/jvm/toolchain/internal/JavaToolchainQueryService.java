@@ -35,7 +35,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.internal.install.exceptions.NoToolchainAvailableException;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -214,14 +213,7 @@ public class JavaToolchainQueryService {
     }
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
-        File installation;
-        try {
-            // TODO: inform installation process of required capabilities, needs public API change
-            installation = installService.tryInstall(spec);
-        } catch (ToolchainDownloadFailedException e) {
-            throw new NoToolchainAvailableException(spec, e);
-        }
-
+        File installation = installService.tryInstall(spec);
         InstallationLocation downloadedInstallation = InstallationLocation.autoProvisioned(installation, "provisioned toolchain");
         JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, requiredCapabilities, false);
         registry.addInstallation(downloadedInstallation);

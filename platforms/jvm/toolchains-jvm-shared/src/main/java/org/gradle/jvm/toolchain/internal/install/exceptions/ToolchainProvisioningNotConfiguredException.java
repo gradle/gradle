@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal.install.exceptions;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class ToolchainDownloadFailedException extends GradleException implements ResolutionProvider {
+@Contextual
+public class ToolchainProvisioningNotConfiguredException extends GradleException implements ResolutionProvider {
 
     private final List<String> resolutions;
 
-    public ToolchainDownloadFailedException(String message, String... resolutions) {
-        super(message);
+    public ToolchainProvisioningNotConfiguredException(
+        JavaToolchainSpec specification,
+        String cause,
+        String... resolutions
+    ) {
+        super(String.format(
+            "Cannot find a Java installation on your machine (%s) matching: %s. %s",
+            OperatingSystem.current(),
+            specification,
+            cause));
+
         this.resolutions = Arrays.asList(resolutions);
     }
 

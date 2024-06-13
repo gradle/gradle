@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
@@ -205,7 +206,8 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jre).fails("javadoc")
 
         then:
-        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific}. " +
+                "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 STACKTRACE_MESSAGE,

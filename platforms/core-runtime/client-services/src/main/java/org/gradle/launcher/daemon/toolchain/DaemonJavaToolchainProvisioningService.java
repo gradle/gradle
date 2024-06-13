@@ -23,11 +23,11 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
-import org.gradle.jvm.toolchain.internal.install.exceptions.MissingToolchainException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException;
 import org.gradle.platform.internal.CurrentBuildPlatform;
 
 import java.io.File;
@@ -60,14 +60,14 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     }
 
     @Override
-    public File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException {
+    public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
+            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain auto-provisioning is not enabled.",
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
         }
 
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            URI uri = getBuildPlatformToolchainUrl();
+            URI uri = getBuildPlatformToolchainUrl(spec);
             // TODO: Would there be a way to have this progress logger be the parent of the one used for download progress logging
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DaemonJavaToolchainProvisioningService.class);
             progressLogger.start("Installing toolchain", null);
@@ -89,21 +89,21 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
                 }
             } catch (Exception e) {
                 progressLogger.completed("Failed to installed toolchain", true);
-                throw new MissingToolchainException(spec, uri, e);
+                throw new ToolchainDownloadException(spec, uri, e);
             }
         }
     }
 
-    private URI getBuildPlatformToolchainUrl() {
+    private URI getBuildPlatformToolchainUrl(JavaToolchainSpec spec) {
         String stringUri = toolchainDownloadUrlProvider.getToolchainDownloadUrlByPlatform().get(buildPlatform.toBuildPlatform());
         try {
             return new URI(stringUri);
         } catch (NullPointerException e) {
-            throw new ToolchainDownloadFailedException(String.format("No defined toolchain download url for %s %s", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
+            throw new ToolchainDownloadException(spec, stringUri, String.format("No defined toolchain download url for %s with %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         } catch (URISyntaxException e) {
-            throw new ToolchainDownloadFailedException(String.format("Invalid toolchain download url %s for %s %s", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
+            throw new ToolchainDownloadException(spec, stringUri, String.format("Invalid toolchain download url %s for %s with %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }

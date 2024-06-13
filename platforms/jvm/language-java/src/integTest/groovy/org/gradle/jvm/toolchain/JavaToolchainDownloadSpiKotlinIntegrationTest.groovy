@@ -60,8 +60,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}")
-               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
+               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                    "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99', " +
                    "due to: Could not HEAD 'https://exoticJavaToolchain.com/java-99'.).")

@@ -35,8 +35,8 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
-import org.gradle.jvm.toolchain.internal.install.exceptions.MissingToolchainException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,13 +95,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
+            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain auto-provisioning is not enabled.",
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain download repositories have not been configured.",
+            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain download repositories have not been configured.",
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }
@@ -132,7 +132,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
 
         if (successfulProvisioning == null) {
-            throw downloadFailureTracker.buildFailureException();
+            throw downloadFailureTracker.buildFailureException(spec);
         } else {
             downloadFailureTracker.logFailuresIfAny();
             return successfulProvisioning;
@@ -158,7 +158,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                     fileLock.close();
                 }
             } catch (Exception e) {
-                throw new MissingToolchainException(spec, uri, e);
+                throw new ToolchainDownloadException(spec, uri, e);
             }
         }
     }
@@ -202,16 +202,18 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             provisioningFailures.put(repositoryName, failure);
         }
 
-        public ToolchainDownloadFailedException buildFailureException() {
-            String message = "No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories." +
-                (hasFailures() ? " " + failureMessage() : "");
+        public ToolchainProvisioningNotConfiguredException buildFailureException(JavaToolchainSpec spec) {
+            String cause = "No matching toolchain could be found in the configured toolchain download repositories.";
+            if (hasFailures()) {
+                cause = failureMessage();
+            }
 
             String[] resolutions = {
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + "."
             };
 
-            ToolchainDownloadFailedException exception = new ToolchainDownloadFailedException(message, resolutions);
+            ToolchainProvisioningNotConfiguredException exception = new ToolchainProvisioningNotConfiguredException(spec, cause, resolutions);
 
             return addFailuresAsSuppressed(exception);
         }
