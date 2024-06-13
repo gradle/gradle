@@ -19,19 +19,23 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
+public class BuildableBackedProvider<B extends Buildable & TaskDependencyContainer, T> extends AbstractProviderWithValue<T> {
 
-    private final Buildable buildable;
+    private final B buildable;
     private final Class<T> valueType;
     private final Factory<T> valueFactory;
 
-    public BuildableBackedProvider(Buildable buildable, Class<T> valueType, Factory<T> valueFactory) {
+    public BuildableBackedProvider(B buildable, Class<T> valueType, Factory<T> valueFactory) {
         this.buildable = buildable;
         this.valueType = valueType;
         this.valueFactory = valueFactory;
@@ -49,6 +53,11 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
         //noinspection Convert2Lambda
         return new ValueProducer() {
             @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                buildable.visitDependencies(context);
+            }
+
+            @Override
             public void visitProducerTasks(Action<? super Task> visitor) {
                 for (Task dependency : buildableDependencies()) {
                     visitor.execute(dependency);
@@ -59,14 +68,21 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        if (contentsAreBuiltByTask()) {
+        if (hasDependencies()) {
             return ExecutionTimeValue.changingValue(this);
         }
         return ExecutionTimeValue.fixedValue(get());
     }
 
-    private boolean contentsAreBuiltByTask() {
-        return !buildableDependencies().isEmpty();
+    private boolean hasDependencies() {
+        AtomicBoolean hasDependency = new AtomicBoolean(false);
+        buildable.visitDependencies(new AbstractTaskDependencyResolveContext() {
+            @Override
+            public void add(Object dependency) {
+                hasDependency.set(true);
+            }
+        });
+        return hasDependency.get();
     }
 
     private Set<? extends Task> buildableDependencies() {

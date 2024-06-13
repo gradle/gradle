@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
 import org.gradle.internal.UncheckedException;
 
 public abstract class AbstractTaskDependencyResolveContext implements TaskDependencyResolveContext {
@@ -23,5 +24,10 @@ public abstract class AbstractTaskDependencyResolveContext implements TaskDepend
     public void visitFailure(Throwable failure) {
         // Rethrow
         throw UncheckedException.throwAsUncheckedException(failure);
+    }
+
+    @Override
+    public Task getTask() {
+        return null;
     }
 }

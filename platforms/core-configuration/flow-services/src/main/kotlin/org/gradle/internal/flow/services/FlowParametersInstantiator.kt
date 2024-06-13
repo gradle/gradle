@@ -17,13 +17,13 @@
 package org.gradle.internal.flow.services
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.Task
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.Problem
 import org.gradle.api.services.BuildService
@@ -70,20 +70,17 @@ class FlowParametersInstantiator(
                 }
 
                 override fun visitInputProperty(propertyName: String, value: PropertyValue, optional: Boolean) {
-
-                    val taskDependencies = value.taskDependencies
-                    taskDependencies.visitDependencies(
+                    value.taskDependencies.visitDependencies(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
                                 problems.add(
-                                    (problemsService as InternalProblems).internalReporter.create {
+                                    internalProblemReporter.create {
                                         id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                         severity(Severity.ERROR)
-                                    })
+                                    }
+                                )
                             }
-
-                            override fun getTask(): Task? = null
                         }
                     )
                 }
@@ -91,6 +88,10 @@ class FlowParametersInstantiator(
         )
         DefaultTypeValidationContext.throwOnProblemsOf(type, problems.build())
     }
+
+    private
+    val internalProblemReporter: InternalProblemReporter
+        get() = (problemsService as InternalProblems).internalReporter
 
     private
     val instantiator by lazy {
