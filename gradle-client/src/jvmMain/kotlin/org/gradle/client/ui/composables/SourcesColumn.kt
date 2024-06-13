@@ -1,7 +1,9 @@
 package org.gradle.client.ui.composables
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,7 +25,13 @@ internal fun SourcesColumn(
     sources: List<SourceFileViewInput>,
     highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>
 ) {
-    Column {
+    /**
+     * Make everything that wants max width in the column as wide as the widest child composable.
+     * 
+     * This is a workaround for the horizontally scrollable column not making all its
+     * children that require max width equally wide automatically, potentially resulting in unequal widths.
+     */
+    Column(Modifier.width(IntrinsicSize.Max)) { 
         val sourceFileData by derivedStateOf {
             sources.map { (identifier, content, relevantIndices) ->
                 val highlightedRangeOrNull = highlightedSourceRangeByFileId.value[identifier]
