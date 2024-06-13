@@ -241,7 +241,8 @@ class ConfigurationCacheProblems(
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
         val buildDisplayName = buildName
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
+        val details = ConfigurationCacheReportDetails(buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, details)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)
