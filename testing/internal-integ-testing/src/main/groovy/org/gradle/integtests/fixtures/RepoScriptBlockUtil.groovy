@@ -28,6 +28,10 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
+    static boolean isMirrorEnabled() {
+        return !Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
+    }
+
     static String repositoryDefinition(GradleDsl dsl = GROOVY, String type, String name, String url) {
         if (dsl == KOTLIN) {
             """
