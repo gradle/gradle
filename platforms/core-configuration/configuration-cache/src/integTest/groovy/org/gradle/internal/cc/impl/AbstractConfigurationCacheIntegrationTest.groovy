@@ -41,8 +41,8 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
         buildKotlinFile << script
     }
 
-    void withConfigurationCache() {
-        executer.withArguments(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING)
+    void withConfigurationCache(String... moreExecuterArgs) {
+        executer.withArguments(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *moreExecuterArgs)
     }
 
     void configurationCacheRun(String... tasks) {
