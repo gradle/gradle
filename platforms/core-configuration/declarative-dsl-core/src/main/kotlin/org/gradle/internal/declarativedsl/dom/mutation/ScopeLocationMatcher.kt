@@ -16,7 +16,9 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.ElementNotResolved
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution
 import org.gradle.internal.declarativedsl.dom.mutation.NestedScopeSelector.NestedObjectsOfType
@@ -26,7 +28,11 @@ import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 
 
 internal
-class ScopeLocationMatcher(private val documentWithResolution: DocumentWithResolution) {
+class ScopeLocationMatcher(
+    private val topLevelType: DataClass,
+    private val documentWithResolution: DocumentWithResolution,
+    private val documentMemberMatcher: DocumentMemberAndTypeMatcher
+) {
     private
     val resolution: DocumentResolutionContainer
         get() = documentWithResolution.resolutionContainer
@@ -42,16 +48,16 @@ class ScopeLocationMatcher(private val documentWithResolution: DocumentWithResol
     private
     fun findAllPossibleScopes(): Set<Scope> {
         val scopes = mutableSetOf(Scope.topLevel())
-        val path = mutableListOf<DocumentNode.ElementNode>()
+        val path = mutableListOf<ElementNode>()
 
         fun visitNode(node: DocumentNode) {
             when (node) {
-                is DocumentNode.ElementNode -> {
+                is ElementNode -> {
                     path.add(node)
 
                     var isNotLeaf = false
                     node.content.forEach {
-                        isNotLeaf = isNotLeaf || it is DocumentNode.ElementNode
+                        isNotLeaf = isNotLeaf || it is ElementNode
                         visitNode(it)
                     }
 
@@ -74,28 +80,37 @@ class ScopeLocationMatcher(private val documentWithResolution: DocumentWithResol
     private
     fun isScopeElementMatchedByLocationElement(
         locationElement: ScopeLocationElement,
-        scopeElement: DocumentNode.ElementNode
-    ): Boolean = when (locationElement) {
-        ScopeLocationElement.InAllNestedScopes -> true
-        is ScopeLocationElement.InNestedScopes -> isScopeElementMatchedBySelector(locationElement.nestedScopeSelector, scopeElement)
+        parentScopeElement: ElementNode?,
+        scopeElement: ElementNode
+    ): Boolean {
+        return when (locationElement) {
+            ScopeLocationElement.InAllNestedScopes -> true
+            is ScopeLocationElement.InNestedScopes -> {
+                val parentScopeType = if (parentScopeElement == null) topLevelType else (resolution.data(parentScopeElement) as SuccessfulElementResolution).elementType.let { type ->
+                    type as? DataClass ?: error("unexpected scope receiver type $type for $parentScopeElement")
+                }
+                isScopeElementMatchedBySelector(locationElement.nestedScopeSelector, parentScopeType, scopeElement)
+            }
+        }
     }
 
     private
     fun isScopeElementMatchedBySelector(
         selector: NestedScopeSelector,
-        scopeElement: DocumentNode.ElementNode
+        scopeElementOwner: DataClass,
+        scopeElement: ElementNode
     ): Boolean = when (val resolvedTo = resolution.data(scopeElement)) {
         is ElementNotResolved -> false
         is SuccessfulElementResolution -> when (selector) {
-            is NestedObjectsOfType -> selector.type == resolvedTo.elementType
-            is ObjectsConfiguredBy -> selector.function == resolvedTo.elementFactoryFunction
+            is NestedObjectsOfType -> documentMemberMatcher.typeIsSubtypeOf(resolvedTo.elementType, selector.type)
+            is ObjectsConfiguredBy -> documentMemberMatcher.isSameFunctionOrOverrides(TypedMember.TypedFunction(scopeElementOwner, resolvedTo.elementFactoryFunction), selector.function)
         }
     }
 }
 
 
 internal
-data class Scope(val elements: List<DocumentNode.ElementNode>) {
+data class Scope(val elements: List<ElementNode>) {
     companion object Factory {
         fun topLevel(): Scope = Scope(emptyList())
     }
@@ -134,11 +149,12 @@ class NFA(
         }
     }
 
-    fun matches(scope: Scope, matchTransition: (ScopeLocationElement, DocumentNode.ElementNode) -> Boolean): Boolean {
+    fun matches(scope: Scope, matchTransition: (ScopeLocationElement, parentElement: ElementNode?, scopeElement: ElementNode) -> Boolean): Boolean {
         var possibleStates = MarkedStates(noOfStates)
         possibleStates.mark(epsilonTransitions, 0)
 
         var extraStates = MarkedStates(noOfStates)
+        var parentScopeElement: ElementNode? = null
 
         for (scopeElement in scope.elements) {
             extraStates.clear()
@@ -146,7 +162,7 @@ class NFA(
             for (i in 0 until scopeLocation.elements.size) {
                 if (possibleStates[i]) { // each possible state
                     val scopeLocationElement = scopeLocation.elements[i]
-                    if (matchTransition(scopeLocationElement, scopeElement)) {
+                    if (matchTransition(scopeLocationElement, parentScopeElement, scopeElement)) {
                         matchTransitions.adjacentVertices(i).forEach {
                             extraStates.mark(epsilonTransitions, it)
                         }
@@ -157,6 +173,8 @@ class NFA(
             val temp = possibleStates
             possibleStates = extraStates
             extraStates = temp
+
+            parentScopeElement = scopeElement
         }
 
         val matchStatePossible = possibleStates.last()

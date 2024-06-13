@@ -61,13 +61,14 @@ class ScopeLocationTest {
             """.trimIndent())
 
         val resolved = documentWithResolution(schema, topLevelBlock)
+        val documentMemberMatcher = DocumentMemberAndTypeMatcher(schema, resolved.resolutionContainer)
 
         val elementResolutions: Map<String, ElementNode> = toStringKeyedElements(resolved.document)
         val elementA = elementResolutions["a"]!!
         val elementB = elementResolutions["b"]!!
         val elementC = elementResolutions["c"]!!
 
-        val locationMatcher = ScopeLocationMatcher(resolved)
+        val locationMatcher = ScopeLocationMatcher(schema.topLevelReceiverType, resolved, documentMemberMatcher)
 
         assertScopeLocationMatch(
             locationMatcher,

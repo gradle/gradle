@@ -237,7 +237,7 @@ class ModelToDocumentMutationPlannerTest {
     fun planMutation(
         documentWithResolution: DocumentWithResolution,
         mutationRequest: ModelMutationRequest
-    ): ModelMutationPlan = planner.planModelMutation(documentWithResolution, mutationRequest, mutationArguments { })
+    ): ModelMutationPlan = planner.planModelMutation(schema, documentWithResolution, mutationRequest, mutationArguments { })
 
     private
     fun assertSuccessfulMutation(planModelMutations: ModelMutationPlan, expectedDocumentMutation: DocumentMutation) {

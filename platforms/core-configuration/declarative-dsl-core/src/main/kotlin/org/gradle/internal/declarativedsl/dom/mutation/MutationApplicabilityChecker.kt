@@ -47,7 +47,7 @@ class MutationApplicabilityChecker(
     ): List<MutationApplicability> {
         val modelMutations = mutationDefinition.defineModelMutationSequence(modelSchema)
         return modelMutations.flatMap { mutationRequest ->
-            val documentMutations = planner.planModelMutation(documentWithResolution, mutationRequest, mutationArguments { /* none */ }).documentMutations
+            val documentMutations = planner.planModelMutation(modelSchema, documentWithResolution, mutationRequest, mutationArguments { /* none */ }).documentMutations
             mutationApplicabilityFromDocumentMutations(documentMutations)
         }
     }

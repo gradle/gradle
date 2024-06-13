@@ -16,63 +16,65 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
+import org.gradle.internal.declarativedsl.analysis.ref
+import org.gradle.internal.declarativedsl.analysis.sameType
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
-import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
+import org.jetbrains.kotlin.utils.addToStdlib.zipWithNulls
 
 
 internal
 class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
     override fun planModelMutation(
+        modelSchema: AnalysisSchema,
         documentWithResolution: DocumentWithResolution,
         mutationRequest: ModelMutationRequest,
         mutationArguments: MutationArgumentContainer
-    ): ModelMutationPlan =
-        toDocumentMutations(documentWithResolution, mutationRequest, mutationArguments)
-
-    private
-    fun toDocumentMutations(
-        documentWithResolution: DocumentWithResolution,
-        request: ModelMutationRequest,
-        mutationArguments: MutationArgumentContainer
     ): ModelMutationPlan {
-        val scopeLocationMatcher = ScopeLocationMatcher(documentWithResolution)
         val resolution = documentWithResolution.resolutionContainer
+        val documentMemberMatcher = DocumentMemberAndTypeMatcher(modelSchema, resolution)
+        val scopeLocationMatcher = ScopeLocationMatcher(modelSchema.topLevelReceiverType, documentWithResolution, documentMemberMatcher)
 
-        return when (val mutation = request.mutation) {
+        return when (val mutation = mutationRequest.mutation) {
             is ModelMutation.UnsetProperty ->
-                withMatchingProperties(scopeLocationMatcher, resolution, request, mutation.property) {
+                withMatchingProperties(scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property) {
                     DocumentMutation.DocumentNodeTargetedMutation.RemoveNode(it)
                 }
 
             is ModelMutation.SetPropertyValue ->
-                withMatchingProperties(scopeLocationMatcher, resolution, request, mutation.property) {
+                withMatchingProperties(scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property) {
                     DocumentMutation.ValueTargetedMutation.ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) }
                 }
 
             is ModelMutation.AddConfiguringBlockIfAbsent -> {
-                withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
-                    val matchingNodeFinder = MatchingNodeFinder(resolution)
+                withMatchingScopes(scopeLocationMatcher, mutationRequest) { matchingScopes ->
                     val insertions = matchingScopes
                         .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
-                        .filter { matchingNodeFinder.findMatchingConfiguringElements(it, mutation.function).isEmpty() }
+                        .filter { documentMemberMatcher.findMatchingConfiguringElements(it, mutation.function).isEmpty() }
                         .map {
                             DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(it.elements.last()) {
-                                listOf(DefaultElementNode(mutation.function.simpleName, SyntheticallyProduced, emptyList(), emptyList()))
+                                listOf(DefaultElementNode(mutation.function.function.simpleName, SyntheticallyProduced, emptyList(), emptyList()))
                             }
                         }
                     DefaultModelMutationPlan(insertions, emptyList())
                 }
             }
 
-            is ModelMutation.AddNewElement -> withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
+            is ModelMutation.AddNewElement -> withMatchingScopes(scopeLocationMatcher, mutationRequest) { matchingScopes ->
                 DefaultModelMutationPlan(
                     matchingScopes
                         .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
@@ -116,14 +118,13 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
     private
     fun withMatchingProperties(
         scopeLocationMatcher: ScopeLocationMatcher,
-        resolution: DocumentResolutionContainer,
+        documentMemberMatcher: DocumentMemberAndTypeMatcher,
         request: ModelMutationRequest,
-        property: DataProperty,
+        property: TypedMember.TypedProperty,
         mapPropertyToDocumentMutation: (PropertyNode) -> DocumentMutation
     ): ModelMutationPlan {
         return withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
-            val matchingNodeFinder = MatchingNodeFinder(resolution)
-            val matchedPropertyNodes = matchingScopes.flatMap { matchingNodeFinder.findMatchingPropertyNodes(it, property) }
+            val matchedPropertyNodes = matchingScopes.flatMap { documentMemberMatcher.findMatchingPropertyNodes(it, property) }
 
             when {
                 matchedPropertyNodes.isEmpty() -> DefaultModelMutationPlan(
@@ -139,22 +140,79 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
 
 
 internal
-class MatchingNodeFinder(val resolution: DocumentResolutionContainer) {
+class DocumentMemberAndTypeMatcher(
+    val schema: AnalysisSchema,
+    val resolution: DocumentResolutionContainer
+) {
+    private
+    val typeRefContext = SchemaTypeRefContext(schema)
+
+    fun typeIsSubtypeOf(subtype: DataType, supertype: DataType): Boolean =
+        subtype.ref.isEquivalentTo(supertype.ref) ||
+            subtype is DataClass && supertype is DataClass && supertype.name in subtype.supertypes
+
+    private
+    fun <T> ifScopeMatchesType(scope: Scope, typedMember: TypedMember, then: (ElementNode) -> T): T? {
+        val ownerElement = scope.elements.lastOrNull()
+            ?: return null
+
+        val ownerType = (resolution.data(ownerElement) as? SuccessfulElementResolution)?.elementType as? DataClass
+            ?: return null
+
+        if (!typeIsSubtypeOf(ownerType, typedMember.ownerType)) {
+            return null
+        }
+
+        return then(ownerElement)
+    }
+
     fun findMatchingPropertyNodes(
         scope: Scope,
-        property: DataProperty
-    ): List<PropertyNode> {
-        return scope.elements.lastOrNull()?.content.orEmpty()
-            .filterIsInstance<PropertyNode>()
-            // TODO: subtype's properties should also match – bring a subtyping-aware member matcher here
-            .filter { (resolution.data(it) as? PropertyAssignmentResolved)?.property === property }
-    }
+        typedProperty: TypedMember.TypedProperty
+    ): List<PropertyNode> =
+        ifScopeMatchesType(scope, typedProperty) { ownerElement ->
+            ownerElement.content
+                .filterIsInstance<PropertyNode>()
+                .filter { (resolution.data(it) as? PropertyAssignmentResolved)?.property?.matchesOrOverrides(typedProperty.property) == true }
+        }.orEmpty()
 
     fun findMatchingConfiguringElements(
         scope: Scope,
-        function: SchemaMemberFunction
+        typedFunction: TypedMember.TypedFunction
     ): List<ElementNode> =
-        scope.elements.lastOrNull()?.content.orEmpty()
-            .filterIsInstance<ElementNode>()
-            .filter { ((resolution.data(it) as? ConfiguringElementResolved)?.elementFactoryFunction === function) }
+        ifScopeMatchesType(scope, typedFunction) {
+            it.content.filterIsInstance<ElementNode>().filter { element ->
+                val resolution = resolution.data(element)
+                resolution is SuccessfulElementResolution && resolution.elementFactoryFunction.matchesOrOverrides(typedFunction.function)
+            }
+        }.orEmpty()
+
+    fun isSameFunctionOrOverrides(functionToCheck: TypedMember.TypedFunction, against: TypedMember.TypedFunction) =
+        typeIsSubtypeOf(functionToCheck.ownerType, against.ownerType) &&
+            functionToCheck.function.matchesOrOverrides(against.function)
+
+    private
+    fun DataProperty.matchesOrOverrides(other: DataProperty) =
+        name == other.name && valueType.isEquivalentTo(other.valueType)
+
+    private
+    fun SchemaMemberFunction.matchesOrOverrides(other: SchemaMemberFunction) =
+        simpleName == other.simpleName &&
+            parameters.zipWithNulls(other.parameters).all { (a, b) ->
+                a != null && b != null &&
+                    a.name == b.name &&
+                    a.type.isEquivalentTo(b.type) // semantics for the parameters is probably irrelevant
+            }
+
+    private
+    fun FunctionSemantics.matchesOrOverrides(other: FunctionSemantics) = when (this) {
+        is FunctionSemantics.Builder -> other is FunctionSemantics.Builder
+        is FunctionSemantics.AccessAndConfigure -> other is FunctionSemantics.AccessAndConfigure && configuredType.isEquivalentTo(other.configuredType)
+        is FunctionSemantics.AddAndConfigure -> other is FunctionSemantics.AddAndConfigure && configuredType.isEquivalentTo(other.configuredType)
+        is FunctionSemantics.Pure -> other is FunctionSemantics.Pure && typeIsSubtypeOf(typeRefContext.resolveRef(returnValueType), typeRefContext.resolveRef(other.returnValueType))
+    }
+
+    private
+    fun DataTypeRef.isEquivalentTo(other: DataTypeRef) =
+        sameType(typeRefContext.resolveRef(this), typeRefContext.resolveRef(other))
 }

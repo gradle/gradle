@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.dom.mutation.TypedMember
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
@@ -56,19 +57,23 @@ fun DataClass.propertyNamed(name: String): DataProperty =
         ?: throw NoSuchElementException("no property named $name was found in the type $this")
 
 
-fun AnalysisSchema.findPropertyFor(propertyReference: KProperty1<*, *>): DataProperty? {
+fun AnalysisSchema.findPropertyFor(propertyReference: KProperty1<*, *>): TypedMember.TypedProperty? {
     val receiverType = propertyReference.instanceParameter?.type?.classifier as? KClass<*>
         ?: return null
-    return findTypeFor(receiverType.java)?.findPropertyNamed(propertyReference.name)
+    val receiverDataClass = findTypeFor(receiverType.java)
+        ?: return null
+    val result = receiverDataClass.findPropertyNamed(propertyReference.name)
+        ?: return null
+    return TypedMember.TypedProperty(receiverDataClass, result)
 }
 
 
-fun AnalysisSchema.propertyFor(propertyReference: KProperty1<*, *>): DataProperty {
+fun AnalysisSchema.propertyFor(propertyReference: KProperty1<*, *>): TypedMember.TypedProperty {
     val receiverType = propertyReference.instanceParameter?.type?.classifier as? KClass<*>
         ?: throw NoSuchElementException("the property $propertyReference has no receiver type, can't find a match in the schema")
     val receiverDataClass = findTypeFor(receiverType.java)
         ?: throw NoSuchElementException("the receiver type $receiverType for $propertyReference is not in the schema")
-    return receiverDataClass.propertyNamed(propertyReference.name)
+    return TypedMember.TypedProperty(receiverDataClass, receiverDataClass.propertyNamed(propertyReference.name))
 }
 
 
@@ -81,11 +86,11 @@ fun DataClass.hasFunctionNamed(name: String): Boolean =
  *
  * To locate a function among multiple overloads, use [DataClass] APIs instead.
  */
-fun DataClass.singleFunctionNamed(name: String): SchemaMemberFunction =
-    memberFunctions.single { it.simpleName == name }
+fun DataClass.singleFunctionNamed(name: String): TypedMember.TypedFunction =
+    TypedMember.TypedFunction(this, memberFunctions.single { it.simpleName == name })
 
 
-fun AnalysisSchema.functionFor(functionReference: KFunction<*>): SchemaMemberFunction {
+fun AnalysisSchema.functionFor(functionReference: KFunction<*>): TypedMember.TypedFunction {
     val functions = findFunctionsFor(functionReference)
     return when (functions.size) {
         0 -> throw NoSuchElementException("no schema function found that matches $functionReference")
@@ -95,7 +100,7 @@ fun AnalysisSchema.functionFor(functionReference: KFunction<*>): SchemaMemberFun
 }
 
 
-fun AnalysisSchema.findFunctionFor(functionReference: KFunction<*>): SchemaMemberFunction? {
+fun AnalysisSchema.findFunctionFor(functionReference: KFunction<*>): TypedMember.TypedFunction? {
     val functions = findFunctionsFor(functionReference)
     return when (functions.size) {
         1 -> return functions.single()
@@ -105,7 +110,7 @@ fun AnalysisSchema.findFunctionFor(functionReference: KFunction<*>): SchemaMembe
 
 
 private
-fun AnalysisSchema.findFunctionsFor(functionReference: KFunction<*>): List<SchemaMemberFunction> {
+fun AnalysisSchema.findFunctionsFor(functionReference: KFunction<*>): List<TypedMember.TypedFunction> {
     require(functionReference.extensionReceiverParameter == null) { "extension function $functionReference cannot be matched in the schema" }
 
     val receiverType = functionReference.instanceParameter?.type?.classifier as? KClass<*>
@@ -123,7 +128,7 @@ fun AnalysisSchema.findFunctionsFor(functionReference: KFunction<*>): List<Schem
                 }
             }
     }
-    return matchingSchemaFunctions
+    return matchingSchemaFunctions.map { TypedMember.TypedFunction(receiverDataClass, it) }
 }
 
 

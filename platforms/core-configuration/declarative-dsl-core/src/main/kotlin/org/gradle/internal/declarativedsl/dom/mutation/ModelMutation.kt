@@ -16,9 +16,8 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.FunctionSemantics
-import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
@@ -32,6 +31,7 @@ interface ModelMutationPlan {
 
 interface ModelToDocumentMutationPlanner {
     fun planModelMutation(
+        modelSchema: AnalysisSchema,
         documentWithResolution: DocumentWithResolution,
         mutationRequest: ModelMutationRequest,
         mutationArguments: MutationArgumentContainer
@@ -49,11 +49,11 @@ data class ModelMutationRequest(
 sealed interface ModelMutation {
 
     sealed interface ModelPropertyMutation : ModelMutation {
-        val property: DataProperty
+        val property: TypedMember.TypedProperty
     }
 
     data class SetPropertyValue(
-        override val property: DataProperty,
+        override val property: TypedMember.TypedProperty,
         val newValue: NewValueNodeProvider,
         val ifPresentBehavior: IfPresentBehavior,
     ) : ModelPropertyMutation
@@ -63,20 +63,20 @@ sealed interface ModelMutation {
     ) : ModelMutation
 
     data class AddConfiguringBlockIfAbsent(
-        val function: SchemaMemberFunction
+        val function: TypedMember.TypedFunction
     ) : ModelMutation {
         init {
-            require(function.semantics is FunctionSemantics.AccessAndConfigure) {
+            require(function.function.semantics is FunctionSemantics.AccessAndConfigure) {
                 "only configuring functions are allowed in ${this::class.simpleName} mutations, got $function"
             }
-            require(function.parameters.isEmpty()) {
+            require(function.function.parameters.isEmpty()) {
                 "only functions with no value parameters are allowed in ${this::class.simpleName} mutations, got $function"
             }
         }
     }
 
     data class UnsetProperty(
-        override val property: DataProperty
+        override val property: TypedMember.TypedProperty
     ) : ModelPropertyMutation
 
     sealed interface IfPresentBehavior {

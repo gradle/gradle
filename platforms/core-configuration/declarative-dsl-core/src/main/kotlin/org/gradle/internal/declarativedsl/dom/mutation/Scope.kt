@@ -20,6 +20,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.mutation.TypedMember.TypedFunction
 
 
 data class ScopeLocation(val elements: List<ScopeLocationElement>)
@@ -33,7 +34,7 @@ sealed interface ScopeLocationElement {
 
 sealed interface NestedScopeSelector {
     data class NestedObjectsOfType(val type: DataClass) : NestedScopeSelector
-    data class ObjectsConfiguredBy(val function: SchemaMemberFunction, val argumentsPattern: ArgumentsPattern = ArgumentsPattern.AnyArguments) : NestedScopeSelector
+    data class ObjectsConfiguredBy(val function: TypedFunction, val argumentsPattern: ArgumentsPattern = ArgumentsPattern.AnyArguments) : NestedScopeSelector
 }
 
 
