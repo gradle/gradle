@@ -285,7 +285,6 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     SourceSetContainer getSourceSets();
 
     /**

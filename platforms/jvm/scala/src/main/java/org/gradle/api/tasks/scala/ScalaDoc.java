@@ -161,7 +161,6 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the ScalaDoc generation options.
      */
     @Nested
-    @ToBeReplacedByLazyProperty
     public ScalaDocOptions getScalaDocOptions() {
         return scalaDocOptions;
     }

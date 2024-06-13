@@ -32,7 +32,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.Acce
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -189,6 +188,5 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @since 6.4
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     ModularitySpec getModularity();
 }

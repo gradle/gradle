@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
@@ -168,7 +167,6 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the declared plugins, never null
      */
-    @NotToBeReplacedByLazyProperty(because = "Container property")
     public NamedDomainObjectContainer<PluginDeclaration> getPlugins() {
         return plugins;
     }

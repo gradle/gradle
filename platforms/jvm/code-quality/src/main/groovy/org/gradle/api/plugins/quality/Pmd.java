@@ -39,7 +39,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -254,7 +253,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     @Nullable
     @Optional
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -306,7 +304,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @Override
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public final PmdReports getReports() {
         return reports;
     }

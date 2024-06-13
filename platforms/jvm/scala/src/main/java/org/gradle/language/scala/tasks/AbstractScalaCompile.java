@@ -51,7 +51,6 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -108,7 +107,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * Returns the Scala compilation options.
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public BaseScalaCompileOptions getScalaCompileOptions() {
         return scalaCompileOptions;
     }
@@ -118,7 +116,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      */
     @Nested
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public CompileOptions getOptions() {
         return compileOptions;
     }

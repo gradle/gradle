@@ -347,7 +347,6 @@ public abstract class Groovydoc extends SourceTask {
     @Nullable
     @Optional
     @Nested
-    @ToBeReplacedByLazyProperty
     public TextResource getOverviewText() {
         return overview;
     }

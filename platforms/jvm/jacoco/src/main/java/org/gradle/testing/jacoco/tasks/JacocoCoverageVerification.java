@@ -22,7 +22,6 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.JacocoCheckResult;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
@@ -56,7 +55,6 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
      * @return Violation rules container
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public JacocoViolationRulesContainer getViolationRules() {
         return violationRules;
     }

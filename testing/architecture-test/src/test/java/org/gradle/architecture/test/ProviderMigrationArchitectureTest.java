@@ -50,6 +50,8 @@ import org.gradle.model.ModelElement;
 
 import javax.inject.Inject;
 
+import java.util.List;
+
 import static com.tngtech.archunit.base.DescribedPredicate.and;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
@@ -153,7 +155,7 @@ public class ProviderMigrationArchitectureTest {
         // Skip Nested properties that are not Iterables
         .and(not(and(
             annotatedMaybeInSupertypeWith(Nested.class),
-            not(have(rawReturnType(assignableTo(Iterable.class))))
+            not(have(rawReturnType(List.class)))
         )))
         // A lazy type
         .and(not(declaredIn(ConfigurableFileTree.class)))

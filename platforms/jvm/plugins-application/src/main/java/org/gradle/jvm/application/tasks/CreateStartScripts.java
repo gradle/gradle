@@ -34,7 +34,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -338,7 +337,6 @@ public abstract class CreateStartScripts extends ConventionTask {
      * @since 6.4
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public ModularitySpec getModularity() {
         return modularity;
     }

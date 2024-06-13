@@ -39,7 +39,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -227,7 +226,6 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 2.2
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public TextResource getConfig() {
         return config;
     }
@@ -279,7 +277,6 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      */
     @Override
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public final CheckstyleReports getReports() {
         return reports;
     }

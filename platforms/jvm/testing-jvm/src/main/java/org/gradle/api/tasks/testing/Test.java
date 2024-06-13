@@ -71,7 +71,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -514,7 +513,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public JavaDebugOptions getDebugOptions() {
         return forkOptions.getDebugOptions();
     }
@@ -659,7 +657,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 6.4
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public ModularitySpec getModularity() {
         return modularity;
     }
@@ -972,7 +969,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @return The test framework options.
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }

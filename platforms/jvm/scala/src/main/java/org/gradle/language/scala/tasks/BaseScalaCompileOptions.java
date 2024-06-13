@@ -241,7 +241,6 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Options for running the Scala compiler in a separate process.
      */
     @Nested
-    @ToBeReplacedByLazyProperty
     public ScalaForkOptions getForkOptions() {
         return forkOptions;
     }
@@ -254,7 +253,6 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Options for incremental compilation of Scala code.
      */
     @Nested
-    @ToBeReplacedByLazyProperty
     public IncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;
     }

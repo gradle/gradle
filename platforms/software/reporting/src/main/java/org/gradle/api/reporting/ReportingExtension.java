@@ -22,7 +22,6 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
@@ -145,7 +144,6 @@ public abstract class ReportingExtension {
      * @since 7.4
      */
     @Incubating
-    @NotToBeReplacedByLazyProperty(because = "Read-only container property")
     public ExtensiblePolymorphicDomainObjectContainer<ReportSpec> getReports() {
         return reports;
     }

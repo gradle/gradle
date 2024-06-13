@@ -266,7 +266,6 @@ public interface MavenPublication extends Publication {
      * Returns the complete set of artifacts for this publication.
      * @return the artifacts.
      */
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     MavenArtifactSet getArtifacts();
 
     /**

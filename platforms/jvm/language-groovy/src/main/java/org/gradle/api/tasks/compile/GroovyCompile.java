@@ -58,7 +58,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -315,7 +314,6 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @return The Groovy compile options. Never returns null.
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public GroovyCompileOptions getGroovyOptions() {
         return groovyCompileOptions;
     }
@@ -327,7 +325,6 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      */
     @Nested
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public CompileOptions getOptions() {
         return compileOptions;
     }

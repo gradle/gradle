@@ -24,7 +24,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -249,7 +248,6 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 5.6
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     JavaDebugOptions getDebugOptions();
 
     /**

@@ -19,7 +19,6 @@ package org.gradle.api.reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 
@@ -36,7 +35,6 @@ public interface CustomizableHtmlReport extends SingleFileReport {
     @Nullable
     @Optional
     @Nested
-    @ToBeReplacedByLazyProperty
     TextResource getStylesheet();
 
     /**

@@ -186,7 +186,6 @@ public interface IvyPublication extends Publication {
      * Returns the complete set of configurations for this publication.
      * @return the configurations
      */
-    @NotToBeReplacedByLazyProperty(because = "Container property")
     IvyConfigurationContainer getConfigurations();
 
     /**
@@ -309,7 +308,6 @@ public interface IvyPublication extends Publication {
      *
      * @return the artifacts.
      */
-    @ToBeReplacedByLazyProperty
     IvyArtifactSet getArtifacts();
 
     /**

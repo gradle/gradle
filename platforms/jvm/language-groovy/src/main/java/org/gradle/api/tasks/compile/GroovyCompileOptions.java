@@ -262,7 +262,6 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * if {@code fork} is set to {@code true}.
      */
     @Nested
-    @ToBeReplacedByLazyProperty
     public GroovyForkOptions getForkOptions() {
         return forkOptions;
     }

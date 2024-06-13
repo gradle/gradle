@@ -238,7 +238,6 @@ public abstract class CompileOptions extends AbstractOptions {
      * Returns options for generating debugging information.
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public DebugOptions getDebugOptions() {
         return debugOptions;
     }
@@ -274,7 +273,6 @@ public abstract class CompileOptions extends AbstractOptions {
      * Returns options for running the compiler in a child process.
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public ForkOptions getForkOptions() {
         return forkOptions;
     }

@@ -661,7 +661,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Override
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Nested read-only property")
     public TestTaskReports getReports() {
         return reports;
     }
@@ -718,7 +717,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 1.10
      */
     @Nested
-    @NotToBeReplacedByLazyProperty(because = "Read-only nested property")
     public TestFilter getFilter() {
         return filter;
     }
