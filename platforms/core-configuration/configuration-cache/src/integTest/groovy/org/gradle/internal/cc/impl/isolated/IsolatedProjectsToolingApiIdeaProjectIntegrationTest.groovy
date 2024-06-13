@@ -17,6 +17,8 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.cc.impl.actions.FetchAllIdeaProjects
+import org.gradle.internal.cc.impl.actions.FetchIdeaProjectForTarget
 import org.gradle.plugins.ide.internal.tooling.idea.IsolatedIdeaModuleInternal
 import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.idea.BasicIdeaProject

@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated;
+package org.gradle.internal.cc.impl.actions;
 
 import org.gradle.internal.cc.impl.fixtures.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
-class CustomModelStreamingBuildAction<T> implements BuildAction<T> {
-    private final Class<T> type;
-    private final int value;
-
-    public CustomModelStreamingBuildAction(Class<T> type, int value) {
-        this.type = type;
-        this.value = value;
-    }
-
+public class ModelStreamingBuildAction implements BuildAction<CustomModel> {
     @Override
-    public T execute(BuildController controller) {
-        controller.send(new CustomModel(value));
-        return controller.getModel(type);
+    public CustomModel execute(BuildController controller) {
+        EclipseProject eclipseProject = controller.getModel(EclipseProject.class);
+        GradleProject gradleProject = controller.getModel(GradleProject.class);
+
+        // Intentionally sending models in an order different from requesting models
+        controller.send(gradleProject);
+        controller.send(eclipseProject);
+
+        return new CustomModel(42);
     }
 }
