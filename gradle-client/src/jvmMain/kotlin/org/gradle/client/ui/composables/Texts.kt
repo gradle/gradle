@@ -66,6 +66,15 @@ fun LabelMedium(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun HeadlineSmall(text: String, modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier,
+        text = text,
+        style = MaterialTheme.typography.headlineSmall,
+    )
+}
+
+@Composable
 fun CodeBlock(
     modifier: Modifier = Modifier,
     code: AnnotatedString

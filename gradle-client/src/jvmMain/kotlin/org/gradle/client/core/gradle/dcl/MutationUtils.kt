@@ -1,6 +1,9 @@
 package org.gradle.client.core.gradle.dcl
 
-import org.gradle.client.demo.mutations.*
+import org.gradle.client.demo.mutations.SetNamespaceMutation
+import org.gradle.client.demo.mutations.SetVersionCodeMutation
+import org.gradle.client.demo.mutations.addTestingDependencyMutation
+import org.gradle.client.demo.mutations.addTopLevelDependencyMutation
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
@@ -39,31 +42,17 @@ object MutationUtils {
         file: File,
         documentWithResolution: DocumentWithResolution,
         schema: EvaluationSchema,
-        mutationDefinition: MutationDefinition
+        mutationDefinition: MutationDefinition,
+        mutationArgumentsContainer: MutationArgumentContainer
     ) {
-        @Suppress("UNCHECKED_CAST")
-        val defaultArgumentValues = mutationArguments {
-            mutationDefinition.parameters.forEach { param ->
-                when (param.kind) {
-                    MutationParameterKind.IntParameter ->
-                        argument(param as MutationParameter<Int>, DEFAULT_INT)
-
-                    MutationParameterKind.StringParameter ->
-                        argument(param as MutationParameter<String>, "com.example.foo.bar")
-
-                    MutationParameterKind.BooleanParameter ->
-                        argument(param as MutationParameter<Boolean>, false)
-                }
-            }
-        }
         val target = TextMutationApplicationTarget(documentWithResolution, schema)
-        val result = MutationAsTextRunner().runMutation(mutationDefinition, defaultArgumentValues, target)
-        
+        val result = MutationAsTextRunner().runMutation(mutationDefinition, mutationArgumentsContainer, target)
+
         result.stepResults.filterIsInstance<ModelMutationStepResult.ModelMutationStepApplied>().lastOrNull()?.let {
             file.writeText(it.newDocumentText)
         }
     }
-    
+
     private const val DEFAULT_INT = 42
 }
 

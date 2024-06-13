@@ -19,6 +19,11 @@ data object Spacing {
     val topBarHeight = 56.dp
 
     @Composable
+    fun HorizontalLevel2() {
+        Spacer(Modifier.width(level2))
+    }
+
+    @Composable
     fun VerticalLevel2() {
         Spacer(Modifier.height(level2))
     }

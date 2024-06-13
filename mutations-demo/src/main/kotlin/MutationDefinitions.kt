@@ -17,7 +17,7 @@ object SetVersionCodeMutation : MutationDefinition {
     override val description: String = "Update versionCode in androidApplication"
 
     val versionCodeParam =
-        MutationParameter("new version code", "new value for versionCode", MutationParameterKind.IntParameter)
+        MutationParameter("New version code", "New value for versionCode", MutationParameterKind.IntParameter)
 
     override val parameters: List<MutationParameter<*>>
         get() = listOf(versionCodeParam)
@@ -49,7 +49,7 @@ object SetNamespaceMutation : MutationDefinition {
     override val description: String = "Updates the namespace in an Android library"
 
     val newNamespaceParam =
-        MutationParameter("new namespace", "new value for versionCode", MutationParameterKind.StringParameter)
+        MutationParameter("New namespace", "New value for the namespace", MutationParameterKind.StringParameter)
 
     override val parameters: List<MutationParameter<*>>
         get() = listOf(newNamespaceParam)
@@ -113,8 +113,8 @@ class AddDependencyMutation(override val id: String, private val scopeLocation: 
 
     val dependencyCoordinatesParam =
         MutationParameter(
-            "dependency coordinates",
-            "coordinates of the dependency to add",
+            "Dependency coordinates",
+            "Coordinates of the dependency to add",
             MutationParameterKind.StringParameter
         )
 
@@ -125,16 +125,14 @@ class AddDependencyMutation(override val id: String, private val scopeLocation: 
         projectAnalysisSchema.findTypeFor<AndroidLibrary>() != null
 
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
-        with(projectAnalysisSchema) {
-            listOf(
-                ModelMutationRequest(
-                    scopeLocation(projectAnalysisSchema),
-                    ModelMutation.AddNewElement(
-                        NewElementNodeProvider.ArgumentBased { args ->
-                            elementFromString("implementation(\"" + args[dependencyCoordinatesParam] + "\")")!!
-                        }
-                    ),
-                )
+        listOf(
+            ModelMutationRequest(
+                scopeLocation(projectAnalysisSchema),
+                ModelMutation.AddNewElement(
+                    NewElementNodeProvider.ArgumentBased { args ->
+                        elementFromString("implementation(\"" + args[dependencyCoordinatesParam] + "\")")!!
+                    }
+                ),
             )
-        }
+        )
 } 
