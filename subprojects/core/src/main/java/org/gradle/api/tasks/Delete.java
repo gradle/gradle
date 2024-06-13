@@ -75,7 +75,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @return The files. Never returns null.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()")
+    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()", willBeDeprecated = true)
     public Set<Object> getDelete() {
         return paths.getFrom();
     }

@@ -203,7 +203,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @return class dirs to report coverage of
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection")
+    @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection", willBeDeprecated = true)
     public FileCollection getAllClassDirs() {
         return classDirectories.plus(getAdditionalClassDirs());
     }
@@ -215,7 +215,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @see #getAllClassDirs()
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection")
+    @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection", willBeDeprecated = true)
     public FileCollection getAllSourceDirs() {
         return sourceDirectories.plus(getAdditionalSourceDirs());
     }

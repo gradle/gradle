@@ -33,4 +33,9 @@ public @interface NotToBeReplacedByLazyProperty {
      * Reason why this property will be kept eager.
      */
     String because();
+
+    /**
+     * Marks that a property will get deprecated with Provider API migration.
+     */
+    boolean willBeDeprecated() default false;
 }
