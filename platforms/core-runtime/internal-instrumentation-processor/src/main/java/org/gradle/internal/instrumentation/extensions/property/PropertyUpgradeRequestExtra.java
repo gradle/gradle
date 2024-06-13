@@ -20,12 +20,15 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
+import org.objectweb.asm.Type;
+
+import javax.lang.model.element.ExecutableElement;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
     private final String propertyName;
     private final String methodName;
-    private final boolean isFluentSetter;
+    private final Type returnType;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final String methodDescriptor;
@@ -33,29 +36,32 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
+    private final ExecutableElement bridgedMethod;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
         String methodName,
         String methodDescriptor,
-        boolean isFluentSetter,
+        Type returnType,
         String implementationClassName,
         String interceptedPropertyName,
         String interceptedPropertyAccessorName,
         GradleLazyType propertyType,
         DeprecationSpec deprecationSpec,
-        BinaryCompatibility binaryCompatibility
+        BinaryCompatibility binaryCompatibility,
+        ExecutableElement bridgedMethod
     ) {
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
         this.propertyType = propertyType;
-        this.isFluentSetter = isFluentSetter;
+        this.returnType = returnType;
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyName = interceptedPropertyName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.deprecationSpec = deprecationSpec;
         this.binaryCompatibility = binaryCompatibility;
+        this.bridgedMethod = bridgedMethod;
     }
 
     public String getPropertyName() {
@@ -87,8 +93,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return interceptedPropertyAccessorName;
     }
 
-    public boolean isFluentSetter() {
-        return isFluentSetter;
+    public Type getReturnType() {
+        return returnType;
     }
 
     public DeprecationSpec getDeprecationSpec() {
@@ -97,5 +103,9 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     public BinaryCompatibility getBinaryCompatibility() {
         return binaryCompatibility;
+    }
+
+    public ExecutableElement getBridgedMethod() {
+        return bridgedMethod;
     }
 }
