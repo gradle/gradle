@@ -54,7 +54,7 @@ object BuildServices : ServiceRegistrationProvider {
     }
 
     @Provides
-    fun createExterncalConventionApplicationHandler(
+    fun createSoftwareTypeConventionHandler(
         softwareTypeRegistry: SoftwareTypeRegistry
     ): ConventionHandler {
         return SoftwareTypeConventionHandler(softwareTypeRegistry)

@@ -289,17 +289,29 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
-
-        file("build.gradle${extension}") << """
-            plugins { id("com.example.test-software-type-impl") }
+        file("foo").createDir()
+        file("bar").createDir()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
+            include("foo")
+            include("bar")
         """
 
+        file("foo/build.gradle${extension}") << """
+            plugins { id("com.example.test-software-type-impl") }
+        """
+        file("bar/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("bar"))
+
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
+        run(":foo:printTestSoftwareTypeExtensionConfiguration")
 
         then:
         outputContains("""id = convention\nbar = convention""")
+
+        when:
+        run(":bar:printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""id = bar\nbar = convention""")
 
         where:
         type     | extension
