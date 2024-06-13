@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl.tapi
 
 
-import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -52,6 +51,7 @@ class ConfigurationCacheToolingApiFixture {
         closure.delegate = details
         closure()
 
+        fixture.assertNoWarningThatIncubatingFeatureUsed()
         fixture.assertStateStored(details)
 
         assertProjectsConfigured(details.projectConfigured)
@@ -69,6 +69,7 @@ class ConfigurationCacheToolingApiFixture {
         closure.delegate = details
         closure()
 
+        fixture.assertNoWarningThatIncubatingFeatureUsed()
         fixture.assertStateStoredWithProblems(details, details)
 
         assertProjectsConfigured(details.projectConfigured)
@@ -86,6 +87,7 @@ class ConfigurationCacheToolingApiFixture {
         closure.delegate = details
         closure()
 
+        fixture.assertNoWarningThatIncubatingFeatureUsed()
         fixture.assertStateStoredAndDiscarded(details, details)
 
         assertProjectsConfigured(details.projectConfigured)
@@ -107,6 +109,7 @@ class ConfigurationCacheToolingApiFixture {
     }
 
     private void doStateStored(HasBuildActions details, HasInvalidationReason invalidationDetails, HasIntermediateDetails intermediateDetails) {
+        fixture.assertNoWarningThatIncubatingFeatureUsed()
         fixture.assertStateRecreated(details, invalidationDetails)
 
         assertProjectsConfigured(intermediateDetails.projectConfigured)
@@ -114,6 +117,7 @@ class ConfigurationCacheToolingApiFixture {
     }
 
     private void doStoreWithProblems(HasBuildActions details, HasInvalidationReason invalidationDetails, HasIntermediateDetails intermediateDetails, ConfigurationCacheFixture.HasProblems problems) {
+        fixture.assertNoWarningThatIncubatingFeatureUsed()
         fixture.assertStateRecreatedWithProblems(details, invalidationDetails, problems)
 
         assertProjectsConfigured(intermediateDetails.projectConfigured)
@@ -126,6 +130,7 @@ class ConfigurationCacheToolingApiFixture {
      * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
     void assertStateLoaded() {
+        fixture.assertNoWarningThatIncubatingFeatureUsed()
         fixture.assertStateLoaded(new ConfigurationCacheFixture.LoadDetails())
 
         assertProjectsConfigured(0)
