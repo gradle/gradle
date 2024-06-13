@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
  * that are not compatible with any of the available variants.
@@ -28,7 +30,7 @@ public abstract class AbstractVariantSelectionFailure implements ResolutionFailu
     }
 
     @Override
-    public String getRequestedName() {
+    public String describeRequest() {
         return requestedName;
     }
 }

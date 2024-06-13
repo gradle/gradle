@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
  * A {@link ResolutionFailure} that represents the situation when the selected configuration

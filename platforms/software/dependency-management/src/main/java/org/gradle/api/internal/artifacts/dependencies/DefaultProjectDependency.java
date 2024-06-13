@@ -111,7 +111,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
         ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(selectedConfiguration.getName(), dependencyProject.getOwner().getComponentIdentifier());
         String message = String.format(
-            "Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentId().getDisplayName() +
+            "Selected configuration '" + failure.describeRequest() + "' on '" + failure.getRequestedComponentDisplayName() +
             "' but it can't be used as a project dependency because it isn't intended for consumption by other components."
         );
         throw new ConfigurationSelectionException(message, failure, Collections.emptyList());

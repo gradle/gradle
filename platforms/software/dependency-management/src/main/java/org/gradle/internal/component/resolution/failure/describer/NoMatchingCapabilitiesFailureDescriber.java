@@ -38,7 +38,7 @@ public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractRes
 
     private String buildNoMatchingCapabilitiesFailureMsg(NoMatchingCapabilitiesFailure failure) {
         StringBuilder sb = new StringBuilder("Unable to find a variant of ");
-        sb.append(failure.getRequestedName()).append(" providing the requested ");
+        sb.append(failure.describeRequest()).append(" providing the requested ");
         sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getTargetComponentId(), failure.getRequestedCapabilities()));
         sb.append(":\n");
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {

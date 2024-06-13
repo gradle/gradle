@@ -80,7 +80,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
             }
             formatter.node(node);
         }
-        formatter.append(style(StyledTextOutput.Style.Info, failure.getRequestedName()));
+        formatter.append(style(StyledTextOutput.Style.Info, failure.describeRequest()));
         if (listAvailableVariants) {
             formatter.startChildren();
             for (String configuration : ambiguousVariants.keySet()) {

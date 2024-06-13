@@ -18,6 +18,7 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.List;
 

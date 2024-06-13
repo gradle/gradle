@@ -46,7 +46,7 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleRequest
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 
@@ -176,6 +176,17 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException externalConfigurationNotFoundFailure(String fromConfigurationName, ComponentIdentifier toComponent, String toConfigurationName) {
         ExternalRequestedConfigurationNotFoundFailure failure = new ExternalRequestedConfigurationNotFoundFailure(toConfigurationName, toComponent, fromConfigurationName);
         return describeFailure(failure);
+    }
+
+    public AbstractResolutionFailureException nonConsumableConfigurationFailure(
+        String configurationName,
+        ComponentIdentifier componentId
+    ) {
+        // We hard-code the exception here since we do not currently support dynamically describing this type of failure.
+        // It might make sense to do this for other similar failures that do not have dynamic failure handling.
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(configurationName, componentId.getDisplayName());
+        String message = String.format("Selected configuration '" + failure.describeRequest() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
+        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
     }
 
     // endregion Configuration by name

@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.type;
+package org.gradle.internal.component.resolution.failure.interfaces;
 
 /**
- * Represents a specific type of failure that can occur during dependency resolution and
- * contains contextual information specific to that type of failure.
- *
- * @implSpec Extending types should be immutable data classes with no nullable fields, they
- * must also be serializable by the configuration cache.
+ * Represents a specific type of {@link VariantSelectionFailure} where the failure occurred
+ * due to a failure to select a variant of a component based on the requested configuration name.
  */
-public interface ResolutionFailure {
+public interface VariantSelectionByNameFailure extends VariantSelectionFailure {
     /**
-     * Returns a human-readable name of the requested component or configuration, for use
-     * primarily in error messages.
+     * Gets the name of the configuration that was requested directly by name.
      *
-     * @return the name of the requested component or configuration
+     * @return the name of the configuration that was requested
      */
-    String getRequestedName();
+    String getRequestedConfigurationName();
 }

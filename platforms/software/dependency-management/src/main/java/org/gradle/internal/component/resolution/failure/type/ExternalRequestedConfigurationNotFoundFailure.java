@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
  * A {@link ResolutionFailure} that represents a specialization of {@link RequestedConfigurationNotFoundFailure} when

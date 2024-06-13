@@ -47,7 +47,7 @@ public abstract class IncompatibleArtifactVariantsFailureDescriber extends Abstr
     private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleResolutionFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.getRequestedName()) + " match the consumer attributes");
+        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.describeRequest()) + " match the consumer attributes");
         formatter.startChildren();
         for (AssessedCandidate assessedCandidate : failure.getCandidates()) {
             formatter.node(assessedCandidate.getDisplayName());

@@ -45,7 +45,7 @@ public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractRe
 
     private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodeSelectionFailure failure) {
         StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
-            .append(failure.getRequestedName())
+            .append(failure.describeRequest())
             .append(" were selected:\n");
         for (AssessedCandidate assessedCandidate : failure.getAssessedCandidates()) {
             sb.append("   - Variant ").append(assessedCandidate.getDisplayName()).append(" has attributes ");

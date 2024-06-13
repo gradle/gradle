@@ -45,6 +45,6 @@ public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractR
     }
 
     private String buildUnknownArtifactVariantFailureMsg(UnknownArtifactSelectionFailure failure) {
-        return String.format("Could not select a variant of %s that matches the consumer attributes.", failure.getRequestedName());
+        return String.format("Could not select a variant of %s that matches the consumer attributes.", failure.describeRequest());
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes

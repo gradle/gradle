@@ -29,7 +29,7 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipl
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile

@@ -17,7 +17,7 @@
 package org.gradle.internal.component;
 
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.Collections;
 

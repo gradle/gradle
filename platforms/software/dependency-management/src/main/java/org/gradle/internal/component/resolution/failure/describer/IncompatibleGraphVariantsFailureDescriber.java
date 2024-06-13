@@ -51,7 +51,7 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
 
     private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure failure, FailureSubType failureSubType) {
         TreeFormatter formatter = new TreeFormatter();
-        String targetVariantText = style(StyledTextOutput.Style.Info, failure.getRequestedName());
+        String targetVariantText = style(StyledTextOutput.Style.Info, failure.describeRequest());
         if (failure.getRequestedAttributes().isEmpty()) {
             formatter.node("Unable to find a matching variant of " + targetVariantText);
         } else {

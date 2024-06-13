@@ -46,10 +46,7 @@ public abstract class RequestedConfigurationNotFoundFailureDescriber extends Abs
         return new ConfigurationSelectionException(message, failure, resolutions.build());
     }
 
-    private static String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
-        return String.format(
-            "A dependency was declared on configuration '%s' of '%s' but no variant with that configuration name exists.",
-            failure.getRequestedName(), failure.getRequestedComponentId().getDisplayName()
-        );
+    private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
+        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.describeRequest(), failure.getRequestedComponentDisplayName());
     }
 }

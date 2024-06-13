@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a configuration is requested
@@ -32,7 +32,7 @@ public abstract class AbstractConfigurationSelectionFailure implements Resolutio
     }
 
     @Override
-    public String getRequestedName() {
+    public String describeRequest() {
         return requestedConfigurationName;
     }
 

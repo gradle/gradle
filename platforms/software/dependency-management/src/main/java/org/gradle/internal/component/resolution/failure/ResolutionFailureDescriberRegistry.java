@@ -38,7 +38,7 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleRequest
 import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;

@@ -53,7 +53,7 @@ public abstract class IncompatibleRequestedConfigurationFailureDescriber extends
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate = failure.getCandidates().get(0);
         TreeFormatter formatter = new TreeFormatter();
         String candidateName = assessedCandidate.getDisplayName();
-        formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, failure.getRequestedName()) + " does not match the consumer attributes");
+        formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, failure.describeRequest()) + " does not match the consumer attributes");
         formatUnselectable(assessedCandidate, formatter, describer);
         return formatter.toString();
     }

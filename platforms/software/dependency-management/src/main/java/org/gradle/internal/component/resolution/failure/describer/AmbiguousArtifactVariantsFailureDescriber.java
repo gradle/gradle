@@ -45,9 +45,9 @@ public abstract class AmbiguousArtifactVariantsFailureDescriber extends Abstract
     private String buildMultipleMatchingVariantsFailureMsg(AmbiguousResolutionFailure failure, AttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
         if (failure.getRequestedAttributes().isEmpty()) {
-            formatter.node("More than one variant of " + failure.getRequestedName() + " matches the consumer attributes");
+            formatter.node("More than one variant of " + failure.describeRequest() + " matches the consumer attributes");
         } else {
-            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + ". However we cannot choose between the following variants of " + failure.getRequestedName());
+            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + ". However we cannot choose between the following variants of " + failure.describeRequest());
         }
         formatter.startChildren();
         for (AssessedCandidate assessedCandidate : failure.getCandidates()) {

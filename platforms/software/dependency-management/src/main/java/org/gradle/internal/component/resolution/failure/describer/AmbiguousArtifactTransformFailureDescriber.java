@@ -49,7 +49,7 @@ public abstract class AmbiguousArtifactTransformFailureDescriber extends Abstrac
 
     private String buildAmbiguousTransformMsg(AmbiguousArtifactTransformFailure failure) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Found multiple transforms that can produce a variant of " + failure.getRequestedName() + " with requested attributes");
+        formatter.node("Found multiple transforms that can produce a variant of " + failure.describeRequest() + " with requested attributes");
         formatSortedAttributes(formatter, failure.getRequestedAttributes());
         formatter.node("Found the following transforms");
 

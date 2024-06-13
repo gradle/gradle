@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.exception;
+package org.gradle.internal.component.resolution.failure.interfaces;
 
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-
-import java.util.List;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
- * Represents a failure during variant selection when a variant of a component cannot be selected
- * by the {@link org.gradle.internal.component.model.GraphVariantSelector GraphVariantSelector}.
+ * Represents a failure selecting a component when building the graph
+ * during Stage 1 of dependency resolution.
+ * <p>
+ * When this failure occurs, we have only a component selector, and no component, as the
+ * selection did not succeed.
  */
-public final class VariantSelectionException extends AbstractResolutionFailureException {
-    public VariantSelectionException(String message, ResolutionFailure failure, List<String> resolutions) {
-        super(message, failure, resolutions);
-    }
+public interface ComponentSelectionFailure extends ResolutionFailure {
+    /**
+     * Gets the component selector that failed to select.
+     *
+     * @return component selector that failed to select
+     */
+    ComponentSelector getSelector();
 }

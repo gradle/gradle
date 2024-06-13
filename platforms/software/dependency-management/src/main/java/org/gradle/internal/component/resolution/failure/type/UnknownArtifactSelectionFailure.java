@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+
 /**
  * A {@link ResolutionFailure} that represents the an unknown, catch-all failure that occurred during variant selection.
  */
