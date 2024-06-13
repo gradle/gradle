@@ -16,6 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+/**
+ * Additional data for a {@link org.gradle.internal.configuration.problems.PropertyTrace} .
+ * Currently, this is only a String, but it could be extended as needed in the future.
+ *
+ * These data classes are part of the concept used for adding structured additional data to problems.
+ */
 public interface PropertyTraceData extends AdditionalData {
     String getTrace();
 }
