@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.schemaUtils
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -48,11 +47,11 @@ fun AnalysisSchema.typeFor(javaClass: Class<*>): DataClass =
         ?: throw NoSuchElementException("no type found in the schema for '${javaClass.name}'")
 
 
-fun DataClass.findPropertyNamed(name: String): DataProperty? =
-    properties.find { it.name == name }
+fun DataClass.findPropertyNamed(name: String): TypedMember.TypedProperty? =
+    properties.find { it.name == name }?.let { TypedMember.TypedProperty(this, it) }
 
 
-fun DataClass.propertyNamed(name: String): DataProperty =
+fun DataClass.propertyNamed(name: String): TypedMember.TypedProperty =
     findPropertyNamed(name)
         ?: throw NoSuchElementException("no property named $name was found in the type $this")
 
@@ -62,9 +61,7 @@ fun AnalysisSchema.findPropertyFor(propertyReference: KProperty1<*, *>): TypedMe
         ?: return null
     val receiverDataClass = findTypeFor(receiverType.java)
         ?: return null
-    val result = receiverDataClass.findPropertyNamed(propertyReference.name)
-        ?: return null
-    return TypedMember.TypedProperty(receiverDataClass, result)
+    return receiverDataClass.findPropertyNamed(propertyReference.name)
 }
 
 
@@ -73,7 +70,7 @@ fun AnalysisSchema.propertyFor(propertyReference: KProperty1<*, *>): TypedMember
         ?: throw NoSuchElementException("the property $propertyReference has no receiver type, can't find a match in the schema")
     val receiverDataClass = findTypeFor(receiverType.java)
         ?: throw NoSuchElementException("the receiver type $receiverType for $propertyReference is not in the schema")
-    return TypedMember.TypedProperty(receiverDataClass, receiverDataClass.propertyNamed(propertyReference.name))
+    return receiverDataClass.propertyNamed(propertyReference.name)
 }
 
 
