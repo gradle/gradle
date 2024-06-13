@@ -31,11 +31,13 @@ import org.gradle.jvm.toolchain.JavaToolchainResolver
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException
+import org.gradle.platform.Architecture
 import org.gradle.platform.BuildPlatform
+import org.gradle.platform.OperatingSystem
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -70,6 +72,9 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
         cache.getDownloadLocation() >> temporaryFolder
         cache.provisionFromArchive(_ as JavaToolchainSpec, _ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
+
+        buildPlatform.operatingSystem >> OperatingSystem.LINUX
+        buildPlatform.architecture >> Architecture.AARCH64
     }
 
     def "cache is properly locked around provisioning a jdk"() {
@@ -131,7 +136,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningNotConfiguredException.class)
         0 * downloader.download(_, _, _)
     }
 
@@ -147,7 +152,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningNotConfiguredException.class)
         0 * downloader.download(_, _, _)
     }
 
@@ -183,7 +188,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningNotConfiguredException.class)
     }
 
     def "downloads from url"() {

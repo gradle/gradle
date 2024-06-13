@@ -20,6 +20,7 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -38,7 +39,7 @@ public class DefaultJavaToolchainResolverService implements JavaToolchainResolve
     public Optional<JavaToolchainDownload> tryResolve(JavaToolchainRequest request) {
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain download repositories have not been configured.",
+            throw new ToolchainProvisioningNotConfiguredException(request.getJavaToolchainSpec(), "Toolchain download repositories have not been configured.",
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }

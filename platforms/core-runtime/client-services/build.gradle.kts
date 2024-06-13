@@ -62,6 +62,7 @@ dependencies {
     implementation(projects.io)
     implementation(projects.buildConfiguration)
     implementation(projects.dependencyManagement)
+    implementation(projects.hashing)
 
     implementation(libs.guava)
     implementation(libs.asm)

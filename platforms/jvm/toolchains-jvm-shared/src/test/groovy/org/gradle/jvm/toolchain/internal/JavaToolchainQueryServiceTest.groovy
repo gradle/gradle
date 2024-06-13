@@ -31,7 +31,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
-import org.gradle.jvm.toolchain.internal.install.exceptions.NoToolchainAvailableException
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -185,8 +185,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         queryService.findMatchingToolchain(filter, capabilities).get()
 
         then:
-        def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=8, vendor=any vendor, implementation=vendor-specific}."
+        def e = thrown(ToolchainProvisioningNotConfiguredException)
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=8, vendor=any vendor, implementation=vendor-specific}. " +
+                "Toolchain auto-provisioning is not enabled."
 
         where:
         capabilities << [
@@ -221,9 +222,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.get()
 
         then:
-        def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=12, vendor=any vendor, implementation=vendor-specific}."
-        e.cause.message == "Configured toolchain download repositories can't match requested specification"
+        def e = thrown(ToolchainProvisioningNotConfiguredException)
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=12, vendor=any vendor, implementation=vendor-specific}. " +
+            "Toolchain auto-provisioning is not enabled."
     }
 
     def "returns current JVM toolchain if requested"() {
@@ -442,7 +443,9 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     private JavaToolchainProvisioningService createProvisioningService() {
         def provisioningService = Mock(JavaToolchainProvisioningService)
-        provisioningService.tryInstall(_ as JavaToolchainSpec) >> { throw new ToolchainDownloadFailedException("Configured toolchain download repositories can't match requested specification") }
+        provisioningService.tryInstall(_ as JavaToolchainSpec) >> { JavaToolchainSpec spec ->
+            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain auto-provisioning is not enabled.")
+        }
         provisioningService
     }
 
