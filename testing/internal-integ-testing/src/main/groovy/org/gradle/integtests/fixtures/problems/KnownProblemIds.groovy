@@ -53,6 +53,7 @@ class KnownProblemIds {
         'compilation:groovy-dsl' : 'Groovy DSL script compilation',
         'validation:property-validation' : 'Property validation problems',
         'validation:type-validation' : 'Gradle type validation',
+        'validation:configuration-cache' : 'Configuration cache',
 
         // groups from integration tests
         'generic' : 'Generic'
@@ -88,8 +89,8 @@ class KnownProblemIds {
         'deprecation:configurations-acting-as-both-root-and-variant' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
         'deprecation:repository-jcenter' : 'The RepositoryHandler.jcenter() method has been deprecated.',
         'task-selection:no-matches' : 'cannot locate task',
-        'validation:configuration-cache-registration-of-listener-on-gradle-buildfinished-is-unsupported' : 'registration of listener on \'Gradle.buildFinished\' is unsupported',
-        'validation:configuration-cache-invocation-of-task-project-at-execution-time-is-unsupported' : 'invocation of \'Task.project\' at execution time is unsupported.',
+        'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported' : 'registration of listener on \'Gradle.buildFinished\' is unsupported',
+        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported' : 'invocation of \'Task.project\' at execution time is unsupported.',
         'task-selection:ambiguous-matches' : 'Ambiguous matches',
         'task-selection:no-matches' : 'No matches',
         'task-selection:selection-failed' : 'Selection failed',

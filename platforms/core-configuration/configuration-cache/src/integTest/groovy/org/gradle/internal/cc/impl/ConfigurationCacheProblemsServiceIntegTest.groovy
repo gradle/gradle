@@ -21,7 +21,7 @@ import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 
-    public static final String REGISTRATION_UNSUPPORTED = 'validation:configuration-cache-registration-of-listener-on-gradle-buildfinished-is-unsupported'
+    public static final String REGISTRATION_UNSUPPORTED = 'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported'
 
     @Override
     def setup() {
@@ -108,7 +108,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
 
         then:
         verifyAll(receivedProblem) {
-            fqid == 'validation:configuration-cache-invocation-of-task-project-at-execution-time-is-unsupported'
+            fqid == 'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported'
             contextualLabel == "invocation of 'Task.project' at execution time is unsupported."
             definition.severity == Severity.ADVICE
         }
