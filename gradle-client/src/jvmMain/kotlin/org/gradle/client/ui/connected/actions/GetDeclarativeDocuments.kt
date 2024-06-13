@@ -12,21 +12,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
-import org.gradle.client.core.gradle.dcl.MutationUtils
-import org.gradle.client.core.gradle.dcl.analyzer
-import org.gradle.client.core.gradle.dcl.sourceIdentifier
-import org.gradle.client.core.gradle.dcl.type
+import org.gradle.client.core.gradle.dcl.*
 import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.connected.TwoPanes
@@ -149,9 +141,17 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             },
             right = {
                 val sources = listOfNotNull(
-                    SourceFileViewInput(projectResult.sourceIdentifier().fileIdentifier, buildFileContent),
-                    SourceFileViewInput(settingsResult.sourceIdentifier().fileIdentifier, settingsFileContent)
-                        .takeIf { hasAnyConventionContent },
+                    SourceFileViewInput(
+                        projectResult.sourceIdentifier().fileIdentifier,
+                        buildFileContent,
+                        relevantIndicesRange = null // we are interested in the whole project file content
+                    ),
+                    SourceFileViewInput(
+                        settingsResult.sourceIdentifier().fileIdentifier,
+                        settingsFileContent,
+                        // Trim the settings file to just the part that contributed the relevant conventions:
+                        relevantIndicesRange = domWithConventions?.inputUnderlay?.document?.relevantRange()
+                    ).takeIf { hasAnyConventionContent },
                 )
 
                 SourcesColumn(
@@ -160,59 +160,6 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 )
             },
         )
-    }
-
-    @Composable
-    private fun SourcesColumn(
-        sources: List<SourceFileViewInput>,
-        highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>
-    ) {
-        Column {
-            val sourceFileData by derivedStateOf {
-                sources.map { (identifier, content) ->
-                    val highlightedRangeOrNull = highlightedSourceRangeByFileId.value[identifier]
-                    SourceFileData(identifier, sourceFileAnnotatedString(highlightedRangeOrNull, content))
-                }
-            }
-
-            sourceFileData.forEach { data ->
-                SourceFileTitleAndText(data.relativePath, data.annotatedSource)
-                MaterialTheme.spacing.VerticalLevel4()
-            }
-        }
-    }
-
-    private data class SourceFileData(
-        val relativePath: String,
-        val annotatedSource: AnnotatedString
-    )
-
-    private fun sourceFileAnnotatedString(
-        highlightedSourceRange: IntRange?,
-        fileContent: String
-    ) = buildAnnotatedString {
-        val range = highlightedSourceRange
-        when {
-            range == null -> append(fileContent)
-
-            else -> {
-                append(fileContent.substring(0, range.first))
-                withStyle(style = SpanStyle(background = Color.Yellow)) {
-                    append(fileContent.substring(range))
-                }
-                append(fileContent.substring(range.last + 1))
-            }
-        }
-    }
-
-    @Composable
-    private fun SourceFileTitleAndText(
-        fileRelativePath: String,
-        highlightedSource: AnnotatedString
-    ) {
-        TitleMedium(fileRelativePath)
-        MaterialTheme.spacing.VerticalLevel4()
-        CodeBlock(Modifier.fillMaxWidth(), highlightedSource)
     }
 
     @Composable
@@ -607,11 +554,6 @@ private fun List<MutationArgumentState>.toMutationArgumentsContainer(): Mutation
 private data class HighlightingContext(
     val overlayOriginContainer: OverlayOriginContainer,
     val highlightedSourceRange: MutableState<Map<String, IntRange>>
-)
-
-private data class SourceFileViewInput(
-    val fileIdentifier: String,
-    val fileContent: String
 )
 
 private fun Modifier.withHoverCursor() =
