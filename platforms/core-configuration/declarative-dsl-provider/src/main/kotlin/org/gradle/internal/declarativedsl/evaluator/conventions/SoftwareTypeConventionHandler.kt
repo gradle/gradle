@@ -81,13 +81,13 @@ class SoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) 
 
 private
 class ApplyConventionsOnlyAnalysisStepRunner : AbstractAnalysisStepRunner() {
-    override fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String, failureReasons: MutableList<NotEvaluated.StageFailure>): ParseAndResolveResult {
+    override fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String): ParseAndResolveResult {
         // Create a synthetic top level receiver
         val topLevelBlock = Block(emptyList(), emptySourceData())
         val languageTreeResult = LanguageTreeResult(emptyList(), topLevelBlock, emptyList(), emptyList())
         val topLevelReceiver = ObjectOrigin.TopLevelReceiver(evaluationSchema.analysisSchema.topLevelReceiverType, topLevelBlock)
 
-        return ParseAndResolveResult(languageTreeResult, emptyResolutionResultForReceiver(topLevelReceiver), emptyResolutionTrace())
+        return ParseAndResolveResult(languageTreeResult, emptyResolutionResultForReceiver(topLevelReceiver), emptyResolutionTrace(), emptyList())
     }
 }
 
