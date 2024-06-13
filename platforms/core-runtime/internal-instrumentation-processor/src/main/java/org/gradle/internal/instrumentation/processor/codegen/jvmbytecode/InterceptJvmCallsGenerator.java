@@ -65,6 +65,13 @@ import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.ty
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
 public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
+    /**
+     * Emits the code that generates interceptor method invocation.
+     */
+    @FunctionalInterface
+    private interface InvocationGenerator {
+        void generate(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder code);
+    }
 
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
@@ -86,9 +93,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .orElseThrow(() -> new IllegalStateException(RequestExtra.InterceptJvmCalls.class.getSimpleName() + " should be present at this stage!"));
 
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
-        generateVisitMethodInsnCode(
-            visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
+        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner = requestsClassGroup.stream().collect(
+            Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList())
         );
+        generateVisitMethodInsnCode(visitMethodInsnBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
         return builder ->
@@ -130,18 +138,24 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
 
     private static void generateVisitMethodInsnCode(
-        MethodSpec.Builder visitMethodInsnBuilder,
-        Collection<CallInterceptionRequest> interceptionRequests,
+        MethodSpec.Builder method,
         Map<Type, FieldSpec> typeFieldByOwner,
+        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
         CodeBlock.Builder code = CodeBlock.builder();
-        interceptionRequests.stream()
-            .collect(Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList()))
-            .forEach((owner, requests) -> generateCodeForOwner(owner, typeFieldByOwner, requests, code, onProcessedRequest, onFailure));
+        requestsByOwner.forEach((owner, requests) -> generateCodeForOwner(
+            owner,
+            typeFieldByOwner,
+            requests,
+            code,
+            InterceptJvmCallsGenerator::generateInterceptedInvocation,
+            InterceptJvmCallsGenerator::generateKotlinDefaultInvocation,
+            onProcessedRequest,
+            onFailure));
         code.addStatement("return false");
-        visitMethodInsnBuilder.addCode(code.build());
+        method.addCode(code.build());
     }
 
     private static Map<Type, FieldSpec> generateFieldsForImplementationOwners(Collection<CallInterceptionRequest> interceptionRequests) {
@@ -215,6 +229,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Map<Type, FieldSpec> implTypeFields,
         List<CallInterceptionRequest> requestsForOwner,
         CodeBlock.Builder code,
+        InvocationGenerator interceptStandard,
+        InvocationGenerator interceptKotlinDefault,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
@@ -226,7 +242,13 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         for (CallInterceptionRequest request : requestsForOwner) {
             CodeBlock.Builder nested = CodeBlock.builder();
             try {
-                generateCodeForRequest(request, implTypeFields.get(request.getImplementationInfo().getOwner()), nested);
+                generateCodeForRequest(
+                    request,
+                    implTypeFields.get(request.getImplementationInfo().getOwner()),
+                    nested,
+                    interceptStandard,
+                    interceptKotlinDefault
+                );
             } catch (Failure failure) {
                 onFailure.accept(new FailureInfo(request, failure.reason));
             }
@@ -236,7 +258,13 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         code.endControlFlow();
     }
 
-    private static void generateCodeForRequest(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder code) {
+    private static void generateCodeForRequest(
+        CallInterceptionRequest request,
+        FieldSpec implTypeField,
+        CodeBlock.Builder code,
+        InvocationGenerator interceptStandard,
+        InvocationGenerator interceptKotlinDefault
+    ) {
         String callableName = request.getInterceptedCallable().getCallableName();
         CallableInfo interceptedCallable = request.getInterceptedCallable();
         String interceptedCallableDescriptor = standardCallableDescriptor(interceptedCallable);
@@ -245,10 +273,26 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         CodeBlock matchOpcodeExpression = matchOpcodeExpression(interceptedCallable);
 
         documentInterceptorGeneratedCode(request, code);
-        matchAndInterceptStandardCallableSignature(request, implTypeField, code, callableName, interceptedCallableDescriptor, matchOpcodeExpression);
+        matchAndInterceptStandardCallableSignature(
+            request,
+            implTypeField,
+            code,
+            callableName,
+            interceptedCallableDescriptor,
+            matchOpcodeExpression,
+            interceptStandard
+        );
 
         if (interceptedCallable.hasKotlinDefaultMaskParam()) {
-            matchAndInterceptKotlinDefaultSignature(request, implTypeField, code, callableName, interceptedCallable, matchOpcodeExpression);
+            matchAndInterceptKotlinDefaultSignature(
+                request,
+                implTypeField,
+                code,
+                callableName,
+                interceptedCallable,
+                matchOpcodeExpression,
+                interceptKotlinDefault
+            );
         }
     }
 
@@ -258,11 +302,11 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         CodeBlock.Builder code,
         String callableName,
         String callableDescriptor,
-        CodeBlock matchOpcodeExpression
+        CodeBlock matchOpcodeExpression,
+        InvocationGenerator invocationGenerator
     ) {
         code.beginControlFlow("if (name.equals($S) && descriptor.equals($S) && $L)", callableName, callableDescriptor, matchOpcodeExpression);
-        generateInterceptedInvocation(request, implTypeField, code);
-        code.addStatement("return true");
+        invocationGenerator.generate(request, implTypeField, code);
         code.endControlFlow();
     }
 
@@ -272,14 +316,14 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         CodeBlock.Builder code,
         String callableName,
         CallableInfo interceptedCallable,
-        CodeBlock matchOpcodeExpression
+        CodeBlock matchOpcodeExpression,
+        InvocationGenerator invocationGenerator
     ) {
         code.add("// Additionally intercept the signature with the Kotlin default mask and marker:\n");
         String callableDescriptorKotlinDefault = kotlinDefaultFunctionDescriptor(interceptedCallable);
         String defaultMethodName = callableName + "$default";
         code.beginControlFlow("if (name.equals($S) && descriptor.equals($S) && $L)", defaultMethodName, callableDescriptorKotlinDefault, matchOpcodeExpression);
-        generateKotlinDefaultInvocation(request, ownerTypeField, code);
-        code.addStatement("return true");
+        invocationGenerator.generate(request, ownerTypeField, code);
         code.endControlFlow();
     }
 
@@ -310,7 +354,9 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         } else if (callable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
             generateInvocationAfterConstructor(implTypeField, method, callable, implementationName, implementationDescriptor);
         }
+        method.addStatement("return true");
     }
+
     private static void generateInvocationAfterConstructor(FieldSpec implOwnerField, CodeBlock.Builder code, CallableInfo callable, String implementationName, String implementationDescriptor) {
         if (callable.getKind() != CallableKindInfo.AFTER_CONSTRUCTOR) {
             throw new IllegalArgumentException("expected after-constructor interceptor");
@@ -378,6 +424,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         maybeGenerateLoadBinaryClassNameCall(method, interceptedCallable);
         maybeGenerateGetStaticInjectVisitorContext(method, interceptedCallable);
         method.addStatement("$N._INVOKESTATIC($N, $S, $S)", METHOD_VISITOR_FIELD, ownerTypeField, implementationName, implementationDescriptor);
+        method.addStatement("return true");
     }
 
     private static void validateSignature(CallableInfo callable) {
