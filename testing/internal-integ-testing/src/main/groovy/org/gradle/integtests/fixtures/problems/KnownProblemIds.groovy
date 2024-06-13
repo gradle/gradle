@@ -81,6 +81,7 @@ class KnownProblemIds {
         'compilation:java:compiler-err-.+' : 'Java compilation error',
         'compilation:java:compiler-warn-.+' : 'Java compilation warning',
         'compilation:java:compiler-note-.+' : 'Java compilation note',
+        'compilation:java:initialization-failed': 'Java compilation initialization error',
         'dependency-version-catalog:alias-not-finished' : 'version catalog error',
         'dependency-version-catalog:invalid-dependency-notation' : 'Dependency version catalog problem',
         'dependency-version-catalog:reserved-alias-name' : 'version catalog error',
