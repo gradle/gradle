@@ -76,6 +76,13 @@ To address this issue, in the current release, all code originally under the `or
 Since Gradle 8.8 file-system watching has only been supported on macOS 12 (Monterey) and later.
 We've now added a check to disable file-system watching on macOS 11 (Big Sur) and earlier automatically.
 
+==== Possible change to JDK8-based compiler output when annotation processors are used
+
+The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+This change will supply the Tooling API clients with structured, rich information about compilation issues.
+
+The feature should not have any visible impact on the usual build output, with JDK8 being an exception. When annotation processors are used in the compiler, the output message might slightly differ from the previous ones (see [#29501](https://github.com/gradle/gradle/issues/29501)).
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
