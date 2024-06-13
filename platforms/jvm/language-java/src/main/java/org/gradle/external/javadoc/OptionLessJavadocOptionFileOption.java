@@ -18,7 +18,6 @@ package org.gradle.external.javadoc;
 
 import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import java.io.IOException;
 
@@ -29,7 +28,6 @@ import java.io.IOException;
  */
 @HasInternalProtocol
 public interface OptionLessJavadocOptionFileOption<T> {
-    @NotToBeReplacedByLazyProperty(because = "TODO: Decide what to do with that")
     T getValue();
 
     void setValue(T value);

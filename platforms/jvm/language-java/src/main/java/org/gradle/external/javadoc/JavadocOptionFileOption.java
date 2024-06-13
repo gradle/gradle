@@ -17,7 +17,6 @@
 package org.gradle.external.javadoc;
 
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Represents a Javadoc command-line option.
@@ -26,6 +25,5 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazy
  */
 @HasInternalProtocol
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
-    @NotToBeReplacedByLazyProperty(because = "TODO: Decide what to do with that")
     String getOption();
 }
