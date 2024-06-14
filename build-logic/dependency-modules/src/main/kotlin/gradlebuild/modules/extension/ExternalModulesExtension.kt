@@ -251,6 +251,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
+        guice to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
         hamcrestCore to License.BSD3,
