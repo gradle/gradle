@@ -109,6 +109,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
+import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
@@ -208,6 +209,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final DynamicLookupRoutine dynamicLookupRoutine;
 
+    private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+
     private String description;
 
     private boolean preparedForRuleBasedPlugins;
@@ -258,6 +261,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
         dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
+
+        isolatedProjectEvaluationListenerProvider = services.get(IsolatedProjectEvaluationListenerProvider.class);
     }
 
     @SuppressWarnings("unused")
@@ -689,7 +694,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void allprojects(ProjectInternal referrer, Action<? super Project> action) {
-        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(referrer, this), action);
+        getProjectConfigurator().allprojects(
+            getAllprojects(referrer),
+            action,
+            isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(gradle)
+        );
     }
 
     @Override
@@ -714,7 +723,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
-        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(referrer, this), configureAction);
+        getProjectConfigurator().subprojects(
+            getSubprojects(referrer),
+            configureAction,
+            isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(gradle)
+        );
     }
 
     @Override
@@ -1235,7 +1248,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction) {
         ProjectInternal project = project(referrer, path);
-        getProjectConfigurator().project(project, configureAction);
+        getProjectConfigurator().project(
+            project,
+            configureAction,
+            isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(gradle)
+        );
         return project;
     }
 

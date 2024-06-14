@@ -48,6 +48,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
@@ -58,7 +59,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     gradle: GradleInternal,
     private val referrerProject: ProjectInternal,
     private val crossProjectModelAccess: CrossProjectModelAccess,
-    private val projectConfigurator: CrossProjectConfigurator
+    private val projectConfigurator: CrossProjectConfigurator,
+    private val isolatedProjectEvaluationListenerProvider: IsolatedProjectEvaluationListenerProvider
 ) : GradleInternal {
 
     private
@@ -89,7 +91,11 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.rootProject {
             // Instead of the rootProject's `allProjects`, collect the projects while still tracking the current referrer project
             val root = this@CrossProjectConfigurationReportingGradle.rootProject
-            projectConfigurator.allprojects(crossProjectModelAccess.getAllprojects(referrerProject, root), action)
+            projectConfigurator.allprojects(
+                crossProjectModelAccess.getAllprojects(referrerProject, root),
+                action,
+                isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(delegate)
+            )
         }
     }
 
@@ -162,7 +168,14 @@ class CrossProjectConfigurationReportingGradle private constructor(
         fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
             val parentCrossProjectModelAccess = gradle.serviceOf<CrossProjectModelAccess>()
             val parentCrossProjectConfigurator = gradle.serviceOf<CrossProjectConfigurator>()
-            return CrossProjectConfigurationReportingGradle(gradle, referrerProject, parentCrossProjectModelAccess, parentCrossProjectConfigurator)
+            val parentIsolatedProjectEvaluationListenerProvider = gradle.serviceOf<IsolatedProjectEvaluationListenerProvider>()
+            return CrossProjectConfigurationReportingGradle(
+                gradle,
+                referrerProject,
+                parentCrossProjectModelAccess,
+                parentCrossProjectConfigurator,
+                parentIsolatedProjectEvaluationListenerProvider
+            )
         }
     }
 
