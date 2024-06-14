@@ -34,11 +34,9 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParserKt
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.tooling.ModelBuilder
-import spock.lang.Ignore
 
 @TargetGradleVersion(">=8.9")
 @ToolingApiVersion('>=8.9')
-@Ignore
 class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecification {
 
     def setup(){
