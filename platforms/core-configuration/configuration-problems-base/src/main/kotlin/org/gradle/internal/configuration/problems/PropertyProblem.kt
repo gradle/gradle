@@ -86,25 +86,27 @@ data class StructuredMessage(val fragments: List<Fragment>) {
         internal
         val fragments = mutableListOf<Fragment>()
 
-        fun text(string: String) {
+        fun text(string: String): Builder = apply {
             fragments.add(Fragment.Text(string))
         }
 
-        fun reference(name: String) {
+        fun reference(name: String): Builder = apply {
             fragments.add(Fragment.Reference(name))
         }
 
-        fun reference(type: Class<*>) {
+        fun reference(type: Class<*>): Builder = apply {
             reference(type.name)
         }
 
-        fun reference(type: KClass<*>) {
+        fun reference(type: KClass<*>): Builder = apply {
             reference(type.qualifiedName!!)
         }
 
-        fun message(message: StructuredMessage) {
+        fun message(message: StructuredMessage): Builder = apply {
             fragments.addAll(message.fragments)
         }
+
+        fun build(): StructuredMessage = StructuredMessage(fragments.toList())
     }
 }
 
