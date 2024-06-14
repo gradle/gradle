@@ -16,9 +16,10 @@
 
 package org.gradle.declarative.dsl.tooling.builders.r89
 
+import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.dom.DataStructuralEqualityKt
@@ -34,12 +35,10 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParserKt
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.tooling.ModelBuilder
-import spock.lang.Ignore
 
 @TargetGradleVersion(">=8.9")
 @ToolingApiVersion('>=8.9')
-@Ignore
-class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecification {
+class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 
     def setup(){
         settingsFile.delete() //we are using a declarative settings file
