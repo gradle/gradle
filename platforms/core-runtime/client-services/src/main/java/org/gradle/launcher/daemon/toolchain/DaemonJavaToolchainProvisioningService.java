@@ -33,6 +33,7 @@ import org.gradle.platform.internal.CurrentBuildPlatform;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 
 public class DaemonJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
@@ -99,11 +100,13 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
         try {
             return new URI(stringUri);
         } catch (NullPointerException e) {
-            throw new ToolchainDownloadException(spec, stringUri, String.format("No defined toolchain download url for %s with %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
+            String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            throw new ToolchainDownloadException(spec, stringUri, cause,
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         } catch (URISyntaxException e) {
-            throw new ToolchainDownloadException(spec, stringUri, String.format("Invalid toolchain download url %s for %s with %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
+            String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            throw new ToolchainDownloadException(spec, stringUri, cause,
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }

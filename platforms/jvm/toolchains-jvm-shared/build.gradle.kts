@@ -50,6 +50,9 @@ dependencies {
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
+
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(libs.commonsCompress)
 }
 
 packageCycles {
