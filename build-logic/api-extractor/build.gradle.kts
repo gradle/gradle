@@ -5,15 +5,13 @@ plugins {
 description = "Extract API classes from JVM classes."
 
 dependencies {
-    // TODO These should look a lot simpler.
+    // TODO These should not need version numbers specified here.
     //      We should probably reuse them from build-logic-commons:build-platform,
-    //      but doing so causes a lot of Kotlin tests like ManagedPropertyJavaInterOpIntegrationTest fail
-    //      with an error about a missing method:
-    //      kotlinx.metadata.jvm.KotlinClassMetadata kotlinx.metadata.jvm.KotlinClassMetadata$Companion.read(kotlinx.metadata.jvm.KotlinClassHeader)
+    //      but then we have an incompatibility between kotlinx-metadata versions.
+    //      The error can be reproduced in production code by running an integration test
+    //      that uses Kotlin DSL, like ManagedPropertyJavaInterOpIntegrationTest.
     implementation("org.ow2.asm:asm:9.7")
     implementation("com.google.guava:guava:32.1.2-jre") {
-        exclude("org.checkerframework", "checker-qual")
-        exclude("com.google.errorprone", "error_prone_annotations")
-        exclude("com.google.guava", "listenablefuture")
+        isTransitive = false
     }
 }
