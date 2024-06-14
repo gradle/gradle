@@ -30,7 +30,7 @@ class DefaultFailureFactoryTest extends Specification {
         e0.addSuppressed(e)
 
         when:
-        def failure = factory.create(e)
+        def failure = factory.createFailure(e)
         def failureCause = failure.causes[0]
 
         then:

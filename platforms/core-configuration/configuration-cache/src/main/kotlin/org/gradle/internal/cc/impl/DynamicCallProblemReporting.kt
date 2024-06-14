@@ -115,6 +115,6 @@ class StacktraceLocationPrinter(
 
     fun getUniqueLocationWithStacktrace(message: String): String? {
         val exception = Exception(message)
-        return deduplicatingFailurePrinter.printToString(failureFactory.create(exception))
+        return deduplicatingFailurePrinter.printToString(failureFactory.createFailure(exception))
     }
 }

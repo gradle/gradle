@@ -29,18 +29,18 @@ class DeduplicatingFailurePrinterTest extends Specification {
 
         when:
         def e1 = new RuntimeException("BOOM")
-        def printed1 = printer.printToString(failureFactory.create(e1))
+        def printed1 = printer.printToString(failureFactory.createFailure(e1))
         then:
         printed1 != null
 
         when:
-        def printed2 = printer.printToString(failureFactory.create(e1))
+        def printed2 = printer.printToString(failureFactory.createFailure(e1))
         then:
         printed2 == null
 
         when:
         def e2 = new RuntimeException("ANOTHER BOOM")
-        def printed3 = printer.printToString(failureFactory.create(e2))
+        def printed3 = printer.printToString(failureFactory.createFailure(e2))
         then:
         printed3 != null
     }
@@ -52,7 +52,7 @@ class DeduplicatingFailurePrinterTest extends Specification {
 
         when:
         def printed = exceptions.collect {
-            printer.printToString(failureFactory.create(it))
+            printer.printToString(failureFactory.createFailure(it))
         }
         then:
         printed.size() == 2
@@ -69,14 +69,14 @@ class DeduplicatingFailurePrinterTest extends Specification {
 
         when:
         def printer1 = new DeduplicatingFailurePrinter(3)
-        def printed1 = exceptions.collect { printer1.printToString(failureFactory.create(it)) }
+        def printed1 = exceptions.collect { printer1.printToString(failureFactory.createFailure(it)) }
         then:
         printed1[0] != null
         printed1[1] != null
 
         when:
         def printer2 = new DeduplicatingFailurePrinter(2)
-        def printed2 = exceptions.collect { printer2.printToString(failureFactory.create(it)) }
+        def printed2 = exceptions.collect { printer2.printToString(failureFactory.createFailure(it)) }
         then:
         printed2[0] != null
         printed2[1] == null

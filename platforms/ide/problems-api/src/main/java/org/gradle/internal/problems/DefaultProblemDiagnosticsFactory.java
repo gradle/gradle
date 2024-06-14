@@ -110,7 +110,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         Location location = null;
         if (throwable != null) {
             stackTrace = transformer.transform(throwable.getStackTrace());
-            stackTracingFailure = failureFactory.create(throwable);
+            stackTracingFailure = failureFactory.createFailure(throwable);
             location = locationAnalyzer.locationForUsage(stackTracingFailure, fromException);
         }
 

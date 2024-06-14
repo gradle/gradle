@@ -27,7 +27,7 @@ import static org.gradle.internal.problems.failure.StackTraceRelevance.USER_CODE
 class TestFailureFactory implements FailureFactory {
 
     @Override
-    Failure create(Throwable failure) {
+    Failure createFailure(Throwable failure) {
         return toFailure(failure)
     }
 

@@ -27,6 +27,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Global.class)
 public interface FailureFactory {
 
-    Failure create(Throwable failure);
+    Failure createFailure(Throwable failure);
 
 }
