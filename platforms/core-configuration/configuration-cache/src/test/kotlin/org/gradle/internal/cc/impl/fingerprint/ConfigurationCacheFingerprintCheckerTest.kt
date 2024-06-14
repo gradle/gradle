@@ -265,7 +265,7 @@ class ConfigurationCacheFingerprintCheckerTest {
     fun invalidationReasonForInitScriptsChange(
         from: Iterable<Pair<File, HashCode>>,
         to: List<Pair<File, HashCode>>
-    ): InvalidationReason? = to.toMap().let { toMap ->
+    ): String? = to.toMap().let { toMap ->
         checkFingerprintGiven(
             mock {
                 on { allInitScripts } doReturn toMap.keys.toList()
@@ -286,7 +286,7 @@ class ConfigurationCacheFingerprintCheckerTest {
     fun checkFingerprintGiven(
         host: ConfigurationCacheFingerprintChecker.Host,
         fingerprint: ConfigurationCacheFingerprint
-    ): InvalidationReason? {
+    ): String? {
 
         val readContext = recordWritingOf {
             write(fingerprint)
@@ -300,7 +300,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         }
         return when (checkedFingerprint) {
             is CheckedFingerprint.Valid -> null
-            is CheckedFingerprint.EntryInvalid -> checkedFingerprint.reason
+            is CheckedFingerprint.EntryInvalid -> checkedFingerprint.reason.toString()
             else -> throw IllegalArgumentException()
         }
     }
