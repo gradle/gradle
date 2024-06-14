@@ -8,6 +8,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import org.gradle.client.ui.theme.spacing
@@ -96,3 +97,6 @@ fun CodeBlock(
         )
     }
 }
+
+fun Modifier.semiTransparentIfNull(any: Any?) =
+    if (any == null) alpha(0.5f) else this

@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -42,6 +43,7 @@ import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
 import java.io.File
 
+private const val NOT_DECLARED = "Not declared"
 private const val NOTHING_DECLARED = "Nothing declared"
 
 class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequisites> {
@@ -61,8 +63,8 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
         val buildFileContent =
             remember(selectedBuildFile.value, fileUpdatesCount.value) { selectedBuildFile.value.readText() }
-        val settingsFileContent = remember(selectedBuildFile.value, fileUpdatesCount, model.settingsFile) { 
-            model.settingsFile.readText() 
+        val settingsFileContent = remember(selectedBuildFile.value, fileUpdatesCount, model.settingsFile) {
+            model.settingsFile.readText()
         }
 
         val analyzer = analyzer(model)
@@ -267,7 +269,7 @@ class ModelTreeRendering(
     ) {
         Column(Modifier.padding(start = indentLevel * indentDp)) {
             if (node == null || type == null) {
-                LabelMedium(NOTHING_DECLARED)
+                LabelMedium(modifier = Modifier.alpha(0.5f), text = NOT_DECLARED)
             } else {
                 type.properties.forEach { property ->
                     PropertyInfo(node.property(property.name), property)
@@ -320,7 +322,8 @@ class ModelTreeRendering(
                 LabelMedium(
                     modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                         .withHoverCursor()
-                        .withClickTextRangeSelection(element, highlightingContext),
+                        .withClickTextRangeSelection(element, highlightingContext)
+                        .semiTransparentIfNull(element),
                     text = elementTextRepresentation
                 )
             } else {
@@ -329,6 +332,7 @@ class ModelTreeRendering(
                     modifier = Modifier
                         .withHoverCursor()
                         .withClickTextRangeSelection(element, highlightingContext)
+                        .semiTransparentIfNull(element)
                 )
             }
         }
@@ -354,6 +358,7 @@ class ModelTreeRendering(
                 text = subFunction.simpleName,
                 modifier = Modifier
                     .withHoverCursor()
+                    .semiTransparentIfNull(functionType)
                     .withClickTextRangeSelection(functionNode, highlightingContext)
             )
         }
@@ -374,7 +379,8 @@ class ModelTreeRendering(
             LabelMedium(
                 modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                     .withHoverCursor()
-                    .withClickTextRangeSelection(propertyNode, highlightingContext),
+                    .withClickTextRangeSelection(propertyNode, highlightingContext)
+                    .semiTransparentIfNull(propertyNode),
                 text = "${property.name}: ${property.kotlinType.simpleName} = ${
                     propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
                 }"
