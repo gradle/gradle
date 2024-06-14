@@ -60,8 +60,6 @@ dependencies {
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     testFixturesImplementation(projects.native)
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.commonsCompress)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
