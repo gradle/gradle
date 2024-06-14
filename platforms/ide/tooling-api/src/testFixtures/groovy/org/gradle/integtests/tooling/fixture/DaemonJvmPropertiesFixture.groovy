@@ -33,6 +33,7 @@ trait DaemonJvmPropertiesFixture {
     }
 
     def setup() {
+        System.clearProperty("org.gradle.java.installations.paths")
         requireDaemons()
     }
 
