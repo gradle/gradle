@@ -73,6 +73,14 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         void generate(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder code);
     }
 
+    /**
+     * Creates the code block that checks if the invocation operation should be intercepted.
+     */
+    @FunctionalInterface
+    private interface InvocationMatcher {
+        CodeBlock generate(CallableInfo info);
+    }
+
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
@@ -148,6 +156,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             typeFieldByOwner,
             requests,
             code,
+            InterceptJvmCallsGenerator::matchOpcodeExpression,
             InterceptJvmCallsGenerator::generateInterceptedInvocation,
             InterceptJvmCallsGenerator::generateKotlinDefaultInvocation,
             onProcessedRequest,
@@ -226,6 +235,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Map<Type, FieldSpec> implTypeFields,
         List<CallInterceptionRequest> requestsForOwner,
         CodeBlock.Builder code,
+        InvocationMatcher invocationMatcher,
         InvocationGenerator interceptStandard,
         InvocationGenerator interceptKotlinDefault,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
@@ -243,6 +253,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                     request,
                     implTypeFields.get(request.getImplementationInfo().getOwner()),
                     nested,
+                    invocationMatcher,
                     interceptStandard,
                     interceptKotlinDefault
                 );
@@ -259,15 +270,16 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         CallInterceptionRequest request,
         FieldSpec implTypeField,
         CodeBlock.Builder code,
+        InvocationMatcher invocationMatcher,
         InvocationGenerator interceptStandard,
         InvocationGenerator interceptKotlinDefault
     ) {
         String callableName = request.getInterceptedCallable().getCallableName();
         CallableInfo interceptedCallable = request.getInterceptedCallable();
         String interceptedCallableDescriptor = standardCallableDescriptor(interceptedCallable);
-        validateSignature(request.getInterceptedCallable());
+        validateSignature(interceptedCallable);
 
-        CodeBlock matchOpcodeExpression = matchOpcodeExpression(interceptedCallable);
+        CodeBlock matchInvocationOperation = invocationMatcher.generate(interceptedCallable);
 
         documentInterceptorGeneratedCode(request, code);
         matchAndInterceptStandardCallableSignature(
@@ -276,7 +288,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             code,
             callableName,
             interceptedCallableDescriptor,
-            matchOpcodeExpression,
+            matchInvocationOperation,
             interceptStandard
         );
 
@@ -287,7 +299,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 code,
                 callableName,
                 interceptedCallable,
-                matchOpcodeExpression,
+                matchInvocationOperation,
                 interceptKotlinDefault
             );
         }
@@ -330,13 +342,16 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
-        CodeBlock result = interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class) :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE)", Opcodes.class) :
-                interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class) : null;
-        if (result == null) {
-            throw new Failure("Could not determine the opcode for intercepting the call");
+        switch (interceptedCallable.getKind()) {
+            case STATIC_METHOD:
+                return CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class);
+            case INSTANCE_METHOD:
+                return CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE)", Opcodes.class);
+            case AFTER_CONSTRUCTOR:
+                return CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class);
+            default:
+                throw new Failure("Could not determine the opcode for intercepting the call");
         }
-        return result;
     }
 
     // TODO: move validation earlier?
