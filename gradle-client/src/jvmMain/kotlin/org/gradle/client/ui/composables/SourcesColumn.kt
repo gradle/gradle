@@ -12,30 +12,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.*
+import androidx.compose.ui.text.style.TextDecoration
 import org.gradle.client.ui.theme.spacing
 
 internal data class SourceFileViewInput(
     val fileIdentifier: String,
     val fileContent: String,
-    val relevantIndicesRange: IntRange?
+    val relevantIndicesRange: IntRange?,
+    val errorRanges: List<IntRange>,
+    val highlightedSourceRange: IntRange?
 )
 
 @Composable
 internal fun SourcesColumn(
     sources: List<SourceFileViewInput>,
-    highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>
 ) {
     /**
      * Make everything that wants max width in the column as wide as the widest child composable.
-     * 
+     *
      * This is a workaround for the horizontally scrollable column not making all its
      * children that require max width equally wide automatically, potentially resulting in unequal widths.
      */
-    Column(Modifier.width(IntrinsicSize.Max)) { 
+    Column(Modifier.width(IntrinsicSize.Max)) {
         val sourceFileData by derivedStateOf {
-            sources.map { (identifier, content, relevantIndices) ->
-                val highlightedRangeOrNull = highlightedSourceRangeByFileId.value[identifier]
-                val highlightedString = sourceFileAnnotatedString(highlightedRangeOrNull, content)
+            sources.map { sourceFileViewInput ->
+                val identifier = sourceFileViewInput.fileIdentifier
+                val highlightedRangeOrNull = sourceFileViewInput.highlightedSourceRange
+                val relevantIndices = sourceFileViewInput.relevantIndicesRange
+
+                val highlightedString = sourceFileAnnotatedString(
+                    highlightedRangeOrNull,
+                    sourceFileViewInput.errorRanges,
+                    sourceFileViewInput.fileContent
+                )
+
                 val relevantHighlightedString = relevantIndices?.let { range ->
                     val lineBreakBeforeFocus =
                         highlightedString.text.take(relevantIndices.first).indexOfLast { it == '\n' } + 1
@@ -69,18 +79,20 @@ private data class SourceFileData(
 
 private fun sourceFileAnnotatedString(
     highlightedSourceRange: IntRange?,
+    errorRanges: List<IntRange>,
     fileContent: String
 ) = buildAnnotatedString {
-    when {
-        highlightedSourceRange == null -> append(fileContent)
+    append(fileContent)
 
-        else -> {
-            append(fileContent.substring(0, highlightedSourceRange.first))
-            withStyle(style = SpanStyle(background = Color.Yellow)) {
-                append(fileContent.substring(highlightedSourceRange))
-            }
-            append(fileContent.substring(highlightedSourceRange.last + 1))
-        }
+    if (highlightedSourceRange != null) {
+        addStyle(SpanStyle(background = Color.Yellow), highlightedSourceRange.first, highlightedSourceRange.last + 1)
+    }
+
+    for (errorRange in errorRanges) {
+        addStyle(
+            SpanStyle(color = Color.Red).plus(SpanStyle(textDecoration = TextDecoration.LineThrough)),
+            errorRange.first, errorRange.last + 1
+        )
     }
 }
 
@@ -123,7 +135,7 @@ fun trimIndentationWhitespaces(annotatedString: AnnotatedString): AnnotatedStrin
         var nextLineStart = 0
         for ((index, line) in lines.withIndex()) {
             val lineStartToTake = nextLineStart + if (line.isBlank()) 0 else indentation
-            val endIndex =  nextLineStart + line.length + if (index != lines.lastIndex) 1 else 0
+            val endIndex = nextLineStart + line.length + if (index != lines.lastIndex) 1 else 0
             val annotatedLine = annotatedString.subSequence(lineStartToTake, endIndex)
             append(annotatedLine)
             nextLineStart = endIndex

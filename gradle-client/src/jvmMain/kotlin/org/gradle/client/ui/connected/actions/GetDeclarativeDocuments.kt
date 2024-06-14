@@ -31,11 +31,13 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResoluti
 import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.mutation.*
+import org.gradle.internal.declarativedsl.dom.operations.overlay.DocumentOverlayResult
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrigin.*
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayOriginContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
+import org.gradle.internal.declarativedsl.language.SyntheticallyProduced.sourceIdentifier
 import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
 import java.io.File
@@ -142,26 +144,54 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 }
             },
             right = {
-                val sources = listOfNotNull(
-                    SourceFileViewInput(
-                        projectResult.sourceIdentifier().fileIdentifier,
-                        buildFileContent,
-                        relevantIndicesRange = null // we are interested in the whole project file content
-                    ),
-                    SourceFileViewInput(
-                        settingsResult.sourceIdentifier().fileIdentifier,
-                        settingsFileContent,
-                        // Trim the settings file to just the part that contributed the relevant conventions:
-                        relevantIndicesRange = domWithConventions?.inputUnderlay?.document?.relevantRange()
-                    ).takeIf { hasAnyConventionContent },
-                )
-
-                SourcesColumn(
-                    sources,
-                    highlightedSourceRangeByFileId
-                )
+                if (domWithConventions != null) {
+                    SourcesView(
+                        domWithConventions,
+                        highlightedSourceRangeByFileId,
+                        hasAnyConventionContent
+                    )
+                }
             },
         )
+    }
+
+    @Composable
+    private fun SourcesView(
+        domWithConventions: DocumentOverlayResult,
+        highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>,
+        hasAnyConventionContent: Boolean
+    ) {
+        val buildDocument = domWithConventions.inputOverlay.document
+        val settingsDocument = domWithConventions.inputUnderlay.document
+        
+        val (buildFileId, settingsFileId) = 
+            listOf(buildDocument, settingsDocument).map { it.sourceIdentifier.fileIdentifier }
+        
+        val (buildFileContent, settingsFileContent) =
+            listOf(buildDocument, settingsDocument).map { it.sourceData.text() }
+        
+        val (buildErrorRanges, settingsErrorRanges) =
+            listOf(domWithConventions.inputOverlay, domWithConventions.inputUnderlay).map { it.errorRanges() }
+        
+        val sources = listOfNotNull(
+            SourceFileViewInput(
+                buildFileId,
+                buildFileContent,
+                relevantIndicesRange = null, // we are interested in the whole project file content
+                highlightedSourceRange = highlightedSourceRangeByFileId.value[buildFileId],
+                errorRanges = buildErrorRanges
+            ),
+            SourceFileViewInput(
+                settingsFileId,
+                settingsFileContent,
+                // Trim the settings file to just the part that contributed the relevant conventions:
+                relevantIndicesRange = domWithConventions.inputUnderlay.document.relevantRange(),
+                highlightedSourceRange = highlightedSourceRangeByFileId.value[settingsFileId],
+                errorRanges = settingsErrorRanges
+            ).takeIf { hasAnyConventionContent },
+        )
+
+        SourcesColumn(sources)
     }
 
     @Composable
@@ -256,8 +286,11 @@ class ModelTreeRendering(
             null -> ""
             is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
             is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
-                val args = valueNode.values.single() as DeclarativeDocument.ValueNode.LiteralValueNode
-                "${valueNode.factoryName}(${args.value})"
+                val args = valueNode.values.map { 
+                    (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..." 
+                } 
+                val argsString = args.joinToString(",", "(", ")")  ?: "()"
+                "${valueNode.factoryName}$argsString"
             }
         }
         val elementType =
