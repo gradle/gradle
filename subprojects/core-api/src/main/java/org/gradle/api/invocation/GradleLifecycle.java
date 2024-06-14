@@ -16,6 +16,7 @@
 
 package org.gradle.api.invocation;
 
+import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
@@ -50,4 +51,20 @@ public interface GradleLifecycle {
      */
     @Incubating
     void afterProject(IsolatedAction<? super Project> action);
+
+    /**
+     * Adds an {@link IsolatedAction isolated action}, to be called before a project is evaluated.
+     * <p>
+     * The action is guaranteed to run before the eager cross-project configuration blocks:
+     * <p>
+     * {@link org.gradle.api.Project#allprojects(Closure) allprojects {}},
+     * {@link org.gradle.api.Project#subprojects(Closure) subprojects {}},
+     * {@link org.gradle.api.Project#project(String, Closure)  project(...) {}}
+     *
+     * @param action The action to execute.
+     * @see IsolatedAction for the requirements to isolated actions
+     * @since 8.10
+     */
+    @Incubating
+    void allprojects(IsolatedAction<? super Project> action);
 }
