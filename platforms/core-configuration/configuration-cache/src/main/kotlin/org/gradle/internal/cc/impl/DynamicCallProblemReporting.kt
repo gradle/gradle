@@ -85,7 +85,8 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
         return currentThreadCallStack.peek().problemsReportedInCurrentCall.add(problemKey)
     }
 
-    private fun logMissingScope() {
+    private
+    fun logMissingScope() {
         if (logger.isEnabled(LogLevel.DEBUG)) {
             val stackTrace = IllegalStateException("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall").stackTraceToString()
             val shortenedStackTrace = stackTrace.lines().take(15).joinToString("\n")
@@ -98,6 +99,7 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
         get() = threadLocalState.get()
 
     companion object {
-        private val logger = Logging.getLogger(DynamicCallProblemReporting::class.java)
+        private
+        val logger = Logging.getLogger(DynamicCallProblemReporting::class.java)
     }
 }
