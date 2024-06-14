@@ -18,23 +18,16 @@ package org.gradle.caching.example
 
 import com.google.common.collect.ImmutableMap
 import com.google.inject.Guice
-import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.SimpleBuildCacheKey
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
-import org.gradle.internal.snapshot.MissingFileSnapshot
-import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.Files
-import java.nio.file.Path
 import java.time.Duration
 
 class BuildCacheClientModuleTest extends Specification {
@@ -42,68 +35,55 @@ class BuildCacheClientModuleTest extends Specification {
     def buildCacheController = injector.getInstance(BuildCacheController)
     def fileSystemAccess = injector.getInstance(FileSystemAccess)
 
-    def "can use build cache to store and load things"() {
-        BuildCacheKey cacheKey = new SimpleBuildCacheKey(HashCode.fromString("b9800f9130db9efa58f6ec8c744f1cc7"))
-        String identity = "test-entity"
-        Path targetOutputDirectory = Files.createTempDirectory("target-output")
-        ExampleEntity targetEntity = new ExampleEntity(identity, targetOutputDirectory.toFile())
+    def cacheKey = new SimpleBuildCacheKey(HashCode.fromString("b9800f9130db9efa58f6ec8c744f1cc7"))
+    def identity = "test-entity"
 
-        // Try to load a non-existent entity
-        buildCacheController.load(cacheKey, targetEntity)
-            .ifPresent(__ -> {
-                throw new RuntimeException("Should have been a miss")
-            })
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(BuildCacheClientModuleTest)
 
+    def "can handle missing entry"() {
+        def outputDirectory = tmpDir.createDir("target-output")
+        def entity = new ExampleEntity(identity, outputDirectory)
+
+        when:
+        def result = buildCacheController.load(cacheKey, entity)
+
+        then:
+        !result.isPresent()
+    }
+
+    def "can store and load outputs"() {
         // Produce some example output (simulate executing cacheable work in a temporary sandbox)
-        Path sandboxOutputDirectory = Files.createTempDirectory("sandbox-output")
-        Path sandboxOutputTxt = sandboxOutputDirectory.resolve("output.txt")
-        Files.write(sandboxOutputTxt, Collections.singleton("contents"))
+        def workOutputDirectory = tmpDir.createDir("work-output")
+        def workOutputTxt = workOutputDirectory.file("output.txt")
+        workOutputTxt.text = "contents"
 
         // Capture the snapshot of the produced output
-        FileSystemLocationSnapshot producedOutputSnapshot = fileSystemAccess.read(sandboxOutputDirectory.toAbsolutePath().toString())
+        def producedOutputSnapshot = fileSystemAccess.read(workOutputDirectory.absolutePath)
 
         // Store the entity in the cache
-        def sandboxEntity = new ExampleEntity("test-entity", sandboxOutputDirectory.toFile())
+        def entity = new ExampleEntity("test-entity", workOutputDirectory)
+
+        when:
         buildCacheController.store(
             cacheKey,
-            sandboxEntity,
+            entity,
             ImmutableMap.of("output", producedOutputSnapshot),
             Duration.ofSeconds(10))
 
+        then:
+        noExceptionThrown()
+
+        when:
         // Load the entity from the cache
+        def targetOutputDirectory = tmpDir.createDir("target-output")
+        def targetEntity = new ExampleEntity(identity, targetOutputDirectory)
         def loadResult = buildCacheController.load(cacheKey, targetEntity)
-            .orElseThrow(() -> new RuntimeException("Should have been a hit"))
 
-        printLoadedResult(loadResult)
-
-        expect:
-        true
-    }
-
-    private static void printLoadedResult(BuildCacheLoadResult loadResult) {
-        println("Loaded from cache:")
-        loadResult.getResultingSnapshots().forEach((name, snapshot) -> {
-            println(" - Output property '${name}':")
-            snapshot.accept(locationSnapshot -> {
-                locationSnapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
-                    @Override
-                    void visitDirectory(DirectorySnapshot directorySnapshot) {
-                        println("   - ${locationSnapshot.getAbsolutePath()}/")
-                    }
-
-                    @Override
-                    void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                        println("   - ${locationSnapshot.getAbsolutePath()}")
-                    }
-
-                    @Override
-                    void visitMissing(MissingFileSnapshot missingSnapshot) {
-                        println("   - ${locationSnapshot.getAbsolutePath()} (?)")
-                    }
-                })
-                return SnapshotVisitResult.CONTINUE
-            })
-        })
+        then:
+        loadResult.isPresent()
+        targetOutputDirectory.assertHasDescendants("output.txt")
+        targetOutputDirectory.file("output.txt").text == "contents"
     }
 
     static class ExampleEntity implements CacheableEntity {
