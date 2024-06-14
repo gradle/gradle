@@ -65,7 +65,7 @@ class DeduplicatingFailurePrinterTest extends Specification {
         def exceptions = [SimulatedJavaException.simulateDeeperException(), SimulatedJavaException.simulateDeeperException()]
         assert exceptions[0].stackTrace.toList() == exceptions[1].stackTrace.toList()
 
-        dropNthStacktraceFrame(exceptions[1], 2)
+        removeNthStacktraceFrame(exceptions[1], 2)
 
         when:
         def printer1 = new DeduplicatingFailurePrinter(3)
@@ -82,7 +82,7 @@ class DeduplicatingFailurePrinterTest extends Specification {
         printed2[1] == null
     }
 
-    private static void dropNthStacktraceFrame(RuntimeException exception, int frameIndex) {
+    private static void removeNthStacktraceFrame(RuntimeException exception, int frameIndex) {
         exception.stackTrace = exception.stackTrace.toList().tap { remove(frameIndex) }.toArray(new StackTraceElement[0])
     }
 }
