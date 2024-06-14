@@ -192,7 +192,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
         )
 
         SourcesColumn(sources) { fileIdentifier, clickOffset ->
-            val clickedNode = domWithConventions.document.nodeAt(fileIdentifier, clickOffset)
+            val clickedDocument = when (fileIdentifier) {
+                buildFileId -> domWithConventions.inputOverlay
+                settingsFileId -> domWithConventions.inputUnderlay
+                else -> null
+            }
+            val clickedNode = clickedDocument?.document?.nodeAt(fileIdentifier, clickOffset)
             if (clickedNode == null) {
                 highlightedSourceRangeByFileId.value = emptyMap()
             } else {
