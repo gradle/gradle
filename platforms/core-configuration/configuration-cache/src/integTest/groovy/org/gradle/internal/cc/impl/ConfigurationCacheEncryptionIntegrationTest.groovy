@@ -24,12 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.internal.SupportedEncryptionAlgorithm
 
 import java.nio.charset.StandardCharsets
-
-import static org.gradle.internal.cc.impl.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
-
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,6 +33,7 @@ import java.security.KeyStore
 import java.util.stream.Stream
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.internal.cc.impl.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -66,10 +63,11 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateLoaded()
 
         where:
-        [encryptionTransformation, source] << [
-            SupportedEncryptionAlgorithm.getAll().collect { it.transformation },
-            [EncryptionKind.KEYSTORE, EncryptionKind.ENV_VAR]
-        ].combinations()
+        encryptionTransformation | source
+        "AES/CTR/NoPadding"      | EncryptionKind.KEYSTORE
+        "AES/CTR/NoPadding"      | EncryptionKind.ENV_VAR
+        "AES/GCM/NoPadding"      | EncryptionKind.KEYSTORE
+        "AES/GCM/NoPadding"      | EncryptionKind.ENV_VAR
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {

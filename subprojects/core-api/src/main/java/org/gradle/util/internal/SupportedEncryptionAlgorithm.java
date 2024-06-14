@@ -17,7 +17,7 @@
 package org.gradle.util.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.GradleException;
+import com.google.common.io.ByteStreams;
 import org.gradle.api.NonNullApi;
 
 import javax.crypto.Cipher;
@@ -197,10 +197,7 @@ public class SupportedEncryptionAlgorithm {
      */
     private static byte[] readNBytes(InputStream inputStream, int size) throws IOException {
         byte[] buf = new byte[size];
-        if (inputStream.read(buf) != size) {
-            throw new GradleException("Could not read data");
-        }
+        ByteStreams.readFully(inputStream, buf);
         return buf;
     }
-
 }

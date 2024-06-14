@@ -102,7 +102,10 @@ class DefaultEncryptionService(
 
     override val encryptionAlgorithm: EncryptionAlgorithm by lazy {
         SupportedEncryptionAlgorithm.getAll().find { it.transformation == startParameter.encryptionAlgorithm }
-            ?: throw InvalidUserDataException("Unsupported encryption algorithm: ${startParameter.encryptionAlgorithm}")
+            ?: throw InvalidUserDataException(
+                "Unsupported encryption algorithm: ${startParameter.encryptionAlgorithm}. " +
+                    "Supported algorithms are: ${SupportedEncryptionAlgorithm.getAll().joinToString { it.transformation }}"
+            )
     }
 
     override val isEncrypting: Boolean
