@@ -20,6 +20,11 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * Formats {@link Failure} instances into stacktraces and keeps track of the unique traces.
+ * <p>
+ * The uniqueness of traces is determined by the N topmost stack frames.
+ */
 public class DeduplicatingFailurePrinter {
 
     private final int deduplicationFramesCount;
