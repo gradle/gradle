@@ -491,7 +491,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Things$Thing.')
-        failure.assertHasCause('Class Things.Thing is a non-static inner class, it probably captures a variable from the outer scope.')
+        failure.assertHasCause('Class Things.Thing is a non-static inner class.')
     }
 
     def "object creation fails with ObjectInstantiationException given unknown service requested as constructor parameter"() {
