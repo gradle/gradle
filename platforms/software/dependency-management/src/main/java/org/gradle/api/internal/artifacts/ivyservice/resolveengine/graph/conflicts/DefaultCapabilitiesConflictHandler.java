@@ -39,7 +39,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
@@ -56,24 +55,22 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         CapabilityInternal capability = (CapabilityInternal) candidate.getCapability();
         String group = capability.getGroup();
         String name = capability.getName();
+
         final Set<NodeState> nodes = findNodesFor(capability);
         Collection<NodeState> implicitCapabilityProviders = candidate.getImplicitCapabilityProviders();
         nodes.addAll(implicitCapabilityProviders);
+
         NodeState node = candidate.getNode();
         if (nodes.add(node) && nodes.size() > 1) {
-            // The registered nodes may contain nodes which are no longer selected.
-            // We don't remove them from the list in the first place because it proved to be
-            // slower than filtering as needed.
+            // If the root node is in conflict, find its module ID
             ModuleIdentifier rootId = null;
-            final List<NodeState> candidatesForConflict = Lists.newArrayListWithCapacity(nodes.size());
             for (NodeState ns : nodes) {
-                if (ns.isSelected()) {
-                    candidatesForConflict.add(ns);
-                    if (ns.isRoot()) {
-                        rootId = ns.getComponent().getId().getModule();
-                    }
+                if (ns.isRoot()) {
+                    rootId = ns.getComponent().getId().getModule();
                 }
             }
+
+            Set<NodeState> candidatesForConflict = new LinkedHashSet<>(nodes);
             if (rootId != null && candidatesForConflict.size() > 1) {
                 // This is a special case for backwards compatibility: it is possible to have
                 // a cycle where the root component depends on a library which transitively
@@ -109,7 +106,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private Set<NodeState> findNodesFor(CapabilityInternal capability) {
         String capabilityId = capability.getCapabilityId();
-
         return capabilityWithoutVersionToNodes.computeIfAbsent(capabilityId, k -> new LinkedHashSet<>());
     }
 
@@ -293,10 +289,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         private final String group;
         private final String name;
 
-        private final Collection<NodeState> nodes;
+        private final Set<NodeState> nodes;
         private final Set<Capability> descriptors;
 
-        private CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
+        private CapabilityConflict(String group, String name, Set<NodeState> nodes) {
             this.group = group;
             this.name = name;
             this.nodes = nodes;
