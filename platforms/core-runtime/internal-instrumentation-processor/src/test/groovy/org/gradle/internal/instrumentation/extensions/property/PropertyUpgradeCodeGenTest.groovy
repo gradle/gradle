@@ -209,6 +209,58 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                             | ".setFrom(arg0)"   | [FileCollection]
     }
 
+    def "should auto generate adapter for Provider upgraded property #upgradedType"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+
+            @VisitForInstrumentation(value = {Task.class})
+            public abstract class Task {
+                @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "getProperty"))
+                public abstract $upgradedType getProperty();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        boolean hasSuppressWarnings = originalType in ["List", "Map", "Set"]
+        String getterPrefix = originalType == "boolean" ? "is" : "get"
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            ${imports.collect { "import $it.name;" }.join("\n")}
+            import org.gradle.internal.deprecation.DeprecationLogger;
+            import org.gradle.test.Task;
+
+            @Generated
+            public final class Task_Adapter {
+                ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
+                public static $originalType access_get_${getterPrefix}Property(Task self) {
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
+                    return $getCall;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+
+        where:
+        upgradedType                    | originalType | getCall                           | imports
+        "Provider<Integer>"             | "Integer"    | "self.getProperty().getOrElse(null)" | []
+        "Provider<RegularFile>"         | "File"       | "self.getProperty().getOrElse(null)" | []
+        "Provider<Directory>"           | "File"       | "self.getProperty().getOrElse(null)" | []
+        "Provider<Map<String, String>>" | "Map"        | "self.getProperty().getOrElse(null)" | []
+    }
+
     def "should correctly generate interceptor when property name contains get"() {
         given:
         def givenSource = source"""
