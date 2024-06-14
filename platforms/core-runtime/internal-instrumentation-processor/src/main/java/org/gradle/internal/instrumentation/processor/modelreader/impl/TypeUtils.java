@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import org.objectweb.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -32,6 +35,47 @@ import java.util.stream.Stream;
 public class TypeUtils {
     public static Type extractType(TypeMirror typeMirror) {
         return typeMirror.accept(new TypeMirrorToType(), null);
+    }
+
+    public static Type extractRawType(TypeName typeName) {
+        if (typeName.isPrimitive()) {
+            if (typeName.equals(TypeName.BOOLEAN)) {
+                return Type.BOOLEAN_TYPE;
+            }
+            if (typeName.equals(TypeName.BYTE)) {
+                return Type.BYTE_TYPE;
+            }
+            if (typeName.equals(TypeName.SHORT)) {
+                return Type.SHORT_TYPE;
+            }
+            if (typeName.equals(TypeName.INT)) {
+                return Type.INT_TYPE;
+            }
+            if (typeName.equals(TypeName.LONG)) {
+                return Type.LONG_TYPE;
+            }
+            if (typeName.equals(TypeName.CHAR)) {
+                return Type.CHAR_TYPE;
+            }
+            if (typeName.equals(TypeName.FLOAT)) {
+                return Type.FLOAT_TYPE;
+            }
+            if (typeName.equals(TypeName.DOUBLE)) {
+                return Type.DOUBLE_TYPE;
+            }
+        } else if (typeName.equals(TypeName.VOID)) {
+            return Type.VOID_TYPE;
+        }
+
+        ClassName className;
+        if (typeName instanceof ParameterizedTypeName) {
+            className = ((ParameterizedTypeName) typeName).rawType;
+        } else if (typeName instanceof ClassName) {
+            className = (ClassName) typeName;
+        } else {
+            throw new IllegalArgumentException("Not supported to extract raw type from: " + typeName);
+        }
+        return Type.getType("L" + className.reflectionName().replace('.', '/') + ";");
     }
 
     public static Type extractReturnType(ExecutableElement methodElement) {

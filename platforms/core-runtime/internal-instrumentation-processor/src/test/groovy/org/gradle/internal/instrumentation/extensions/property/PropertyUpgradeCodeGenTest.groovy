@@ -214,15 +214,20 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         def givenSource = source"""
             package org.gradle.test;
 
+            import java.io.*;
+            import java.util.*;
             import org.gradle.api.provider.*;
             import org.gradle.api.file.*;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
             import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 
-            @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "getProperty"))
+                @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(
+                    value = ReplacedAccessor.AccessorType.GETTER,
+                    ${setOriginalType ? "originalType = ${originalType}.class," : ""}
+                    name = "getProperty"
+                ))
                 public abstract $upgradedType getProperty();
             }
         """
@@ -231,11 +236,9 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
-        boolean hasSuppressWarnings = originalType in ["List", "Map", "Set"]
         String getterPrefix = originalType == "boolean" ? "is" : "get"
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            ${imports.collect { "import $it.name;" }.join("\n")}
             import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.test.Task;
 
@@ -254,11 +257,15 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .containsElementsIn(generatedClass)
 
         where:
-        upgradedType                    | originalType | getCall                           | imports
-        "Provider<Integer>"             | "Integer"    | "self.getProperty().getOrElse(null)" | []
-        "Provider<RegularFile>"         | "File"       | "self.getProperty().getOrElse(null)" | []
-        "Provider<Directory>"           | "File"       | "self.getProperty().getOrElse(null)" | []
-        "Provider<Map<String, String>>" | "Map"        | "self.getProperty().getOrElse(null)" | []
+        upgradedType                    | originalType | setOriginalType | hasSuppressWarnings | getCall
+        "Provider<Integer>"             | "Integer"    | false           | false               | "self.getProperty().getOrElse(null)"
+        "Provider<Integer>"             | "int"        | true            | false               | "self.getProperty().getOrElse(0)"
+        "Provider<RegularFile>"         | "File"       | false           | false               | "self.getProperty().map(fileSystemLocation -> fileSystemLocation.getAsFile()).getOrNull()"
+        "Provider<Directory>"           | "File"       | false           | false               | "self.getProperty().map(fileSystemLocation -> fileSystemLocation.getAsFile()).getOrNull()"
+        "Provider<File>"                | "File"       | false           | false               | "self.getProperty().getOrElse(null)"
+        "Provider<List<String>>"        | "Iterable"   | true            | true                | "self.getProperty().getOrElse(null)"
+        "Provider<List<String>>"        | "List"       | false           | true                | "self.getProperty().getOrElse(null)"
+        "Provider<Map<String, String>>" | "Map"        | false           | true                | "self.getProperty().getOrElse(null)"
     }
 
     def "should correctly generate interceptor when property name contains get"() {
