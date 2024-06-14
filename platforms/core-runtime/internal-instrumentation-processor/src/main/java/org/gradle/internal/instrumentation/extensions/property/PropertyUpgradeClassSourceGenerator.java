@@ -149,7 +149,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
     }
 
     private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {
-        switch (implementationExtra.getPropertyType()) {
+        GradleLazyType gradleLazyType = GradleLazyType.from(implementationExtra.getNewReturnType());
+        switch (gradleLazyType) {
             case LIST_PROPERTY:
             case SET_PROPERTY:
             case MAP_PROPERTY:
@@ -165,7 +166,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         String propertyGetterName = implementationExtra.getMethodName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         CallableReturnTypeInfo returnType = callableInfo.getReturnType();
-        GradleLazyType upgradedPropertyType = implementationExtra.getPropertyType();
+        GradleLazyType upgradedPropertyType = GradleLazyType.from(implementationExtra.getNewReturnType());
 
         CodeBlock.Builder codeBlockBuilder = CodeBlock.builder();
         if (implementationExtra.getDeprecationSpec().isEnabled()) {

@@ -290,7 +290,6 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
         def newTask = source """
             package org.gradle.test;
 
-            import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
             import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 

@@ -440,7 +440,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
         String implementationClass = accessor.generatedClassName;
-        GradleLazyType gradleLazyType = GradleLazyType.from(extractType(method.getReturnType()));
+        Type newReturnType = TypeUtils.extractReturnType(method);
         String propertyName = getPropertyName(method);
         String methodDescriptor = extractMethodDescriptor(method);
         extras.add(new PropertyUpgradeRequestExtra(
@@ -451,7 +451,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             implementationClass,
             accessor.propertyName,
             accessor.methodName,
-            gradleLazyType,
+            newReturnType,
             accessor.deprecationSpec,
             binaryCompatibility,
             accessor.bridgedMethod
