@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.MultipleMatchingVariantsFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -35,20 +35,20 @@ import java.util.TreeMap;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes a generic {@link VariantAwareAmbiguousResolutionFailure}.
+ * A {@link ResolutionFailureDescriber} that describes a generic {@link MultipleMatchingVariantsFailure}.
  */
-public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<VariantAwareAmbiguousResolutionFailure> {
+public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<MultipleMatchingVariantsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public VariantSelectionException describeFailure(VariantAwareAmbiguousResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public VariantSelectionException describeFailure(MultipleMatchingVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildAmbiguousGraphVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    protected String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
+    protected String buildAmbiguousGraphVariantsFailureMsg(MultipleMatchingVariantsFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
         TreeFormatter formatter = new TreeFormatter();
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = summarizeAmbiguousVariants(failure, describer, formatter, true);
@@ -64,7 +64,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         return formatter.toString();
     }
 
-    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(VariantAwareAmbiguousResolutionFailure failure, AttributeDescriber describer, TreeFormatter formatter, boolean listAvailableVariants) {
+    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(MultipleMatchingVariantsFailure failure, AttributeDescriber describer, TreeFormatter formatter, boolean listAvailableVariants) {
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             ambiguousVariants.put(candidate.getDisplayName(), candidate);
@@ -80,7 +80,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
             }
             formatter.node(node);
         }
-        formatter.append(style(StyledTextOutput.Style.Info, failure.describeRequest()));
+        formatter.append(style(StyledTextOutput.Style.Info, failure.describeRequestTarget()));
         if (listAvailableVariants) {
             formatter.startChildren();
             for (String configuration : ambiguousVariants.keySet()) {

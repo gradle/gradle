@@ -21,7 +21,7 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.MultipleMatchingVariantsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes a {@link VariantAwareAmbiguousResolutionFailure} where
+ * A {@link ResolutionFailureDescriber} that describes a {@link MultipleMatchingVariantsFailure} where
  * there is a single differing attribute between all available variants that is missing from the request.
  * <p>
  * In this situation, we can provide a very brief message pointing to the exact solution needed.
@@ -46,10 +46,10 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
      * This map exists to avoid re-discovering the unrequested attributes between the calls to `canDescribeFailure` and `describeFailure`.
      * Each failure will be added once (by identity), then removed during failure description.
      */
-    private final IdentityHashMap<VariantAwareAmbiguousResolutionFailure, String> suggestableDistinctAttributes = new IdentityHashMap<>();
+    private final IdentityHashMap<MultipleMatchingVariantsFailure, String> suggestableDistinctAttributes = new IdentityHashMap<>();
 
     @Override
-    public boolean canDescribeFailure(VariantAwareAmbiguousResolutionFailure failure) {
+    public boolean canDescribeFailure(MultipleMatchingVariantsFailure failure) {
         // Map from name of attribute -> set of attribute names for each candidate
         Map<String, Set<String>> unrequestedAttributesWithValues = new HashMap<>();
 
@@ -75,7 +75,7 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
     }
 
     @Override
-    protected String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
+    protected String buildAmbiguousGraphVariantsFailureMsg(MultipleMatchingVariantsFailure failure, AttributesSchemaInternal schema) {
         String distinguishingAttribute = suggestableDistinctAttributes.remove(failure);
         assert distinguishingAttribute != null;
 
@@ -93,7 +93,7 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
         return result;
     }
 
-    private void buildSpecificAttributeSuggestionMsg(VariantAwareAmbiguousResolutionFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
+    private void buildSpecificAttributeSuggestionMsg(MultipleMatchingVariantsFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
         formatter.node("The only attribute distinguishing these variants is '" + distinguishingAttribute + "'. Add this attribute to the consumer's configuration to resolve the ambiguity:");
         formatter.startChildren();
         failure.getCandidates().forEach(candidate -> formatter.node("Value: '" + attributeValueForCandidate(candidate, distinguishingAttribute) + "' selects variant: '" + candidate.getDisplayName() + "'"));

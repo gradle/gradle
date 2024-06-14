@@ -23,7 +23,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.List;
@@ -47,18 +47,18 @@ public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends Abs
     private final JavaVersion currentJVMVersion = JavaVersion.current();
 
     @Override
-    protected JavaVersion getJVMVersion(IncompatibleGraphVariantFailure failure) {
+    protected JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure) {
         return currentJVMVersion;
     }
 
     @Override
-    public boolean canDescribeFailure(IncompatibleGraphVariantFailure failure) {
+    public boolean canDescribeFailure(NoCompatibleVariantsFailure failure) {
         boolean isPluginRequest = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         return isPluginRequest && isDueToJVMVersionTooNew(failure);
     }
 
     @Override
-    public AbstractResolutionFailureException describeFailure(IncompatibleGraphVariantFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         String message = buildNeedsNewerJDKFailureMsg(minJVMVersionSupported);
         List<String> resolutions = buildResolutions(suggestUpdateJVM(minJVMVersionSupported));

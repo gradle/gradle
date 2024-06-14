@@ -16,22 +16,42 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 
 /**
- * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
- * that are not compatible with any of the available variants.
+ * An abstract {@link ArtifactSelectionFailure} that represents the situation when an artifact is requested
+ * for a variant and this request fails.
  */
-public abstract class AbstractIncompatibleAttributesSelectionFailure extends AbstractVariantSelectionFailure {
+public abstract class AbstractArtifactSelectionFailure implements ArtifactSelectionFailure {
+    private final ComponentIdentifier targetComponent;
+    private final String targetVariant;
     private final ImmutableAttributes requestedAttributes;
 
-    public AbstractIncompatibleAttributesSelectionFailure(String requestedName, AttributeContainerInternal requestedAttributes) {
-        super(requestedName);
+    public AbstractArtifactSelectionFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes) {
+        this.targetComponent = targetComponent;
+        this.targetVariant = targetVariant;
         this.requestedAttributes = requestedAttributes.asImmutable();
     }
 
+    @Override
+    public String describeRequestTarget() {
+        return targetVariant;
+    }
+
+    @Override
+    public ComponentIdentifier getTargetComponent() {
+        return targetComponent;
+    }
+
+    @Override
+    public String getTargetVariant() {
+        return targetVariant;
+    }
+
+    @Override
     public ImmutableAttributes getRequestedAttributes() {
         return requestedAttributes;
     }

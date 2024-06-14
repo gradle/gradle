@@ -21,7 +21,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.AbstractIncompatibleResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -31,23 +31,23 @@ import java.util.Optional;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleResolutionFailure}.
+ * A {@link ResolutionFailureDescriber} that describes an {@link AbstractIncompatibleResolutionFailure}.
  */
-public abstract class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleResolutionFailure> {
+public abstract class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AbstractIncompatibleResolutionFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(IncompatibleResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public ArtifactVariantSelectionException describeFailure(AbstractIncompatibleResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildIncompatibleArtifactVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactVariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleResolutionFailure failure, AttributesSchemaInternal schema) {
+    private String buildIncompatibleArtifactVariantsFailureMsg(AbstractIncompatibleResolutionFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.describeRequest()) + " match the consumer attributes");
+        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.describeRequestTarget()) + " match the consumer attributes");
         formatter.startChildren();
         for (AssessedCandidate assessedCandidate : failure.getCandidates()) {
             formatter.node(assessedCandidate.getDisplayName());

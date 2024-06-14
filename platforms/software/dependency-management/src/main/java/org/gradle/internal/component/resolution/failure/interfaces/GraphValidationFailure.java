@@ -16,23 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.interfaces;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
-
 /**
- * Represents a failure selecting a component when building the graph
- * during Stage 1 of dependency resolution.
+ * Represents a failure validating the final resulting dependency graph
+ * during Stage 4 of dependency resolution.
  * <p>
- * When this failure occurs, we have only a component selector, and no component, as the
- * selection did not succeed.
- * <p>
- * These failures are typically caused by a missing component that does not
- * exist either locally or in any of the searched repositories.
+ * When this failure occurs, we have always selected a component.
+ *
+ * @implSpec This interface is meant only to be extended by other interfaces, it should not
+ * be implemented directly.
  */
-public interface ComponentSelectionFailure extends ResolutionFailure {
-    /**
-     * Gets the component selector that failed to select.
-     *
-     * @return component selector that failed to select
-     */
-    ComponentSelector getSelector();
+public interface GraphValidationFailure extends ResolutionFailure {
 }

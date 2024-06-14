@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -32,14 +32,14 @@ import java.util.Optional;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleRequestedConfigurationFailure}.
+ * A {@link ResolutionFailureDescriber} that describes an {@link ConfigurationNotCompatibleFailure}.
  */
-public abstract class IncompatibleRequestedConfigurationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleRequestedConfigurationFailure> {
+public abstract class IncompatibleRequestedConfigurationFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotCompatibleFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public VariantSelectionException describeFailure(IncompatibleRequestedConfigurationFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public VariantSelectionException describeFailure(ConfigurationNotCompatibleFailure failure, Optional<AttributesSchemaInternal> schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
@@ -47,13 +47,13 @@ public abstract class IncompatibleRequestedConfigurationFailureDescriber extends
     }
 
     private String buildIncompatibleGraphVariantsFailureMsg(
-        IncompatibleRequestedConfigurationFailure failure,
+        ConfigurationNotCompatibleFailure failure,
         AttributeDescriber describer
     ) {
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate = failure.getCandidates().get(0);
         TreeFormatter formatter = new TreeFormatter();
         String candidateName = assessedCandidate.getDisplayName();
-        formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, failure.describeRequest()) + " does not match the consumer attributes");
+        formatter.node("Configuration '" + candidateName + "' in " + style(StyledTextOutput.Style.Info, failure.describeRequestTarget()) + " does not match the consumer attributes");
         formatUnselectable(assessedCandidate, formatter, describer);
         return formatter.toString();
     }

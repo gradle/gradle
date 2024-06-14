@@ -17,14 +17,14 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 /**
- * A {@link ResolutionFailure} that represents the situation when a configuration is requested
- * by name on a dependency that does not exist on the target component.
+ * A {@link VariantSelectionByNameFailure} that represents the situation when a configuration is requested
+ * by name that does not exist on the target component.
  */
-public class RequestedConfigurationNotFoundFailure extends AbstractConfigurationSelectionFailure {
-    public RequestedConfigurationNotFoundFailure(String requestedConfigurationName, ComponentIdentifier requestedComponent) {
-        super(requestedConfigurationName, requestedComponent);
+public class ConfigurationDoesNotExistFailure extends AbstractVariantSelectionByNameFailure {
+    public ConfigurationDoesNotExistFailure(ComponentIdentifier targetComponent, String requestedConfigurationName) {
+        super(targetComponent, requestedConfigurationName);
     }
 }

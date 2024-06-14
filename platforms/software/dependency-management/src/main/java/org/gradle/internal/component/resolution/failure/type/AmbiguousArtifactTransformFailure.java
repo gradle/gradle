@@ -17,21 +17,22 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 
 import java.util.List;
 
 /**
- * A {@link ResolutionFailure} that represents the situation when multiple artifact transforms are
- * available that would satisfy a dependency selection request.
+ * An {@link ArtifactSelectionFailure} that represents the situation when multiple artifact transforms are
+ * available that would satisfy an artifact selection request.
  */
-public final class AmbiguousArtifactTransformFailure extends AbstractIncompatibleAttributesSelectionFailure {
+public final class AmbiguousArtifactTransformFailure extends AbstractArtifactSelectionFailure {
     private final ImmutableList<TransformedVariant> transformedVariants;
 
-    public AmbiguousArtifactTransformFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
-        super(requestedName, requestedAttributes);
+    public AmbiguousArtifactTransformFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
+        super(targetComponent, targetVariant, requestedAttributes);
         this.transformedVariants = ImmutableList.copyOf(transformedVariants);
     }
 

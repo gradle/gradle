@@ -17,25 +17,32 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * A {@link ResolutionFailure} that represents the generic situation when no variants can
- * be found in the list of candidates that are compatible with a request.
+ * A {@link VariantSelectionByAttributesFailure} that represents the case when a variant cannot
+ * be selected because no variants were found that are compatible with the requested attributes.
  */
-public class IncompatibleResolutionFailure extends AbstractIncompatibleAttributesSelectionFailure {
+public final class NoCompatibleVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public IncompatibleResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(requestedName, requestedAttributes);
+    public NoCompatibleVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(targetComponent, requestedAttributes, requestedCapabilities);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 
     public ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> getCandidates() {
         return candidates;
+    }
+
+    public boolean noCandidatesHaveAttributes() {
+        return getCandidates().stream().allMatch(ResolutionCandidateAssessor.AssessedCandidate::hasNoAttributes);
     }
 }

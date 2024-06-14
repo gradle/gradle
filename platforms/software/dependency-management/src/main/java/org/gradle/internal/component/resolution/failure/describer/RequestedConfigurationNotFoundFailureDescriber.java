@@ -21,17 +21,16 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
-import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
-import org.gradle.util.Path;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
 
 import java.util.Optional;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes a {@link RequestedConfigurationNotFoundFailure}.
+ * A {@link ResolutionFailureDescriber} that describes a {@link ConfigurationDoesNotExistFailure}.
  */
-public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<RequestedConfigurationNotFoundFailure> {
+public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationDoesNotExistFailure> {
     @Override
-    public ConfigurationSelectionException describeFailure(RequestedConfigurationNotFoundFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public ConfigurationSelectionException describeFailure(ConfigurationDoesNotExistFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildConfigurationNotFoundFailureMsg(failure);
 
         ImmutableList.Builder<String> resolutions = ImmutableList.builder();
@@ -46,7 +45,7 @@ public abstract class RequestedConfigurationNotFoundFailureDescriber extends Abs
         return new ConfigurationSelectionException(message, failure, resolutions.build());
     }
 
-    private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.describeRequest(), failure.getRequestedComponentDisplayName());
+    private String buildConfigurationNotFoundFailureMsg(ConfigurationDoesNotExistFailure failure) {
+        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.describeRequestTarget(), failure.getRequestedComponentDisplayName());
     }
 }

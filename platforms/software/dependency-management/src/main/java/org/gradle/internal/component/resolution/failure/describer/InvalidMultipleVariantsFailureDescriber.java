@@ -23,29 +23,29 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodeSelectionFailure}.
+ * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodesValidationFailure}.
  */
-public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodeSelectionFailure> {
+public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodesValidationFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(IncompatibleMultipleNodeSelectionFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public ArtifactVariantSelectionException describeFailure(IncompatibleMultipleNodesValidationFailure failure, Optional<AttributesSchemaInternal> schema) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactVariantSelectionException(msg, failure, resolutions);
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodeSelectionFailure failure) {
+    private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodesValidationFailure failure) {
         StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
-            .append(failure.describeRequest())
+            .append(failure.describeRequestTarget())
             .append(" were selected:\n");
         for (AssessedCandidate assessedCandidate : failure.getAssessedCandidates()) {
             sb.append("   - Variant ").append(assessedCandidate.getDisplayName()).append(" has attributes ");

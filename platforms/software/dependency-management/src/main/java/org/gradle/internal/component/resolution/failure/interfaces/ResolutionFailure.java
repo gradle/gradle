@@ -24,12 +24,15 @@ package org.gradle.internal.component.resolution.failure.interfaces;
  * be implemented directly.  Concrete types implementing this interface should be immutable data classes
  * without nullable fields.  They must also be serializable by the configuration cache.
  */
-/* package */ interface ResolutionFailure { // TODO:ResolutionFailure - Consider renaming me to SelectionFailure and let the package reflect the resolution part?
+/* package */ interface ResolutionFailure {
     /**
-     * Returns a human-readable description of the requested target, for use
+     * Returns a human-readable description of the requested target component, for use
      * primarily in error messages.
+     * <p>
+     * If this is a Stage 1 failure, this should describe the requested component selector.  If this is
+     * a Stage 2 failure, this should describe the component identifier of the selected component.
      *
      * @return description of the requested target
      */
-    String describeRequest();
+    String describeRequestTarget();
 }

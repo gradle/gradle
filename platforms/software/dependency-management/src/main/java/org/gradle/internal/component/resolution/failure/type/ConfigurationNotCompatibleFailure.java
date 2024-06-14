@@ -17,22 +17,30 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 import java.util.List;
 
 /**
- * A {@link ResolutionFailure} that represents the situation when multiple variants are
- * available that would satisfy a dependency selection request.
+ * A {@link VariantSelectionByNameFailure} that represents the situation when a configuration is
+ * requested by name but its attributes are not compatible with the request.
  */
-public class AmbiguousResolutionFailure extends AbstractIncompatibleAttributesSelectionFailure {
+public final class ConfigurationNotCompatibleFailure extends AbstractVariantSelectionByNameFailure {
+    private final ImmutableAttributes requestedAttributes;
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public AmbiguousResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(requestedName, requestedAttributes);
+    public ConfigurationNotCompatibleFailure(ComponentIdentifier targetComponent, String requestedConfigurationName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(targetComponent, requestedConfigurationName);
+        this.requestedAttributes = requestedAttributes.asImmutable();
         this.candidates = ImmutableList.copyOf(candidates);
+    }
+
+    public ImmutableAttributes getRequestedAttributes() {
+        return requestedAttributes;
     }
 
     public ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> getCandidates() {
