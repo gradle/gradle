@@ -34,8 +34,8 @@ object SetVersionCodeMutation : AndroidPrototypeMutationDefinition {
 
 object SetNamespaceMutation : AndroidPrototypeMutationDefinition {
     override val id: String = "org.gradle.client.demo.mutations.namespace"
-    override val name: String = "Set the library namespace"
-    override val description: String = "Updates the namespace in an Android library"
+    override val name: String = "Set the namespace"
+    override val description: String = "Updates the namespace in an Android project"
 
     val newNamespaceParam =
         MutationParameter("New namespace", "New value for the namespace", MutationParameterKind.StringParameter)
@@ -97,8 +97,8 @@ class AddDependencyMutation(
 
     val dependencyCoordinatesParam =
         MutationParameter(
-            "Dependency coordinates",
-            "Coordinates of the dependency to add",
+            "Dependency to add",
+            "Maven coordinates",
             MutationParameterKind.StringParameter
         )
 
