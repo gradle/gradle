@@ -61,7 +61,9 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
         val buildFileContent =
             remember(selectedBuildFile.value, fileUpdatesCount.value) { selectedBuildFile.value.readText() }
-        val settingsFileContent = remember(model.settingsFile) { model.settingsFile.readText() }
+        val settingsFileContent = remember(selectedBuildFile.value, fileUpdatesCount, model.settingsFile) { 
+            model.settingsFile.readText() 
+        }
 
         val analyzer = analyzer(model)
         val projectResult = remember(selectedBuildFile.value, buildFileContent) {
