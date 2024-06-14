@@ -18,6 +18,8 @@ package org.gradle.internal.classpath.transforms;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
+import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
+import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.model.internal.asm.MethodVisitorScope;
@@ -25,6 +27,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -314,5 +317,15 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
 
     private String binaryClassNameOf(String className) {
         return getObjectType(className).getClassName();
+    }
+
+    @Nullable
+    @Override
+    public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
+        if (tag == Opcodes.H_INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
+            return DefaultBridgeMethodBuilder.create(tag, owner, descriptor, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING).withClassName(className);
+        }
+        // TODO(mlopatkin): intercept the rest of the methods or migrate them to annotation processor.
+        return null;
     }
 }

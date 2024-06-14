@@ -25,6 +25,8 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
+import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
+import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -45,6 +47,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,6 +67,9 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleRefere
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
+/**
+ * Generates a single bytecode rewriter class.
+ */
 public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     /**
      * Emits the code that generates interceptor method invocation.
@@ -100,11 +106,16 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .map(RequestExtra.InterceptJvmCalls::getInterceptionType)
             .orElseThrow(() -> new IllegalStateException(RequestExtra.InterceptJvmCalls.class.getSimpleName() + " should be present at this stage!"));
 
-        MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner = requestsClassGroup.stream().collect(
             Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList())
         );
+
+        MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(visitMethodInsnBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
+
+        MethodSpec.Builder findBridgeMethodBuilder = getFindBridgeMethodBuilder();
+        generateFindBridgeMethodBuilderCode(findBridgeMethodBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
+
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
         return builder ->
@@ -121,6 +132,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addField(CONTEXT_FIELD)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
+                .addMethod(findBridgeMethodBuilder.build())
                 .addFields(typeFieldByOwner.values())
                 .addType(factoryClass);
     }
@@ -165,6 +177,65 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         method.addCode(code.build());
     }
 
+    private static void generateFindBridgeMethodBuilderCode(
+        MethodSpec.Builder method,
+        Map<Type, FieldSpec> typeFieldByOwner,
+        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner,
+        Consumer<? super CallInterceptionRequest> onProcessedRequest,
+        Consumer<? super FailureInfo> onFailure
+    ) {
+        CodeBlock.Builder code = CodeBlock.builder();
+        requestsByOwner.forEach((owner, requests) -> generateCodeForOwner(
+            owner,
+            typeFieldByOwner,
+            requests,
+            code,
+            InterceptJvmCallsGenerator::matchTagExpression,
+            InterceptJvmCallsGenerator::generateBridgeMethodBuilder,
+            null,
+            onProcessedRequest,
+            onFailure));
+        code.addStatement("return null");
+        method.addCode(code.build());
+    }
+
+
+    private static void generateBridgeMethodBuilder(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder method) {
+        String interceptorName = request.getImplementationInfo().getName();
+        String interceptorDesc = request.getImplementationInfo().getDescriptor();
+        method.addStatement(
+            "final $1T builder = $1T.create(tag, owner, descriptor, $2N, $3S, $4S)",
+            DefaultBridgeMethodBuilder.class,
+            implTypeField,
+            interceptorName,
+            interceptorDesc);
+        CallableInfo callable = request.getInterceptedCallable();
+        if (callable.hasKotlinDefaultMaskParam()) {
+            method.addStatement("builder.withKotlinDefaultMask()");
+        }
+        if (callable.hasCallerClassNameParam()) {
+            method.addStatement("builder.withClassName(className)");
+        }
+        if (callable.hasInjectVisitorContextParam()) {
+            method.addStatement("builder.withVisitorContext(context)");
+        }
+        method.addStatement("return builder");
+    }
+
+    private static CodeBlock matchTagExpression(CallableInfo callableInfo) {
+        switch (callableInfo.getKind()) {
+            case INSTANCE_METHOD:
+                return CodeBlock.of("(tag == $1T.H_INVOKEVIRTUAL || tag == $1T.H_INVOKEINTERFACE)", Opcodes.class);
+            case STATIC_METHOD:
+                return CodeBlock.of("tag == $T.H_INVOKESTATIC", Opcodes.class);
+            case AFTER_CONSTRUCTOR:
+                return CodeBlock.of("tag == $T.H_NEWINVOKESPECIAL", Opcodes.class);
+            default:
+                throw new Failure("Unsupported kind " + callableInfo.getKind());
+        }
+    }
+
+
     private static Map<Type, FieldSpec> generateFieldsForImplementationOwners(Collection<CallInterceptionRequest> interceptionRequests) {
         Set<String> knownSimpleNames = new HashSet<>();
         return interceptionRequests.stream().map(it -> it.getImplementationInfo().getOwner()).distinct()
@@ -204,6 +275,19 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addParameter(ParameterizedTypeName.get(Supplier.class, MethodNode.class), "readMethodNode");
     }
 
+    private static MethodSpec.Builder getFindBridgeMethodBuilder() {
+        return MethodSpec.methodBuilder("findBridgeMethodBuilder")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(BridgeMethodBuilder.class)
+            .addParameter(String.class, "className")
+            .addParameter(int.class, "tag")
+            .addParameter(String.class, "owner")
+            .addParameter(String.class, "name")
+            .addParameter(String.class, "descriptor");
+
+    }
+
     private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
         .returns(String.class)
@@ -237,7 +321,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         CodeBlock.Builder code,
         InvocationMatcher invocationMatcher,
         InvocationGenerator interceptStandard,
-        InvocationGenerator interceptKotlinDefault,
+        @Nullable InvocationGenerator interceptKotlinDefault,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
@@ -272,7 +356,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         CodeBlock.Builder code,
         InvocationMatcher invocationMatcher,
         InvocationGenerator interceptStandard,
-        InvocationGenerator interceptKotlinDefault
+        @Nullable InvocationGenerator interceptKotlinDefault
     ) {
         String callableName = request.getInterceptedCallable().getCallableName();
         CallableInfo interceptedCallable = request.getInterceptedCallable();
@@ -292,7 +376,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             interceptStandard
         );
 
-        if (interceptedCallable.hasKotlinDefaultMaskParam()) {
+        if (interceptKotlinDefault != null && interceptedCallable.hasKotlinDefaultMaskParam()) {
             matchAndInterceptKotlinDefaultSignature(
                 request,
                 implTypeField,

@@ -28,6 +28,7 @@ import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -39,11 +40,14 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -128,10 +132,22 @@ public class InstrumentingClassTransform implements ClassTransform {
         );
     }
 
+    private static class BridgeMethod {
+        final Handle bridgeMethodHandle;
+        final BridgeMethodBuilder bridgeMethodBuilder;
+
+        private BridgeMethod(Handle bridgeMethodHandle, BridgeMethodBuilder bridgeMethodBuilder) {
+            this.bridgeMethodHandle = bridgeMethodHandle;
+            this.bridgeMethodBuilder = bridgeMethodBuilder;
+        }
+    }
+
     private static class InstrumentingVisitor extends ClassVisitor {
         private final ClassData classData;
         private final List<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
+
+        final Map<Handle, BridgeMethod> bridgeMethods = new HashMap<>();
 
         private String className;
         private boolean hasGroovyCallSites;
@@ -169,6 +185,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (hasGroovyCallSites) {
                 generateCallSiteFactoryMethod();
             }
+            bridgeMethods.values().forEach(this::generateBridgeMethod);
             super.visitEnd();
         }
 
@@ -182,6 +199,10 @@ public class InstrumentingClassTransform implements ClassTransform {
                 visitMaxs(2, 0);
                 visitEnd();
             }};
+        }
+
+        private void generateBridgeMethod(BridgeMethod bridgeMethod) {
+            bridgeMethod.bridgeMethodBuilder.buildBridgeMethod(visitStaticPrivateMethod(bridgeMethod.bridgeMethodHandle.getName(), bridgeMethod.bridgeMethodHandle.getDesc()));
         }
 
         private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
@@ -245,6 +266,9 @@ public class InstrumentingClassTransform implements ClassTransform {
                 );
                 super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
             } else {
+                for (int i = 0; i < bootstrapMethodArguments.length; i++) {
+                    bootstrapMethodArguments[i] = maybeInstrumentBootstrapArgument(bootstrapMethodArguments[i]);
+                }
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
         }
@@ -265,6 +289,46 @@ public class InstrumentingClassTransform implements ClassTransform {
                 bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_V7_TYPE)) &&
                 bootstrapMethodHandle.getName().equals("bootstrap") &&
                 bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
+        }
+
+        private Object maybeInstrumentBootstrapArgument(Object argument) {
+            if (argument instanceof Handle) {
+                return maybeInstrumentHandle((Handle) argument);
+            }
+            return argument;
+        }
+
+        private Handle maybeInstrumentHandle(Handle handle) {
+            BridgeMethod bridgeMethod = owner.bridgeMethods.computeIfAbsent(handle, this::maybeBuildBridgeMethod);
+            if (bridgeMethod != null) {
+                return bridgeMethod.bridgeMethodHandle;
+            }
+            return handle; // No instrumentation requested.
+        }
+
+        @Nullable
+        private BridgeMethod maybeBuildBridgeMethod(Handle handle) {
+            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
+                BridgeMethodBuilder methodBuilder = interceptor.findBridgeMethodBuilder(className, handle.getTag(), handle.getOwner(), handle.getName(), handle.getDesc());
+                if (methodBuilder != null) {
+                    return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(handle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
+                }
+            }
+            return null;
+        }
+
+        private String makeBridgeMethodName(Handle originalHandle) {
+            int index = owner.bridgeMethods.size();
+            // com/foo/Bar -> com$foo$Bar
+            String mangledOwner = originalHandle.getOwner().replace("/", "$");
+            // Only <init> and <clinit> are allowed to have <> in the name.
+            // As we're intercepting these too, we strip prohibited symbols from the bridge method's name.
+            String safeName = originalHandle.getName().replace("<", "").replace(">", "");
+            return "gradle$intercept$$" + mangledOwner + "$$" + safeName + "$" + index;
+        }
+
+        private Handle makeBridgeMethodHandle(String name, String desc) {
+            return new Handle(H_INVOKESTATIC, className, name, desc, false);
         }
     }
 }

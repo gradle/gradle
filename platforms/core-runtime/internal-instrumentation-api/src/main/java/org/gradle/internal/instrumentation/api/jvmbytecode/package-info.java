@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.internal.java")
-}
+/**
+ * Entry points to perform actual bytecode instrumentation.
+ */
+@NonNullApi
+package org.gradle.internal.instrumentation.api.jvmbytecode;
 
-dependencies {
-    api(projects.baseAsm)
-
-    api(libs.asm)
-    api(libs.asmTree)
-    api(libs.jsr305)
-
-    implementation(projects.stdlibJavaExtensions)
-
-    runtimeOnly(libs.groovy)
-}
+import org.gradle.api.NonNullApi;
