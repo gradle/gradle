@@ -147,6 +147,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         if (conflicts.isEmpty()) {
             return false;
         }
+
+        // TODO: Should this look at implicit capabilities? Or just look at group:name
+        // Or, does this intend to see if a specific NODE is in conflict?
+
         return capabilityIdToConflict.values().stream()
             .flatMap(capability -> capability.nodes.stream())
             .anyMatch(node -> node.getComponent().getId().equals(id));
