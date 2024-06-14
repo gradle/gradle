@@ -225,7 +225,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
             is ConfigurationCacheFingerprint.RemoteScript -> input.run {
                 ifOrNull(!host.isRemoteScriptUpToDate(uri)) {
-                    text("remote script ").reference(uri.toString()).text(" has changed")
+                    text("remote script $uri has changed")
                 }
             }
 
@@ -244,7 +244,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
                 val current = System.getenv().filterKeysByPrefix(prefix)
                 ifOrNull(current != snapshot) {
-                    text("the set of environment variables prefixed by ").text(prefix).text(" has changed")
+                    text("the set of environment variables prefixed by ").reference(prefix).text(" has changed")
                 }
             }
 
@@ -259,7 +259,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
-                    text("the set of system properties prefixed by ").text(prefix).text(" has changed")
+                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed")
                 }
             }
         }
