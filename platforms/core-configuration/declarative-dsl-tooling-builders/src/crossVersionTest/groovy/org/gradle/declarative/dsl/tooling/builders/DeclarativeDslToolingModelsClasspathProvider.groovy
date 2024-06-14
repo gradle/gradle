@@ -36,7 +36,7 @@ class DeclarativeDslToolingModelsClasspathProvider implements ToolingApiAddition
     private static List<String> jarPrefixesFor() {
         return [
             "gradle-declarative-dsl-",
-            "gradle-core-api-",
+            "gradle-core-api-", // TODO: maybe the core-api should be in the classpath implicitly, to clarify in this PR
             "kotlin-stdlib-",
             "kotlin-compiler-embeddable-"
         ]
