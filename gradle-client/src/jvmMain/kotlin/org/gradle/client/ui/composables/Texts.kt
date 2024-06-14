@@ -1,6 +1,7 @@
 package org.gradle.client.ui.composables
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -77,7 +78,8 @@ fun HeadlineSmall(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun CodeBlock(
     modifier: Modifier = Modifier,
-    code: AnnotatedString
+    code: AnnotatedString,
+    onClick: (Int) -> Unit = {},
 ) {
     Surface(
         tonalElevation = MaterialTheme.spacing.level1,
@@ -86,12 +88,11 @@ fun CodeBlock(
         shape = MaterialTheme.shapes.extraSmall,
         modifier = modifier
     ) {
-        SelectionContainer {
-            Text(
-                text = code,
-                modifier = Modifier.padding(MaterialTheme.spacing.level2),
-                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-            )
-        }
+        ClickableText(
+            text = code,
+            modifier = Modifier.padding(MaterialTheme.spacing.level2),
+            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+            onClick = onClick,
+        )
     }
 }

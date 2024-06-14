@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,7 +38,6 @@ import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayOriginCo
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
-import org.gradle.internal.declarativedsl.language.SyntheticallyProduced.sourceIdentifier
 import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
 import java.io.File
@@ -128,7 +128,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                                 }
                             )
                         ) {
-                            WithApplicableMutations(softwareTypeNode) {
+                            WithDecoration(softwareTypeNode) {
                                 TitleMedium(
                                     text = "Software Type: ${softwareTypeNode.name}",
                                     modifier = Modifier
@@ -163,16 +163,16 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     ) {
         val buildDocument = domWithConventions.inputOverlay.document
         val settingsDocument = domWithConventions.inputUnderlay.document
-        
-        val (buildFileId, settingsFileId) = 
+
+        val (buildFileId, settingsFileId) =
             listOf(buildDocument, settingsDocument).map { it.sourceIdentifier.fileIdentifier }
-        
+
         val (buildFileContent, settingsFileContent) =
             listOf(buildDocument, settingsDocument).map { it.sourceData.text() }
-        
+
         val (buildErrorRanges, settingsErrorRanges) =
             listOf(domWithConventions.inputOverlay, domWithConventions.inputUnderlay).map { it.errorRanges() }
-        
+
         val sources = listOfNotNull(
             SourceFileViewInput(
                 buildFileId,
@@ -191,7 +191,16 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             ).takeIf { hasAnyConventionContent },
         )
 
-        SourcesColumn(sources)
+        SourcesColumn(sources) { fileIdentifier, clickOffset ->
+            val clickedNode = domWithConventions.document.nodeAt(fileIdentifier, clickOffset)
+            if (clickedNode == null) {
+                highlightedSourceRangeByFileId.value = emptyMap()
+            } else {
+                highlightedSourceRangeByFileId.value = mapOf(
+                    fileIdentifier to clickedNode.sourceData.indexRange
+                )
+            }
+        }
     }
 
     @Composable
@@ -286,10 +295,10 @@ class ModelTreeRendering(
             null -> ""
             is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
             is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
-                val args = valueNode.values.map { 
-                    (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..." 
-                } 
-                val argsString = args.joinToString(",", "(", ")")  ?: "()"
+                val args = valueNode.values.map {
+                    (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."
+                }
+                val argsString = args.joinToString(",", "(", ")") ?: "()"
                 "${valueNode.factoryName}$argsString"
             }
         }
@@ -299,7 +308,7 @@ class ModelTreeRendering(
         val elementTextRepresentation = "${element.name}($arguments)"
 
         val isEmpty = elementType == null || element.content.isEmpty()
-        WithApplicableMutations(element) {
+        WithDecoration(element) {
             if (isEmpty) {
                 LabelMedium(
                     modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
@@ -333,7 +342,7 @@ class ModelTreeRendering(
     ) {
         val functionNode = parentNode.childElementNode(subFunction.simpleName)
         val functionType = functionNode?.type(resolutionContainer) as? DataClass
-        WithApplicableMutations(functionNode) {
+        WithDecoration(functionNode) {
             TitleSmall(
                 text = subFunction.simpleName,
                 modifier = Modifier
@@ -354,7 +363,7 @@ class ModelTreeRendering(
         propertyNode: DeclarativeDocument.DocumentNode.PropertyNode?,
         property: DataProperty
     ) {
-        WithApplicableMutations(propertyNode) {
+        WithDecoration(propertyNode) {
             LabelMedium(
                 modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                     .withHoverCursor()
@@ -363,6 +372,42 @@ class ModelTreeRendering(
                     propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
                 }"
             )
+        }
+    }
+
+    @Composable
+    fun WithDecoration(
+        node: DeclarativeDocument.DocumentNode?,
+        content: @Composable () -> Unit
+    ) {
+        WithApplicableMutations(node) {
+            WithModelHighlighting(node) {
+                content()
+            }
+        }
+    }
+
+    @Composable
+    private fun WithModelHighlighting(
+        propertyNode: DeclarativeDocument.DocumentNode?,
+        content: @Composable () -> Unit,
+    ) {
+        val sourceData = propertyNode?.sourceData
+        val isHighlighted = sourceData?.indexRange?.let { propRange ->
+            highlightingContext.highlightedSourceRange.value[sourceData.sourceIdentifier.fileIdentifier]
+                ?.let { highlightedRange ->
+                    propRange.first >= highlightedRange.first && propRange.last <= highlightedRange.last
+                }
+        }
+        if (isHighlighted == true) {
+            Surface(
+                shape = MaterialTheme.shapes.extraSmall,
+                color = Color.Yellow,
+            ) {
+                content()
+            }
+        } else {
+            content()
         }
     }
 
@@ -577,10 +622,16 @@ private fun List<MutationArgumentState>.toMutationArgumentsContainer(): Mutation
                     argument(argumentState.parameter as MutationParameter<Int>, requireNotNull(argumentState.value))
 
                 is MutationArgumentState.StringArgument ->
-                    argument(argumentState.parameter as MutationParameter<String>, requireNotNull(argumentState.value))
+                    argument(
+                        argumentState.parameter as MutationParameter<String>,
+                        requireNotNull(argumentState.value)
+                    )
 
                 is MutationArgumentState.BooleanArgument ->
-                    argument(argumentState.parameter as MutationParameter<Boolean>, requireNotNull(argumentState.value))
+                    argument(
+                        argumentState.parameter as MutationParameter<Boolean>,
+                        requireNotNull(argumentState.value)
+                    )
             }
         }
     }

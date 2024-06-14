@@ -26,6 +26,7 @@ internal data class SourceFileViewInput(
 @Composable
 internal fun SourcesColumn(
     sources: List<SourceFileViewInput>,
+    onClick: (String, Int) -> Unit
 ) {
     /**
      * Make everything that wants max width in the column as wide as the widest child composable.
@@ -63,12 +64,16 @@ internal fun SourcesColumn(
         }
 
         sourceFileData.forEach { data ->
-            SourceFileTitleAndText(data.relativePath, data.annotatedSource, data.trimmedSource)
+            SourceFileTitleAndText(
+                data.relativePath,
+                data.annotatedSource,
+                data.trimmedSource,
+                onClick
+            )
             MaterialTheme.spacing.VerticalLevel4()
         }
     }
 }
-
 
 
 private data class SourceFileData(
@@ -100,7 +105,8 @@ private fun sourceFileAnnotatedString(
 private fun SourceFileTitleAndText(
     fileRelativePath: String,
     highlightedSource: AnnotatedString,
-    trimmedSource: AnnotatedString?
+    trimmedSource: AnnotatedString?,
+    onClick: (String, Int) -> Unit
 ) {
     if (trimmedSource != null) {
         var isTrimmed by remember { mutableStateOf(true) }
@@ -119,11 +125,16 @@ private fun SourceFileTitleAndText(
         }
 
         MaterialTheme.spacing.VerticalLevel2()
-        CodeBlock(Modifier.fillMaxWidth(), if (isTrimmed) trimmedSource else highlightedSource)
+        CodeBlock(Modifier.fillMaxWidth(), if (isTrimmed) trimmedSource else highlightedSource) { clickOffset ->
+            println("TODO map click offset from trimmed source $clickOffset")
+            onClick(fileRelativePath, clickOffset)
+        }
     } else {
         TitleMedium(fileRelativePath)
         MaterialTheme.spacing.VerticalLevel4()
-        CodeBlock(Modifier.fillMaxWidth(), highlightedSource)
+        CodeBlock(Modifier.fillMaxWidth(), highlightedSource) { clickOffset ->
+            onClick(fileRelativePath, clickOffset)
+        }
     }
 }
 

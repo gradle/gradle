@@ -4,6 +4,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
+import java.util.*
 
 fun DeclarativeDocument.relevantRange(): IntRange {
     val first = content.firstOrNull() ?: return IntRange.EMPTY
@@ -15,3 +16,32 @@ fun DocumentWithResolution.errorRanges(): List<IntRange> =
     resolutionContainer.collectToMap(document).entries
         .filter { it.value is DocumentResolution.UnsuccessfulResolution }
         .map { it.key.sourceData.indexRange }
+
+fun DeclarativeDocument.nodeAt(fileIdentifier: String, offset: Int): DeclarativeDocument.DocumentNode? {
+    var node: DeclarativeDocument.DocumentNode? = null
+    val stack: Deque<DeclarativeDocument.DocumentNode> = LinkedList()
+    stack.addAll(
+        content.filter {
+            it.sourceData.sourceIdentifier.fileIdentifier == fileIdentifier &&
+                    it.sourceData.indexRange.contains(offset)
+        }
+    )
+    while (stack.isNotEmpty()) {
+        when (val current = stack.pop()) {
+            is DeclarativeDocument.DocumentNode.ElementNode -> {
+                node = current
+                stack.addAll(
+                    current.content.filter {
+                        it.sourceData.sourceIdentifier.fileIdentifier == fileIdentifier &&
+                                it.sourceData.indexRange.contains(offset)
+                    }
+                )
+            }
+
+            else -> {
+                node = current
+            }
+        }
+    }
+    return node
+}
