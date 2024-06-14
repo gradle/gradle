@@ -86,6 +86,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.slf4j.Logger;
@@ -210,8 +211,8 @@ class BuildCacheClientModule extends AbstractModule {
         }
 
         @Provides
-        PersistentCache createPersistentCache(File buildcacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
-            return new DefaultCacheBuilder(cacheFactory, buildcacheDir)
+        PersistentCache createPersistentCache(File buildCacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
+            return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
                 .withCleanupStrategy(cacheCleanupStrategy)
                 .withDisplayName("Build cache")
                 .withInitialLockMode(OnDemand)
@@ -219,8 +220,8 @@ class BuildCacheClientModule extends AbstractModule {
         }
 
         @Provides
-        FileAccessTracker createFileAccessTracker(File buildcacheDir, FileAccessTimeJournal fileAccessTimeJournal) {
-            return new SingleDepthFileAccessTracker(fileAccessTimeJournal, buildcacheDir, 1);
+        FileAccessTracker createFileAccessTracker(File buildCacheDir, FileAccessTimeJournal fileAccessTimeJournal) {
+            return new SingleDepthFileAccessTracker(fileAccessTimeJournal, buildCacheDir, 1);
         }
 
         @Provides
@@ -452,7 +453,20 @@ class BuildCacheClientModule extends AbstractModule {
     VirtualFileSystem createVirtualFileSystem() {
         // TODO Figure out case sensitivity properly
         SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE);
-        return new ExampleBuildCacheClient.CustomVirtualFileSystem(root);
+        return new CustomVirtualFileSystem(root);
+    }
+
+    // TODO Make AbstractVirtualFileSystem into DefaultVirtualFileSystem, and wrap it with the
+    //      watching/non-watching implementations so DefaultVirtualFileSystem can be reused here
+    private static class CustomVirtualFileSystem extends AbstractVirtualFileSystem {
+        protected CustomVirtualFileSystem(SnapshotHierarchy root) {
+            super(root);
+        }
+
+        @Override
+        protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
+            return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
+        }
     }
 
     @Provides
