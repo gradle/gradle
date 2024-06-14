@@ -69,7 +69,7 @@ public enum GradleLazyType {
                 return gradleType;
             }
         }
-        throw new UnsupportedOperationException("Unknown lazy type: " + type.getClassName());
+        throw new UnsupportedOperationException("Unknown Gradle lazy type: " + type.getClassName());
     }
 
     public static GradleLazyType from(String name) {
@@ -78,6 +78,6 @@ public enum GradleLazyType {
                 return gradleType;
             }
         }
-        throw new UnsupportedOperationException("Unknown lazy type: " + name);
+        throw new UnsupportedOperationException("Unknown Gradle lazy type: " + name);
     }
 }
