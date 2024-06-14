@@ -29,18 +29,21 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
             include 'sub'
 
             def log = []
-            gradle.lifecycle.beforeProject {
-                log << "1: before $name $version"
+            gradle.lifecycle.allprojects {
+                log << "1: all $name $version"
                 version = 'from action'
             }
             gradle.lifecycle.beforeProject {
                 log << "2: before $name $version"
             }
-            gradle.lifecycle.afterProject {
-                log << "1: after $name $version"
+            gradle.lifecycle.beforeProject {
+                log << "3: before $name $version"
             }
             gradle.lifecycle.afterProject {
-                log << "2: after $name $version"
+                log << "4: after $name $version"
+            }
+            gradle.lifecycle.afterProject {
+                log << "5: after $name $version"
             }
             gradle.lifecycle.afterProject {
                 println log
@@ -60,8 +63,8 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains 'root with version from action'
         outputContains 'sub with version from action'
-        outputContains '[1: before root unspecified, 2: before root from action, 1: after root from script, 2: after root from script]'
-        outputContains '[1: before sub unspecified, 2: before sub from action, 1: after sub from script, 2: after sub from script]'
+        outputContains '[1: all root unspecified, 2: before root from action, 3: before root from action, 4: after root from script, 5: after root from script]'
+        outputContains '[1: all sub unspecified, 2: before sub from action, 3: before sub from action, 4: after sub from script, 5: after sub from script]'
     }
 
     def "lifecycle actions in Kotlin DSL allow using a function defined in a class"() {
@@ -185,6 +188,10 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
     def 'lifecycle actions preserve user code application context for scripts'() {
         given:
         settingsFile """
+            gradle.lifecycle.allprojects {
+                println("all:" + $currentApplication)
+            }
+
             gradle.lifecycle.beforeProject {
                 println("before:" + $currentApplication)
             }
@@ -198,6 +205,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
+        outputContains "all:settings file 'settings.gradle'"
         outputContains "before:settings file 'settings.gradle'"
         outputContains "after:settings file 'settings.gradle'"
     }
@@ -210,6 +218,10 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
         groovyFile "build-logic/src/main/groovy/my-settings-plugin.settings.gradle", """
+            gradle.lifecycle.allprojects {
+                println("all:" + $currentApplication)
+            }
+
             gradle.lifecycle.beforeProject {
                 println("before:" + $currentApplication)
             }
@@ -231,6 +243,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
+        outputContains "all:plugin 'my-settings-plugin'"
         outputContains "before:plugin 'my-settings-plugin'"
         outputContains "after:plugin 'my-settings-plugin'"
     }
@@ -239,6 +252,9 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile """
             ${userCodeApplicationContext}.gradleRuntime {
+                gradle.lifecycle.allprojects {
+                    println("all:" + $currentApplication)
+                }
                 gradle.lifecycle.beforeProject {
                     println("before:" + $currentApplication)
                 }
@@ -253,6 +269,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
+        outputContains "all:null"
         outputContains "before:null"
         outputContains "after:null"
     }

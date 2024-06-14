@@ -389,7 +389,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
-        1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
+        1 * crossProjectConfigurator.rootProject(project(), _,  _) >> { p, a, ap ->
             a.execute(p)
         }
         1 * action.execute(rootProject)
@@ -411,7 +411,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
-        1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
+        1 * crossProjectConfigurator.rootProject(project(), _, _) >> { p, a, ap ->
             a.execute(p)
         }
         1 * rootProject.allprojects(action)
