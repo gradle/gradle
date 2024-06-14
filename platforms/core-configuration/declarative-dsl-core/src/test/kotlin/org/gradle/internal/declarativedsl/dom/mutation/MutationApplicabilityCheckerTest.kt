@@ -165,6 +165,50 @@ object MutationApplicabilityCheckerTest {
         )
     }
 
+    @Test
+    fun `does not fail if the document has errors`() {
+        val doc = documentWithResolution(
+            schema, ParseTestUtil.parse(
+                """
+                nested {
+                    unresolved { }
+                    x = "foo" // won't type-check
+
+                    ^_^ syntax error!
+
+                    f {
+                        x = 1
+                    }
+
+                    @UnsupportedFeatureAnnotation
+                    something = "something"
+                }
+                """.trimIndent()
+            )
+        )
+
+        val addFResult = MutationApplicabilityChecker(schema, doc).checkApplicability(addF)
+
+        assertEquals(
+            setOf(
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested")),
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested").elementNamed("unresolved")),
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested").elementNamed("f")),
+            ),
+            addFResult.toSet()
+        )
+
+        val setXResult = MutationApplicabilityChecker(schema, doc).checkApplicability(setX)
+
+        // TODO: once set-property mutation learns to add nodes, fix the expected set
+        assertEquals(
+            setOf(
+                MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
+            ),
+            setXResult.toSet()
+        )
+    }
+
     private
     val schema = schemaFromTypes(TopLevel::class, listOf(TopLevel::class, Nested::class))
 }

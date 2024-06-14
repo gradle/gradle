@@ -68,7 +68,7 @@ class ScopeLocationMatcher(
 
                 is DocumentNode.PropertyNode -> Unit
 
-                is DocumentNode.ErrorNode -> TODO()
+                is DocumentNode.ErrorNode -> Unit
             }
         }
 
@@ -86,8 +86,14 @@ class ScopeLocationMatcher(
         return when (locationElement) {
             ScopeLocationElement.InAllNestedScopes -> true
             is ScopeLocationElement.InNestedScopes -> {
-                val parentScopeType = if (parentScopeElement == null) topLevelType else (resolution.data(parentScopeElement) as SuccessfulElementResolution).elementType.let { type ->
-                    type as? DataClass ?: error("unexpected scope receiver type $type for $parentScopeElement")
+                val parentScopeType = if (parentScopeElement == null)
+                    topLevelType
+                else {
+                    val parentResolution = resolution.data(parentScopeElement)
+                    if (parentResolution !is SuccessfulElementResolution) {
+                        return false
+                    }
+                    parentResolution.elementType as? DataClass ?: return false
                 }
                 isScopeElementMatchedBySelector(locationElement.nestedScopeSelector, parentScopeType, scopeElement)
             }
