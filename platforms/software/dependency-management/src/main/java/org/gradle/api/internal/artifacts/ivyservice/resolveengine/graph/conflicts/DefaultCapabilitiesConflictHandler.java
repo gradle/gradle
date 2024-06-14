@@ -117,7 +117,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         String capabilityInConflict = conflicts.remove();
-        CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict).withSelectedNodes();;
+        CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict).withSelectedNodes();
+        capabilityWithoutVersionToNodes.put(capabilityInConflict, conflict.nodes);
         if (conflict.nodes.isEmpty()) {
             return;
         }
@@ -127,11 +128,15 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             resolver.resolve(details);
             if (details.hasResult()) {
                 resolutionAction.execute(details);
-                ComponentSelectionDescriptorInternal conflictResolution = ComponentSelectionReasons.CONFLICT_RESOLUTION;
-                if (details.reason != null) {
-                    conflictResolution = conflictResolution.withDescription(details.reason);
+
+                if (conflict.nodes.size() > 1) {
+                    ComponentSelectionDescriptorInternal conflictResolution = ComponentSelectionReasons.CONFLICT_RESOLUTION;
+                    if (details.reason != null) {
+                        conflictResolution = conflictResolution.withDescription(details.reason);
+                    }
+                    details.getSelected().addCause(conflictResolution);
                 }
-                details.getSelected().addCause(conflictResolution);
+
                 return;
             }
         }
@@ -319,7 +324,12 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * may contain no nodes.
          */
         public CapabilityConflict withSelectedNodes() {
-            List<NodeState> selectedNodes = nodes.stream().filter(NodeState::isSelected).collect(Collectors.toList());
+            Set<NodeState> selectedNodes = new LinkedHashSet<>();
+            for (NodeState node : nodes) {
+                if (node.isSelected()) {
+                    selectedNodes.add(node);
+                }
+            }
             return new CapabilityConflict(group, name, selectedNodes);
         }
 

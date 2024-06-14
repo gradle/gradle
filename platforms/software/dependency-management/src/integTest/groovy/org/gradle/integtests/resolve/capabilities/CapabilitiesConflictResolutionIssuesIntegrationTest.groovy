@@ -162,7 +162,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
-                    byConflictResolution()
                     project(":shared", "test:shared:") {
 
                     }
@@ -251,11 +250,11 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             ${mavenTestRepository()}
 
             dependencies {
-                implementation("org.bouncycastle:bcprov-jdk14:1.70")
-                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
                 implementation("org.bouncycastle:bctls-fips:1.0.9")
                 implementation("org.bouncycastle:bctls-jdk14:1.70")
                 implementation("org.bouncycastle:bctls-jdk18on:1.72")
+                implementation("org.bouncycastle:bcprov-jdk14:1.70")
+                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
             }
         """
 
@@ -344,7 +343,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 edge("org.codehaus.woodstox:wstx-asl:4.0.6", "org.codehaus.woodstox:woodstox-core-asl:4.4.1") {
                     byConflictResolution("latest version of capability woodstox:wstx-asl")
                     edge("javax.xml.stream:stax-api:1.0-2", "stax:stax-api:1.0.1") {
-                        byConflictResolution()
                         byConflictResolution("latest version of capability stax:stax-api")
                     }
                 }
@@ -410,12 +408,13 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org.hibernate:hibernate-core:5.4.18.Final") {
-                    module("org.dom4j:dom4j:2.1.3")
+                    module("org.dom4j:dom4j:2.1.3") {
+                        byConflictResolution("latest version of capability org.dom4j:dom4j")
+                        byConflictResolution("between versions 2.1.3 and 1.6.1")
+                    }
                 }
                 module("jaxen:jaxen:1.1.1") {
-                    module("dom4j:dom4j:1.6.1") {
-                        byConflictResolution()
-                    }
+                    module("dom4j:dom4j:1.6.1")
                 }
                 module("org.unitils:unitils-dbmaintainer:3.3") {
                     edge("org.hibernate:hibernate:3.2.5.ga", "org.hibernate:hibernate-core:5.4.18.Final") {

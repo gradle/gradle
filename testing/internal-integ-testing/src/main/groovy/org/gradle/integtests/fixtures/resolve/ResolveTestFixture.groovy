@@ -914,6 +914,7 @@ $END_MARKER
             this
         }
 
+        // TODO: This is suspicious.
         NodeBuilder maybeByConflictResolution() {
             ignoreReasonPrefixes.add("conflict resolution")
             this
