@@ -54,6 +54,7 @@ import org.gradle.internal.extensions.core.get
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
@@ -174,11 +175,13 @@ class DefaultBuildModelControllerServices(
         }
 
         @Provides
-        fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
-            DefaultDynamicCallProblemReporting().also { reporting ->
+        fun createDynamicCallProjectIsolationProblemReporting(failureFactory: FailureFactory, dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting {
+            val stacktraceLocationPrinter = StacktraceLocationPrinter(failureFactory)
+            return DefaultDynamicCallProblemReporting(stacktraceLocationPrinter::getUniqueLocationWithStacktrace).also { reporting ->
                 dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
                 dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
             }
+        }
 
         @Provides
         fun createDynamicLookupRoutine(

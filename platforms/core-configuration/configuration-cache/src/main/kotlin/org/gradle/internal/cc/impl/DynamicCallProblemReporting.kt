@@ -17,7 +17,8 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.logging.Logging
-import org.gradle.internal.cc.base.debug
+import org.gradle.internal.problems.failure.DeduplicatingFailurePrinter
+import org.gradle.internal.problems.failure.FailureFactory
 import java.util.Stack
 
 
@@ -49,7 +50,10 @@ interface DynamicCallProblemReporting {
 }
 
 
-class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
+class DefaultDynamicCallProblemReporting(
+    private val getUniqueLocationWithStacktrace: (String) -> String? = { null },
+) : DynamicCallProblemReporting {
+
     private
     class CallEntry(val entryPoint: Any) {
         val problemsReportedInCurrentCall: MutableSet<Any> = HashSet(1)
@@ -84,9 +88,10 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
 
     private
     fun logMissingScope() {
-        logger.debug {
-            val stackTrace = IllegalStateException("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall").stackTraceToString()
-            "Warning: " + stackTrace.lines().take(15).joinToString("\n")
+        if (logger.isDebugEnabled) {
+            getUniqueLocationWithStacktrace("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall")?.let {
+                logger.debug("Warning: $it")
+            }
         }
     }
 
@@ -97,5 +102,19 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
     companion object {
         private
         val logger = Logging.getLogger(DynamicCallProblemReporting::class.java)
+    }
+}
+
+
+class StacktraceLocationPrinter(
+    private val failureFactory: FailureFactory
+) {
+
+    private
+    val deduplicatingFailurePrinter by lazy { DeduplicatingFailurePrinter() }
+
+    fun getUniqueLocationWithStacktrace(message: String): String? {
+        val exception = Exception(message)
+        return deduplicatingFailurePrinter.printToString(failureFactory.create(exception))
     }
 }
