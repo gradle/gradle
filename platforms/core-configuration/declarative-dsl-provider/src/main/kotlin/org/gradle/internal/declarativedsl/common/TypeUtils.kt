@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluationSchema
+package org.gradle.internal.declarativedsl.common
 
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
 
 
-/**
- * Utility [TypeDiscovery] implementation that allows introducing [discoverClasses] as soon as [keyClass] is encountered in type discovery.
- */
 internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        when (kClass) {
-            keyClass -> discoverClasses.distinct()
-            else -> emptyList()
+fun withAllPotentiallyDeclarativeSupertypes(kClass: KClass<*>) = buildSet<KClass<*>> {
+    fun visit(type: KType) {
+        val classifier = type.classifier
+        if (classifier is KClass<*> && add(classifier)) {
+            classifier.supertypes.forEach(::visit)
         }
+    }
+    add(kClass)
+    kClass.supertypes.forEach(::visit)
+
+    // No need to include Any, it only clutters the schema
+    remove(Any::class)
 }

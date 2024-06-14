@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluationSchema
+package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import kotlin.reflect.KClass
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
+import org.gradle.internal.declarativedsl.dom.DocumentNodeContainer
 
 
-/**
- * Utility [TypeDiscovery] implementation that allows introducing [discoverClasses] as soon as [keyClass] is encountered in type discovery.
- */
 internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        when (kClass) {
-            keyClass -> discoverClasses.distinct()
-            else -> emptyList()
-        }
-}
+fun DocumentNodeContainer.elementNamed(name: String): ElementNode =
+    content.single { it is ElementNode && it.name == name } as ElementNode
+
+
+internal
+fun DocumentNodeContainer.propertyNamed(name: String): PropertyNode =
+    content.single { it is PropertyNode && it.name == name } as PropertyNode
