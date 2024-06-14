@@ -16,8 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.internal.cc.base.debug
 import java.util.Stack
 
 
@@ -84,10 +84,9 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
 
     private
     fun logMissingScope() {
-        if (logger.isEnabled(LogLevel.DEBUG)) {
+        logger.debug {
             val stackTrace = IllegalStateException("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall").stackTraceToString()
-            val shortenedStackTrace = stackTrace.lines().take(15).joinToString("\n")
-            logger.log(LogLevel.DEBUG, shortenedStackTrace)
+            "Warning: " + stackTrace.lines().take(15).joinToString("\n")
         }
     }
 
