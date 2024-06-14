@@ -93,6 +93,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
+        wrapperExecuter.noJavaVersionDeprecationChecks()
         def failure = wrapperExecuter.runWithFailure()
 
         then:
@@ -117,6 +118,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
+        wrapperExecuter.noJavaVersionDeprecationChecks()
         def failure = wrapperExecuter.runWithFailure()
 
         then:
@@ -133,6 +135,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
+        wrapperExecuter.noJavaVersionDeprecationChecks()
         def failure = wrapperExecuter.runWithFailure()
 
         then:
@@ -153,6 +156,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
+        wrapperExecuter.noJavaVersionDeprecationChecks()
         def failure = wrapperExecuter.runWithFailure()
 
         then:

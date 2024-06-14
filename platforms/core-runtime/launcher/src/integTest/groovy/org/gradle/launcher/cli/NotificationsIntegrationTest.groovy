@@ -70,8 +70,11 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
     }
 
     def "show reasonable error message for invalid configuration property"() {
-        when:
+        given:
         propertiesFile << "org.gradle.welcome=foo"
+        executer.noJavaVersionDeprecationChecks()
+
+        when:
         fails()
 
         then:

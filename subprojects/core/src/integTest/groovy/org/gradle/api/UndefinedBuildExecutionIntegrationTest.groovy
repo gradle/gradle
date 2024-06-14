@@ -33,6 +33,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when attempting to execute tasks #tasks in directory with no settings or build file"() {
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails(*tasks)
 
         then:
@@ -134,6 +135,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         when:
         // the default, if running from user home dir
         def gradleUserHomeDir = file(".gradle")
+        executer.noJavaVersionDeprecationChecks()
         executer.withGradleUserHomeDir(gradleUserHomeDir)
         fails("tasks")
 
@@ -151,6 +153,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         textFile << "content"
 
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails("tasks")
 
         then:
@@ -219,6 +222,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc").createDir()
 
         expect:
+        executer.noJavaVersionDeprecationChecks()
         executer.usingProjectDirectory(file("buildSrc"))
         fails("tasks")
 
@@ -235,6 +239,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("tasks")
 
         executer.usingProjectDirectory(file("buildSrc"))
+        executer.noJavaVersionDeprecationChecks()
         fails("tasks")
 
         file("buildSrc").assertIsEmptyDir()

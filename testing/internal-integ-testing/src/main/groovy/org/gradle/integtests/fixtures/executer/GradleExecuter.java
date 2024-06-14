@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -37,9 +38,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
-
 public interface GradleExecuter extends Stoppable {
+
+    /**
+     * The minimum version of Java that can be used to execute the daemon without emitting deprecation warnings.
+     */
+    JavaVersion MINIMUM_DAEMON_JAVA_VERSION = JavaVersion.VERSION_1_8;
+
+    /**
+     * The minimum version of Java that can be used to execute the daemon without emitting deprecation warnings.
+     */
+    JavaVersion MINIMUM_NON_DEPRECATED_DAEMON_JAVA_VERSION = JavaVersion.VERSION_17;
+
     /**
      * Sets the working directory to use. Defaults to the test's temporary directory.
      */
@@ -123,6 +133,13 @@ public interface GradleExecuter extends Stoppable {
      * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
      */
     GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
+
+    /**
+     * Get the JVM that this executor will use to run Gradle. May be null if the executor is configured
+     * to run off an invalid JVM.
+     */
+    @Nullable
+    Jvm getConfiguredJvm();
 
     /**
      * Sets the java home dir. Replaces any value set by {@link #withJvm(Jvm)}.
@@ -387,9 +404,7 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
-    default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
-    }
+    GradleExecuter expectDocumentedDeprecationWarning(String warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
@@ -404,6 +419,24 @@ public interface GradleExecuter extends Stoppable {
      * Disable deprecation warning checks.
      */
     GradleExecuter noDeprecationChecks();
+
+    /**
+     * Disable automatic Java version deprecation warning checks.
+     */
+    GradleExecuter noJavaVersionDeprecationChecks();
+
+    /**
+     * Check for Java version deprecation warnings if the given condition is true.
+     */
+    GradleExecuter checkJavaVersionDeprecationIf(boolean condition);
+
+    /**
+     * Check for Java version deprecation warnings as if the given JVM was running the build.
+     */
+    default GradleExecuter checkJavaVersionDeprecationUsing(Jvm jvm) {
+        boolean shouldCheck = jvm.getJavaVersion().isCompatibleWith(GradleExecuter.MINIMUM_NON_DEPRECATED_DAEMON_JAVA_VERSION);
+        return checkJavaVersionDeprecationIf(!shouldCheck);
+    }
 
     /**
      * Disable crash daemon checks

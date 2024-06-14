@@ -31,6 +31,7 @@ class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
 
         when:
         daemon.changeTokenVisibleToClient()
+        executer.noJavaVersionDeprecationChecks()
         fails()
 
         then:

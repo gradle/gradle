@@ -87,6 +87,15 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         setup:
         executer.requireIsolatedDaemons()
 
+        def nextLevel
+        if (logLevel == 'quiet') {
+            nextLevel = 'warn'
+        } else if (logLevel == 'info') {
+            nextLevel = 'debug'
+        } else {
+            throw new RuntimeException("Unexpected log level: ${logLevel}")
+        }
+
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {
@@ -107,10 +116,27 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         outputContains(message)
 
         where:
-        logLevel | nextLevel | flags                                          | options
-        'quiet'  | 'warn'    | ['-q', '-Dorg.gradle.logging.level=debug']     | []
-        'info'   | 'debug'   | ['-Dorg.gradle.logging.level=quiet', '--info'] | []
-        'info'   | 'debug'   | ['--info']                                     | ['-Dorg.gradle.logging.level=quiet']
-        'quiet'  | 'warn'    | ['-Dorg.gradle.logging.level=quiet']           | ['-Dorg.gradle.logging.level=debug']
+        logLevel | options                                                                  | flags
+        // Flags always win over options
+        'info'   | ['-Dorg.gradle.logging.level=quiet']                                     | ['--info']
+        'info'   | ['-Dorg.gradle.logging.level=quiet']                                     | ['-Dorg.gradle.logging.level=info']
+        'quiet'  | ['-Dorg.gradle.logging.level=info']                                      | ['-q']
+        'quiet'  | ['-Dorg.gradle.logging.level=info']                                      | ['-Dorg.gradle.logging.level=quiet']
+
+        // The later system prop always wins
+        'info'   | []                                                                       | ['-Dorg.gradle.logging.level=quiet', '-Dorg.gradle.logging.level=info']
+        'quiet'  | []                                                                       | ['-Dorg.gradle.logging.level=info', '-Dorg.gradle.logging.level=quiet']
+        'info'   | ['-Dorg.gradle.logging.level=quiet', '-Dorg.gradle.logging.level=info']  | []
+        'quiet'  | ['-Dorg.gradle.logging.level=info', '-Dorg.gradle.logging.level=quiet']  | []
+
+        // The later shorthand always wins
+        'quiet'  | []                                                                       | ['--info', '-q']
+        'info'   | []                                                                       | ['-q', '--info']
+
+        // Shorthand always win over system props within flags
+        'quiet'  | []                                                                       | ['-q', '-Dorg.gradle.logging.level=debug']
+        'quiet'  | []                                                                       | ['-Dorg.gradle.logging.level=debug', '-q']
+        'info'   | []                                                                       | ['-Dorg.gradle.logging.level=quiet', '--info']
+        'info'   | []                                                                       | ['--info', '-Dorg.gradle.logging.level=quiet']
     }
 }

@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
@@ -146,7 +148,10 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 i++;
             } else if (isDeprecationMessageInHelpDescription(line)) {
                 i++;
+            } else if (getNumLinesFromDaemonLogOutput(line) != -1) {
+                i += getNumLinesFromDaemonLogOutput(line);
             } else if (removeFirstExpectedDeprecationWarning(lines, i)) {
+                // Daemon logs may duplicate deprecation warnings
                 i += lastMatchedDeprecationWarning.getNumLines();
                 i = skipStackTrace(lines, i);
             } else if (line.matches(".*\\s+deprecated.*")) {
@@ -166,6 +171,15 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 i++;
             }
         }
+    }
+
+    private static final Pattern DAEMON_LOG_HEADER_PATTERN = Pattern.compile("----- Last (\\d+) lines from daemon log file - .* -----");
+    private static int getNumLinesFromDaemonLogOutput(String line) {
+        Matcher m = DAEMON_LOG_HEADER_PATTERN.matcher(line);
+        if (m.matches()) {
+            return Integer.parseInt(m.group(1)) + 1;
+        }
+        return -1;
     }
 
     private static boolean isInsideVariantDescriptionBlock(boolean insideVariantDescriptionBlock, String line) {

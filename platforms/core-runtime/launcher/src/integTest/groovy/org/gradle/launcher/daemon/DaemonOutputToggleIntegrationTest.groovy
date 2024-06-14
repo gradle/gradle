@@ -32,6 +32,7 @@ class DaemonOutputToggleIntegrationTest extends DaemonIntegrationSpec {
 
     def "output is not received when toggle is on"() {
         when:
+        executer.noJavaVersionDeprecationChecks() // Logging is disabled, deprecation warning not emitted
         executer.withBuildJvmOpts("-D$LogToClient.DISABLE_OUTPUT=true").noExtraLogging()
         succeeds "help"
 

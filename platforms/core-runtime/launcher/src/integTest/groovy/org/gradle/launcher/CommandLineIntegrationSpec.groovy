@@ -33,6 +33,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "reasonable failure message when --max-workers=#value"() {
         given:
+        executer.noJavaVersionDeprecationChecks()
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
 
         when:
@@ -50,6 +51,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
+        executer.noJavaVersionDeprecationChecks()
         executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
 
         when:
@@ -184,6 +186,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Timeout(30)
     def "reasonable failure message when org.gradle.debug.port=#value"() {
         given:
+        executer.noJavaVersionDeprecationChecks()
         executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
 
         when:

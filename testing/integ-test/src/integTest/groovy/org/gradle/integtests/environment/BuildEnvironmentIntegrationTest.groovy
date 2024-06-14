@@ -191,6 +191,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
+        executer.checkJavaVersionDeprecationUsing(jvm)
         def out = executer.useOnlyRequestedJvmOpts().run().output
 
         then:

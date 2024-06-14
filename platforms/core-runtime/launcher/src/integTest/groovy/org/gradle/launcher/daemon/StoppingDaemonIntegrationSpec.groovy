@@ -55,8 +55,6 @@ task block {
         then:
         stopsSingleDaemon()
         failure.assertHasDescription(DaemonStoppedException.MESSAGE)
-
-        build.waitForFailure()
     }
 
     def "can handle multiple concurrent stop requests"() {

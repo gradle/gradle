@@ -111,6 +111,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         failure = wrapperExecuter
             .withTasks("emptyTask")
             .withStackTraceChecksDisabled()
+            .noJavaVersionDeprecationChecks()
             .runWithFailure()
 
         then:

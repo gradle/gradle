@@ -80,6 +80,7 @@ public abstract class AvailableJavaHomes {
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
+    private static final DefaultJvmMetadataDetector METADATA_DETECTOR = createMetadataDetector();
 
     @Nullable
     public static Jvm getJdk7() {
@@ -272,11 +273,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static List<JvmInstallationMetadata> discoverLocalInstallations() {
-        ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
-        TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
-        DefaultJvmMetadataDetector defaultJvmMetadataDetector =
-            new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
-        JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
+        JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(METADATA_DETECTOR);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
         final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
             .toolchains()
@@ -292,6 +289,25 @@ public abstract class AvailableJavaHomes {
             System.out.println("    " + name + " - " + jvm.getJavaHome());
         }
         return jvms;
+    }
+
+    /**
+     * Probes the JVM at the given location. This operation is expensive, since it starts up the given JVM.
+     * <p>
+     * Other methods on this class should be preferred over this, as they cache the probed JVMs.
+     *
+     * @return null if the JVM at the provided location is not valid
+     */
+    @Nullable
+    public static Jvm probeJvm(File javaHome) {
+        JvmInstallationMetadata metadata = METADATA_DETECTOR.getMetadata(InstallationLocation.userDefined(javaHome, "adhoc installation " + javaHome));
+        return metadata.isValidInstallation() ? jvmFromMetadata(metadata) : null;
+    }
+
+    private static DefaultJvmMetadataDetector createMetadataDetector() {
+        ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
+        TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
+        return new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
     }
 
     private static List<InstallationSupplier> defaultInstallationSuppliers(ToolchainConfiguration toolchainConfiguration) {

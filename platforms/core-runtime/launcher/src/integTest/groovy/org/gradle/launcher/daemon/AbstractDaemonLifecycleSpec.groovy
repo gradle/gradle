@@ -137,6 +137,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void stopDaemonsNow() {
         executer.withArguments("--stop", "--info")
+
         if (jvm) {
             executer.withJvm(jvm)
         }

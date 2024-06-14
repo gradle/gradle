@@ -104,6 +104,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         String path = String.format('%s%s%s', jvm.javaExecutable.parentFile.canonicalPath, File.pathSeparator, System.getenv('PATH'))
 
         then:
+        executer.checkJavaVersionDeprecationUsing(jvm)
         executer.withEnvironmentVars('PATH': path).withJavaHome('').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 

@@ -56,7 +56,7 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
         file(WRAPPER_PROPERTIES_PATH) << 'distributionSha256Sum=bad'
 
         when:
-        def failure = wrapperExecuter.withStackTraceChecksDisabled().runWithFailure()
+        def failure = wrapperExecuter.withStackTraceChecksDisabled().noJavaVersionDeprecationChecks().runWithFailure()
         def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
         then:

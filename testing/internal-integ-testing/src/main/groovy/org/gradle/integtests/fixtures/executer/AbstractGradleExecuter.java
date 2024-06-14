@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.common.io.ByteStreams;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -26,15 +27,18 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.integtests.fixtures.AvailableJavaHomes;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
@@ -64,6 +68,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,10 +86,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
@@ -94,6 +102,7 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
+import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
@@ -198,6 +207,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
     private boolean checkDeprecations = true;
+    private Boolean checkJavaVersionDeprecation = null;
     private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
@@ -263,6 +273,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        checkJavaVersionDeprecation = null;
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
@@ -416,6 +427,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
+        }
+
+        if (checkJavaVersionDeprecation != null) {
+            executer.checkJavaVersionDeprecationIf(checkJavaVersionDeprecation);
         }
 
         if (durationMeasurement != null) {
@@ -639,6 +654,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             return jvm.getJavaHome().getAbsolutePath();
         }
         return Jvm.current().getJavaHome().getAbsolutePath();
+    }
+
+    @Nullable
+    @Override
+    public Jvm getConfiguredJvm() {
+        if (javaHome != null) {
+            return AvailableJavaHomes.probeJvm(new File(javaHome));
+        }
+        if (jvm != null) {
+            return jvm;
+        }
+        return Jvm.current();
     }
 
     protected File getJavaHomeLocation() {
@@ -1301,6 +1328,112 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         assertCanExecute();
         assert !(usesSharedDaemons() && (args.contains("--stop") || tasks.contains("--stop"))) : "--stop cannot be used with daemons that are shared with other tests, since this will cause other tests to fail.";
         collectStateBeforeExecution();
+
+        // Rich consoles mess with our deprecation log scraping
+        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
+        if ((consoleAttachment != ConsoleAttachment.NOT_ATTACHED && isAuto) ||
+            consoleType == ConsoleOutput.Verbose ||
+            consoleType == ConsoleOutput.Rich
+        ) {
+            noDeprecationChecks();
+        }
+    }
+
+    private static final Set<String> NO_AUTO_JAVA_VERSION_DEPRECATION_CHECK_ARGS = ImmutableSet.of(
+        "--stop",
+        "--status",
+        "--version",
+        "--help",
+        "-h",
+        "-?"
+    );
+
+    private static final Map<String, LogLevel> KNOWN_LOG_LEVEL_FLAGS = Arrays.stream(LogLevel.values())
+        .flatMap(level -> Stream.of(
+            Pair.of(level, "--" + level.name().toLowerCase()),
+            Pair.of(level, "-" + level.name().toLowerCase().charAt(0)),
+            Pair.of(level, "-Dorg.gradle.logging.level=" + level.name()),
+            Pair.of(level, "-Dorg.gradle.logging.level=" + level.name().toLowerCase())
+        ))
+        .collect(Collectors.toMap(Pair::getRight, Pair::getLeft));
+
+    private LogLevel getRealLogLevel() {
+
+        // Later args take priority over earlier args
+        List<String> reversedArgs = ImmutableList.<String>builder().addAll(args).addAll(tasks).build().reverse();
+
+        // Flag-like args (-q, --quiet) take priority over system properties
+        Optional<LogLevel> argsFlagLogLevel = reversedArgs.stream()
+            .filter(arg -> !arg.startsWith("-Dorg.gradle.logging.level="))
+            .map(KNOWN_LOG_LEVEL_FLAGS::get)
+            .filter(Objects::nonNull)
+            .findFirst();
+
+        if (argsFlagLogLevel.isPresent()) {
+            return argsFlagLogLevel.get();
+        }
+
+        // System properties in args have higher priority than those in command line JVM opts
+        Optional<LogLevel> argsSystemPropertyLogLevel = reversedArgs.stream()
+            .filter(arg -> arg.startsWith("-Dorg.gradle.logging.level="))
+            .map(KNOWN_LOG_LEVEL_FLAGS::get)
+            .filter(Objects::nonNull)
+            .findFirst();
+
+        if (argsSystemPropertyLogLevel.isPresent()) {
+            return argsSystemPropertyLogLevel.get();
+        }
+
+        Optional<LogLevel> commandLineJvmOptsLogLevel = ImmutableList.copyOf(commandLineJvmOpts).reverse().stream()
+            .filter(arg -> arg.startsWith("-Dorg.gradle.logging.level="))
+            .map(KNOWN_LOG_LEVEL_FLAGS::get)
+            .filter(Objects::nonNull)
+            .findFirst();
+
+        return commandLineJvmOptsLogLevel.orElse(LogLevel.LIFECYCLE);
+    }
+
+    private boolean shouldAutomaticallyExpectJavaVersionDeprecation() {
+        if (checkJavaVersionDeprecation != null) {
+            // The test explicitly set whether to check for Java version deprecations
+            return checkJavaVersionDeprecation;
+        }
+
+        if (!checkDeprecations || (warningMode != WarningMode.All && warningMode != WarningMode.Fail)) {
+            // We are not checking for deprecations at all, or deprecations are not being emitted
+            return false;
+        }
+
+        if (Streams.concat(args.stream(), tasks.stream(), commandLineJvmOpts.stream())
+            .anyMatch(NO_AUTO_JAVA_VERSION_DEPRECATION_CHECK_ARGS::contains)
+        ) {
+            // We are executing a command that does not spawn a daemon.
+            return false;
+        }
+
+        if (getRealLogLevel().ordinal() > LogLevel.WARN.ordinal()) {
+            // The log level is lower than WARN, meaning deprecated warnings will not be emitted
+            return false;
+        }
+
+        Jvm jvm = getConfiguredJvm();
+        if (jvm == null) {
+            // The configured JVM is invalid. We do not know its version.
+            return false;
+        }
+
+        JavaVersion version = jvm.getJavaVersion();
+        if (version == null) {
+            // The configured JVM was not probed. We do not know its version.
+            return false;
+        }
+
+        if (!version.isCompatibleWith(MINIMUM_DAEMON_JAVA_VERSION)) {
+            // The build will fail before the deprecation warning is emitted.
+            return false;
+        }
+
+        return !version.isCompatibleWith(MINIMUM_NON_DEPRECATED_DAEMON_JAVA_VERSION);
     }
 
     private void afterBuildCleanup(ExecutionResult result) {
@@ -1347,6 +1480,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
+
+        if (shouldAutomaticallyExpectJavaVersionDeprecation()) {
+            expectDocumentedDeprecationWarning(
+                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Use JVM 17 or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
+            );
+        }
+
         return new ResultAssertion(
             expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
             !stackTraceChecksOn, checkDeprecations, jdkWarningChecksOn
@@ -1373,8 +1518,31 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        String normalized;
+        if (gradleVersionOverride != null) {
+            normalized = normalizeDocumentationLink(warning, gradleVersionOverride);
+        } else {
+            normalized = normalizeDocumentationLink(warning);
+        }
+        return expectDeprecationWarning(normalized);
+    }
+
+    @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter noJavaVersionDeprecationChecks() {
+        checkJavaVersionDeprecation = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter checkJavaVersionDeprecationIf(boolean condition) {
+        checkJavaVersionDeprecation = condition;
         return this;
     }
 

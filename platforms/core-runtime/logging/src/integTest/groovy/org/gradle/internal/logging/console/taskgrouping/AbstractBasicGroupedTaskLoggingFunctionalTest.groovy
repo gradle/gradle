@@ -222,9 +222,6 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         then:
         result.groupedOutput.task(':log').output == 'Before\nAfter'
-
-        cleanup:
-        gradle?.waitForFinish()
     }
 
     String callFromBuild(String name) {

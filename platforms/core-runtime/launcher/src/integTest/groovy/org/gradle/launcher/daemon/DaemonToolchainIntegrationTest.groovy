@@ -64,6 +64,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         captureJavaHome()
 
         expect:
+        executer.noJavaVersionDeprecationChecks()
         fails("help")
         failure.assertHasDescription("Cannot find a Java installation on your machine")
     }

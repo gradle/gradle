@@ -74,6 +74,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     )
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
+        executer.noJavaVersionDeprecationChecks()
         executer.withJvm(jdk)
 
         expect:
@@ -87,6 +88,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
+        executer.noJavaVersionDeprecationChecks()
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
 
         expect:

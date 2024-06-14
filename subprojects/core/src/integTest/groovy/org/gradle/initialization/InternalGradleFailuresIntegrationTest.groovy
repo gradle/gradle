@@ -54,6 +54,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         cachesDir.touch()
 
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails 'hello'
 
         then:
@@ -67,6 +68,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         daemonDir.touch()
 
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails 'hello'
 
         then:
@@ -82,6 +84,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         executer.withNoExplicitNativeServicesDir()
 
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails 'hello'
 
         then:

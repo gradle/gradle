@@ -39,6 +39,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         given:
         daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "stringVersion")
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails 'help'
         then:
         failure.assertHasDescription("Value 'stringVersion' given for toolchainVersion is an invalid Java version")
@@ -48,6 +49,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         given:
         daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "-1")
         when:
+        executer.noJavaVersionDeprecationChecks()
         fails 'help'
         then:
         failure.assertHasDescription("Value '-1' given for toolchainVersion is an invalid Java version")

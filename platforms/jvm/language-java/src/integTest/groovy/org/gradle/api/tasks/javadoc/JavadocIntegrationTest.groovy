@@ -17,7 +17,6 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile

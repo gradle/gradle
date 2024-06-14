@@ -50,6 +50,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         file("gradle.properties").writeProperties(["org.gradle.java.home": dummyJdk.absolutePath])
 
         then:
+        executer.noJavaVersionDeprecationChecks()
         fails()
 
         and:
@@ -102,6 +103,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
     String useAlternativeJavaPath(Jvm jvm = AvailableJavaHomes.differentJdk) {
         File javaHome = jvm.javaHome
         file("gradle.properties").writeProperties("org.gradle.java.home": javaHome.canonicalPath)
+        executer.checkJavaVersionDeprecationUsing(jvm)
         return javaHome.canonicalPath
     }
 

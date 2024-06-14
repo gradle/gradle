@@ -96,6 +96,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
         when:
         def failure = wrapperExecuter
             .withStackTraceChecksDisabled()
+            .noJavaVersionDeprecationChecks()
             .runWithFailure()
 
         then:

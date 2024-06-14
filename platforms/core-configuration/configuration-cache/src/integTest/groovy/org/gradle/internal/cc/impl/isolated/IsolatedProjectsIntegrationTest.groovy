@@ -51,6 +51,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
 
         when:
+        executer.noJavaVersionDeprecationChecks()
         isolatedProjectsFails("thing", "--no-configuration-cache")
 
         then:

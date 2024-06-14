@@ -69,6 +69,7 @@ class StacktraceIntegrationTest extends AbstractIntegrationSpec {
 
     def "emits actionable message when wrong configuration is used"() {
         setup:
+        executer.noJavaVersionDeprecationChecks()
         executer.requireDaemon().requireIsolatedDaemons()
         file('gradle.properties') << 'org.gradle.logging.stacktrace=suppress'
 

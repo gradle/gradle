@@ -26,6 +26,7 @@ import java.io.File;
 import static org.hamcrest.CoreMatchers.startsWith;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
+
     @Test
     public void handlesSimilarlyNamedBuildFilesInSameDirectory() {
         TestFile buildFile1 = testFile("similarly-named build.gradle").write("task build");
@@ -119,12 +120,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void buildFailsWhenSpecifiedBuildFileIsNotAFile() {
         TestFile file = testFile("unknown");
 
-        ExecutionFailure result = usingBuildFile(file).runWithFailure();
+        ExecutionFailure result = usingBuildFile(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified build file '" + file + "' does not exist.");
 
         file.createDir();
 
-        result = usingBuildFile(file).runWithFailure();
+        result = usingBuildFile(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified build file '" + file + "' is not a file.");
     }
 
@@ -132,12 +133,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void buildFailsWhenSpecifiedProjectDirectoryIsNotADirectory() {
         TestFile file = testFile("unknown");
 
-        ExecutionFailure result = usingProjectDir(file).runWithFailure();
+        ExecutionFailure result = usingProjectDir(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified project directory '" + file + "' does not exist.");
 
         file.createFile();
 
-        result = usingProjectDir(file).runWithFailure();
+        result = usingProjectDir(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified project directory '" + file + "' is not a directory.");
     }
 
@@ -145,12 +146,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void buildFailsWhenSpecifiedSettingsFileIsNotAFile() {
         TestFile file = testFile("unknown");
 
-        ExecutionFailure result = inTestDirectory().usingSettingsFile(file).runWithFailure();
+        ExecutionFailure result = inTestDirectory().usingSettingsFile(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified settings file '" + file + "' does not exist.");
 
         file.createDir();
 
-        result = inTestDirectory().usingSettingsFile(file).runWithFailure();
+        result = inTestDirectory().usingSettingsFile(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified settings file '" + file + "' is not a file.");
     }
 
@@ -159,12 +160,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void buildFailsWhenSpecifiedInitScriptIsNotAFile() {
         TestFile file = testFile("unknown");
 
-        ExecutionFailure result = inTestDirectory().usingInitScript(file).runWithFailure();
+        ExecutionFailure result = inTestDirectory().usingInitScript(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified initialization script '" + file + "' does not exist.");
 
         file.createDir();
 
-        result = inTestDirectory().usingInitScript(file).runWithFailure();
+        result = inTestDirectory().usingInitScript(file).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified initialization script '" + file + "' is not a file.");
     }
 
@@ -174,7 +175,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile initFile1 = testFile("init1").write("// empty");
         TestFile initFile2 = testFile("init2");
 
-        ExecutionFailure result = inTestDirectory().usingInitScript(initFile1).usingInitScript(initFile2).runWithFailure();
+        ExecutionFailure result = inTestDirectory().usingInitScript(initFile1).usingInitScript(initFile2).noJavaVersionDeprecationChecks().runWithFailure();
         result.assertHasDescription("The specified initialization script '" + initFile2 + "' does not exist.");
     }
 
