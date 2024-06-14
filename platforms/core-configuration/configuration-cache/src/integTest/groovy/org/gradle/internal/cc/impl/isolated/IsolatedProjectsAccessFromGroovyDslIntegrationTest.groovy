@@ -632,23 +632,24 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    @ToBeImplemented
-    def "property lookup via script objects tracks dynamic call context"() {
+    def "reports problem when cross-project access happens in a script-owned configure-action"() {
         given:
+        createDirs("a", "aa")
         settingsFile """
-            include("a")
+            include(":a")
+            include(":a:aa")
         """
         buildFile """
             project.extensions.extraProperties["projectProperty"] = "hello"
         """
 
-        groovyFile "a/myscript.gradle", """
-            // plain access at the script top-level does not expose the issue
+        groovyFile "a/aa/myscript.gradle", """
+            // Using `withPlugin` as an example of a configure action
             project.pluginManager.withPlugin('base', {
-                println("My property: " + projectProperty.foo)
+                println("My property: " + projectProperty)
             })
         """
-        groovyFile "a/build.gradle", """
+        groovyFile "a/aa/build.gradle", """
             plugins {
                 id "base"
             }
@@ -659,8 +660,14 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A problem occurred evaluating script.")
-        failureCauseContains("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall")
+        outputContains("My property: hello")
+
+        // an additional subproject demonstrates that the problems are duplicated as the property lookup traverses up the project hierarchy
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":a:aa")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project ':a'")
+        }
     }
 
     def "build script can query basic details of projects in allprojects block"() {
