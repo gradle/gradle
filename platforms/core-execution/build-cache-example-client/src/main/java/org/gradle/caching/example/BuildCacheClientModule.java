@@ -19,6 +19,8 @@ package org.gradle.caching.example;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.inject.AbstractModule;
+import com.google.inject.Exposed;
+import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
@@ -103,7 +105,7 @@ import java.util.function.Supplier;
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
-@SuppressWarnings("MethodMayBeStatic")
+@SuppressWarnings("CloseableProvides")
 class BuildCacheClientModule extends AbstractModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheClientModule.class);
 
@@ -113,7 +115,11 @@ class BuildCacheClientModule extends AbstractModule {
         this.buildInvocationId = buildInvocationId;
     }
 
-    @SuppressWarnings("CloseableProvides")
+    @Override
+    protected void configure() {
+        install(new LocalBuildCacheModule());
+    }
+
     @Provides
     BuildCacheController createBuildCacheController(
         BuildCacheServicesConfiguration buildCacheServicesConfig,
@@ -188,28 +194,41 @@ class BuildCacheClientModule extends AbstractModule {
         return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
     }
 
-    @SuppressWarnings("CloseableProvides")
-    @Provides
-    LocalBuildCacheService createLocalBuildCacheService(
-        CacheCleanupStrategy cacheCleanupStrategy,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheFactory cacheFactory
-    ) throws IOException {
-        File target = Files.createTempDirectory("build-cache").toFile();
-        FileUtils.forceMkdir(target);
+    private static class LocalBuildCacheModule extends PrivateModule {
+        @Override
+        protected void configure() {
+        }
 
-        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, 1);
+        @Provides
+        @Exposed
+        LocalBuildCacheService createLocalBuildCacheService(FileAccessTracker fileAccessTracker, PersistentCache persistentCache) {
+            return new DirectoryBuildCacheService(
+                persistentCache,
+                fileAccessTracker,
+                ".failed"
+            );
+        }
 
-        PersistentCache persistentCache = new DefaultCacheBuilder(cacheFactory, target)
-            .withCleanupStrategy(cacheCleanupStrategy)
-            .withDisplayName("Build cache")
-            .withInitialLockMode(OnDemand)
-            .open();
-        return new DirectoryBuildCacheService(
-            persistentCache,
-            fileAccessTracker,
-            ".failed"
-        );
+        @Provides
+        PersistentCache createPersistentCache(File buildcacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
+            return new DefaultCacheBuilder(cacheFactory, buildcacheDir)
+                .withCleanupStrategy(cacheCleanupStrategy)
+                .withDisplayName("Build cache")
+                .withInitialLockMode(OnDemand)
+                .open();
+        }
+
+        @Provides
+        FileAccessTracker createFileAccessTracker(File buildcacheDir, FileAccessTimeJournal fileAccessTimeJournal) {
+            return new SingleDepthFileAccessTracker(fileAccessTimeJournal, buildcacheDir, 1);
+        }
+
+        @Provides
+        File createBuildCacheDir() throws IOException {
+            File target = Files.createTempDirectory("build-cache").toFile();
+            FileUtils.forceMkdir(target);
+            return target;
+        }
     }
 
     @Provides
