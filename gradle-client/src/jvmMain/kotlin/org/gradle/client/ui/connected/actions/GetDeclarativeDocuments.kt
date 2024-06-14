@@ -16,7 +16,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
@@ -31,6 +33,7 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
 import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.mutation.*
@@ -377,11 +380,15 @@ class ModelTreeRendering(
         property: DataProperty
     ) {
         WithDecoration(propertyNode) {
+            val maybeInvalidDecoration =
+                if (propertyNode != null && resolutionContainer.data(propertyNode) !is PropertyAssignmentResolved)
+                    TextDecoration.LineThrough else TextDecoration.None
             LabelMedium(
                 modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                     .withHoverCursor()
                     .withClickTextRangeSelection(propertyNode, highlightingContext)
                     .semiTransparentIfNull(propertyNode),
+                textStyle = TextStyle(textDecoration = maybeInvalidDecoration),
                 text = "${property.name}: ${property.kotlinType.simpleName} = ${
                     propertyNode?.value?.sourceData?.text() ?: NOTHING_DECLARED
                 }"

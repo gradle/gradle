@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import org.gradle.client.ui.theme.spacing
 import org.gradle.client.ui.theme.transparency
@@ -59,11 +60,11 @@ fun LabelSmall(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun LabelMedium(text: String, modifier: Modifier = Modifier) {
+fun LabelMedium(text: String, textStyle: TextStyle = TextStyle.Default, modifier: Modifier = Modifier) {
     Text(
         modifier = modifier,
         text = text,
-        style = MaterialTheme.typography.labelMedium,
+        style = textStyle.plus(MaterialTheme.typography.labelMedium),
     )
 }
 
