@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.software
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
@@ -38,7 +39,8 @@ class SoftwareTypesTest {
                 setOf(object : SoftwareTypeImplementation<Subtype> {
                     override fun getSoftwareType(): String = "subtype"
                     override fun getModelPublicType(): Class<out Subtype> = Subtype::class.java
-                    override fun getPluginClass(): Class<out Plugin<*>> = SubtypePlugin::class.java
+                    override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
+                    override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                     override fun addConvention(rule: Convention<*>) {}
                     override fun getConventions(): List<Convention<*>> = emptyList()
                 })
@@ -72,4 +74,7 @@ class SoftwareTypesTest {
 
     internal
     interface SubtypePlugin : Plugin<Project>
+
+    internal
+    interface SubtypeEcosystemPlugin : Plugin<Settings>
 }
