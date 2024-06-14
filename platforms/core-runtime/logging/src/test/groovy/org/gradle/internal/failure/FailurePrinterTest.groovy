@@ -166,19 +166,7 @@ class FailurePrinterTest extends Specification {
     }
 
     private static Failure toFailure(Throwable t) {
-        def stack = ImmutableList.copyOf(t.stackTrace)
-        def relevances = Collections.nCopies(stack.size(), USER_CODE)
-        def causes = getCauses(t).collect { toFailure(it) }
-        def suppressed = t.getSuppressed().collect { toFailure(it) }
-        new DefaultFailure(t, stack, relevances, suppressed, causes)
-    }
-
-    private static List<Throwable> getCauses(Throwable t) {
-        if (t instanceof MultiCauseException) {
-            return t.causes
-        }
-
-        t.getCause() == null ? ImmutableList.of() : ImmutableList.of(t.getCause())
+        new TestFailureFactory().create(t)
     }
 
     private static String getTraceString(Throwable t) {
