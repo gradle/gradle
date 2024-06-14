@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import javax.annotation.Nullable;
+
 public class DefaultPropertyTraceData implements PropertyTraceData {
     private final String trace;
 
@@ -23,7 +25,10 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
         this.trace = trace;
     }
 
-    public static AdditionalDataBuilder<PropertyTraceData> builder(PropertyTraceData from) {
+    public static AdditionalDataBuilder<PropertyTraceData> builder(@Nullable PropertyTraceData from) {
+        if(from == null) {
+            return new DefaultPropertyTraceDataBuilder();
+        }
         return new DefaultPropertyTraceDataBuilder(from);
     }
 

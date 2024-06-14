@@ -245,7 +245,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (AdditionalDataBuilderFactory.additionalDataBuilderProviders.containsKey(specType)) {
+        if (AdditionalDataBuilderFactory.ADDITIONAL_DATA_BUILDER_PROVIDERS.containsKey(specType)) {
             AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDatabuilder);
             additionalData = additionalDatabuilder.build();

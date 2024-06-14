@@ -19,37 +19,89 @@ package org.gradle.api.problems.internal
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import spock.lang.Specification
 
+import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM
+
 class DefaultProblemBuilderTest extends Specification {
-    def "additionalData accepts all internal types"() {
+    def "additionalData accepts GeneralDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
 
         when:
         def data = problemBuilder
             .id("id", "displayName")
-            .additionalData(specClass, spec -> { })
+            .additionalData(GeneralDataSpec, spec -> {
+                spec.put("key", "value")
+            })
             .build().additionalData
 
         then:
-        dataClass.isInstance(data)
-
-        where:
-        specClass              | dataClass
-        GeneralDataSpec        | GeneralData
-        DeprecationDataSpec    | DeprecationData
-        TypeValidationDataSpec | TypeValidationData
-        PropertyTraceDataSpec  | PropertyTraceData
+        GeneralData.isInstance(data)
     }
+
+    def "additionalData accepts DeprecationDataSpec"() {
+        given:
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+
+        when:
+        def data = problemBuilder
+            .id("id", "displayName")
+            .additionalData(DeprecationDataSpec, spec -> {
+                spec.type(DeprecationData.Type.USER_CODE_INDIRECT)
+            })
+            .build().additionalData
+
+        then:
+        DeprecationData.isInstance(data)
+    }
+
+    def "additionalData accepts TypeValidationDataSpec"() {
+        given:
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+
+        when:
+        def data = problemBuilder
+            .id("id", "displayName")
+            .additionalData(TypeValidationDataSpec, spec -> {
+                spec.propertyName("propertyName")
+                spec.parentPropertyName("parentPropertyName")
+                spec.pluginId("pluginId")
+                spec.typeName("typeName")
+            })
+            .build().additionalData
+
+        then:
+        TypeValidationData.isInstance(data)
+    }
+
+    def "additionalData accepts PropertyTraceDataSpec"() {
+        given:
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+
+        when:
+        def data = problemBuilder
+            .id("id", "displayName")
+            .additionalData(PropertyTraceDataSpec, spec -> {
+                spec.trace("trace")
+            })
+            .build().additionalData
+
+        then:
+        PropertyTraceData.isInstance(data)
+    }
+
 
     def "additionalData fails with invalid type"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
 
 
         when:
         def problem = problemBuilder
             .id("id", "displayName")
-            .additionalData(NoOpProblemDiagnosticsFactory, spec -> { })
+            .additionalData(NoOpProblemDiagnosticsFactory, spec -> {
+                // won't reach here
+
+            })
             .build()
         def data = problem
             .additionalData
