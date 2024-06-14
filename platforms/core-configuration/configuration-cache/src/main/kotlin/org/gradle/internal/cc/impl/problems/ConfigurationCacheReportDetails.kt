@@ -16,11 +16,13 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import org.gradle.internal.configuration.problems.StructuredMessage
+
 
 data class ConfigurationCacheReportDetails(
     val buildDisplayName: String?,
     val cacheAction: String,
-    val cacheActionDescription: String,
+    val cacheActionDescription: StructuredMessage,
     val requestedTasks: String?,
     val totalProblemCount: Int
 )

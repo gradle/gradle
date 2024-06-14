@@ -21,8 +21,9 @@ import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -37,7 +38,7 @@ import java.util.function.Consumer
 
 
 internal
-typealias InvalidationReason = String
+typealias InvalidationReason = StructuredMessage
 
 
 internal
@@ -156,97 +157,97 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
 
     private
-    fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
+    fun check(input: ConfigurationCacheFingerprint): InvalidationReason? = structuredMessageOrNull {
         when (input) {
             is ConfigurationCacheFingerprint.WorkInputs -> input.run {
                 val currentFingerprint = host.fingerprintOf(fileSystemInputs)
-                if (currentFingerprint != fileSystemInputsFingerprint) {
+                ifOrNull(currentFingerprint != fileSystemInputsFingerprint) {
                     // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
-                    return "an input to $workDisplayName has changed"
+                    text("an input to $workDisplayName has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.InputFile -> input.run {
-                return when (checkFileUpToDateStatus(file, hash)) {
-                    FileUpToDateStatus.ContentsChanged -> "file '${displayNameOf(file)}' has changed"
-                    FileUpToDateStatus.Removed -> "file '${displayNameOf(file)}' has been removed"
-                    FileUpToDateStatus.TypeChanged -> "file '${displayNameOf(file)}' has been replaced by a directory"
+                when (checkFileUpToDateStatus(file, hash)) {
+                    FileUpToDateStatus.ContentsChanged -> text("file ").reference(displayNameOf(file)).text(" has changed")
+                    FileUpToDateStatus.Removed -> text("file ").reference(displayNameOf(file)).text(" has been removed")
+                    FileUpToDateStatus.TypeChanged -> text("file ").reference(displayNameOf(file)).text(" has been replaced by a directory")
                     FileUpToDateStatus.Unchanged -> null
                 }
             }
+
             is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
-                if (hasDirectoryChanged(file, hash)) {
-                    return "directory '${displayNameOf(file)}' has changed"
+                ifOrNull(hasDirectoryChanged(file, hash)) {
+                    text("directory ").reference(displayNameOf(file)).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.InputFileSystemEntry -> input.run {
                 val newType = fileSystemEntryType(file)
-                if (newType != fileType) {
-                    val prefix = "the file system entry '${displayNameOf(file)}'"
-                    return when {
-                        newType == FileType.Missing -> return "$prefix has been removed"
-                        fileType == FileType.Missing -> return "$prefix has been created"
-                        else -> "$prefix has changed"
-                    }
+                ifOrNull(newType != fileType) {
+                    text("the file system entry ").reference(displayNameOf(file)).text(
+                        when {
+                            newType == FileType.Missing -> " has been removed"
+                            fileType == FileType.Missing -> " has been created"
+                            else -> " has changed"
+                        }
+                    )
                 }
             }
+
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
                 val reason = checkFingerprintValueIsUpToDate(obtainedValue)
-                if (reason != null) return reason
+                reason?.let { message(it) }
             }
+
             is ConfigurationCacheFingerprint.InitScripts -> input.run {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
-                if (reason != null) return reason
+                reason?.let { message(it) }
             }
+
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
-                if (System.getProperty(key) != value) {
-                    return "system property '$key' has changed"
+                ifOrNull(System.getProperty(key) != value) {
+                    text("system property ").reference(key).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable -> input.run {
-                if (System.getenv(key) != value) {
-                    return "environment variable '$key' has changed"
+                ifOrNull(System.getenv(key) != value) {
+                    text("environment variable ").reference(key).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
-                if (host.buildStartTime >= expireAt) {
-                    return reason
+                ifOrNull(host.buildStartTime >= expireAt) {
+                    text(reason)
                 }
             }
+
             is ConfigurationCacheFingerprint.RemoteScript -> input.run {
-                if (!host.isRemoteScriptUpToDate(uri)) {
-                    return "remote script $uri has changed"
+                ifOrNull(!host.isRemoteScriptUpToDate(uri)) {
+                    text("remote script ").reference(uri.toString()).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
-                if (host.gradleUserHomeDir != gradleUserHomeDir) {
-                    return "Gradle user home directory has changed"
-                }
-                if (jvmFingerprint() != jvm) {
-                    return "JVM has changed"
-                }
-                if (host.startParameterProperties != startParameterProperties) {
-                    return "the set of Gradle properties has changed"
-                }
-                if (host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting) {
-                    return "the set of ignored configuration inputs has changed"
-                }
-                if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
-                    val statusChangeString = when (instrumentationAgentUsed) {
-                        true -> "is no longer available"
-                        false -> "is now applied"
-                    }
-                    return "the instrumentation Java agent $statusChangeString"
-                }
-                if (host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths) {
-                    return "the set of paths ignored in file-system-check input tracking has changed"
+                when {
+                    host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
+                    jvmFingerprint() != jvm -> text("JVM has changed")
+                    host.startParameterProperties != startParameterProperties -> text("the set of Gradle properties has changed")
+                    host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting -> text("the set of ignored configuration inputs has changed")
+                    host.instrumentationAgentUsed != instrumentationAgentUsed -> text("the instrumentation Java agent ${if (instrumentationAgentUsed) "is no longer available" else "is now applied"}")
+                    host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths -> text("the set of paths ignored in file-system-check input tracking has changed")
+                    else -> null
                 }
             }
+
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
                 val current = System.getenv().filterKeysByPrefix(prefix)
-                if (current != snapshot) {
-                    return "the set of environment variables prefixed by '$prefix' has changed"
+                ifOrNull(current != snapshot) {
+                    text("the set of environment variables prefixed by ").text(prefix).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy -> input.run {
                 val currentWithoutIgnored = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix).filterKeys {
                     // remove properties that are known to be modified by the build logic at the moment of obtaining this, as their initial
@@ -257,43 +258,46 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // remove placeholders of modified properties to only compare relevant values.
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
-                if (currentWithoutIgnored != snapshotWithoutIgnored) {
-                    return "the set of system properties prefixed by '$prefix' has changed"
+                ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
+                    text("the set of system properties prefixed by ").text(prefix).text(" has changed")
                 }
             }
         }
-        return null
     }
 
     private
     fun checkInitScriptsAreUpToDate(
         previous: List<ConfigurationCacheFingerprint.InputFile>,
         current: List<File>
-    ): InvalidationReason? =
+    ): InvalidationReason? = structuredMessageOrNull {
         when (val upToDatePrefix = countUpToDatePrefixOf(previous, current)) {
             previous.size -> {
                 val added = current.size - upToDatePrefix
                 when {
-                    added == 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' has been added"
-                    added > 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' and ${added - 1} more have been added"
+                    added == 1 -> text("init script ").reference(displayNameOf(current[upToDatePrefix])).text(" has been added")
+                    added > 1 -> text("init script ").reference(displayNameOf(current[upToDatePrefix])).text(" and ${added - 1} more have been added")
                     else -> null
                 }
             }
+
             current.size -> {
                 val removed = previous.size - upToDatePrefix
                 when {
-                    removed == 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' has been removed"
-                    removed > 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' and ${removed - 1} more have been removed"
+                    removed == 1 -> text("init script ").reference(displayNameOf(previous[upToDatePrefix].file)).text(" has been removed")
+                    removed > 1 -> text("init script ").reference(displayNameOf(previous[upToDatePrefix].file)).text(" and ${removed - 1} more have been removed")
                     else -> null
                 }
             }
+
             else -> {
                 when (val modifiedScript = current[upToDatePrefix]) {
-                    previous[upToDatePrefix].file -> "init script '${displayNameOf(modifiedScript)}' has changed"
-                    else -> "content of ${ordinal(upToDatePrefix + 1)} init script, '${displayNameOf(modifiedScript)}', has changed"
+                    previous[upToDatePrefix].file -> text("init script ").reference(displayNameOf(modifiedScript)).text(" has changed")
+                    else -> text("content of ${ordinal(upToDatePrefix + 1)} init script, ").reference(displayNameOf(modifiedScript)).text(", has changed")
                 }
             }
         }
+    }
+
 
     private
     fun countUpToDatePrefixOf(
@@ -354,14 +358,29 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         host.displayNameOf(file)
 
     private
-    fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
+    fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason = StructuredMessage.forText(
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
         } ?: "a build logic input of type '${unpackType(valueSource).simpleName}' has changed"
+    )
 
     private
-    fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason =
+    fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason = StructuredMessage.forText(
         "a build logic input of type '${obtainedValue.valueSourceType.simpleName}' failed when storing the entry with $failure"
+    )
+
+    /**
+     * Builds a structured message with a given [block], but if null is returned from the block, discards the message.
+     * @return built message or null if [block] returns null
+     */
+    private
+    inline fun structuredMessageOrNull(block: StructuredMessage.Builder.() -> StructuredMessage.Builder?): StructuredMessage? =
+        StructuredMessage.Builder().run { block() }?.build()
+
+    private
+    inline fun <T> ifOrNull(condition: Boolean, block: () -> T): T? {
+        return if (condition) block() else null
+    }
 
     private
     class ProjectInvalidationState {

@@ -73,7 +73,7 @@ class JsonModelWriter(val writer: Writer) {
         property("cacheAction", cacheAction)
         comma()
         property("cacheActionDescription") {
-            writeStructuredMessage(StructuredMessage.forText(cacheActionDescription))
+            writeStructuredMessage(cacheActionDescription)
         }
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))

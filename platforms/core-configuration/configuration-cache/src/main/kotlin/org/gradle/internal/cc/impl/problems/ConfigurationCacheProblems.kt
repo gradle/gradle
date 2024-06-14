@@ -105,7 +105,7 @@ class ConfigurationCacheProblems(
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
-    lateinit var cacheActionDescription: String
+    lateinit var cacheActionDescription: StructuredMessage
 
     val shouldDiscardEntry: Boolean
         get() {
@@ -129,7 +129,7 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun action(action: ConfigurationCacheAction, actionDescription: String) {
+    fun action(action: ConfigurationCacheAction, actionDescription: StructuredMessage) {
         cacheAction = action
         cacheActionDescription = actionDescription
     }

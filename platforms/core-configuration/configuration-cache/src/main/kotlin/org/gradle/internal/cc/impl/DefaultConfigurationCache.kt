@@ -48,6 +48,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -270,9 +271,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun determineCacheAction(): Pair<ConfigurationCacheAction, String> = when {
+    fun determineCacheAction(): Pair<ConfigurationCacheAction, StructuredMessage> = when {
         startParameter.recreateCache -> {
-            val description = "Recreating configuration cache"
+            val description = StructuredMessage.forText("Recreating configuration cache")
             logBootstrapSummary(description)
             ConfigurationCacheAction.STORE to description
         }
@@ -340,7 +341,7 @@ class DefaultConfigurationCache internal constructor(
                 }
 
                 is CheckedFingerprint.Valid -> {
-                    val description = "Reusing configuration cache."
+                    val description = StructuredMessage.forText("Reusing configuration cache.")
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.LOAD to description
                 }
@@ -349,7 +350,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun formatBootstrapSummary(message: String, vararg args: Any?) = String.format(Locale.US, message, *args)
+    fun formatBootstrapSummary(message: String, vararg args: Any?) =
+        StructuredMessage.forText(String.format(Locale.US, message, *args))
 
     override fun stop() {
         val stoppable = CompositeStoppable.stoppable()
@@ -628,8 +630,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun logBootstrapSummary(message: String) {
-        logger.log(configurationCacheLogLevel, message)
+    fun logBootstrapSummary(message: StructuredMessage) {
+        logger.log(configurationCacheLogLevel, message.toString())
     }
 
     private
