@@ -20,22 +20,19 @@ fun DocumentWithResolution.errorRanges(): List<IntRange> =
 fun DeclarativeDocument.nodeAt(fileIdentifier: String, offset: Int): DeclarativeDocument.DocumentNode? {
     var node: DeclarativeDocument.DocumentNode? = null
     val stack: Deque<DeclarativeDocument.DocumentNode> = LinkedList()
-    stack.addAll(
-        content.filter {
+
+    fun List<DeclarativeDocument.DocumentNode>.matchingContent(): List<DeclarativeDocument.DocumentNode> =
+        filter {
             it.sourceData.sourceIdentifier.fileIdentifier == fileIdentifier &&
                     it.sourceData.indexRange.contains(offset)
         }
-    )
+
+    stack.addAll(content.matchingContent())
     while (stack.isNotEmpty()) {
         when (val current = stack.pop()) {
             is DeclarativeDocument.DocumentNode.ElementNode -> {
                 node = current
-                stack.addAll(
-                    current.content.filter {
-                        it.sourceData.sourceIdentifier.fileIdentifier == fileIdentifier &&
-                                it.sourceData.indexRange.contains(offset)
-                    }
-                )
+                stack.addAll(current.content.matchingContent())
             }
 
             else -> {
