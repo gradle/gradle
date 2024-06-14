@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.extensions.property
 
 import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
+import spock.lang.Issue
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 
@@ -258,6 +259,87 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                     Task task = TestUtil.newInstance(Task.class);
                     assert task.getMaxErrors() == 0;
                     assert task.maxErrors(5) == task;
+                    assert task.getMaxErrors() == 5;
+                }
+            }
+        """
+
+        when:
+        Compilation oldTaskCompilation = compile(oldTask, taskRunner)
+        Compilation newTaskCompilation = compile(newTask)
+
+        then:
+        assertThat(oldTaskCompilation).succeeded()
+        assertThat(newTaskCompilation).succeeded()
+
+        when:
+        Runnable instrumentedTaskRunner = instrumentRunnerJavaClass(
+            "org.gradle.test.TaskRunner",
+            "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject\$Factory",
+            oldTaskCompilation,
+            newTaskCompilation
+        )
+
+        then:
+        instrumentedTaskRunner.run()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29539")
+    def "should intercept and bridge a method with any new return type"() {
+        given:
+        def newTask = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+
+            public class Task {
+                private final MaxErrors maxErrors = new MaxErrors();
+
+                @ReplacesEagerProperty(adapter = Task.MaxErrorsAdapter.class)
+                public MaxErrors getMaxErrors() {
+                    return maxErrors;
+                }
+
+                class MaxErrors {
+                    int maxErrors = 0;
+                }
+
+                static class MaxErrorsAdapter {
+                    @BytecodeUpgrade
+                    static int getMaxErrors(Task task) {
+                        return task.getMaxErrors().maxErrors;
+                    }
+
+                    @BytecodeUpgrade
+                    static void setMaxErrors(Task task, int maxErrors) {
+                        task.getMaxErrors().maxErrors = maxErrors;
+                    }
+                }
+            }
+        """
+        def oldTask = source """
+            package org.gradle.test;
+
+            public class Task {
+                public int getMaxErrors() {
+                    return 0;
+                }
+                public void setMaxErrors(int maxErrors) {
+                }
+            }
+        """
+        def taskRunner = source """
+            package org.gradle.test;
+
+            import java.lang.Runnable;
+
+            public class TaskRunner implements Runnable {
+                public void run() {
+                    Task task = new Task();
+                    assert task.getMaxErrors() == 0;
+                    task.setMaxErrors(5);
                     assert task.getMaxErrors() == 5;
                 }
             }
