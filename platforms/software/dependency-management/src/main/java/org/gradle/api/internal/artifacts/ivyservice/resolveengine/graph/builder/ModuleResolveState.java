@@ -436,6 +436,10 @@ public class ModuleResolveState implements CandidateModule {
         newSelected.setSelectors(selectors);
         if (selected == null) {
             // In some cases we should ignore this because the selection happens to be a known conflict
+
+            // TODO: Is this check trying to check if this _node_ is in conflict? (Even though we are only performing selection
+            // and don't necessarily have the node yet), Or, is it trying to see if there is a capability conflict for the capabilities
+            // this node will have? In the second case, this misses explicitly declared capabilities.
             if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
                 select(newSelected);
             }

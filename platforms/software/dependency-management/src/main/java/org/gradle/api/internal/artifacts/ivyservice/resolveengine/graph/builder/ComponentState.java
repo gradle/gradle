@@ -273,6 +273,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return cachedReason;
         }
         ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
+        // TODO: Should we look at `selectors` instead of `module.getSelectors()`?
         for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
                 selectorState.addReasonsForSelector(reason);
@@ -286,6 +287,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     boolean hasStrongOpinion() {
+        // TODO: Should we look at `selectors` instead of `module.getSelectors()`?
         return StreamSupport.stream(module.getSelectors().spliterator(), false)
             .filter(s -> s.getFailure() == null)
             .anyMatch(SelectorState::hasStrongOpinion);
