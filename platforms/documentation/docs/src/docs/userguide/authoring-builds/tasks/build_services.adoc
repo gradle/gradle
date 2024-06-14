@@ -38,13 +38,13 @@ abstract class BaseCountingService implements BuildService<CountingParams>, Auto
 }
 ----
 
-A build service implementation is treated as a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>> and can use any of the features available to custom Gradle types.
+A build service implementation is treated as a <<properties_providers.adoc#properties_and_providers,custom Gradle type>> and can use any of the features available to custom Gradle types.
 
 A build service can optionally take parameters, which Gradle injects into the service instance when creating it.
 To provide parameters, you define an abstract class (or interface) that holds the parameters.
 The parameters type must implement (or extend) link:{javadocPath}/org/gradle/api/services/BuildServiceParameters.html[BuildServiceParameters].
 The service implementation can access the parameters using `this.getParameters()`.
-The parameters type is also a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>>.
+The parameters type is also a <<properties_providers.adoc#properties_and_providers,custom Gradle type>>.
 
 When the build service does not require any parameters, you can use link:{javadocPath}/org/gradle/api/services/BuildServiceParameters.None.html[BuildServiceParameters.None] as the type of parameter.
 
@@ -212,6 +212,6 @@ Then, in the plugin, you can use the methods on the link:{javadocPath}/org/gradl
 include::{snippetsPath}/plugins/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsPlugin.java[]
 ----
 ====
-<1> Use <<custom_gradle_types.adoc#service_injection,service injection>> to obtain an instance of the `BuildEventsListenerRegistry`.
+<1> Use <<service_injection.adoc#service_injection,service injection>> to obtain an instance of the `BuildEventsListenerRegistry`.
 <2> Register the build service as usual.
 <3> Use the service `Provider` to subscribe to the build service to build events.

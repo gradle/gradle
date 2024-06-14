@@ -9,7 +9,6 @@ import java.util.regex.Pattern
  * A type is part of the Gradle public API if and only if its FQCN matches {@link #includes} and does not match {@link #excludes}.
  */
 // NOTE: If you update this, please also change .idea/scopes/Gradle_public_API.xml
-// and also change `avoiding_gradle_internal_apis` section in `src/docs/userguide/authoring-builds/authoring_maintainable_build_scripts.adoc`
 object PublicApi {
     val includes = listOf(
         "org/gradle/*",

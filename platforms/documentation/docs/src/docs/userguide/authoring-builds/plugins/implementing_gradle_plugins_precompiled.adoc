@@ -29,21 +29,77 @@ The plugin ID for a precompiled script is derived from its file name and optiona
 
 For example, a script named `code-quality.gradle(.kts)` located in `src/main/groovy` (or `src/main/kotlin`) without a package declaration would be exposed as the `code-quality` plugin:
 
-[source,kotlin]
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("kotlin-dsl")
+}
+----
+.app/build.gradle.kts
+[source, kotlin]
 ----
 plugins {
     id("code-quality")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'groovy-gradle-plugin'
+}
+----
+.app/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'code-quality'
+}
+----
+=====
 
 On the other hand, a script named `code-quality.gradle(.kts)` located in `src/main/groovy/my` (or `src/main/kotlin/my`) with the package declaration `my` would be exposed as the `my.code-quality` plugin:
 
-[source,kotlin]
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("kotlin-dsl")
+}
+----
+.app/build.gradle.kts
+[source, kotlin]
 ----
 plugins {
     id("my.code-quality")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'groovy-gradle-plugin'
+}
+----
+.app/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'my.code-quality'
+}
+----
+=====
 
 [[sec:getting_input_from_the_build]]
 == Making a plugin configurable using extensions

@@ -45,7 +45,7 @@ import javax.inject.Inject;
  * considered as an input to the work graph cache.
  * </p>
  * <p>
- * It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#service_injection">injected</a>
+ * It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/service_injection.html#service_injection">injected</a>
  * into the implementation, similar to tasks and plugins.
  * It can be done by adding a parameter to the constructor and annotating the
  * constructor with the {@code @Inject} annotation:
