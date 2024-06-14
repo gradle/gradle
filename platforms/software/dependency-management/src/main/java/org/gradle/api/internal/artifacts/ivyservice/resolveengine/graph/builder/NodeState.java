@@ -223,24 +223,11 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges A collector for visited edges.
      */
     public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges) {
-
-        // TODO: Figure out how rejected components are handled when they're added to the queue
-//        if (component.isRejected()) {
-//            return;
-//        }
-
-        // If this configuration's version is in conflict, do not traverse.
         // If none of the incoming edges are transitive, remove previous state and do not traverse.
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
         // If traversed before:
         //      If net exclusions for this node have not changed, ignore
         //      If net exclusions for this node have changed, remove previous state and traverse outgoing edges again.
-
-        if (!component.isSelected()) {
-            LOGGER.debug("version for {} is not selected. ignoring.", this);
-            cleanupConstraints();
-            return;
-        }
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
@@ -301,7 +288,7 @@ public class NodeState implements DependencyGraphNode {
      * * Rescheduling any deferred selection impacted by a constraint coming from this node
      * * Making sure we no longer are registered as pending interest on nodes pointed by constraints
      */
-    private void cleanupConstraints() {
+    void cleanupConstraints() {
         // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
         if (upcomingNoLongerPendingConstraints != null) {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
