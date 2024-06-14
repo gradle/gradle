@@ -77,6 +77,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class DependencyGraphBuilder {
@@ -184,8 +185,22 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
+                // TODO: Figure out how rejected components are handled when they're added to the queue
+                // if (component.isRejected()) {
+                //     continue;
+                // }
+
+                if (!node.isSelected()) {
+                    node.cleanupConstraints();
+                    continue;
+                }
+
                 // Register capabilities for this node
-                registerCapabilities(resolveState, node);
+                if (registerCapabilities(resolveState, node)) {
+                    // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
+                    // There is no reason to continue processing this node otherwise.
+                    continue;
+                }
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
@@ -205,7 +220,8 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void registerCapabilities(final ResolveState resolveState, final NodeState node) {
+    private static boolean registerCapabilities(final ResolveState resolveState, final NodeState node) {
+        AtomicBoolean foundConflict = new AtomicBoolean(false);
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getConflictTracker().getCapabilitiesConflictHandler();
         node.forEachCapability(capabilitiesConflictHandler, new Action<Capability>() {
             @Override
@@ -236,6 +252,7 @@ public class DependencyGraphBuilder {
                 );
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());
+                    foundConflict.set(true);
                 }
             }
 
@@ -243,6 +260,7 @@ public class DependencyGraphBuilder {
                 return nodeState.getMetadata().getCapabilities().asSet().isEmpty();
             }
         });
+        return foundConflict.get();
     }
 
     private boolean resolveEdges(
