@@ -19,6 +19,7 @@ package org.gradle.internal.configuration.problems
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.FailurePrinterListener
+import org.gradle.internal.problems.failure.FailurePrinterListener.VisitResult
 import org.gradle.internal.problems.failure.StackTraceRelevance
 
 
@@ -101,23 +102,26 @@ class FailureDecorator {
 
         val parts = mutableListOf<StackTracePart>()
 
-        override fun beforeFrames() {
+        override fun beforeFrames(): VisitResult {
             cutPart(false)
+            return VisitResult.CONTINUE
         }
 
-        override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance) {
+        override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance): VisitResult {
             val lastIsInternal = lastIsInternal
             val curIsInternal = !relevance.isUserCode()
             if (lastIsInternal != null && lastIsInternal != curIsInternal) {
                 cutPart(lastIsInternal)
             }
             this.lastIsInternal = curIsInternal
+            return VisitResult.CONTINUE
         }
 
-        override fun afterFrames() {
-            val lastIsInternal = lastIsInternal ?: return
+        override fun afterFrames(): VisitResult {
+            val lastIsInternal = lastIsInternal ?: return VisitResult.CONTINUE
             cutPart(lastIsInternal)
             this.lastIsInternal = null
+            return VisitResult.CONTINUE
         }
 
         private

@@ -21,30 +21,50 @@ package org.gradle.internal.problems.failure;
  */
 public interface FailurePrinterListener {
 
+    /**
+     * Failure traversal action take after visiting a part of the failure.
+     */
+    enum VisitResult {
+        /**
+         * Continue visiting
+         */
+        CONTINUE,
+        /**
+         * Terminate visiting including all nested failures
+         */
+        TERMINATE,
+    }
+
     FailurePrinterListener NO_OP = new FailurePrinterListener() {
         @Override
-        public void beforeFrames() {}
+        public VisitResult beforeFrames() {
+            return VisitResult.CONTINUE;
+        }
 
         @Override
-        public void beforeFrame(StackTraceElement element, StackTraceRelevance relevance) {}
+        public VisitResult beforeFrame(StackTraceElement element, StackTraceRelevance relevance) {
+            return VisitResult.CONTINUE;
+        }
 
         @Override
-        public void afterFrames() {}
+        public VisitResult afterFrames() {
+            return VisitResult.CONTINUE;
+        }
     };
 
     /**
      * Invoked after a failure header has been printed, and before any stack frames have been printed.
      */
-    void beforeFrames();
+    VisitResult beforeFrames();
 
     /**
      * Invoked before a given stack frame is printed.
      */
-    void beforeFrame(StackTraceElement element, StackTraceRelevance relevance);
+    VisitResult beforeFrame(StackTraceElement element, StackTraceRelevance relevance);
 
     /**
      * Invoked after all stack frames of a failure have been printed.
      */
-    void afterFrames();
+    VisitResult afterFrames();
 
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.problems.failure;
 
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.problems.failure.FailurePrinterListener.VisitResult;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -62,47 +63,52 @@ public class FailurePrinter {
             }
         }
 
-        private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
+        private VisitResult printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
             builder.append(prefix)
                 .append(caption)
                 .append(failure.getHeader())
                 .append(lineSeparator);
 
-            listener.beforeFrames();
-            appendFrames(prefix, parent, failure);
-            listener.afterFrames();
+            VisitResult visitResult;
+            visitResult = beforeFrames();
+            visitResult = appendFrames(visitResult, prefix, parent, failure);
+            visitResult = afterFrames(visitResult);
+            visitResult = appendSuppressed(visitResult, prefix, failure);
+            visitResult = appendCauses(visitResult, prefix, failure);
 
-            appendSuppressed(prefix, failure);
-            appendCauses(prefix, failure);
+            return visitResult;
         }
 
-        private void appendSuppressed(String prefix, Failure failure) throws IOException {
-            for (Failure suppressed : failure.getSuppressed()) {
-                printRecursively("Suppressed: ", prefix + "\t", failure, suppressed);
+        private VisitResult beforeFrames() {
+            return listener.beforeFrames();
+        }
+
+        private VisitResult afterFrames(VisitResult visitResult) {
+            if (!shouldContinue(visitResult)) {
+                return visitResult;
             }
+
+            return listener.afterFrames();
         }
 
-        private void appendCauses(String prefix, Failure failure) throws IOException {
-            List<Failure> causes = failure.getCauses();
-            if (causes.size() == 1) {
-                printRecursively("Caused by: ", prefix, failure, causes.get(0));
-            } else {
-                for (int i = 0; i < causes.size(); i++) {
-                    printRecursively(String.format("Cause %s: ", i + 1), prefix, failure, causes.get(i));
-                }
+        private VisitResult appendFrames(VisitResult previous, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
+            if (!shouldContinue(previous)) {
+                return previous;
             }
-        }
 
-        private void appendFrames(String prefix, @Nullable Failure parent, Failure failure) throws IOException {
             List<StackTraceElement> stackTrace = failure.getStackTrace();
 
             int commonTailSize = parent == null ? 0 : countCommonTailFrames(stackTrace, parent.getStackTrace());
             int end = stackTrace.size() - commonTailSize;
 
+            VisitResult visitResult = VisitResult.CONTINUE;
             for (int i = 0; i < end; i++) {
                 StackTraceElement stackTraceElement = stackTrace.get(i);
                 StackTraceRelevance rel = failure.getStackTraceRelevance(i);
-                appendFrame(prefix, stackTraceElement, rel);
+                visitResult = appendFrame(prefix, stackTraceElement, rel);
+                if (!shouldContinue(visitResult)) {
+                    return visitResult;
+                }
             }
 
             if (commonTailSize > 0) {
@@ -112,15 +118,63 @@ public class FailurePrinter {
                     .append(" more")
                     .append(lineSeparator);
             }
+
+            return visitResult;
         }
 
-        private void appendFrame(String prefix, StackTraceElement frame, StackTraceRelevance relevance) throws IOException {
-            listener.beforeFrame(frame, relevance);
+        private VisitResult appendSuppressed(VisitResult previous, String prefix, Failure failure) throws IOException {
+            if (!shouldContinue(previous)) {
+                return previous;
+            }
+
+            VisitResult visitResult = VisitResult.CONTINUE;
+            for (Failure suppressed : failure.getSuppressed()) {
+                visitResult = printRecursively("Suppressed: ", prefix + "\t", failure, suppressed);
+                if (!shouldContinue(visitResult)) {
+                    return visitResult;
+                }
+            }
+
+            return visitResult;
+        }
+
+        private VisitResult appendCauses(VisitResult previous, String prefix, Failure failure) throws IOException {
+            if (!shouldContinue(previous)) {
+                return previous;
+            }
+
+            VisitResult visitResult = VisitResult.CONTINUE;
+            List<Failure> causes = failure.getCauses();
+            if (causes.size() == 1) {
+                visitResult = printRecursively("Caused by: ", prefix, failure, causes.get(0));
+            } else {
+                for (int i = 0; i < causes.size(); i++) {
+                    visitResult = printRecursively(String.format("Cause %s: ", i + 1), prefix, failure, causes.get(i));
+                    if (!shouldContinue(visitResult)) {
+                        return visitResult;
+                    }
+                }
+            }
+
+            return visitResult;
+        }
+
+        private VisitResult appendFrame(String prefix, StackTraceElement frame, StackTraceRelevance relevance) throws IOException {
+            VisitResult visitResult = listener.beforeFrame(frame, relevance);
+            if (!shouldContinue(visitResult)) {
+                return visitResult;
+            }
 
             builder.append(prefix)
                 .append("\tat ")
                 .append(frame.toString())
                 .append(lineSeparator);
+
+            return VisitResult.CONTINUE;
+        }
+
+        private static boolean shouldContinue(VisitResult visitResult) {
+            return VisitResult.CONTINUE.equals(visitResult);
         }
 
         private static int countCommonTailFrames(List<StackTraceElement> frames1, List<StackTraceElement> frames2) {
