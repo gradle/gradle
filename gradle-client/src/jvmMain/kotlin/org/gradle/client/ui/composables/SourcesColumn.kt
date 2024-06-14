@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package org.gradle.client.ui.composables
 
 import androidx.compose.foundation.layout.Column
@@ -11,9 +13,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import org.gradle.client.ui.theme.spacing
+import org.gradle.client.ui.theme.transparency
 
 internal data class SourceFileViewInput(
     val fileIdentifier: String,
@@ -117,7 +123,7 @@ private fun SourceFileTitleAndText(
         TextButton(onClick = {
             isTrimmed = !isTrimmed
         }) {
-            Text(text, modifier = Modifier.alpha(0.5f))
+            Text(text, modifier = Modifier.alpha(MaterialTheme.transparency.HALF))
         }
 
         MaterialTheme.spacing.VerticalLevel2()
@@ -150,7 +156,7 @@ private fun omitIrrelevantLines(
 
     val linesDropped =
         highlightedString.text.lineSequence()
-            .runningFold(0) { acc, it -> acc + it.length + 1 }
+            .runningFold(0) { acc, line -> acc + line.length + 1 }
             .takeWhile { it < lineBreakBeforeFocus }
             .count()
 
@@ -189,7 +195,7 @@ data class TrimmedText(
 ) {
     fun mapIndexToIndexInOriginalText(index: Int): Int {
         val (lineNumber, lineOffset) = annotatedString.text.lineSequence()
-            .runningFold(0) { acc, it -> acc + it.length + 1 }
+            .runningFold(0) { acc, line -> acc + line.length + 1 }
             .takeWhile { it < index }.withIndex()
             .lastOrNull()
             ?: IndexedValue(0, index)

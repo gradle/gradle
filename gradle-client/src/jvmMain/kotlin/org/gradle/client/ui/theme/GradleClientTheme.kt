@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package org.gradle.client.ui.theme
 
 import androidx.compose.material3.MaterialTheme
@@ -31,3 +33,10 @@ private object GradleClientTheme {
     fun iconResourceAsStream(): InputStream =
         this::class.java.classLoader.getResourceAsStream("icons/icon_gradle_rgb.png")!!
 }
+
+object Transparency {
+    const val HALF = 0.5f
+}
+
+val MaterialTheme.transparency: Transparency
+    get() = Transparency

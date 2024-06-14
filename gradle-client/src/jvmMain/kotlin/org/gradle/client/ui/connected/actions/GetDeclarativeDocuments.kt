@@ -25,6 +25,7 @@ import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
+import org.gradle.client.ui.theme.transparency
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -269,7 +270,7 @@ class ModelTreeRendering(
     ) {
         Column(Modifier.padding(start = indentLevel * indentDp)) {
             if (node == null || type == null) {
-                LabelMedium(modifier = Modifier.alpha(0.5f), text = NOT_DECLARED)
+                LabelMedium(modifier = Modifier.alpha(MaterialTheme.transparency.HALF), text = NOT_DECLARED)
             } else {
                 type.properties.forEach { property ->
                     PropertyInfo(node.property(property.name), property)
@@ -442,6 +443,7 @@ class ModelTreeRendering(
     }
 
     @Composable
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     private fun ApplicableMutations(node: DeclarativeDocument.DocumentNode) {
         val applicableMutations = mutationApplicability.data(node)
         if (applicableMutations.isNotEmpty()) {

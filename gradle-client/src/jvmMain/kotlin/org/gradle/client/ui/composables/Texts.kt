@@ -2,7 +2,6 @@ package org.gradle.client.ui.composables
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -12,6 +11,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import org.gradle.client.ui.theme.spacing
+import org.gradle.client.ui.theme.transparency
 
 @Composable
 fun TitleLarge(text: String, modifier: Modifier = Modifier) {
@@ -99,4 +99,4 @@ fun CodeBlock(
 }
 
 fun Modifier.semiTransparentIfNull(any: Any?) =
-    if (any == null) alpha(0.5f) else this
+    if (any == null) alpha(MaterialTheme.transparency.HALF) else this
