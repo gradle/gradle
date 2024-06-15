@@ -604,7 +604,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         "when disabled" | "options.enablePreview = false"
     }
 
-    def "preview features are allowed when enabled"() {
+    def "preview features are allowed when enabled via #description"() {
         def jdk = AvailableJavaHomes.getJdk21()
 
         buildFile << """
@@ -619,7 +619,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava {
-                options.enablePreview = true
+                $configureCompilation
             }
         """
 
@@ -632,6 +632,11 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         executedAndNotSkipped(":compileJava")
         errorOutput.contains("Main.java uses preview features of Java SE 21.")
         classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_21
+
+        where:
+        description          | configureCompilation
+        "compiler flag"      | "options.compilerArgs += '--enable-preview'"
+        "compilation option" | "options.enablePreview = true"
     }
 
     def "cannot mix enable-preview compiler flag and enabling the compilation option"() {

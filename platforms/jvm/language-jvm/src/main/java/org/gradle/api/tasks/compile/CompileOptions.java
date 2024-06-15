@@ -112,7 +112,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
-        this.enablePreview = objectFactory.property(Boolean.class).convention(false);
+        this.enablePreview = objectFactory.property(Boolean.class);
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
@@ -515,6 +515,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 8.9
      */
     @Incubating
+    @Optional
     @Input
     public Property<Boolean> getEnablePreview() {
         return enablePreview;
