@@ -64,7 +64,9 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
     @Override
     public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
-        validateScope(registration.getDeclaredType());
+        for (Class<?> declaredType : registration.getDeclaredTypes()) {
+            validateScope(declaredType);
+        }
     }
 
     private void validateScope(Class<?> serviceType) {

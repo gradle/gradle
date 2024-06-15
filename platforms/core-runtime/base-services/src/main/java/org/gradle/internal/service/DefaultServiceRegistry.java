@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -582,14 +583,16 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private class RegistrationWrapper implements AnnotatedServiceLifecycleHandler.Registration {
         private final SingletonService serviceProvider;
+        private final List<Class<?>> declaredTypes;
 
         public RegistrationWrapper(SingletonService serviceProvider) {
             this.serviceProvider = serviceProvider;
+            declaredTypes = Cast.uncheckedCast(ImmutableList.of(serviceProvider.serviceClass));
         }
 
         @Override
-        public Class<?> getDeclaredType() {
-            return serviceProvider.serviceClass;
+        public List<Class<?>> getDeclaredTypes() {
+            return declaredTypes;
         }
 
         @Override

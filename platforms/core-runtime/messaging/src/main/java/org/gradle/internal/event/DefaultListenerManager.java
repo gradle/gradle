@@ -88,14 +88,14 @@ public class DefaultListenerManager implements ScopedListenerManager {
 
     private void maybeAddPendingRegistrations(Class<?> type) {
         synchronized (lock) {
-            for (int i = 0; i < pendingServices.size(); i++) {
-                Registration registration = pendingServices.get(i);
+            for (Registration registration : pendingServices) {
                 addListener(registration.getInstance());
             }
             pendingServices.clear();
-            for (int i = 0; i < pendingRegistrations.size();) {
+
+            for (int i = 0; i < pendingRegistrations.size(); ) {
                 Registration registration = pendingRegistrations.get(i);
-                if (type.isAssignableFrom(registration.getDeclaredType())) {
+                if (registrationProvides(type, registration)) {
                     addListener(registration.getInstance());
                     pendingRegistrations.remove(i);
                 } else {
@@ -103,6 +103,15 @@ public class DefaultListenerManager implements ScopedListenerManager {
                 }
             }
         }
+    }
+
+    private static boolean registrationProvides(Class<?> type, Registration registration) {
+        for (Class<?> declaredType : registration.getDeclaredTypes()) {
+            if (type.isAssignableFrom(declaredType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -319,7 +328,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
         }
 
         public void checkRegistration(Registration registration) {
-            if (type.isAssignableFrom(registration.getDeclaredType())) {
+            if (registrationProvides(type, registration)) {
                 broadcasterLock.lock();
                 try {
                     checkListenersCanBeAdded();
