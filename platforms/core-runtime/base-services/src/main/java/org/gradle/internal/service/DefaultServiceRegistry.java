@@ -627,7 +627,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         @Override
         public Object getInstance() {
             serviceRequested();
-            return serviceProvider.getService(serviceProvider.serviceClass).get();
+            return serviceProvider.getPreparedInstance();
         }
     }
 
@@ -736,6 +736,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         @Override
         public Object get() {
             return getInstance();
+        }
+
+        public Object getPreparedInstance() {
+            return prepare().get();
         }
 
         private Service prepare() {
