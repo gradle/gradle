@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -712,7 +711,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             super(owner);
             this.serviceType = serviceType;
             serviceClass = unwrap(serviceType);
-            declaredServiceTypes = Cast.uncheckedCast(ImmutableList.of(serviceClass));
+            declaredServiceTypes = Cast.uncheckedCast(Collections.singletonList(serviceClass));
         }
 
         @Override
