@@ -512,7 +512,7 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Configures whether Preview Features should be enabled for the compilation ({@code --enable-preview} compiler flag).
      *
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     @Optional
