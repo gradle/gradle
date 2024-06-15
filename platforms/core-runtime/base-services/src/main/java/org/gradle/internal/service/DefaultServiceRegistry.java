@@ -583,16 +583,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private class RegistrationWrapper implements AnnotatedServiceLifecycleHandler.Registration {
         private final SingletonService serviceProvider;
-        private final List<Class<?>> declaredTypes;
 
         public RegistrationWrapper(SingletonService serviceProvider) {
             this.serviceProvider = serviceProvider;
-            declaredTypes = Cast.uncheckedCast(ImmutableList.of(serviceProvider.serviceClass));
         }
 
         @Override
         public List<Class<?>> getDeclaredTypes() {
-            return declaredTypes;
+            return serviceProvider.declaredServiceTypes;
         }
 
         @Override
@@ -680,7 +678,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private enum BindState {UNBOUND, BINDING, BOUND}
 
         final Type serviceType;
-        final Class<?> serviceClass;
+        final Class<?> serviceClass; // TODO: this should go away and be fully replaced by `declaredServiceTypes`
+        final List<Class<?>> declaredServiceTypes;
+
 
         BindState state = BindState.UNBOUND;
         Class<?> factoryElementType;
@@ -689,6 +689,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             super(owner);
             this.serviceType = serviceType;
             serviceClass = unwrap(serviceType);
+            declaredServiceTypes = Cast.uncheckedCast(ImmutableList.of(serviceClass));
         }
 
         @Override
