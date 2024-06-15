@@ -613,7 +613,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public List<Class<?>> getDeclaredTypes() {
-            return serviceProvider.declaredServiceTypes;
+            return serviceProvider.getDeclaredServiceTypes();
         }
 
         @Override
@@ -700,9 +700,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static abstract class SingletonService extends ManagedObjectServiceProvider {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
-        final Type serviceType;
-        final List<Class<?>> declaredServiceTypes;
-
+        final Type serviceType; // TODO: this should go away and be replaced by the plural version
+        private final List<Class<?>> unwrappedDeclaredServiceTypes;
 
         BindState state = BindState.UNBOUND;
         Class<?> factoryElementType;
@@ -711,12 +710,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             super(owner);
             this.serviceType = serviceType;
             Class<?> serviceClass = unwrap(serviceType);
-            declaredServiceTypes = Cast.uncheckedCast(singletonList(serviceClass));
+            unwrappedDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceClass));
         }
 
         @Override
         public List<Class<?>> getDeclaredServiceTypes() {
-            return declaredServiceTypes;
+            return unwrappedDeclaredServiceTypes;
         }
 
         @Override
@@ -772,7 +771,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Visitor getAll(Class<?> serviceType, ServiceProvider.Visitor visitor) {
-            if (anyTypeIsAssignableFrom(serviceType, declaredServiceTypes)) {
+            if (anyTypeIsAssignableFrom(serviceType, getDeclaredServiceTypes())) {
                 visitor.visit(prepare());
             }
             return visitor;
