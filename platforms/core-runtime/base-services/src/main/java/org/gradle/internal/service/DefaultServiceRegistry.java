@@ -515,23 +515,25 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
-            collectProvidersForClassHierarchy(inspector, serviceProvider.serviceClass, serviceProvider);
+            collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
             services.add(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
             }
         }
 
-        public void collectProvidersForClassHierarchy(ClassInspector inspector, Class<?> serviceType, ServiceProvider serviceProvider) {
-            for (Class<?> type : inspector.getHierarchy(serviceType)) {
-                if (type.equals(Object.class)) {
-                    continue;
+        public void collectProvidersForClassHierarchy(ClassInspector inspector, List<Class<?>> declaredServiceTypes, ServiceProvider serviceProvider) {
+            for (Class<?> serviceType : declaredServiceTypes) {
+                for (Class<?> type : inspector.getHierarchy(serviceType)) {
+                    if (type.equals(Object.class)) {
+                        continue;
+                    }
+                    if (type.equals(ServiceRegistry.class)) {
+                        // Disallow custom services of type ServiceRegistry, as these are automatically provided
+                        throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
+                    }
+                    putServiceType(type, serviceProvider);
                 }
-                if (type.equals(ServiceRegistry.class)) {
-                    // Disallow custom services of type ServiceRegistry, as these are automatically provided
-                    throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
-                }
-                putServiceType(type, serviceProvider);
             }
         }
 
@@ -539,9 +541,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             List<ServiceProvider> serviceProviders = providersByType.get(type);
             if (serviceProviders == null) {
                 serviceProviders = new ArrayList<ServiceProvider>(2);
+                serviceProviders.add(serviceProvider);
                 providersByType.put(type, serviceProviders);
+                return;
             }
-            serviceProviders.add(serviceProvider);
+
+            // Adding of the service provider for the same type may happen when it has multiple declared service types
+            if (!serviceProviders.contains(serviceProvider)) {
+                serviceProviders.add(serviceProvider);
+            }
         }
 
         public void instanceRealized(ManagedObjectServiceProvider serviceProvider, Object instance) {
