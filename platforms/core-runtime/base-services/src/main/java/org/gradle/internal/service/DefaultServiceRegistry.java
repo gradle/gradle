@@ -701,6 +701,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private enum BindState {UNBOUND, BINDING, BOUND}
 
         final Type serviceType; // TODO: this should go away and be replaced by the plural version
+        final List<Type> rawDeclaredServiceTypes;
         private final List<Class<?>> unwrappedDeclaredServiceTypes;
 
         BindState state = BindState.UNBOUND;
@@ -709,6 +710,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         SingletonService(DefaultServiceRegistry owner, Type serviceType) {
             super(owner);
             this.serviceType = serviceType;
+            rawDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceType));
             Class<?> serviceClass = unwrap(serviceType);
             unwrappedDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceClass));
         }
@@ -953,16 +955,16 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             try {
                 result = method.invoke(target, params);
             } catch (Exception e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
-                    format(serviceType),
+                throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s().",
+                    format("type", rawDeclaredServiceTypes),
                     method.getOwner().getSimpleName(),
                     method.getName()),
                     e);
             }
             try {
                 if (result == null) {
-                    throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                        format(serviceType),
+                    throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s() as this method returned null.",
+                        format("type", rawDeclaredServiceTypes),
                         method.getOwner().getSimpleName(),
                         method.getName()));
                 }
@@ -982,7 +984,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public String getDisplayName() {
-            return "Service " + format(serviceType) + " with implementation " + format(getInstance().getClass());
+            return format("Service", rawDeclaredServiceTypes) + " with implementation " + format(getInstance().getClass());
         }
 
         @Override
@@ -1032,15 +1034,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             try {
                 return constructor.newInstance(params);
             } catch (InvocationTargetException e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e.getCause());
+                throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", rawDeclaredServiceTypes)), e.getCause());
             } catch (Exception e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e);
+                throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", rawDeclaredServiceTypes)), e);
             }
         }
 
         @Override
         public String getDisplayName() {
-            return "Service " + format(serviceType);
+            return format("Service", rawDeclaredServiceTypes);
         }
     }
 
