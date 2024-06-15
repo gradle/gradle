@@ -93,7 +93,8 @@ public class DefaultListenerManager implements ScopedListenerManager {
             }
             pendingServices.clear();
 
-            for (int i = 0; i < pendingRegistrations.size(); ) {
+            int i = 0;
+            while (i < pendingRegistrations.size()) {
                 Registration registration = pendingRegistrations.get(i);
                 if (registrationProvides(type, registration)) {
                     addListener(registration.getInstance());
