@@ -845,8 +845,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                     // A decorating factory
                     Service paramProvider = find(paramType, owner.parentServices);
                     if (paramProvider == null) {
-                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
-                            format(serviceType),
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
+                            format("type", rawDeclaredServiceTypes),
                             getFactoryDisplayName(),
                             format(paramType),
                             i + 1));
@@ -858,15 +858,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                     try {
                         paramProvider = find(paramType, owner.allServices);
                     } catch (ServiceLookupException e) {
-                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s as there is a problem with parameter #%s of type %s.",
-                            format(serviceType),
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as there is a problem with parameter #%s of type %s.",
+                            format("type", rawDeclaredServiceTypes),
                             getFactoryDisplayName(),
                             i + 1,
                             format(paramType)), e);
                     }
                     if (paramProvider == null) {
-                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s as required service of type %s for parameter #%s is not available.",
-                            format(serviceType),
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available.",
+                            format("type", rawDeclaredServiceTypes),
                             getFactoryDisplayName(),
                             format(paramType),
                             i + 1));
