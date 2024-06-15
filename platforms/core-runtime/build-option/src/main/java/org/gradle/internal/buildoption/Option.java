@@ -40,6 +40,11 @@ public interface Option {
                 public T get() {
                     return value;
                 }
+
+                @Override
+                public String toString() {
+                    return "DefaultValue(" + value + ")";
+                }
             };
         }
 
@@ -56,6 +61,11 @@ public interface Option {
                 @Override
                 public T get() {
                     return value;
+                }
+
+                @Override
+                public String toString() {
+                    return "ExplicitValue(" + value + ")";
                 }
             };
         }
