@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Collections.singletonList;
 import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
@@ -554,7 +555,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         public void instanceRealized(ManagedObjectServiceProvider serviceProvider, Object instance) {
             List<Class<?>> declaredServiceTypes = serviceProvider.getDeclaredServiceTypes();
-            if (instance instanceof AnnotatedServiceLifecycleHandler && !anyDeclaredTypeProvides(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
+            if (instance instanceof AnnotatedServiceLifecycleHandler && !anyTypeIsAssignableFrom(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
                 throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
                     serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
             }
@@ -571,15 +572,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                     }
                 }
             }
-        }
-
-        private boolean anyDeclaredTypeProvides(Class<?> targetType, List<Class<?>> declaredServiceTypes) {
-            for (Class<?> declaredType : declaredServiceTypes) {
-                if (targetType.isAssignableFrom(declaredType)) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
@@ -709,7 +701,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private enum BindState {UNBOUND, BINDING, BOUND}
 
         final Type serviceType;
-        final Class<?> serviceClass; // TODO: this should go away and be fully replaced by `declaredServiceTypes`
         final List<Class<?>> declaredServiceTypes;
 
 
@@ -719,8 +710,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         SingletonService(DefaultServiceRegistry owner, Type serviceType) {
             super(owner);
             this.serviceType = serviceType;
-            serviceClass = unwrap(serviceType);
-            declaredServiceTypes = Cast.uncheckedCast(Collections.singletonList(serviceClass));
+            Class<?> serviceClass = unwrap(serviceType);
+            declaredServiceTypes = Cast.uncheckedCast(singletonList(serviceClass));
         }
 
         @Override
@@ -781,7 +772,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Visitor getAll(Class<?> serviceType, ServiceProvider.Visitor visitor) {
-            if (serviceType.isAssignableFrom(this.serviceClass)) {
+            if (anyTypeIsAssignableFrom(serviceType, declaredServiceTypes)) {
                 visitor.visit(prepare());
             }
             return visitor;
@@ -1231,6 +1222,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                 service.requiredBy(serviceProvider);
             }
         }
+    }
+
+    private static boolean anyTypeIsAssignableFrom(Class<?> targetType, List<Class<?>> candidateTypes) {
+        for (Class<?> declaredType : candidateTypes) {
+            if (targetType.isAssignableFrom(declaredType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isSatisfiedBy(Type expected, Type actual) {
