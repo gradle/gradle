@@ -100,6 +100,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             throw new IllegalArgumentException(missingScopeMessage(serviceType));
         }
 
+        // TODO(alllex): let the registration explicitly provide the Class of the implementation
         Class<?> inferredServiceType = annotatedSupertypes.iterator().next();
         throw new IllegalArgumentException(implementationWithMissingScopeMessage(inferredServiceType, serviceType));
     }
