@@ -573,15 +573,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
         }
 
-        private boolean anyTypeHasAnnotation(Class<? extends Annotation> annotation, List<Class<?>> types) {
-            for (Class<?> type : types) {
-                if (inspector.hasAnnotation(type, annotation)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private boolean anyDeclaredTypeProvides(Class<?> targetType, List<Class<?>> declaredServiceTypes) {
             for (Class<?> declaredType : declaredServiceTypes) {
                 if (targetType.isAssignableFrom(declaredType)) {
@@ -602,12 +593,22 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             if (annotationHandler.getImplicitAnnotation() != null) {
                 annotationHandler.whenRegistered(annotationHandler.getImplicitAnnotation(), new RegistrationWrapper(candidate));
             } else {
+                List<Class<?>> declaredServiceTypes = candidate.getDeclaredServiceTypes();
                 for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
-                    if (inspector.hasAnnotation(candidate.serviceClass, annotation)) {
+                    if (anyTypeHasAnnotation(annotation, declaredServiceTypes)) {
                         annotationHandler.whenRegistered(annotation, new RegistrationWrapper(candidate));
                     }
                 }
             }
+        }
+
+        private boolean anyTypeHasAnnotation(Class<? extends Annotation> annotation, List<Class<?>> types) {
+            for (Class<?> type : types) {
+                if (inspector.hasAnnotation(type, annotation)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
