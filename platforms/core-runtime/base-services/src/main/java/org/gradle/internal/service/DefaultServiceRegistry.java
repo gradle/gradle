@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -47,6 +48,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
@@ -543,9 +546,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         public void instanceRealized(ManagedObjectServiceProvider serviceProvider, Object instance) {
-            Class<?> serviceType = serviceProvider.getServiceType();
-            if (instance instanceof AnnotatedServiceLifecycleHandler && !AnnotatedServiceLifecycleHandler.class.isAssignableFrom(serviceType)) {
-                throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having type %s.", serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format(serviceType)));
+            List<Class<?>> declaredServiceTypes = serviceProvider.getDeclaredServiceTypes();
+            if (instance instanceof AnnotatedServiceLifecycleHandler && !anyDeclaredTypeProvides(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
+                throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
+                    serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
             }
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
@@ -553,12 +557,31 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {
                 for (Class<? extends Annotation> annotation : lifecycleHandler.getAnnotations()) {
                     boolean implementationHasAnnotation = inspector.hasAnnotation(instance.getClass(), annotation);
-                    boolean declaredWithAnnotation = inspector.hasAnnotation(serviceType, annotation);
+                    boolean declaredWithAnnotation = anyTypeHasAnnotation(annotation, declaredServiceTypes);
                     if (implementationHasAnnotation && !declaredWithAnnotation) {
-                        throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having type %s.", serviceProvider.getDisplayName(), format(annotation), format(serviceType)));
+                        throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having %s.",
+                            serviceProvider.getDisplayName(), format(annotation), format("type", declaredServiceTypes)));
                     }
                 }
             }
+        }
+
+        private boolean anyTypeHasAnnotation(Class<? extends Annotation> annotation, List<Class<?>> types) {
+            for (Class<?> type : types) {
+                if (inspector.hasAnnotation(type, annotation)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean anyDeclaredTypeProvides(Class<?> targetType, List<Class<?>> declaredServiceTypes) {
+            for (Class<?> declaredType : declaredServiceTypes) {
+                if (targetType.isAssignableFrom(declaredType)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
@@ -624,7 +647,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             this.owner = owner;
         }
 
-        abstract Class<?> getServiceType();
+        abstract List<Class<?>> getDeclaredServiceTypes();
 
         protected void setInstance(Object instance) {
             this.instance = instance;
@@ -693,8 +716,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         @Override
-        Class<?> getServiceType() {
-            return serviceClass;
+        public List<Class<?>> getDeclaredServiceTypes() {
+            return declaredServiceTypes;
         }
 
         @Override
@@ -1257,6 +1280,27 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private static String format(Type type) {
         return TypeStringFormatter.format(type);
+    }
+
+    private static String format(String qualifier, List<? extends Type> types) {
+        if (types.size() == 1) {
+            return qualifier + " " + format(types);
+        } else {
+            return qualifier + "s " + format(types);
+        }
+    }
+
+    private static String format(List<? extends Type> types) {
+        if (types.size() == 1) {
+            return TypeStringFormatter.format(types.get(0));
+        } else {
+            return join(", ", types, new InternalTransformer<String, Type>() {
+                @Override
+                public String transform(Type type) {
+                    return TypeStringFormatter.format(type);
+                }
+            });
+        }
     }
 
     private class ThisAsService implements ServiceProvider, Service {
