@@ -16,18 +16,19 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.EncryptionAlgorithm
-import org.gradle.util.internal.EncryptionAlgorithm.EncryptionException
 import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.Closeable
 import java.io.File
@@ -36,8 +37,6 @@ import java.io.OutputStream
 import java.security.InvalidKeyException
 import java.security.KeyStore
 import java.util.Base64
-import javax.crypto.CipherInputStream
-import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -83,13 +82,8 @@ class DefaultEncryptionService(
                 secretKeyFrom(keySource)?.also { key ->
                     assertKeyLength(key)
                 }
-            } catch (e: EncryptionException) {
-                if (e.message != null) {
-                    throw e
-                }
-                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
             } catch (e: Exception) {
-                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
+                throw GradleException("Error loading encryption key from ${keySource.sourceDescription}", e)
             }
         }
 
@@ -107,7 +101,11 @@ class DefaultEncryptionService(
     }
 
     override val encryptionAlgorithm: EncryptionAlgorithm by lazy {
-        SupportedEncryptionAlgorithm.byTransformation(startParameter.encryptionAlgorithm)
+        SupportedEncryptionAlgorithm.getAll().find { it.transformation == startParameter.encryptionAlgorithm }
+            ?: throw InvalidUserDataException(
+                "Unsupported encryption algorithm: ${startParameter.encryptionAlgorithm}. " +
+                    "Supported algorithms are: ${SupportedEncryptionAlgorithm.getAll().joinToString { it.transformation }}"
+            )
     }
 
     override val isEncrypting: Boolean
@@ -128,13 +126,17 @@ class DefaultEncryptionService(
 
     override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
         if (shouldEncryptStreams(stateType))
-            safeWrap(output, this::encryptingOutputStream)
+            safeWrap(output) {
+                encryptionAlgorithm.encryptedStream(it, secretKey)
+            }
         else
             output.invoke()
 
     override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
         if (shouldEncryptStreams(stateType))
-            safeWrap(input, this::decryptingInputStream)
+            safeWrap(input) {
+                encryptionAlgorithm.decryptedStream(it, secretKey)
+            }
         else
             input.invoke()
 
@@ -165,22 +167,6 @@ class DefaultEncryptionService(
         }
         return outerCloseable
     }
-
-    private
-    fun decryptingInputStream(inputStream: InputStream): InputStream {
-        val cipher = newEncryptionSession().decryptingCipher(inputStream::read)
-        return CipherInputStream(inputStream, cipher)
-    }
-
-    private
-    fun encryptingOutputStream(outputStream: OutputStream): OutputStream {
-        val cipher = newEncryptionSession().encryptingCipher(outputStream::write)
-        return CipherOutputStream(outputStream, cipher)
-    }
-
-    private
-    fun newEncryptionSession(): EncryptionAlgorithm.Session =
-        encryptionAlgorithm.newSession(secretKey)
 
     private
     fun secretKeySource(kind: EncryptionKind): SecretKeySource =
