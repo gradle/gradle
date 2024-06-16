@@ -743,7 +743,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return getInstance();
         }
 
-        public Object getPreparedInstance() {
+        private Object getPreparedInstance() {
             return prepare().get();
         }
 
