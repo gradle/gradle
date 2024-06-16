@@ -719,6 +719,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         SingletonService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
             super(owner);
+
+            if (serviceTypes.isEmpty()) {
+                throw new IllegalArgumentException("Expected at least one declared service type");
+            }
+
             rawDeclaredServiceTypes = serviceTypes;
             unwrappedDeclaredServiceTypes = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
                 @Override
