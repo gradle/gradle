@@ -256,6 +256,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
 
             @Override
+            public <S, I extends S> void add(Class<S> serviceType1, Class<?> serviceType2, Class<I> implementationType) {
+                //noinspection RedundantTypeArguments
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, Arrays.<Class<?>>asList(serviceType1, serviceType2), implementationType));
+            }
+
+            @Override
             public void addProvider(ServiceRegistrationProvider provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
@@ -1031,13 +1037,23 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType, Class<?> implementationType) {
-            super(owner, singletonList((Type) serviceType));
-            if (!serviceType.isAssignableFrom(implementationType)) {
-                throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it", implementationType.getSimpleName(), serviceType.getSimpleName()));
-            }
+            this(owner, Collections.<Class<?>>singletonList(serviceType), implementationType);
+        }
+
+        private ConstructorService(DefaultServiceRegistry owner, List<Class<?>> serviceTypes, Class<?> implementationType) {
+            super(owner, Cast.<List<Type>>uncheckedCast(serviceTypes));
+
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
+
+            for (Class<?> serviceType : serviceTypes) {
+                if (!serviceType.isAssignableFrom(implementationType)) {
+                    throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
+                        implementationType.getSimpleName(), serviceType.getSimpleName()));
+                }
+            }
+
             Constructor<?> match = InjectUtil.selectConstructor(implementationType);
             if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
                 match.setAccessible(true);

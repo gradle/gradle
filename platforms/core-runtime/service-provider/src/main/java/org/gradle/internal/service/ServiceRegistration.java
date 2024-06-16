@@ -44,6 +44,17 @@ public interface ServiceRegistration {
     <S, I extends S> void add(Class<S> serviceType, Class<I> implementationType);
 
     /**
+     * Adds two services to this registry that share the implementation.
+     * <p>
+     * The implementation class should have a single public constructor, and this constructor can take services to be injected as parameters.
+     *
+     * @param serviceType1 The first service to make visible.
+     * @param serviceType2 The second service to make visible.
+     * @param implementationType The implementation type of the service.
+     */
+    <S, I extends S> void add(Class<S> serviceType1, Class<?> serviceType2, Class<I> implementationType);
+
+    /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods. See {@link DefaultServiceRegistry} for details.
      */
     void addProvider(ServiceRegistrationProvider provider);
