@@ -30,7 +30,6 @@ import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
-import org.gradle.internal.extensions.core.peekSingletonProperty
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
@@ -55,6 +54,9 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     private
     val allprojects = mutableListOf<IsolatedProjectAction>()
+
+    private
+    val projectsActions = mutableMapOf<String, IsolatedProjectActions>()
 
     private
     var serializedIsolatedActions: SerializedIsolatedActionGraph<IsolatedProjectActions>? = null
@@ -85,14 +87,14 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
         serializedIsolatedActions != null -> serializedIsolatedActions
-            ?.let { IsolatedProjectEvaluationListener(gradle, it) }
+            ?.let { IsolatedProjectEvaluationListener(gradle, projectsActions, it) }
             ?: isolateFor(gradle)
 
         beforeProject.isEmpty() && afterProject.isEmpty() && allprojects.isEmpty() -> null
         else -> {
             val isolated = isolateActions(gradle)
             serializedIsolatedActions = isolated
-            IsolatedProjectEvaluationListener(gradle, isolated)
+            IsolatedProjectEvaluationListener(gradle, projectsActions, isolated)
         }
     }
 
@@ -100,7 +102,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
         allprojects.isEmpty() -> null
         else -> {
             val isolated = serializedIsolatedActions ?: isolateActions(gradle)
-            Allprojects(gradle, isolated)
+            Allprojects(gradle, projectsActions, isolated)
         }
     }
 
@@ -108,6 +110,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
         beforeProject.clear()
         afterProject.clear()
         allprojects.clear()
+        projectsActions.clear()
         serializedIsolatedActions = null
     }
 
@@ -136,18 +139,19 @@ data class IsolatedProjectActions(
 private
 class Allprojects(
     private val gradle: Gradle,
+    private val projectsActions: MutableMap<String, IsolatedProjectActions>,
     private val isolated: SerializedIsolatedActionGraph<IsolatedProjectActions>
 ) : IsolatedAction<Project> {
 
     override fun execute(target: Project) {
         // Check if allprojects already been applied
-        if (target.peekSingletonProperty<IsolatedProjectActions>() != null) return
+        if (projectsActions[target.path] != null) return
 
         val actions = IsolateOwners.OwnerGradle(gradle).let { owner ->
             IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
                 .deserialize(isolated)
         }
-        target.setSingletonProperty(actions)
+        projectsActions[target.path] = actions
         actions.allprojects.forEach { it.execute(target) }
     }
 }
@@ -156,14 +160,17 @@ class Allprojects(
 private
 class IsolatedProjectEvaluationListener(
     private val gradle: Gradle,
+    private val projectsActions: MutableMap<String, IsolatedProjectActions>,
     private val isolated: SerializedIsolatedActionGraph<IsolatedProjectActions>
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) =
-        when (val isolatedProjectActions = project.peekSingletonProperty<IsolatedProjectActions>()) {
+        when (val isolatedProjectActions = projectsActions[project.path]) {
             null -> {
                 val actions = isolatedActions()
                 // preserve isolate semantics between `beforeProject` and `afterProject`
+                projectsActions[project.path] = actions
+
                 project.setSingletonProperty(actions)
                 executeAll(actions.allprojects, project)
                 executeAll(actions.beforeProject, project)
@@ -171,12 +178,14 @@ class IsolatedProjectEvaluationListener(
 
             // Project was configured eagerly by `allprojects`
             else -> {
+                project.setSingletonProperty(isolatedProjectActions)
                 executeAll(isolatedProjectActions.beforeProject, project)
             }
         }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
         val actions = project.popSingletonProperty<IsolatedProjectActions>()
+        projectsActions.remove(project.path)
         require(actions != null) {
             "afterEvaluate action cannot execute before beforeEvaluate"
         }
