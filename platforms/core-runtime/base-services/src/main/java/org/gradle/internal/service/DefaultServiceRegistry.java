@@ -49,6 +49,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
+import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
@@ -710,11 +711,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         // The value of the field is computed lazily.
         Class<?> factoryElementType;
 
-        SingletonService(DefaultServiceRegistry owner, Type serviceType) {
+        SingletonService(DefaultServiceRegistry owner, List<Type> serviceTypes) {
             super(owner);
-            rawDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceType));
-            Class<?> serviceClass = unwrap(serviceType);
-            unwrappedDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceClass));
+            rawDeclaredServiceTypes = serviceTypes;
+            unwrappedDeclaredServiceTypes = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
+                @Override
+                public Class<?> transform(Type type) {
+                    return unwrap(type);
+                }
+            });
         }
 
         @Override
@@ -848,8 +853,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private Service[] paramServices;
         private Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, Type serviceType) {
-            super(owner, serviceType);
+        protected FactoryService(DefaultServiceRegistry owner, List<Type> serviceTypes) {
+            super(owner, serviceTypes);
         }
 
         protected abstract Type[] getParameterTypes();
@@ -950,7 +955,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private Object target;
 
         public FactoryMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
-            super(owner, method.getServiceType());
+            super(owner, singletonList(method.getServiceType()));
             this.target = target;
             this.method = method;
         }
@@ -1003,7 +1008,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private static class FixedInstanceService extends SingletonService {
         public FixedInstanceService(DefaultServiceRegistry owner, Class<?> serviceType, Object serviceInstance) {
-            super(owner, serviceType);
+            super(owner, singletonList((Type) serviceType));
             setInstance(serviceInstance);
         }
 
@@ -1026,7 +1031,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType, Class<?> implementationType) {
-            super(owner, serviceType);
+            super(owner, singletonList((Type) serviceType));
             if (!serviceType.isAssignableFrom(implementationType)) {
                 throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it", implementationType.getSimpleName(), serviceType.getSimpleName()));
             }
