@@ -707,7 +707,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static abstract class SingletonService extends ManagedObjectServiceProvider {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
-        final List<Type> rawDeclaredServiceTypes;
+        protected final List<? extends Type> rawDeclaredServiceTypes;
         private final List<Class<?>> unwrappedDeclaredServiceTypes;
 
         BindState state = BindState.UNBOUND;
@@ -717,7 +717,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         // The value of the field is computed lazily.
         Class<?> factoryElementType;
 
-        SingletonService(DefaultServiceRegistry owner, List<Type> serviceTypes) {
+        SingletonService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
             super(owner);
             rawDeclaredServiceTypes = serviceTypes;
             unwrappedDeclaredServiceTypes = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
@@ -831,7 +831,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         @Nullable
-        private static Class<?> findFactoryElementType(List<Type> factoryCandidates) {
+        private static Class<?> findFactoryElementType(List<? extends Type> factoryCandidates) {
             for (Type factoryCandidate : factoryCandidates) {
                 Class<?> factoryElementType = findFactoryElementType(factoryCandidate);
                 if (factoryElementType != null) {
@@ -859,7 +859,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private Service[] paramServices;
         private Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, List<Type> serviceTypes) {
+        protected FactoryService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
             super(owner, serviceTypes);
         }
 
@@ -1014,7 +1014,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private static class FixedInstanceService extends SingletonService {
         public FixedInstanceService(DefaultServiceRegistry owner, Class<?> serviceType, Object serviceInstance) {
-            super(owner, singletonList((Type) serviceType));
+            super(owner, singletonList(serviceType));
             setInstance(serviceInstance);
         }
 
@@ -1041,7 +1041,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         private ConstructorService(DefaultServiceRegistry owner, List<Class<?>> serviceTypes, Class<?> implementationType) {
-            super(owner, Cast.<List<Type>>uncheckedCast(serviceTypes));
+            super(owner, serviceTypes);
 
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
@@ -1280,7 +1280,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return false;
     }
 
-    private static boolean isEqualToAnyType(Type targetType, List<Type> candidateTypes) {
+    private static boolean isEqualToAnyType(Type targetType, List<? extends Type> candidateTypes) {
         for (Type candidate : candidateTypes) {
             if (targetType.equals(candidate)) {
                 return true;
@@ -1289,7 +1289,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return false;
     }
 
-    private static boolean isSatisfiedByAny(Type expected, List<Type> candidates) {
+    private static boolean isSatisfiedByAny(Type expected, List<? extends Type> candidates) {
         for (Type candidate : candidates) {
             if (isSatisfiedBy(expected, candidate)) {
                 return true;
