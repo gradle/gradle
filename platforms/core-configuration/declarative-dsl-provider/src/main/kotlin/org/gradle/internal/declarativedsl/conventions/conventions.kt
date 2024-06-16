@@ -26,7 +26,7 @@ import org.gradle.plugin.software.internal.ConventionReceiver
 /**
  * A convention that applies a property assignment operation (e.g. foo = "bar").
  */
-class AssignmentRecordConvention(val assignmentRecord: AssignmentRecord) :
+class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord) :
     Convention<AssignmentRecordConventionReceiver> {
     override fun apply(receiver: AssignmentRecordConventionReceiver) {
         receiver.receive(assignmentRecord)
@@ -37,7 +37,7 @@ class AssignmentRecordConvention(val assignmentRecord: AssignmentRecord) :
 /**
  * A convention that applies a data addition operation (e.g. addFoo("bar")).
  */
-class AdditionRecordConvention(val dataAdditionRecord: DataAdditionRecord) :
+class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecord) :
     Convention<AdditionRecordConventionReceiver> {
     override fun apply(receiver: AdditionRecordConventionReceiver) {
         receiver.receive(dataAdditionRecord)
@@ -48,7 +48,7 @@ class AdditionRecordConvention(val dataAdditionRecord: DataAdditionRecord) :
 /**
  * A convention that applies a nested object access operation (e.g. foo { }).
  */
-class NestedObjectAccessConvention(val nestedObjectAccessRecord: NestedObjectAccessRecord) :
+class NestedObjectAccessConvention(private val nestedObjectAccessRecord: NestedObjectAccessRecord) :
     Convention<NestedObjectAccessRecordConventionReceiver> {
     override fun apply(receiver: NestedObjectAccessRecordConventionReceiver) {
         receiver.receive(nestedObjectAccessRecord)
@@ -56,16 +56,16 @@ class NestedObjectAccessConvention(val nestedObjectAccessRecord: NestedObjectAcc
 }
 
 
-fun interface AssignmentRecordConventionReceiver : ConventionReceiver {
-    fun receive(assignmentRecord: AssignmentRecord)
+fun interface AssignmentRecordConventionReceiver : ConventionReceiver<AssignmentRecord> {
+    override fun receive(assignmentRecord: AssignmentRecord)
 }
 
 
-fun interface AdditionRecordConventionReceiver : ConventionReceiver {
-    fun receive(additionRecord: DataAdditionRecord)
+fun interface AdditionRecordConventionReceiver : ConventionReceiver<DataAdditionRecord> {
+    override fun receive(additionRecord: DataAdditionRecord)
 }
 
 
-fun interface NestedObjectAccessRecordConventionReceiver : ConventionReceiver {
-    fun receive(additionRecord: NestedObjectAccessRecord)
+fun interface NestedObjectAccessRecordConventionReceiver : ConventionReceiver<NestedObjectAccessRecord> {
+    override fun receive(additionRecord: NestedObjectAccessRecord)
 }

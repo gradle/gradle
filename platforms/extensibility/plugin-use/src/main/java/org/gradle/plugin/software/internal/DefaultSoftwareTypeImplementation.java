@@ -68,8 +68,8 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     }
 
     @Override
-    public void addConvention(Convention<?> rule) {
-        conventionRules.add(rule);
+    public void addConvention(Convention<?> convention) {
+        conventionRules.add(convention);
     }
 
     @Override
