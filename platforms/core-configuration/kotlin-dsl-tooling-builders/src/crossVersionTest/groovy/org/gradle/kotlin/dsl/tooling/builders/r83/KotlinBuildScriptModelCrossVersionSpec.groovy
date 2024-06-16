@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r83
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters
@@ -23,6 +24,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import spock.lang.Issue
 
 @TargetGradleVersion(">=8.3")
+@LocalOnly
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     @Issue("https://github.com/gradle/gradle/issues/25555")

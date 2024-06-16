@@ -31,9 +31,11 @@ import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
+import com.gradle.develocity.testing.annotations.LocalOnly
 
 @TargetGradleVersion(">=5.4")
 @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
+@LocalOnly
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch buildSrc classpath in face of compilation errors"() {

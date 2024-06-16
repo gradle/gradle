@@ -16,10 +16,12 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r88
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
 @TargetGradleVersion(">=8.8")
+@LocalOnly
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "settings script has type-safe accessors on the classpath"() {

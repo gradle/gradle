@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r54
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -28,6 +29,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 @TargetGradleVersion(">=5.4")
 @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
+@LocalOnly
 class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
