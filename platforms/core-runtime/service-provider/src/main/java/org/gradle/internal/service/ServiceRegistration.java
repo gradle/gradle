@@ -22,6 +22,7 @@ package org.gradle.internal.service;
 public interface ServiceRegistration {
     /**
      * Adds a service to this registry. The given object is closed when the associated registry is closed.
+     *
      * @param serviceType The type to make this service visible as.
      * @param serviceInstance The service implementation.
      */
