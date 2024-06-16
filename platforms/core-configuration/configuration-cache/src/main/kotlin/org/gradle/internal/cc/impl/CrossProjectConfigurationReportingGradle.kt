@@ -91,11 +91,7 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.rootProject {
             // Instead of the rootProject's `allProjects`, collect the projects while still tracking the current referrer project
             val root = this@CrossProjectConfigurationReportingGradle.rootProject
-            projectConfigurator.allprojects(
-                crossProjectModelAccess.getAllprojects(referrerProject, root),
-                action,
-                isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(delegate)
-            )
+            projectConfigurator.allprojects(crossProjectModelAccess.getAllprojects(referrerProject, root), action)
         }
     }
 

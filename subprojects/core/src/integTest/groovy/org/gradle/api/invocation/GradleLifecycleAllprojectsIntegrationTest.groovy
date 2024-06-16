@@ -18,54 +18,9 @@ package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-
 class GradleLifecycleAllprojectsIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'gradle.lifecycle.allprojects is applying before gradle.#api'() {
-        given:
-        settingsFile << """
-            rootProject.name = 'root'
-            gradle.lifecycle.allprojects { project ->
-                println "lifecycle.allprojects for \${project.name}"
-            }
-            gradle.$invocation { project ->
-                println "$api for \${project.name}"
-            }
-            include(":a")
-        """
-
-        file("a/build.gradle") << "println ':a'"
-
-        buildFile << """
-            println 'Root'
-        """
-
-        when:
-        run "help", "-q"
-
-        then:
-        outputContains expectedOutput
-        where:
-        api           | invocation    | expectedOutput
-        "allprojects" | "allprojects" | gradleAllprojectsExpectedOutput
-        "rootProject" | "rootProject" | gradleRootProjectExpectedOutput
-    }
-
-    private static def gradleAllprojectsExpectedOutput = """
-lifecycle.allprojects for root
-allprojects for root
-lifecycle.allprojects for a
-allprojects for a
-Root
-:a
-"""
-    private static def gradleRootProjectExpectedOutput = """
-lifecycle.allprojects for root
-rootProject for root
-Root
-"""
-
-    def 'gradle.lifecycle.allprojects is applying only once'() {
+    def 'lifecycle.allprojects is executed only once for a project'() {
         given:
         settingsFile << """
             rootProject.name = 'root'
@@ -75,10 +30,9 @@ Root
             include(":a")
         """
 
-        file("a/build.gradle") << "println ':a'"
+        file("a/build.gradle") << "println 'a'"
 
         buildFile << """
-            println 'Root'
             allprojects { project ->
                 println "allprojects for \${project.name}"
             }
@@ -93,28 +47,27 @@ Root
         then:
         outputContains """
 lifecycle.allprojects for root
-Root
 allprojects for root
 lifecycle.allprojects for a
 allprojects for a
 subprojects for a
-:a
+a
 """
     }
 
-    def 'gradle.lifecycle.allprojects is applying before gradle.lifecycle.beforeProject'() {
+    def 'lifecycle.allprojects is executed before gradle.lifecycle.beforeProject'() {
         given:
         settingsFile << """
             rootProject.name = 'root'
-            gradle.lifecycle.allprojects { project ->
-                println "lifecycle.allprojects for \${project.name}"
-            }
             gradle.lifecycle.beforeProject { project ->
                 println "lifecycle.beforeProject for \${project.name}"
             }
+            gradle.lifecycle.allprojects { project ->
+                println "lifecycle.allprojects for \${project.name}"
+            }
             include(":a")
         """
-        file("a/build.gradle") << "println ':a'"
+        file("a/build.gradle") << ""
 
         when:
         run "help", "-q"
@@ -128,24 +81,26 @@ lifecycle.beforeProject for a
 """
     }
 
-    def 'gradle.lifecycle.allprojects is applying before project.#api'() {
+    def 'lifecycle.allprojects is executed before project.#api'() {
         given:
         settingsFile << """
             rootProject.name = 'root'
+
             gradle.lifecycle.allprojects { project ->
-                println "lifecycle.allprojects for \${project.name}"
+                project.ext {
+                    foo = "bar"
+                }
             }
             include(":a")
             include(":b")
         """
 
-        file("a/build.gradle") << "println ':a'"
-        file("b/build.gradle") << "println ':b'"
+        file("a/build.gradle") << ""
+        file("b/build.gradle") << ""
 
         buildFile << """
-            println 'Root'
             $invocation { project ->
-                println "$api for \${project.name}"
+                println "foo = \${project.foo} for \${project.name}"
             }
         """
 
@@ -156,40 +111,197 @@ lifecycle.beforeProject for a
         outputContains expectedOutput
 
         where:
-        api           | invocation      | expectedOutput
-        "allprojects" | "allprojects"   | allprojectsExpectedOutput
-        "subprojects" | "subprojects"   | subprojectsExpectedOutput
-        "project"     | "project(':a')" | projectExpectedOutput
+        api              | invocation                 | expectedOutput
+        "allprojects"    | "allprojects"              | allprojectsExpectedOutput
+        "subprojects"    | "subprojects"              | subprojectsExpectedOutput
+        "project"        | "project(':a')"            | projectExpectedOutput
+        "getAllprojects" | "getAllprojects().forEach" | getAllprojectsExpectedOutput
+        "getSubprojects" | "getSubprojects().forEach" | getSubprojectsExpectedOutput
     }
 
     private static def allprojectsExpectedOutput = """
-lifecycle.allprojects for root
-Root
-allprojects for root
-lifecycle.allprojects for a
-allprojects for a
-lifecycle.allprojects for b
-allprojects for b
-:a
-:b
+foo = bar for root
+foo = bar for a
+foo = bar for b
 """
     private static def subprojectsExpectedOutput = """
-lifecycle.allprojects for root
-Root
-lifecycle.allprojects for a
-subprojects for a
-lifecycle.allprojects for b
-subprojects for b
-:a
-:b
+foo = bar for a
+foo = bar for b
 """
     private static def projectExpectedOutput = """
-lifecycle.allprojects for root
-Root
-lifecycle.allprojects for a
-project for a
-:a
-lifecycle.allprojects for b
-:b
+foo = bar for a
 """
+    private static def getAllprojectsExpectedOutput = """
+foo = bar for root
+foo = bar for a
+foo = bar for b
+"""
+    private static def getSubprojectsExpectedOutput = """
+foo = bar for a
+foo = bar for b
+"""
+
+    def 'lifecycle.allprojects is executed eagerly only if a mutable state of a project touched by using project.#api'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            gradle.lifecycle.allprojects { project ->
+                println "lifecycle.allprojects for \${project.name}"
+                project.ext {
+                    foo = "bar"
+                }
+            }
+            include(":a")
+            include(":b")
+        """
+
+        file("a/build.gradle") << "println 'a'"
+        file("b/build.gradle") << """
+            println 'b'
+            println "foo = \${foo} for b"
+        """
+
+        buildFile << """
+            println 'root'
+            $invocation { project ->
+                if (project.getName() == 'a') {
+                    println "Mutable state access for 'a': foo = \${project.foo}"
+                } else {
+                    println "Immutable state access for \${project.getName()}"
+                }
+            }
+            println "$api is executed"
+        """
+
+        when:
+        run "help", "-q"
+
+        then:
+        outputContains expectedOutput
+
+        where:
+        api              | invocation                 | expectedOutput
+        "allprojects"    | "allprojects"              | mutableStateAccessProjectAllprojectsExpectedOutput
+        "subprojects"    | "subprojects"              | mutableStateAccessProjectSubprojectsExpectedOutput
+        "getAllprojects" | "getAllprojects().forEach" | mutableStateAccessProjectGetAllprojectsExpectedOutput
+        "getSubprojects" | "getSubprojects().forEach" | mutableStateAccessProjectGetSubprojectsExpectedOutput
+    }
+
+    private static def mutableStateAccessProjectAllprojectsExpectedOutput = """
+lifecycle.allprojects for root
+root
+Immutable state access for root
+lifecycle.allprojects for a
+Mutable state access for 'a': foo = bar
+Immutable state access for b
+allprojects is executed
+a
+lifecycle.allprojects for b
+b
+foo = bar for b
+"""
+    private static def mutableStateAccessProjectSubprojectsExpectedOutput = """
+lifecycle.allprojects for root
+root
+lifecycle.allprojects for a
+Mutable state access for 'a': foo = bar
+Immutable state access for b
+subprojects is executed
+a
+lifecycle.allprojects for b
+b
+foo = bar for b
+"""
+    private static def mutableStateAccessProjectGetAllprojectsExpectedOutput = """
+lifecycle.allprojects for root
+root
+Immutable state access for root
+lifecycle.allprojects for a
+Mutable state access for 'a': foo = bar
+Immutable state access for b
+getAllprojects is executed
+a
+lifecycle.allprojects for b
+b
+foo = bar for b
+"""
+    private static def mutableStateAccessProjectGetSubprojectsExpectedOutput = """
+lifecycle.allprojects for root
+root
+lifecycle.allprojects for a
+Mutable state access for 'a': foo = bar
+Immutable state access for b
+getSubprojects is executed
+a
+lifecycle.allprojects for b
+b
+foo = bar for b
+"""
+
+    def 'lifecycle.allprojects is executed eagerly only if a mutable state of a project touched by using gradle.allprojects'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            gradle.lifecycle.allprojects { project ->
+                println "lifecycle.allprojects for \${project.getName()}"
+                project.ext {
+                    foo = "bar"
+                }
+            }
+            gradle.allprojects { project ->
+                if (project.getName() == 'a') {
+                    println "Mutable state access for 'a': foo = \${project.foo}"
+                } else {
+                    println "Immutable state access for \${project.getName()}"
+                }
+            }
+            include(":a")
+        """
+
+        file("a/build.gradle") << "println 'a'"
+
+        buildFile << """
+            println 'root'
+        """
+
+        when:
+        run "help", "-q"
+
+        then:
+        outputContains """
+Immutable state access for root
+lifecycle.allprojects for a
+Mutable state access for 'a': foo = bar
+lifecycle.allprojects for root
+root
+a
+"""
+    }
+
+//    @ToBeImplemented
+//    def 'lifecycle.allprojects is executed eagerly only if a mutable state of a project touched by using gradle.rootProject'() {
+//        given:
+//        settingsFile << """
+//            rootProject.name = 'root'
+//            gradle.lifecycle.allprojects { project ->
+//                println "lifecycle.allprojects for \${project.getName()}"
+//                project.ext {
+//                    foo = "bar"
+//                }
+//            }
+//            gradle.rootProject { project ->
+//                "State access for root: \${project.$stateAccess}"
+//            }
+//        """
+//
+//        when:
+//        run "help", "-q"
+//
+//        then:
+//        outputContains ""
+//        where:
+//        stateAccess | expectedOutput
+//        "foo"       | ""
+//        "getName()" | ""
+//    }
 }

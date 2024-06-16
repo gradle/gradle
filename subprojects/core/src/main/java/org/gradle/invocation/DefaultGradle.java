@@ -114,16 +114,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
-                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
-
                 if (!rootProjectActions.isEmpty()) {
-                    services.get(CrossProjectConfigurator.class).rootProject(
-                        rootProject,
-                        rootProjectActions,
-                        isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(DefaultGradle.this)
-                    );
+                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
 
+                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
