@@ -54,11 +54,7 @@ dependencies {
     implementation(project(":problems-api"))
     implementation(project(":build-process-services"))
 
-    implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
-    implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
-    implementation(libs.ant)
 
     runtimeOnly(project(":gradle-cli-main"))
     runtimeOnly(project(":declarative-dsl-provider"))
@@ -72,19 +68,8 @@ dependencies {
     manifestClasspath(project(":gradle-cli-main"))
 
     testImplementation(project(":internal-integ-testing"))
-    testImplementation(project(":native"))
-    testImplementation(project(":cli"))
-    testImplementation(project(":process-services"))
-    testImplementation(project(":core-api"))
-    testImplementation(project(":model-core"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":base-services-groovy")) // for 'Specs'
-
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":language-java")))
-    testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":tooling-api")))
 
@@ -95,9 +80,6 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(project(":build-configuration")))
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
     integTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")
     }

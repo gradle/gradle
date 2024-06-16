@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
-class WelcomeMessageAction implements Action<ExecutionListener> {
+public class WelcomeMessageAction implements Action<ExecutionListener> {
+    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
 
     private final Logger logger;
     private final BuildLayoutResult buildLayout;
@@ -101,7 +102,7 @@ class WelcomeMessageAction implements Action<ExecutionListener> {
      * In user environments the system property will never be available.
      */
     private boolean isEnabledBySystemProperty() {
-        String messageEnabled = System.getProperty(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
+        String messageEnabled = System.getProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
 
         if (messageEnabled == null) {
             return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.TempDir
-
-import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
 
 class WelcomeMessageActionTest extends Specification {
 
@@ -186,7 +184,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     def "does not print anything if system property is set to false"() {
         given:
-        System.setProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false")
+        System.setProperty(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false")
         def action = createWelcomeMessage(null)
 
         when:

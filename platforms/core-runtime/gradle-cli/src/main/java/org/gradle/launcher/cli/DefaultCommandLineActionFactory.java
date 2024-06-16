@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ import java.util.List;
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
 public class DefaultCommandLineActionFactory implements CommandLineActionFactory {
-    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
     private static final String HELP = "h";
     private static final String VERSION = "v";
     private static final String VERSION_CONTINUE = "V";

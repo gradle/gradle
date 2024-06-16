@@ -101,6 +101,7 @@ dependencies {
     implementation(project(":time"))
     implementation(projects.toolchainsJvmShared)
     implementation(project(":build-process-services"))
+    implementation(project(":gradle-cli"))
 
     implementation(testFixtures(project(":build-operations")))
 
