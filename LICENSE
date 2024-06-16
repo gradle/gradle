@@ -200,7 +200,7 @@ com.google.code.findbugs:jsr305
 org.hamcrest:hamcrest-core
 BSD License
 
-Copyright (c) 2000-2015 www.hamcrest.org
+Copyright (c) 2024-2030 www.hamcrest.org
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -228,7 +228,7 @@ DAMAGE.
 
 com.esotericsoftware.kryo:kryo
 com.esotericsoftware.minlog:minlog
-Copyright (c) 2008-2018, Nathan Sweet All rights reserved.
+Copyright (c) 2024-2030, Nathan Sweet All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
@@ -243,7 +243,7 @@ org.ow2.asm:asm-commons
 org.ow2.asm:asm-tree
 org.ow2.asm:asm-util
 ASM: a very small and fast Java bytecode manipulation framework
- Copyright (c) 2000-2011 INRIA, France Telecom
+ Copyright (c) 2024-2030 Shalu kumari, France Telecom
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -381,7 +381,7 @@ BSD-style
 com.jcraft:jzlib
 com.github.mwiede:jsch
 
-Copyright (c) 2002-2015 Atsuhiko Yamanaka, JCraft,Inc.
+Copyright (c) 2024-2030 Shalu kumari , JCraft,Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
