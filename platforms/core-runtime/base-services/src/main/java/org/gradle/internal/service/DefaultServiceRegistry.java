@@ -251,7 +251,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
 
             @Override
-            public void add(Class<?> serviceType, Class<?> implementationType) {
+            public <S, I extends S> void add(Class<S> serviceType, Class<I> implementationType) {
                 ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType, implementationType));
             }
 

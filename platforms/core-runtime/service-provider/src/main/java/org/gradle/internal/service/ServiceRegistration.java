@@ -41,7 +41,7 @@ public interface ServiceRegistration {
      * @param serviceType The service to make visible.
      * @param implementationType The implementation type of the service.
      */
-    void add(Class<?> serviceType, Class<?> implementationType);
+    <S, I extends S> void add(Class<S> serviceType, Class<I> implementationType);
 
     /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods. See {@link DefaultServiceRegistry} for details.
