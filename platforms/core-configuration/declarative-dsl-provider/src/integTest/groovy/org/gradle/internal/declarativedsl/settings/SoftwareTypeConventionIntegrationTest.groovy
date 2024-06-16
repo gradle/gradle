@@ -266,20 +266,32 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("(foo is configured)")
     }
 
-    @NotYetImplemented
     def "can configure build-level conventions in a non-declarative settings file"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
+        file("settings.gradle") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
+            include("declarative")
+            include("non-declarative")
+        """
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+        file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("foo"))
+
+        file("non-declarative/build.gradle") << """
+            plugins { id("com.example.test-software-type-impl") }
+        """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
+        run(":declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        outputContains("""id = test\nbar = convention""")
+        outputContains("""id = foo\nbar = convention""")
+
+        when:
+        run(":non-declarative:printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""id = convention\nbar = bar""")
     }
 
     def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file (#type build script)"() {

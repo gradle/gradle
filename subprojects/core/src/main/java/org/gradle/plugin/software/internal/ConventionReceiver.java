@@ -21,5 +21,6 @@ package org.gradle.plugin.software.internal;
  *
  * @since 8.9
  */
-public interface ConventionReceiver {
+public interface ConventionReceiver<T> {
+    void receive(T convention);
 }

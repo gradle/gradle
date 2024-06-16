@@ -34,7 +34,7 @@ public interface SoftwareTypeImplementation<T> {
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
-    void addConvention(Convention<?> rule);
+    void addConvention(Convention<?> convention);
 
     List<Convention<?>> getConventions();
 }

@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+package org.gradle.api.internal.initialization;
+
+import org.gradle.api.Action;
 
 /**
- * Represents a reusable convention declared for a software type.
- *
- * @param <T> the type of the receiver of the convention
- *
- * @since 8.9
+ * Conventions for configuring Software Types
  */
-public interface Convention<T extends ConventionReceiver<?>> {
-    void apply(T receiver);
+public interface Conventions {
+    /**
+     * Adds a convention for the software type specified by the given name.
+     *
+     * @param name the name of the software type
+     * @param publicType the public type of the software type
+     * @param configureAction the action to configure the software type
+     */
+    <T> void add(String name, Class<T> publicType, Action<? super T> configureAction);
 }
