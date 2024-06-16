@@ -555,7 +555,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         public void instanceRealized(ManagedObjectServiceProvider serviceProvider, Object instance) {
             List<Class<?>> declaredServiceTypes = serviceProvider.getDeclaredServiceTypes();
-            if (instance instanceof AnnotatedServiceLifecycleHandler && !anyTypeIsAssignableFrom(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
+            if (instance instanceof AnnotatedServiceLifecycleHandler && !isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
                 throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
                     serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
             }
@@ -700,16 +700,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static abstract class SingletonService extends ManagedObjectServiceProvider {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
-        final Type serviceType; // TODO: this should go away and be replaced by the plural version
         final List<Type> rawDeclaredServiceTypes;
         private final List<Class<?>> unwrappedDeclaredServiceTypes;
 
         BindState state = BindState.UNBOUND;
+
+        // Singleton service is implemented by a single instance and must extend/implement all declared service types.
+        // But it can only implement a single `Factory<? extends ElementType>` due to Java type constraints.
+        // The value of the field is computed lazily.
         Class<?> factoryElementType;
 
         SingletonService(DefaultServiceRegistry owner, Type serviceType) {
             super(owner);
-            this.serviceType = serviceType;
             rawDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceType));
             Class<?> serviceClass = unwrap(serviceType);
             unwrappedDeclaredServiceTypes = Cast.uncheckedCast(singletonList(serviceClass));
@@ -765,7 +767,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Service getService(Type serviceType) {
-            if (!isSatisfiedBy(serviceType, this.serviceType)) {
+            if (!isSatisfiedByAny(serviceType, rawDeclaredServiceTypes)) {
                 return null;
             }
             return prepare();
@@ -773,7 +775,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Visitor getAll(Class<?> serviceType, ServiceProvider.Visitor visitor) {
-            if (anyTypeIsAssignableFrom(serviceType, getDeclaredServiceTypes())) {
+            if (isAssignableFromAnyType(serviceType, unwrappedDeclaredServiceTypes)) {
                 visitor.visit(prepare());
             }
             return visitor;
@@ -781,19 +783,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Service getFactory(Class<?> elementType) {
-            if (!isFactory(serviceType, elementType)) {
+            if (!isFactoryFor(elementType)) {
                 return null;
             }
             return prepare();
         }
 
-        private boolean isFactory(Type type, Class<?> elementType) {
+        // Finds the first element type of `Factory<? extends ElementType>` in the type hierarchy
+        @Nullable
+        private static Class<?> findFactoryElementType(Type type) {
             Class<?> c = unwrap(type);
             if (!Factory.class.isAssignableFrom(c)) {
-                return false;
-            }
-            if (factoryElementType != null) {
-                return elementType.isAssignableFrom(factoryElementType);
+                return null;
             }
 
             if (type instanceof ParameterizedType) {
@@ -802,21 +803,45 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                 if (parameterizedType.getRawType().equals(Factory.class)) {
                     Type actualType = parameterizedType.getActualTypeArguments()[0];
                     if (actualType instanceof Class) {
-                        factoryElementType = (Class<?>) actualType;
-                        return elementType.isAssignableFrom((Class<?>) actualType);
+                        return (Class<?>) actualType;
                     }
                 }
             }
 
             // Check if type extends Factory<? extends ElementType>
             for (Type interfaceType : c.getGenericInterfaces()) {
-                if (isFactory(interfaceType, elementType)) {
-                    return true;
+                Class<?> parentFactoryElementType = findFactoryElementType(interfaceType);
+                if (parentFactoryElementType != null) {
+                    return parentFactoryElementType;
                 }
             }
 
-            return false;
+            return null;
         }
+
+        @Nullable
+        private static Class<?> findFactoryElementType(List<Type> factoryCandidates) {
+            for (Type factoryCandidate : factoryCandidates) {
+                Class<?> factoryElementType = findFactoryElementType(factoryCandidate);
+                if (factoryElementType != null) {
+                    return factoryElementType;
+                }
+            }
+
+            return null;
+        }
+
+        private boolean isFactoryFor(Class<?> elementType) {
+            // This method can be called concurrently, but in the worst case we repeat the computation
+            if (factoryElementType == null) {
+                Class<?> foundFactoryElementType = findFactoryElementType(rawDeclaredServiceTypes);
+                factoryElementType = foundFactoryElementType == null ? NonFactoryMarker.class : foundFactoryElementType;
+            }
+
+            return !factoryElementType.equals(NonFactoryMarker.class) && elementType.isAssignableFrom(factoryElementType);
+        }
+
+        private interface NonFactoryMarker {}
     }
 
     private static abstract class FactoryService extends SingletonService {
@@ -841,7 +866,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             paramServices = new Service[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 Type paramType = parameterTypes[i];
-                if (paramType.equals(serviceType)) {
+                if (isEqualToAnyType(paramType, rawDeclaredServiceTypes)) {
                     // A decorating factory
                     Service paramProvider = find(paramType, owner.parentServices);
                     if (paramProvider == null) {
@@ -1225,9 +1250,27 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
-    private static boolean anyTypeIsAssignableFrom(Class<?> targetType, List<Class<?>> candidateTypes) {
-        for (Class<?> declaredType : candidateTypes) {
-            if (targetType.isAssignableFrom(declaredType)) {
+    private static boolean isAssignableFromAnyType(Class<?> targetType, List<Class<?>> candidateTypes) {
+        for (Class<?> candidate : candidateTypes) {
+            if (targetType.isAssignableFrom(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isEqualToAnyType(Type targetType, List<Type> candidateTypes) {
+        for (Type candidate : candidateTypes) {
+            if (targetType.equals(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isSatisfiedByAny(Type expected, List<Type> candidates) {
+        for (Type candidate : candidates) {
+            if (isSatisfiedBy(expected, candidate)) {
                 return true;
             }
         }
