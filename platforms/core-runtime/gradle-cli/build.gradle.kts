@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.launcher.bootstrap.ProcessBootstrap;
+plugins {
+    id("gradlebuild.distribution.api-java")
+}
 
-public class GradleDaemon {
-    public static void main(String[] args) {
-        ProcessBootstrap.run("gradle-daemon-server", "org.gradle.launcher.daemon.bootstrap.DaemonMain", args);
-    }
+description = "Implementation of the `gradle` command"
+
+dependencies {
+    implementation(project(":launcher"))
 }

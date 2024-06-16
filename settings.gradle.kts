@@ -93,6 +93,7 @@ val core = platform("core") {
         subproject("files")
         subproject("functional")
         subproject("gradle-cli-main")
+        subproject("gradle-cli")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
