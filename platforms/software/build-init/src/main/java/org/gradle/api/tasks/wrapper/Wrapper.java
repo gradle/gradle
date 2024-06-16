@@ -115,6 +115,7 @@ public abstract class Wrapper extends DefaultTask {
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
         File propertiesFile = getPropertiesFile();
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
+        Integer propertyTimeout = networkTimeout.getOrElse(WrapperDefaults.NETWORK_TIMEOUT);
 
         checkProperties(existingProperties);
         validateDistributionUrl(propertiesFile.getParentFile());
@@ -128,7 +129,7 @@ public abstract class Wrapper extends DefaultTask {
             unixScript, getBatchScript(),
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
+            propertyTimeout
         );
     }
 
@@ -472,7 +473,6 @@ public abstract class Wrapper extends DefaultTask {
      * @since 7.6
      */
     @Input
-    @Incubating
     @Optional
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
     public Property<Integer> getNetworkTimeout() {
