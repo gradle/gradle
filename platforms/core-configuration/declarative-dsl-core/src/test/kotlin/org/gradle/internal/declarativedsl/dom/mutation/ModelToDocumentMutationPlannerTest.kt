@@ -24,6 +24,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.Document
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
@@ -139,7 +140,9 @@ class ModelToDocumentMutationPlannerTest {
         // Expected to do insert a configuring block:
         assertSuccessfulMutation(
             mutationPlan,
-            AddChildrenToEndOfBlock(document.elementNamed("nested")) { listOf(DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())) }
+            AddChildrenToEndOfBlock(document.elementNamed("nested")) {
+                NewDocumentNodes(listOf(DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())))
+            }
         )
     }
 
@@ -170,7 +173,9 @@ class ModelToDocumentMutationPlannerTest {
 
         assertSuccessfulMutation(
             mutationPlan,
-            AddChildrenToEndOfBlock(document.elementNamed("nested")) { listOf(newElementNode) }
+            AddChildrenToEndOfBlock(document.elementNamed("nested")) {
+                NewDocumentNodes(listOf(newElementNode))
+            }
         )
     }
 
@@ -242,7 +247,10 @@ class ModelToDocumentMutationPlannerTest {
 
     private
     fun isEquivalentMutation(expected: DocumentMutation, actual: DocumentMutation) = when (expected) {
-        is AddChildrenToEndOfBlock -> actual is AddChildrenToEndOfBlock && expected.targetNode == actual.targetNode && expected.nodes() == actual.nodes()
+        is AddChildrenToEndOfBlock -> actual is AddChildrenToEndOfBlock &&
+            expected.targetNode == actual.targetNode &&
+            expected.nodes().nodes == actual.nodes().nodes &&
+            expected.nodes().representationFlags == actual.nodes().representationFlags
         is ReplaceValue -> actual is ReplaceValue && expected.targetValue == actual.targetValue && expected.replaceWithValue() == actual.replaceWithValue()
         is RemoveNode -> expected == actual
         else -> throw UnsupportedOperationException("cannot check for the expected mutation $expected")
