@@ -20,9 +20,11 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -56,12 +58,22 @@ public class DaemonClientFactory {
         return new SingleUseDaemonClientServices(loggingServices, daemonParameters, requestContext, stdin);
     }
 
-    private DefaultServiceRegistry createLoggingServices(ServiceLookup clientLoggingServices) {
+    private ServiceRegistry createLoggingServices(ServiceLookup clientLoggingServices) {
         // Need to use some specific logging services from the client-specific registry, rather than the global registry
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
-        loggingServices.add(OutputEventListener.class, clientLoggingServices.get(OutputEventListener.class));
-        loggingServices.add(GlobalUserInputReceiver.class, clientLoggingServices.get(GlobalUserInputReceiver.class));
-        return loggingServices;
+        OutputEventListener clientOutputEventListener = (OutputEventListener) clientLoggingServices.get(OutputEventListener.class);
+        GlobalUserInputReceiver clientGlobalUserInputReceiver = (GlobalUserInputReceiver) clientLoggingServices.get(GlobalUserInputReceiver.class);
+
+        return ServiceRegistryBuilder.builder()
+            .displayName("logging services")
+            .parent(sharedServices)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                void configure(ServiceRegistration registration) {
+                    registration.add(OutputEventListener.class, clientOutputEventListener);
+                    registration.add(GlobalUserInputReceiver.class, clientGlobalUserInputReceiver);
+                }
+            })
+            .build();
     }
 
     /**
