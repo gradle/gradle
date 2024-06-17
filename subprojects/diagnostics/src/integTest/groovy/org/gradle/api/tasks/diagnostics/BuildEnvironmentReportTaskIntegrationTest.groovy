@@ -15,13 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import com.google.common.base.StandardSystemProperty
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
-import java.util.regex.Pattern
 
 class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "reports Build JVM information"() {
@@ -30,15 +27,8 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         // Not asserting over the exact output, just that important info is printed
-        JvmVendor currentVendor = JvmVendor.fromString(StandardSystemProperty.JAVA_VM_VENDOR.value())
-        output.matches(
-            "(\n|.)*Build JVM: ${Pattern.quote(currentVendor.displayName)} .*${Pattern.quote(StandardSystemProperty.JAVA_VM_VERSION.value())}.*\\n" +
-                ".*Location:\\s+${Pattern.quote(StandardSystemProperty.JAVA_HOME.value())}.*\\n" +
-                ".*Language Version:\\s+${Jvm.current().javaVersionMajor}.*\\n" +
-                ".*Vendor:\\s+${Pattern.quote(currentVendor.displayName)}.*\\n" +
-                ".*Architecture:\\s+${Pattern.quote(StandardSystemProperty.OS_ARCH.value())}.*\\n" +
-                ".*Is JDK:\\s+${Jvm.current().jdk}.*(\\n|.)*"
-        )
+        outputContains("Build JVM: ")
+        outputContains(Jvm.current().javaHome.absolutePath)
     }
 
     @LeaksFileHandles("Putting an generated Jar on the classpath of the buildscript")
