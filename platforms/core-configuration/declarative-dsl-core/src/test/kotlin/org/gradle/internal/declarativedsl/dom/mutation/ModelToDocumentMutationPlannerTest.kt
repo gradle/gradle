@@ -25,6 +25,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTar
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
+import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
@@ -137,11 +138,15 @@ class ModelToDocumentMutationPlannerTest {
             addNestedConfigureBlock()
         )
 
-        // Expected to do insert a configuring block:
+        // Expected to insert a configuring block:
         assertSuccessfulMutation(
             mutationPlan,
             AddChildrenToEndOfBlock(document.elementNamed("nested")) {
-                NewDocumentNodes(listOf(DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())))
+                val element = DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())
+                NewDocumentNodes(
+                    listOf(element),
+                    NodeRepresentationFlagsContainer(forceEmptyBlockForNodes = setOf(element))
+                )
             }
         )
     }

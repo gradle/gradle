@@ -32,6 +32,7 @@ import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
+import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
@@ -68,8 +69,10 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                         .filter { documentMemberMatcher.findMatchingConfiguringElements(it, mutation.function).isEmpty() }
                         .map {
                             DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(it.elements.last()) {
+                                val element = DefaultElementNode(mutation.function.function.simpleName, SyntheticallyProduced, emptyList(), emptyList())
                                 NewDocumentNodes(
-                                    listOf(DefaultElementNode(mutation.function.function.simpleName, SyntheticallyProduced, emptyList(), emptyList()))
+                                    listOf(element),
+                                    NodeRepresentationFlagsContainer(setOf(element))
                                 )
                             }
                         }
