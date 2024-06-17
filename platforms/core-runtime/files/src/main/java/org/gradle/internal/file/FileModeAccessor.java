@@ -17,11 +17,12 @@
 package org.gradle.internal.file;
 
 import java.io.File;
+import java.io.IOException;
 
 public interface FileModeAccessor {
     /**
      * @param f The file to get the mode for. Note that all symlinks are followed.
      * @return The unix mode of the file
      */
-    int getUnixMode(File f) throws Exception;
+    int getUnixMode(File f) throws IOException;
 }

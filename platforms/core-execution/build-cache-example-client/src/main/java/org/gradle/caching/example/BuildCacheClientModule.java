@@ -56,12 +56,13 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileMetadataAccessor;
+import org.gradle.internal.file.FilePermissionHandler;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.file.nio.NioFileMetadataAccessor;
-import org.gradle.internal.file.nio.PosixJdk7FilePermissionHandler;
+import org.gradle.internal.file.nio.NioFilePermissions;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -356,7 +357,7 @@ class BuildCacheClientModule extends AbstractModule {
         StreamHasher streamHasher,
         Interner<String> stringInterner
     ) {
-        PosixJdk7FilePermissionHandler permissionHandler = new PosixJdk7FilePermissionHandler();
+        FilePermissionHandler permissionHandler = NioFilePermissions.createFilePermissionHandler();
         FilePermissionAccess filePermissionAccess = new FilePermissionAccess() {
             @Override
             public int getUnixMode(File f) {

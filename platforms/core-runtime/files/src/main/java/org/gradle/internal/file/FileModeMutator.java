@@ -17,7 +17,8 @@
 package org.gradle.internal.file;
 
 import java.io.File;
+import java.io.IOException;
 
 public interface FileModeMutator {
-    void chmod(File file, int mode) throws Exception;
+    void chmod(File file, int mode) throws IOException;
 }
