@@ -40,16 +40,12 @@ public enum GradleReferencedType {
         this.className = ClassName.bestGuess(name);
     }
 
-    public TypeName asTypeName() {
-        return asClassName();
-    }
-
     public ClassName asClassName() {
         return className;
     }
 
     public static boolean isAssignableToFileSystemLocation(TypeName typeName) {
-        return typeName.equals(REGULAR_FILE.asTypeName())
+        return typeName.equals(REGULAR_FILE.asClassName())
             || typeName.equals(DIRECTORY.asClassName())
             || typeName.equals(FILE_SYSTEM_LOCATION.asClassName());
     }

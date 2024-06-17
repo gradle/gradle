@@ -223,11 +223,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 
             public abstract class Task {
-                @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(
-                    value = ReplacedAccessor.AccessorType.GETTER,
-                    ${setOriginalType ? "originalType = ${originalType}.class," : ""}
-                    name = "getProperty"
-                ))
+                @ReplacesEagerProperty(${setOriginalType ? "originalType = ${originalType}.class" : ""})
                 public abstract $upgradedType getProperty();
             }
         """
@@ -260,8 +256,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         upgradedType                    | originalType | setOriginalType | hasSuppressWarnings | getCall
         "Provider<Integer>"             | "Integer"    | false           | false               | "self.getProperty().getOrElse(null)"
         "Provider<Integer>"             | "int"        | true            | false               | "self.getProperty().getOrElse(0)"
-        "Provider<RegularFile>"         | "File"       | false           | false               | "self.getProperty().map(fileSystemLocation -> fileSystemLocation.getAsFile()).getOrNull()"
-        "Provider<Directory>"           | "File"       | false           | false               | "self.getProperty().map(fileSystemLocation -> fileSystemLocation.getAsFile()).getOrNull()"
+        "Provider<RegularFile>"         | "File"       | false           | false               | "self.getProperty().map(FileSystemLocation::getAsFile).getOrNull()"
+        "Provider<Directory>"           | "File"       | false           | false               | "self.getProperty().map(FileSystemLocation::getAsFile).getOrNull()"
         "Provider<File>"                | "File"       | false           | false               | "self.getProperty().getOrElse(null)"
         "Provider<List<String>>"        | "Iterable"   | true            | true                | "self.getProperty().getOrElse(null)"
         "Provider<List<String>>"        | "List"       | false           | true                | "self.getProperty().getOrElse(null)"

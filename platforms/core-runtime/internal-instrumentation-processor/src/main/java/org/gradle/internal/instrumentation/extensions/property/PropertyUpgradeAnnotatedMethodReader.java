@@ -178,6 +178,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, parentBinaryCompatibility))
                 .collect(Collectors.toList());
         }
+
+        // Provider has only a getter, no setter
+        if (GradleLazyType.PROVIDER.isEqualToRawTypeOf(TypeName.get(method.getReturnType()))) {
+            return Collections.singletonList(getAccessorSpec(method, AccessorType.GETTER, annotationMirror));
+        }
         return Arrays.asList(
             getAccessorSpec(method, AccessorType.GETTER, annotationMirror),
             getAccessorSpec(method, AccessorType.SETTER, annotationMirror)
