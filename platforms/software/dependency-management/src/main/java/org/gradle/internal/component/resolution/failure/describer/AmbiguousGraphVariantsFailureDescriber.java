@@ -16,14 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.MultipleMatchingVariantsFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -35,20 +35,20 @@ import java.util.TreeMap;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes a generic {@link MultipleMatchingVariantsFailure}.
+ * A {@link ResolutionFailureDescriber} that describes a generic {@link AmbiguousVariantsFailure}.
  */
-public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<MultipleMatchingVariantsFailure> {
+public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public VariantSelectionException describeFailure(MultipleMatchingVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public VariantSelectionException describeFailure(AmbiguousVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildAmbiguousGraphVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    protected String buildAmbiguousGraphVariantsFailureMsg(MultipleMatchingVariantsFailure failure, AttributesSchemaInternal schema) {
+    protected String buildAmbiguousGraphVariantsFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
         TreeFormatter formatter = new TreeFormatter();
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = summarizeAmbiguousVariants(failure, describer, formatter, true);
@@ -57,14 +57,14 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ResolutionCandidateAssessor.AssessedCandidate assessedCandidate : ambiguousVariants.values()) {
-            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponentId(), describer);
+            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponent(), describer);
         }
         formatter.endChildren();
 
         return formatter.toString();
     }
 
-    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(MultipleMatchingVariantsFailure failure, AttributeDescriber describer, TreeFormatter formatter, boolean listAvailableVariants) {
+    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(AmbiguousVariantsFailure failure, AttributeDescriber describer, TreeFormatter formatter, boolean listAvailableVariants) {
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             ambiguousVariants.put(candidate.getDisplayName(), candidate);
@@ -95,7 +95,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     private void formatUnselectable(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
-        ModuleVersionIdentifier targetComponentId,
+        ComponentIdentifier targetComponentId,
         AttributeDescriber describer
     ) {
         formatter.node("Variant '");

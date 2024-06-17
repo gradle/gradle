@@ -25,7 +25,6 @@ import org.gradle.internal.component.resolution.failure.describer.ResolutionFail
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
-import org.gradle.internal.component.resolution.failure.type.AbstractIncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.util.GradleVersion;
 
@@ -58,7 +57,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(AbstractIncompatibleResolutionFailure failure) {
+    private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(NoCompatibleVariantsFailure failure) {
         boolean requestingPluginApi = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         boolean allIncompatibleDueToGradleVersion = failure.getCandidates().stream()
             .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()

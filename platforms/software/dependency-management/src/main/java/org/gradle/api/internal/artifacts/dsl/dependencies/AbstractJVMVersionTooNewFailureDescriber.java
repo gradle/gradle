@@ -25,7 +25,6 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
-import org.gradle.internal.component.resolution.failure.type.AbstractIncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.Comparator;
@@ -56,7 +55,7 @@ public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractR
         }
     }
 
-    private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(AbstractIncompatibleResolutionFailure failure) {
+    private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(NoCompatibleVariantsFailure failure) {
         List<ResolutionCandidateAssessor.AssessedCandidate> libraryCandidates = failure.getCandidates().stream()
             .filter(this::isLibraryCandidate)
             .collect(Collectors.toList());

@@ -210,6 +210,10 @@ class RecordingVariantSet(
     var targetAttributes: ImmutableAttributes? = null
     var transformChain: TransformChain? = null
 
+    override fun getComponentIdentifier(): ComponentIdentifier {
+        throw IllegalStateException("No component identifier available")
+    }
+
     override fun asDescribable(): DisplayName {
         return Describables.of(source)
     }

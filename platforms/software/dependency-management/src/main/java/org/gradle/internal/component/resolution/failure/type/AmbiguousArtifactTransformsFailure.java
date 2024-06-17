@@ -28,10 +28,10 @@ import java.util.List;
  * An {@link ArtifactSelectionFailure} that represents the situation when multiple artifact transforms are
  * available that would satisfy an artifact selection request.
  */
-public final class AmbiguousArtifactTransformFailure extends AbstractArtifactSelectionFailure {
+public final class AmbiguousArtifactTransformsFailure extends AbstractArtifactSelectionFailure {
     private final ImmutableList<TransformedVariant> transformedVariants;
 
-    public AmbiguousArtifactTransformFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
+    public AmbiguousArtifactTransformsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
         super(targetComponent, targetVariant, requestedAttributes);
         this.transformedVariants = ImmutableList.copyOf(transformedVariants);
     }

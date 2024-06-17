@@ -30,10 +30,10 @@ import java.util.Set;
  * A specialization of {@link VariantSelectionByAttributesFailure} that represents the situation when multiple variants are
  * available that would satisfy a dependency selection request during a variant-aware matching scenario.
  */
-public final class MultipleMatchingVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
+public final class AmbiguousVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public MultipleMatchingVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public AmbiguousVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(targetComponent, requestedAttributes, requestedCapabilities);
         this.candidates = ImmutableList.copyOf(candidates);
     }

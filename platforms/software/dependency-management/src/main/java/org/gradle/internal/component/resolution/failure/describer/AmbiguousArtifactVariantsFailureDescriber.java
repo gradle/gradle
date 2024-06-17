@@ -21,28 +21,28 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousResolutionFailure}.
+ * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousVariantsFailure}.
  */
-public abstract class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousResolutionFailure> {
+public abstract class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(AmbiguousResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public ArtifactVariantSelectionException describeFailure(AmbiguousVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactVariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildMultipleMatchingVariantsFailureMsg(AmbiguousResolutionFailure failure, AttributeDescriber describer) {
+    private String buildMultipleMatchingVariantsFailureMsg(AmbiguousVariantsFailure failure, AttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
         if (failure.getRequestedAttributes().isEmpty()) {
             formatter.node("More than one variant of " + failure.describeRequestTarget() + " matches the consumer attributes");

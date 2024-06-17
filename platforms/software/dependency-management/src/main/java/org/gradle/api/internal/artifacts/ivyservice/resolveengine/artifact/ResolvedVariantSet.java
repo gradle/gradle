@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Describable;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
@@ -27,6 +28,13 @@ import java.util.Set;
  * Used to select the artifacts given a particular variant selected during graph resolution.
  */
 public interface ResolvedVariantSet {
+    /**
+     * Returns the component identifier for the component that this set of artifacts belongs to.
+     *
+     * @return component identifier as described
+     */
+    ComponentIdentifier getComponentIdentifier();
+
     Describable asDescribable();
 
     AttributesSchemaInternal getSchema();

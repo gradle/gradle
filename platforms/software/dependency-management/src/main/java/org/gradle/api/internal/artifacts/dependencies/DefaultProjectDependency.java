@@ -44,10 +44,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final boolean buildProjectDependencies;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
-        this(dependencyProject, null, buildProjectDependencies, taskDependencyFactory);
-    }
-
     public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies) {
         this(dependencyProject, null, buildProjectDependencies, DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
@@ -87,7 +83,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private Configuration findProjectConfiguration() {
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
-        Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
+        Configuration selectedConfiguration = dependencyConfigurations.getByName(java.util.Objects.requireNonNull(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION)));
         if (!selectedConfiguration.isCanBeConsumed()) {
             failDueToNonConsumableConfigurationSelection(selectedConfiguration);
         }
@@ -109,9 +105,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
      * @param selectedConfiguration the non-consumable configuration that was selected
      */
     private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
-        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(selectedConfiguration.getName(), dependencyProject.getOwner().getComponentIdentifier());
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(dependencyProject.getOwner().getComponentIdentifier(), selectedConfiguration.getName());
         String message = String.format(
-            "Selected configuration '" + failure.describeRequestTarget() + "' on '" + failure.getRequestedComponentDisplayName() +
+            "Selected configuration '" + failure.getRequestedConfigurationName() + "' on '" + failure.describeRequestTarget() +
             "' but it can't be used as a project dependency because it isn't intended for consumption by other components."
         );
         throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
@@ -188,7 +184,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (this == dependency) {
             return true;
         }
-        if (dependency == null || getClass() != dependency.getClass()) {
+        if (getClass() != dependency.getClass()) {
             return false;
         }
 
@@ -223,10 +219,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!Objects.equal(getAttributes(), that.getAttributes())) {
             return false;
         }
-        if (!Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities())) {
-            return false;
-        }
-        return true;
+        return Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities());
     }
 
     @Override

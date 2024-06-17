@@ -39,11 +39,11 @@ public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractRes
     private String buildNoMatchingCapabilitiesFailureMsg(NoVariantsWithMatchingCapabilitiesFailure failure) {
         StringBuilder sb = new StringBuilder("Unable to find a variant of ");
         sb.append(failure.describeRequestTarget()).append(" providing the requested ");
-        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getTargetComponentId(), failure.getRequestedCapabilities()));
+        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getTargetComponent(), failure.getRequestedCapabilities()));
         sb.append(":\n");
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             sb.append("   - Variant ").append(candidate.getDisplayName()).append(" provides ");
-            sb.append(CapabilitiesDescriber.describeCapabilities(failure.getTargetComponentId(), candidate.getCandidateCapabilities().asSet())).append("\n");
+            sb.append(CapabilitiesDescriber.describeCapabilities(failure.getTargetComponent(), candidate.getCandidateCapabilities().asSet())).append("\n");
         }
         return sb.toString();
     }

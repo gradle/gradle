@@ -22,15 +22,14 @@ import org.gradle.internal.component.resolution.failure.exception.AbstractResolu
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
-import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure
-import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
-import org.gradle.internal.component.resolution.failure.type.AbstractIncompatibleResolutionFailure
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
-import org.gradle.internal.component.resolution.failure.type.MultipleMatchingVariantsFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -437,22 +436,22 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionException.class, MultipleMatchingVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
-    private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionException.class, MultipleMatchingVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
-    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, MultipleMatchingVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
+    private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
     private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionException.class, NoCompatibleVariantsFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
     private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionException.class, NoCompatibleVariantsFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
     private final Demonstration noGraphVariantsExistForProject = new Demonstration("No variants exist (project dependency)", VariantSelectionException.class, NoCompatibleVariantsFailure.class, this.&setupNoGraphVariantsExistFailureForProject)
 
-    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionException.class, ConfigurationNotCompatibleFailure.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionException.class, ConfigurationNotCompatibleFailure.class, this.&setupConfigurationNotCompatibleFailureForProject)
 
     private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, ConfigurationDoesNotExistFailure.class, this.&setupConfigurationNotFound)
     private final Demonstration externalConfigurationNotFound = new Demonstration("Configuration not found (external dependency via Ivy)", ConfigurationSelectionException.class, ConfigurationDoesNotExistFailure.class, this.&setupExternalConfigurationNotFound)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", ArtifactVariantSelectionException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
-    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, AbstractIncompatibleResolutionFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
-    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactVariantSelectionException.class, AmbiguousArtifactTransformFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
-    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, AmbiguousResolutionFailure.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", ArtifactVariantSelectionException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
+    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, NoCompatibleArtifactFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
+    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactVariantSelectionException.class, AmbiguousArtifactTransformsFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
+    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousArtifactsFailureForProject)
 
     private final List<Demonstration> demonstrations = [
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute,
@@ -509,7 +508,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupAmbiguousArtifactVariantsFailureForProject() {
+    private void setupAmbiguousArtifactsFailureForProject() {
         buildKotlinFile << """
             configurations {
                 consumable("default") {
@@ -822,7 +821,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         file("producer/build.gradle.kts").touch()
     }
 
-    private void setupIncompatibleRequestedConfigurationFailureForProject() {
+    private void setupConfigurationNotCompatibleFailureForProject() {
         buildKotlinFile <<  """
             plugins {
                 id("base")
@@ -851,7 +850,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupIncompatibleArtifactVariantsFailureForProject() {
+    private void setupIncompatibleMultipleNodesValidationFailureForProject() {
         buildKotlinFile <<  """
             group = "org.example"
             version = "1.0"

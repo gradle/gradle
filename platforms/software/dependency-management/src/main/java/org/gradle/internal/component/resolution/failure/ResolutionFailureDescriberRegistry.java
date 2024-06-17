@@ -19,7 +19,6 @@ package org.gradle.internal.component.resolution.failure;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.ExternalRequestedConfigurationNotFoundFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber;
@@ -29,18 +28,16 @@ import org.gradle.internal.component.resolution.failure.describer.NoMatchingCapa
 import org.gradle.internal.component.resolution.failure.describer.RequestedConfigurationNotFoundFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
-import org.gradle.internal.component.resolution.failure.type.AbstractIncompatibleResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
-import org.gradle.internal.component.resolution.failure.type.MultipleMatchingVariantsFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import java.util.ArrayList;
@@ -80,18 +77,17 @@ public final class ResolutionFailureDescriberRegistry {
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
-        registry.registerDescriber(MultipleMatchingVariantsFailure.class, MissingAttributeAmbiguousGraphVariantsFailureDescriber.class); // Added ahead of AmbiguousGraphVariantsFailureDescriber so the more specific ambiguity case is checked first
-        registry.registerDescriber(MultipleMatchingVariantsFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
+        registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousGraphVariantsFailureDescriber.class); // Added ahead of AmbiguousGraphVariantsFailureDescriber so the more specific ambiguity case is checked first
+        registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
         registry.registerDescriber(NoCompatibleVariantsFailure.class, IncompatibleGraphVariantsFailureDescriber.class);
 
-        registry.registerDescriber(AmbiguousResolutionFailure.class, AmbiguousArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(AbstractIncompatibleResolutionFailure.class, IncompatibleArtifactVariantsFailureDescriber.class);
+        registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousArtifactVariantsFailureDescriber.class);
+        registry.registerDescriber(NoCompatibleArtifactFailure.class, IncompatibleArtifactVariantsFailureDescriber.class);
         registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, InvalidMultipleVariantsFailureDescriber.class);
-        registry.registerDescriber(AmbiguousArtifactTransformFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
+        registry.registerDescriber(AmbiguousArtifactTransformsFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
 
         registry.registerDescriber(ConfigurationNotCompatibleFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);
         registry.registerDescriber(ConfigurationDoesNotExistFailure.class, RequestedConfigurationNotFoundFailureDescriber.class);
-        registry.registerDescriber(ExternalRequestedConfigurationNotFoundFailure.class, ExternalRequestedConfigurationNotFoundFailureDescriber.class);
 
         registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoMatchingCapabilitiesFailureDescriber.class);
 

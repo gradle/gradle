@@ -24,7 +24,7 @@ package org.gradle.internal.component.resolution.failure.interfaces;
  * be implemented directly.  Concrete types implementing this interface should be immutable data classes
  * without nullable fields.  They must also be serializable by the configuration cache.
  */
-/* package */ interface ResolutionFailure {
+public interface ResolutionFailure {
     /**
      * Returns a human-readable description of the requested target component, for use
      * primarily in error messages.

@@ -202,6 +202,11 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
+        public ComponentIdentifier getComponentIdentifier() {
+            return artifactIdentifier.getComponentIdentifier();
+        }
+
+        @Override
         public VariantResolveMetadata.Identifier getIdentifier() {
             return null;
         }

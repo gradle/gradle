@@ -507,7 +507,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes, consumerSchema);
         }
         if (!incompatibleNodes.isEmpty()) {
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(consumerSchema, selected, incompatibleNodes);
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

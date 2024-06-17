@@ -16,6 +16,7 @@
 package org.gradle.internal.component.resolution.failure;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 public final class CapabilitiesDescriber {
     private CapabilitiesDescriber() {}
 
-    public static String describeCapabilitiesWithTitle(ModuleVersionIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
+    public static String describeCapabilitiesWithTitle(ComponentIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
         StringBuilder sb = new StringBuilder("capabilit");
         if (capabilities.size() > 1) {
             sb.append("ies ");
@@ -39,9 +40,10 @@ public final class CapabilitiesDescriber {
         return sb.toString();
     }
 
-    public static String describeCapabilities(ModuleVersionIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
-        if (capabilities.isEmpty()) {
-            return describeCapability(new DefaultImmutableCapability(targetComponentId.getGroup(), targetComponentId.getName(), targetComponentId.getVersion()));
+    public static String describeCapabilities(ComponentIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
+        if (capabilities.isEmpty() && targetComponentId instanceof ModuleVersionIdentifier) {
+            ModuleVersionIdentifier targetModuleVersionId = (ModuleVersionIdentifier) targetComponentId;
+            return describeCapability(new DefaultImmutableCapability(targetModuleVersionId.getGroup(), targetModuleVersionId.getName(), targetModuleVersionId.getVersion()));
         }
         return capabilities.stream()
             .map(CapabilitiesDescriber::describeCapability)
