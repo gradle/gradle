@@ -33,9 +33,11 @@ import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
@@ -92,7 +94,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
-        DefaultServiceRegistry testServices = new TestFrameworkServiceRegistry(workerProcessContext);
+        CloseableServiceRegistry testServices = TestFrameworkServiceRegistry.create(workerProcessContext);
         startReceivingTests(workerProcessContext, testServices);
 
         try {
@@ -216,7 +218,15 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         }
     }
 
-    private static class TestFrameworkServiceRegistry extends DefaultServiceRegistry {
+    private static class TestFrameworkServiceRegistry implements ServiceRegistrationProvider {
+
+        public static CloseableServiceRegistry create(WorkerProcessContext workerProcessContext) {
+            return ServiceRegistryBuilder.builder()
+                .displayName("test framework services")
+                .provider(new TestFrameworkServiceRegistry(workerProcessContext))
+                .build();
+        }
+
         private final WorkerProcessContext workerProcessContext;
 
         public TestFrameworkServiceRegistry(WorkerProcessContext workerProcessContext) {
