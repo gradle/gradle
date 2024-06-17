@@ -310,6 +310,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     ALOAD(0)
                     LDC(propertyName)
                     (1..7).forEach { ALOAD(it) }
+                    @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
                         "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
