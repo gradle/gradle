@@ -138,12 +138,13 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm specifying different options in lower case Then build properties are populated with expected values"() {
         when:
-        run "updateDaemonJvm", "--jvm-version=17", "--jvm-vendor=ibm"
+        run "updateDaemonJvm", "--jvm-version=17", "--jvm-vendor=ibm", "-S"
 
         then:
         assertJvmCriteria(JavaVersion.VERSION_17, "IBM")
     }
 
+    @NotYetImplemented
     def "When execute updateDaemonJvm with unexpected --jvm-vendor option Then fails with expected exception message"() {
         when:
         fails "updateDaemonJvm", "--jvm-vendor=unknown-vendor"

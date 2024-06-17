@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 
 class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
 
@@ -61,8 +62,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Value 'unexpectedVendor' given for toolchainVendor is an invalid Java vendor. Possible values are " +
-            "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
+        failureDescriptionContains("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '17', vendor matching('unexpectedVendor').")
     }
 
     @NotYetImplemented

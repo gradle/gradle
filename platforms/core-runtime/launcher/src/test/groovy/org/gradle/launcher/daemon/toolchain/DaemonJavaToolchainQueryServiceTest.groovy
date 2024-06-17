@@ -172,7 +172,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12' vendor 'any'."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12', any vendor."
         e.cause == null
     }
 
@@ -186,7 +186,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12' vendor 'AMAZON'."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12', Amazon Corretto."
         e.cause == null
     }
 

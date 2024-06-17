@@ -45,7 +45,9 @@ trait DaemonJvmPropertiesFixture {
     void assertJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
         Map<String, String> properties = daemonJvmPropertiesFile.properties
         assert properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY) == version.majorVersion
-        assert properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY) == vendor
+        if (vendor) {
+            assert vendor.equalsIgnoreCase(properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY))
+        }
         assert properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
     }
 

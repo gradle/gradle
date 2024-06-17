@@ -20,14 +20,12 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
-import java.io.Serializable;
-
 /**
  * Represents a filter for a vendor of a Java Virtual Machine implementation.
  *
  * @since 6.8
  */
-public abstract class JvmVendorSpec implements Serializable {
+public abstract class JvmVendorSpec {
 
     /**
      * A constant for using <a href="https://projects.eclipse.org/projects/adoptium">Eclipse Adoptium</a> as the JVM vendor.

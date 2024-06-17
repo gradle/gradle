@@ -38,6 +38,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.PropertyAccessorType;
 
 import javax.inject.Inject;
@@ -82,11 +83,12 @@ public class ProviderMigrationArchitectureTest {
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
     private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
         .and(declaredIn(assignableTo(Task.class)))
         .and(are(getters))
         .and(not(annotatedWith(Inject.class)))
+        .and(not(annotatedWith(OptionValues.class)))
         .and(not(declaredIn(Task.class)))
         .and(not(declaredIn(DefaultTask.class)))
         .and(not(declaredIn(org.gradle.api.internal.AbstractTask.class)))

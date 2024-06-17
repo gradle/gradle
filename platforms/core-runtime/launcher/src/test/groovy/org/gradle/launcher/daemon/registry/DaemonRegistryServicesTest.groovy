@@ -15,14 +15,12 @@
  */
 package org.gradle.launcher.daemon.registry
 
-
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -68,7 +66,7 @@ class DaemonRegistryServicesTest extends Specification {
                     "$idx",
                     new File("$idx"),
                     JavaLanguageVersion.current(),
-                    JvmVendor.KnownJvmVendor.parse(Jvm.current().getVendor()),
+                    Jvm.current().getVendor(),
                     new File("$idx"),
                     idx,
                     5000,
