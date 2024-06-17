@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.registry
 
-
+import org.gradle.cache.internal.DefaultFileLockManagerTestHelper
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.remote.Address
@@ -31,8 +31,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
-import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
 import static org.gradle.launcher.daemon.server.api.DaemonState.Busy
 import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
@@ -42,7 +40,7 @@ class PersistentDaemonRegistryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     int addressCounter = 0
-    def lockManager = createDefaultFileLockManager()
+    def lockManager = DefaultFileLockManagerTestHelper.createDefaultFileLockManager()
     def file = tmp.file("registry")
     def registry = new PersistentDaemonRegistry(file, lockManager, Stub(Chmod))
 
@@ -54,7 +52,7 @@ class PersistentDaemonRegistryTest extends Specification {
         registry.all.size() == 1
 
         when:
-        unlockUncleanly(file)
+        DefaultFileLockManagerTestHelper.unlockUncleanly(file)
 
         then:
         registry.all.empty

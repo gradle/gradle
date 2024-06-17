@@ -45,4 +45,5 @@ dependencies {
     implementation(project(":time"))
 
     testImplementation(testFixtures(project(":serialization")))
+    testImplementation(testFixtures(project(":core")))
 }

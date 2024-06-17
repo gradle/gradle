@@ -102,6 +102,7 @@ dependencies {
     implementation(project(":build-process-services"))
     implementation(project(":gradle-cli"))
     implementation(project(":launcher"))
+    implementation(project(":client-services"))
 
     implementation(testFixtures(project(":build-operations")))
 

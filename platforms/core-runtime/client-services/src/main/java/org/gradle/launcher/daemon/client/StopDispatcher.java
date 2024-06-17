@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class StopDispatcher {
         Throwable failure = null;
         try {
             connection.dispatch(stopCommand);
-            Result result = (Result) connection.receive();
+            Result<?> result = (Result) connection.receive();
             if (result instanceof Failure) {
                 failure = ((Failure) result).getValue();
             }

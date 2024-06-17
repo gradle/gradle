@@ -30,13 +30,11 @@ dependencies {
     api(project(":messaging"))
     api(project(":model-core"))
     api(project(":native"))
-    api(project(":persistent-cache"))
     api(project(":process-services"))
     api(project(":serialization"))
     api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":time"))
-    api(project(":toolchains-jvm-shared"))
     api(project(":tooling-api"))
 
     // This project contains the Gradle client, daemon and tooling API provider implementations.
@@ -47,12 +45,11 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
-    implementation(project(":build-configuration"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(projects.io)
     implementation(project(":problems-api"))
-    implementation(project(":build-process-services"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.slf4jApi)
 
@@ -72,6 +69,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":tooling-api")))
+    testImplementation(testFixtures(project(":daemon-protocol")))
 
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(libs.slf4jApi)
