@@ -307,7 +307,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
                     writeBoolean(false)
                 }
 
-                else -> throw IllegalStateException()
+                else -> error("")
             }
         }
     }

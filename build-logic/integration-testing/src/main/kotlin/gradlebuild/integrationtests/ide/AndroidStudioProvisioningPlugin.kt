@@ -80,7 +80,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
                     BuildEnvironment.isMacOsX && BuildEnvironment.isIntel -> "mac.zip"
                     BuildEnvironment.isMacOsX && !BuildEnvironment.isIntel -> "mac_arm.zip"
                     BuildEnvironment.isLinux -> "linux.tar.gz"
-                    else -> throw IllegalStateException("Unsupported OS: ${OperatingSystem.current()}")
+                    else -> error("Unsupported OS: ${OperatingSystem.current()}")
                 }
                 val androidStudioDependencyProvider =
                     androidStudioProvisioningExtension.androidStudioVersion.map { "android-studio:android-studio:$it@$extension" }

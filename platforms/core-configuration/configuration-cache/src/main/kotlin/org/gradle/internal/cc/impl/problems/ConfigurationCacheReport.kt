@@ -77,7 +77,7 @@ class ConfigurationCacheReport(
 
         private
         fun illegalState(): Nothing =
-            throw IllegalStateException("Operation is not valid in ${javaClass.simpleName} state.")
+            error("Operation is not valid in ${javaClass.simpleName} state.")
 
         class Idle(
             private val onFirstDiagnostic: (kind: DiagnosticKind, problem: PropertyProblem) -> State

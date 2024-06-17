@@ -64,7 +64,7 @@ object KotlinSourceQueries {
                 is CtField -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
                 is CtConstructor -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
                 is CtMethod -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
-                else -> throw IllegalStateException("Unsupported japicmp member type '${member::class}'")
+                else -> error("Unsupported japicmp member type '${member::class}'")
             }
         }
     }
@@ -223,7 +223,7 @@ val JApiCompatibility.newCtMember: CtClassOrCtMember
         is JApiConstructor -> newConstructor.get()
         is JApiField -> newFieldOptional.get()
         is JApiMethod -> newMethod.get()
-        else -> throw IllegalStateException("Unsupported japicmp member type '${this::class}'")
+        else -> error("Unsupported japicmp member type '${this::class}'")
     }
 
 
@@ -239,7 +239,7 @@ val CtClassOrCtMember.declaringClass: CtClass
     get() = when (this) {
         is CtClass -> declaringClass ?: this
         is CtMember -> declaringClass
-        else -> throw IllegalStateException("Unsupported javassist member type '${this::class}'")
+        else -> error("Unsupported javassist member type '${this::class}'")
     }
 
 

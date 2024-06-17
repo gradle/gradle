@@ -143,7 +143,7 @@ class FixedValueReplacingProviderCodec(
             }
 
             4.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue<Any>(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
-            else -> throw IllegalStateException("Unexpected provider value")
+            else -> error("Unexpected provider value")
         }
 }
 
@@ -279,14 +279,14 @@ class ValueSourceProviderCodec(
             // cached state fingerprint.
             // Currently not necessary due to the unpacking that happens
             // to the TypeSanitizingProvider put around the ValueSourceProvider.
-            throw IllegalStateException("build logic input")
+            error("build logic input")
         }
     }
 
     override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
         when (readBoolean()) {
             true -> decodeValueSource()
-            false -> throw IllegalStateException()
+            false -> error("")
         }
 
     private

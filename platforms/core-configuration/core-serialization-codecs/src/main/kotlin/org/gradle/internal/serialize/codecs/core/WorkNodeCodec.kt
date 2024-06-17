@@ -157,7 +157,7 @@ class WorkNodeCodec(
                     writeSmallInt(3)
                 }
 
-                else -> throw IllegalArgumentException()
+                else -> error("")
             }
         }
     }
@@ -186,7 +186,7 @@ class WorkNodeCodec(
                 }
 
                 3 -> NodeGroup.DEFAULT_GROUP
-                else -> throw IllegalArgumentException()
+                else -> error("")
             }.also {
                 isolate.identities.putInstance(id, it)
             }

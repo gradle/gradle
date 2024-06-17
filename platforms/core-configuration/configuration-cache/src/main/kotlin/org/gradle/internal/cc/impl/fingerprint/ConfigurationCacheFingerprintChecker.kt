@@ -78,7 +78,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 }
 
-                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
         return CheckedFingerprint.Valid
@@ -121,7 +121,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 }
 
-                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
         return if (firstReason == null) {

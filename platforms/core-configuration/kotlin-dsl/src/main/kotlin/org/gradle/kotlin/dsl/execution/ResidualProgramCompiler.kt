@@ -197,7 +197,7 @@ class ResidualProgramCompiler(
                 is Program.Plugins -> emitCompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
-                else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
+                else -> error("Expecting a residual program with plugins, got `$program'")
             }
         }
     }

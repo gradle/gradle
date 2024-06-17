@@ -99,7 +99,7 @@ class FixedUpstreamDependencies(private val dependencies: TransformDependencies,
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {
-        throw IllegalStateException("Should not be called")
+        error("Should not be called")
     }
 
     override fun selectedArtifacts(): FileCollection {
