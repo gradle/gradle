@@ -59,7 +59,7 @@ import java.util.concurrent.BlockingQueue;
  * main thread in order of arrival.
  */
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
-    private enum State { INITIALIZING, STARTED, STOPPED }
+    private enum State {INITIALIZING, STARTED, STOPPED}
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
@@ -108,7 +108,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
             // In the event that the main thread exits with an uncaught exception, stop processing
             // and clear out the run queue to unblock any running communication threads
-            synchronized(this) {
+            synchronized (this) {
                 state = State.STOPPED;
                 runQueue.clear();
             }
@@ -143,9 +143,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         IdGenerator<Object> idGenerator = Cast.uncheckedNonnullCast(testServices.get(IdGenerator.class));
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
-                workerProcessContext.getDisplayName(), testServices.get(Clock.class));
+            workerProcessContext.getDisplayName(), testServices.get(Clock.class));
         ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
-                TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
+            TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
