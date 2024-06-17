@@ -20,10 +20,13 @@ import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
@@ -190,18 +193,24 @@ class ConfigurationCacheProblems(
     }
 
     private
+    val configCacheValidation: ProblemGroup = DefaultProblemGroup("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation())
+
+    private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.toString()
         internalReporter.create {
             id(
-                "configuration-cache-" + DeprecationMessageBuilder.createDefaultDeprecationId(message),
+                DeprecationMessageBuilder.createDefaultDeprecationId(message),
                 message,
-                GradleCoreProblemGroup.validation()
+                configCacheValidation
             )
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
+            additionalData(PropertyTraceDataSpec::class.java) {
+                trace(problem.trace.containingUserCode)
+            }
         }.also { internalReporter.report(it) }
     }
 
