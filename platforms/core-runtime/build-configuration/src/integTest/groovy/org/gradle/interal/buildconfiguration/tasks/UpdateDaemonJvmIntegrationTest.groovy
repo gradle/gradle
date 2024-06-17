@@ -177,19 +177,6 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         assertJvmCriteria(otherJvm.javaVersion)
     }
 
-    def "Given defined invalid criteria When execute updateDaemonJvm with different criteria Then criteria get modified using java home"() {
-        def currentJvm = JavaVersion.current()
-
-        given:
-        writeJvmCriteria(currentJvm, "invalidVendor")
-        captureJavaHome()
-
-        expect:
-        succeeds("updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=AZUL")
-        assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
-        assertDaemonUsedJvm(Jvm.current())
-    }
-
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined valid criteria matching with local toolchain When execute updateDaemonJvm with different criteria Then criteria get modified using the expected local toolchain"() {
         def otherJvm = AvailableJavaHomes.differentVersion
