@@ -275,8 +275,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `writes build cache entries`() {
-        val result = expectCacheEntriesWritten(6, false)
-        result.assertOutputContains("Stored cache entry for generation of dependency accessors")
+        val result = expectCacheEntriesWritten(5, false)
         result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
@@ -286,8 +285,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `writes no build cache entries when script caching disabled`() {
-        val result = expectCacheEntriesWritten(4, true)
-        result.assertOutputContains("Stored cache entry for generation of dependency accessors")
+        val result = expectCacheEntriesWritten(3, true)
         result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
@@ -297,7 +295,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     private
     fun expectCacheEntriesWritten(expectedEntryCount: Int, scriptCachingDisabled: Boolean): ExecutionResult {
         return withOwnGradleUserHomeDir("verifying local build cache content") {
-            withSettings(randomScriptContent())
+            withSettings(
+                """
+                    enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+                    ${randomScriptContent()}
+                """.trimIndent()
+            )
             withBuildScriptIn(".", randomScriptContent())
             withFolders {
                 "gradle" {
