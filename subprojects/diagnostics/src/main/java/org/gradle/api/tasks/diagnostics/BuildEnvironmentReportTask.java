@@ -96,7 +96,7 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
     @TaskAction
     public void generate() {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
-        output.append("Build JVM: ");
+        output.append("Daemon JVM: ");
         toolchainReportRenderer.setOutput(output);
         toolchainReportRenderer.printToolchainMetadata(getMetadataDetector().getMetadata(new CurrentInstallationSupplier().getInstallation()));
 

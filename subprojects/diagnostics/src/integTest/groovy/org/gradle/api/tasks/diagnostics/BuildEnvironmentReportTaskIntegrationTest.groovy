@@ -21,13 +21,13 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    def "reports Build JVM information"() {
+    def "reports daemon JVM information"() {
         when:
         run(":buildEnvironment")
 
         then:
         // Not asserting over the exact output, just that important info is printed
-        outputContains("Build JVM: ")
+        outputContains("Daemon JVM: ")
         outputContains(Jvm.current().javaHome.absolutePath)
     }
 

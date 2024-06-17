@@ -182,7 +182,7 @@ class BuildActionsFactoryTest extends Specification {
             protected boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
                 return useCurrentProcess
             }
-        }.createAction(parser, cl, { buildEnvironmentConfigurationConverter.convertParameters(cl, null) })
+        }.createAction(parser, cl, buildEnvironmentConfigurationConverter.convertParameters(cl, null))
     }
 
     void isDaemon(def action) {

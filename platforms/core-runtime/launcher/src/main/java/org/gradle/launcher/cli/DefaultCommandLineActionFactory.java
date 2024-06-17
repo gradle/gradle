@@ -16,7 +16,6 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
@@ -62,7 +61,6 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -140,12 +138,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         @Nullable
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Supplier<Parameters> parametersSupplier) {
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(HELP)) {
                 return new ShowUsageAction(parser);
             }
             if (commandLine.hasOption(VERSION)) {
-                return new ShowVersionAction(parametersSupplier);
+                return new ShowVersionAction(parameters);
             }
             return null;
         }
@@ -157,9 +155,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class ContinuingActionCreator extends NonParserConfiguringCommandLineActionCreator {
         @Override
         @Nullable
-        public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Supplier<Parameters> parametersSupplier) {
+        public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
-                return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction(parametersSupplier).execute(executionListener);
+                return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction(parameters).execute(executionListener);
             }
             return null;
         }
@@ -201,15 +199,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     public static class ShowVersionAction implements Action<ExecutionListener> {
-        private final Supplier<Parameters> parametersSupplier;
+        private final Parameters parameters;
 
-        public ShowVersionAction(Supplier<Parameters> parametersSupplier) {
-            this.parametersSupplier = parametersSupplier;
+        public ShowVersionAction(Parameters parameters) {
+            this.parameters = parameters;
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            Parameters parameters = parametersSupplier.get();
             DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
 
             System.out.println();
@@ -225,7 +222,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 new Line.KeyValue("Groovy", ReleaseInfo.getVersion()),
                 new Line.KeyValue("Ant", Main.getAntVersion()),
                 new Line.KeyValue("Launcher JVM", Jvm.current().toString()),
-                new Line.KeyValue("Requested Daemon JVM", parameters.getDaemonParameters().getRequestedJvmCriteria().toString()),
+                new Line.KeyValue("Daemon JVM", parameters.getDaemonParameters().getRequestedJvmCriteria().toString()),
                 new Line.KeyValue("OS", OperatingSystem.current().toString()),
                 new Line.Blank()
             ));
@@ -327,8 +324,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);
-                Supplier<Parameters> parametersSupplier = Suppliers.memoize(() -> buildEnvironmentConfigurationConverter.convertParameters(commandLine, null));
-                action = createAction(parser, commandLine, parametersSupplier);
+                Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(commandLine, null);
+                action = createAction(parser, commandLine, parameters);
             } catch (CommandLineArgumentException e) {
                 action = new CommandLineParseFailureAction(parser, e);
             }
@@ -340,7 +337,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
         }
 
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Supplier<Parameters> parameters) {
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             List<Action<? super ExecutionListener>> actions = new ArrayList<>(2);
             for (CommandLineActionCreator actionCreator : actionCreators) {
                 Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine, parameters);

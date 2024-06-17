@@ -172,7 +172,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: Compatible with Java 12 (Daemon JVM criteria from gradle/gradle-daemon-jvm.properties)."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: Compatible with Java 12 (from gradle/gradle-daemon-jvm.properties)."
         e.cause == null
     }
 

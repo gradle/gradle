@@ -64,7 +64,6 @@ import org.gradle.tooling.internal.provider.RunInProcess;
 import java.lang.management.ManagementFactory;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 class BuildActionsFactory implements CommandLineActionCreator {
     private final ServiceRegistry loggingServices;
@@ -84,8 +83,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
     }
 
     @Override
-    public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Supplier<Parameters> parametersSupplier) {
-        Parameters parameters = parametersSupplier.get();
+    public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
         StartParameterInternal startParameter = parameters.getStartParameter();
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
 

@@ -225,15 +225,15 @@ class DefaultCommandLineActionFactoryTest extends Specification {
             "Gradle ${version.version}",
             "------------------------------------------------------------",
             "",
-            "Build time:            $version.buildTimestamp",
-            "Revision:              $version.gitRevision",
+            "Build time:    $version.buildTimestamp",
+            "Revision:      $version.gitRevision",
             "",
-            "Kotlin:                ${KotlinDslVersion.current().kotlinVersion}",
-            "Groovy:                $GroovySystem.version",
-            "Ant:                   $Main.antVersion",
-            "Launcher JVM:          ${Jvm.current()}",
-            "Requested Daemon JVM:  ${Jvm.current().javaHome.absolutePath} (no JDK specified, using Launcher JVM)",
-            "OS:                    ${OperatingSystem.current()}",
+            "Kotlin:        ${KotlinDslVersion.current().kotlinVersion}",
+            "Groovy:        $GroovySystem.version",
+            "Ant:           $Main.antVersion",
+            "Launcher JVM:  ${Jvm.current()}",
+            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)",
+            "OS:            ${OperatingSystem.current()}",
             ""
         ].join(System.lineSeparator())
     }

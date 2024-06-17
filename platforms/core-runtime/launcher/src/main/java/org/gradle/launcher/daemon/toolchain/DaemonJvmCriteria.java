@@ -49,7 +49,7 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return Jvm.current().getJavaHome().getAbsolutePath() + " (no JDK specified, using Launcher JVM)";
+            return Jvm.current().getJavaHome().getAbsolutePath() + " (no JDK specified, using current Java home)";
         }
     }
 
@@ -61,7 +61,7 @@ public interface DaemonJvmCriteria {
             /**
              * The Java home was specified by the user using the system property `org.gradle.java.home`.
              */
-            ORG_GRADLE_JAVA_HOME("-Dorg.gradle.java.home"),
+            ORG_GRADLE_JAVA_HOME("org.gradle.java.home"),
             /**
              * The Java home was specified by a Tooling API client.
              */
@@ -153,7 +153,7 @@ public interface DaemonJvmCriteria {
         @Override
         public String toString() {
             // TODO: Include vendor and implementation
-            return String.format("Compatible with Java %s (Daemon JVM criteria from %s)", getJavaVersion(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
+            return String.format("Compatible with Java %s (from %s)", getJavaVersion(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
         }
     }
 }
