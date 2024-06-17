@@ -163,7 +163,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
         logDir.mkdirs()
         def log = new File(logDir, "daemon-fake.log")
-        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,javaVersion=11,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
+        log << "DefaultDaemonContext[uid=40b63fc1-2506-4fa8-bf48-1bfbfc6a457f,javaHome=/home/mlopatkin/.asdf/installs/java/temurin-11.0.16+101,javaVersion=11,javaVendor=Oracle Corporation,daemonRegistryDir=/home/mlopatkin/gradle/local/.gradle/daemon,pid=1234,idleTimeout=1000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=NOT_SET,daemonOpts=--add-opens=java.base/java.util=ALL-UNNAMED,-Xms256m,-Duser.language=en,-Duser.variant]\n"
         log << exceptionInDaemon
     }
 }
