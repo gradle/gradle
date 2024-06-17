@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.concurrent.pollTimeoutMillis
 
-import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 

@@ -31,10 +31,6 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
-import org.gradle.internal.cc.impl.serialize.Codecs
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.base.serialize.service
-import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
@@ -54,9 +50,13 @@ import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.ProjectProvider
+import org.gradle.internal.cc.base.serialize.service
+import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
