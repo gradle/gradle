@@ -19,7 +19,6 @@ package org.gradle.internal.instrumentation.extensions.property;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.ExecutableElement;
@@ -32,7 +31,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final String methodDescriptor;
-    private final GradleLazyType propertyType;
+    private final Type newReturnType;
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
@@ -46,7 +45,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         String implementationClassName,
         String interceptedPropertyName,
         String interceptedPropertyAccessorName,
-        GradleLazyType propertyType,
+        Type newReturnType,
         DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility,
         ExecutableElement bridgedMethod
@@ -54,7 +53,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.propertyType = propertyType;
+        this.newReturnType = newReturnType;
         this.returnType = returnType;
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyName = interceptedPropertyName;
@@ -76,8 +75,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return methodDescriptor;
     }
 
-    public GradleLazyType getPropertyType() {
-        return propertyType;
+    public Type getNewReturnType() {
+        return newReturnType;
     }
 
     public String getImplementationClassName() {

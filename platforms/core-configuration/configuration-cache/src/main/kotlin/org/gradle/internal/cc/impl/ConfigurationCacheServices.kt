@@ -22,15 +22,14 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
-import org.gradle.internal.serialize.beans.services.BeanConstructors
-import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
-import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
+import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
+import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
+import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.extensions.core.add
@@ -47,11 +46,6 @@ import java.io.File
 
 
 class ConfigurationCacheServices : AbstractGradleModuleServices() {
-    override fun registerGlobalServices(registration: ServiceRegistration) {
-        registration.run {
-            add(BeanConstructors::class.java)
-        }
-    }
 
     override fun registerBuildSessionServices(registration: ServiceRegistration) {
         registration.run {

@@ -79,11 +79,6 @@ import java.util.List;
 public class GradleScopeServices extends ScopedServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
         super(Scope.Gradle.class, "Gradle-scope services", parent);
-        register(registration -> {
-            for (GradleModuleServices services : parent.getAll(GradleModuleServices.class)) {
-                services.registerGradleServices(registration);
-            }
-        });
     }
 
     @Provides

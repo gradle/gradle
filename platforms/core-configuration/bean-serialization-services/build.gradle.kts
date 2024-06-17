@@ -26,6 +26,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.persistentCache)
+    api(projects.serviceProvider)
 
     api(libs.kotlinStdlib)
 
@@ -33,6 +34,7 @@ dependencies {
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
     implementation(projects.coreApi)
+    implementation(projects.coreKotlinExtensions)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.groovy)

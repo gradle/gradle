@@ -39,5 +39,5 @@ abstract class AbstractProblemsListener : ProblemsListener {
         )
     }
 
-    override fun forIncompatibleTask(path: String): ProblemsListener = this
+    override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 }

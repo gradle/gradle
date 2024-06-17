@@ -1509,6 +1509,73 @@ class DefaultServiceRegistryTest extends Specification {
         e.message.contains("closed")
     }
 
+    def "can lookup a service with declared service type added via registration"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            void configure(ServiceRegistration registration) {
+                registration.add(TestService, TestServiceImpl)
+            }
+        })
+
+        when:
+        def service = registry.get(TestService)
+        then:
+        service instanceof TestService
+    }
+
+    def "cannot lookup implementation of a service with declared service type added via registration"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            void configure(ServiceRegistration registration) {
+                registration.add(TestService, TestServiceImpl)
+            }
+        })
+
+        when:
+        registry.get(TestServiceImpl)
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
+    }
+
+    def "can lookup a multi-service by any declared service type added via registration"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            void configure(ServiceRegistration registration) {
+                registration.add(TestService, AnotherTestService, TestMultiServiceImpl)
+            }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestService
+
+        when:
+        def service2 = registry.get(AnotherTestService)
+        then:
+        service2 instanceof AnotherTestService
+    }
+
+    def "cannot lookup implementation of a multi-service with declared service types added via registration"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            void configure(ServiceRegistration registration) {
+                registration.add(TestService, AnotherTestService, TestMultiServiceImpl)
+            }
+        })
+
+        when:
+        registry.get(TestMultiServiceImpl)
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
+    }
+
     def MockServiceRegistry registry(ParentServices parentServices) {
         return new MockServiceRegistry(parentServices)
     }
@@ -1683,6 +1750,12 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     private static class TestServiceImpl implements TestService {
+    }
+
+    private interface AnotherTestService {
+    }
+
+    private static class TestMultiServiceImpl implements TestService, AnotherTestService {
     }
 
     private static class ServiceWithDependency {

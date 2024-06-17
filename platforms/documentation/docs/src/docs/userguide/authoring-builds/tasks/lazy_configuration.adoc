@@ -338,7 +338,7 @@ include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",file
 ==== Next to the property declaration
 
 You may configure a convention on a lazy property next to the place where the property is declared.
-Note this option is not available for <<custom_gradle_types.adoc#managed_properties,managed properties>>, and has the same caveats as configuring a convention from the task constructor.
+Note this option is not available for <<properties_providers.adoc#managed_properties,managed properties>>, and has the same caveats as configuring a convention from the task constructor.
 
 ====
 include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-declaration]"]

@@ -34,7 +34,8 @@ import java.io.Writer
 internal
 enum class DiagnosticKind {
     PROBLEM,
-    INPUT
+    INPUT,
+    INCOMPATIBLE_TASK
 }
 
 
@@ -139,6 +140,7 @@ class JsonModelWriter(val writer: Writer) {
     fun keyFor(kind: DiagnosticKind) = when (kind) {
         DiagnosticKind.PROBLEM -> "problem"
         DiagnosticKind.INPUT -> "input"
+        DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
     }
 
     private

@@ -43,6 +43,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.configuration.AllProperties;
@@ -55,6 +56,7 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
+import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -165,9 +167,8 @@ public class ProviderConnection {
                 params.daemonParams.getEffectiveJvmArgs());
         }
 
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
@@ -396,7 +397,14 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, requestContext);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+
+        Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
+        gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
+        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
+        new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+
+        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
 
     private static class Parameters {
@@ -404,13 +412,15 @@ public class ProviderConnection {
         final BuildLayoutResult buildLayout;
         final AllProperties properties;
         final Map<String, String> tapiSystemProperties;
+        final StartParameterInternal startParameter;
         final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, DaemonRequestContext requestContext) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
             this.tapiSystemProperties = tapiSystemProperties;
+            this.startParameter = startParameter;
             this.requestContext = requestContext;
         }
     }

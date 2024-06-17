@@ -114,7 +114,10 @@ class DefaultConfigurationCache internal constructor(
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     private
-    val store by lazy { cacheRepository.forKey(cacheKey.string) }
+    val storeDelegate = lazy { cacheRepository.forKey(cacheKey.string) }
+
+    private
+    val store by storeDelegate
 
     private
     val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(host, cacheIO, store) }
@@ -358,7 +361,7 @@ class DefaultConfigurationCache internal constructor(
         stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
         stoppable.addIfInitialized(lazyIntermediateModels)
         stoppable.addIfInitialized(lazyProjectMetadata)
-        stoppable.add(store)
+        stoppable.addIfInitialized(storeDelegate)
         stoppable.stop()
     }
 

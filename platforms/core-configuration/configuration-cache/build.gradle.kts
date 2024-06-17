@@ -55,7 +55,6 @@ dependencies {
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
-    implementation(projects.beanSerializationServices)
     implementation(projects.buildEvents)
     implementation(projects.buildOperations)
     implementation(projects.coreKotlinExtensions)
@@ -87,6 +86,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
+    runtimeOnly(projects.beanSerializationServices)
     runtimeOnly(project(":composite-builds"))
     runtimeOnly(project(":resources-http"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
@@ -94,6 +94,7 @@ dependencies {
 
     runtimeOnly(libs.kotlinReflect)
 
+    testImplementation(projects.beanSerializationServices)
     testImplementation(projects.io)
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)

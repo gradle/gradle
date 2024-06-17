@@ -17,7 +17,9 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.internal.DisplayName
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.problems.failure.Failure
+import org.gradle.problems.Location
 import kotlin.reflect.KClass
 
 
@@ -44,6 +46,7 @@ enum class DocumentationSection(val anchor: String) {
     NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     NotYetImplementedBuildServiceInFingerprint("config_cache:not_yet_implemented:build_services_in_fingerprint"),
+    TaskOptOut("config_cache:task_opt_out"),
     RequirementsBuildListeners("config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
     RequirementsExternalProcess("config_cache:requirements:external_processes"),
@@ -111,60 +114,101 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 }
 
 
+/**
+ * Subtypes are expected to support [PropertyTrace.equals] and [PropertyTrace.hashCode].
+ *
+ * Subclasses also must provide custom `toString()` implementations,
+ * which should invoke [PropertyTrace.asString].
+ */
 sealed class PropertyTrace {
 
-    object Unknown : PropertyTrace()
+    object Unknown : PropertyTrace() {
+        override fun toString(): String = asString()
+        override fun equals(other: Any?): Boolean = other === this
+        override fun hashCode(): Int = 0
+    }
 
-    object Gradle : PropertyTrace()
+    object Gradle : PropertyTrace() {
+        override fun toString(): String = asString()
+        override fun equals(other: Any?): Boolean = other === this
+        override fun hashCode(): Int = 1
+    }
 
-    class BuildLogic(
+    @Suppress("DataClassPrivateConstructor")
+    data class BuildLogic private constructor(
         val source: DisplayName,
         val lineNumber: Int? = null
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
+        constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
+        override fun toString(): String = asString()
+    }
 
-    class BuildLogicClass(
+    data class BuildLogicClass(
         val name: String
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    class Task(
+    data class Task(
         val type: Class<*>,
         val path: String
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override fun toString(): String = asString()
+    }
 
-    class Bean(
+    data class Bean(
         val type: Class<*>,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    class Property(
+    data class Property(
         val kind: PropertyKind,
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    class Project(
+    data class Project(
         val path: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    class SystemProperty(
+    data class SystemProperty(
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
             get() = trace.containingUserCode
+
+        override fun toString(): String = asString()
     }
 
-    override fun toString(): String =
+    abstract override fun toString(): String
+
+    abstract override fun equals(other: Any?): Boolean
+
+    abstract override fun hashCode(): Int
+
+    /**
+     * The shared logic for implementing `toString()` in subclasses.
+     */
+    protected
+    fun asString(): String =
         StringBuilder().apply {
             sequence.forEach {
                 appendStringOf(it)
@@ -210,7 +254,6 @@ sealed class PropertyTrace {
                 append(" of type ")
                 quoted(trace.type.name)
             }
-
             is BuildLogic -> {
                 append(trace.source.displayName)
                 trace.lineNumber?.let {

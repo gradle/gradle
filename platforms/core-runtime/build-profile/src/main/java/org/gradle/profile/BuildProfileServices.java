@@ -40,7 +40,7 @@ public class BuildProfileServices extends AbstractGradleModuleServices {
         registration.addProvider(new ServiceRegistrationProvider() {
             public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
                 if (startParameter.isProfile()) {
-                    serviceRegistration.add(ProfileEventAdapter.class);
+                    serviceRegistration.add(ProfileService.class, ProfileEventAdapter.class);
                 }
             }
         });
