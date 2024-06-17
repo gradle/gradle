@@ -56,6 +56,7 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
         }
     }
 
+    @Suppress("FunctionParameterNaming")
     private
     fun classPathWith(`class`: Class<*>): ClassPath {
         val jar = file("fixture.jar")

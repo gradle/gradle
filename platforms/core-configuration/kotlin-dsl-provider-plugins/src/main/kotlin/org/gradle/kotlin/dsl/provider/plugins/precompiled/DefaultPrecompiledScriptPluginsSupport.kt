@@ -56,7 +56,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompi
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.STRICT_MODE_SYSTEM_PROPERTY_NAME
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -231,7 +231,7 @@ fun Project.enableScriptCompilationOf(
                 @Suppress("DEPRECATION")
                 strict.set(
                     providers
-                        .systemProperty(strictModeSystemPropertyName)
+                        .systemProperty(STRICT_MODE_SYSTEM_PROPERTY_NAME)
                         .map(strictModeSystemPropertyNameMapper)
                         .orElse(true)
                 )
@@ -283,7 +283,7 @@ fun Project.enableScriptCompilationOf(
 private
 val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transformer { prop ->
     @Suppress("MagicNumber")
-    DeprecationLogger.deprecateSystemProperty(strictModeSystemPropertyName)
+    DeprecationLogger.deprecateSystemProperty(STRICT_MODE_SYSTEM_PROPERTY_NAME)
         .willBeRemovedInGradle9()
         .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors-by-default")
         .nagUser()
