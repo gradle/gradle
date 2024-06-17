@@ -28,7 +28,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoRunnable;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -134,21 +133,15 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         if (filter.isEmpty()) {
             return Optional.of(read(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = readSnapshotFromLocation(location,
+            return readSnapshotFromLocation(location,
                 snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot),
                 () -> {
                     FileSystemLocationSnapshot snapshot = snapshot(location, filter);
                     return snapshot.getType() == FileType.Directory
                         // Directory snapshots have been filtered while walking the file system
-                        ? snapshot
+                        ? Optional.of(snapshot)
                         : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
                 });
-
-            if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
-                return Optional.of((FileSystemLocationSnapshot) filteredSnapshot);
-            } else {
-                return Optional.empty();
-            }
         }
     }
 
