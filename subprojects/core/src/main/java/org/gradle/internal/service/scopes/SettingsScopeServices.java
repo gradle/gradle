@@ -69,8 +69,8 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected void configure(ServiceRegistration registration, List<GradleModuleServices> gradleModules) {
-        for (GradleModuleServices services : gradleModules) {
+    protected void configure(ServiceRegistration registration, List<GradleModuleServices> gradleModuleServiceProviders) {
+        for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerSettingsServices(registration);
         }
         registration.add(DefaultProjectDescriptorRegistry.class);
@@ -94,7 +94,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected PluginManagerInternal createPluginManager(
         Instantiator instantiator,
-        ServiceRegistry serviceRegistry,
+        ServiceRegistry settingsScopeServiceRegistry,
         PluginRegistry pluginRegistry,
         InstantiatorFactory instantiatorFactory,
         BuildOperationRunner buildOperationRunner,
@@ -109,7 +109,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
             softwareTypeRegistry,
             pluginScheme.getInspectionScheme()
         );
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(serviceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     @Provides
