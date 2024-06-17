@@ -609,6 +609,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
             return false;
         }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
     }
 
     private class RegistrationWrapper implements AnnotatedServiceLifecycleHandler.Registration {
@@ -1142,6 +1147,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 Arrays.fill(serviceProviders, null);
             }
         }
+
+        @Override
+        public String toString() {
+            return Arrays.toString(serviceProviders);
+        }
     }
 
     /**
@@ -1171,6 +1181,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         public void stop() {
+        }
+
+        @Override
+        public String toString() {
+            return parent.toString();
         }
     }
 
