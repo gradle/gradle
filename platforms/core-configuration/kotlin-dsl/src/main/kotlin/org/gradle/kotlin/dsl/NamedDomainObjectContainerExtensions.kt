@@ -262,6 +262,7 @@ internal constructor(
      *
      * @see [NamedDomainObjectContainer.named]
      */
+    @Suppress("MagicNumber")
     @Deprecated("Use named(String) instead.", ReplaceWith("named(this)"))
     operator fun String.invoke(): NamedDomainObjectProvider<T> {
         DeprecationLogger.deprecateBehaviour(String.format("Domain object '%s' found by String.invoke() notation.", this))

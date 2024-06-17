@@ -92,6 +92,7 @@ class DefaultEncryptionService(
         keySource.getKey()
 
 
+    @Suppress("MagicNumber")
     private
     fun assertKeyLength(key: SecretKey) {
         val keyLength = key.encoded.size

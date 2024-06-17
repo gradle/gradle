@@ -496,6 +496,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
             errorAt(location, error.message)
         } ?: error.message
 
+    @Suppress("MagicNumber")
     private
     fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)

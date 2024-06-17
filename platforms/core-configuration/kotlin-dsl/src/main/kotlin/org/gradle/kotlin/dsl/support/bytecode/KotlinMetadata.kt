@@ -240,6 +240,7 @@ fun newFunctionOf(
 }
 
 
+@Suppress("MagicNumber")
 internal
 fun newPropertyOf(
     name: String,

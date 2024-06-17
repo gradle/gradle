@@ -34,6 +34,7 @@ class EventLoop<T>(
         return false
     }
 
+    @Suppress("MagicNumber")
     private
     val q = ArrayBlockingQueue<T>(64)
 

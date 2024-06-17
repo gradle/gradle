@@ -282,6 +282,7 @@ fun Project.enableScriptCompilationOf(
 
 private
 val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transformer { prop ->
+    @Suppress("MagicNumber")
     DeprecationLogger.deprecateSystemProperty(strictModeSystemPropertyName)
         .willBeRemovedInGradle9()
         .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors-by-default")
@@ -372,6 +373,7 @@ fun Task.validateKotlinCompilerArguments() {
 
 private
 fun Task.configureKotlinCompilerArgumentsEagerly(resolverEnvironment: Provider<String>) {
+    @Suppress("MagicNumber")
     DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
         .withAdvice(
             "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
