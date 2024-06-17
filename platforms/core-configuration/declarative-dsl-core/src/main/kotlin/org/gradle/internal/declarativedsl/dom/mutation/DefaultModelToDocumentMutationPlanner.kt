@@ -31,6 +31,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.P
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
@@ -67,7 +68,9 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                         .filter { documentMemberMatcher.findMatchingConfiguringElements(it, mutation.function).isEmpty() }
                         .map {
                             DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(it.elements.last()) {
-                                listOf(DefaultElementNode(mutation.function.function.simpleName, SyntheticallyProduced, emptyList(), emptyList()))
+                                NewDocumentNodes(
+                                    listOf(DefaultElementNode(mutation.function.function.simpleName, SyntheticallyProduced, emptyList(), emptyList()))
+                                )
                             }
                         }
                     DefaultModelMutationPlan(insertions, emptyList())
@@ -81,7 +84,7 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                         .map { scope -> scope.elements.last() }
                         .map { scopeElement ->
                             DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(scopeElement) {
-                                listOf(mutation.newElement.element(mutationArguments))
+                                NewDocumentNodes(listOf(mutation.newElement.element(mutationArguments)))
                             }
                         }.toList(),
                     emptyList()

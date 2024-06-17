@@ -19,6 +19,8 @@ package org.gradle.internal.declarativedsl.dom
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes.Companion.empty
 import org.gradle.internal.declarativedsl.dom.writing.MutatedDocumentTextGenerator
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTag.BlockElement
@@ -172,8 +174,8 @@ object MutatedDocumentTextGeneratorTest {
             generateText(
                 tree, insertNodesBefore = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
-                        listOf(syntheticElement)
-                    else emptyList()
+                        newNodesOf(syntheticElement)
+                    else empty
                 }
             )
         }
@@ -203,8 +205,8 @@ object MutatedDocumentTextGeneratorTest {
                 tree,
                 insertNodesBefore = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "y" })
-                        listOf(syntheticElement)
-                    else emptyList()
+                        newNodesOf(syntheticElement)
+                    else empty
                 }
             )
         }
@@ -234,8 +236,8 @@ object MutatedDocumentTextGeneratorTest {
                 tree,
                 insertNodesAfter = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "y" })
-                        listOf(syntheticElement)
-                    else emptyList()
+                        newNodesOf(syntheticElement)
+                    else empty
                 }
             )
         }
@@ -265,8 +267,8 @@ object MutatedDocumentTextGeneratorTest {
                 tree,
                 insertNodesAfter = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" }) {
-                        listOf(syntheticElement)
-                    } else emptyList()
+                        newNodesOf(syntheticElement)
+                    } else empty
                 }
             )
         }
@@ -296,8 +298,8 @@ object MutatedDocumentTextGeneratorTest {
                 tree,
                 insertNodesAfter = { childTag ->
                     if (childTag.isNodeMatching { it is ElementNode && it.name == "myFun" })
-                        listOf(syntheticElement)
-                    else emptyList()
+                        newNodesOf(syntheticElement)
+                    else empty
                 }
             )
         }
@@ -329,8 +331,8 @@ object MutatedDocumentTextGeneratorTest {
                 tree,
                 insertNodesBefore = { childTag ->
                     if (childTag.isNodeMatching { it is ElementNode && it.name == "myFun" })
-                        listOf(syntheticElement)
-                    else emptyList()
+                        newNodesOf(syntheticElement)
+                    else empty
                 }
             )
         }
@@ -359,8 +361,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesBefore = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
 
@@ -396,8 +398,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
 
@@ -432,8 +434,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "y" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
         assertEquals(
@@ -467,8 +469,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesBefore = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
 
@@ -504,8 +506,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
 
@@ -540,8 +542,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "a" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
         assertEquals(
@@ -576,8 +578,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "b" })
-                    multiProperties.toList()
-                else emptyList()
+                    NewDocumentNodes(multiProperties.toList())
+                else empty
             })
         }
         // Having a line break between 'b = 2' and 't = 2' is not perfect but is OK for now.
@@ -611,8 +613,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is ElementNode && node.name == "h" })
-                    multiProperties.toList()
-                else emptyList()
+                    NewDocumentNodes(multiProperties.toList())
+                else empty
             })
         }
         // The blank line after t = 2 is OK for now: it seems that we must reuse the original line break before 'c = 3'
@@ -646,8 +648,8 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
             generateText(tree, insertNodesAfter = { childTag ->
                 if (childTag.isNodeMatching { node -> node is ElementNode && node.name == "h" })
-                    multiElements.toList()
-                else emptyList()
+                    NewDocumentNodes(multiElements.toList())
+                else empty
             })
         }
         assertEquals(
@@ -700,4 +702,8 @@ object MutatedDocumentTextGeneratorTest {
     private
     fun TextPreservingTree.ChildTag.isNodeMatching(predicate: (DeclarativeDocument.DocumentNode) -> Boolean): Boolean =
         this is BlockElement && predicate(this.documentNode)
+
+    private
+    fun newNodesOf(vararg nodes: DeclarativeDocument.DocumentNode) =
+        NewDocumentNodes(nodes.toList())
 }

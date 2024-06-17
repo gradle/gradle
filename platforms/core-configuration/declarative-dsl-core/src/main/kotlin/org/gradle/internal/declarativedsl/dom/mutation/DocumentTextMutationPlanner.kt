@@ -29,6 +29,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.Document
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.InsertNodesBeforeNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.PropertyNodeMutation.RenamePropertyNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ValueFactoryNodeMutation.ValueNodeCallMutation
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.writing.MutatedDocumentTextGenerator
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTreeBuilder
@@ -94,9 +95,16 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
             .associateWith { node ->
                 applicationState.insertBefore[node].orEmpty() +
                     if (node is ElementNode) {
-                        applicationState.insertContentIntoEmptyNodes[node]
-                            ?.let { content -> listOf(NodeInsertion.ByReplacingElementInAddingContent.createFrom(node, valueMapper, nameMapper, content)) }
-                            .orEmpty()
+                        applicationState.insertContentIntoEmptyNodes[node]?.let { content ->
+                            listOf(
+                                NodeInsertion.ByReplacingElementInAddingContent.createFrom(
+                                    node,
+                                    valueMapper,
+                                    nameMapper,
+                                    NewDocumentNodes.composite(content)
+                                )
+                            )
+                        }.orEmpty()
                     } else emptyList()
             })
 
@@ -110,7 +118,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
 
         val insertBefore = mutableMapOf<DocumentNode, MutableList<NodeInsertion>>()
         val insertAfter = mutableMapOf<DocumentNode, MutableList<NodeInsertion>>()
-        val insertContentIntoEmptyNodes = mutableMapOf<ElementNode, MutableList<DocumentNode>>()
+        val insertContentIntoEmptyNodes = mutableMapOf<ElementNode, MutableList<NewDocumentNodes>>()
         val valueReplacement = mutableMapOf<DeclarativeDocument.ValueNode, DeclarativeDocument.ValueNode>()
         val newNamesForProperties: MutableMap<PropertyNode, String> = mutableMapOf()
         val newNamesForElements: MutableMap<ElementNode, String> = mutableMapOf()
@@ -159,7 +167,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                         insertAfter.getOrPut(mutation.targetNode.content.last(), ::mutableListOf).add(NodeInsertion.ByInsertNodesToEnd(mutation))
                     } else {
                         // We do not use insertBefore or insertAfter because further mutations can add more items to them, and the order will become incorrect.
-                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(mutation.nodes())
+                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).add(mutation.nodes())
                         nodesToRemove.add(mutation.targetNode)
                         // No need to mark the element as tainted: its content is empty, and its values are clean, we can still mutate them.
                     }
@@ -169,7 +177,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                     if (mutation.targetNode.content.isNotEmpty()) {
                         insertBefore.getOrPut(mutation.targetNode.content.first(), ::mutableListOf).add(0, NodeInsertion.ByInsertNodesToStart(mutation))
                     } else {
-                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).addAll(0, mutation.nodes())
+                        insertContentIntoEmptyNodes.getOrPut(mutation.targetNode, ::mutableListOf).add(0, mutation.nodes())
                         nodesToRemove.add(mutation.targetNode)
                     }
                 }
@@ -232,53 +240,60 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
         }
     }
 
+
     private
     sealed interface NodeInsertion {
-        fun getNewNodes(): List<DocumentNode>
+        fun getNewNodes(): NewDocumentNodes
 
         class ByInsertNodesBefore(
             val mutation: InsertNodesBeforeNode,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
+
+            override fun getNewNodes() = mutation.nodes()
         }
 
         class ByInsertNodesToStart(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToStartOfBlock,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
+            override fun getNewNodes() = mutation.nodes()
         }
 
         class ByInsertNodesAfter(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.InsertNodesAfterNode,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
+            override fun getNewNodes() = mutation.nodes()
         }
 
         class ByInsertNodesToEnd(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = mutation.nodes()
+            override fun getNewNodes() = mutation.nodes()
         }
 
         class ByReplaceNode(
             val mutation: DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode,
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = listOf(mutation.replaceWithNode())
+            override fun getNewNodes() = mutation.replaceWithNodes()
         }
 
         class ByReplacingElementInAddingContent(
-            val newNode: ElementNode
+            private val newDocumentNodes: NewDocumentNodes
         ) : NodeInsertion {
-            override fun getNewNodes(): List<DocumentNode> = listOf(newNode)
+            override fun getNewNodes() = newDocumentNodes
 
             companion object {
-                fun createFrom(targetNode: ElementNode, valueMapper: ValueMapper, nameMapper: NameMapper, newContent: List<DocumentNode>): ByReplacingElementInAddingContent =
+                fun createFrom(targetNode: ElementNode, valueMapper: ValueMapper, nameMapper: NameMapper, newContent: NewDocumentNodes): ByReplacingElementInAddingContent =
                     ByReplacingElementInAddingContent(
-                        DefaultElementNode(
-                            nameMapper.newNamesForElements[targetNode] ?: targetNode.name,
-                            targetNode.sourceData,
-                            targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) },
-                            newContent
+                        NewDocumentNodes(
+                            listOf(
+                                DefaultElementNode(
+                                    nameMapper.newNamesForElements[targetNode] ?: targetNode.name,
+                                    targetNode.sourceData,
+                                    targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) },
+                                    newContent.nodes
+                                )
+                            ),
+                            newContent.representationFlags
                         )
                     )
 
@@ -337,10 +352,14 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
     private
     class NodeInsertionProvider(
         val insertNodesByMutation: Map<DocumentNode, List<NodeInsertion>>,
-    ) : (TextPreservingTree.ChildTag) -> List<DocumentNode> {
-        override fun invoke(tag: TextPreservingTree.ChildTag): List<DocumentNode> = when (tag) {
-            is TextPreservingTree.ChildTag.BlockElement -> insertNodesByMutation[tag.documentNode]?.flatMap { it.getNewNodes() }.orEmpty()
-            else -> listOf()
+    ) : (TextPreservingTree.ChildTag) -> NewDocumentNodes {
+        override fun invoke(tag: TextPreservingTree.ChildTag): NewDocumentNodes = when (tag) {
+            is TextPreservingTree.ChildTag.BlockElement ->
+                insertNodesByMutation[tag.documentNode]
+                    ?.let { insertions -> NewDocumentNodes.composite(insertions.map(NodeInsertion::getNewNodes)) }
+                    ?: NewDocumentNodes.empty
+
+            else -> NewDocumentNodes.empty
         }
     }
 }
