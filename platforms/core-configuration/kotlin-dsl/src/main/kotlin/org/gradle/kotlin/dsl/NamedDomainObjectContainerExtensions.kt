@@ -265,7 +265,7 @@ internal constructor(
     @Suppress("MagicNumber")
     @Deprecated("Use named(String) instead.", ReplaceWith("named(this)"))
     operator fun String.invoke(): NamedDomainObjectProvider<T> {
-        DeprecationLogger.deprecateBehaviour(String.format("Domain object '%s' found by String.invoke() notation.", this))
+        DeprecationLogger.deprecateBehaviour("Domain object '$this' found by String.invoke() notation.")
             .withContext("The \"name\"() notation can cause confusion with methods provided by Kotlin or the JDK.")
             .withAdvice("Use named(String) instead.")
             .willBeRemovedInGradle9()
