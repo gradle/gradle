@@ -127,7 +127,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         abstract fun dispose(): WritingState
 
         private
-        fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
+        fun illegalStateFor(operation: String): Nothing = error(
             "'$operation' is illegal while in '${javaClass.simpleName}' state."
         )
     }

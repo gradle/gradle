@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -23,7 +24,6 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 
 
 object CachedEnvironmentStateCodec : Codec<ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState> {
@@ -63,7 +63,7 @@ object CachedEnvironmentStateCodec : Codec<ConfigurationCacheEnvironmentChangeTr
                     ConfigurationCacheEnvironmentChangeTracker.SystemPropertyMutate(key, value, PropertyTrace.Unknown)
                 ConfigurationCacheEnvironmentChangeTracker.SystemPropertyLoad::class.java ->
                     ConfigurationCacheEnvironmentChangeTracker.SystemPropertyLoad(key, value, null)
-                else -> throw IllegalStateException("$clazz instances is not expected to be stored")
+                else -> error("$clazz instances is not expected to be stored")
             }
         }
 

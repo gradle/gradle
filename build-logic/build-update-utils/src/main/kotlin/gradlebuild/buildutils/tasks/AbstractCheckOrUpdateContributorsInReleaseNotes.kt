@@ -70,7 +70,7 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
         return contributorLines
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .onEach { if (!contributorLineRegex.containsMatchIn(it)) throw IllegalStateException("Invalid contributor line: $it") }
+            .onEach { check(contributorLineRegex.containsMatchIn(it)) { "Invalid contributor line: $it" } }
             .map { GitHubUser(contributorLineRegex.find(it)!!.groupValues[2], contributorLineRegex.find(it)!!.groupValues[1]) }
             .toSet()
     }
@@ -84,13 +84,13 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
         val contributorSectionBeginIndex = releaseNotesLines.indexOfFirst { it.startsWith("We would like to thank the following community members for their contributions to this release of Gradle:") } + 1
 
         if (contributorSectionBeginIndex == 0) {
-            throw IllegalStateException("Can't find the contributors section in the release notes $releaseNotes.")
+            error("Can't find the contributors section in the release notes $releaseNotes.")
         }
 
         val contributorSectionEndIndex = (contributorSectionBeginIndex until releaseNotesLines.size).firstOrNull {
             val line = releaseNotesLines[it].trim()
             line.isNotEmpty() && !line.startsWith("[")
-        } ?: throw IllegalStateException("Can't find the contributors section end in the release notes $releaseNotes.")
+        } ?: error("Can't find the contributors section end in the release notes $releaseNotes.")
         return Triple(releaseNotesLines.subList(0, contributorSectionBeginIndex), releaseNotesLines.subList(contributorSectionBeginIndex, contributorSectionEndIndex), releaseNotesLines.subList(contributorSectionEndIndex, releaseNotesLines.size))
     }
 
@@ -98,7 +98,7 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
     protected
     fun getContributorsFromPullRequests(): Set<GitHubUser> {
         if (!milestone.isPresent) {
-            throw IllegalStateException("Milestone not set: please rerun the task with `--milestone <milestone>`")
+            error("Milestone not set: please rerun the task with `--milestone <milestone>`")
         }
         val prs: MutableList<GitHubPullRequest> = mutableListOf()
         (1..10).forEach { page ->
