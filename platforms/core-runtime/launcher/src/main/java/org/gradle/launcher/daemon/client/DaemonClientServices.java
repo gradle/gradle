@@ -20,8 +20,6 @@ import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
@@ -32,20 +30,21 @@ import java.util.UUID;
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
-    public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
-        super(parent, daemonParameters, requestContext, buildStandardInput);
+
+    public DaemonClientServices(InputStream buildStandardInput) {
+        super(buildStandardInput);
     }
 
     @Provides
-    protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
-        DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonRequestContext.class));
-        return new DaemonClient(
-            get(DaemonConnector.class),
-            get(OutputEventListener.class),
-            matchingContextSpec,
-            getBuildStandardInput(),
-            get(GlobalUserInputReceiver.class),
-            idGenerator,
-            get(ProcessEnvironment.class));
+    protected DaemonClient createDaemonClient(
+        DaemonRequestContext daemonRequestContext,
+        DaemonConnector daemonConnector,
+        OutputEventListener outputEventListener,
+        GlobalUserInputReceiver globalUserInputReceiver,
+        IdGenerator<UUID> idGenerator,
+        ProcessEnvironment processEnvironment
+    ) {
+        DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(daemonRequestContext);
+        return new DaemonClient(daemonConnector, outputEventListener, matchingContextSpec, getBuildStandardInput(), globalUserInputReceiver, idGenerator, processEnvironment);
     }
 }

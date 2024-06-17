@@ -24,8 +24,6 @@ import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
@@ -36,21 +34,22 @@ import java.util.UUID;
  * Takes care of instantiating and wiring together the services required by the single-use daemon client.
  */
 public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
-    public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
-        super(loggingServices, daemonParameters, requestContext, buildStandardInput);
+
+    public SingleUseDaemonClientServices(InputStream buildStandardInput) {
+        super(buildStandardInput);
     }
 
     @Provides
-    protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
+    protected DaemonClient createDaemonClient(
+        DaemonRequestContext daemonRequestContext,
+        DaemonConnector daemonConnector,
+        OutputEventListener outputEventListener,
+        GlobalUserInputReceiver globalUserInputReceiver,
+        IdGenerator<UUID> idGenerator,
+        DocumentationRegistry documentationRegistry,
+        ProcessEnvironment processEnvironment
+    ) {
         ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
-        return new SingleUseDaemonClient(
-                get(DaemonConnector.class),
-                get(OutputEventListener.class),
-                matchNone,
-                getBuildStandardInput(),
-                get(GlobalUserInputReceiver.class),
-                idGenerator,
-                get(DocumentationRegistry.class),
-                get(ProcessEnvironment.class));
+        return new SingleUseDaemonClient(daemonConnector, outputEventListener, matchNone, getBuildStandardInput(), globalUserInputReceiver, idGenerator, documentationRegistry, processEnvironment);
     }
 }
