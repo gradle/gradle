@@ -19,6 +19,8 @@ package org.gradle.caching.example;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.inject.AbstractModule;
+import com.google.inject.Exposed;
+import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
@@ -54,12 +56,13 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileMetadataAccessor;
+import org.gradle.internal.file.FilePermissionHandler;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.file.nio.NioFileMetadataAccessor;
-import org.gradle.internal.file.nio.PosixJdk7FilePermissionHandler;
+import org.gradle.internal.file.nio.NioFilePermissions;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -84,6 +87,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.slf4j.Logger;
@@ -103,7 +107,7 @@ import java.util.function.Supplier;
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
-@SuppressWarnings("MethodMayBeStatic")
+@SuppressWarnings("CloseableProvides")
 class BuildCacheClientModule extends AbstractModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheClientModule.class);
 
@@ -113,7 +117,11 @@ class BuildCacheClientModule extends AbstractModule {
         this.buildInvocationId = buildInvocationId;
     }
 
-    @SuppressWarnings("CloseableProvides")
+    @Override
+    protected void configure() {
+        install(new LocalBuildCacheModule());
+    }
+
     @Provides
     BuildCacheController createBuildCacheController(
         BuildCacheServicesConfiguration buildCacheServicesConfig,
@@ -188,28 +196,41 @@ class BuildCacheClientModule extends AbstractModule {
         return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
     }
 
-    @SuppressWarnings("CloseableProvides")
-    @Provides
-    LocalBuildCacheService createLocalBuildCacheService(
-        CacheCleanupStrategy cacheCleanupStrategy,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheFactory cacheFactory
-    ) throws IOException {
-        File target = Files.createTempDirectory("build-cache").toFile();
-        FileUtils.forceMkdir(target);
+    private static class LocalBuildCacheModule extends PrivateModule {
+        @Override
+        protected void configure() {
+        }
 
-        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, 1);
+        @Provides
+        @Exposed
+        LocalBuildCacheService createLocalBuildCacheService(FileAccessTracker fileAccessTracker, PersistentCache persistentCache) {
+            return new DirectoryBuildCacheService(
+                persistentCache,
+                fileAccessTracker,
+                ".failed"
+            );
+        }
 
-        PersistentCache persistentCache = new DefaultCacheBuilder(cacheFactory, target)
-            .withCleanupStrategy(cacheCleanupStrategy)
-            .withDisplayName("Build cache")
-            .withInitialLockMode(OnDemand)
-            .open();
-        return new DirectoryBuildCacheService(
-            persistentCache,
-            fileAccessTracker,
-            ".failed"
-        );
+        @Provides
+        PersistentCache createPersistentCache(File buildCacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
+            return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
+                .withCleanupStrategy(cacheCleanupStrategy)
+                .withDisplayName("Build cache")
+                .withInitialLockMode(OnDemand)
+                .open();
+        }
+
+        @Provides
+        FileAccessTracker createFileAccessTracker(File buildCacheDir, FileAccessTimeJournal fileAccessTimeJournal) {
+            return new SingleDepthFileAccessTracker(fileAccessTimeJournal, buildCacheDir, 1);
+        }
+
+        @Provides
+        File createBuildCacheDir() throws IOException {
+            File target = Files.createTempDirectory("build-cache").toFile();
+            FileUtils.forceMkdir(target);
+            return target;
+        }
     }
 
     @Provides
@@ -336,7 +357,7 @@ class BuildCacheClientModule extends AbstractModule {
         StreamHasher streamHasher,
         Interner<String> stringInterner
     ) {
-        PosixJdk7FilePermissionHandler permissionHandler = new PosixJdk7FilePermissionHandler();
+        FilePermissionHandler permissionHandler = NioFilePermissions.createFilePermissionHandler();
         FilePermissionAccess filePermissionAccess = new FilePermissionAccess() {
             @Override
             public int getUnixMode(File f) {
@@ -433,7 +454,20 @@ class BuildCacheClientModule extends AbstractModule {
     VirtualFileSystem createVirtualFileSystem() {
         // TODO Figure out case sensitivity properly
         SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE);
-        return new ExampleBuildCacheClient.CustomVirtualFileSystem(root);
+        return new CustomVirtualFileSystem(root);
+    }
+
+    // TODO Make AbstractVirtualFileSystem into DefaultVirtualFileSystem, and wrap it with the
+    //      watching/non-watching implementations so DefaultVirtualFileSystem can be reused here
+    private static class CustomVirtualFileSystem extends AbstractVirtualFileSystem {
+        protected CustomVirtualFileSystem(SnapshotHierarchy root) {
+            super(root);
+        }
+
+        @Override
+        protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
+            return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
+        }
     }
 
     @Provides

@@ -72,7 +72,7 @@
   {
     "name": "build-cache-example-client",
     "path": "platforms/core-execution/build-cache-example-client",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
