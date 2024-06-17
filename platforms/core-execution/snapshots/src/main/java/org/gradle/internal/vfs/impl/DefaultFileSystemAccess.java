@@ -134,13 +134,13 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
             return Optional.of(read(location));
         } else {
             return readSnapshotFromLocation(location,
-                snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot),
+                snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter, snapshot),
                 () -> {
                     FileSystemLocationSnapshot snapshot = snapshot(location, filter);
                     return snapshot.getType() == FileType.Directory
                         // Directory snapshots have been filtered while walking the file system
                         ? Optional.of(snapshot)
-                        : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
+                        : FileSystemSnapshotFilter.filterSnapshot(filter, snapshot);
                 });
         }
     }

@@ -92,7 +92,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def unfiltered = fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet())).get()
 
         when:
-        def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered)
+        def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")), unfiltered)
 
         then:
         filtered.get().is(unfiltered)
@@ -100,7 +100,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     private Set<File> filteredPaths(FileSystemLocationSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered)
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns), unfiltered)
             .ifPresent { FileSystemLocationSnapshot filtered ->
                 filtered.accept(new FileSystemSnapshotHierarchyVisitor() {
                     SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
