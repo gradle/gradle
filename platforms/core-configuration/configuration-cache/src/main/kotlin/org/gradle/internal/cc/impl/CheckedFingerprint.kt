@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.util.Path
 
 
@@ -27,8 +28,8 @@ sealed class CheckedFingerprint {
     object Valid : CheckedFingerprint()
 
     // The entry cannot be reused at all and should be recreated from scratch
-    class EntryInvalid(val reason: String) : CheckedFingerprint()
+    class EntryInvalid(val reason: StructuredMessage) : CheckedFingerprint()
 
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
-    class ProjectsInvalid(val reason: String, val invalidProjects: Set<Path>) : CheckedFingerprint()
+    class ProjectsInvalid(val reason: StructuredMessage, val invalidProjects: Set<Path>) : CheckedFingerprint()
 }

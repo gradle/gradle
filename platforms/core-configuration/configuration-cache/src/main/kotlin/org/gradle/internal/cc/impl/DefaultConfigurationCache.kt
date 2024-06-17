@@ -21,10 +21,20 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.configurationcache.withLoadOperation
-import org.gradle.configurationcache.withStoreOperation
 import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
+import org.gradle.configurationcache.withLoadOperation
+import org.gradle.configurationcache.withStoreOperation
+import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
+import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -32,22 +42,13 @@ import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
-import org.gradle.initialization.GradlePropertiesController
-import org.gradle.internal.Factory
-import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildActionModelRequirements
-import org.gradle.internal.buildtree.BuildTreeModelSideEffect
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
-import org.gradle.internal.cc.base.logger
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -61,6 +62,7 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
+import java.util.Locale
 
 
 class DefaultConfigurationCache internal constructor(
@@ -149,8 +151,9 @@ class DefaultConfigurationCache internal constructor(
         get() = cacheAction == ConfigurationCacheAction.LOAD
 
     override fun initializeCacheEntry() {
-        cacheAction = determineCacheAction()
-        problems.action(cacheAction)
+        val (cacheAction, cacheActionDescription) = determineCacheAction()
+        this.cacheAction = cacheAction
+        problems.action(cacheAction, cacheActionDescription)
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
@@ -271,75 +274,87 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun determineCacheAction(): ConfigurationCacheAction = when {
+    fun determineCacheAction(): Pair<ConfigurationCacheAction, StructuredMessage> = when {
         startParameter.recreateCache -> {
-            logBootstrapSummary("Recreating configuration cache")
-            ConfigurationCacheAction.STORE
+            val description = StructuredMessage.forText("Recreating configuration cache")
+            logBootstrapSummary(description)
+            ConfigurationCacheAction.STORE to description
         }
 
         startParameter.isRefreshDependencies -> {
-            logBootstrapSummary(
-                "{} as configuration cache cannot be reused due to {}",
+            val description = formatBootstrapSummary(
+                "%s as configuration cache cannot be reused due to %s",
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--refresh-dependencies"
             )
-            ConfigurationCacheAction.STORE
+            logBootstrapSummary(description)
+            ConfigurationCacheAction.STORE to description
         }
 
         startParameter.isWriteDependencyLocks -> {
-            logBootstrapSummary(
-                "{} as configuration cache cannot be reused due to {}",
+            val description = formatBootstrapSummary(
+                "%s as configuration cache cannot be reused due to %s",
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--write-locks"
             )
-            ConfigurationCacheAction.STORE
+            logBootstrapSummary(description)
+            ConfigurationCacheAction.STORE to description
         }
 
         startParameter.isUpdateDependencyLocks -> {
-            logBootstrapSummary(
-                "{} as configuration cache cannot be reused due to {}",
+            val description = formatBootstrapSummary(
+                "%s as configuration cache cannot be reused due to %s",
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--update-locks"
             )
-            ConfigurationCacheAction.STORE
+            logBootstrapSummary(description)
+            ConfigurationCacheAction.STORE to description
         }
 
         else -> {
             when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
-                    logBootstrapSummary(
-                        "{} as no cached configuration is available for {}",
+                    val description = formatBootstrapSummary(
+                        "%s as no cached configuration is available for %s",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
-                    ConfigurationCacheAction.STORE
+                    logBootstrapSummary(description)
+                    ConfigurationCacheAction.STORE to description
                 }
 
                 is CheckedFingerprint.EntryInvalid -> {
-                    logBootstrapSummary(
-                        "{} as configuration cache cannot be reused because {}.",
+                    val description = formatBootstrapSummary(
+                        "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         checkedFingerprint.reason
                     )
-                    ConfigurationCacheAction.STORE
+                    logBootstrapSummary(description)
+                    ConfigurationCacheAction.STORE to description
                 }
 
                 is CheckedFingerprint.ProjectsInvalid -> {
-                    logBootstrapSummary(
-                        "{} as configuration cache cannot be reused because {}.",
+                    val description = formatBootstrapSummary(
+                        "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         checkedFingerprint.reason
                     )
-                    ConfigurationCacheAction.UPDATE
+                    logBootstrapSummary(description)
+                    ConfigurationCacheAction.UPDATE to description
                 }
 
                 is CheckedFingerprint.Valid -> {
-                    logBootstrapSummary("Reusing configuration cache.")
-                    ConfigurationCacheAction.LOAD
+                    val description = StructuredMessage.forText("Reusing configuration cache.")
+                    logBootstrapSummary(description)
+                    ConfigurationCacheAction.LOAD to description
                 }
             }
         }
     }
+
+    private
+    fun formatBootstrapSummary(message: String, vararg args: Any?) =
+        StructuredMessage.forText(String.format(Locale.US, message, *args))
 
     override fun stop() {
         val stoppable = CompositeStoppable.stoppable()
@@ -618,13 +633,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun logBootstrapSummary(message: String, vararg args: Any?) {
-        log(message, *args)
-    }
-
-    private
-    fun log(message: String, vararg args: Any?) {
-        logger.log(configurationCacheLogLevel, message, *args)
+    fun logBootstrapSummary(message: StructuredMessage) {
+        logger.log(configurationCacheLogLevel, message.toString())
     }
 
     private
