@@ -19,7 +19,7 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.internal.remote.Address
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonState.*
 
 class EmbeddedDaemonRegistrySpec extends Specification {
 

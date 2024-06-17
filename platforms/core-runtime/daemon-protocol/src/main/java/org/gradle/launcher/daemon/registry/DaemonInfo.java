@@ -26,15 +26,15 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
-import org.gradle.launcher.daemon.server.api.DaemonStateControl.State;
+import org.gradle.launcher.daemon.server.api.DaemonState;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 /**
  * Provides information about a daemon that is potentially available to do some work.
@@ -46,15 +46,15 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private final byte[] token;
     private final Clock clock;
 
-    private State state;
+    private DaemonState state;
     private long lastBusy;
 
-    public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
+    public DaemonInfo(Address address, DaemonContext context, byte[] token, DaemonState state) {
         this(address, context, token, state, Time.clock());
     }
 
     @VisibleForTesting
-    DaemonInfo(Address address, DaemonContext context, byte[] token, State state, Clock busyClock) {
+    DaemonInfo(Address address, DaemonContext context, byte[] token, DaemonState state, Clock busyClock) {
         this.address = Preconditions.checkNotNull(address);
         this.context = Preconditions.checkNotNull(context);
         this.token = Preconditions.checkNotNull(token);
@@ -63,7 +63,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         setState(state);
     }
 
-    private DaemonInfo(Address address, DaemonContext context, byte[] token, State state, long lastBusy) {
+    private DaemonInfo(Address address, DaemonContext context, byte[] token, DaemonState state, long lastBusy) {
         this.address = address;
         this.context = context;
         this.token = token;
@@ -72,7 +72,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         this.clock = Time.clock();
     }
 
-    public DaemonInfo setState(State state) {
+    public DaemonInfo setState(DaemonState state) {
         if ((this.state == Idle || this.state == null) && state == Busy) {
             lastBusy = clock.getCurrentTime();
         }
@@ -99,7 +99,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         return context;
     }
 
-    public State getState() {
+    public DaemonState getState() {
         return state;
     }
 
@@ -130,7 +130,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         public DaemonInfo read(Decoder decoder) throws Exception {
             Address address = addresses.get(decoder.readInt());
             byte[] token = decoder.readBinary();
-            State state = State.values()[decoder.readByte()];
+            DaemonState state = DaemonState.values()[decoder.readByte()];
             long lastBusy = decoder.readLong();
             DaemonContext context = DefaultDaemonContext.SERIALIZER.read(decoder);
             return new DaemonInfo(address, context, token, state, lastBusy);

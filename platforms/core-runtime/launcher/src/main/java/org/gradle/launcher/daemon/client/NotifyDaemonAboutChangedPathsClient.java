@@ -27,14 +27,14 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.api.DaemonStateControl;
+import org.gradle.launcher.daemon.server.api.DaemonState;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 public class NotifyDaemonAboutChangedPathsClient {
     private final DaemonConnector connector;
@@ -49,7 +49,7 @@ public class NotifyDaemonAboutChangedPathsClient {
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
         for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
-            DaemonStateControl.State state = daemonInfo.getState();
+            DaemonState state = daemonInfo.getState();
             if (state == Idle || state == Busy || state == Canceled) {
                 DaemonClientConnection connection = connector.maybeConnect(daemonInfo);
                 if (connection == null) {

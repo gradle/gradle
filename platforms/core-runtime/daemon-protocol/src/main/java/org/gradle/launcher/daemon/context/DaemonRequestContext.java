@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.context;
 
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import javax.annotation.Nullable;
@@ -35,9 +35,9 @@ public class DaemonRequestContext {
     private final Collection<String> daemonOpts;
     private final boolean applyInstrumentationAgent;
     private final NativeServices.NativeServicesMode nativeServicesMode;
-    private final DaemonParameters.Priority priority;
+    private final DaemonPriority priority;
 
-    public DaemonRequestContext(@Nullable JavaInfo requestedJvm, @Nullable DaemonJvmCriteria jvmCriteria, Collection<String> daemonOpts, boolean applyInstrumentationAgent, NativeServices.NativeServicesMode nativeServicesMode, DaemonParameters.Priority priority) {
+    public DaemonRequestContext(@Nullable JavaInfo requestedJvm, @Nullable DaemonJvmCriteria jvmCriteria, Collection<String> daemonOpts, boolean applyInstrumentationAgent, NativeServices.NativeServicesMode nativeServicesMode, DaemonPriority priority) {
         this.requestedJvm = requestedJvm;
         this.jvmCriteria = jvmCriteria;
         this.daemonOpts = daemonOpts;
@@ -67,7 +67,7 @@ public class DaemonRequestContext {
         return nativeServicesMode;
     }
 
-    public DaemonParameters.Priority getPriority() {
+    public DaemonPriority getPriority() {
         return priority;
     }
 

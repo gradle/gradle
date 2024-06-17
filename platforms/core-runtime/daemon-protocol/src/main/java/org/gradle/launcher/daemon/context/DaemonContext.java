@@ -19,7 +19,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices.NativeServi
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 
 import java.io.File;
 import java.util.Collection;
@@ -87,7 +87,7 @@ public interface DaemonContext {
      */
     NativeServicesMode getNativeServicesMode();
 
-    DaemonParameters.Priority getPriority();
+    DaemonPriority getPriority();
 
     DaemonRequestContext toRequest();
 }

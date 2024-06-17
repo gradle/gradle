@@ -39,6 +39,7 @@ import org.gradle.internal.time.Timer;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
@@ -179,8 +180,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
         );
     }
 
-    private List<String> getPriorityArgs(DaemonParameters.Priority priority) {
-        if (priority == DaemonParameters.Priority.NORMAL) {
+    private List<String> getPriorityArgs(DaemonPriority priority) {
+        if (priority == DaemonPriority.NORMAL) {
             return Collections.emptyList();
         }
         OperatingSystem os = OperatingSystem.current();

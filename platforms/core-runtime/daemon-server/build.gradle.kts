@@ -34,4 +34,5 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":serialization"))
     implementation(project(":core"))
+    implementation(project(":daemon-protocol"))
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,7 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-
-import java.io.File;
-import java.util.List;
-
-public interface DaemonServerConfiguration {
-
-    File getBaseDir();
-
-    int getIdleTimeout();
-
-    int getPeriodicCheckIntervalMs();
-
-    String getUid();
-
-    List<String> getJvmOptions();
-
-    DaemonPriority getPriority();
-
-    boolean isSingleUse();
-
-    boolean isInstrumentationAgentAllowed();
-
-    NativeServicesMode getNativeServicesMode();
+public enum DaemonPriority {
+    LOW,
+    NORMAL,
 }

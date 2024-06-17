@@ -41,7 +41,7 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
-import org.gradle.launcher.daemon.server.api.DaemonStateControl;
+import org.gradle.launcher.daemon.server.api.DaemonState;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
@@ -50,8 +50,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 /**
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
@@ -177,7 +177,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return connection;
     }
 
-    private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByState(final Collection<DaemonInfo> daemons, final DaemonStateControl.State state) {
+    private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByState(final Collection<DaemonInfo> daemons, final DaemonState state) {
         return CollectionUtils.partition(daemons, new Spec<DaemonInfo>() {
             @Override
             public boolean isSatisfiedBy(DaemonInfo daemonInfo) {

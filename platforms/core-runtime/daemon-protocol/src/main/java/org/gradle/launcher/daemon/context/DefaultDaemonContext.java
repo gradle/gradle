@@ -21,7 +21,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices.NativeServi
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class DefaultDaemonContext implements DaemonContext {
     private final Integer idleTimeout;
     private final Collection<String> daemonOpts;
     private final boolean applyInstrumentationAgent;
-    private final DaemonParameters.Priority priority;
+    private final DaemonPriority priority;
     private final NativeServicesMode nativeServicesMode;
     private final JavaLanguageVersion javaVersion;
 
@@ -56,7 +56,7 @@ public class DefaultDaemonContext implements DaemonContext {
         Collection<String> daemonOpts,
         boolean applyInstrumentationAgent,
         NativeServicesMode nativeServicesMode,
-        DaemonParameters.Priority priority
+        DaemonPriority priority
     ) {
         this.uid = uid;
         this.javaHome = javaHome;
@@ -123,7 +123,7 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     @Override
-    public DaemonParameters.Priority getPriority() {
+    public DaemonPriority getPriority() {
         return priority;
     }
 
@@ -150,7 +150,7 @@ public class DefaultDaemonContext implements DaemonContext {
             }
             boolean applyInstrumentationAgent = decoder.readBoolean();
             NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
-            DaemonParameters.Priority priority = decoder.readBoolean() ? DaemonParameters.Priority.values()[decoder.readInt()] : null;
+            DaemonPriority priority = decoder.readBoolean() ? DaemonPriority.values()[decoder.readInt()] : null;
 
             return new DefaultDaemonContext(uid, javaHome, javaVersion, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority);
         }

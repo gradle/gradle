@@ -64,7 +64,7 @@ public class DaemonParameters {
     private boolean foreground;
     private boolean stop;
     private boolean status;
-    private Priority priority = Priority.NORMAL;
+    private DaemonPriority priority = DaemonPriority.NORMAL;
     private JavaInfo requestedJvmBasedOnJavaHome;
     private DaemonJvmCriteria requestedJvmCriteria;
 
@@ -280,16 +280,11 @@ public class DaemonParameters {
         return toolchainConfiguration;
     }
 
-    public Priority getPriority() {
+    public DaemonPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(Priority priority) {
+    public void setPriority(DaemonPriority priority) {
         this.priority = priority;
-    }
-
-    public enum Priority {
-        LOW,
-        NORMAL,
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.internal.file.Chmod
 import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +32,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 
 class DaemonRegistryServicesTest extends Specification {
     def lockManager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
@@ -72,7 +72,7 @@ class DaemonRegistryServicesTest extends Specification {
                     [],
                     false,
                     NativeServicesMode.ENABLED,
-                    DaemonParameters.Priority.NORMAL
+                        DaemonPriority.NORMAL
                 )
                 registry.store(new DaemonInfo(
                     new SocketInetAddress(localhost, (int) (8888 + idx)), context, "foo-$idx".bytes, Idle))

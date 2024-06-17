@@ -14,21 +14,6 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+package org.gradle.launcher.daemon.server.api;
 
-description = "Controls for the instrumentation agent potentially applied to the process"
-
-dependencies {
-    api(projects.stdlibJavaExtensions)
-
-    implementation(projects.baseServices)
-    implementation(projects.functional)
-
-    implementation(libs.jsr305)
-    implementation(libs.slf4jApi)
-
-    integTestImplementation(projects.launcher)
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
-}
+public enum DaemonState {Idle, Busy, Canceled, StopRequested, Stopped, ForceStopped, Broken}

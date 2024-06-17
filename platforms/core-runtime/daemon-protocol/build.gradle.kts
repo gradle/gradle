@@ -27,6 +27,12 @@ dependencies {
     api(project(":serialization"))
     api(project(":logging"))
     api(project(":stdlib-java-extensions"))
+    api(project(":messaging"))
+    api(project(":native"))
+    api(project(":toolchains-jvm-shared"))
+    api(project(":files"))
+    api(project(":persistent-cache"))
+    api(project(":service-provider"))
 
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon
     api(project(":core-api"))
@@ -36,6 +42,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(project(":io"))
     implementation(project(":enterprise-logging"))
+    implementation(project(":time"))
 
     testImplementation(testFixtures(project(":serialization")))
 }

@@ -23,7 +23,7 @@ import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.inet.InetEndpoint
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
@@ -34,8 +34,8 @@ import spock.lang.Specification
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 
 class PersistentDaemonRegistryTest extends Specification {
 
@@ -157,7 +157,7 @@ class PersistentDaemonRegistryTest extends Specification {
     }
 
     DaemonContext daemonContext() {
-        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaLanguageVersion.current(), tmp.createDir("daemons"), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
+        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaLanguageVersion.current(), tmp.createDir("daemons"), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
     }
 
     Address address(int i = addressCounter++) {

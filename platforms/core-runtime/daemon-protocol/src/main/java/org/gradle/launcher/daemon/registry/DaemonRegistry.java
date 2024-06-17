@@ -16,15 +16,14 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.launcher.daemon.server.api.DaemonState;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.List;
-
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*;
 
 /**
  * Provides access to existing daemons.
@@ -42,13 +41,13 @@ public interface DaemonRegistry {
 
     void store(DaemonInfo info);
     void remove(Address address);
-    void markState(Address address, State state);
+    void markState(Address address, DaemonState state);
 
     void storeStopEvent(DaemonStopEvent stopEvent);
     List<DaemonStopEvent> getStopEvents();
     void removeStopEvents(Collection<DaemonStopEvent> stopEvents);
 
-    static class EmptyRegistryException extends RuntimeException {
+    class EmptyRegistryException extends RuntimeException {
         public EmptyRegistryException(String message) {
             super(message);
         }

@@ -28,6 +28,7 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.InetEndpoint;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.server.api.DaemonState;
 
 import java.io.File;
 import java.util.Collection;
@@ -36,9 +37,8 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 /**
  * Access to daemon registry files. Useful also for testing.
@@ -146,7 +146,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     @Override
-    public void markState(final Address address, final State state) {
+    public void markState(final Address address, final DaemonState state) {
         lock.lock();
         try {
             LOGGER.debug("Marking busy by address: {}", address);
@@ -224,7 +224,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         final Address address = info.getAddress();
         final DaemonContext daemonContext = info.getContext();
         final byte[] token = info.getToken();
-        final State state = info.getState();
+        final DaemonState state = info.getState();
 
         lock.lock();
         try {

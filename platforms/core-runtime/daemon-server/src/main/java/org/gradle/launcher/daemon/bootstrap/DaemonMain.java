@@ -34,7 +34,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.stream.EncodedStream;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -83,7 +83,7 @@ public class DaemonMain extends EntryPoint {
         boolean singleUse;
         NativeServicesMode nativeServicesMode;
         String daemonUid;
-        DaemonParameters.Priority priority;
+        DaemonPriority priority;
         List<File> additionalClassPath;
 
         KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
@@ -95,7 +95,7 @@ public class DaemonMain extends EntryPoint {
             singleUse = decoder.readBoolean();
             nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
             daemonUid = decoder.readString();
-            priority = DaemonParameters.Priority.values()[decoder.readSmallInt()];
+            priority = DaemonPriority.values()[decoder.readSmallInt()];
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
             for (int i = 0; i < argCount; i++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonRequestContext
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.launcher.exec.BuildActionExecutor
@@ -169,7 +170,7 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts=[]) {
-        def request = new DaemonRequestContext(null, new DaemonJvmCriteria(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL)
+        def request = new DaemonRequestContext(null, new DaemonJvmCriteria(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL)
         request
     }
 

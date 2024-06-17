@@ -26,9 +26,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+import org.gradle.launcher.daemon.server.api.DaemonState;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 /**
  * A daemon registry for daemons running in the same JVM.
@@ -96,7 +96,7 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         daemonInfos.remove(address);
     }
 
-    public void markState(Address address, State state) {
+    public void markState(Address address, DaemonState state) {
         synchronized (daemonInfos) {
             daemonInfos.get(address).setState(state);
         }

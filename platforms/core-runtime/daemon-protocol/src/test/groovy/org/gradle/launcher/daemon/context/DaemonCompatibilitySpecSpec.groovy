@@ -23,7 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -51,14 +51,14 @@ class DaemonCompatibilitySpecSpec extends Specification {
             args.daemonOpts ?: [],
             args.applyInstrumentationAgent ?: false,
             args.nativeServicesMode ?: NativeServices.NativeServicesMode.NOT_SET,
-            args.priority?:DaemonParameters.Priority.NORMAL)
+            args.priority?: DaemonPriority.NORMAL)
     }
 
     DaemonRequestContext clientWants(JavaInfo requestedJvm,
                                      Collection<String> daemonOpts = Collections.emptyList(),
                                      boolean applyInstrumentationAgent = false,
                                      NativeServices.NativeServicesMode nativeServicesMode = NativeServices.NativeServicesMode.NOT_SET,
-                                     DaemonParameters.Priority priority = DaemonParameters.Priority.NORMAL) {
+                                     DaemonPriority priority = DaemonPriority.NORMAL) {
         request = new DaemonRequestContext(requestedJvm, null, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
     }
 
@@ -66,7 +66,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
                                      Collection<String> daemonOpts = Collections.emptyList(),
                                      boolean applyInstrumentationAgent = false,
                                      NativeServices.NativeServicesMode nativeServicesMode = NativeServices.NativeServicesMode.NOT_SET,
-                                     DaemonParameters.Priority priority = DaemonParameters.Priority.NORMAL) {
+                                     DaemonPriority priority = DaemonPriority.NORMAL) {
         request = new DaemonRequestContext(null, jvmCriteria, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
     }
 
@@ -114,7 +114,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         candidate.javaHome >> linkToJdk
         candidate.daemonOpts >> []
-        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.priority >> DaemonPriority.NORMAL
         candidate.shouldApplyInstrumentationAgent() >> false
         candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
@@ -130,7 +130,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> ["-Xmx256m", "-Dfoo=foo"]
-        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.priority >> DaemonPriority.NORMAL
         candidate.shouldApplyInstrumentationAgent() >> false
         candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
@@ -143,7 +143,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> ["-Dfoo=foo", "-Xmx256m"]
-        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.priority >> DaemonPriority.NORMAL
         candidate.shouldApplyInstrumentationAgent() >> false
         candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
@@ -172,10 +172,10 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different priority"() {
-        clientWants(requestedJvm: Jvm.forHome(javaHome), priority: DaemonParameters.Priority.LOW)
+        clientWants(requestedJvm: Jvm.forHome(javaHome), priority: DaemonPriority.LOW)
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> []
-        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.priority >> DaemonPriority.NORMAL
 
         expect:
         !compatible
@@ -186,7 +186,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         clientWants(requestedJvm: Jvm.forHome(javaHome), applyInstrumentationAgent: clientStatus)
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> []
-        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.priority >> DaemonPriority.NORMAL
         candidate.shouldApplyInstrumentationAgent() >> !clientStatus
 
         expect:
@@ -201,7 +201,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         clientWants(requestedJvm: Jvm.forHome(javaHome), applyInstrumentationAgent: clientStatus)
         candidate.javaHome >> javaHome
         candidate.daemonOpts >> []
-        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.priority >> DaemonPriority.NORMAL
         candidate.shouldApplyInstrumentationAgent() >> clientStatus
         candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 

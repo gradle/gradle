@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
 import java.io.ByteArrayInputStream;
@@ -73,6 +74,6 @@ public class DaemonClientFactory {
      */
     public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters) {
         // These can always run inside the current JVM since we should not be forking a daemon to run them
-        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(Jvm.current(), null, Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL), new ByteArrayInputStream(new byte[0]));
+        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(Jvm.current(), null, Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL), new ByteArrayInputStream(new byte[0]));
     }
 }
