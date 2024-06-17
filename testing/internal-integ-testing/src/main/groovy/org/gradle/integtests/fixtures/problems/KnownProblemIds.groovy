@@ -123,7 +123,7 @@ class KnownProblemIds {
         'validation:type-validation:ignored-annotations-on-method' : 'Ignored annotations on method',
         'validation:type-validation:invalid-use-of-type-annotation' : 'Incorrect use of type annotation',
         'validation:type-validation:not-cacheable-without-reason' : 'Not cacheable without reason',
-        'validation:configuration-cache-cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache' : 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.',
+        'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache' : 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.',
 
         // integration test problems
         'deprecation:some-indirect-deprecation' : 'Some indirect deprecation has been deprecated.',

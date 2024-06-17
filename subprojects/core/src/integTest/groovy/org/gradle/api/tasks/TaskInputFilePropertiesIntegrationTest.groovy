@@ -170,7 +170,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         and:
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(0)) {
-                fqid == 'validation:configuration-cache-cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
+                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
                 contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
             }
         }
