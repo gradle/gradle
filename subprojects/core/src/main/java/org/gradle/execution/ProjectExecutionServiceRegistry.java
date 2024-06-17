@@ -29,7 +29,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * Registry of services provided at execution time for already configured projects.
