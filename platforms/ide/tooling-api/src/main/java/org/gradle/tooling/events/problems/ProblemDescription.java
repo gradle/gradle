@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * interface descriping a problem.
  *
- * @since 8.9
+ * @since 8.10
  */
 @Incubating
 public interface ProblemDescription {
@@ -32,7 +32,7 @@ public interface ProblemDescription {
      * Returns the problem definition.
      *
      * @return the definition
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     ProblemDefinition getDefinition();
@@ -41,7 +41,7 @@ public interface ProblemDescription {
      * Returns the contextual label.
      *
      * @return the problem label
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     ContextualLabel getContextualLabel();
@@ -50,7 +50,7 @@ public interface ProblemDescription {
      * Returns the details string.
      *
      * @return the problem details
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     Details getDetails();
@@ -59,7 +59,7 @@ public interface ProblemDescription {
      * Returns the locations associated with this problem.
      *
      * @return the locations
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     List<Location> getLocations();
@@ -68,7 +68,7 @@ public interface ProblemDescription {
      * Returns the list of solutions.
      *
      * @return the solutions
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     List<Solution> getSolutions();
@@ -77,7 +77,7 @@ public interface ProblemDescription {
      * Returns the failure associated with this problem.
      *
      * @return the failure
-     * @since 8.9
+     * @since 8.10
      */
     @Nullable
     @Incubating

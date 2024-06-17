@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * An event containing a mapping of problems to failures.
  *
- * @since 8.9
+ * @since 8.10
  */
 @Incubating
 public interface ProblemExceptionMappingEvent extends ProblemEvent {
@@ -33,7 +33,7 @@ public interface ProblemExceptionMappingEvent extends ProblemEvent {
     /**
      * get the problems for failures
      *
-     * @since 8.9
+     * @since 8.10
      */
     @Incubating
     Map<Failure, Collection<ProblemDescription>> getProblemsForFailures();

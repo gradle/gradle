@@ -31,15 +31,10 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        ExceptionAnalyser exceptionAnalyser
+        ExceptionAnalyser exceptionAnalyser,
         ProblemStream problemStream
     ) {
         BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
         return new DefaultProblems(emitter, problemStream, CurrentBuildOperationRef.instance(), exceptionAnalyser);
-    }
-
-    @Provides
-    ProblemTransformer createPluginIdLocationTransformer(ProblemStream problemStream) {
-        return new ProblemStreamLocationTransformer(problemStream);
     }
 }

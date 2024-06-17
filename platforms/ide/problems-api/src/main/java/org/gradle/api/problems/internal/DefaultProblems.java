@@ -24,11 +24,10 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import static org.gradle.api.problems.internal.DefaultProblemCategory.GRADLE_CORE_NAMESPACE;
 
@@ -41,13 +40,14 @@ public class DefaultProblems implements InternalProblems {
     private final ProblemEmitter emitter;
     private final InternalProblemReporter internalReporter;
     private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
+    private final ProblemStream problemStream;
 
     public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
-       this(emitter, null, currentBuildOperationRef);
+       this(emitter, null, currentBuildOperationRef, null);
     }
 
     public DefaultProblems(ProblemEmitter emitter) {
-        this(emitter, null, CurrentBuildOperationRef.instance());
+        this(emitter, null, CurrentBuildOperationRef.instance(), null);
     }
 
     public DefaultProblems(ProblemEmitter emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef, @Nullable ExceptionAnalyser exceptionAnalyser) {

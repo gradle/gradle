@@ -23,11 +23,33 @@ description = """Problem SPI implementations.
     |This project contains the SPI implementations for the problem reporting infrastructure.
 """.trimMargin()
 
+val problemsReportPath by configurations.creating {
+    isVisible = false
+    isCanBeConsumed = false
+    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
+}
+
+// You can have a faster feedback loop by running `configuration-cache-report` as an included build
+// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
+dependencies {
+    problemsReportPath(libs.configurationCacheReport)
+}
+
+tasks.processResources {
+    from(zipTree(problemsReportPath.elements.map { it.first().asFile })) {
+        into("org/gradle/internal/cc/impl/problems")
+        exclude("META-INF/**")
+    }
+}
+
+
 dependencies {
     api(project(":problems-api"))
     api(project(":build-operations"))
     api(project(":stdlib-java-extensions"))
     api(project(":service-provider"))
+
+    api(libs.jsr305)
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))

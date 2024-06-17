@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.problems.internal.ExceptionAnalyser;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
