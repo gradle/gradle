@@ -913,6 +913,7 @@ inline fun <reified T> classOf(): KmType =
     classOf(T::class.java)
 
 
+@Suppress("FunctionParameterNaming")
 private
 fun classOf(`class`: Class<*>) =
     classOf(`class`.internalName)

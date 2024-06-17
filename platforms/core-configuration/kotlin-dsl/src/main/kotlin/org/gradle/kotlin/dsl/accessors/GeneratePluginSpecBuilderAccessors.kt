@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionNaming")
+
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.jvm.JvmMethodSignature
