@@ -74,6 +74,7 @@ import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
 import org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
+import org.gradle.launcher.exec.ProblemRenderingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
@@ -193,6 +194,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             StyledTextOutputFactory styledTextOutputFactory,
             BuildStateRegistry buildStateRegistry,
             BuildOperationProgressEventEmitter eventEmitter,
+            BuildOperationListenerManager buildOperationListenerManager,
             ListenerManager listenerManager,
             BuildStartedTime buildStartedTime,
             BuildRequestMetaData buildRequestMetaData,
@@ -228,11 +230,14 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,
                                     listenerManager,
-                                    new ProblemReportingBuildActionRunner(
-                                        new ChainingBuildActionRunner(buildActionRunners),
-                                        exceptionAnalyser,
-                                        buildLayout,
-                                        problemReporters
+                                    new ProblemRenderingBuildActionRunner(
+                                        buildOperationListenerManager,
+                                        new ProblemReportingBuildActionRunner(
+                                            new ChainingBuildActionRunner(buildActionRunners),
+                                            exceptionAnalyser,
+                                            buildLayout,
+                                            problemReporters
+                                        )
                                     ),
                                     buildStartedTime,
                                     buildRequestMetaData,

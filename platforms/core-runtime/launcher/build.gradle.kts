@@ -51,7 +51,7 @@ dependencies {
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(projects.io)
-    implementation(project(":problems-api"))
+    implementation(project(":problems"))
     implementation(project(":build-process-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
@@ -62,7 +62,6 @@ dependencies {
 
     runtimeOnly(project(":gradle-cli-main"))
     runtimeOnly(project(":declarative-dsl-provider"))
-    runtimeOnly(project(":problems"))
 
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
