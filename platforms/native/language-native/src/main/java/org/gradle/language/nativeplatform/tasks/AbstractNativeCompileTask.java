@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -92,6 +93,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang;
             }
         }));
+    }
+
+    @Inject
+    protected TaskFileVarFactory getTaskFileVarFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
