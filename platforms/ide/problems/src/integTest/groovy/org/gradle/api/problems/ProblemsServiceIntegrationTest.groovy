@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
-import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
-
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -31,7 +29,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
-        buildFile getProblemReportingScript(taskActionMethodBody)
+        buildFile ReportingScript.getProblemReportingScript(taskActionMethodBody)
     }
 
     def "problem replaced with a validation warning if mandatory id is missing"() {
