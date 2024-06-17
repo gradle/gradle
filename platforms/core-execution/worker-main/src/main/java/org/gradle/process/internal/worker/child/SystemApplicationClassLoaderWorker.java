@@ -86,7 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerConfig config = new WorkerConfigSerializer().read(new InputStreamBackedDecoder(configInputStream));
 
         // Read logging config and setup logging
-        LoggingServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
+        ServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(config.getLogLevel());
 
         // When not explicitly set, use the value from system properties
@@ -180,7 +180,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         });
     }
 
-    LoggingManagerInternal createLoggingManager(LoggingServiceRegistry loggingServiceRegistry) {
+    LoggingManagerInternal createLoggingManager(ServiceRegistry loggingServiceRegistry) {
         LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;

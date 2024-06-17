@@ -33,6 +33,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
@@ -76,7 +77,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(org.gradle.api.logging.configuration.ConsoleOutput)} to enable this.</p>
      */
-    public static LoggingServiceRegistry newCommandLineProcessLogging() {
+    public static ServiceRegistry newCommandLineProcessLogging() {
         CommandLineLogging loggingServices = new CommandLineLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
         rootLoggingManager.captureSystemSources();
@@ -102,7 +103,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Does nothing until started.</p>
      */
-    public static LoggingServiceRegistry newEmbeddableLogging() {
+    public static ServiceRegistry newEmbeddableLogging() {
         return new CommandLineLogging();
     }
 
@@ -112,7 +113,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</p>
      */
-    public static LoggingServiceRegistry newNestedLogging() {
+    public static ServiceRegistry newNestedLogging() {
         return new NestedLogging();
     }
 
