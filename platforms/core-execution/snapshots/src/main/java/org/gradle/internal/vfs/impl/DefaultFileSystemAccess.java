@@ -84,15 +84,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
-    public FileSystemLocationSnapshot read(String location) {
-        return readSnapshotFromLocation(
-            location,
-            Function.identity(),
-            () -> snapshot(location, SnapshottingFilter.EMPTY)
-        );
-    }
-
-    @Override
     public Optional<HashCode> readRegularFileContentHash(String location) {
         return virtualFileSystem.findMetadata(location)
             .<Optional<FileSystemLocationSnapshot>>flatMap(snapshot -> {
@@ -129,6 +120,15 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
+    public FileSystemLocationSnapshot read(String location) {
+        return readSnapshotFromLocation(
+            location,
+            Function.identity(),
+            () -> snapshot(location, SnapshottingFilter.EMPTY)
+        );
+    }
+
+    @Override
     public Optional<FileSystemLocationSnapshot> read(String location, SnapshottingFilter filter) {
         if (filter.isEmpty()) {
             return Optional.of(read(location));
@@ -143,6 +143,21 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                         : FileSystemSnapshotFilter.filterSnapshot(filter, snapshot);
                 });
         }
+    }
+
+    private <T> T readSnapshotFromLocation(
+        String location,
+        Function<FileSystemLocationSnapshot, T> snapshotProcessor,
+        Supplier<T> readFromDisk
+    ) {
+        return virtualFileSystem.findSnapshot(location)
+            .map(snapshotProcessor)
+            // Avoid snapshotting the same location at the same time
+            .orElseGet(() -> producingSnapshots.guardByKey(location,
+                () -> virtualFileSystem.findSnapshot(location)
+                    .map(snapshotProcessor)
+                    .orElseGet(readFromDisk)
+            ));
     }
 
     private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
@@ -176,21 +191,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                     throw new UnsupportedOperationException();
             }
         });
-    }
-
-    private <T> T readSnapshotFromLocation(
-        String location,
-        Function<FileSystemLocationSnapshot, T> snapshotProcessor,
-        Supplier<T> readFromDisk
-    ) {
-        return virtualFileSystem.findSnapshot(location)
-            .map(snapshotProcessor)
-            // Avoid snapshotting the same location at the same time
-            .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> virtualFileSystem.findSnapshot(location)
-                    .map(snapshotProcessor)
-                    .orElseGet(readFromDisk)
-            ));
     }
 
     @Override
