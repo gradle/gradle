@@ -105,7 +105,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 }
                 return Optional.empty();
             })
-            .orElseGet(() -> virtualFileSystem.store(location, vfsStorer -> {
+            .orElseGet(() -> virtualFileSystem.storeWithAction(location, vfsStorer -> {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 switch (fileMetadata.getType()) {
@@ -163,7 +163,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         if (knownExactSnapshot != null) {
             return knownExactSnapshot;
         }
-        return virtualFileSystem.store(location, vfsStorer -> {
+        return virtualFileSystem.storeWithAction(location, vfsStorer -> {
             File file = new File(location);
             FileMetadata fileMetadata = this.stat.stat(file);
             switch (fileMetadata.getType()) {
