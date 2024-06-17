@@ -128,6 +128,7 @@ class WorkNodeCodec(
         return node
     }
 
+    @Suppress("MagicNumber")
     private
     fun WriteContext.writeNodeGroup(group: NodeGroup, nodesById: Map<Node, Int>) {
         encodePreservingIdentityOf(group) {
@@ -161,6 +162,7 @@ class WorkNodeCodec(
         }
     }
 
+    @Suppress("MagicNumber")
     private
     fun ReadContext.readNodeGroup(nodesById: Map<Int, Node>): NodeGroup {
         return decodePreservingIdentity { id ->

@@ -45,12 +45,14 @@ class DeprecatedFeaturesListener(
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (shouldNag()) {
+            @Suppress("MagicNumber")
             nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
         }
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (shouldNagFor(task, runningTask)) {
+            @Suppress("MagicNumber")
             nagUserAbout("Invocation of $invocationDescription at execution time", 7, "task_project")
         }
     }
@@ -63,6 +65,7 @@ class DeprecatedFeaturesListener(
 
     override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (shouldNagFor(task, runningTask)) {
+            @Suppress("MagicNumber")
             nagUserAbout("Invocation of $invocationDescription at execution time", 8, "task_convention")
         }
     }

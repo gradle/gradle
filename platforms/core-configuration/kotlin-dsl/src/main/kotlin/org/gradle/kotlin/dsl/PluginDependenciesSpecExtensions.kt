@@ -35,6 +35,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 @Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("id(\"com.gradle.develocity\") version \"${AutoAppliedDevelocityPlugin.VERSION}\""))
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() {
+        @Suppress("MagicNumber")
         DeprecationLogger.deprecate("The ${PluginDependencySpec::class.simpleName}.`gradle-enterprise` property")
             .withAdvice("Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedDevelocityPlugin.VERSION}\"' instead.")
             .willBeRemovedInGradle9()
