@@ -24,6 +24,7 @@ plugins {
     kotlin("jvm")
     id("gradlebuild.java-library")
     id("gradlebuild.ktlint")
+    id("gradlebuild.detekt")
 }
 
 configurations.transitiveSourcesElements {

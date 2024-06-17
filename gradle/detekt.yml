@@ -1,0 +1,21 @@
+style:
+  MaxLineLength:
+    maxLineLength: 250
+  ReturnCount:
+    max: 5
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 5
+  ForbiddenComment:
+    active: false
+  ExplicitItLambdaParameter:
+    active: false
+  WildcardImport:
+    active: true
+    excludeImports:
+      - 'org.gradle.kotlin.dsl.*'
+  SerialVersionUIDInSerializableClass:
+    active: false
+
+complexity:
+  TooManyFunctions:
+    active: false
