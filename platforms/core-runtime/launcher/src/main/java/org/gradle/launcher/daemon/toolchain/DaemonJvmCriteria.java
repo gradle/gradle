@@ -53,6 +53,6 @@ public class DaemonJvmCriteria {
     }
 
     public boolean isCompatibleWith(JavaLanguageVersion javaVersion, String javaVendor) {
-        return javaVersion == getJavaVersion() && vendorSpec.matches(javaVendor);
+        return javaVersion.equals(getJavaVersion()) && vendorSpec.matches(javaVendor);
     }
 }
