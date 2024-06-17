@@ -33,7 +33,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
-import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
@@ -50,6 +49,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter.filterSnapshot;
 
 public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefaultExcludesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
@@ -121,11 +121,10 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
     @Override
     public FileSystemLocationSnapshot read(String location) {
-        return readSnapshotFromLocation(
-            location,
-            Function.identity(),
+        return readSnapshotFromLocation(location,
+            Optional::of,
             () -> snapshot(location, SnapshottingFilter.EMPTY)
-        );
+        ).orElseThrow(() -> new IllegalStateException("Snapshot not found for " + location));
     }
 
     @Override
@@ -134,14 +133,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
             return Optional.of(read(location));
         } else {
             return readSnapshotFromLocation(location,
-                snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter, snapshot),
-                () -> {
-                    FileSystemLocationSnapshot snapshot = snapshot(location, filter);
-                    return snapshot.getType() == FileType.Directory
-                        // Directory snapshots have been filtered while walking the file system
-                        ? Optional.of(snapshot)
-                        : FileSystemSnapshotFilter.filterSnapshot(filter, snapshot);
-                });
+                storedFilteredSnapshot -> filterSnapshot(filter, storedFilteredSnapshot),
+                () -> snapshot(location, filter));
         }
     }
 
@@ -160,36 +153,52 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
             ));
     }
 
-    private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
-        ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots = virtualFileSystem
+    /**
+     * Takes a snapshot of the given location and filters it according to the given filter.
+     */
+    private Optional<FileSystemLocationSnapshot> snapshot(String location, SnapshottingFilter filter) {
+        ImmutableMap<String, FileSystemLocationSnapshot> alreadyStoredSnapshots = virtualFileSystem
             .findRootSnapshotsUnder(location)
             .collect(ImmutableMap.toImmutableMap(
                 FileSystemLocationSnapshot::getAbsolutePath,
                 Function.identity()
             ));
-        FileSystemLocationSnapshot knownExactSnapshot = previouslyKnownSnapshots.get(location);
-        if (knownExactSnapshot != null) {
-            return knownExactSnapshot;
+        FileSystemLocationSnapshot unfilteredSnapshot = alreadyStoredSnapshots.get(location);
+        if (unfilteredSnapshot != null) {
+            return filterSnapshot(filter, unfilteredSnapshot);
+        } else {
+            return snapshotAndReuse(location, filter, alreadyStoredSnapshots);
         }
+    }
+
+    /**
+     * Takes a snapshot of the given location and filters it according to the given filter, reusing previously known snapshots.
+     */
+    private Optional<FileSystemLocationSnapshot> snapshotAndReuse(String location, SnapshottingFilter filter, ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots) {
         return virtualFileSystem.storeWithAction(location, vfsStorer -> {
             File file = new File(location);
             FileMetadata fileMetadata = this.stat.stat(file);
+            FileSystemLocationSnapshot unfilteredSnapshot;
             switch (fileMetadata.getType()) {
                 case RegularFile:
                     HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                    return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hash, fileMetadata));
+                    unfilteredSnapshot = vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hash, fileMetadata));
+                    break;
                 case Missing:
-                    return vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                    unfilteredSnapshot = vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                    break;
                 case Directory:
-                    // This will only store the captured snapshot in the VFS if the filter did not match anything
-                    return directorySnapshotter.snapshot(
+                    // This will capture a filtered snapshot, and only store the captured snapshot in the VFS
+                    // if the filter did not filter out anything.
+                    return Optional.of(directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
                         previouslyKnownSnapshots,
-                        vfsStorer::store);
+                        vfsStorer::store));
                 default:
                     throw new UnsupportedOperationException();
             }
+            return filterSnapshot(filter, unfilteredSnapshot);
         });
     }
 
