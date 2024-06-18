@@ -97,3 +97,73 @@ This includes:
 
 Note that Isolated Projects is a pre-alpha feature.
 These constraints are not final and can change at any time.
+
+== ChangeLog
+
+=== Gradle 8.9
+
+==== Lift restriction on string-based task dependency notation
+
+Depending on a task from another project in string-notated form is a common idiom:
+
+```
+foo.dependsOn(":a:bar")
+```
+
+Starting with this release, this is no longer considered a violation of Isolated Projects boundaries.
+
+==== `gradle init` generates Isolated Projects compatible projects
+
+The <<build_init_plugin.adoc#build_init_plugin, Build Init Plugin>> supports creating multi-module projects.
+
+Starting with this release, `gradle init` generates projects compatible with Isolated Projects restrictions.
+
+==== `IsolatedProject` provides a project identifier in composite builds
+
+The link:{javadocPath}/org/gradle/api/project/IsolatedProject.html[IsolatedProject] type was introduced in Gradle 8.8 to explicitly mark the project state that is safe to access across projects.
+
+Gradle 8.9 adds a link:{javadocPath}/org/gradle/api/project/IsolatedProject.html#getBuildTreePath()[`buildTreePath`] member, which serves as a unique project identifier in <<composite_builds.adoc#composite_builds, composite build>> setups.
+
+=== Gradle 8.8
+
+==== New Gradle lifecycle callbacks
+
+This release introduces a new link:{javadocPath}/org/gradle/api/invocation/GradleLifecycle.html[`GradleLifecycle`] API, accessible via `gradle.lifecycle`, which plugin authors and build engineers can use to register actions to be executed at certain points in the build lifecycle.
+
+Actions registered as `GradleLifecycle` callbacks (currently, `beforeProject` and `afterProject`) are *link:{javadocPath}/org/gradle/api/IsolatedAction.html)[isolated]*, running in an isolated context that is private to every project.
+This will allow Gradle to perform additional performance optimizations and will be required in the future to take advantage of parallelism during the build configuration phase.
+
+While the existing callbacks continue to work, we encourage everyone to adopt the new API and provide us with early feedback.
+
+The example below shows how this new API could be used in a settings script or <<custom_plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
+while avoiding <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration, cross-project configuration>>:
+
+[source,kotlin]
+.settings.gradle.kts
+----
+include("sub1")
+include("sub2")
+
+gradle.lifecycle.beforeProject {
+    apply(plugin = "base")
+    repositories {
+        mavenCentral()
+    }
+}
+----
+
+==== Isolated project views
+
+There is now support for obtaining an isolated view of a project as an   link:{javadocPath}org/gradle/api/project/IsolatedProject.html[`IsolatedProject`] via link:{javadocPath}/org/gradle/api/Project.html#getIsolated--[`Project.getIsolated()`].
+
+The view exposes only those properties that are safe to access across project boundaries when running the build configuration phase in parallel (to be supported in a future release).
+
+The example below shows how the API could be used from a `Project` configuration callback to query the root project directory in a parallel-safe way:
+
+[source,kotlin]
+----
+gradle.lifecycle.beforeProject {
+    val rootDir = project.isolated.rootProject.projectDirectory
+    println("The root project directory is $rootDir")
+}
+----
