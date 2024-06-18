@@ -37,7 +37,10 @@ import java.nio.file.Paths;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
-    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).includeAllPackages());
+    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(
+        ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())
+            .includePackagePrivateMembers()
+            .build());
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;

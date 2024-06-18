@@ -36,28 +36,32 @@ public class ApiClassExtractor {
     private final boolean apiIncludesPackagePrivateMembers;
     private final ApiMemberWriterFactory apiMemberWriterFactory;
 
-    public static class BuilderWithLanguage {
+    public static class Builder {
         private final ApiMemberWriterFactory apiMemberWriterFactory;
+        private boolean includePackagePrivateMembers;
+        private Predicate<String> packageNameFilter = name -> true;
 
-        BuilderWithLanguage(ApiMemberWriterFactory apiMemberWriterFactory) {
+        Builder(ApiMemberWriterFactory apiMemberWriterFactory) {
             this.apiMemberWriterFactory = apiMemberWriterFactory;
         }
 
-        public ApiClassExtractor includePackagesMatching(Predicate<String> packageNameFilter) {
-            return new ApiClassExtractor(packageNameFilter, false, apiMemberWriterFactory);
+        public Builder includePackagesMatching(Predicate<String> packageNameFilter) {
+            this.packageNameFilter = packageNameFilter;
+            return this;
         }
 
-        public ApiClassExtractor includeAllPackages() {
-            return new ApiClassExtractor(name -> true, false, apiMemberWriterFactory);
+        public Builder includePackagePrivateMembers() {
+            this.includePackagePrivateMembers = true;
+            return this;
         }
 
-        public ApiClassExtractor includeAllPackagesAndPackagePrivateMembers() {
-            return new ApiClassExtractor(name -> true, true, apiMemberWriterFactory);
+        public ApiClassExtractor build() {
+            return new ApiClassExtractor(packageNameFilter, includePackagePrivateMembers, apiMemberWriterFactory);
         }
     }
 
-    public static BuilderWithLanguage withWriter(ApiMemberWriterAdapter writerCreator) {
-        return new BuilderWithLanguage(classWriter -> writerCreator.createWriter(new MethodStubbingApiMemberAdapter(classWriter)));
+    public static Builder withWriter(ApiMemberWriterAdapter writerCreator) {
+        return new Builder(classWriter -> writerCreator.createWriter(new MethodStubbingApiMemberAdapter(classWriter)));
     }
 
     private ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {

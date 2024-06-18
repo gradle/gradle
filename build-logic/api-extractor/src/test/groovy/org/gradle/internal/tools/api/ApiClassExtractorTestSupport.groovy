@@ -68,11 +68,15 @@ class ApiClassExtractorTestSupport extends Specification {
 
         public final Map<String, GeneratedClass> classes
 
-        ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
-            this.apiClassExtractor = ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).with { builder ->
-                packages.empty
-                    ? builder.includeAllPackages()
-                    : builder.includePackagesMatching { packages.contains(it) }
+        ApiContainer(List<String> packages, boolean includePackagePrivate, Map<String, GeneratedClass> classes) {
+            this.apiClassExtractor = ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).with {
+                if (!packages.empty) {
+                    includePackagesMatching { packages.contains(it) }
+                }
+                if (includePackagePrivate) {
+                    includePackagePrivateMembers()
+                }
+                build()
             }
             this.classes = classes
         }
@@ -147,7 +151,7 @@ class ApiClassExtractorTestSupport extends Specification {
                 }
                 throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
-            return new ApiContainer(packages, entries)
+            return new ApiContainer(packages, packages.empty, entries)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")

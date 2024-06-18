@@ -48,7 +48,8 @@ class KotlinCompileClasspathFingerprinter(
         CachingResourceHasher(
             AbiExtractingClasspathResourceHasher.withoutFallback(ApiClassExtractor
                 .withWriter(KotlinApiMemberWriter.adapter())
-                .includeAllPackages()),
+                .includePackagePrivateMembers()
+                .build()),
             cacheService
         ),
         ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
