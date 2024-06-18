@@ -18,21 +18,8 @@ package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.internal.Problem;
 
-import java.util.List;
+import java.util.Collection;
 
-public class ProblemRenderer {
-
-    public static final String PROBLEMS_WERE_FOUND_MESSAGE = "Problems were found";
-
-    public void render(List<Problem> problems) {
-        if (problems.isEmpty()) {
-            return;
-        }
-
-        System.out.println("* " + PROBLEMS_WERE_FOUND_MESSAGE + ":");
-        for (Problem problem : problems) {
-            System.out.println(problem.toString());
-        }
-    }
-
+public interface ProblemRenderer {
+    void render(Collection<Problem> problems);
 }

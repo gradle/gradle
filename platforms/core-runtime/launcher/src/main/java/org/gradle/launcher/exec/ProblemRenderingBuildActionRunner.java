@@ -18,7 +18,6 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemProgressDetails;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.invocation.BuildAction;
@@ -29,23 +28,29 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.problems.internal.rendering.JavaProblemRenderer;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 
 public class ProblemRenderingBuildActionRunner implements BuildActionRunner, BuildOperationListener {
 
-    private final List<Problem> problems = new ArrayList<>();
+    private final Queue<Problem> problems = new ArrayDeque<>();
     private final BuildOperationListenerManager listenerManager;
     private final BuildActionRunner delegate;
-    private final ProblemRenderer renderer;
+
+    private final List<ProblemRenderer> problemRenderers = new ArrayList<>();
 
     public ProblemRenderingBuildActionRunner(BuildOperationListenerManager listenerManager, BuildActionRunner delegate) {
         this.listenerManager = listenerManager;
         this.delegate = delegate;
-        this.renderer = new ProblemRenderer();
+
+        this.problemRenderers.add(new JavaProblemRenderer(System.out));
     }
 
     @Nonnull
@@ -55,7 +60,15 @@ public class ProblemRenderingBuildActionRunner implements BuildActionRunner, Bui
         Result result = delegate.run(action, buildController);
         listenerManager.removeListener(this);
 
-        renderer.render(problems);
+        // Newline before
+        System.out.println();
+        // Reporting...
+        for (ProblemRenderer renderer : problemRenderers) {
+            renderer.render(Collections.unmodifiableCollection(problems));
+        }
+        // Newline after
+        System.out.println();
+
         return result;
     }
 
@@ -66,9 +79,10 @@ public class ProblemRenderingBuildActionRunner implements BuildActionRunner, Bui
 
     @Override
     public void progress(@Nonnull OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-        if (progressEvent.getDetails() instanceof ProblemProgressDetails) {
+        if (progressEvent.getDetails() instanceof DefaultProblemProgressDetails) {
             DefaultProblemProgressDetails details = (DefaultProblemProgressDetails) progressEvent.getDetails();
-            problems.add(details.getProblem());
+            Problem problem = details.getProblem();
+            problems.add(problem);
         }
     }
 
