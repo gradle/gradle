@@ -84,6 +84,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         return CheckedFingerprint.Valid
     }
 
+    @Suppress("NestedBlockDepth")
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
         var firstReason: InvalidationReason? = null

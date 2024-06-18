@@ -39,6 +39,7 @@ class AssignmentResolver() {
         ) : AssignmentAdditionResult
     }
 
+    @Suppress("NestedBlockDepth")
     fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin, assignmentMethod: AssignmentMethod, generationId: OperationGenerationId): AssignmentAdditionResult =
         when (val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)) {
             is UnresolvedReceiver -> {
@@ -128,6 +129,7 @@ class AssignmentResolver() {
         data class UnresolvedReceiver(val accessOrigin: ObjectOrigin) : ExpressionResolutionProgress
     }
 
+    @Suppress("NestedBlockDepth")
     fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> resolveToObjectOrPropertyReference(objectOrigin.delegate)
