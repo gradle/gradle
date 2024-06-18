@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * Marks that a class will not have its properties migrated to lazy.
  * This is similar to {@link NotToBeReplacedByLazyProperty} but for a class.
  *
- * This method is internal even though it's attached to a public API, so it should not be referenced in third-party code.
+ * This annotation is internal even though it's attached to a public API, so it should not be referenced in third-party code.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})

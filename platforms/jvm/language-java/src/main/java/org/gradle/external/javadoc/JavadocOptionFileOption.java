@@ -17,15 +17,15 @@
 package org.gradle.external.javadoc;
 
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Represents a Javadoc command-line option.
  *
  * @param <T> The type which this option represents.
  */
-@NotToBeMigratedToLazy
 @HasInternalProtocol
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
+    @NotToBeReplacedByLazyProperty(because = "JavadocOptionFileOption should be deprecated and replaced with a Property")
     String getOption();
 }

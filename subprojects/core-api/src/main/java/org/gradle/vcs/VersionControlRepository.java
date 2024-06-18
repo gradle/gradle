@@ -18,7 +18,7 @@ package org.gradle.vcs;
 
 import org.gradle.api.Action;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Represents the details about a particular VCS repository that contains a build that produces zero or more components that can be used during dependency resolution.
@@ -27,7 +27,6 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
  *
  * @since 4.10
  */
-@NotToBeMigratedToLazy
 public interface VersionControlRepository {
     /**
      * Declares that this repository produces (or may produce) component with the given group and module names.
@@ -43,6 +42,7 @@ public interface VersionControlRepository {
      *
      * @return the root directory of the build, relative to the root of this repository.
      */
+    @ToBeReplacedByLazyProperty
     String getRootDir();
 
     /**
