@@ -695,7 +695,7 @@ class HasConfigurationCacheProblemsSpec {
     }
 
     HasConfigurationCacheProblemsSpec withIncompatibleTask(String task, String reason) {
-        incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("${task}: task `${task}` of type "), endsWith(reason)))
+        incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("${task}: task '${task}' of type "), endsWith(reason)))
         return this
     }
 
