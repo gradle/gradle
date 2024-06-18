@@ -333,9 +333,9 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         inDirectory(rootDir).withArguments(*arguments)
 
     protected
-    inline fun withOwnGradleUserHomeDir(reason: String, block: () -> Unit) {
+    inline fun <T> withOwnGradleUserHomeDir(reason: String, block: () -> T): T {
         executer.requireOwnGradleUserHomeDir(reason)
-        try {
+        return try {
             block()
         } finally {
             // wait for all daemons to shut down so the test dir can be deleted
