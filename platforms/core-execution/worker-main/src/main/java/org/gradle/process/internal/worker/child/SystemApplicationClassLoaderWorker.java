@@ -33,8 +33,8 @@ import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -97,9 +97,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Configure services
         File gradleUserHomeDir = new File(config.getGradleUserHomeDirPath());
         NativeServices.initializeOnWorker(gradleUserHomeDir, nativeServicesMode);
-        DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
-        basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
-        basicWorkerServices.addProvider(new MessagingServices());
+        ServiceRegistry basicWorkerServices = createBasicWorkerServices(NativeServices.getInstance(), loggingServiceRegistry);
         ServiceRegistry workerServices = WorkerServices.create(basicWorkerServices, gradleUserHomeDir);
         WorkerLogEventListener workerLogEventListener = workerServices.get(WorkerLogEventListener.class);
 
@@ -184,6 +182,21 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;
+    }
+
+    private static ServiceRegistry createBasicWorkerServices(ServiceRegistry nativeServices, ServiceRegistry loggingServiceRegistry) {
+        return ServiceRegistryBuilder.builder()
+            .displayName("basic worker services")
+            .parent(nativeServices)
+            .parent(loggingServiceRegistry)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                void configure(ServiceRegistration registration) {
+                    registration.add(ExecutorFactory.class, new DefaultExecutorFactory());
+                }
+            })
+            .provider(new MessagingServices())
+            .build();
     }
 
     private static class WorkerServices implements ServiceRegistrationProvider {
