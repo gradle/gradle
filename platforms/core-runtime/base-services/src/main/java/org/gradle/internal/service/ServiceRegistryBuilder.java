@@ -50,6 +50,15 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
+    public ServiceRegistryBuilder provider(final ServiceRegistrationAction register) {
+        return provider(new ServiceRegistrationProvider() {
+            @SuppressWarnings("unused")
+            void configure(ServiceRegistration registration) {
+                register.registerServices(registration);
+            }
+        });
+    }
+
     /**
      * Providing a scope makes the resulting {@link ServiceRegistry}
      * validate all registered services for being annotated with the given scope.
