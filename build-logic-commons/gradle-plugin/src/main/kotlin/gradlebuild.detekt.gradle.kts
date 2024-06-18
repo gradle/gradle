@@ -23,3 +23,13 @@ detekt {
     config.setFrom(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml")) // point to your custom config defining rules to run, overwriting default behavior
 }
 
+// TODO: need custom task to check kts build files
+
+pluginManager.withPlugin("gradlebuild.code-quality") {
+    tasks {
+        named("codeQuality") {
+            dependsOn(detekt)
+        }
+    }
+}
+
