@@ -20,6 +20,6 @@ plugins {
 
 detekt {
     buildUponDefaultConfig = true // preconfigure defaults
-    config.setFrom(project.rootProject.file("gradle/detekt.yml")) // point to your custom config defining rules to run, overwriting default behavior
+    config.setFrom(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml")) // point to your custom config defining rules to run, overwriting default behavior
 }
 
