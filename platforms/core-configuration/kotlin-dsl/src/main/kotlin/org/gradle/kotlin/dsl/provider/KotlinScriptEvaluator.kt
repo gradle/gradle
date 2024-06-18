@@ -86,6 +86,7 @@ interface KotlinScriptEvaluator {
 }
 
 
+@Suppress("unused")
 internal
 class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
