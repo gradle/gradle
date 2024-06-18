@@ -16,7 +16,6 @@ dependencies {
     api(project(":concurrent"))
     api(project(":hashing"))
     api(project(":stdlib-java-extensions"))
-    api(project(":native"))
 
     api(libs.groovy)
     api(libs.groovyXml)
@@ -29,6 +28,7 @@ dependencies {
 
     implementation(project(":build-operations"))
     implementation(project(":functional"))
+    implementation(project(":native"))
     implementation(project(":serialization"))
 
     implementation(libs.ant)
