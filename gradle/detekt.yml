@@ -1,8 +1,8 @@
 style:
   MaxLineLength:
-    maxLineLength: 500                    # can be much smaller in follow-up branch              # default is 120
+    maxLineLength: 250                    # default is 120
   ReturnCount:
-    max: 15                                # can be much smaller in follow-up branch             # default is 2
+    max: 5                                # default is 2
   DestructuringDeclarationWithTooManyEntries:
     maxDestructuringEntries: 5            # default is 3
   ForbiddenComment:
@@ -72,50 +72,4 @@ exceptions:
       - 'MalformedURLException'           # default
       - 'NumberFormatException'           # default
       - 'ParseException'                  # default
-      - 'Exception'                       # added by us
-      - 'IllegalArgumentException'        # added by us
       - 'InvocationTargetException'       # added by us
-      - 'Throwable'                       # added by us
-      - 'ClassNotFoundException'          # fixed in follow-up branch                  # added by us
-      - 'UnknownDomainObjectException'    # fixed in follow-up branch                  # added by us
-      - 'URISyntaxException'              # fixed in follow-up branch                  # added by us
-  ThrowingExceptionsWithoutMessageOrCause:
-    active: false                         # fixed in follow-up branch
-  PrintStackTrace:
-    active: false                         # fixed in follow-up branch
-
-performance:
-  SpreadOperator:
-    active: false                         # we need to take a look at these !!!
-  ForEachOnRange:
-    active: false                         # fixed in follow-up branch
-
-naming:
-  FunctionNaming:
-    active: false                         # fixed in follow-up branch
-  FunctionParameterNaming:
-    active: false                         # fixed in follow-up branch
-  TopLevelPropertyNaming:
-    active: false                         # fixed in follow-up branch
-  EnumNaming:
-    active: false                         # fixed in follow-up branch
-  VariableNaming:
-    active: false                         # fixed in follow-up branch
-  ObjectPropertyNaming:
-    active: false                         # fixed in follow-up branch
-  MatchingDeclarationName:
-    active: false                         # fixed in follow-up branch
-  InvalidPackageDeclaration:
-    active: false                         # fixed in follow-up branch
-  MemberNameEqualsClassName:
-    active: false                         # fixed in follow-up branch
-
-potential-bugs:
-  ImplicitDefaultLocale:
-    active: false                         # fixed in follow-up branch
-
-empty-blocks:
-  EmptyFunctionBlock:
-    active: false                         # fixed in follow-up branch
-  EmptyDefaultConstructor:
-    active: false                         # fixed in follow-up branch
