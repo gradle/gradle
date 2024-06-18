@@ -109,7 +109,7 @@ The following improvements are for IDE integrators.
 
 #### Adoption of the Problems API with Java compilation
 
-The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+The Java compilation infrastructure has been updated to use the [Problems API](userguide/implementing_gradle_plugins.html#reporting_problems).
 This change will supply the Tooling API clients with structured, rich information about compilation issues. IDEs such as IntelliJ IDEA and Visual Studio Code can adopt this feature to provide an accurate visual representation of Java compilation problems without relying on parsing text printed by the compiler.
 
 <a name="other"></a>
