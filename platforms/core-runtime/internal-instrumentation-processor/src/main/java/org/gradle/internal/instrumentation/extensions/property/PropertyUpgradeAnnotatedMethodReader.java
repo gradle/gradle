@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
@@ -76,12 +79,14 @@ import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyType.FILE_COLLECTION;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.isAssignableToFileSystemLocation;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getTypeParameterOrThrow;
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
-    private static final Type DEFAULT_TYPE = Type.getType(DefaultValue.class);
+    private static final TypeName DEFAULT_TYPE = ClassName.get(DefaultValue.class);
 
     private final String projectName;
     private final Elements elements;
@@ -150,8 +155,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return requests.stream()
                 .map(Success::new)
                 .collect(Collectors.toList());
-        } catch (AnnotationReadFailure failure) {
-            return Collections.singletonList(new InvalidRequest(failure.reason));
+        } catch (IllegalArgumentException failure) {
+            return Collections.singletonList(new InvalidRequest(failure.getMessage()));
         }
     }
 
@@ -173,6 +178,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return replacedAccessors.stream()
                 .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, parentBinaryCompatibility))
                 .collect(Collectors.toList());
+        }
+
+        // Provider has only a getter, no setter
+        if (GradleLazyType.PROVIDER.isEqualToRawTypeOf(TypeName.get(method.getReturnType()))) {
+            return Collections.singletonList(getAccessorSpec(method, AccessorType.GETTER, annotationMirror));
         }
         return Arrays.asList(
             getAccessorSpec(method, AccessorType.GETTER, annotationMirror),
@@ -231,7 +241,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         AccessorType accessorType = method.getParameters().size() > 1
             ? AccessorType.SETTER
             : AccessorType.GETTER;
-        Type returnType = extractType(method.getReturnType());
+        TypeName returnType = TypeName.get(method.getReturnType());
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
@@ -299,18 +309,18 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         AccessorType accessorType = AnnotationUtils.findAnnotationValue(annotation, "value")
             .map(v -> AccessorType.valueOf(v.getValue().toString()))
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'value' attribute in @ReplacedAccessor"));
-        Type originalType = extractOriginalType(method, annotation);
+        TypeName originalType = extractOriginalType(method, annotation);
         return getAccessorSpec(method, accessorType, methodName, originalType, annotation, parentDeprecationSpec, binaryCompatibility);
     }
 
     private AccessorSpec getAccessorSpec(ExecutableElement method, AccessorType accessorType, AnnotationMirror annotation) {
         String propertyName = getPropertyName(method);
-        Type originalType = extractOriginalType(method, annotation);
+        TypeName originalType = extractOriginalType(method, annotation);
         String methodName;
         switch (accessorType) {
             case GETTER:
                 String capitalize = propertyName.substring(0, 1).toUpperCase(Locale.ROOT) + propertyName.substring(1);
-                methodName = originalType.equals(Type.BOOLEAN_TYPE) ? "is" + capitalize : "get" + capitalize;
+                methodName = originalType.equals(TypeName.BOOLEAN) ? "is" + capitalize : "get" + capitalize;
                 break;
             case SETTER:
                 methodName = method.getSimpleName().toString().replaceFirst("get", "set");
@@ -327,12 +337,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         ExecutableElement method,
         AccessorType accessorType,
         String methodName,
-        Type originalType,
+        TypeName originalType,
         AnnotationMirror annotation,
         DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility
     ) {
-        Type returnType;
+        TypeName returnType;
         List<ParameterInfo> parameters;
         switch (accessorType) {
             case GETTER:
@@ -340,11 +350,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 returnType = originalType;
                 break;
             case SETTER:
-                parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
+                parameters = Collections.singletonList(new ParameterInfoImpl("arg0", TypeUtils.extractRawType(originalType), METHOD_PARAMETER));
                 boolean isFluentSetter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
                     .map(v -> (Boolean) v.getValue())
                     .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"));
-                returnType = isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
+                returnType = isFluentSetter ? TypeName.get(method.getEnclosingElement().asType()) : ClassName.VOID;
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported accessor type: " + accessorType);
@@ -364,34 +374,52 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private static Type extractOriginalType(ExecutableElement method, AnnotationMirror annotation) {
+    private static TypeName extractOriginalType(ExecutableElement method, AnnotationMirror annotation) {
         Optional<? extends AnnotationValue> annotationValue = AnnotationUtils.findAnnotationValue(annotation, "originalType");
-        Type type = annotationValue.map(v -> extractType((TypeMirror) v.getValue())).orElse(DEFAULT_TYPE);
-        if (!type.equals(DEFAULT_TYPE)) {
-            return type;
+        TypeName typeName = annotationValue.map(v -> v.getValue() instanceof DeclaredType
+            // We use DeclaredType.asElement().asType() so if the original type is a parametrized type,
+            // e.g. Iterable<T>, resolved TypeName contains information that it's Iterable<T> and not just Iterable
+            ? TypeName.get(((DeclaredType) annotationValue.get().getValue()).asElement().asType())
+            : TypeName.get((TypeMirror) annotationValue.get().getValue())
+        ).orElse(DEFAULT_TYPE);
+        if (!typeName.equals(DEFAULT_TYPE)) {
+            return typeName;
         }
         return extractOriginalTypeFromGeneric(method, method.getReturnType());
     }
 
-    private static Type extractOriginalTypeFromGeneric(ExecutableElement method, TypeMirror typeMirror) {
+    private static TypeName extractOriginalTypeFromGeneric(ExecutableElement method, TypeMirror typeMirror) {
         String typeName = method.getReturnType() instanceof DeclaredType
             ? ((DeclaredType) method.getReturnType()).asElement().toString()
             : method.getReturnType().toString();
         GradleLazyType gradleLazyType = GradleLazyType.from(typeName);
         switch (gradleLazyType) {
             case CONFIGURABLE_FILE_COLLECTION:
-                return FILE_COLLECTION.asType();
+                return FILE_COLLECTION.asClassName();
             case DIRECTORY_PROPERTY:
             case REGULAR_FILE_PROPERTY:
-                return Type.getType(File.class);
+                return ClassName.get(File.class);
             case LIST_PROPERTY:
-                return Type.getType(List.class);
+                return ParameterizedTypeName.get(ClassName.get(List.class),
+                    getTypeParameterOrThrow(typeMirror, 0)
+                );
             case SET_PROPERTY:
-                return Type.getType(Set.class);
+                return ParameterizedTypeName.get(ClassName.get(Set.class),
+                    getTypeParameterOrThrow(typeMirror, 0)
+                );
             case MAP_PROPERTY:
-                return Type.getType(Map.class);
+                return ParameterizedTypeName.get(ClassName.get(Map.class),
+                    getTypeParameterOrThrow(typeMirror, 0),
+                    getTypeParameterOrThrow(typeMirror, 1)
+                );
             case PROPERTY:
-                return extractType(((DeclaredType) typeMirror).getTypeArguments().get(0));
+                return getTypeParameterOrThrow(typeMirror, 0);
+            case PROVIDER: {
+                TypeName extractedType = getTypeParameterOrThrow(typeMirror, 0);
+                return isAssignableToFileSystemLocation(extractedType)
+                    ? ClassName.get(File.class)
+                    : extractedType;
+            }
             default:
                 throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @%s#originalType instead.", method.getEnclosingElement(), method, typeMirror, ReplacesEagerProperty.class.getSimpleName()));
         }
@@ -401,7 +429,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String interceptorsClassName = getGroovyInterceptorsClassName();
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, BYTECODE_UPGRADE));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
-        Type returnType = accessor.returnType;
+        Type returnType = TypeUtils.extractRawType(accessor.returnType);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(GROOVY_PROPERTY_GETTER, method, returnType, accessor.propertyName, parameters),
             extractImplementationInfo(accessor, method, returnType, accessor.methodName, "get", Collections.emptyList()),
@@ -412,7 +440,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private CallInterceptionRequest createJvmGetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
         List<RequestExtra> extras = getJvmRequestExtras(accessor, method, accessor.binaryCompatibility);
         String callableName = accessor.methodName;
-        Type returnType = accessor.returnType;
+        Type returnType = TypeUtils.extractRawType(accessor.returnType);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(INSTANCE_METHOD, method, returnType, callableName, Collections.emptyList()),
             extractImplementationInfo(accessor, method, returnType, accessor.methodName, "get", Collections.emptyList()),
@@ -421,7 +449,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private CallInterceptionRequest createJvmSetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
-        Type returnType = accessor.returnType;
+        Type returnType = TypeUtils.extractRawType(accessor.returnType);
         String callableName = accessor.methodName;
         List<ParameterInfo> parameters = accessor.parameters;
         BinaryCompatibility binaryCompatibility = accessor.binaryCompatibility;
@@ -440,7 +468,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
         String implementationClass = accessor.generatedClassName;
-        Type newReturnType = TypeUtils.extractReturnType(method);
+        TypeName newPropertyType = TypeName.get(method.getReturnType());
         String propertyName = getPropertyName(method);
         String methodDescriptor = extractMethodDescriptor(method);
         extras.add(new PropertyUpgradeRequestExtra(
@@ -451,7 +479,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             implementationClass,
             accessor.propertyName,
             accessor.methodName,
-            newReturnType,
+            newPropertyType,
             accessor.deprecationSpec,
             binaryCompatibility,
             accessor.bridgedMethod
@@ -502,11 +530,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     // TODO Consolidate with AnnotationCallInterceptionRequestReaderImpl#Failure
-    private static class AnnotationReadFailure extends RuntimeException {
-        final String reason;
-
+    private static class AnnotationReadFailure extends IllegalArgumentException {
         private AnnotationReadFailure(String reason) {
-            this.reason = reason;
+            super(reason);
         }
     }
 
@@ -515,7 +541,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final String propertyName;
         private final AccessorType accessorType;
         private final String methodName;
-        private final Type returnType;
+        private final TypeName returnType;
         private final List<ParameterInfo> parameters;
         private final BinaryCompatibility binaryCompatibility;
         private final DeprecationSpec deprecationSpec;
@@ -526,7 +552,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             AccessorType accessorType,
             String propertyName,
             String methodName,
-            Type returnType,
+            TypeName returnType,
             List<ParameterInfo> parameters,
             DeprecationSpec deprecationSpec,
             BinaryCompatibility binaryCompatibility,

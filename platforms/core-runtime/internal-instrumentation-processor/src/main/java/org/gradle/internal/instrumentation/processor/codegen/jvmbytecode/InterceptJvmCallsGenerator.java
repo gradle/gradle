@@ -153,10 +153,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 ClassName implementationClassName = NameUtil.getClassName(implementationType.getClassName());
                 String fieldTypeName = knownSimpleNames.add(implementationClassName.simpleName()) ?
                     implementationClassName.simpleName() :
-                    implementationClassName.canonicalName();
+                    implementationClassName.reflectionName();
                 String fullFieldName = camelToKebabCase(fieldTypeName).replace("-", "_").toUpperCase(Locale.US) + "_TYPE";
                 return FieldSpec.builder(String.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                    .initializer("$S", implementationClassName.canonicalName().replace(".", "/"))
+                    .initializer("$S", implementationClassName.reflectionName().replace(".", "/"))
                     .build();
             }, (u, v) -> u, LinkedHashMap::new));
     }

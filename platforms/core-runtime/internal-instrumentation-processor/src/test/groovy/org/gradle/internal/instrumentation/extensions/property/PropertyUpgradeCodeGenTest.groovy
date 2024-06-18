@@ -38,11 +38,9 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
             import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 
-            @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
                 @ReplacesEagerProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
@@ -82,10 +80,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-            @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
                 @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
                 public abstract Property<Boolean> getIncremental();
@@ -152,10 +148,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             import org.gradle.api.provider.*;
             import org.gradle.api.file.*;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-            @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
                 @ReplacesEagerProperty${PRIMITIVE_TYPES.contains(originalType) ? "(originalType = ${originalType}.class)" : ""}
                 public abstract $upgradedType getProperty();
@@ -179,13 +173,13 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
-                    return $getCall;
+                    return $getterBody;
                 }
 
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static void access_set_setProperty(Task self, $originalType arg0) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
-                    self.getProperty()$setCall;
+                    self.getProperty()$setterBody;
                 }
             }
         """
@@ -195,7 +189,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .containsElementsIn(generatedClass)
 
         where:
-        upgradedType                  | originalType     | getCall                                          | setCall            | imports
+        upgradedType                  | originalType     | getterBody                                       | setterBody         | imports
         "Property<Integer>"           | "int"            | "self.getProperty().getOrElse(0)"                | ".set(arg0)"       | []
         "Property<Boolean>"           | "boolean"        | "self.getProperty().getOrElse(false)"            | ".set(arg0)"       | []
         "Property<Long>"              | "long"           | "self.getProperty().getOrElse(0L)"               | ".set(arg0)"       | []
@@ -209,6 +203,61 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                             | ".setFrom(arg0)"   | [FileCollection]
     }
 
+    def "should auto generate adapter for Provider upgraded property #upgradedType"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import java.io.*;
+            import java.util.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(${setOriginalType ? "originalType = ${originalType}.class" : ""})
+                public abstract $upgradedType getProperty();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        String getterPrefix = originalType == "boolean" ? "is" : "get"
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            import org.gradle.internal.deprecation.DeprecationLogger;
+            import org.gradle.test.Task;
+
+            @Generated
+            public final class Task_Adapter {
+                ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
+                public static $originalType access_get_${getterPrefix}Property(Task self) {
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
+                    return $getterBody;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+
+        where:
+        upgradedType                    | originalType | setOriginalType | hasSuppressWarnings | getterBody
+        "Provider<Integer>"             | "Integer"    | false           | false               | "self.getProperty().getOrElse(null)"
+        "Provider<Integer>"             | "int"        | true            | false               | "self.getProperty().getOrElse(0)"
+        "Provider<RegularFile>"         | "File"       | false           | false               | "self.getProperty().map(FileSystemLocation::getAsFile).getOrNull()"
+        "Provider<Directory>"           | "File"       | false           | false               | "self.getProperty().map(FileSystemLocation::getAsFile).getOrNull()"
+        "Provider<File>"                | "File"       | false           | false               | "self.getProperty().getOrElse(null)"
+        "Provider<List<String>>"        | "Iterable"   | true            | true                | "self.getProperty().getOrElse(null)"
+        "Provider<List<String>>"        | "List"       | false           | true                | "self.getProperty().getOrElse(null)"
+        "Provider<Map<String, String>>" | "Map"        | false           | true                | "self.getProperty().getOrElse(null)"
+    }
+
     def "should correctly generate interceptor when property name contains get"() {
         given:
         def givenSource = source"""
@@ -218,7 +267,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.file.*;
             import org.gradle.internal.instrumentation.api.annotations.*;
 
-            @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
                 @ReplacesEagerProperty
                 public abstract Property<String> getTargetCompatibility();

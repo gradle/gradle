@@ -119,7 +119,6 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
