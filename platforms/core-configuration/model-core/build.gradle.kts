@@ -34,6 +34,7 @@ dependencies {
 
     implementation(project(":base-services-groovy"))
     implementation(project(":base-asm"))
+    implementation(project(":service-provider"))
 
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
