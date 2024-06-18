@@ -365,6 +365,7 @@ class GrammarToTree(
         return Element(Literal.StringLiteral(sb.toString(), tree.sourceData(node)))
     }
 
+    @Suppress("ReturnCount")
     private
     fun constantExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> {
         val type = node.tokenType

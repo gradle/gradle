@@ -8,7 +8,7 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Express
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.ExpressionResolutionProgress.UnresolvedReceiver
 
 
-class AssignmentResolver() {
+class AssignmentResolver {
     private
     val assignmentByNode = mutableMapOf<ResolutionNode.Property, GenerationResolutionNode>()
 
