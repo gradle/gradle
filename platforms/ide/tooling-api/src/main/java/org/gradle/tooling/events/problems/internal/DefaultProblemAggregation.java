@@ -21,6 +21,7 @@ import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
 
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
 
@@ -43,5 +44,22 @@ public class DefaultProblemAggregation implements ProblemAggregation {
     @Override
     public List<ProblemContext> getProblemContext() {
         return problemContextDetails;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblemAggregation that = (DefaultProblemAggregation) o;
+        return Objects.equals(problemDefinition, that.problemDefinition) && Objects.equals(problemContextDetails, that.problemContextDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(problemDefinition, problemContextDetails);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,43 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemDefinition;
-import org.gradle.tooling.events.problems.SingleProblemEvent;
+import org.gradle.tooling.events.problems.ProblemDescription;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-@NonNullApi
-public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
+public class DefaultProblemDescription implements ProblemDescription {
     private final ProblemDefinition problemDefinition;
     private final ContextualLabel contextualLabel;
-    private final Details details;
+    private final Details problemDetails;
     private final List<Location> locations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-    private final FailureContainer failure;
+    private final FailureContainer failureContainer;
 
-    public DefaultSingleProblemEvent(
-        long eventTime,
-        @Nullable OperationDescriptor problemDescriptor,
-        ProblemDefinition problemDefinition,
-        ContextualLabel contextualLabel,
-        Details details,
-        List<Location> locations,
-        List<Solution> solutions,
-        AdditionalData additionalData,
-        @Nullable FailureContainer failure) {
-        super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
+    public DefaultProblemDescription(ProblemDefinition problemDefinition,
+                                     ContextualLabel contextualLabel,
+                                     Details problemDetails,
+                                     List<Location> locations,
+                                     List<Solution> solutions,
+                                     AdditionalData additionalData,
+                                     FailureContainer failureContainer) {
+
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
-        this.details = details;
+        this.problemDetails = problemDetails;
         this.locations = locations;
         this.solutions = solutions;
         this.additionalData = additionalData;
-        this.failure = failure;
+        this.failureContainer = failureContainer;
     }
 
     @Override
@@ -74,7 +67,7 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
 
     @Override
     public Details getDetails() {
-        return details;
+        return problemDetails;
     }
 
     @Override
@@ -90,10 +83,9 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     @Nullable
     @Override
     public FailureContainer getFailure() {
-        return failure;
+        return failureContainer;
     }
 
-    @Override
     public AdditionalData getAdditionalData() {
         return additionalData;
     }
@@ -106,18 +98,18 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultSingleProblemEvent that = (DefaultSingleProblemEvent) o;
+        DefaultProblemDescription that = (DefaultProblemDescription) o;
         return Objects.equals(problemDefinition, that.problemDefinition)
             && Objects.equals(contextualLabel, that.contextualLabel)
-            && Objects.equals(details, that.details)
+            && Objects.equals(problemDetails, that.problemDetails)
             && Objects.equals(locations, that.locations)
             && Objects.equals(solutions, that.solutions)
             && Objects.equals(additionalData, that.additionalData)
-            && Objects.equals(failure, that.failure);
+            && Objects.equals(failureContainer, that.failureContainer);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(problemDefinition, contextualLabel, details, locations, solutions, additionalData, failure);
+        return Objects.hash(problemDefinition, contextualLabel, problemDetails, locations, solutions, additionalData, failureContainer);
     }
 }

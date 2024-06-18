@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.PluginIdLocation;
 
+import java.util.Objects;
+
 public class DefaultPluginIdLocation implements PluginIdLocation {
     private final String pluginId;
 
@@ -28,5 +30,22 @@ public class DefaultPluginIdLocation implements PluginIdLocation {
     @Override
     public String getPluginId() {
         return pluginId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultPluginIdLocation that = (DefaultPluginIdLocation) o;
+        return Objects.equals(pluginId, that.pluginId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(pluginId);
     }
 }

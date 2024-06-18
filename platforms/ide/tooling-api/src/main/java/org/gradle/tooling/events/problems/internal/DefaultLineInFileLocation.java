@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.LineInFileLocation;
 
+import java.util.Objects;
+
 public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation {
     private final int line;
     private final int column;
@@ -43,5 +45,25 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
     @Override
     public int getLength() {
         return length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        DefaultLineInFileLocation that = (DefaultLineInFileLocation) o;
+        return line == that.line && column == that.column && length == that.length;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), line, column, length);
     }
 }

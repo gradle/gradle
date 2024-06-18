@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
@@ -58,6 +59,7 @@ import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultScriptPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultStatusEvent;
+import org.gradle.tooling.events.internal.OperationMapping;
 import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent;
 import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.lifecycle.BuildPhaseProgressEvent;
@@ -73,6 +75,7 @@ import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
+import org.gradle.tooling.events.problems.ProblemDescription;
 import org.gradle.tooling.events.problems.ProblemEvent;
 import org.gradle.tooling.events.problems.ProblemGroup;
 import org.gradle.tooling.events.problems.ProblemId;
@@ -89,6 +92,8 @@ import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemDefinition;
+import org.gradle.tooling.events.problems.internal.DefaultProblemDescription;
+import org.gradle.tooling.events.problems.internal.DefaultProblemExceptionMappingEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemGroup;
 import org.gradle.tooling.events.problems.internal.DefaultProblemId;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
@@ -165,6 +170,7 @@ import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemExceptionMappingEvent;
 import org.gradle.tooling.internal.protocol.InternalProblemGroup;
 import org.gradle.tooling.internal.protocol.InternalProblemId;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
@@ -232,6 +238,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -239,7 +246,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.builderWithExpectedSize;
-import static java.util.Collections.emptyList;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -247,76 +253,67 @@ import static java.util.Collections.emptyList;
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
-    private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> testProgressListeners;
+    private final ListenerBroadcast<ProgressListener> taskProgressListeners;
+    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners;
+    private final ListenerBroadcast<ProgressListener> workItemProgressListeners;
+    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners;
+    private final ListenerBroadcast<ProgressListener> transformProgressListeners;
+    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners;
+    private final ListenerBroadcast<ProgressListener> fileDownloadListeners;
+    private final ListenerBroadcast<ProgressListener> buildPhaseListeners;
+    private final ListenerBroadcast<ProgressListener> problemListeners;
 
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
 
-    BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
+    static class OperationTypeHandler {
+        ListenerBroadcast<ProgressListener> listenerBroadCaster = new ListenerBroadcast<>(ProgressListener.class);
+        Class<?> eventClass;
+    }
 
-        testProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST));
-        taskProgressListeners.addAll(getOrDefault(listeners, OperationType.TASK));
-        buildOperationProgressListeners.addAll(getOrDefault(listeners, OperationType.GENERIC));
-        workItemProgressListeners.addAll(getOrDefault(listeners, OperationType.WORK_ITEM));
-        projectConfigurationProgressListeners.addAll(getOrDefault(listeners, OperationType.PROJECT_CONFIGURATION));
-        transformProgressListeners.addAll(getOrDefault(listeners, OperationType.TRANSFORM));
-        testOutputProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_OUTPUT));
-        fileDownloadListeners.addAll(getOrDefault(listeners, OperationType.FILE_DOWNLOAD));
-        buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
-        problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));
+    private final Map<OperationType, OperationTypeHandler> listenerBroadCasters = new HashMap<>();
+
+
+    BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
+        for (OperationType operationType : OperationMapping.getOperationTypes()) {
+            OperationTypeHandler listener = this.listenerBroadCasters.get(operationType);
+            if (listener == null) {
+                listener = new OperationTypeHandler();
+                this.listenerBroadCasters.put(operationType, listener);
+            }
+            listener.listenerBroadCaster.addAll(getOrDefault(listeners, operationType));
+        }
+
+        testProgressListeners = this.listenerBroadCasters.get(OperationType.TEST).listenerBroadCaster;
+        taskProgressListeners = this.listenerBroadCasters.get(OperationType.TASK).listenerBroadCaster;
+        buildOperationProgressListeners = this.listenerBroadCasters.get(OperationType.GENERIC).listenerBroadCaster;
+        workItemProgressListeners = this.listenerBroadCasters.get(OperationType.WORK_ITEM).listenerBroadCaster;
+        projectConfigurationProgressListeners = this.listenerBroadCasters.get(OperationType.PROJECT_CONFIGURATION).listenerBroadCaster;
+        transformProgressListeners = this.listenerBroadCasters.get(OperationType.TRANSFORM).listenerBroadCaster;
+        testOutputProgressListeners = this.listenerBroadCasters.get(OperationType.TEST_OUTPUT).listenerBroadCaster;
+        fileDownloadListeners = this.listenerBroadCasters.get(OperationType.FILE_DOWNLOAD).listenerBroadCaster;
+        buildPhaseListeners = this.listenerBroadCasters.get(OperationType.BUILD_PHASE).listenerBroadCaster;
+        problemListeners = this.listenerBroadCasters.get(OperationType.PROBLEMS).listenerBroadCaster;
     }
 
     private static List<ProgressListener> getOrDefault(Map<OperationType, List<ProgressListener>> listeners, OperationType operationType) {
         List<ProgressListener> progressListeners = listeners.get(operationType);
         if (progressListeners == null) {
-            return emptyList();
+            return ImmutableList.of();
         }
         return progressListeners;
     }
 
     @Override
     public List<String> getSubscribedOperations() {
-        List<String> operations = new ArrayList<>();
+        ImmutableList.Builder<String> operations = builderWithExpectedSize(this.listenerBroadCasters.entrySet().size());
+        for (Map.Entry<OperationType, OperationTypeHandler> operationTypeListenerBroadcastEntry : this.listenerBroadCasters.entrySet()) {
+            if (!operationTypeListenerBroadcastEntry.getValue().listenerBroadCaster.isEmpty()) {
+                operations.add(OperationMapping.getOperationName(operationTypeListenerBroadcastEntry.getKey()));
+            }
+        }
 
-        if (!testProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TEST_EXECUTION);
-        }
-        if (!taskProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TASK_EXECUTION);
-        }
-        if (!buildOperationProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.BUILD_EXECUTION);
-        }
-        if (!workItemProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.WORK_ITEM_EXECUTION);
-        }
-        if (!projectConfigurationProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION);
-        }
-        if (!transformProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TRANSFORM_EXECUTION);
-        }
-        if (!testOutputProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TEST_OUTPUT);
-        }
-        if (!fileDownloadListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
-        }
-        if (!buildPhaseListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.BUILD_PHASE);
-        }
-        if (!problemListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.PROBLEMS);
-        }
-        return operations;
+        return operations.build();
     }
 
     @Override
@@ -575,8 +572,49 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (progressEvent instanceof InternalProblemEventVersion2) {
             InternalProblemEventVersion2 problemEvent = (InternalProblemEventVersion2) progressEvent;
             return createProblemEvent(problemEvent, descriptor);
+        } else if (progressEvent instanceof InternalProblemExceptionMappingEvent) {
+            InternalProblemExceptionMappingEvent problemEvent = (InternalProblemExceptionMappingEvent) progressEvent;
+            return createProblemEvent(problemEvent, descriptor);
         }
         return null;
+    }
+
+    private ProblemEvent createProblemEvent(InternalProblemExceptionMappingEvent problemExceptionMappingEvent, InternalProblemDescriptor descriptor) {
+        OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
+
+        return new DefaultProblemExceptionMappingEvent(
+            problemExceptionMappingEvent.getEventTime(),
+            parentDescriptor,
+            toProblemsForFailures(problemExceptionMappingEvent.getProblemsForFailures()));
+    }
+
+     private Map<Failure, Collection<ProblemDescription>> toProblemsForFailures(Map<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>> problemsForFailures) {
+        Set<Map.Entry<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>>> entries = problemsForFailures.entrySet();
+        ImmutableMap.Builder<Failure, Collection<ProblemDescription>> clientProblemsToFailures = ImmutableMap.builderWithExpectedSize(entries.size());
+        for (Map.Entry<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>> entry : entries) {
+            clientProblemsToFailures.put(toFailure(entry.getKey()), toProblemDescriptions(entry.getValue()));
+        }
+        return clientProblemsToFailures.build();
+    }
+
+    private Collection<ProblemDescription> toProblemDescriptions(Collection<InternalBasicProblemDetailsVersion3> problemDetails) {
+        ImmutableList.Builder<ProblemDescription> result = builderWithExpectedSize(problemDetails.size());
+        for(InternalBasicProblemDetailsVersion3 problemDetail : problemDetails) {
+            result.add(toProblemDescription(problemDetail));
+        }
+        return result.build();
+    }
+
+    private ProblemDescription toProblemDescription(InternalBasicProblemDetailsVersion3 problemDetail) {
+        return new DefaultProblemDescription(
+            toProblemDefinition(problemDetail.getDefinition()),
+            toContextualLabel(problemDetail.getContextualLabel()),
+            toProblemDetails(problemDetail.getDetails()),
+            toLocations(problemDetail.getLocations()),
+            toSolutions(problemDetail.getSolutions()),
+            toAdditionalData(problemDetail.getAdditionalData()),
+            toFailureContainer(problemDetail)
+        );
     }
 
     private @Nullable ProblemEvent createProblemEvent(InternalProblemEvent problemEvent, InternalProblemDescriptor descriptor) {
@@ -602,7 +640,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 problemEvent.getEventTime(),
                 parentDescriptor,
                 new DefaultProblemAggregation(
-                    toProblemDefinition(problemAggregationDetails.getLabel(), problemAggregationDetails.getCategory(), problemAggregationDetails.getSeverity(), problemAggregationDetails.getDocumentationLink()),
+                    toProblemDefinition(problemAggregationDetails.getLabel(),
+                        problemAggregationDetails.getCategory(),
+                        problemAggregationDetails.getSeverity(),
+                        problemAggregationDetails.getDocumentationLink()),
                     toProblemContextDetails(problemAggregationDetails.getProblems())));
 
         }
@@ -900,7 +941,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static List<Location> toLocations(List<InternalLocation> locations) {
-        List<Location> result = new ArrayList<>(locations.size());
+        ImmutableList.Builder<Location> result = builderWithExpectedSize(locations.size());
         for (InternalLocation location : locations) {
             if (location instanceof InternalLineInFileLocation) {
                 InternalLineInFileLocation l = (InternalLineInFileLocation) location;
@@ -919,7 +960,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 result.add(new DefaultTaskPathLocation(taskLocation.getBuildTreePath()));
             }
         }
-        return result;
+        return result.build();
     }
 
     private static DocumentationLink toDocumentationLink(@Nullable InternalDocumentationLink link) {
@@ -997,12 +1038,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     public static @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
-            InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
+            boolean successResultIsUpToDate = ((InternalTaskSuccessResult) result).isUpToDate();
             if (result instanceof InternalJavaCompileTaskOperationResult) {
                 List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
-                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
+                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResultIsUpToDate, isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
             }
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result));
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResultIsUpToDate, isFromCache(result), toTaskExecutionDetails(result));
         } else if (result instanceof InternalTaskSkippedResult) {
             return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
         } else if (result instanceof InternalTaskFailureResult) {
@@ -1048,14 +1089,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static List<? extends PluginApplicationResult> toPluginApplicationResults(List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
-        List<PluginApplicationResult> results = new ArrayList<PluginApplicationResult>();
+        ImmutableList.Builder<PluginApplicationResult> results = builderWithExpectedSize(pluginApplicationResults.size());
         for (InternalPluginApplicationResult result : pluginApplicationResults) {
             PluginIdentifier plugin = toPluginIdentifier(result.getPlugin());
             if (plugin != null) {
                 results.add(new DefaultPluginApplicationResult(plugin, result.getTotalConfigurationTime()));
             }
         }
-        return results;
+        return results.build();
     }
 
     private static @Nullable PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
@@ -1094,26 +1135,26 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (causes == null) {
             return null;
         }
-        List<Failure> failures = new ArrayList<>();
+        ImmutableList.Builder<Failure> failures = builderWithExpectedSize(causes.size());
         for (InternalFailure cause : causes) {
             failures.add(toFailure(cause));
         }
-        return failures;
+        return failures.build();
     }
 
     private static Failure toFailure(InternalFailure origFailure) {
         if (origFailure instanceof InternalTestAssertionFailure) {
             if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
-                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+                InternalFileComparisonTestAssertionFailure assertionFailure = (InternalFileComparisonTestAssertionFailure) origFailure;
                 return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
                     assertionFailure.getDescription(),
                     assertionFailure.getExpected(),
                     assertionFailure.getActual(),
                     toFailures(origFailure.getCauses()),
-                    ((InternalTestAssertionFailure) origFailure).getClassName(),
-                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
+                    assertionFailure.getClassName(),
+                    assertionFailure.getStacktrace(),
+                    assertionFailure.getExpectedContent(),
+                    assertionFailure.getActualContent()
                 );
             }
             InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
@@ -1123,8 +1164,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 assertionFailure.getExpected(),
                 assertionFailure.getActual(),
                 toFailures(origFailure.getCauses()),
-                ((InternalTestAssertionFailure) origFailure).getClassName(),
-                ((InternalTestAssertionFailure) origFailure).getStacktrace()
+                assertionFailure.getClassName(),
+                assertionFailure.getStacktrace()
             );
         } else if (origFailure instanceof InternalTestFrameworkFailure) {
             InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
@@ -1132,8 +1173,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 frameworkFailure.getMessage(),
                 frameworkFailure.getDescription(),
                 toFailures(origFailure.getCauses()),
-                ((InternalTestFrameworkFailure) origFailure).getClassName(),
-                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
+                frameworkFailure.getClassName(),
+                frameworkFailure.getStacktrace()
             );
         }
         return origFailure == null ? null : new DefaultFailure(

@@ -19,6 +19,7 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.tooling.events.problems.DocumentationLink;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class DefaultDocumentationLink implements DocumentationLink {
     private final String url;
@@ -30,5 +31,22 @@ public class DefaultDocumentationLink implements DocumentationLink {
     @Override
     public String getUrl() {
         return url;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultDocumentationLink that = (DefaultDocumentationLink) o;
+        return Objects.equals(url, that.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(url);
     }
 }

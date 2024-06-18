@@ -20,6 +20,7 @@ import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.FailureContainer;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class DefaultFailureContainer implements FailureContainer {
     private final Failure failure;
@@ -31,5 +32,22 @@ public class DefaultFailureContainer implements FailureContainer {
     @Override
     public Failure getFailure() {
         return failure;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultFailureContainer that = (DefaultFailureContainer) o;
+        return Objects.equals(failure, that.failure);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(failure);
     }
 }

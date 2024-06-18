@@ -16,26 +16,31 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
-import org.gradle.tooling.events.problems.ProblemAggregation;
-import org.gradle.tooling.events.problems.ProblemAggregationEvent;
+import org.gradle.tooling.events.problems.ProblemDescription;
+import org.gradle.tooling.events.problems.ProblemExceptionMappingEvent;
 
-import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
-public class DefaultProblemAggregationEvent extends BaseProgressEvent implements ProblemAggregationEvent {
+public class DefaultProblemExceptionMappingEvent extends BaseProgressEvent implements ProblemExceptionMappingEvent {
+    private final Map<Failure, Collection<ProblemDescription>> problemsForFailures;
 
-    private final ProblemAggregation problemAggregation;
-
-    public DefaultProblemAggregationEvent(long eventTime, @Nullable OperationDescriptor descriptor, ProblemAggregation problemAggregation) {
-        super(eventTime, descriptor == null? "<null>" : descriptor.getDisplayName(), descriptor);
-        this.problemAggregation = problemAggregation;
+    public DefaultProblemExceptionMappingEvent(
+        long eventTime,
+        OperationDescriptor descriptor,
+        Map<Failure, Collection<ProblemDescription>> problemsForFailures
+    ) {
+        super(eventTime, "problem exception mapping", descriptor);
+        this.problemsForFailures = problemsForFailures;
     }
 
     @Override
-    public ProblemAggregation getProblemAggregation() {
-        return problemAggregation;
+    public Map<Failure, Collection<ProblemDescription>> getProblemsForFailures() {
+        return problemsForFailures;
     }
 
     @Override
@@ -46,12 +51,12 @@ public class DefaultProblemAggregationEvent extends BaseProgressEvent implements
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultProblemAggregationEvent that = (DefaultProblemAggregationEvent) o;
-        return Objects.equals(problemAggregation, that.problemAggregation);
+        DefaultProblemExceptionMappingEvent that = (DefaultProblemExceptionMappingEvent) o;
+        return Objects.equals(problemsForFailures, that.problemsForFailures);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(problemAggregation);
+        return Objects.hashCode(problemsForFailures);
     }
 }

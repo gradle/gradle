@@ -24,8 +24,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.problems.internal.ExceptionAnalyser
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener

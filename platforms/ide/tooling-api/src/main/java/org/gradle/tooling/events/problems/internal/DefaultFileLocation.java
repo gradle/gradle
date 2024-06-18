@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.FileLocation;
 
+import java.util.Objects;
+
 public class DefaultFileLocation implements FileLocation {
 
     private final String path;
@@ -29,5 +31,22 @@ public class DefaultFileLocation implements FileLocation {
     @Override
     public String getPath() {
         return path;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultFileLocation that = (DefaultFileLocation) o;
+        return Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(path);
     }
 }

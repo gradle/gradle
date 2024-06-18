@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.api.problems.internal.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;

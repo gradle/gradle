@@ -16,15 +16,17 @@
 package org.gradle.initialization.exception;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.problems.Location;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
+import javax.inject.Inject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,17 +37,24 @@ import java.util.Set;
 
 public class DefaultExceptionAnalyser implements ExceptionCollector {
     private final ProblemDiagnosticsFactory diagnosticsFactory;
+    private final Class<? extends MultiCauseException> multiCauseExceptionType;
 
-    public DefaultExceptionAnalyser(ProblemDiagnosticsFactory diagnosticsFactory) {
+    public DefaultExceptionAnalyser(ProblemDiagnosticsFactory diagnosticsFactory, Class<? extends DefaultMultiCauseException> multiCauseExceptionType) {
         this.diagnosticsFactory = diagnosticsFactory;
+        this.multiCauseExceptionType = multiCauseExceptionType;
+    }
+
+    @Inject
+    public DefaultExceptionAnalyser(ProblemDiagnosticsFactory diagnosticsFactory) {
+        this(diagnosticsFactory, DefaultMultiCauseException.class);
     }
 
     @Override
     public void collectFailures(Throwable exception, Collection<? super Throwable> failures) {
-        if (exception instanceof ProjectConfigurationException) {
-            ProjectConfigurationException projectConfigurationException = (ProjectConfigurationException) exception;
+        if (multiCauseExceptionType.isInstance(exception)) {
+            DefaultMultiCauseException multiCauseException = (DefaultMultiCauseException) exception;
             List<Throwable> additionalFailures = new ArrayList<>();
-            for (Throwable cause : projectConfigurationException.getCauses()) {
+            for (Throwable cause : multiCauseException.getCauses()) {
                 // TODO: remove this special case
                 if (cause instanceof GradleScriptException) {
                     failures.add(transform(cause));
@@ -54,8 +63,8 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
                 }
             }
             if (!additionalFailures.isEmpty()) {
-                projectConfigurationException.initCauses(additionalFailures);
-                failures.add(transform(projectConfigurationException));
+                multiCauseException.initCauses(additionalFailures);
+                failures.add(transform(multiCauseException));
             }
         } else if (exception instanceof ServiceCreationException) {
             failures.add(transform(new InitializationException(exception)));
@@ -105,7 +114,9 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
         // Guard against malicious overrides of Throwable.equals by
         // using a Set with identity equality semantics.
         Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<>());
-        for (Throwable current = exception, parent = null; current != null; parent = current, current = current.getCause()) {
+        for (Throwable current = exception, parent = null;
+             current != null;
+             parent = current, current = current.getCause()) {
             if (!dejaVu.add(current)) {
                 if (parent != null) {
                     current = patchCircularCause(current, parent);

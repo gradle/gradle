@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.tooling.events.problems;
 
-import com.google.common.collect.Multimap;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
-public interface InternalProblems extends Problems {
+import java.util.Collection;
+import java.util.Map;
+
+/**
+ * An event containing a mapping of problems to failures.
+ *
+ * @since 8.10
+ */
+@Incubating
+public interface ProblemExceptionMappingEvent extends ProblemEvent {
 
     /**
-     * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
-     * <p>
+     * get the problems for failures
      *
-     * @return The reporter.
+     * @since 8.10
      */
-    InternalProblemReporter getInternalReporter();
-
-    Multimap<Throwable, Problem> getProblemsForThrowables();
-
-    void reportMapping(Throwable buildFailure);
+    @Incubating
+    Map<Failure, Collection<ProblemDescription>> getProblemsForFailures();
 }

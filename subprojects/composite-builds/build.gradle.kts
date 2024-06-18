@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":enterprise-operations"))
     implementation(project(":daemon-services"))
     implementation(project(":logging"))
+    implementation(project(":problems-api"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

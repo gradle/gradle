@@ -21,6 +21,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.tooling.events.problems.Severity;
 
+import java.util.Objects;
+
 public class DefaultSeverity implements Severity {
 
     private final int severity;
@@ -59,5 +61,22 @@ public class DefaultSeverity implements Severity {
         } else {
             return UNKNOWN_ENTRIES.getUnchecked(severity);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultSeverity that = (DefaultSeverity) o;
+        return severity == that.severity && known == that.known;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(severity, known);
     }
 }

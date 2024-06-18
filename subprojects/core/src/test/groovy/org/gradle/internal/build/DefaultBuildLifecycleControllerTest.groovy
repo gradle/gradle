@@ -16,15 +16,14 @@
 
 package org.gradle.internal.build
 
-
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.problems.internal.ExceptionAnalyser
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

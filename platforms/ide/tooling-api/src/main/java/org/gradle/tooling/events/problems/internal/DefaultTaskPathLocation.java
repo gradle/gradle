@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.TaskPathLocation;
 
+import java.util.Objects;
+
 public class DefaultTaskPathLocation implements TaskPathLocation {
 
     private final String buildTreePath;
@@ -29,5 +31,22 @@ public class DefaultTaskPathLocation implements TaskPathLocation {
     @Override
     public String getBuildTreePath() {
         return buildTreePath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultTaskPathLocation that = (DefaultTaskPathLocation) o;
+        return Objects.equals(buildTreePath, that.buildTreePath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(buildTreePath);
     }
 }
