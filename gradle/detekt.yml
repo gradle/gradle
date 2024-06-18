@@ -1,10 +1,10 @@
 style:
   MaxLineLength:
-    maxLineLength: 250
+    maxLineLength: 250                    # default is 120
   ReturnCount:
-    max: 5
+    max: 5                                # default is 2
   DestructuringDeclarationWithTooManyEntries:
-    maxDestructuringEntries: 5
+    maxDestructuringEntries: 5            # default is 3
   ForbiddenComment:
     active: false
   ExplicitItLambdaParameter:
@@ -20,8 +20,10 @@ complexity:
   TooManyFunctions:
     active: false
   LongParameterList:
-    functionThreshold: 8
-    constructorThreshold: 12
+    functionThreshold: 8                  # default is 6
+    constructorThreshold: 12              # default is 7
+  CyclomaticComplexMethod:
+    threshold: 25                         # default is 15
 
 exceptions:
   TooGenericExceptionCaught:
@@ -30,8 +32,8 @@ exceptions:
     active: false
   SwallowedException:
     ignoredExceptionTypes:
-      - 'InterruptedException'        # detekt default
-      - 'MalformedURLException'       # detekt default
-      - 'NumberFormatException'       # detekt default
-      - 'ParseException'              # detekt default
-      - 'InvocationTargetException'   # added by us
+      - 'InterruptedException'            # default
+      - 'MalformedURLException'           # default
+      - 'NumberFormatException'           # default
+      - 'ParseException'                  # default
+      - 'InvocationTargetException'       # added by us

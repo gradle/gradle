@@ -64,6 +64,7 @@ data class LexedScript(
 /**
  * Returns the comments and [top-level blocks][topLevelBlockIds] found in the given [script].
  */
+@Suppress("CyclomaticComplexMethod")
 internal
 fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<LexedScript> {
 
