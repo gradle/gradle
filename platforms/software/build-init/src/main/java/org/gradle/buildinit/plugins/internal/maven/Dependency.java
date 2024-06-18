@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradleinternal.buildinit.plugins.internal.maven;
-import org.gradle.internal.exceptions.Contextual;
+package org.gradle.buildinit.plugins.internal.maven;
 
-@Contextual
-public class MavenConversionException extends RuntimeException {
-    public MavenConversionException(String message) {
-        super(message);
+public class Dependency {
+    private final String configuration;
+
+    public Dependency(String configuration) {
+        this.configuration = configuration;
     }
 
-    public MavenConversionException(String message, Throwable cause) {
-        super(message, cause);
+    public String getConfiguration() {
+        return configuration;
     }
 }

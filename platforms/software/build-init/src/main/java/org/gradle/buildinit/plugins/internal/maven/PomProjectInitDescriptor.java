@@ -33,8 +33,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.workers.WorkerExecutor;
-import org.gradleinternal.buildinit.plugins.internal.maven.Maven2GradleWorkAction;
-import org.gradleinternal.buildinit.plugins.internal.maven.MavenConversionException;
 
 import java.util.Arrays;
 import java.util.Collections;
