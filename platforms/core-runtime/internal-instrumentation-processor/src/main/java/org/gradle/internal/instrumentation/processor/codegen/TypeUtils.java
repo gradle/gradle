@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen;
 
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.util.NameUtil;
 import org.objectweb.asm.Type;
@@ -25,6 +26,7 @@ import org.objectweb.asm.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class TypeUtils {
 
@@ -81,6 +83,13 @@ public class TypeUtils {
             return ArrayTypeName.of(typeName(type.getElementType()));
         }
         return className(type);
+    }
+
+    public static Optional<TypeName> getTypeParameter(TypeName typeName, int index) {
+        if (typeName instanceof ParameterizedTypeName && ((ParameterizedTypeName) typeName).typeArguments.size() > index) {
+            return Optional.of(((ParameterizedTypeName) typeName).typeArguments.get(index));
+        }
+        return Optional.empty();
     }
 
     public static ClassName className(Type type) {

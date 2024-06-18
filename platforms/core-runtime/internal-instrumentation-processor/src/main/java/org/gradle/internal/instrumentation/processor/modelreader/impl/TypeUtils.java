@@ -26,9 +26,11 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,6 +89,17 @@ public class TypeUtils {
             extractReturnType(methodElement),
             methodElement.getParameters().stream().map(it -> extractType(it.asType())).toArray(Type[]::new)
         );
+    }
+
+    public static Optional<TypeName> getTypeParameter(TypeMirror typeMirror, int index) {
+        if (typeMirror instanceof DeclaredType && ((DeclaredType) typeMirror).getTypeArguments().size() > index) {
+            return Optional.of(TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(index)));
+        }
+        return Optional.empty();
+    }
+
+    public static TypeName getTypeParameterOrThrow(TypeMirror typeMirror, int index) {
+        return getTypeParameter(typeMirror, index).orElseThrow(() -> new IllegalArgumentException(String.format("Missing type parameter with index %s for %s", index, typeMirror)));
     }
 
     @Nonnull

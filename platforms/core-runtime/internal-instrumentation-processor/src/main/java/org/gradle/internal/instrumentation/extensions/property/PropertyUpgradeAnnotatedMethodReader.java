@@ -82,6 +82,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyTy
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.isAssignableToFileSystemLocation;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getTypeParameterOrThrow;
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
@@ -154,8 +155,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return requests.stream()
                 .map(Success::new)
                 .collect(Collectors.toList());
-        } catch (AnnotationReadFailure failure) {
-            return Collections.singletonList(new InvalidRequest(failure.reason));
+        } catch (IllegalArgumentException failure) {
+            return Collections.singletonList(new InvalidRequest(failure.getMessage()));
         }
     }
 
@@ -400,21 +401,21 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 return ClassName.get(File.class);
             case LIST_PROPERTY:
                 return ParameterizedTypeName.get(ClassName.get(List.class),
-                    TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(0))
+                    getTypeParameterOrThrow(typeMirror, 0)
                 );
             case SET_PROPERTY:
                 return ParameterizedTypeName.get(ClassName.get(Set.class),
-                    TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(0))
+                    getTypeParameterOrThrow(typeMirror, 0)
                 );
             case MAP_PROPERTY:
                 return ParameterizedTypeName.get(ClassName.get(Map.class),
-                    TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(0)),
-                    TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(1))
+                    getTypeParameterOrThrow(typeMirror, 0),
+                    getTypeParameterOrThrow(typeMirror, 1)
                 );
             case PROPERTY:
-                return TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(0));
+                return getTypeParameterOrThrow(typeMirror, 0);
             case PROVIDER: {
-                TypeName extractedType = TypeName.get(((DeclaredType) typeMirror).getTypeArguments().get(0));
+                TypeName extractedType = getTypeParameterOrThrow(typeMirror, 0);
                 return isAssignableToFileSystemLocation(extractedType)
                     ? ClassName.get(File.class)
                     : extractedType;
@@ -529,11 +530,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     // TODO Consolidate with AnnotationCallInterceptionRequestReaderImpl#Failure
-    private static class AnnotationReadFailure extends RuntimeException {
-        final String reason;
-
+    private static class AnnotationReadFailure extends IllegalArgumentException {
         private AnnotationReadFailure(String reason) {
-            this.reason = reason;
+            super(reason);
         }
     }
 

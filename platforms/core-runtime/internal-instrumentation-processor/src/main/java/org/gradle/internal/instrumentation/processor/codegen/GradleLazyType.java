@@ -60,15 +60,15 @@ public enum GradleLazyType {
     }
 
     public static GradleLazyType from(TypeName typeName) {
-        String canonicalName;
+        String binaryName;
         if (typeName instanceof ClassName) {
-            canonicalName = ((ClassName) typeName).reflectionName();
+            binaryName = ((ClassName) typeName).reflectionName();
         } else if (typeName instanceof ParameterizedTypeName) {
-            canonicalName = ((ParameterizedTypeName) typeName).rawType.reflectionName();
+            binaryName = ((ParameterizedTypeName) typeName).rawType.reflectionName();
         } else {
-            throw new UnsupportedOperationException("Cannot get canonical name from TypeName: " + typeName.getClass());
+            throw new UnsupportedOperationException("Cannot get binary name from TypeName: " + typeName.getClass());
         }
-        return from(canonicalName);
+        return from(binaryName);
     }
 
     public static GradleLazyType from(String name) {

@@ -30,6 +30,7 @@ import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfo;
 import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
+import org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
@@ -39,6 +40,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeVariable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -48,7 +50,6 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleRefere
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.LIST_PROPERTY_LIST_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.MAP_PROPERTY_MAP_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
-import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.isAssignableToFileSystemLocation;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
 public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
@@ -181,8 +182,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
 
         CodeBlock logic = isSetter
-            ? getSetCall(propertyGetterName, implementationExtra, upgradedPropertyType)
-            : getGetCall(propertyGetterName, implementationExtra, returnType, upgradedPropertyType);
+            ? generateSetCall(propertyGetterName, implementationExtra, upgradedPropertyType)
+            : generateGetCall(propertyGetterName, implementationExtra, returnType, upgradedPropertyType);
 
         return codeBlockBuilder.addStatement(logic).build();
     }
@@ -223,7 +224,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .build();
     }
 
-    private static CodeBlock getGetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, CallableReturnTypeInfo returnType, GradleLazyType upgradedPropertyType) {
+    private static CodeBlock generateGetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, CallableReturnTypeInfo returnType, GradleLazyType upgradedPropertyType) {
         switch (upgradedPropertyType) {
             case REGULAR_FILE_PROPERTY:
             case DIRECTORY_PROPERTY:
@@ -240,8 +241,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             case PROPERTY:
                 return CodeBlock.of("return $N.$N().getOrElse($L)", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
             case PROVIDER: {
-                TypeName newPropertyType = implementationExtra.getNewPropertyType();
-                return newPropertyType instanceof ParameterizedTypeName && isAssignableToFileSystemLocation(((ParameterizedTypeName) newPropertyType).typeArguments.get(0))
+                Optional<TypeName> providerParameter = TypeUtils.getTypeParameter(implementationExtra.getNewPropertyType(), 0);
+                return providerParameter.map(GradleReferencedType::isAssignableToFileSystemLocation).orElse(false)
                     ? CodeBlock.of("return $N.$N().map($T::getAsFile).getOrNull()", SELF_PARAMETER_NAME, propertyGetterName, FILE_SYSTEM_LOCATION.asClassName())
                     : CodeBlock.of("return $N.$N().getOrElse($L)", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
             }
@@ -250,7 +251,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
     }
 
-    private static CodeBlock getSetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, GradleLazyType upgradedPropertyType) {
+    private static CodeBlock generateSetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, GradleLazyType upgradedPropertyType) {
         String assignment;
         switch (upgradedPropertyType) {
             case REGULAR_FILE_PROPERTY:
