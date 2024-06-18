@@ -47,6 +47,7 @@ import java.net.URLClassLoader
 class InterpreterTest : TestWithTempFiles() {
 
     @Test
+    @Suppress("LongMethod")
     fun `caches specialized programs`() {
 
         val scriptPath = "/src/settings.gradle.kts"

@@ -22,6 +22,9 @@ complexity:
   LongParameterList:
     functionThreshold: 8                  # default is 6
     constructorThreshold: 12              # default is 7
+  LongMethod:
+    active: true
+    threshold: 100                        # default is 60
   CyclomaticComplexMethod:
     threshold: 25                         # default is 15
 
