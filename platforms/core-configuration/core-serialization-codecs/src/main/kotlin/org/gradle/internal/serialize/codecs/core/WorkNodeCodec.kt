@@ -99,7 +99,7 @@ class WorkNodeCodec(
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
-        for (i in 0 until nodeCount) {
+        for (ignored in 0 until nodeCount) {
             val node = readNode()
             nodesById[nodesById.size] = node
             if (node is LocalTaskNode) {
