@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -97,9 +98,20 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         long versionAfter = versionHierarchyRoot.getVersion(absolutePath);
         // Only update VFS if no changes happened in between
         // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
+        AtomicBoolean updated = new AtomicBoolean(false);
         if (versionBefore >= versionAfter) {
-            updateRootUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
-        } else {
+            updateRootUnderLock(root -> {
+                // Check again, now under lock
+                long versionAfterUnderLock = versionHierarchyRoot.getVersion(absolutePath);
+                if (versionBefore >= versionAfterUnderLock) {
+                    updated.set(true);
+                    return updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener));
+                } else {
+                    return root;
+                }
+            });
+        }
+        if (!updated.get()) {
             LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
         }
     }
