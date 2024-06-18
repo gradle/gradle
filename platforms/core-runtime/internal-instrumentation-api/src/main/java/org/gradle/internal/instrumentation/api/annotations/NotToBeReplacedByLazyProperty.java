@@ -24,6 +24,8 @@ import java.lang.annotation.Target;
 /**
  * Marks that a property will be kept as eager property also after migration.
  * This is a complementary annotation to {@link ToBeReplacedByLazyProperty}.
+ *
+ * This method is internal even though it's attached to a public API, so it should not be referenced in third-party code.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})

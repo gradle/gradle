@@ -18,6 +18,7 @@ package org.gradle.vcs;
 
 import org.gradle.api.Action;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 /**
  * Represents the details about a particular VCS repository that contains a build that produces zero or more components that can be used during dependency resolution.
@@ -26,6 +27,7 @@ import org.gradle.api.initialization.definition.InjectedPluginDependencies;
  *
  * @since 4.10
  */
+@NotToBeMigratedToLazy
 public interface VersionControlRepository {
     /**
      * Declares that this repository produces (or may produce) component with the given group and module names.

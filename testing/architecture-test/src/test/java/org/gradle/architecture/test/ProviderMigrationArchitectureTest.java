@@ -43,6 +43,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.Nested;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -152,6 +153,8 @@ public class ProviderMigrationArchitectureTest {
         // We won't upgrade deprecated methods and classes
         .and(not(annotatedWith(Deprecated.class)))
         .and(not(declaredIn(annotatedWith(Deprecated.class))))
+        // Skip types that are not to be migrated
+        .and(not(declaredIn(annotatedWith(NotToBeMigratedToLazy.class))))
         // Skip Nested properties that are not Iterables
         .and(not(and(
             annotatedMaybeInSupertypeWith(Nested.class),

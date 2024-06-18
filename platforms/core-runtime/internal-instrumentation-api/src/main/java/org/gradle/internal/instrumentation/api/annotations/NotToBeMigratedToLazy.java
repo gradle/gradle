@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks that a property will be replaced with a lazy property.
- * This is a complementary annotation to {@link NotToBeReplacedByLazyProperty}.
+ * Marks that a class will not have its properties migrated to lazy.
+ * This is similar to {@link NotToBeReplacedByLazyProperty} but for a class.
  *
  * This method is internal even though it's attached to a public API, so it should not be referenced in third-party code.
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.METHOD})
-public @interface ToBeReplacedByLazyProperty {
+@Target({ElementType.TYPE})
+public @interface NotToBeMigratedToLazy {
 
     /**
-     * Additional comment, e.g. why upgrade of a property is blocked.
+     * Reason why this property will be kept eager.
      */
-    String comment() default "";
-
-    /**
-     * Link to a GitHub issue if it exists.
-     */
-    String issue() default "";
+    String because() default "";
 }

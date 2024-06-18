@@ -18,12 +18,14 @@ package org.gradle.vcs;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 /**
  * Captures user-provided information about a version control repository.
  *
  * @since 4.4
  */
+@NotToBeMigratedToLazy
 public interface VersionControlSpec extends Describable {
     /**
      * Returns a {@link String} identifier which will be unique to this version
