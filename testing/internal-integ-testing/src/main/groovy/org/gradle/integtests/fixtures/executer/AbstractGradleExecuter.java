@@ -1556,8 +1556,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return durationMeasurement;
     }
 
-    private static LoggingServiceRegistry newCommandLineProcessLogging() {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+    private static ServiceRegistry newCommandLineProcessLogging() {
+        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;

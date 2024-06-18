@@ -26,6 +26,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -112,7 +113,7 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private void initializeServices(File gradleUserHomeDir) {
         NativeServices.initializeOnClient(gradleUserHomeDir, NativeServicesMode.fromSystemProperties());
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         // Merge the connection services into the build process services
         // It would be better to separate these into different scopes, but many things still assume that connection services are available in the global scope,
         // so keep them merged as a migration step

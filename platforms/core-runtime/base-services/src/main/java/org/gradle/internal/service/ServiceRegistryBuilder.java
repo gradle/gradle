@@ -80,7 +80,7 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
-    public ServiceRegistry build() {
+    public CloseableServiceRegistry build() {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null
