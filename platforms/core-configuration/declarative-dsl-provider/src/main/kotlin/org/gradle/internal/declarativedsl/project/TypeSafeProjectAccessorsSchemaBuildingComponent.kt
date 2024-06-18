@@ -49,7 +49,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
     private
     val projectAccessorsClass: KClass<*>? = try {
         targetScope.localClassLoader.loadClass("org.gradle.accessors.dm.RootProjectAccessor").kotlin
-    } catch (e: ClassNotFoundException) {
+    } catch (_: ClassNotFoundException) {
         null
     }
 
