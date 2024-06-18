@@ -104,7 +104,6 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * context.add(conf)
-        1 * context.add({ it.is(conf.allArtifacts) })
         0 * _
     }
 

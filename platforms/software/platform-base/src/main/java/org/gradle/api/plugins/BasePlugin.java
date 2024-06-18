@@ -111,7 +111,7 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     private void configureAssemble(final ProjectInternal project) {
         project.getTasks().named(ASSEMBLE_TASK_NAME, task -> {
-            task.dependsOn(task.getProject().getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+            task.dependsOn(task.getProject().getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts());
         });
     }
 }
