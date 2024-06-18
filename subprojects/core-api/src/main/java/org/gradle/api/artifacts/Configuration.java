@@ -23,6 +23,7 @@ import org.gradle.api.Named;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
@@ -168,6 +169,16 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return this configuration
      */
     Configuration extendsFrom(Configuration... superConfigs);
+
+    /**
+     * Adds the given configuration to the set of configuration which this configuration extends from.
+     *
+     * @param superConfig The super configuration.
+     * @return this configuration
+     * @since 8.6
+     */
+    @Incubating
+    Configuration extendsFrom(Provider<? extends Configuration> superConfig);
 
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
