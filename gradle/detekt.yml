@@ -73,3 +73,7 @@ exceptions:
       - 'NumberFormatException'           # default
       - 'ParseException'                  # default
       - 'InvocationTargetException'       # added by us
+
+performance:
+  SpreadOperator:
+    active: false                         # we need to take a look at these !!!
