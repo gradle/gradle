@@ -546,6 +546,7 @@ class GrammarToTree(
             else tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
         }
 
+    @Suppress("NestedBlockDepth")
     private
     fun binaryStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> {
         val children = tree.children(node)

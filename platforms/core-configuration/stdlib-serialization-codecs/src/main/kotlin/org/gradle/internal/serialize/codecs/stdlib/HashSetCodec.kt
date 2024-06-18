@@ -55,6 +55,7 @@ suspend fun WriteContext.writeCollectionCheckingForCircularElements(collection: 
 }
 
 
+@Suppress("NestedBlockDepth")
 private
 suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionCheckingForCircularElementsInto(
     factory: (Int) -> T
