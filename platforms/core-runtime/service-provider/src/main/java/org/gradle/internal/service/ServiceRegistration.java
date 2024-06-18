@@ -41,7 +41,7 @@ public interface ServiceRegistration {
      * @param serviceType The service to make visible.
      * @param implementationType The implementation type of the service.
      */
-    <S, I extends S> void add(Class<S> serviceType, Class<I> implementationType);
+    <T> void add(Class<? super T> serviceType, Class<T> implementationType);
 
     /**
      * Adds two services to this registry that share the implementation.
@@ -52,7 +52,7 @@ public interface ServiceRegistration {
      * @param serviceType2 The second service to make visible.
      * @param implementationType The implementation type of the service.
      */
-    <S, I extends S> void add(Class<S> serviceType1, Class<?> serviceType2, Class<I> implementationType);
+    <T> void add(Class<? super T> serviceType1, Class<? super T> serviceType2, Class<T> implementationType);
 
     /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods. See {@link DefaultServiceRegistry} for details.
