@@ -19,3 +19,16 @@ style:
 complexity:
   TooManyFunctions:
     active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+  SwallowedException:
+    ignoredExceptionTypes:
+      - 'InterruptedException'        # detekt default
+      - 'MalformedURLException'       # detekt default
+      - 'NumberFormatException'       # detekt default
+      - 'ParseException'              # detekt default
+      - 'InvocationTargetException'   # added by us
