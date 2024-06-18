@@ -66,7 +66,7 @@ data class LexedScript(
  */
 @Suppress("CyclomaticComplexMethod", "NestedBlockDepth")
 internal
-fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<LexedScript> {
+fun lex(script: String, topLevelBlockIds: Array<TopLevelBlockId>): Packaged<LexedScript> {
 
     var packageName: String? = null
     val comments = mutableListOf<IntRange>()
