@@ -107,7 +107,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                         return Optional.empty();
                     case RegularFile:
                         // Avoid snapshotting the same location concurrently
-                        // This is only a performance optimization for a common scenario; the VFS handles its on concurrency
+                        // This is only a performance optimization for a common scenario; the VFS handles its own concurrency
                         return Optional.of(producingSnapshots.guardByKey(location,
                             () -> virtualFileSystem.findSnapshot(location)
                                 .orElseGet(() -> {
