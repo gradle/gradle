@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.context;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,20 +64,27 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     }
 
     private boolean jvmCompatible(DaemonContext potentialContext) {
-        if (desiredContext.getJvmCriteria() != null) {
-            return desiredContext.getJvmCriteria().isCompatibleWith(potentialContext.getJavaVersion());
-        } else {
-            try {
-                File potentialJavaHome = potentialContext.getJavaHome();
-                JavaInfo desiredJavaHome = desiredContext.getJavaHome();
-                if (potentialJavaHome.exists() && desiredJavaHome != null) {
-                    File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
-                    File desiredJava = desiredJavaHome.getJavaExecutable();
-                    return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
-                }
-            } catch (IOException e) {
-                // ignore
+        DaemonJvmCriteria criteria = desiredContext.getJvmCriteria();
+        if (criteria instanceof DaemonJvmCriteria.Spec) {
+            return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(potentialContext.getJavaVersion());
+        }
+        try {
+            File potentialJavaHome = potentialContext.getJavaHome();
+            JavaInfo desiredJavaInfo;
+            if (criteria instanceof DaemonJvmCriteria.JavaHome) {
+                desiredJavaInfo = Jvm.forHome(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
+            } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
+                desiredJavaInfo = Jvm.current();
+            } else {
+                throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
             }
+            if (potentialJavaHome.exists() && desiredJavaInfo != null) {
+                File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
+                File desiredJava = desiredJavaInfo.getJavaExecutable();
+                return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+            }
+        } catch (IOException e) {
+            // ignore
         }
         return false;
     }

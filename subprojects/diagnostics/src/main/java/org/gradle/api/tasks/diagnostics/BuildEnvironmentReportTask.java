@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -25,10 +24,14 @@ import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
+import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 
 import javax.inject.Inject;
 
@@ -50,7 +53,8 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
 
-    private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
+    private final ToolchainReportRenderer toolchainReportRenderer = new ToolchainReportRenderer();
+    private final DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
     final Cached<BuildEnvironmentReportModel> reportModel = Cached.of(this::calculateReportModel);
 
@@ -86,8 +90,16 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected abstract JvmMetadataDetector getMetadataDetector();
+
     @TaskAction
     public void generate() {
+        StyledTextOutput output = getTextOutputFactory().create(getClass());
+        output.append("Daemon JVM: ");
+        toolchainReportRenderer.setOutput(output);
+        toolchainReportRenderer.printToolchainMetadata(getMetadataDetector().getMetadata(new CurrentInstallationSupplier().getInstallation()));
+
         reportGenerator().generateReport(
             singleton(reportModel.get()),
             model -> model.project,
@@ -101,10 +113,5 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     private ReportGenerator reportGenerator() {
         return new ReportGenerator(renderer, getClientMetaData(), null, getTextOutputFactory());
-    }
-
-    @VisibleForTesting
-    protected void setRenderer(DependencyReportRenderer dependencyReportRenderer) {
-        this.renderer = dependencyReportRenderer;
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -27,6 +26,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -73,6 +73,6 @@ public class DaemonClientFactory {
      */
     public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters) {
         // These can always run inside the current JVM since we should not be forking a daemon to run them
-        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(Jvm.current(), null, Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL), new ByteArrayInputStream(new byte[0]));
+        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(new DaemonJvmCriteria.LauncherJvm(), Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL), new ByteArrayInputStream(new byte[0]));
     }
 }

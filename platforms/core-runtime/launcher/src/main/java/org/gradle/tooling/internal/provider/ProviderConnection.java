@@ -41,7 +41,6 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
@@ -174,16 +173,18 @@ public class ProviderConnection {
 
     private static File reportableJavaHomeForBuild(Parameters params) {
         DaemonParameters daemonParameters = params.daemonParams;
-        // Gradle daemon properties have been defined
-        if (daemonParameters.getRequestedJvmCriteria() != null) {
+        DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
+        if (criteria instanceof DaemonJvmCriteria.Spec) {
+            // Gradle daemon properties have been defined
             // TODO: We don't know what this will be without searching.
             // We'll say it's the current JVM because we don't know any better for now.
             return Jvm.current().getJavaHome();
-        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null) {
-            // Either the TAPI client or org.gradle.java.home has been provided
-            return daemonParameters.getRequestedJvmBasedOnJavaHome().getJavaHome();
-        } else {
+        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
+            return ((DaemonJvmCriteria.JavaHome) criteria).getJavaHome();
+        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
             return Jvm.current().getJavaHome();
+        } else {
+            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
     }
 
@@ -314,24 +315,6 @@ public class ProviderConnection {
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager);
     }
 
-    // TODO: This needs to be shared with the regular launcher
-    private DaemonRequestContext configureForRequestContext(DaemonParameters daemonParameters) {
-        // Gradle daemon properties have been defined
-        if (daemonParameters.getRequestedJvmCriteria() != null) {
-            DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-            daemonParameters.applyDefaultsFor(criteria.getJavaVersion());
-            return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
-        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null && daemonParameters.getRequestedJvmBasedOnJavaHome() != Jvm.current()) {
-            // Either the TAPI client or org.gradle.java.home has been provided
-            JavaLanguageVersion detectedVersion = JavaLanguageVersion.of(jvmVersionDetector.getJavaVersionMajor(daemonParameters.getRequestedJvmBasedOnJavaHome()));
-            daemonParameters.applyDefaultsFor(detectedVersion);
-            return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
-        } else {
-            daemonParameters.applyDefaultsFor(JavaLanguageVersion.current());
-            return new DaemonRequestContext(Jvm.current(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
-        }
-    }
-
     private Parameters initParams(ProviderOperationParameters operationParameters) {
         CommandLineParser commandLineParser = new CommandLineParser();
         commandLineParser.allowUnknownOptions();
@@ -366,7 +349,7 @@ public class ProviderConnection {
             daemonParams.setJvmArgs(jvmArguments);
         }
 
-        daemonParams.setRequestedJvmCriteria(properties.getDaemonJvmProperties());
+        daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
@@ -378,10 +361,11 @@ public class ProviderConnection {
 
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
-            daemonParams.setRequestedJvmBasedOnJavaHome(Jvm.forHome(javaHome));
+            daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
         }
 
-        DaemonRequestContext requestContext = configureForRequestContext(daemonParams);
+        daemonParams.applyDefaultsFromJvmCriteria(jvmVersionDetector);
+        DaemonRequestContext requestContext = DaemonRequestContext.from(daemonParams);
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());

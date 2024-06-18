@@ -18,6 +18,7 @@ package org.gradle.launcher.cli
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.cli.CommandLineParser
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
@@ -55,7 +56,7 @@ class BuildActionsFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     ServiceRegistry loggingServices = new DefaultServiceRegistry()
     boolean useCurrentProcess
-    BuildActionsFactory factory
+    ServiceRegistry basicServices
 
     def setup() {
         def factoryLoggingManager = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
@@ -69,11 +70,7 @@ class BuildActionsFactoryTest extends Specification {
             }
         })
 
-        factory = new BuildActionsFactory(loggingServices) {
-            boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
-                return useCurrentProcess
-            }
-        }
+        basicServices = new DefaultCommandLineActionFactory().createBasicGlobalServices(loggingServices)
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {
@@ -169,15 +166,23 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts=[]) {
-        def request = new DaemonRequestContext(null, new DaemonJvmCriteria(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL)
+        def request = new DaemonRequestContext(new DaemonJvmCriteria.Spec(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL)
         request
     }
 
     def convert(String... args) {
         def parser = new CommandLineParser()
-        factory.configureCommandLineParser(parser)
+        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
+            new BuildLayoutFactory(),
+            basicServices.get(FileCollectionFactory.class))
+        buildEnvironmentConfigurationConverter.configure(parser)
         def cl = parser.parse(args)
-        return factory.createAction(parser, cl)
+        return new BuildActionsFactory(loggingServices, basicServices) {
+            @Override
+            protected boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
+                return useCurrentProcess
+            }
+        }.createAction(parser, cl, buildEnvironmentConfigurationConverter.convertParameters(cl, null))
     }
 
     void isDaemon(def action) {
