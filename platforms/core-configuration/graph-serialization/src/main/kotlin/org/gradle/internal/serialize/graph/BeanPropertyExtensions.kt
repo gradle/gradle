@@ -53,6 +53,7 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 /**
  * Reads a sequence of properties written with [writingProperties].
  */
+@Suppress("ThrowsCount")
 suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, action: (Any?) -> Unit) {
     withPropertyTrace(kind, name) {
         val value =

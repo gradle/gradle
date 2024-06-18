@@ -310,7 +310,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    (1..7).forEach { ALOAD(it) }
+                    for (i in 1..7) { ALOAD(i) }
                     @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",

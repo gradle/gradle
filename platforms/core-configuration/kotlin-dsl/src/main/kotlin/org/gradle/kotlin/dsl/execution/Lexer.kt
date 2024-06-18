@@ -268,7 +268,7 @@ data class TopLevelBlock(val identifier: TopLevelBlockId, val section: ScriptSec
 }
 
 
-@Suppress("EnumEntryName")
+@Suppress("EnumEntryName", "EnumNaming")
 internal
 enum class TopLevelBlockId {
     buildscript,

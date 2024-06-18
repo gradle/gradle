@@ -144,6 +144,7 @@ interface ConfigurationCacheStateFile {
 }
 
 
+@Suppress("LargeClass")
 internal
 class ConfigurationCacheState(
     private val codecs: Codecs,

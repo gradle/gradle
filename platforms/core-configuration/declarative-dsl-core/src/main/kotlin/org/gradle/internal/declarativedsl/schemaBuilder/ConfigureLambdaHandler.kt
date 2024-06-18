@@ -125,10 +125,10 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType) =
         maybeLambdaType.isSubtypeOf(interfaceTypeWithArgument(configuredType))
 
-    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor =
-        if (lambdaType.isSubtypeOf(starProjectedType)) {
-            valueCaptor()
-        } else throw IllegalArgumentException("requested lambda type $lambdaType is not a subtype of the interface $starProjectedType")
+    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
+        require(lambdaType.isSubtypeOf(starProjectedType)) { "requested lambda type $lambdaType is not a subtype of the interface $starProjectedType" }
+        return valueCaptor()
+    }
 
     private
     fun valueCaptor(): ConfigureLambdaHandler.ValueCaptor {

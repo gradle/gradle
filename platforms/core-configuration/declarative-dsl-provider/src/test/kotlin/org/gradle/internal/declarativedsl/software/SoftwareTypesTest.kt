@@ -41,7 +41,7 @@ class SoftwareTypesTest {
                     override fun getModelPublicType(): Class<out Subtype> = Subtype::class.java
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
-                    override fun addConvention(rule: Convention<*>) {}
+                    override fun addConvention(rule: Convention<*>) = Unit
                     override fun getConventions(): List<Convention<*>> = emptyList()
                 })
             )

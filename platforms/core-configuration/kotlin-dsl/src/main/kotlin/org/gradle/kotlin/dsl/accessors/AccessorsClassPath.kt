@@ -245,6 +245,7 @@ object AccessorFormats {
         accessor.trimIndent()
     }
 
+    @Suppress("ObjectPropertyNaming")
     val `internal`: AccessorFormat = { accessor ->
         accessor
             .trimIndent()
