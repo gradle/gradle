@@ -287,6 +287,7 @@ include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",fi
 
 For more on publishing plugins, see <<publishing_gradle_plugins.adoc#plugin-publishing-plugin,Publishing Plugins>>.
 
+[[project_vs_settings_vs_init_plugins]]
 ==  Project vs Settings vs Init plugins
 
 In the example used through this section, the plugin accepts the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter.

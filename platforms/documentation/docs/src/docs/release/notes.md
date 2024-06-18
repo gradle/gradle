@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features enhanced [error and warning reporting](#error-warning) to better handle variant ambiguity issues and missing variants during dependency resolution.
+
+Additionally, this release includes improvements for [ide integrators](#ide-integration) and [other improvements](#other) to Build Init and TestNG support.
 
 <!--
 Include only their name, impactful features should be called out separately below.
@@ -24,35 +26,6 @@ See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@b
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
-
-<a name="config-cache"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
-This feature can significantly improve build performance.
-
-#### Detailed information on file changes for configuration cache misses
-
-Before this release, when a configuration cache entry could not be reused due to a change to some file, the console output would show this message:
-
-```
-> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has changed.
-```
-
-The message was shown even if the file was not changed but was removed or replaced with a directory.
-
-Starting with this release, you get additional information detailing the change.
-For example:
-
-```
-> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has been removed.
-```
-
-or
-
-```
-> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has been replaced by a directory.
-```
 
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
@@ -92,6 +65,13 @@ Use the dependencyInsight report with the --all-variants option to view all vari
 
 If a dependency is requested that declares no variants, dependency resolution will fail.
 
+The new message makes this clear:
+
+```
+> No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
+    - No variants exist.
+```
+
 Previously, the error message was misleading, as it mentioned that none of the variants had attributes:
 
 ```
@@ -101,42 +81,47 @@ Previously, the error message was misleading, as it mentioned that none of the v
 
 While technically true, this did not emphasize the more important fact that no available variants were found.
 
-The new message makes this clear:
+#### Detailed information on file changes for configuration cache misses
+
+Starting with this release, when a configuration cache entry cannot be reused due to a change to some file, the console output provides additional information detailing the change:
 
 ```
-> No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
-    - No variants exist.
+> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has been removed.
 ```
 
-### Isolated Projects improvements
-
-The [Isolated Projects](userguide/isolated_projects.html) feature isolates the configuration models of projects from each other such that the build logic of one project cannot directly access the mutable state of another project.
-
-#### String-notated task dependency no longer a violation
-
-Depending on a task from another project in string-notated form is a common idiom:
+or
 
 ```
-foo.dependsOn(":a:bar")
+> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has been replaced by a directory.
 ```
 
-Starting with this release, this is no longer considered a violation of Isolated Projects boundaries.
+Before this release, the console output provided a generic message. The message was shown even if the file was not changed but was removed or replaced with a directory:
 
-#### `gradle init` generates Isolated Projects compatible projects
+```
+> Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has changed.
+```
 
-The [Build Init Plugin](userguide/build_init_plugin.html) supports creating multi-module projects.
+<a name="ide-integration"></a>
+### IDE integration improvements
 
-Starting with this release, `gradle init` generates projects compatible with Isolated Projects restrictions.
+Gradle is integrated into many IDEs using the [Tooling API](userguide/third_party_integration.html).
+The following improvements are for IDE integrators.
 
+#### Adoption of the Problems API with Java compilation
+
+The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+This change will supply the Tooling API clients with structured, rich information about compilation issues. IDEs such as IntelliJ IDEA and Visual Studio Code can adopt this feature to provide an accurate visual representation of Java compilation problems without relying on parsing text printed by the compiler.
+
+<a name="other"></a>
 ### Other improvements
 
-#### Changes to init task behavior when Gradle build files are present
+#### Changes to Build init behavior when Gradle build files are present
 
-The [`init` task](userguide/build_init_plugin.html) will now ask the user to confirm before proceeding if there are any files in the project directory, including Gradle `settings.gradle(.kts)` and `build.gradle(.kts)` files.
+The [build `init` plugin](userguide/build_init_plugin.html) will now ask the user to confirm before proceeding if there are any files in the project directory, including Gradle `settings.gradle(.kts)` and `build.gradle(.kts)` files.
 
 This change is intended to prevent accidental overwriting of existing files in the project directory.
 
-The init task now has a new `--overwrite` option, which allows users to bypass this confirmation message.
+Build init now has a new `--overwrite` option, which allows users to bypass this confirmation message.
 This can be used if initialization is canceled or fails, and the user wants to re-run the init task without being prompted to confirm.
 
 If the user declines to overwrite files that exist, or if the `--no-overwrite` option is provided, initialization will fail with the message:
@@ -152,6 +137,31 @@ The [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.ht
 `suiteThreadPoolSize`
 
 More information about this option is available in the [TestNG documentation](https://testng.org/#_command_line_parameters).
+
+#### Daemon JVM information report
+
+It is now possible to view information about the JVM used for the [Daemon](userguide/gradle_daemon.html) from the [command line](userguide/command_line_interface.html).
+
+Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Daemon (which executes the build process) and the Launcher (which initiates the Gradle build process):
+
+```
+[...]
+Launcher JVM:  11.0.23 (Eclipse Adoptium 11.0.23+9)
+Daemon JVM:    /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home (no JDK specified, using current Java home)
+```
+
+This includes information about how Gradle chose the JVM, including the `org.gradle.java.home` [system property](userguide/build_environment.html) and the incubating [Daemon JVM criteria](userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
+
+More details can be seen by running `gradle buildEnvironment`:
+
+```
+Daemon JVM: Eclipse Temurin JDK 11.0.23+9
+  | Location:           /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home
+  | Language Version:   11
+  | Vendor:             Eclipse Temurin
+  | Architecture:       aarch64
+  | Is JDK:             true
+```
 
 ## Promoted features
 
