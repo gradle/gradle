@@ -327,7 +327,7 @@ class ConfigurationCacheState(
             }
 
             else -> {
-                throw IllegalArgumentException()
+                error("")
             }
         }
     }

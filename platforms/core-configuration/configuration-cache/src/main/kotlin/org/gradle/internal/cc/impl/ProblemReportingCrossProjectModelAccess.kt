@@ -1136,6 +1136,7 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
+        @Suppress("ThrowingExceptionsWithoutMessageOrCause")
         private
         fun reportCrossProjectAccessProblem(
             accessRef: String,
