@@ -29,8 +29,12 @@ import org.gradle.internal.declarativedsl.analysis.sameType
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
+import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution.PropertyAssignmentResolved
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
@@ -53,14 +57,22 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
 
         return when (val mutation = mutationRequest.mutation) {
             is ModelMutation.UnsetProperty ->
-                withMatchingProperties(scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property) {
-                    DocumentMutation.DocumentNodeTargetedMutation.RemoveNode(it)
-                }
+                withMatchingProperties(
+                    scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property,
+                    mapFoundPropertyToDocumentMutation = { RemoveNode(it) },
+                    mapMatchingScopeToDocumentMutation = { null }
+                )
 
             is ModelMutation.SetPropertyValue ->
-                withMatchingProperties(scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property) {
-                    DocumentMutation.ValueTargetedMutation.ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) }
-                }
+                withMatchingProperties(
+                    scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property,
+                    mapFoundPropertyToDocumentMutation = { ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) } },
+                    mapMatchingScopeToDocumentMutation =  {
+                        AddChildrenToEndOfBlock(it.elements.last()) {
+                            NewDocumentNodes(listOf(DefaultPropertyNode(mutation.property.property.name, SyntheticallyProduced, mutation.newValue.value(mutationArguments))))
+                        }
+                    }
+                )
 
             is ModelMutation.AddConfiguringBlockIfAbsent -> {
                 withMatchingScopes(scopeLocationMatcher, mutationRequest) { matchingScopes ->
@@ -68,7 +80,7 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                         .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
                         .filter { documentMemberMatcher.findMatchingConfiguringElements(it, mutation.function).isEmpty() }
                         .map {
-                            DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(it.elements.last()) {
+                            AddChildrenToEndOfBlock(it.elements.last()) {
                                 val element = DefaultElementNode(mutation.function.function.simpleName, SyntheticallyProduced, emptyList(), emptyList())
                                 NewDocumentNodes(
                                     listOf(element),
@@ -86,7 +98,7 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                         .filter { it.elements.isNotEmpty() } // TODO: this is the top level scope, will need special handling
                         .map { scope -> scope.elements.last() }
                         .map { scopeElement ->
-                            DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock(scopeElement) {
+                            AddChildrenToEndOfBlock(scopeElement) {
                                 NewDocumentNodes(listOf(mutation.newElement.element(mutationArguments)))
                             }
                         }.toList(),
@@ -127,18 +139,33 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
         documentMemberMatcher: DocumentMemberAndTypeMatcher,
         request: ModelMutationRequest,
         property: TypedMember.TypedProperty,
-        mapPropertyToDocumentMutation: (PropertyNode) -> DocumentMutation
+        mapFoundPropertyToDocumentMutation: (PropertyNode) -> DocumentMutation,
+        mapMatchingScopeToDocumentMutation: (Scope) -> DocumentMutation?
     ): ModelMutationPlan {
         return withMatchingScopes(scopeLocationMatcher, request) { matchingScopes ->
-            val matchedPropertyNodes = matchingScopes.flatMap { documentMemberMatcher.findMatchingPropertyNodes(it, property) }
+            val mutationsFromScopes = if (matchingScopes.isNotEmpty()) {
+                matchingScopes.flatMap { scope ->
+                    val properties = documentMemberMatcher.findMatchingPropertyNodes(scope, property)
+                    if (properties.isNotEmpty()) {
+                        properties.map { mapFoundPropertyToDocumentMutation(it) }
+                    } else {
+                        listOfNotNull(
+                            documentMemberMatcher.ifScopeMatchesType(scope, property) { mapMatchingScopeToDocumentMutation(scope) }
+                        )
+                    }
+                }
+            } else emptyList()
 
-            when {
-                matchedPropertyNodes.isEmpty() -> DefaultModelMutationPlan(
+            if (mutationsFromScopes.isNotEmpty()) {
+                DefaultModelMutationPlan(
+                    mutationsFromScopes,
+                    emptyList()
+                )
+            } else {
+                DefaultModelMutationPlan(
                     emptyList(),
                     listOf(UnsuccessfulModelMutation(request, listOf(ModelMutationFailureReason.TargetPropertyNotFound)))
                 )
-
-                else -> DefaultModelMutationPlan(matchedPropertyNodes.map(mapPropertyToDocumentMutation), emptyList())
             }
         }
     }
@@ -157,7 +184,6 @@ class DocumentMemberAndTypeMatcher(
         subtype.ref.isEquivalentTo(supertype.ref) ||
             subtype is DataClass && supertype is DataClass && supertype.name in subtype.supertypes
 
-    private
     fun <T> ifScopeMatchesType(scope: Scope, typedMember: TypedMember, then: (ElementNode) -> T): T? {
         val ownerElement = scope.elements.lastOrNull()
             ?: return null

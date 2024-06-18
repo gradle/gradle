@@ -64,21 +64,19 @@ object MutationApplicabilityCheckerTest {
         )
     }
 
-
-    // TODO: drop this test in favor of the one below once the behavior changes
     @Test
-    fun `detects applicability of a set property mutation -- this variation asserts current behavior -- set-property-value mutation does not add new nodes`() {
+    fun `detects applicability of a set property mutation`() {
         val doc = documentWithResolution(
             schema, ParseTestUtil.parse(
                 """
-                nested {
-                    x = 1
-                    f {
+                    nested {
                         x = 1
                         f {
+                            x = 1
+                            f {
+                            }
                         }
                     }
-                }
                 """.trimIndent()
             )
         )
@@ -89,39 +87,9 @@ object MutationApplicabilityCheckerTest {
             setOf(
                 MutationApplicability.AffectedNode(doc.document.elementNamed("nested").propertyNamed("x")),
                 MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested").elementNamed("f").elementNamed("f")),
             ), result.toSet()
         )
-    }
-
-
-    @Test
-    fun `detects applicability of a set property mutation -- this variation fails until set property value can insert nodes`() {
-        assertFails {
-            val doc = documentWithResolution(
-                schema, ParseTestUtil.parse(
-                    """
-                    nested {
-                        x = 1
-                        f {
-                            x = 1
-                            f {
-                            }
-                        }
-                    }
-                    """.trimIndent()
-                )
-            )
-
-            val result = MutationApplicabilityChecker(schema, doc).checkApplicability(setX)
-
-            assertEquals(
-                setOf(
-                    MutationApplicability.AffectedNode(doc.document.elementNamed("nested").propertyNamed("x")),
-                    MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
-                    MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested").elementNamed("f").elementNamed("f")),
-                ), result.toSet()
-            )
-        }
     }
 
     @Test
@@ -200,10 +168,11 @@ object MutationApplicabilityCheckerTest {
 
         val setXResult = MutationApplicabilityChecker(schema, doc).checkApplicability(setX)
 
-        // TODO: once set-property mutation learns to add nodes, fix the expected set
         assertEquals(
             setOf(
                 MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
+                // For now, the planner will think that 'x = "foo"' does not match the property because of type mismatch:
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested")),
             ),
             setXResult.toSet()
         )
