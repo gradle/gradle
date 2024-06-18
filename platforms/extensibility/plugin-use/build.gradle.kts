@@ -15,11 +15,10 @@ dependencies {
     api(project(":core"))
     api(project(":dependency-management"))
     api(project(":file-collections"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":logging"))
     api(project(":messaging"))
     api(project(":model-core"))
-    api(project(":declarative-dsl-api"))
 
     api(libs.guava)
     api(libs.jsr305)

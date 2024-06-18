@@ -18,7 +18,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.internalInstrumentationApi)
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(project(":base-services"))
     implementation(project(":functional"))

@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -62,7 +63,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     public void setRenderer(DependencyReportRenderer renderer) {
         this.renderer = renderer;
     }
-
 
     /**
      * Report model.
@@ -99,7 +99,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     }
 
     private Set<Configuration> getReportConfigurations() {
-        return configurations != null ? configurations : getNonDeprecatedTaskConfigurations();
+        return configurations != null ? configurations : getConfigurationsWithDependencies();
     }
 
     /**
@@ -134,9 +134,9 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
     }
 
-    private Set<Configuration> getNonDeprecatedTaskConfigurations() {
+    private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
-        for (Configuration configuration : getTaskConfigurations()) {
+        for (Configuration configuration : Objects.requireNonNull(getTaskConfigurations())) {
             if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
@@ -145,5 +145,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     }
 
     @Internal
-    public abstract ConfigurationContainer getTaskConfigurations();
+    public ConfigurationContainer getTaskConfigurations() {
+        return getProject().getConfigurations();
+    }
 }

@@ -16,20 +16,17 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.api.Project
-import org.gradle.api.initialization.Settings
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
-import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import java.io.File
 
 
@@ -40,63 +37,69 @@ import java.io.File
 internal
 class StoringInterpretationSchemaBuilder(
     private val schemaBuilder: InterpretationSchemaBuilder,
+    private val settingsDir: File
 ) : InterpretationSchemaBuilder {
-    override fun getEvaluationSchemaForScript(targetInstance: Any, scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
-        addSerializationToSteps(targetInstance, schemaBuilder.getEvaluationSchemaForScript(targetInstance, scriptContext))
+
+    override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult =
+        addSerializationToSteps(schemaBuilder.getEvaluationSchemaForScript(scriptContext))
 
     private
-    fun addSerializationToSteps(targetInstance: Any, evaluationSchemaForScript: InterpretationSchemaBuildingResult): InterpretationSchemaBuildingResult =
+    fun addSerializationToSteps(evaluationSchemaForScript: InterpretationSchemaBuildingResult): InterpretationSchemaBuildingResult =
         when (evaluationSchemaForScript) {
             is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> {
                 val stepsWithSchemaStoring = evaluationSchemaForScript.sequence.steps.map {
-                    SchemaHandlingInterpretationSequenceStep(it) { id, schema -> storeSchemaResult(targetInstance, id, schema) }
+                    val schemaHandler: (String, AnalysisSchema) -> Unit = { id, schema -> storeSchemaResult(id, schema) }
+                    when (it) {
+                        is InterpretationSequenceStepWithConversion<*> -> SchemaHandlingInterpretationSequenceStepWithConversion(it, schemaHandler)
+                        else -> SchemaHandlingInterpretationSequenceStep(it, schemaHandler)
+                    }
                 }
-                InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(InterpretationSequence(stepsWithSchemaStoring))
+                InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(DefaultInterpretationSequence(stepsWithSchemaStoring))
             }
 
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> evaluationSchemaForScript
         }
 
     private
-    fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
-        val file = schemaFile(targetInstance, identifier)
+    fun storeSchemaResult(identifier: String, analysisSchema: AnalysisSchema) {
+        val file = schemaFile(identifier)
         file.parentFile.mkdirs()
         file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
     }
 
     private
-    fun schemaFile(targetInstance: Any, identifier: String) =
-        schemaStoreLocationFor(targetInstance).resolve("$identifier.dcl.schema")
+    fun schemaFile(identifier: String) =
+        schemaStoreLocationFor().resolve("$identifier.dcl.schema")
 
     private
-    fun schemaStoreLocationFor(targetInstance: Any): File {
+    fun schemaStoreLocationFor(): File {
         val suffix = ".gradle/declarative-schema"
-        return when (targetInstance) {
-            is Settings -> targetInstance.settingsDir.resolve(suffix)
-            is Project -> targetInstance.projectDir.resolve(suffix)
-            else -> error("unexpected target instance of type ${targetInstance.javaClass}")
+        return settingsDir.resolve(suffix)
+    }
+
+    private
+    open class SchemaHandlingInterpretationSequenceStep(
+        private val step: InterpretationSequenceStep,
+        val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
+    ) : InterpretationSequenceStep {
+        override val stepIdentifier: InterpretationSequenceStep.StepIdentifier = step.stepIdentifier
+        override val features: Set<InterpretationStepFeature>
+            get() = step.features
+
+        override val evaluationSchemaForStep: EvaluationSchema by lazy {
+            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
     }
 
     private
-    class SchemaHandlingInterpretationSequenceStep<R : Any>(
-        private val step: InterpretationSequenceStep<R>,
-        private val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
-    ) : InterpretationSequenceStep<R> {
-        override val stepIdentifier: String = step.stepIdentifier
-        override val assignmentGeneration: OperationGenerationId = step.assignmentGeneration
-        override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
+    class SchemaHandlingInterpretationSequenceStepWithConversion<R : Any>(
+        private val step: InterpretationSequenceStepWithConversion<R>,
+        schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
+    ) : SchemaHandlingInterpretationSequenceStep(step, schemaHandler), InterpretationSequenceStepWithConversion<R> {
+        override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy {
+            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
+        }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
-        override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = step.processResolutionResult(resolutionResult)
-        override fun getReflectionToObjectConverter(
-            externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
-            topLevelObject: Any,
-            functionResolver: RuntimeFunctionResolver,
-            propertyResolver: RuntimePropertyResolver,
-            customAccessors: RuntimeCustomAccessors
-        ): ReflectionToObjectConverter {
-            return step.getReflectionToObjectConverter(externalObjectsMap, topLevelObject, functionResolver, propertyResolver, customAccessors)
-        }
     }
 }

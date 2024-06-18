@@ -284,12 +284,16 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     private static List<String> repoMirrorParameters() {
-        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
-        return [
-            '--init-script', mirrorInitScriptPath,
-            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
-            "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
-        ]
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+            return [
+                '--init-script', mirrorInitScriptPath,
+                "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
+                "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+            ]
+        } else {
+            return []
+        }
     }
 
     private static List<String> toolchainParameters() {
@@ -337,10 +341,6 @@ abstract class AbstractSmokeTest extends Specification {
                 }
             }
         """
-    }
-
-    protected static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        RepoScriptBlockUtil.jcenterRepository(dsl)
     }
 
     protected static String mavenCentralRepository(GradleDsl dsl = GROOVY) {

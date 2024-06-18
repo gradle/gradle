@@ -5,7 +5,7 @@ plugins {
 description = "Provides high-level insights into a Gradle build (--profile)"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))

@@ -16,17 +16,22 @@
 
 package org.gradle.internal.collect;
 
+import com.google.common.collect.AbstractIterator;
+
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
  * A simple persistent List implementation.
- *
+ * <p>
  * The main use-case is to create new lists with added elements creating the minimal amount of garbage.
  * Uses Cons/Nil as building blocks.
  */
-public abstract class PersistentList<T> {
+public abstract class PersistentList<T> implements Iterable<T> {
     @SuppressWarnings("unchecked")
     public static <T> PersistentList<T> of() {
         return (PersistentList<T>) NIL;
@@ -45,6 +50,7 @@ public abstract class PersistentList<T> {
         return result.plus(second).plus(first);
     }
 
+    @Override
     public abstract void forEach(Consumer<? super T> consumer);
 
     /**
@@ -77,6 +83,11 @@ public abstract class PersistentList<T> {
         @Override
         public String toString() {
             return "Nil";
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return Collections.emptyIterator();
         }
     };
 
@@ -125,6 +136,24 @@ public abstract class PersistentList<T> {
         @Override
         public String toString() {
             return tail == NIL ? head.toString() : head + " : " + tail;
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return new AbstractIterator<T>() {
+                PersistentList<T> next = Cons.this;
+
+                @Nullable
+                @Override
+                protected T computeNext() {
+                    if (next.isEmpty()) {
+                        return endOfData();
+                    }
+                    Cons<T> current = (Cons<T>) next;
+                    next = current.tail;
+                    return current.head;
+                }
+            };
         }
     }
 }

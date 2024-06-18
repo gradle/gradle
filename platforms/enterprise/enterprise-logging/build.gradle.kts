@@ -9,7 +9,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(project(":build-operations"))
     api(project(":logging-api"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
 
     api(libs.jsr305)
 }

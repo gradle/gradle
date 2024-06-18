@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserCodeException
 
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.plugins.DslObject
+import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.kotlin.dsl.support.uncheckedCast
 
@@ -43,10 +44,10 @@ interface MutablePropertyDelegate : PropertyDelegate {
 
 
 internal
-fun propertyDelegateFor(target: Any, property: KProperty<*>): PropertyDelegate =
+fun propertyDelegateFor(dynamicLookupRoutine: DynamicLookupRoutine, target: Any, property: KProperty<*>): PropertyDelegate =
     dynamicObjectFor(target).let { owner ->
-        if (property.returnType.isMarkedNullable) NullableDynamicPropertyDelegate(owner, property.name)
-        else NonNullDynamicPropertyDelegate(owner, property.name, { target.toString() })
+        if (property.returnType.isMarkedNullable) NullableDynamicPropertyDelegate(dynamicLookupRoutine, owner, property.name)
+        else NonNullDynamicPropertyDelegate(dynamicLookupRoutine, owner, property.name) { target.toString() }
     }
 
 
@@ -57,26 +58,26 @@ fun dynamicObjectFor(target: Any): DynamicObject =
 
 private
 class NullableDynamicPropertyDelegate(
+    private val dynamicLookupRoutine: DynamicLookupRoutine,
     private val owner: DynamicObject,
     private val name: String
 ) : PropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        owner.tryGetProperty(name).run {
-            uncheckedCast(if (isFound) value else null)
-        }
+        uncheckedCast(dynamicLookupRoutine.findProperty(owner, name))
 }
 
 
 private
 class NonNullDynamicPropertyDelegate(
+    private val dynamicLookupRoutine: DynamicLookupRoutine,
     private val owner: DynamicObject,
     private val name: String,
     private val describeOwner: () -> String
 ) : PropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        owner.tryGetProperty(name).run {
+        dynamicLookupRoutine.tryGetProperty(owner, name).run {
             if (isFound && value != null) uncheckedCast<T>(value)
             else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
         }

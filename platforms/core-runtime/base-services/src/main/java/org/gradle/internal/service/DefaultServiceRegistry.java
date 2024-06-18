@@ -18,6 +18,7 @@ package org.gradle.internal.service;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -46,6 +47,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.Collections.singletonList;
+import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
@@ -246,8 +251,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
 
             @Override
-            public void add(Class<?> serviceType, Class<?> implementationType) {
+            public <S, I extends S> void add(Class<S> serviceType, Class<I> implementationType) {
                 ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType, implementationType));
+            }
+
+            @Override
+            public <S, I extends S> void add(Class<S> serviceType1, Class<?> serviceType2, Class<I> implementationType) {
+                //noinspection RedundantTypeArguments
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, Arrays.<Class<?>>asList(serviceType1, serviceType2), implementationType));
             }
 
             @Override
@@ -512,23 +523,25 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
-            collectProvidersForClassHierarchy(inspector, serviceProvider.serviceClass, serviceProvider);
+            collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
             services.add(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
             }
         }
 
-        public void collectProvidersForClassHierarchy(ClassInspector inspector, Class<?> serviceType, ServiceProvider serviceProvider) {
-            for (Class<?> type : inspector.getHierarchy(serviceType)) {
-                if (type.equals(Object.class)) {
-                    continue;
+        public void collectProvidersForClassHierarchy(ClassInspector inspector, List<Class<?>> declaredServiceTypes, ServiceProvider serviceProvider) {
+            for (Class<?> serviceType : declaredServiceTypes) {
+                for (Class<?> type : inspector.getHierarchy(serviceType)) {
+                    if (type.equals(Object.class)) {
+                        continue;
+                    }
+                    if (type.equals(ServiceRegistry.class)) {
+                        // Disallow custom services of type ServiceRegistry, as these are automatically provided
+                        throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
+                    }
+                    putServiceType(type, serviceProvider);
                 }
-                if (type.equals(ServiceRegistry.class)) {
-                    // Disallow custom services of type ServiceRegistry, as these are automatically provided
-                    throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
-                }
-                putServiceType(type, serviceProvider);
             }
         }
 
@@ -536,15 +549,22 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             List<ServiceProvider> serviceProviders = providersByType.get(type);
             if (serviceProviders == null) {
                 serviceProviders = new ArrayList<ServiceProvider>(2);
+                serviceProviders.add(serviceProvider);
                 providersByType.put(type, serviceProviders);
+                return;
             }
-            serviceProviders.add(serviceProvider);
+
+            // Adding of the service provider for the same type may happen when it has multiple declared service types
+            if (!serviceProviders.contains(serviceProvider)) {
+                serviceProviders.add(serviceProvider);
+            }
         }
 
         public void instanceRealized(ManagedObjectServiceProvider serviceProvider, Object instance) {
-            Class<?> serviceType = serviceProvider.getServiceType();
-            if (instance instanceof AnnotatedServiceLifecycleHandler && !AnnotatedServiceLifecycleHandler.class.isAssignableFrom(serviceType)) {
-                throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having type %s.", serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format(serviceType)));
+            List<Class<?>> declaredServiceTypes = serviceProvider.getDeclaredServiceTypes();
+            if (instance instanceof AnnotatedServiceLifecycleHandler && !isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
+                throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
+                    serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
             }
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
@@ -552,9 +572,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {
                 for (Class<? extends Annotation> annotation : lifecycleHandler.getAnnotations()) {
                     boolean implementationHasAnnotation = inspector.hasAnnotation(instance.getClass(), annotation);
-                    boolean declaredWithAnnotation = inspector.hasAnnotation(serviceType, annotation);
+                    boolean declaredWithAnnotation = anyTypeHasAnnotation(annotation, declaredServiceTypes);
                     if (implementationHasAnnotation && !declaredWithAnnotation) {
-                        throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having type %s.", serviceProvider.getDisplayName(), format(annotation), format(serviceType)));
+                        throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having %s.",
+                            serviceProvider.getDisplayName(), format(annotation), format("type", declaredServiceTypes)));
                     }
                 }
             }
@@ -571,12 +592,22 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             if (annotationHandler.getImplicitAnnotation() != null) {
                 annotationHandler.whenRegistered(annotationHandler.getImplicitAnnotation(), new RegistrationWrapper(candidate));
             } else {
+                List<Class<?>> declaredServiceTypes = candidate.getDeclaredServiceTypes();
                 for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
-                    if (inspector.hasAnnotation(candidate.serviceClass, annotation)) {
+                    if (anyTypeHasAnnotation(annotation, declaredServiceTypes)) {
                         annotationHandler.whenRegistered(annotation, new RegistrationWrapper(candidate));
                     }
                 }
             }
+        }
+
+        private boolean anyTypeHasAnnotation(Class<? extends Annotation> annotation, List<Class<?>> types) {
+            for (Class<?> type : types) {
+                if (inspector.hasAnnotation(type, annotation)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -588,14 +619,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         @Override
-        public Class<?> getDeclaredType() {
-            return serviceProvider.serviceClass;
+        public List<Class<?>> getDeclaredTypes() {
+            return serviceProvider.getDeclaredServiceTypes();
         }
 
         @Override
         public Object getInstance() {
             serviceRequested();
-            return serviceProvider.getService(serviceProvider.serviceClass).get();
+            return serviceProvider.getPreparedInstance();
         }
     }
 
@@ -623,7 +654,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             this.owner = owner;
         }
 
-        abstract Class<?> getServiceType();
+        abstract List<Class<?>> getDeclaredServiceTypes();
 
         protected void setInstance(Object instance) {
             this.instance = instance;
@@ -676,21 +707,35 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private static abstract class SingletonService extends ManagedObjectServiceProvider {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
-        final Type serviceType;
-        final Class<?> serviceClass;
+        protected final List<? extends Type> rawDeclaredServiceTypes;
+        private final List<Class<?>> unwrappedDeclaredServiceTypes;
 
         BindState state = BindState.UNBOUND;
+
+        // Singleton service is implemented by a single instance and must extend/implement all declared service types.
+        // But it can only implement a single `Factory<? extends ElementType>` due to Java type constraints.
+        // The value of the field is computed lazily.
         Class<?> factoryElementType;
 
-        SingletonService(DefaultServiceRegistry owner, Type serviceType) {
+        SingletonService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
             super(owner);
-            this.serviceType = serviceType;
-            serviceClass = unwrap(serviceType);
+
+            if (serviceTypes.isEmpty()) {
+                throw new IllegalArgumentException("Expected at least one declared service type");
+            }
+
+            rawDeclaredServiceTypes = serviceTypes;
+            unwrappedDeclaredServiceTypes = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
+                @Override
+                public Class<?> transform(Type type) {
+                    return unwrap(type);
+                }
+            });
         }
 
         @Override
-        Class<?> getServiceType() {
-            return serviceClass;
+        public List<Class<?>> getDeclaredServiceTypes() {
+            return unwrappedDeclaredServiceTypes;
         }
 
         @Override
@@ -701,6 +746,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         @Override
         public Object get() {
             return getInstance();
+        }
+
+        private Object getPreparedInstance() {
+            return prepare().get();
         }
 
         private Service prepare() {
@@ -734,7 +783,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Service getService(Type serviceType) {
-            if (!isSatisfiedBy(serviceType, this.serviceType)) {
+            if (!isSatisfiedByAny(serviceType, rawDeclaredServiceTypes)) {
                 return null;
             }
             return prepare();
@@ -742,7 +791,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Visitor getAll(Class<?> serviceType, ServiceProvider.Visitor visitor) {
-            if (serviceType.isAssignableFrom(this.serviceClass)) {
+            if (isAssignableFromAnyType(serviceType, unwrappedDeclaredServiceTypes)) {
                 visitor.visit(prepare());
             }
             return visitor;
@@ -750,19 +799,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public Service getFactory(Class<?> elementType) {
-            if (!isFactory(serviceType, elementType)) {
+            if (!isFactoryFor(elementType)) {
                 return null;
             }
             return prepare();
         }
 
-        private boolean isFactory(Type type, Class<?> elementType) {
+        // Finds the first element type of `Factory<? extends ElementType>` in the type hierarchy
+        @Nullable
+        private static Class<?> findFactoryElementType(Type type) {
             Class<?> c = unwrap(type);
             if (!Factory.class.isAssignableFrom(c)) {
-                return false;
-            }
-            if (factoryElementType != null) {
-                return elementType.isAssignableFrom(factoryElementType);
+                return null;
             }
 
             if (type instanceof ParameterizedType) {
@@ -771,29 +819,53 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                 if (parameterizedType.getRawType().equals(Factory.class)) {
                     Type actualType = parameterizedType.getActualTypeArguments()[0];
                     if (actualType instanceof Class) {
-                        factoryElementType = (Class<?>) actualType;
-                        return elementType.isAssignableFrom((Class<?>) actualType);
+                        return (Class<?>) actualType;
                     }
                 }
             }
 
             // Check if type extends Factory<? extends ElementType>
             for (Type interfaceType : c.getGenericInterfaces()) {
-                if (isFactory(interfaceType, elementType)) {
-                    return true;
+                Class<?> parentFactoryElementType = findFactoryElementType(interfaceType);
+                if (parentFactoryElementType != null) {
+                    return parentFactoryElementType;
                 }
             }
 
-            return false;
+            return null;
         }
+
+        @Nullable
+        private static Class<?> findFactoryElementType(List<? extends Type> factoryCandidates) {
+            for (Type factoryCandidate : factoryCandidates) {
+                Class<?> factoryElementType = findFactoryElementType(factoryCandidate);
+                if (factoryElementType != null) {
+                    return factoryElementType;
+                }
+            }
+
+            return null;
+        }
+
+        private boolean isFactoryFor(Class<?> elementType) {
+            // This method can be called concurrently, but in the worst case we repeat the computation
+            if (factoryElementType == null) {
+                Class<?> foundFactoryElementType = findFactoryElementType(rawDeclaredServiceTypes);
+                factoryElementType = foundFactoryElementType == null ? NonFactoryMarker.class : foundFactoryElementType;
+            }
+
+            return !factoryElementType.equals(NonFactoryMarker.class) && elementType.isAssignableFrom(factoryElementType);
+        }
+
+        private interface NonFactoryMarker {}
     }
 
     private static abstract class FactoryService extends SingletonService {
         private Service[] paramServices;
         private Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, Type serviceType) {
-            super(owner, serviceType);
+        protected FactoryService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
+            super(owner, serviceTypes);
         }
 
         protected abstract Type[] getParameterTypes();
@@ -810,12 +882,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             paramServices = new Service[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 Type paramType = parameterTypes[i];
-                if (paramType.equals(serviceType)) {
+                if (isEqualToAnyType(paramType, rawDeclaredServiceTypes)) {
                     // A decorating factory
                     Service paramProvider = find(paramType, owner.parentServices);
                     if (paramProvider == null) {
-                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
-                            format(serviceType),
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
+                            format("type", rawDeclaredServiceTypes),
                             getFactoryDisplayName(),
                             format(paramType),
                             i + 1));
@@ -827,15 +899,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                     try {
                         paramProvider = find(paramType, owner.allServices);
                     } catch (ServiceLookupException e) {
-                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s as there is a problem with parameter #%s of type %s.",
-                            format(serviceType),
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as there is a problem with parameter #%s of type %s.",
+                            format("type", rawDeclaredServiceTypes),
                             getFactoryDisplayName(),
                             i + 1,
                             format(paramType)), e);
                     }
                     if (paramProvider == null) {
-                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s as required service of type %s for parameter #%s is not available.",
-                            format(serviceType),
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available.",
+                            format("type", rawDeclaredServiceTypes),
                             getFactoryDisplayName(),
                             format(paramType),
                             i + 1));
@@ -894,7 +966,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private Object target;
 
         public FactoryMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
-            super(owner, method.getServiceType());
+            super(owner, singletonList(method.getServiceType()));
             this.target = target;
             this.method = method;
         }
@@ -924,16 +996,16 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             try {
                 result = method.invoke(target, params);
             } catch (Exception e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
-                    format(serviceType),
+                throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s().",
+                    format("type", rawDeclaredServiceTypes),
                     method.getOwner().getSimpleName(),
                     method.getName()),
                     e);
             }
             try {
                 if (result == null) {
-                    throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                        format(serviceType),
+                    throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s() as this method returned null.",
+                        format("type", rawDeclaredServiceTypes),
                         method.getOwner().getSimpleName(),
                         method.getName()));
                 }
@@ -947,13 +1019,13 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private static class FixedInstanceService extends SingletonService {
         public FixedInstanceService(DefaultServiceRegistry owner, Class<?> serviceType, Object serviceInstance) {
-            super(owner, serviceType);
+            super(owner, singletonList(serviceType));
             setInstance(serviceInstance);
         }
 
         @Override
         public String getDisplayName() {
-            return "Service " + format(serviceType) + " with implementation " + format(getInstance().getClass());
+            return format("Service", rawDeclaredServiceTypes) + " with implementation " + format(getInstance().getClass());
         }
 
         @Override
@@ -970,13 +1042,23 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType, Class<?> implementationType) {
-            super(owner, serviceType);
-            if (!serviceType.isAssignableFrom(implementationType)) {
-                throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it", implementationType.getSimpleName(), serviceType.getSimpleName()));
-            }
+            this(owner, Collections.<Class<?>>singletonList(serviceType), implementationType);
+        }
+
+        private ConstructorService(DefaultServiceRegistry owner, List<Class<?>> serviceTypes, Class<?> implementationType) {
+            super(owner, serviceTypes);
+
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
+
+            for (Class<?> serviceType : serviceTypes) {
+                if (!serviceType.isAssignableFrom(implementationType)) {
+                    throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
+                        implementationType.getSimpleName(), serviceType.getSimpleName()));
+                }
+            }
+
             Constructor<?> match = InjectUtil.selectConstructor(implementationType);
             if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
                 match.setAccessible(true);
@@ -1003,15 +1085,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             try {
                 return constructor.newInstance(params);
             } catch (InvocationTargetException e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e.getCause());
+                throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", rawDeclaredServiceTypes)), e.getCause());
             } catch (Exception e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e);
+                throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", rawDeclaredServiceTypes)), e);
             }
         }
 
         @Override
         public String getDisplayName() {
-            return "Service " + format(serviceType);
+            return format("Service", rawDeclaredServiceTypes);
         }
     }
 
@@ -1194,6 +1276,33 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
     }
 
+    private static boolean isAssignableFromAnyType(Class<?> targetType, List<Class<?>> candidateTypes) {
+        for (Class<?> candidate : candidateTypes) {
+            if (targetType.isAssignableFrom(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isEqualToAnyType(Type targetType, List<? extends Type> candidateTypes) {
+        for (Type candidate : candidateTypes) {
+            if (targetType.equals(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isSatisfiedByAny(Type expected, List<? extends Type> candidates) {
+        for (Type candidate : candidates) {
+            if (isSatisfiedBy(expected, candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean isSatisfiedBy(Type expected, Type actual) {
         if (expected.equals(actual)) {
             return true;
@@ -1253,6 +1362,27 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private static String format(Type type) {
         return TypeStringFormatter.format(type);
+    }
+
+    private static String format(String qualifier, List<? extends Type> types) {
+        if (types.size() == 1) {
+            return qualifier + " " + format(types);
+        } else {
+            return qualifier + "s " + format(types);
+        }
+    }
+
+    private static String format(List<? extends Type> types) {
+        if (types.size() == 1) {
+            return TypeStringFormatter.format(types.get(0));
+        } else {
+            return join(", ", types, new InternalTransformer<String, Type>() {
+                @Override
+                public String transform(Type type) {
+                    return TypeStringFormatter.format(type);
+                }
+            });
+        }
     }
 
     private class ThisAsService implements ServiceProvider, Service {

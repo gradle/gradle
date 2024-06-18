@@ -23,9 +23,14 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.common.withAllPotentiallyDeclarativeSupertypes
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
+import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
+import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -36,63 +41,79 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 
-sealed
-class AbstractSoftwareTypeComponent(
+/**
+ * Support for software types that are used as configuration blocks in build definitions.
+ *
+ * When a software type is used, the plugin providing it is applied to the project.
+ */
+internal
+fun EvaluationAndConversionSchemaBuilder.softwareTypesWithPluginApplication(
+    schemaTypeToExtend: KClass<*>,
+    softwareTypeRegistry: SoftwareTypeRegistry
+) {
+    val softwareTypeInfo = buildSoftwareTypeInfo(softwareTypeRegistry, schemaTypeToExtend, ::applySoftwareTypePlugin)
+    registerAnalysisSchemaComponent(SoftwareTypeComponent(schemaTypeToExtend, softwareTypeInfo))
+    registerObjectConversionComponent(SoftwareTypeConversionComponent(softwareTypeInfo))
+}
+
+
+/**
+ * Support for software types that are configured as conventions in the settings build script.
+ *
+ * Conventions are not applied when process the settings build script, but are captured and applied when a project build script references a given software type.
+ */
+internal
+fun EvaluationSchemaBuilder.softwareTypesConventions(
+    schemaTypeToExtend: KClass<*>,
+    softwareTypeRegistry: SoftwareTypeRegistry
+) {
+    val softwareTypeInfo = buildSoftwareTypeInfo(softwareTypeRegistry, schemaTypeToExtend) { _, _ -> }
+    registerAnalysisSchemaComponent(SoftwareTypeComponent(schemaTypeToExtend, softwareTypeInfo))
+}
+
+
+private
+fun applySoftwareTypePlugin(receiverObject: Any, softwareType: SoftwareTypeImplementation<*>): Any {
+    require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
+    receiverObject.pluginManager.apply(softwareType.pluginClass)
+    return receiverObject.extensions.getByName(softwareType.softwareType)
+}
+
+
+private
+class SoftwareTypeComponent(
     private val schemaTypeToExtend: KClass<*>,
     private val softwareTypeImplementations: List<SoftwareTypeInfo<*>>
-) : EvaluationSchemaComponent {
+) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.map { it.modelPublicType.kotlin })
+        FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.flatMap {
+            withAllPotentiallyDeclarativeSupertypes(it.modelPublicType.kotlin)
+        })
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         softwareTypeConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations)
     )
+}
 
+
+private
+class SoftwareTypeConversionComponent(
+    private val softwareTypeImplementations: List<SoftwareTypeInfo<*>>
+) : ObjectConversionComponent {
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
         RuntimeModelTypeAccessors(softwareTypeImplementations)
     )
 }
 
 
-/**
- * Component for software types referenced in a project build script.  When the software type is referenced, its corresponding
- * plugin is applied to the project and its extension object returned.
- */
-internal
-class SoftwareTypeComponent(
-    private val schemaTypeToExtend: KClass<*>,
-    private val accessorIdPrefix: String,
-    softwareTypeRegistry: SoftwareTypeRegistry
-) : AbstractSoftwareTypeComponent(
-    schemaTypeToExtend,
-    softwareTypeRegistry.getSoftwareTypeImplementations().map {
-        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { receiverObject ->
-            require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
-            receiverObject.pluginManager.apply(it.pluginClass)
-            receiverObject.extensions.getByName(it.softwareType)
-        }
-    }
-)
-
-
-/**
- * Component for software types that are configured as conventions in the settings build script.  Conventions are not applied
- * when process the settings build script, but are captured and applied when a project build script references a given
- * software type.
- */
-internal
-class SoftwareTypeConventionComponent(
-    private val schemaTypeToExtend: KClass<*>,
-    private val accessorIdPrefix: String,
-    softwareTypeRegistry: SoftwareTypeRegistry
-) : AbstractSoftwareTypeComponent(
-    schemaTypeToExtend,
-    softwareTypeRegistry.getSoftwareTypeImplementations().map {
-        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { _ -> }
-    }
-) {
-    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = emptyList()
+private
+fun buildSoftwareTypeInfo(
+    softwareTypeRegistry: SoftwareTypeRegistry,
+    schemaTypeToExtend: KClass<*>,
+    onSoftwareTypeApplication: (receiverObject: Any, softwareType: SoftwareTypeImplementation<*>) -> Any
+): List<SoftwareTypeInfo<out Any?>> = softwareTypeRegistry.getSoftwareTypeImplementations().map {
+    SoftwareTypeInfo(it, schemaTypeToExtend, SOFTWARE_TYPE_ACCESSOR_PREFIX) { receiverObject -> onSoftwareTypeApplication(receiverObject, it) }
 }
 
 

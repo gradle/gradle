@@ -23,12 +23,15 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
-import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
+    static boolean isMirrorEnabled() {
+        return !Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
+    }
+
     static String repositoryDefinition(GradleDsl dsl = GROOVY, String type, String name, String url) {
         if (dsl == KOTLIN) {
             """
@@ -48,7 +51,6 @@ class RepoScriptBlockUtil {
     }
 
     private static enum MirroredRepository {
-        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
         MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
         GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
         LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
@@ -92,14 +94,6 @@ class RepoScriptBlockUtil {
     private RepoScriptBlockUtil() {
     }
 
-    static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        """
-            repositories {
-                ${jcenterRepositoryDefinition(dsl)}
-            }
-        """
-    }
-
     static String getMavenCentralMirrorUrl() {
         MirroredRepository.MAVEN_CENTRAL.mirrorUrl
     }
@@ -122,10 +116,6 @@ class RepoScriptBlockUtil {
                 ${googleRepositoryDefinition(dsl)}
             }
         """
-    }
-
-    static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {
-        MirroredRepository.JCENTER.getRepositoryDefinition(dsl)
     }
 
     static String mavenCentralRepositoryDefinition(GradleDsl dsl = GROOVY) {
@@ -178,6 +168,7 @@ class RepoScriptBlockUtil {
         return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
+            import org.gradle.util.GradleVersion
 
             apply plugin: MirrorPlugin
 
@@ -198,7 +189,7 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void applyToAllProjects(Gradle gradle, Closure projectClosure) {
-                    if (gradle.gradleVersion >= "8.8") {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("8.8")) {
                         gradle.lifecycle.beforeProject(projectClosure)
                     } else {
                         gradle.allprojects(projectClosure)
@@ -207,7 +198,7 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void maybeConfigurePluginManagement(Gradle gradle) {
-                    if (gradle.gradleVersion >= "4.4") {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
                         gradle.settingsEvaluated { Settings settings ->
                             withMirrors(settings.pluginManagement.repositories)
                         }

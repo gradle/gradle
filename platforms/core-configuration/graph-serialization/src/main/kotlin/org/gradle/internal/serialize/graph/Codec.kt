@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
+import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -159,7 +160,7 @@ interface MutableIsolateContext : IsolateContext {
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 
-    suspend fun forIncompatibleType(path: String, action: suspend () -> Unit)
+    suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit)
 }
 
 
@@ -206,6 +207,12 @@ inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block:
 
 inline fun <T : MutableIsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
+        action()
+    }
+
+
+inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(kind: PropertyKind, name: String, action: () -> R): R =
+    withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
         action()
     }
 

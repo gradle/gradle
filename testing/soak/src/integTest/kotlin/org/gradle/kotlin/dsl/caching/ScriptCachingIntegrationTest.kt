@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.caching
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.kotlin.dsl.caching.fixtures.CachedScript
 import org.gradle.kotlin.dsl.caching.fixtures.KotlinDslCacheFixture
 import org.gradle.kotlin.dsl.caching.fixtures.cachedBuildFile
@@ -270,6 +271,70 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
         val daemonFixture = DaemonLogsAnalyzer.newAnalyzer(executer.daemonBaseDir)
         assertThat(daemonFixture.daemons).hasSize(1)
+    }
+
+    @Test
+    fun `writes build cache entries`() {
+        val result = expectCacheEntriesWritten(5, false)
+        result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
+        result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
+        result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
+        result.assertOutputContains("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+        result.assertOutputContains("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+    }
+
+    @Test
+    fun `writes no build cache entries when script caching disabled`() {
+        val result = expectCacheEntriesWritten(3, true)
+        result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
+        result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
+        result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
+        result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
+    }
+
+    private
+    fun expectCacheEntriesWritten(expectedEntryCount: Int, scriptCachingDisabled: Boolean): ExecutionResult {
+        return withOwnGradleUserHomeDir("verifying local build cache content") {
+            withSettings(
+                """
+                    enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+                    ${randomScriptContent()}
+                """.trimIndent()
+            )
+            withBuildScriptIn(".", randomScriptContent())
+            withFolders {
+                "gradle" {
+                    withFile(
+                        "libs.versions.toml",
+                        """
+                            [versions]
+                            groovy = "3.0.5"
+                            checkstyle = "8.37"
+
+                            [libraries]
+                            groovy-core = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+                            groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
+                        """.trimIndent()
+                    )
+                }
+            }
+
+            val result = buildForCacheInspection("help", "--build-cache", "--info", "-Dorg.gradle.internal.kotlin-script-caching-disabled=$scriptCachingDisabled")
+
+            if (scriptCachingDisabled) {
+                result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
+                result.assertOutputContains("Caching of Kotlin script compilation disabled by property")
+            } else {
+                result.assertOutputContains("Stored cache entry for Kotlin DSL script compilation")
+                result.assertNotOutput("Caching of Kotlin script compilation disabled by property")
+            }
+
+            val localBuildCacheDir = executer.gradleUserHomeDir.resolve("caches/build-cache-1")
+            val localBuildCacheFiles = localBuildCacheDir.list { _, fileName -> fileName != "gc.properties" && fileName != "build-cache-1.lock" }
+
+            assertThat(localBuildCacheFiles).hasSize(expectedEntryCount)
+            result
+        }
     }
 
     private

@@ -73,9 +73,10 @@ errorprone {
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.instrumentationAgentServices)
     api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
@@ -132,6 +133,7 @@ dependencies {
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)

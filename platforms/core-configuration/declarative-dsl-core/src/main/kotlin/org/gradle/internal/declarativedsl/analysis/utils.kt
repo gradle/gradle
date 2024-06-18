@@ -26,11 +26,24 @@ inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
 
 internal
 fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = when (isAssignableTo) {
-    is DataType.ConstantType<*> -> valueType == isAssignableTo
-    is DataClass -> valueType is DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
-    is DataType.NullType -> false // TODO: proper null type support
-    is DataType.UnitType -> valueType is DataType.UnitType
-    else -> error("Unhandled data type: ${isAssignableTo.javaClass.simpleName}")
+    is DataClass -> valueType is DataClass && (sameType(valueType, isAssignableTo) || isAssignableTo.name in valueType.supertypes)
+    else -> sameType(valueType, isAssignableTo)
+}
+
+
+/**
+ * Can't check for equality: TAPI proxies are not equal to the original implementations.
+ * TODO: maybe "reify" the TAPI proxies to ensure equality?
+ */
+internal
+fun sameType(left: DataType, right: DataType) = when (left) {
+    is DataClass -> right is DataClass && left.name.qualifiedName == right.name.qualifiedName
+    is DataType.BooleanDataType -> right is DataType.BooleanDataType
+    is DataType.IntDataType -> right is DataType.IntDataType
+    is DataType.LongDataType -> right is DataType.LongDataType
+    is DataType.StringDataType -> right is DataType.StringDataType
+    is DataType.NullType -> right is DataType.NullType
+    is DataType.UnitType -> right is DataType.UnitType
 }
 
 

@@ -6,7 +6,7 @@ description = "Implementation of build event services and build event types (wor
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(project(":build-operations"))
     api(project(":core"))

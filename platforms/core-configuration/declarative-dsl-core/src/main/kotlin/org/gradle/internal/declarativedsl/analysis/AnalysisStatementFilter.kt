@@ -16,48 +16,67 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 
 
-fun interface AnalysisStatementFilter {
-    fun shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScopeView>): Boolean
+object AnalysisStatementFilterUtils {
+    val isConfiguringCall: AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultConfiguringCallFilter()
 
-    companion object {
-        val isConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter { statement, _ ->
-            statement is FunctionCall && statement.args.singleOrNull() is FunctionArgument.Lambda
-        }
+    val isTopLevelElement: AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultTopLevelElementFilter()
 
-
-        val isTopLevelElement: AnalysisStatementFilter = AnalysisStatementFilter { _, scopes ->
-            scopes.last().receiver is ObjectOrigin.TopLevelReceiver
-        }
-
-
-        fun isCallNamed(name: String): AnalysisStatementFilter = AnalysisStatementFilter { statement, _ ->
-            statement is FunctionCall && statement.name == name
-        }
-    }
+    fun isCallNamed(name: String): AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultNamedCallFilter(name)
 }
 
 
-val analyzeEverything: AnalysisStatementFilter = AnalysisStatementFilter { _, _ -> true }
+val analyzeEverything: AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultAnalyzeEverythingFilter()
 
 
-fun AnalysisStatementFilter.and(other: AnalysisStatementFilter): AnalysisStatementFilter = AnalysisStatementFilter { statement, scopes ->
-    shouldAnalyzeStatement(statement, scopes) && other.shouldAnalyzeStatement(statement, scopes)
-}
+fun AnalysisStatementFilter.and(other: AnalysisStatementFilter): AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultAndFilter(this, other)
 
 
-fun AnalysisStatementFilter.or(other: AnalysisStatementFilter): AnalysisStatementFilter = AnalysisStatementFilter { statement, scopes ->
-    shouldAnalyzeStatement(statement, scopes) || other.shouldAnalyzeStatement(statement, scopes)
-}
+fun AnalysisStatementFilter.or(other: AnalysisStatementFilter): AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultOrFilter(this, other)
 
 
 fun AnalysisStatementFilter.implies(other: AnalysisStatementFilter) = this.not().or(other)
 
 
-fun AnalysisStatementFilter.not(): AnalysisStatementFilter = AnalysisStatementFilter { statement, scopes ->
-    !shouldAnalyzeStatement(statement, scopes)
+fun AnalysisStatementFilter.not(): AnalysisStatementFilter = AnalysisStatementFiltersImplementations.DefaultNotFilter(this)
+
+
+internal
+fun AnalysisStatementFilter.shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScopeView>): Boolean = when (this) {
+    is AnalysisStatementFilter.AnalyzeEverythingFilter -> true
+    is AnalysisStatementFilter.CompositionFilter.AndFilter -> left.shouldAnalyzeStatement(statement, scopes) && right.shouldAnalyzeStatement(statement, scopes)
+    is AnalysisStatementFilter.CompositionFilter.OrFilter -> left.shouldAnalyzeStatement(statement, scopes) || right.shouldAnalyzeStatement(statement, scopes)
+    is AnalysisStatementFilter.ConfiguringCallFilter -> statement is FunctionCall && statement.args.singleOrNull() is FunctionArgument.Lambda
+    is AnalysisStatementFilter.NamedCallFilter -> statement is FunctionCall && statement.name == callName
+    is AnalysisStatementFilter.NotFilter -> !negationOf.shouldAnalyzeStatement(statement, scopes)
+    is AnalysisStatementFilter.TopLevelElementFilter -> scopes.last().receiver is ObjectOrigin.TopLevelReceiver
+}
+
+
+internal
+object AnalysisStatementFiltersImplementations {
+    class DefaultAnalyzeEverythingFilter : AnalysisStatementFilter.AnalyzeEverythingFilter
+
+    class DefaultConfiguringCallFilter : AnalysisStatementFilter.ConfiguringCallFilter
+
+    class DefaultTopLevelElementFilter : AnalysisStatementFilter.TopLevelElementFilter
+
+    class DefaultNamedCallFilter(override val callName: String) : AnalysisStatementFilter.NamedCallFilter
+
+    class DefaultNotFilter(override val negationOf: AnalysisStatementFilter) : AnalysisStatementFilter.NotFilter
+
+    class DefaultAndFilter(
+        override val left: AnalysisStatementFilter,
+        override val right: AnalysisStatementFilter
+    ) : AnalysisStatementFilter.CompositionFilter.AndFilter
+
+    class DefaultOrFilter(
+        override val left: AnalysisStatementFilter,
+        override val right: AnalysisStatementFilter
+    ) : AnalysisStatementFilter.CompositionFilter.OrFilter
 }

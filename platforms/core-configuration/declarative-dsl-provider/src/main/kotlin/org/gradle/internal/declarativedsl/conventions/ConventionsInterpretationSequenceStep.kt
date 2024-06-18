@@ -16,78 +16,45 @@
 
 package org.gradle.internal.declarativedsl.conventions
 
-import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
-import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
+import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinition
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionsConfiguringBlock
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionsTopLevelReceiver
+import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
+internal
+fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
+    "settingsConventions",
+    features = setOf(ConventionDefinition()),
+    buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
+)
+
+
 private
-const val CONVENTIONS = "conventions"
-
-
-/**
- * The interpretation step for the top-level "conventions" block in the Settings DSL.  This step extracts the operations
- * in the conventions block and adds them to the software types.  It does no runtime processing of the conventions (i.e.
- * none of the operations are applied by this step).  The stored conventions will be applied later when processing a
- * build file that uses a software type.
- */
-class ConventionsInterpretationSequenceStep(
-    override val stepIdentifier: String = CONVENTIONS,
-    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.CONVENTION_ASSIGNMENT,
-    private val softwareTypeRegistry: SoftwareTypeRegistry,
-    private val buildEvaluationSchema: () -> EvaluationSchema
-) : InterpretationSequenceStep<ConventionsTopLevelReceiver> {
-    private
-    val conventionsResolutionProcessor = ConventionsResolutionProcessor()
-
-    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
-
-    override fun getTopLevelReceiverFromTarget(target: Any): ConventionsTopLevelReceiver = object : ConventionsTopLevelReceiver {
-        override fun conventions(conventions: ConventionsConfiguringBlock.() -> Unit) = Unit
+fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
+    buildEvaluationSchema(
+        ConventionsTopLevelReceiver::class,
+        isTopLevelElement.implies(isConventionsConfiguringCall),
+        operationGenerationId = DefaultOperationGenerationId.convention
+    ) {
+        gradleDslGeneralSchema()
+        dependencyCollectors()
+        softwareTypesConventions(ConventionsConfiguringBlock::class, softwareTypeRegistry)
     }
 
-    override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        val conventions = conventionsResolutionProcessor.process(resolutionResult)
-        softwareTypeRegistry.softwareTypeImplementations.forEach { softwareTypeImplementation ->
-            conventions.additions[softwareTypeImplementation.softwareType]?.forEach {
-                softwareTypeImplementation.addConvention(AdditionRecordConvention(it))
-            }
-            conventions.assignments[softwareTypeImplementation.softwareType]?.forEach {
-                softwareTypeImplementation.addConvention(AssignmentRecordConvention(it))
-            }
-            conventions.nestedObjectAccess[softwareTypeImplementation.softwareType]?.forEach {
-                softwareTypeImplementation.addConvention(NestedObjectAccessConvention(it))
-            }
-        }
-        return resolutionResult
-    }
 
-    override fun whenEvaluated(resultReceiver: ConventionsTopLevelReceiver) = Unit
-
-    override fun getReflectionToObjectConverter(
-        externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
-        topLevelObject: Any,
-        functionResolver: RuntimeFunctionResolver,
-        propertyResolver: RuntimePropertyResolver,
-        customAccessors: RuntimeCustomAccessors
-    ): ReflectionToObjectConverter {
-        return object : ReflectionToObjectConverter {
-            override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
-                // Do nothing
-            }
-        }
-    }
-}
-
-
-val isConventionsConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed(CONVENTIONS))
+val isConventionsConfiguringCall: AnalysisStatementFilter =
+    isConfiguringCall.and(isCallNamed(ConventionsTopLevelReceiver::conventions.name))

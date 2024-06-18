@@ -16,13 +16,12 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.dom.data.collectToMap
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
@@ -54,8 +53,8 @@ object DomResolutionTest {
         resolver.resolve(schema, emptyList(), topLevelBlock)
 
         val document = convertBlockToDocument(topLevelBlock)
-        val resolved = resolvedDocument(schema, resolver.trace, document)
-        val resolutions = collectResolutions(resolved)
+        val resolved = resolutionContainer(schema, resolver.trace, document)
+        val resolutions = resolved.collectToMap(document).values
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
@@ -74,33 +73,12 @@ object DomResolutionTest {
             PropertyAssignmentResolved -> TopLevelReceiver.complexValueTwo: ComplexValueTwo
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
-            PropertyConfiguringElementResolved -> configure NestedReceiver
+            ConfiguringElementResolved -> configure NestedReceiver
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
             """.trimIndent()
         )
-    }
-
-    @Test
-    fun `resolved document keeps the original structure and source data`() {
-        val resolver = tracingCodeResolver()
-
-        val topLevelBlock = parseAsTopLevelBlock(
-            """
-            addAndConfigure("test") {
-                number = 123
-            }
-            """.trimIndent()
-        )
-
-        val document = convertBlockToDocument(topLevelBlock)
-        resolver.resolve(schema, emptyList(), topLevelBlock)
-
-        val resolved = resolvedDocument(schema, resolver.trace, document)
-        val printer = DomTest.DomPrettyPrinter(withSourceData = true)
-
-        assertEquals(printer.domAsString(document), printer.domAsString(resolved))
     }
 
     @Test
@@ -128,8 +106,8 @@ object DomResolutionTest {
         resolver.resolve(schema, emptyList(), topLevelBlock)
 
         val document = convertBlockToDocument(topLevelBlock)
-        val resolved = resolvedDocument(schema, resolver.trace, document, strictReceiverChecks = true)
-        val resolutions = collectResolutions(resolved)
+        val resolved = resolutionContainer(schema, resolver.trace, document, strictReceiverChecks = true)
+        val resolutions = resolved.collectToMap(document).values
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
@@ -150,7 +128,7 @@ object DomResolutionTest {
             ElementNotResolved(UnresolvedSignature)
             ValueFactoryResolved -> two(String): ComplexValueTwo
             LiteralValueResolved -> three
-            PropertyConfiguringElementResolved -> configure NestedReceiver
+            ConfiguringElementResolved -> configure NestedReceiver
             ElementNotResolved(CrossScopeAccess)
             LiteralValueResolved -> cross-scope
             ElementNotResolved(UnresolvedSignature)
@@ -160,37 +138,7 @@ object DomResolutionTest {
     }
 
     private
-    val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses.toList())
-
-    private
-    fun collectResolutions(resolvedDeclarativeDocument: ResolvedDeclarativeDocument) = buildList {
-        class Visitor {
-            fun visitNode(node: ResolvedDeclarativeDocument.ResolvedDocumentNode) {
-                add(node.resolution)
-                when (node) {
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode -> {
-                        node.elementValues.forEach(::visitValue)
-                        node.content.forEach(::visitNode)
-                    }
-
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedPropertyNode -> {
-                        visitValue(node.value)
-                    }
-
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedErrorNode -> Unit
-                }
-            }
-
-            fun visitValue(value: ResolvedDeclarativeDocument.ResolvedValueNode) {
-                add(value.resolution)
-                when (value) {
-                    is ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedLiteralValueNode -> Unit
-                    is ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedValueFactoryNode -> value.values.forEach(::visitValue)
-                }
-            }
-        }
-        Visitor().run { resolvedDeclarativeDocument.content.forEach(::visitNode) }
-    }
+    val schema = schemaFromTypes(TestApi.TopLevelReceiver::class, TestApi::class.nestedClasses.toList())
 
     private
     fun resolutionPrettyString(resolution: DocumentResolution): String =
@@ -198,16 +146,16 @@ object DomResolutionTest {
             is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
                 " -> element ${functionSignatureString(resolution.elementFactoryFunction)}"
 
-            is DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved ->
+            is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved ->
                 " -> configure ${resolution.elementType}"
 
             is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
                 " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
 
-            is DocumentResolution.ValueResolution.ValueFactoryResolution.ValueFactoryResolved ->
+            is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved ->
                 " -> ${functionSignatureString(resolution.function)}"
 
-            is DocumentResolution.ValueResolution.LiteralValueResolved -> " -> ${resolution.value}"
+            is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> " -> ${resolution.value}"
             is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
         }
 
@@ -220,77 +168,4 @@ object DomResolutionTest {
     private
     fun functionSignatureString(function: SchemaFunction) =
         "${function.simpleName}(${function.parameters.joinToString { typeString(it.type) }}): ${typeString(function.returnValueType)}"
-
-    @Suppress("unused", "UNUSED_PARAMETER")
-    private
-    class TopLevelReceiver {
-        @Adding
-        fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit) = TopLevelElement().also {
-            it.name = name
-            configure(it)
-        }
-
-        @get:Restricted
-        lateinit var complexValueOne: ComplexValueOne
-
-        @get:Restricted
-        lateinit var complexValueOneFromUtils: ComplexValueOne
-
-        @get:Restricted
-        lateinit var complexValueTwo: ComplexValueTwo
-
-        @Adding
-        fun justAdd(name: String): TopLevelElement = TopLevelElement()
-
-        @Configuring
-        fun nested(configure: NestedReceiver.() -> Unit) = configure(nested)
-
-        @Restricted
-        fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne = ComplexValueOne()
-
-        @Restricted
-        fun two(name: String): ComplexValueTwo = ComplexValueTwo()
-
-        @get:Restricted
-        val utils: Utils = Utils()
-
-        @get:Restricted
-        @get:HiddenInDeclarativeDsl
-        val nested = NestedReceiver()
-    }
-
-    private
-    class ComplexValueOne
-
-    private
-    class ComplexValueTwo
-
-    @Suppress("unused")
-    private
-    class TopLevelElement {
-        @get:Restricted
-        var name: String = ""
-
-        @get:Restricted
-        var number: Int = 0
-    }
-
-    @Suppress("unused")
-    private
-    class NestedReceiver {
-        @get:Restricted
-        var number: Int = 0
-
-        @Adding
-        fun add(): MyNestedElement = MyNestedElement()
-    }
-
-    private
-    class Utils {
-        @Restricted
-        fun oneUtil(): ComplexValueOne = ComplexValueOne()
-    }
-
-    private
-    class MyNestedElement
 }

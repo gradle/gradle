@@ -58,14 +58,14 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
-            public class Task_Adapter {
+            public final class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
-                    ${getDefaultDeprecation("Task", "maxErrors")}
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                     return self.getMaxErrors().getOrElse(0);
                 }
 
                 public static void access_set_setMaxErrors(Task self, int arg0) {
-                    ${getDefaultDeprecation("Task", "maxErrors")}
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                     self.getMaxErrors().set(arg0);
                 }
             }
@@ -123,14 +123,14 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
-            public class Task_Adapter {
+            public final class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
-                    ${getDefaultDeprecation("Task", "incremental")}
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
                     return self.getIncremental().getOrElse(false);
                 }
 
                 public static Task access_set_setIncremental(Task self, boolean arg0) {
-                    ${getDefaultDeprecation("Task", "incremental")}
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
                     self.getIncremental().set(arg0);
                     return self;
                 }
@@ -175,16 +175,16 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
-            public class Task_Adapter {
+            public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
-                    ${getDefaultDeprecation("Task", "property")}
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
                     return $getCall;
                 }
 
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static void access_set_setProperty(Task self, $originalType arg0) {
-                    ${getDefaultDeprecation("Task", "property")}
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
                     self.getProperty()$setCall;
                 }
             }
@@ -356,13 +356,5 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
-    }
-
-    private static String getDefaultDeprecation(String className, String propertyName) {
-        return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
-            ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
-            ".startingWithGradle9(\"this property is replaced with a lazy version\")\n" +
-            ".undocumented()\n" +
-            ".nagUser();";
     }
 }

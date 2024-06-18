@@ -1,5 +1,7 @@
 package gradlebuild.basics
 
+import java.util.regex.Pattern
+
 
 /**
  * This is the definition of what constitutes the Gradle public API.
@@ -7,7 +9,6 @@ package gradlebuild.basics
  * A type is part of the Gradle public API if and only if its FQCN matches {@link #includes} and does not match {@link #excludes}.
  */
 // NOTE: If you update this, please also change .idea/scopes/Gradle_public_API.xml
-// and also change `avoiding_gradle_internal_apis` section in `src/docs/userguide/authoring-builds/authoring_maintainable_build_scripts.adoc`
 object PublicApi {
     val includes = listOf(
         "org/gradle/*",
@@ -47,4 +48,20 @@ object PublicApi {
     )
 
     val excludes = listOf("**/internal/**")
+
+    private val includePackagePatterns: List<Pattern> by lazy {
+        includes.map {
+            if (it.endsWith("/**")) {
+                Pattern.compile(it.substring(0, it.length - 3).replace("/", "\\.") + "(\\..+)?")
+            } else {
+                Pattern.compile(it.substring(0, it.length - 2).replace("/", "\\.") + "\\.[^.]+")
+            }
+        }
+    }
+
+    private val excludePackagePatterns = listOf(Pattern.compile(".+\\.internal(\\..+)?"))
+
+    fun isPublicApiPackage(packageName: String) =
+        includePackagePatterns.any { it.matcher(packageName).matches() } &&
+            !excludePackagePatterns.any { it.matcher(packageName).matches() }
 }

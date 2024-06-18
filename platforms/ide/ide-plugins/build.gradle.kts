@@ -27,7 +27,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(project(":base-ide-plugins"))
     api(project(":base-services"))
@@ -98,3 +98,5 @@ packageCycles {
      canHandleCi.cies/xinjd/.classpath
  */
 testFilesCleanup.reportOnly = true
+
+integTest.usesJavadocCodeSnippets = true

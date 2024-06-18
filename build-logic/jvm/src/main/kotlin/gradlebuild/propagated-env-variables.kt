@@ -67,6 +67,9 @@ val propagatedEnvironmentVariables = listOf(
     "BUILD_TYPE_ID",
     "JPROFILER_HOME",
 
+    // Used by mirror init script, see RepoScriptBlockUtil
+    "IGNORE_MIRROR",
+
     "LANG",
     "LANGUAGE",
     // It is possible to have many LC_xxx variables for different aspects of the locale. However, LC_ALL overrides all of them, and it is what CI uses.

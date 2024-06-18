@@ -23,7 +23,7 @@ dependencies {
     api(project(":platform-jvm"))
 
     implementation(projects.internalInstrumentationApi)
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":core"))
     implementation(project(":dependency-management"))
     implementation(project(":execution"))

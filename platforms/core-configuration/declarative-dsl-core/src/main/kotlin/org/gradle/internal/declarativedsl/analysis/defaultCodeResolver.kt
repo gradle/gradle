@@ -1,5 +1,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr
@@ -7,7 +9,7 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 
 
-fun defaultCodeResolver(generationId: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT, elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
+fun defaultCodeResolver(generationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation, elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)
@@ -22,7 +24,7 @@ fun defaultCodeResolver(generationId: OperationGenerationId = OperationGeneratio
 }
 
 
-fun tracingCodeResolver(generationId: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT, elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
+fun tracingCodeResolver(generationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation, elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)

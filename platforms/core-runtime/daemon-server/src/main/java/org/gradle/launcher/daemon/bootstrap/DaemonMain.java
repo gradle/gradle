@@ -20,9 +20,9 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -168,7 +168,8 @@ public class DaemonMain extends EntryPoint {
         PrintStream result;
         try {
             Files.createParentDirs(daemonLog);
-            result = new PrintStream(new FileOutputStream(daemonLog), true);
+            // Note that DaemonDiagnostics class reads this log.
+            result = new PrintStream(new FileOutputStream(daemonLog), true, "UTF-8");
         } catch (Exception e) {
             throw new RuntimeException("Unable to create daemon log file", e);
         }

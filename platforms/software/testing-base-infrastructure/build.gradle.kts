@@ -9,7 +9,7 @@ description = """Generalized test infrastructure to support executing tests in t
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.messaging)
     api(projects.serialization)
     api(projects.time)

@@ -16,7 +16,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
@@ -50,6 +50,7 @@ dependencies {
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
+    integTestImplementation(testFixtures(project(":declarative-dsl-provider")))
 
     testFixturesApi(testFixtures(project(":platform-native")))
     testFixturesApi(testFixtures(project(":logging")))

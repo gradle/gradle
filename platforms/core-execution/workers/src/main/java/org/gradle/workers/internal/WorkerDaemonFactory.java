@@ -29,10 +29,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
     private final BuildOperationRunner buildOperationRunner;
+    private final WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
         this.clientsManager = clientsManager;
         this.buildOperationRunner = buildOperationRunner;
+        this.workerDaemonClientCancellationHandler = workerDaemonClientCancellationHandler;
     }
 
     @Override
@@ -40,6 +42,13 @@ public class WorkerDaemonFactory implements WorkerFactory {
         return new AbstractWorker(buildOperationRunner) {
             @Override
             public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
+                // This notifies the cancellation handler that a worker daemon has been in use during this build session.  If the
+                // build session is cancelled, we can't guarantee that all worker daemons are in a safe state, so the cancellation
+                // handler will stop any long-lived worker daemons.  If a worker is not used during this session (i.e. this method
+                // is never called) the cancellation handler will not stop daemons on a cancellation (as there is no danger of
+                // leaving one in an unsafe state).
+                workerDaemonClientCancellationHandler.start();
+                
                 // wrap in build operation for logging startup failures
                 final WorkerDaemonClient client = CurrentBuildOperationRef.instance().with(parentBuildOperation, this::reserveClient);
                 try {

@@ -16,7 +16,8 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.agents.AgentUtils
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.instrumentation.agent.AgentUtils
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -92,7 +93,11 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
         def libraries = lines[headingIndex + 2..<headingIndex + 2 + classpathSize]
         libraries.any {
-            it.contains("gradle-daemon-main")
+            if (GradleContextualExecuter.isNoDaemon()) {
+                it.contains("gradle-cli-main")
+            } else {
+                it.contains("gradle-daemon-main")
+            }
         }
         !maybeHasAgent || libraries.any {
             it.contains(AgentUtils.AGENT_MODULE_NAME)

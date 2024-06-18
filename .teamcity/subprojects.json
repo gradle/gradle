@@ -49,6 +49,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "bean-serialization-services",
+    "path": "platforms/core-configuration/bean-serialization-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache",
     "path": "platforms/core-execution/build-cache",
     "unitTests": true,
@@ -65,7 +72,7 @@
   {
     "name": "build-cache-example-client",
     "path": "platforms/core-execution/build-cache-example-client",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -196,6 +203,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "configuration-cache-base",
+    "path": "platforms/core-configuration/configuration-cache-base",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "configuration-problems-base",
     "path": "platforms/core-configuration/configuration-problems-base",
     "unitTests": false,
@@ -226,6 +240,13 @@
   {
     "name": "core-platform",
     "path": "subprojects/core-platform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "core-serialization-codecs",
+    "path": "platforms/core-configuration/core-serialization-codecs",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -273,6 +294,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-evaluator",
+    "path": "platforms/core-configuration/declarative-dsl-evaluator",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "declarative-dsl-provider",
     "path": "platforms/core-configuration/declarative-dsl-provider",
     "unitTests": true,
@@ -299,6 +327,13 @@
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
+  },
+  {
+    "name": "dependency-management-serialization-codecs",
+    "path": "platforms/core-configuration/dependency-management-serialization-codecs",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
   },
   {
     "name": "diagnostics",
@@ -553,6 +588,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "instrumentation-agent-services",
+    "path": "platforms/core-runtime/instrumentation-agent-services",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "instrumentation-declarations",
     "path": "platforms/core-runtime/instrumentation-declarations",
     "unitTests": false,
@@ -639,13 +681,6 @@
   {
     "name": "java-compiler-plugin",
     "path": "platforms/jvm/java-compiler-plugin",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "java-language-extensions",
-    "path": "platforms/core-runtime/java-language-extensions",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -945,6 +980,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "public-api",
+    "path": "subprojects/public-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "public-api-tests",
+    "path": "testing/public-api-tests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "publish",
     "path": "platforms/software/publish",
     "unitTests": true,
@@ -1061,6 +1110,13 @@
     "path": "testing/soak",
     "unitTests": false,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "stdlib-java-extensions",
+    "path": "platforms/core-runtime/stdlib-java-extensions",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

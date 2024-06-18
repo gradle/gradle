@@ -36,10 +36,10 @@ import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -469,7 +469,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter usingInitScript(File initScript) {
-        initScripts.add(initScript);
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            initScripts.add(initScript);
+        }
         return this;
     }
 

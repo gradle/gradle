@@ -5,7 +5,7 @@ plugins {
 description = "Implementation for interacting with HTTP build caches"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
 
     api(libs.httpcore)

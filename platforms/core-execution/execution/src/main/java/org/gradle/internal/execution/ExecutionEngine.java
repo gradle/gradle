@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
-@ServiceScope({Scope.Build.class, Scope.Gradle.class})
+@ServiceScope(Scope.Build.class)
 public interface ExecutionEngine {
     Request createRequest(UnitOfWork work);
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -28,7 +29,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.util.internal.GUtil;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
-    private static final ModuleVersionSelector UNKNOWN_MODULE_VERSION_SELECTOR = DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId("", "unknown"), "");
     private final LocalComponentRegistry localComponentRegistry;
 
     public DefaultComponentSelectorConverter(LocalComponentRegistry localComponentRegistry) {
@@ -54,16 +54,14 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState projectComponent = localComponentRegistry.getComponent(projectId);
-            if (projectComponent != null) {
-                ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();
-                return DefaultModuleVersionSelector.newSelector(moduleVersionId.getModule(), moduleVersionId.getVersion());
-            }
+            ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();
+            return DefaultModuleVersionSelector.newSelector(moduleVersionId.getModule(), moduleVersionId.getVersion());
         }
         if (selector instanceof LibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) selector;
             String libraryName = GUtil.elvis(libraryComponentSelector.getLibraryName(), "");
             return DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId(libraryComponentSelector.getProjectPath(), libraryName), "undefined");
         }
-        return UNKNOWN_MODULE_VERSION_SELECTOR;
+        throw new GradleException("Unrecognized component selector: " + selector);
     }
 }

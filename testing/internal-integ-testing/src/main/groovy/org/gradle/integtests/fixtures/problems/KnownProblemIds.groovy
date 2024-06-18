@@ -53,6 +53,7 @@ class KnownProblemIds {
         'compilation:groovy-dsl' : 'Groovy DSL script compilation',
         'validation:property-validation' : 'Property validation problems',
         'validation:type-validation' : 'Gradle type validation',
+        'validation:configuration-cache' : 'Configuration cache',
 
         // groups from integration tests
         'generic' : 'Generic'
@@ -62,6 +63,7 @@ class KnownProblemIds {
         'problems-api:missing-id' : 'Problem id must be specified',
         'problems-api:unsupported-additional-data' : 'Unsupported additional data type',
         'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
+        'compilation:java:initialization-failed' : 'Java compilation initialization error',
         'compilation:java:java-compilation-error' : 'Java compilation error',
         'compilation:java:java-compilation-failed' : 'Java compilation error',
         'compilation:java:java-compilation-warning' : 'Java compilation warning',
@@ -86,6 +88,9 @@ class KnownProblemIds {
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption' : 'The detachedConfiguration1 configuration has been deprecated for consumption.',
         'deprecation:configurations-acting-as-both-root-and-variant' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
         'deprecation:repository-jcenter' : 'The RepositoryHandler.jcenter() method has been deprecated.',
+        'task-selection:no-matches' : 'cannot locate task',
+        'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported' : 'registration of listener on \'Gradle.buildFinished\' is unsupported',
+        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported' : 'invocation of \'Task.project\' at execution time is unsupported.',
         'task-selection:ambiguous-matches' : 'Ambiguous matches',
         'task-selection:no-matches' : 'No matches',
         'task-selection:selection-failed' : 'Selection failed',
@@ -118,6 +123,7 @@ class KnownProblemIds {
         'validation:type-validation:ignored-annotations-on-method' : 'Ignored annotations on method',
         'validation:type-validation:invalid-use-of-type-annotation' : 'Incorrect use of type annotation',
         'validation:type-validation:not-cacheable-without-reason' : 'Not cacheable without reason',
+        'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache' : 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.',
 
         // integration test problems
         'deprecation:some-indirect-deprecation' : 'Some indirect deprecation has been deprecated.',

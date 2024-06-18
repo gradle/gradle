@@ -18,18 +18,19 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.common.withAllPotentiallyDeclarativeSupertypes
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
+import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 
@@ -44,7 +45,7 @@ import kotlin.reflect.full.isSubclassOf
  */
 @Suppress("unused") // temporarily excluded from the schema, awaiting rework in a way that does not require the target scope
 internal
-class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : EvaluationSchemaComponent {
+class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectConversionComponent, AnalysisSchemaComponent {
     private
     val projectAccessorsClass: KClass<*>? = try {
         targetScope.localClassLoader.loadClass("org.gradle.accessors.dm.RootProjectAccessor").kotlin
@@ -101,7 +102,7 @@ private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(kClass).flatMapTo(mutableSetOf(), ::allSupertypes)
+            allClassesReachableFromGetters(kClass).flatMapTo(mutableSetOf(), ::withAllPotentiallyDeclarativeSupertypes)
         } else {
             emptyList()
         }
@@ -117,20 +118,7 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
             }
         }
         visit(kClass)
-    }
-
-    private
-    fun allSupertypes(kClass: KClass<*>) = buildSet<KClass<*>> {
-        fun visit(type: KType) {
-            val classifier = type.classifier
-            if (classifier is KClass<*> && add(classifier)) {
-                (classifier.supertypes - Any::class.createType()).forEach(::visit) // No need to visit Any, it only clutters the extracted functions
-            }
-        }
-        add(kClass)
-        kClass.supertypes.forEach(::visit)
-    }
-}
+    } }
 
 
 private

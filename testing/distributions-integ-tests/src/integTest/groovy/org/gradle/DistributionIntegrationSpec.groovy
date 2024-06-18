@@ -46,14 +46,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        67
+        69
     }
 
     /**
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        76
+        80
     }
 
     /**

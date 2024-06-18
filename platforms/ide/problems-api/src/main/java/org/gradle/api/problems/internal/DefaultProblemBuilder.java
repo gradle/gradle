@@ -22,23 +22,22 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.SharedProblemGroup;
+import org.gradle.problems.Location;
+import org.gradle.problems.ProblemDiagnostics;
+import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public  class DefaultProblemBuilder implements InternalProblemBuilder {
+public class DefaultProblemBuilder implements InternalProblemBuilder {
 
-    private static List<Class<?>> supportedAdditionalDataTypes = ImmutableList.<Class<?>>of(
-        GeneralDataSpec.class,
-        DeprecationDataSpec.class,
-        TypeValidationDataSpec.class
-    );
+    private ProblemStream problemStream;
 
     private ProblemId id;
     private String contextualLabel;
     private Severity severity;
-    private final List<ProblemLocation> locations;
+    private final ImmutableList.Builder<ProblemLocation> locations = ImmutableList.builder();
     private String details;
     private DocLink docLink;
     private List<String> solutions;
@@ -51,15 +50,18 @@ public  class DefaultProblemBuilder implements InternalProblemBuilder {
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.severity = problem.getDefinition().getSeverity();
-        this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
+
+        locations.addAll(problem.getLocations());
+
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
+        this.problemStream = null;
     }
 
-    public DefaultProblemBuilder() {
-        this.locations = new ArrayList<ProblemLocation>();
+    public DefaultProblemBuilder(ProblemStream problemStream) {
+        this.problemStream = problemStream;
         this.solutions = new ArrayList<String>();
         this.additionalData = null;
     }
@@ -74,11 +76,38 @@ public  class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
-            return invalidProblem("unsupported-additional-data", "Unsupported additional data type", "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec)additionalData).getType().getName() + ". Supported types are: " + supportedAdditionalDataTypes);
+            return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + AdditionalDataBuilderFactory.getSupportedTypes());
+        }
+
+        RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
+        if (problemStream != null) {
+            addLocationsFromProblemStream(this.locations, exceptionForProblemInstantiation);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
-        return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
+        return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations.build(), details, exceptionForProblemInstantiation, additionalData);
+    }
+
+    private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, RuntimeException exceptionForProblemInstantiation) {
+        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
+        Location loc = problemDiagnostics.getLocation();
+        if (loc != null) {
+            locations.add(getFileLocation(loc));
+        }
+        if (problemDiagnostics.getSource() != null && problemDiagnostics.getSource().getPluginId() != null) {
+            locations.add(getDefaultPluginIdLocation(problemDiagnostics));
+        }
+    }
+
+    private static DefaultPluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
+        return new DefaultPluginIdLocation(problemDiagnostics.getSource().getPluginId());
+    }
+
+    private static FileLocation getFileLocation(Location loc) {
+        String path = loc.getSourceLongDisplayName().getDisplayName();
+        int line = loc.getLineNumber();
+        return DefaultLineInFileLocation.from(path, line);
     }
 
     private Problem invalidProblem(String id, String displayName, String contextualLabel) {
@@ -87,11 +116,14 @@ public  class DefaultProblemBuilder implements InternalProblemBuilder {
             "Problems API")
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.id, Severity.WARNING, null);
+        RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
+        ImmutableList.Builder<ProblemLocation> problemLocations = ImmutableList.builder();
+        addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
         return new DefaultProblem(problemDefinition, contextualLabel,
             ImmutableList.<String>of(),
-            ImmutableList.<ProblemLocation>of(),
+            problemLocations.build(),
             null,
-            getExceptionForProblemInstantiation(),
+            exceptionForProblemInstantiation,
             null);
     }
 
@@ -213,16 +245,12 @@ public  class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (!supportedAdditionalDataTypes.contains(specType)) {
-            additionalData = new UnsupportedAdditionalDataSpec(specType);
-        } else if (additionalData == null) {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(specType);
+        if (AdditionalDataBuilderFactory.ADDITIONAL_DATA_BUILDER_PROVIDERS.containsKey(specType)) {
+            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDatabuilder);
             additionalData = additionalDatabuilder.build();
         } else {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(additionalData);
-            config.execute((U) additionalDatabuilder);
-            additionalData = additionalDatabuilder.build();
+            additionalData = new UnsupportedAdditionalDataSpec(specType);
         }
         return this;
     }

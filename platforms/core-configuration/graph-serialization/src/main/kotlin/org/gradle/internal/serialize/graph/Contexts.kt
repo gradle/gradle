@@ -25,13 +25,17 @@ import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.BuildTree::class)
 interface BeanStateWriterLookup {
     fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter
 }
 
 
+@ServiceScope(Scope.BuildTree::class)
 interface BeanStateReaderLookup {
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 }
@@ -254,9 +258,9 @@ abstract class AbstractIsolateContext<T>(
         currentProblemsListener.onError(trace, error, message)
     }
 
-    override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) {
+    override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) {
         val previousListener = currentProblemsListener
-        currentProblemsListener = previousListener.forIncompatibleTask(path)
+        currentProblemsListener = previousListener.forIncompatibleTask(trace, reason)
         try {
             action()
         } finally {

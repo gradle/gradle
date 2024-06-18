@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.asm)
     api(libs.asmTree)

@@ -220,7 +220,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
         new CodeGeneratingSignatureTreeVisitor(result).visit(tree, -1);
 
-        result.addStatement("return invocation.callOriginal()");
+        result.addStatement("return invocation.callNext()");
         return result.build();
     }
 

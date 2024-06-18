@@ -54,7 +54,7 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractKotlinIntegrationT
     fun executerForCacheInspection(vararg arguments: String): GradleExecuter =
         gradleExecuterFor(
             arrayOf(
-                "-d",
+                "--debug", // Required to verify script compilation via log messages
                 "-Dorg.gradle.internal.operations.trace=${newFile("operation-trace")}",
                 *arguments
             )

@@ -143,6 +143,7 @@ public class LocalComponentGraphResolveStateFactory {
             idGenerator,
             adHoc,
             configurationFactory,
+            calculatedValueContainerFactory,
             null
         );
     }
@@ -215,12 +216,14 @@ public class LocalComponentGraphResolveStateFactory {
 
         @Override
         public void visitConsumableConfigurations(Consumer<LocalConfigurationGraphResolveMetadata> visitor) {
-            VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
+            model.applyToMutableState(p -> {
+                VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
 
-            configurationsProvider.visitAll(configuration -> {
-                if (configuration.isCanBeConsumed()) {
-                    visitor.accept(createConfigurationMetadata(configuration));
-                }
+                configurationsProvider.visitAll(configuration -> {
+                    if (configuration.isCanBeConsumed()) {
+                        visitor.accept(createConfigurationMetadata(configuration));
+                    }
+                });
             });
         }
 
@@ -232,18 +235,22 @@ public class LocalComponentGraphResolveStateFactory {
         @Nullable
         @Override
         public LocalConfigurationGraphResolveMetadata getConfiguration(String name) {
-            ConfigurationInternal configuration = configurationsProvider.findByName(name);
-            if (configuration == null) {
-                return null;
-            }
+            return model.fromMutableState(p -> {
+                ConfigurationInternal configuration = configurationsProvider.findByName(name);
+                if (configuration == null) {
+                    return null;
+                }
 
-            return createConfigurationMetadata(configuration);
+                return createConfigurationMetadata(configuration);
+            });
         }
 
         @Override
         public Set<String> getConfigurationNames() {
             Set<String> names = new HashSet<>();
-            configurationsProvider.visitAll(configuration -> names.add(configuration.getName()));
+            model.applyToMutableState(p ->
+                configurationsProvider.visitAll(configuration -> names.add(configuration.getName()))
+            );
             return names;
         }
 

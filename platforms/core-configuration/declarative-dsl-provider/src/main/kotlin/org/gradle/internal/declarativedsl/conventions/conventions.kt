@@ -19,8 +19,8 @@ package org.gradle.internal.declarativedsl.conventions
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
-import org.gradle.internal.declarative.dsl.model.conventions.Convention
-import org.gradle.internal.declarative.dsl.model.conventions.ConventionReceiver
+import org.gradle.plugin.software.internal.Convention
+import org.gradle.plugin.software.internal.ConventionReceiver
 
 
 /**

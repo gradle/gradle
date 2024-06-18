@@ -156,7 +156,9 @@ Configuration 'bar':
             assert result == [expected] as Set
         } catch (VariantSelectionException e) {
             if (expected == null) {
-                def expectedMsg = "The consumer was configured to find ${queryAttributes.flavor?"attribute 'flavor' with value '$queryAttributes.flavor', ":""}attribute 'platform' with value '${queryAttributes.platform}'. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"
+                def distinguisher = queryAttributes.containsKey('flavor') ? 'extra' : 'flavor'
+                def distinguishingValues = distinguisher == 'flavor' ? "\n  - Value: 'paid' selects variant: 'bar'\n  - Value: 'free' selects variant: 'foo'" : "\n  - Value: 'bar' selects variant: 'bar'\n  - Value: 'foo' selects variant: 'foo'"
+                def expectedMsg = "The consumer was configured to find ${queryAttributes.flavor?"attribute 'flavor' with value '$queryAttributes.flavor', ":""}attribute 'platform' with value '${queryAttributes.platform}'. There are several available matching variants of [target]\nThe only attribute distinguishing these variants is '$distinguisher'. Add this attribute to the consumer's configuration to resolve the ambiguity:${distinguishingValues}"
                 assert e.message.startsWith(toPlatformLineSeparators(expectedMsg))
             } else {
                 throw e
@@ -205,7 +207,9 @@ Configuration 'bar':
             assert result == [expected] as Set
         } catch (VariantSelectionException e) {
             if (expected == null) {
-                def expectedMsg = "The consumer was configured to find ${queryAttributes.flavor?"attribute 'flavor' with value '${queryAttributes.flavor}', ":""}attribute 'platform' with value '${queryAttributes.platform}'. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"
+                def distinguisher = queryAttributes.containsKey('flavor') ? 'extra' : 'flavor'
+                def distinguishingValues = distinguisher == 'flavor' ? "\n  - Value: 'paid' selects variant: 'bar'\n  - Value: 'free' selects variant: 'foo'" : "\n  - Value: 'bar' selects variant: 'bar'\n  - Value: 'foo' selects variant: 'foo'"
+                def expectedMsg = "The consumer was configured to find ${queryAttributes.flavor?"attribute 'flavor' with value '${queryAttributes.flavor}', ":""}attribute 'platform' with value '${queryAttributes.platform}'. There are several available matching variants of [target]\nThe only attribute distinguishing these variants is '$distinguisher'. Add this attribute to the consumer's configuration to resolve the ambiguity:${distinguishingValues}"
                 assert e.message.startsWith(toPlatformLineSeparators(expectedMsg))
             } else {
                 throw e

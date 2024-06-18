@@ -29,6 +29,8 @@ public class NoKotlinStdlibBinaryDependencyTest {
     public static final ArchRule schema_types_do_not_have_binary_dependencies_on_kotlin_stdlib =
         // The `declarative-dsl-tooling-models` should be usable in clients that have no Kotlin stdlib.
         // We check that it has no references to the stdlib types, except for the @kotlin.Metadata annotation.
-        classes().that().resideInAPackage("org.gradle.declarative.dsl.schema")
+        classes().that()
+            .resideInAPackage("org.gradle.declarative.dsl.schema").or()
+            .resideInAPackage("org.gradle.declarative.dsl.evaluation")
             .should().onlyDependOnClassesThat().haveNameNotMatching("kotlin\\.(?!Metadata$).*");
 }

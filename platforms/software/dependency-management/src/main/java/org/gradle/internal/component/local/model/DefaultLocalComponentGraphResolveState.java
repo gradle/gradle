@@ -44,7 +44,9 @@ import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueCache;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
@@ -54,8 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -68,15 +69,16 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final boolean adHoc;
     private final ConfigurationMetadataFactory configurationFactory;
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     // The graph resolve state for each configuration of this component
-    private final ConcurrentMap<String, DefaultLocalConfigurationGraphResolveState> configurations = new ConcurrentHashMap<>();
+    private final CalculatedValueCache<String, DefaultLocalConfigurationGraphResolveState> configurations;
 
     // The variants to use for variant selection during graph resolution
-    private final Lazy<LocalComponentGraphSelectionCandidates> graphSelectionCandidates;
+    private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
 
     // The public view of all selectable variants of this component
-    private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
+    private final AtomicReference<CalculatedValue<List<ResolvedVariantResult>>> selectableVariantResults = new AtomicReference<>();
 
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
@@ -85,30 +87,49 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         ComponentIdGenerator idGenerator,
         boolean adHoc,
         ConfigurationMetadataFactory configurationFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
         super(instanceId, metadata, attributeDesugaring);
         this.idGenerator = idGenerator;
         this.adHoc = adHoc;
         this.configurationFactory = configurationFactory;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.artifactTransformer = artifactTransformer;
 
-        // TODO: We should be using the CalculatedValue infrastructure to lazily compute these values
-        //       in order to properly manage project locks.
-        this.graphSelectionCandidates = Lazy.locking().of(() ->
-            computeGraphSelectionCandidates(this, idGenerator, configurationFactory, artifactTransformer)
-        );
-        this.selectableVariantResults = Lazy.locking().of(() ->
-            computeSelectableVariantResults(this)
-        );
+        // Mutable state
+        this.configurations = calculatedValueContainerFactory.createCache(Describables.of("configurations"));
+        initCalculatedValues();
     }
 
     @Override
     public void reevaluate() {
-        // TODO: This is not thread-safe. We do not atomically clear all the different fields at once.
+        // TODO: This is not really thread-safe.
+        //       We should atomically clear all the different fields at once.
+        //       Or better yet, we should not allow reevaluation of the state.
         configurations.clear();
         configurationFactory.invalidate();
-        // TODO: We are missing logic to invalidate allVariantsForGraphResolution and selectableVariantResults.
+        initCalculatedValues();
+    }
+
+    private void initCalculatedValues() {
+        // TODO: We wrap the CalculatedValues in an AtomicReference so that we can reset their state, however
+        //       CalculatedValues are not resettable for a reason. This is a pretty terrible hack.
+        //       We should get rid of reevaluate entirely, so that we do not need these AtomicReferences.
+        //       We are already on this path -- we deprecated mutating a configuration after observation.
+        //       However, while mutation is still allowed, we need hacks like this, as plugins are relying
+        //       on the deprecated behavior, for example the Spring dependency management plugin which adds
+        //       excludes to dependencies in a beforeResolve.
+        this.graphSelectionCandidates.set(
+            calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
+                computeGraphSelectionCandidates(this, idGenerator, configurationFactory, calculatedValueContainerFactory, artifactTransformer)
+            )
+        );
+        this.selectableVariantResults.set(
+            calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
+                computeSelectableVariantResults(this)
+            )
+        );
     }
 
     @Override
@@ -143,6 +164,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             idGenerator,
             adHoc,
             configurationFactory,
+            calculatedValueContainerFactory,
             cachedTransformer
         );
     }
@@ -154,13 +176,16 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        return graphSelectionCandidates.get();
+        CalculatedValue<LocalComponentGraphSelectionCandidates> value = graphSelectionCandidates.get();
+        value.finalizeIfNotAlready();
+        return value.get();
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
         DefaultLocalComponentGraphResolveState component,
         ComponentIdGenerator idGenerator,
         ConfigurationMetadataFactory configurationFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
         ImmutableList.Builder<VariantGraphResolveState> configurationsWithAttributes = new ImmutableList.Builder<>();
@@ -172,7 +197,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             }
 
             VariantGraphResolveState variantState = new DefaultLocalConfigurationGraphResolveState(
-                idGenerator.nextVariantId(), component, component.getMetadata(), configuration
+                idGenerator.nextVariantId(), component, component.getMetadata(), configuration, calculatedValueContainerFactory
             ).asVariant();
 
             if (!configuration.getAttributes().isEmpty()) {
@@ -191,7 +216,9 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        return selectableVariantResults.get();
+        CalculatedValue<List<ResolvedVariantResult>> value = selectableVariantResults.get();
+        value.finalizeIfNotAlready();
+        return value.get();
     }
 
     private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {
@@ -225,27 +252,26 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             if (artifactTransformer != null) {
                 md = md.copyWithTransformedArtifacts(artifactTransformer);
             }
-            return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), this, getMetadata(), md);
+            return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), this, getMetadata(), md, calculatedValueContainerFactory);
         });
     }
 
     private static class DefaultLocalConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final LocalConfigurationGraphResolveMetadata configuration;
-        private final Lazy<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
+        private final CalculatedValue<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultLocalConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ComponentGraphResolveMetadata component, LocalConfigurationGraphResolveMetadata configuration) {
+        public DefaultLocalConfigurationGraphResolveState(
+            long instanceId,
+            AbstractComponentGraphResolveState<?> componentState,
+            ComponentGraphResolveMetadata component,
+            LocalConfigurationGraphResolveMetadata configuration,
+            CalculatedValueContainerFactory calculatedValueContainerFactory
+        ) {
             super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
-            // We deliberately avoid locking the initialization of `artifactResolveState`.
-            // This object may be shared across multiple worker threads, and the computation of
-            // `legacyVariants` below is likely to require acquiring the state lock for the
-            // project that owns this `Configuration` leading to a potential deadlock situation.
-            // For instance, a thread could acquire the `artifactResolveState` lock while another thread,
-            // which already owns the project lock, attempts to acquire the `artifactResolveState` lock.
-            // See https://github.com/gradle/gradle/issues/25416
-            this.artifactResolveState = Lazy.atomic().of(() -> {
+            this.artifactResolveState = calculatedValueContainerFactory.create(Describables.of("artifacts of", configuration), context -> {
                 Set<? extends VariantResolveMetadata> legacyVariants = configuration.prepareToResolveArtifacts().getVariants();
                 return new DefaultLocalConfigurationArtifactResolveState(component, configuration, legacyVariants);
             });
@@ -288,11 +314,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public VariantArtifactGraphResolveMetadata resolveArtifacts() {
+            artifactResolveState.finalizeIfNotAlready();
             return artifactResolveState.get();
         }
 
         @Override
         public VariantArtifactResolveState prepareForArtifactResolution() {
+            artifactResolveState.finalizeIfNotAlready();
             return artifactResolveState.get();
         }
     }

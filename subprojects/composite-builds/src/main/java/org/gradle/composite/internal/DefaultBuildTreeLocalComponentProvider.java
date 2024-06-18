@@ -25,19 +25,15 @@ import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueCache;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default implementation of {@link BuildTreeLocalComponentProvider}.
@@ -54,13 +50,13 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     /**
      * Caches the "true" metadata instances for local components.
      */
-    private final ConcurrentMetadataCache originalComponents;
+    private final CalculatedValueCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> originalComponents;
 
     /**
      * Contains copies of metadata instances in {@link #originalComponents}, except
      * with the component identifier replaced with the foreign counterpart.
      */
-    private final ConcurrentMetadataCache foreignIdentifiedComponents;
+    private final CalculatedValueCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> foreignIdentifiedComponents;
 
     @Inject
     public DefaultBuildTreeLocalComponentProvider(
@@ -73,8 +69,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         this.localComponentCache = localComponentCache;
         this.localComponentProvider = localComponentProvider;
 
-        this.originalComponents = new ConcurrentMetadataCache(calculatedValueContainerFactory);
-        this.foreignIdentifiedComponents = new ConcurrentMetadataCache(calculatedValueContainerFactory);
+        this.originalComponents = calculatedValueContainerFactory.createCache(Describables.of("local metadata"));
+        this.foreignIdentifiedComponents = calculatedValueContainerFactory.createCache(Describables.of("foreign metadata"));
     }
 
     @Override
@@ -88,11 +84,11 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     }
 
     private LocalComponentGraphResolveState getLocalComponent(ProjectComponentIdentifier projectIdentifier, ProjectState projectState) {
-        return originalComponents.computeIfAbsent(projectIdentifier, () -> localComponentCache.computeIfAbsent(projectState, localComponentProvider::getComponent));
+        return originalComponents.computeIfAbsent(projectIdentifier, id -> localComponentCache.computeIfAbsent(projectState, localComponentProvider::getComponent));
     }
 
     private LocalComponentGraphResolveState getLocalComponentWithForeignId(ProjectComponentIdentifier projectIdentifier) {
-        return foreignIdentifiedComponents.computeIfAbsent(projectIdentifier, () -> copyComponentWithForeignId(projectIdentifier));
+        return foreignIdentifiedComponents.computeIfAbsent(projectIdentifier, this::copyComponentWithForeignId);
     }
 
     /**
@@ -109,15 +105,13 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         }
 
         // Get the local component, then transform it to have a foreign identifier
-        // This accesses project state.
-        return projectState.fromMutableState(p -> {
-            LocalComponentGraphResolveState originalComponent = getLocalComponent(projectIdentifier, projectState);
-            ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
-            return originalComponent.copy(foreignIdentifier, originalArtifact -> {
-                // Currently need to resolve the file, so that the artifact can be used in both a script classpath and the main build. Instead, this should be resolved as required
-                File file = originalArtifact.getFile();
-                return new CompositeProjectComponentArtifactMetadata(foreignIdentifier, originalArtifact, file);
-            });
+        LocalComponentGraphResolveState originalComponent = getLocalComponent(projectIdentifier, projectState);
+        ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
+        return originalComponent.copy(foreignIdentifier, originalArtifact -> {
+            // Currently need to resolve the file, so that the artifact can be used in both a script classpath and
+            // the main build. This accesses project state. Instead, the file should be resolved as required.
+            File file = projectState.fromMutableState(p -> originalArtifact.getFile());
+            return new CompositeProjectComponentArtifactMetadata(foreignIdentifier, originalArtifact, file);
         });
     }
 
@@ -125,27 +119,5 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     public void discardAll() {
         originalComponents.clear();
         foreignIdentifiedComponents.clear();
-    }
-
-    private static class ConcurrentMetadataCache {
-
-        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-        private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> cache = new ConcurrentHashMap<>();
-
-        public ConcurrentMetadataCache(CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        }
-
-        private LocalComponentGraphResolveState computeIfAbsent(ProjectComponentIdentifier projectIdentifier, Factory<LocalComponentGraphResolveState> factory) {
-            CalculatedValueContainer<LocalComponentGraphResolveState, ?> valueContainer = cache.computeIfAbsent(projectIdentifier, projectComponentIdentifier ->
-                calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), context -> Objects.requireNonNull(factory.create())));
-            // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
-            valueContainer.finalizeIfNotAlready();
-            return valueContainer.get();
-        }
-
-        public void clear() {
-            cache.clear();
-        }
     }
 }

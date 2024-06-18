@@ -21,38 +21,37 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-
-import java.util.List;
+import org.gradle.problems.buildtree.ProblemStream;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
 
     private final ProblemEmitter emitter;
-    private final List<ProblemTransformer> transformers;
+    private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Multimap<Throwable, Problem> problems;
 
     public DefaultProblemReporter(
         ProblemEmitter emitter,
-        List<ProblemTransformer> transformers,
+        ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
         Multimap<Throwable, Problem> problems
     ) {
         this.emitter = emitter;
-        this.transformers = transformers;
+        this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problems = problems;
     }
 
     @Override
     public void reporting(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder();
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
 
     @Override
     public RuntimeException throwing(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder();
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
         RuntimeException exception = problem.getException();
@@ -71,7 +70,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder();
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
         spec.execute(problemBuilder);
         problemBuilder.withException(e);
         throw throwError(e, problemBuilder.build());
@@ -79,16 +78,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public Problem create(Action<InternalProblemSpec> action) {
-        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder();
+        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream);
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
-    }
-
-    private Problem transformProblem(Problem problem, OperationIdentifier id) {
-        for (ProblemTransformer transformer : transformers) {
-            problem = transformer.transform(problem, id);
-        }
-        return problem;
     }
 
     /**
@@ -122,6 +114,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        emitter.emit(transformProblem(problem, id), id);
+        emitter.emit(problem, id);
     }
 }

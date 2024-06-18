@@ -11,7 +11,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))

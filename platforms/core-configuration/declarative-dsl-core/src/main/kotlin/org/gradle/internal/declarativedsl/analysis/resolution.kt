@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
@@ -59,12 +60,12 @@ sealed interface ErrorReason {
 }
 
 
-/**
- * Represents the "generation" of a particular operation (either an addition function call or a property assignment operation).  The order of generations
- * is important as calls in later generations can override calls in earlier generations, but no the other way around.  For instance, a property assignment
- * can override a convention assignment, but a convention assignment cannot override a property assignment.
- */
-enum class OperationGenerationId {
-    CONVENTION_ASSIGNMENT,
-    PROPERTY_ASSIGNMENT
+class DefaultOperationGenerationId(override val ordinal: Int) : OperationGenerationId {
+    companion object {
+        val preExisting = DefaultOperationGenerationId(-1)
+        val convention = DefaultOperationGenerationId(0)
+        val finalEvaluation = DefaultOperationGenerationId(1)
+    }
+
+    override fun compareTo(other: OperationGenerationId): Int = compareValues(ordinal, other.ordinal)
 }

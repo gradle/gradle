@@ -16,12 +16,45 @@
 
 package org.gradle.internal.flow.services
 
+import org.gradle.api.flow.FlowProviders
+import org.gradle.api.flow.FlowScope
+import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
 
 class FlowServices : AbstractGradleModuleServices() {
+
     override fun registerBuildServices(registration: ServiceRegistration) {
+        registration.add(DefaultFlowProviders::class.java)
+        registration.add(FlowScheduler::class.java)
+        registration.add(FlowParametersInstantiator::class.java)
         registration.addProvider(FlowServicesProvider)
+    }
+
+    internal
+    object FlowServicesProvider : ServiceRegistrationProvider {
+
+        @Provides
+        fun createBuildFlowScope(
+            objectFactory: ObjectFactory,
+            flowScheduler: FlowScheduler,
+            flowProviders: FlowProviders,
+            flowParametersInstantiator: FlowParametersInstantiator,
+            instantiatorFactory: InstantiatorFactory,
+            listenerManager: ListenerManager
+        ): FlowScope = objectFactory.newInstance(
+            BuildFlowScope::class.java,
+            flowScheduler,
+            flowProviders,
+            flowParametersInstantiator,
+            instantiatorFactory
+        ).also {
+            listenerManager.addListener(it)
+        }
     }
 }

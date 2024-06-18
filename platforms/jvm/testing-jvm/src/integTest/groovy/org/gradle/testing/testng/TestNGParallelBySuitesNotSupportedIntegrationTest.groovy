@@ -29,7 +29,7 @@ class TestNGParallelBySuitesNotSupportedIntegrationTest extends AbstractIntegrat
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:5.12.1' }
-            test { useTestNG { suiteThreadPoolSize 5 } }
+            test { useTestNG { suiteThreadPoolSize = 5 } }
         """
 
         file("src/test/java/SimpleTest.java") << """

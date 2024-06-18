@@ -14,7 +14,7 @@ dependencies {
 
     api(libs.guava)
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.jsr305)
