@@ -48,6 +48,10 @@ public class ApiClassExtractor {
         }
 
         public ApiClassExtractor includeAllPackages() {
+            return new ApiClassExtractor(name -> true, false, apiMemberWriterFactory);
+        }
+
+        public ApiClassExtractor includeAllPackagesAndPackagePrivateMembers() {
             return new ApiClassExtractor(name -> true, true, apiMemberWriterFactory);
         }
     }

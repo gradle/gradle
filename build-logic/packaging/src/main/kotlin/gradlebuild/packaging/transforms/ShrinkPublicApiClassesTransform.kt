@@ -58,11 +58,14 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     abstract val inputArtifact: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val apiClassExtractor = ApiClassExtractor
+        val builder = ApiClassExtractor
             .withWriter(JavaApiMemberWriter.adapter())
-            .includePackagesMatching { name ->
-                parameters.publicApiPackages.get().any { name == it || name.startsWith("$it.") }
-            }
+        val publicApiPackages = parameters.publicApiPackages.get()
+        val apiClassExtractor = if (publicApiPackages.isEmpty()) {
+            builder.includeAllPackages()
+        } else {
+            builder.includePackagesMatching(publicApiPackages::contains)
+        }
         val jarFile = inputArtifact.get().asFile
         val zipFile = ZipFile(jarFile)
         val outputRoot = outputs.dir("public-api")

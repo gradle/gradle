@@ -70,7 +70,6 @@ dependencies {
         from.attribute(filteredAttribute, Filtering.ALL)
             .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
         to.attribute(filteredAttribute, Filtering.PUBLIC_API)
-        parameters { publicApiPackages.set(setOf("org.gradle")) }
     }
 }
 
