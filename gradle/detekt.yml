@@ -19,6 +19,9 @@ style:
 complexity:
   TooManyFunctions:
     active: false
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 12
 
 exceptions:
   TooGenericExceptionCaught:
