@@ -80,6 +80,7 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
  * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
  * stored in the given [outputDir].
  */
+@Suppress("LongParameterList")
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,

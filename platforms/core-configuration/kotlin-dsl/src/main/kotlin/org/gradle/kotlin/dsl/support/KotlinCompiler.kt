@@ -89,6 +89,7 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
+@Suppress("LongParameterList")
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,

@@ -72,6 +72,7 @@ import java.util.function.Supplier
  * Coordinates the writing and reading of the configuration cache fingerprint.
  */
 @ServiceScope(Scope.BuildTree::class)
+@Suppress("LongParameterList")
 internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,

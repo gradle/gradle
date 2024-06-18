@@ -86,6 +86,7 @@ fun addConfiguredDependencyTo(
 }
 
 
+@Suppress("LongParameterList")
 fun addExternalModuleDependencyTo(
     dependencyHandler: DependencyHandler,
     targetConfiguration: String,
