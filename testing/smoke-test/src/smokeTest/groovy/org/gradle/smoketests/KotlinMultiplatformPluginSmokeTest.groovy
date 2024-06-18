@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -28,6 +29,8 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     def 'test kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
+        // TODO https://github.com/gradle/gradle-private/issues/4223
+        Assume.assumeTrue(kotlinVersion != "2.0.0")
         withKotlinBuildFile()
         useSample("kotlin-multiplatform-js-jvm-example")
 
