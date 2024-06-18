@@ -26,11 +26,13 @@ dependencies {
     api(project(":cli"))
     api(project(":client-services"))
     api(project(":concurrent"))
-    api(project(":core"))
     api(project(":daemon-protocol"))
-    api(project(":launcher"))
     api(project(":logging"))
     api(project(":logging-api"))
+
+    // The client is able to run builds, so uses core and other projects
+    api(project(":core"))
+    api(project(":launcher"))
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
