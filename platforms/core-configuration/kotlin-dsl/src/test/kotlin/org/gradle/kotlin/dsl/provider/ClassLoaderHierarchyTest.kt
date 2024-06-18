@@ -33,6 +33,7 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
 
         ChildFirstClassLoader(getSystemClassLoader(), classPathWith(DeepThought::class.java)).use { loader ->
 
+            @Suppress("VariableNaming")
             val `class` = loader.loadClass(DeepThought::class.qualifiedName)
 
             val targetScope = mock<AbstractClassLoaderScope> {

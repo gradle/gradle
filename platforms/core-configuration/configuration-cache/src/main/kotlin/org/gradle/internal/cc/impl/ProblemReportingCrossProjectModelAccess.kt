@@ -173,6 +173,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
     }
 
+    @Suppress("LargeClass")
     private
     class ProblemReportingProject(
         val delegate: ProjectInternal,

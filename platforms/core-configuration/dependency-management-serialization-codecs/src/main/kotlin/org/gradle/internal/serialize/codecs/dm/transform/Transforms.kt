@@ -106,8 +106,7 @@ class FixedUpstreamDependencies(private val dependencies: TransformDependencies,
         return dependencies.files.orElseThrow { IllegalStateException("Transform does not use artifact dependencies.") }
     }
 
-    override fun finalizeIfNotAlready() {
-    }
+    override fun finalizeIfNotAlready() = Unit
 
     override fun computeArtifacts(): Try<TransformDependencies> {
         return Try.successful(dependencies)
