@@ -67,6 +67,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 }
 
 
+@Suppress("LongMethod")
 private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 

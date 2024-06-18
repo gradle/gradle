@@ -98,7 +98,7 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
 }
 
 
-@Suppress("CyclomaticComplexMethod")
+@Suppress("CyclomaticComplexMethod", "LongMethod")
 fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
     fun StringBuilder.recurse(current: LanguageTreeElement, depth: Int) {
         fun indent() = "    ".repeat(depth)

@@ -266,6 +266,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     fun kotlinFilesIn(srcDir: File) =
         srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
 
+    @Suppress("LongMethod")
     private
     fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit) {
 
