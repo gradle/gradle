@@ -15,7 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
@@ -51,14 +50,6 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @SuppressWarnings("join_with_collect")
 public abstract class CollectionUtils {
-
-    /**
-     * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
-     */
-    @Nullable
-    public static <T> T findSingle(Iterable<T> source) {
-        return Iterables.isEmpty(source) ? null : single(source);
-    }
 
     /**
      * Returns the single element in the collection or throws.
