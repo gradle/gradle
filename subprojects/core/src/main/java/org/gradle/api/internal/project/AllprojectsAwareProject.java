@@ -149,14 +149,14 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     @Nullable
     public Object invokeMethod(String name, Object args) {
         applyAllprojects();
-        return ((GroovyObjectSupport) delegate).invokeMethod(name, args);
+        return ((DefaultProject) delegate).invokeMethod(name, args);
     }
 
     @Override
     @Nullable
     public Object getProperty(String propertyName) {
         applyAllprojects();
-        return ((GroovyObjectSupport) delegate).getProperty(propertyName);
+        return ((DefaultProject) delegate).getProperty(propertyName);
     }
 
     @Nullable
