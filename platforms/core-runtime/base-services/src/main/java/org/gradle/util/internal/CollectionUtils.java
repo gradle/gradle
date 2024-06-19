@@ -15,7 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
@@ -608,41 +607,6 @@ public abstract class CollectionUtils {
         }
 
         return Pair.of(left, right);
-    }
-
-    public static class InjectionStep<T, I> {
-        private final T target;
-        private final I item;
-
-        public InjectionStep(T target, I item) {
-            this.target = target;
-            this.item = item;
-        }
-
-        public T getTarget() {
-            return target;
-        }
-
-        public I getItem() {
-            return item;
-        }
-    }
-
-    public static <T, I> T inject(T target, Iterable<? extends I> items, Action<InjectionStep<T, I>> action) {
-        if (target == null) {
-            throw new NullPointerException("The 'target' cannot be null");
-        }
-        if (items == null) {
-            throw new NullPointerException("The 'items' cannot be null");
-        }
-        if (action == null) {
-            throw new NullPointerException("The 'action' cannot be null");
-        }
-
-        for (I item : items) {
-            action.execute(new InjectionStep<T, I>(target, item));
-        }
-        return target;
     }
 
     public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
