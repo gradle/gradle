@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
@@ -351,12 +350,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private DefaultEclipseProject findEclipseProject(final Project project) {
-        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
-            @Override
-            public boolean isSatisfiedBy(DefaultEclipseProject element) {
-                return element.getGradleProject().getPath().equals(project.getPath());
-            }
-        });
+        return CollectionUtils.findFirst(eclipseProjects, element -> element.getGradleProject().getPath().equals(project.getPath()));
     }
 
     private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {

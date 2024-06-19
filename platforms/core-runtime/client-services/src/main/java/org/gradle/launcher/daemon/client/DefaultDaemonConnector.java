@@ -20,7 +20,6 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -178,12 +177,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByState(final Collection<DaemonInfo> daemons, final DaemonState state) {
-        return CollectionUtils.partition(daemons, new Spec<DaemonInfo>() {
-            @Override
-            public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
-                return daemonInfo.getState() == state;
-            }
-        });
+        return CollectionUtils.partition(daemons, daemonInfo -> daemonInfo.getState() == state);
     }
 
     private List<DaemonInfo> getCompatibleDaemons(Iterable<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {

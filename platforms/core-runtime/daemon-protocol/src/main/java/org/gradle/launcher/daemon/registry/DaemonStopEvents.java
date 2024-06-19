@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
@@ -61,11 +60,6 @@ public class DaemonStopEvents {
     }
 
     public static List<DaemonStopEvent> oldStopEvents(final List<DaemonStopEvent> stopEvents) {
-        return CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
-            @Override
-            public boolean isSatisfiedBy(DaemonStopEvent event) {
-                return !event.occurredInLastHours(RECENTLY);
-            }
-        });
+        return CollectionUtils.filter(stopEvents, event -> !event.occurredInLastHours(RECENTLY));
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -60,11 +59,6 @@ public class NativeBinaryResolveResult {
     }
 
     public List<NativeBinaryRequirementResolveResult> getPendingResolutions() {
-        return CollectionUtils.filter(resolutions, new Spec<NativeBinaryRequirementResolveResult>() {
-            @Override
-            public boolean isSatisfiedBy(NativeBinaryRequirementResolveResult element) {
-                return !element.isComplete();
-            }
-        });
+        return CollectionUtils.filter(resolutions, element -> !element.isComplete());
     }
 }
