@@ -23,7 +23,7 @@ import org.gradle.internal.component.resolution.failure.interfaces.VariantSelect
  * A {@link VariantSelectionByNameFailure} that represents the situation when a configuration is requested
  * by name that does not exist on the target component.
  */
-public class ConfigurationDoesNotExistFailure extends AbstractVariantSelectionByNameFailure {
+public final class ConfigurationDoesNotExistFailure extends AbstractVariantSelectionByNameFailure {
     public ConfigurationDoesNotExistFailure(ComponentIdentifier targetComponent, String requestedConfigurationName) {
         super(targetComponent, requestedConfigurationName);
     }

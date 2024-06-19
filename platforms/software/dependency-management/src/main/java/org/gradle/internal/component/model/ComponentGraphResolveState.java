@@ -91,10 +91,9 @@ public interface ComponentGraphResolveState {
     ComponentArtifactResolveState prepareForArtifactResolution();
 
     /**
-     * Attempts to reconstruct the default capability for this component.
+     * Constructs the default capability for this component.
      *
-     * @return The default capability for this component.
-     * @implNote subtypes are encouraged to override this method to provide a more efficient and reliable implementation.
+     * @return default capability for this component.
      */
     default ImmutableCapability getDefaultCapability() {
         return DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId());

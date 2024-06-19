@@ -42,6 +42,13 @@ public class ImmutableCapabilities {
         this.capabilities = capabilities;
     }
 
+    /**
+     * Creates a new instance containing the given capabilities, or alternately containing the default capability
+     * if the given capabilities set it empty.
+     *
+     * @param capabilities the capabilities to include in the result
+     * @param defaultCapability the default capability to include in the result if the given capabilities set is empty
+     */
     public ImmutableCapabilities(ImmutableSet<ImmutableCapability> capabilities, ImmutableCapability defaultCapability) {
         if (capabilities.isEmpty()) {
             this.capabilities = ImmutableSet.of(defaultCapability);

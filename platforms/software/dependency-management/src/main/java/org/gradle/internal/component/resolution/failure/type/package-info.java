@@ -15,8 +15,9 @@
  */
 
 /**
- * This package contains failures types that actualize the interfaces in the {@code org.gradle.internal.component.resolution.failure.interfaces}
- * package.  They are immutable data classes that contain contextual information specific to each type of failure.
+ * This package contains {@link org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure ResolutionFailure}s types
+ * that exist to categorize types of failure conditions that can occur during dependency resolution and package contextual information
+ * specific to each type of failure.
  */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.component.resolution.failure.type;

@@ -20,10 +20,15 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
 
 import java.util.List;
 
-public class AmbiguousArtifactsFailure extends AbstractArtifactSelectionFailure {
+/**
+ * A specialization of {@link AbstractArtifactSelectionFailure} that represents the situation when multiple artifact variants are
+ * available that would satisfy an artifact selection request.
+ */
+public final class AmbiguousArtifactsFailure extends AbstractArtifactSelectionFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public AmbiguousArtifactsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {

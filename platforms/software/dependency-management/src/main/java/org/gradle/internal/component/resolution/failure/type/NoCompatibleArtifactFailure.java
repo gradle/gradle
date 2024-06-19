@@ -19,9 +19,14 @@ package org.gradle.internal.component.resolution.failure.type;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 
 import java.util.List;
 
+/**
+ * An {@link ArtifactSelectionFailure} that represents the situation when an artifact variant cannot
+ * be selected because no artifact variants were found that are compatible with the requested attributes.
+ */
 public final class NoCompatibleArtifactFailure extends AbstractArtifactSelectionFailure {
     private final List<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
