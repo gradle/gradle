@@ -15,11 +15,11 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
+import org.gradle.internal.function.Predicate;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -72,7 +72,7 @@ public abstract class CollectionUtils {
     }
 
     @Nullable
-    public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
+    public static <T> T findFirst(Iterable<? extends T> source, Predicate<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 return item;
@@ -83,7 +83,7 @@ public abstract class CollectionUtils {
     }
 
     @Nullable
-    public static <T> T findFirst(T[] source, Spec<? super T> filter) {
+    public static <T> T findFirst(T[] source, Predicate<? super T> filter) {
         for (T thing : source) {
             if (filter.isSatisfiedBy(thing)) {
                 return thing;
@@ -101,23 +101,23 @@ public abstract class CollectionUtils {
         return source == null || !source.iterator().hasNext() ? Optional.<T>empty() : Optional.of(first(source));
     }
 
-    public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
+    public static <T> boolean any(Iterable<? extends T> source, Predicate<? super T> filter) {
         return findFirst(source, filter) != null;
     }
 
-    public static <T> boolean any(T[] source, Spec<? super T> filter) {
+    public static <T> boolean any(T[] source, Predicate<? super T> filter) {
         return findFirst(source, filter) != null;
     }
 
-    public static <T> Set<T> filter(Set<? extends T> set, Spec<? super T> filter) {
+    public static <T> Set<T> filter(Set<? extends T> set, Predicate<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
 
-    public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
+    public static <T> List<T> filter(List<? extends T> list, Predicate<? super T> filter) {
         return filter(list, new ArrayList<T>(list.size()), filter);
     }
 
-    public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
+    public static <T> List<T> filter(T[] array, Predicate<? super T> filter) {
         return filter(Arrays.asList(array), new ArrayList<T>(array.length), filter);
     }
 
@@ -139,7 +139,7 @@ public abstract class CollectionUtils {
         return copy;
     }
 
-    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
+    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Predicate<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 destination.add(item);
@@ -148,11 +148,11 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <K, V> Map<K, V> filter(Map<K, V> map, Spec<Map.Entry<K, V>> filter) {
+    public static <K, V> Map<K, V> filter(Map<K, V> map, Predicate<Map.Entry<K, V>> filter) {
         return filter(map, new HashMap<K, V>(), filter);
     }
 
-    public static <K, V> Map<K, V> filter(Map<K, V> map, Map<K, V> destination, Spec<Map.Entry<K, V>> filter) {
+    public static <K, V> Map<K, V> filter(Map<K, V> map, Map<K, V> destination, Predicate<Map.Entry<K, V>> filter) {
         for (Map.Entry<K, V> entry : map.entrySet()) {
             if (filter.isSatisfiedBy(entry)) {
                 destination.put(entry.getKey(), entry.getValue());
@@ -370,7 +370,7 @@ public abstract class CollectionUtils {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
+    public static <E> boolean replace(List<E> list, Predicate<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
@@ -413,7 +413,7 @@ public abstract class CollectionUtils {
         return map;
     }
 
-    public static <T> boolean every(Iterable<? extends T> things, Spec<? super T> predicate) {
+    public static <T> boolean every(Iterable<? extends T> things, Predicate<? super T> predicate) {
         for (T thing : things) {
             if (!predicate.isSatisfiedBy(thing)) {
                 return false;
@@ -587,12 +587,12 @@ public abstract class CollectionUtils {
      * <pre>Left</pre> Collection containing entries that satisfy the given predicate
      * <pre>Right</pre> Collection containing entries that do NOT satisfy the given predicate
      */
-    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Spec<? super T> predicate) {
+    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Predicate<? super T> predicate) {
         if (items == null) {
             throw new NullPointerException("Cannot partition null Collection");
         }
         if (predicate == null) {
-            throw new NullPointerException("Cannot apply null Spec when partitioning");
+            throw new NullPointerException("Cannot apply null Predicate when partitioning");
         }
 
         Collection<T> left = new LinkedList<T>();
