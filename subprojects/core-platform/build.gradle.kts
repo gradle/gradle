@@ -12,11 +12,14 @@ dependencies {
     runtime(project(":daemon-server")) {
         because("This is the Gradle daemon implementation, which transitively depends on all other core projects.")
     }
-    runtime(project(":gradle-cli-main")) {
-        because("This is the entry point of the `gradle` command.")
-    }
     runtime(project(":daemon-main")) {
-        because("This is the entry point of the Gradle daemon.")
+        because("This is the entry point of the Gradle daemon. It bootstraps the implementation.")
+    }
+    runtime(project(":gradle-cli")) {
+        because("This is the `gradle` command implementation.")
+    }
+    runtime(project(":gradle-cli-main")) {
+        because("This is the entry point of the `gradle` command. It bootstraps the implementation.")
     }
     runtime(project(":tooling-api-provider")) {
         because("This is the entry point of the tooling API provider, which is the version-specific client part of the tooling API.")

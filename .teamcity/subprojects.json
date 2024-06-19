@@ -518,6 +518,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "gradle-cli",
+    "path": "platforms/core-runtime/gradle-cli",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "gradle-cli-main",
     "path": "platforms/core-runtime/gradle-cli-main",
     "unitTests": false,

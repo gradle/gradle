@@ -3156,7 +3156,7 @@ Class <org.gradle.launcher.daemon.registry.PersistentDaemonRegistry> is not anno
 Class <org.gradle.launcher.daemon.server.api.DaemonCommandAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonCommandAction.java:0)
 Class <org.gradle.launcher.daemon.server.api.DaemonCommandExecution> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonCommandExecution.java:0)
 Class <org.gradle.launcher.daemon.server.api.DaemonConnection> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonConnection.java:0)
-Class <org.gradle.launcher.daemon.server.api.DaemonStateControl$State> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonStateControl.java:0)
+Class <org.gradle.launcher.daemon.server.api.DaemonState> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonState.java:0)
 Class <org.gradle.launcher.daemon.server.api.DaemonStateControl> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonStateControl.java:0)
 Class <org.gradle.launcher.daemon.server.api.DaemonStoppedException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonStoppedException.java:0)
 Class <org.gradle.launcher.daemon.server.api.DaemonUnavailableException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonUnavailableException.java:0)

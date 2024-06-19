@@ -16,6 +16,7 @@ dependencies {
 
     implementation(project(":base-services"))
     implementation(project(":logging"))
+    implementation(project(":daemon-protocol"))
 
     testImplementation(testFixtures(project(":core")))
 

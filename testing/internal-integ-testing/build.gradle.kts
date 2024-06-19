@@ -32,13 +32,13 @@ dependencies {
     api(project(":jvm-services")) {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
-    api(project(":launcher"))
     api(project(":logging"))
     api(project(":logging-api"))
     api(project(":native"))
     api(project(":persistent-cache"))
     api(project(":problems-api"))
     api(project(":process-services"))
+    api(project(":daemon-protocol"))
 
     api(testFixtures(project(":core"))) {
         because("HttpServer leaks PortAllocator to spock AST transformer")
@@ -85,7 +85,6 @@ dependencies {
     implementation(project(":build-option"))
     implementation(project(":build-state"))
     implementation(project(":cli"))
-    implementation(project(":daemon-protocol"))
     implementation(project(":daemon-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":enterprise-logging"))
@@ -101,6 +100,9 @@ dependencies {
     implementation(project(":time"))
     implementation(projects.toolchainsJvmShared)
     implementation(project(":build-process-services"))
+    implementation(project(":gradle-cli"))
+    implementation(project(":launcher"))
+    implementation(project(":client-services"))
 
     implementation(testFixtures(project(":build-operations")))
 
