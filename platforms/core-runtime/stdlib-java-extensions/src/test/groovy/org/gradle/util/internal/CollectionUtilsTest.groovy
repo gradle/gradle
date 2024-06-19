@@ -15,7 +15,6 @@
  */
 package org.gradle.util.internal
 
-
 import org.gradle.internal.InternalTransformer
 import spock.lang.Specification
 
@@ -28,11 +27,8 @@ import static org.gradle.util.internal.CollectionUtils.diffSetsBy
 import static org.gradle.util.internal.CollectionUtils.every
 import static org.gradle.util.internal.CollectionUtils.filter
 import static org.gradle.util.internal.CollectionUtils.flattenCollections
-import static org.gradle.util.internal.CollectionUtils.groupBy
-import static org.gradle.util.internal.CollectionUtils.inject
 import static org.gradle.util.internal.CollectionUtils.intersection
 import static org.gradle.util.internal.CollectionUtils.join
-import static org.gradle.util.internal.CollectionUtils.nonEmptyOrNull
 import static org.gradle.util.internal.CollectionUtils.partition
 import static org.gradle.util.internal.CollectionUtils.replace
 import static org.gradle.util.internal.CollectionUtils.sort
@@ -319,37 +315,6 @@ class CollectionUtilsTest extends Specification {
         addAll([] as Set, 1, 2, 3, 1) == [1, 2, 3] as Set
     }
 
-    def "injection"() {
-        expect:
-        def target = []
-        def result = inject(target, [1, 2, 3], { it.target.add(it.item.toString()) })
-        result.is(target)
-        result == ["1", "2", "3"]
-
-        inject([], [[1, 2], [3]], { it.target.addAll(it.item) }) == [1, 2, 3]
-
-        when:
-        inject(null, [], {})
-
-        then:
-        def e = thrown(NullPointerException)
-        e.message == "The 'target' cannot be null"
-
-        when:
-        inject([], null, {})
-
-        then:
-        e = thrown(NullPointerException)
-        e.message == "The 'items' cannot be null"
-
-        when:
-        inject([], [], null)
-
-        then:
-        e = thrown(NullPointerException)
-        e.message == "The 'action' cannot be null"
-    }
-
     def "to set"() {
         expect:
         toSet([1, 2, 3]) == [1, 2, 3] as Set
@@ -393,22 +358,10 @@ class CollectionUtilsTest extends Specification {
         sort([] as Set) == []
     }
 
-    def "grouping"() {
-        expect:
-        groupBy([1, 2, 3], transformer { "a" }) == ["a": [1, 2, 3]]
-        groupBy(["a", "b", "c"], transformer { it.toUpperCase() }) == ["A": ["a"], "B": ["b"], "C": ["c"]]
-        groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
-    }
     def unpack() {
         expect:
         unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]
         unpack([]).toList().isEmpty()
-    }
-
-    def nonEmptyOrNull() {
-        expect:
-        nonEmptyOrNull([1, 2, 3]) == [1, 2, 3]
-        nonEmptyOrNull([]) == null
     }
 
     InternalTransformer<?, ?> transformer(Closure c) {

@@ -16,8 +16,6 @@
 
 package org.gradle.internal;
 
-import org.gradle.api.Action;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -85,7 +83,7 @@ public abstract class InternalTransformers {
     private static class CommandLineArgumentTransformer implements InternalTransformer<String, String> {
         private static final Pattern SINGLE_QUOTED = Pattern.compile("^'.*'$");
         private static final Pattern DOUBLE_QUOTED = Pattern.compile("^\".*\"$");
-        private static final Pattern A_SINGLE_QUOTE =  Pattern.compile("'");
+        private static final Pattern A_SINGLE_QUOTE = Pattern.compile("'");
 
         @Override
         public String transform(String input) {
@@ -127,16 +125,6 @@ public abstract class InternalTransformers {
             @Override
             public R transform(Object original) {
                 return factory.create();
-            }
-        };
-    }
-
-    public static <R, I> InternalTransformer<R, I> toTransformer(final Action<? super I> action) {
-        return new InternalTransformer<R, I>() {
-            @Override
-            public R transform(I original) {
-                action.execute(original);
-                return null;
             }
         };
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.function;
 
-package org.gradle.internal
-
-import spock.lang.Specification
-
-class PairTest extends Specification {
-
-    def "can create and transform pair"() {
-        given:
-        def t = Pair.of(1, "a")
-
-        expect:
-        t.nestLeft(2).left == Pair.of(2, 1)
-        t.nestLeft(2).right == "a"
-        t.nestRight(2).left == 1
-        t.nestRight(2).right == Pair.of(2, "a")
-
-        t.pushLeft(2).left == 2
-        t.pushLeft(2).right == t
-        t.pushRight(2).left == t
-        t.pushRight(2).right == 2
-    }
-
+/**
+ * Represents some predicate against objects of type T.
+ *
+ * @param <T> The target type for this predicate
+ */
+public interface Predicate<T> {
+    boolean isSatisfiedBy(T element);
 }

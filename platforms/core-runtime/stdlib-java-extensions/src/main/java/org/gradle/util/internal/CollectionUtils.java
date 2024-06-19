@@ -15,18 +15,11 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
+import org.gradle.internal.function.Predicate;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -57,14 +50,6 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 public abstract class CollectionUtils {
 
     /**
-     * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
-     */
-    @Nullable
-    public static <T> T findSingle(Iterable<T> source) {
-        return Iterables.isEmpty(source) ? null : single(source);
-    }
-
-    /**
      * Returns the single element in the collection or throws.
      */
     public static <T> T single(Iterable<? extends T> source) {
@@ -87,7 +72,7 @@ public abstract class CollectionUtils {
     }
 
     @Nullable
-    public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
+    public static <T> T findFirst(Iterable<? extends T> source, Predicate<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 return item;
@@ -98,7 +83,7 @@ public abstract class CollectionUtils {
     }
 
     @Nullable
-    public static <T> T findFirst(T[] source, Spec<? super T> filter) {
+    public static <T> T findFirst(T[] source, Predicate<? super T> filter) {
         for (T thing : source) {
             if (filter.isSatisfiedBy(thing)) {
                 return thing;
@@ -116,26 +101,25 @@ public abstract class CollectionUtils {
         return source == null || !source.iterator().hasNext() ? Optional.<T>empty() : Optional.of(first(source));
     }
 
-    public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
+    public static <T> boolean any(Iterable<? extends T> source, Predicate<? super T> filter) {
         return findFirst(source, filter) != null;
     }
 
-    public static <T> boolean any(T[] source, Spec<? super T> filter) {
+    public static <T> boolean any(T[] source, Predicate<? super T> filter) {
         return findFirst(source, filter) != null;
     }
 
-    public static <T> Set<T> filter(Set<? extends T> set, Spec<? super T> filter) {
+    public static <T> Set<T> filter(Set<? extends T> set, Predicate<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
 
-    public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
-        return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
+    public static <T> List<T> filter(List<? extends T> list, Predicate<? super T> filter) {
+        return filter(list, new ArrayList<T>(list.size()), filter);
     }
 
-    public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
-        return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
+    public static <T> List<T> filter(T[] array, Predicate<? super T> filter) {
+        return filter(Arrays.asList(array), new ArrayList<T>(array.length), filter);
     }
-
 
     /**
      * Returns a sorted copy of the provided collection of things. Uses the provided comparator to sort.
@@ -155,7 +139,7 @@ public abstract class CollectionUtils {
         return copy;
     }
 
-    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
+    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Predicate<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 destination.add(item);
@@ -164,11 +148,11 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <K, V> Map<K, V> filter(Map<K, V> map, Spec<Map.Entry<K, V>> filter) {
+    public static <K, V> Map<K, V> filter(Map<K, V> map, Predicate<Map.Entry<K, V>> filter) {
         return filter(map, new HashMap<K, V>(), filter);
     }
 
-    public static <K, V> Map<K, V> filter(Map<K, V> map, Map<K, V> destination, Spec<Map.Entry<K, V>> filter) {
+    public static <K, V> Map<K, V> filter(Map<K, V> map, Map<K, V> destination, Predicate<Map.Entry<K, V>> filter) {
         for (Map.Entry<K, V> entry : map.entrySet()) {
             if (filter.isSatisfiedBy(entry)) {
                 destination.put(entry.getKey(), entry.getValue());
@@ -386,7 +370,7 @@ public abstract class CollectionUtils {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
+    public static <E> boolean replace(List<E> list, Predicate<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
@@ -429,7 +413,7 @@ public abstract class CollectionUtils {
         return map;
     }
 
-    public static <T> boolean every(Iterable<? extends T> things, Spec<? super T> predicate) {
+    public static <T> boolean every(Iterable<? extends T> things, Predicate<? super T> predicate) {
         for (T thing : things) {
             if (!predicate.isSatisfiedBy(thing)) {
                 return false;
@@ -603,9 +587,13 @@ public abstract class CollectionUtils {
      * <pre>Left</pre> Collection containing entries that satisfy the given predicate
      * <pre>Right</pre> Collection containing entries that do NOT satisfy the given predicate
      */
-    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Spec<? super T> predicate) {
-        Preconditions.checkNotNull(items, "Cannot partition null Collection");
-        Preconditions.checkNotNull(predicate, "Cannot apply null Spec when partitioning");
+    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Predicate<? super T> predicate) {
+        if (items == null) {
+            throw new NullPointerException("Cannot partition null Collection");
+        }
+        if (predicate == null) {
+            throw new NullPointerException("Cannot apply null Predicate when partitioning");
+        }
 
         Collection<T> left = new LinkedList<T>();
         Collection<T> right = new LinkedList<T>();
@@ -619,52 +607,6 @@ public abstract class CollectionUtils {
         }
 
         return Pair.of(left, right);
-    }
-
-    public static class InjectionStep<T, I> {
-        private final T target;
-        private final I item;
-
-        public InjectionStep(T target, I item) {
-            this.target = target;
-            this.item = item;
-        }
-
-        public T getTarget() {
-            return target;
-        }
-
-        public I getItem() {
-            return item;
-        }
-    }
-
-    public static <T, I> T inject(T target, Iterable<? extends I> items, Action<InjectionStep<T, I>> action) {
-        if (target == null) {
-            throw new NullPointerException("The 'target' cannot be null");
-        }
-        if (items == null) {
-            throw new NullPointerException("The 'items' cannot be null");
-        }
-        if (action == null) {
-            throw new NullPointerException("The 'action' cannot be null");
-        }
-
-        for (I item : items) {
-            action.execute(new InjectionStep<T, I>(target, item));
-        }
-        return target;
-    }
-
-    public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, InternalTransformer<? extends K, V> grouper) {
-        ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
-
-        for (V element : iterable) {
-            K key = grouper.transform(element);
-            builder.put(key, element);
-        }
-
-        return builder.build().asMap();
     }
 
     public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
@@ -691,15 +633,5 @@ public abstract class CollectionUtils {
                 };
             }
         };
-    }
-
-    @Nullable
-    public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
-        ImmutableList<T> list = ImmutableList.copyOf(iterable);
-        return list.isEmpty() ? null : list;
-    }
-
-    public static String asCommandLine(Iterable<String> arguments) {
-        return Joiner.on(" ").join(collect(arguments, InternalTransformers.asSafeCommandLineArgument()));
     }
 }
