@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
@@ -52,6 +53,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -121,6 +123,8 @@ public abstract class Javadoc extends SourceTask {
     private String executable;
     private final Property<JavadocTool> javadocTool;
 
+    private final boolean offline;
+
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
@@ -131,10 +135,15 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         this.javadocTool = objectFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
+        this.offline = getStartParameter().isOffline();
     }
 
     @TaskAction
     protected void generate() {
+        if (offline) {
+            prepareForOfflineOperation();
+        }
+
         File destinationDir = getDestinationDir();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
@@ -213,6 +222,29 @@ public abstract class Javadoc extends SourceTask {
 
     private JavadocToolAdapter getJavadocToolAdapter() {
         return (JavadocToolAdapter) getJavadocTool().get();
+    }
+
+    private void prepareForOfflineOperation() {
+        List<String> links = options.getLinks();
+        if (links != null && !links.isEmpty()) {
+            File fallbackPackageList = setupFallbackPackageList();
+            substituteLinksForOfflineOperation(links, fallbackPackageList);
+        }
+    }
+
+    private File setupFallbackPackageList() {
+        File packageFile = getProjectLayout().getBuildDirectory().file("javadoc/offline-fallback/package-list").get().getAsFile();
+        GFileUtils.mkdirs(packageFile.getParentFile());
+        GFileUtils.touch(packageFile);
+        return packageFile;
+    }
+
+    private void substituteLinksForOfflineOperation(List<String> links, File fallbackPackageList) {
+        links.forEach(link -> {
+            options.linksOffline(link, fallbackPackageList.getParentFile().getAbsolutePath());
+        });
+
+        links.clear();
     }
 
     /**
@@ -441,6 +473,11 @@ public abstract class Javadoc extends SourceTask {
 
     @Inject
     protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected StartParameterInternal getStartParameter() {
         throw new UnsupportedOperationException();
     }
 }
