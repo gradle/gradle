@@ -15,9 +15,9 @@
  */
 package org.gradle.internal.reflect;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -83,7 +83,7 @@ public class JavaMethod<T, R> {
         if (method != null) {
             return method;
         }
-        throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, StringUtils.join(paramTypes, ", "), target.getSimpleName()));
+        throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, CollectionUtils.join(", ", paramTypes), target.getSimpleName()));
     }
 
     @Nullable
