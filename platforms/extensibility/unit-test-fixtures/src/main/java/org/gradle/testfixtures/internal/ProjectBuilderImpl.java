@@ -62,6 +62,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -239,9 +240,9 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        protected CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-            final File homeDir = new File(buildDefinition.getBuildRootDir(), "gradleHome");
-            return new TestBuildScopeServices(buildTree.getServices(), homeDir, supplier);
+        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+            File homeDir = new File(buildDefinition.getBuildRootDir(), "gradleHome");
+            return new TestBuildScopeServices(homeDir, supplier);
         }
 
         @Override
