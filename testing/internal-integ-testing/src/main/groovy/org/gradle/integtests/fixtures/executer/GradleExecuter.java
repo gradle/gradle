@@ -23,6 +23,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.integtests.fixtures.RichConsoleStyling;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
@@ -124,14 +125,20 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
 
     /**
-     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     * Sets the java home dir. Replaces any value set by {@link #withJvm(Jvm)}.
+     * <p>
+     * In general, prefer using {@link #withJvm(Jvm)} over this method. This method should be used
+     * when testing non-standard JVMs, like embedded JREs, or those not provided by
+     * {@link org.gradle.integtests.fixtures.AvailableJavaHomes}.
      */
     GradleExecuter withJavaHome(String userHomeDir);
 
     /**
-     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     * Sets the JVM to execute Gradle with. Replaces any value set by {@link #withJavaHome(String)}.
+     *
+     * @throws IllegalArgumentException If the given JVM is not probed, for example JVMs created by {@link Jvm#forHome(File)}
      */
-    GradleExecuter withJavaHome(File userHomeDir);
+    GradleExecuter withJvm(Jvm jvm);
 
     /**
      * Sets the executable to use. Set to null to use the real default executable (if any) rather than the default used for testing.
