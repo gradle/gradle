@@ -16,7 +16,6 @@
 package org.gradle.util.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -690,11 +689,5 @@ public abstract class CollectionUtils {
                 };
             }
         };
-    }
-
-    @Nullable
-    public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
-        ImmutableList<T> list = ImmutableList.copyOf(iterable);
-        return list.isEmpty() ? null : list;
     }
 }
