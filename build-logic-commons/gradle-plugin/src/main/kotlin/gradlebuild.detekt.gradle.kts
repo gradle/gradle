@@ -19,11 +19,18 @@ plugins {
 }
 
 detekt {
-    buildUponDefaultConfig = true // preconfigure defaults
-    config.setFrom(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml")) // point to your custom config defining rules to run, overwriting default behavior
-}
+    // enable all default rules
+    buildUponDefaultConfig = true
 
-// TODO: need custom task to check kts build files
+    // customize some of the rules, until we can fix the offending cases
+    config.setFrom(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml"))
+
+    // also check .gradle.kts build files
+    val buildFiles = project
+        .fileTree(project.projectDir)
+        .filter { it.name.endsWith("gradle.kts") }
+    source.from(buildFiles)
+}
 
 pluginManager.withPlugin("gradlebuild.code-quality") {
     tasks {
