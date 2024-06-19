@@ -69,6 +69,6 @@ class MessageCollectingChangeVisitorTest extends Specification {
         assert messages.size() == 3
         assert messages.get(0).equals("first change")
         assert messages.get(1).equals("second change")
-        assert messages.get(2).equals("more...")
+        assert messages.get(2).equals("and more...")
     }
 }

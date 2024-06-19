@@ -23,7 +23,7 @@ class MessageCollectingChangeVisitor implements ChangeVisitor {
     private final int maxNumMessages;
     private int count;
 
-    public MessageCollectingChangeVisitor(int maxNumMessages) {
+    MessageCollectingChangeVisitor(int maxNumMessages) {
         this.maxNumMessages = maxNumMessages;
     }
 
@@ -31,7 +31,7 @@ class MessageCollectingChangeVisitor implements ChangeVisitor {
     public boolean visitChange(Change change) {
         count++;
         if (count > maxNumMessages) {
-            messagesBuilder.add("more...");
+            messagesBuilder.add("and more...");
             return false;
         } else {
             messagesBuilder.add(change.getMessage());
