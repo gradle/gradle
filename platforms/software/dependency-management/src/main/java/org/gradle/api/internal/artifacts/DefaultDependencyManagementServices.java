@@ -150,11 +150,11 @@ import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -173,14 +173,19 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     @Override
     public DependencyResolutionServices create(FileResolver resolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
-        DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
-        services.add(FileResolver.class, resolver);
-        services.add(FileCollectionFactory.class, fileCollectionFactory);
-        services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
-        services.add(ProjectFinder.class, projectFinder);
-        services.add(DomainObjectContext.class, domainObjectContext);
-        services.addProvider(new TransformGradleUserHomeServices());
-        services.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
+        ServiceRegistry services = ServiceRegistryBuilder.builder()
+            .parent(parent)
+            .provider(registration -> {
+                registration.add(FileResolver.class, resolver);
+                registration.add(FileCollectionFactory.class, fileCollectionFactory);
+                registration.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
+                registration.add(ProjectFinder.class, projectFinder);
+                registration.add(DomainObjectContext.class, domainObjectContext);
+            })
+            .provider(new TransformGradleUserHomeServices())
+            .provider(new DependencyResolutionScopeServices(domainObjectContext))
+            .build();
+
         return services.get(DependencyResolutionServices.class);
     }
 
@@ -324,29 +329,29 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         @Provides
         BaseRepositoryFactory createBaseRepositoryFactory(
-                LocalMavenRepositoryLocator localMavenRepositoryLocator,
-                FileResolver fileResolver,
-                FileCollectionFactory fileCollectionFactory,
-                RepositoryTransportFactory repositoryTransportFactory,
-                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                FileStoreAndIndexProvider fileStoreAndIndexProvider,
-                VersionSelectorScheme versionSelectorScheme,
-                AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                IvyContextManager ivyContextManager,
-                ImmutableAttributesFactory attributesFactory,
-                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                InstantiatorFactory instantiatorFactory,
-                FileResourceRepository fileResourceRepository,
-                MavenMutableModuleMetadataFactory metadataFactory,
-                IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                IsolatableFactory isolatableFactory,
-                ObjectFactory objectFactory,
-                CollectionCallbackActionDecorator callbackDecorator,
-                NamedObjectInstantiator instantiator,
-                DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                ChecksumService checksumService,
-                ProviderFactory providerFactory,
-                VersionParser versionParser
+            LocalMavenRepositoryLocator localMavenRepositoryLocator,
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            RepositoryTransportFactory repositoryTransportFactory,
+            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+            FileStoreAndIndexProvider fileStoreAndIndexProvider,
+            VersionSelectorScheme versionSelectorScheme,
+            AuthenticationSchemeRegistry authenticationSchemeRegistry,
+            IvyContextManager ivyContextManager,
+            ImmutableAttributesFactory attributesFactory,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            InstantiatorFactory instantiatorFactory,
+            FileResourceRepository fileResourceRepository,
+            MavenMutableModuleMetadataFactory metadataFactory,
+            IvyMutableModuleMetadataFactory ivyMetadataFactory,
+            IsolatableFactory isolatableFactory,
+            ObjectFactory objectFactory,
+            CollectionCallbackActionDecorator callbackDecorator,
+            NamedObjectInstantiator instantiator,
+            DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+            ChecksumService checksumService,
+            ProviderFactory providerFactory,
+            VersionParser versionParser
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -418,19 +423,21 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyHandler createDependencyHandler(Instantiator instantiator,
-                                                  ConfigurationContainerInternal configurationContainer,
-                                                  DependencyFactoryInternal dependencyFactory,
-                                                  ProjectFinder projectFinder,
-                                                  DependencyConstraintHandler dependencyConstraintHandler,
-                                                  ComponentMetadataHandler componentMetadataHandler,
-                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                                  ArtifactResolutionQueryFactory resolutionQueryFactory,
-                                                  AttributesSchema attributesSchema,
-                                                  VariantTransformRegistry variantTransformRegistry,
-                                                  ArtifactTypeRegistry artifactTypeRegistry,
-                                                  ObjectFactory objects,
-                                                  PlatformSupport platformSupport) {
+        DependencyHandler createDependencyHandler(
+            Instantiator instantiator,
+            ConfigurationContainerInternal configurationContainer,
+            DependencyFactoryInternal dependencyFactory,
+            ProjectFinder projectFinder,
+            DependencyConstraintHandler dependencyConstraintHandler,
+            ComponentMetadataHandler componentMetadataHandler,
+            ComponentModuleMetadataHandler componentModuleMetadataHandler,
+            ArtifactResolutionQueryFactory resolutionQueryFactory,
+            AttributesSchema attributesSchema,
+            VariantTransformRegistry variantTransformRegistry,
+            ArtifactTypeRegistry artifactTypeRegistry,
+            ObjectFactory objects,
+            PlatformSupport platformSupport
+        ) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -481,13 +488,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator,
-                                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                       SimpleMapInterner interner,
-                                                                       ImmutableAttributesFactory attributesFactory,
-                                                                       IsolatableFactory isolatableFactory,
-                                                                       ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
-                                                                       PlatformSupport platformSupport) {
+        DefaultComponentMetadataHandler createComponentMetadataHandler(
+            Instantiator instantiator,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            SimpleMapInterner interner,
+            ImmutableAttributesFactory attributesFactory,
+            IsolatableFactory isolatableFactory,
+            ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
+            PlatformSupport platformSupport
+        ) {
             DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
             if (domainObjectContext.isScript()) {
                 componentMetadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
