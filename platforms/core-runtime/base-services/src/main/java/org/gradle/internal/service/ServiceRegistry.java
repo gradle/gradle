@@ -15,12 +15,12 @@
  */
 package org.gradle.internal.service;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -99,7 +99,7 @@ public interface ServiceRegistry extends ServiceLookup {
 
         @Override
         public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
-            return ImmutableList.of();
+            return Collections.emptyList();
         }
 
         @Override
