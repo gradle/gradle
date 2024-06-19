@@ -28,47 +28,54 @@ class MessageCollectingChangeVisitorTest extends Specification {
     def "no messages"() {
         when:
         0 * change1.message >> "first change"
+
         then:
-        assert visitor.getMessages().size() == 0
+        visitor.getMessages().isEmpty()
     }
 
     def "one message"() {
         when:
         1 * change1.message >> "first change"
-        assert visitor.visitChange(change1) == true
+
         then:
-        def messages = visitor.getMessages()
-        assert messages.size() == 1
-        assert messages.get(0).equals("first change")
+        visitor.visitChange(change1)
+        visitor.getMessages() == ["first change"]
     }
 
     def "two messages"() {
         when:
         1 * change1.message >> "first change"
-        assert visitor.visitChange(change1) == true
-        1 * change2.message >> "second change"
-        assert visitor.visitChange(change2) == true
+
         then:
-        def messages = visitor.getMessages()
-        assert messages.size() == 2
-        assert messages.get(0).equals("first change")
-        assert messages.get(1).equals("second change")
+        visitor.visitChange(change1)
+
+        when:
+        1 * change2.message >> "second change"
+
+        then:
+        visitor.visitChange(change2)
+        visitor.getMessages() == ["first change", "second change"]
     }
 
     def "many messages"() {
         when:
         1 * change1.message >> "first change"
-        assert visitor.visitChange(change1) == true
-        1 * change2.message >> "second change"
-        assert visitor.visitChange(change2) == true
-        0 * change3.message >> "third change"
-        assert visitor.visitChange(change3) == false
-        // We stop offering changes to the visitor once it returns false
+
         then:
-        def messages = visitor.getMessages()
-        assert messages.size() == 3
-        assert messages.get(0).equals("first change")
-        assert messages.get(1).equals("second change")
-        assert messages.get(2).equals("and more...")
+        visitor.visitChange(change1)
+
+        when:
+        1 * change2.message >> "second change"
+
+        then:
+        visitor.visitChange(change2)
+
+        when:
+        0 * change3.message >> "third change"
+
+        then:
+        // We stop offering changes to the visitor once it returns false
+        !visitor.visitChange(change3)
+        visitor.getMessages() == ["first change", "second change", "and more..."]
     }
 }
