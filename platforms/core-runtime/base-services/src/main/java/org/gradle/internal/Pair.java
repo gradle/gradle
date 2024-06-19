@@ -16,8 +16,6 @@
 
 package org.gradle.internal;
 
-import com.google.common.base.Function;
-
 import javax.annotation.Nullable;
 
 public final class Pair<L, R> {
@@ -71,37 +69,6 @@ public final class Pair<L, R> {
 
     public <T> Pair<L, Pair<T, R>> nestRight(T t) {
         return of(left, of(t, right));
-    }
-
-    public <T> Pair<T, R> mapLeft(Function<? super L, ? extends T> function) throws Exception {
-        return of(function.apply(left), right);
-    }
-
-    public <T> Pair<L, T> mapRight(Function<? super R, ? extends T> function) throws Exception {
-        return of(left, function.apply(right));
-    }
-
-    @Nullable
-    public <T> T map(Function<? super Pair<L, R>, ? extends T> function) throws Exception {
-        return function.apply(this);
-    }
-
-    public static <L, T extends Pair<L, ?>> Function<T, L> unpackLeft() {
-        return new Function<T, L>() {
-            @Override
-            public L apply(T tuple) {
-                return tuple.left;
-            }
-        };
-    }
-
-    public static <R, T extends Pair<?, R>> Function<T, R> unpackRight() {
-        return new Function<T, R>() {
-            @Override
-            public R apply(T tuple) {
-                return tuple.right;
-            }
-        };
     }
 
     @Override
