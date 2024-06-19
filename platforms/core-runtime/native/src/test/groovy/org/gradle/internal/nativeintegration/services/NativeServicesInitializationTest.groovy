@@ -22,6 +22,7 @@ import org.gradle.internal.Cast
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.slf4j.LoggerFactory
@@ -39,6 +40,7 @@ class NativeServicesInitializationTest extends Specification {
             jar(NativeServices),
             jar(ServiceRegistration),
             jar(ServiceRegistry),
+            jar(DefaultServiceRegistry),
             jar(Native),
             jar(LoggerFactory),
             jar(Chmod),

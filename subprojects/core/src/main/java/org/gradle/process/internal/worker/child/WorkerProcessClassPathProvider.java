@@ -103,6 +103,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-file-collections",
         "gradle-file-temp",
         "gradle-hashing",
+        "gradle-service-provider-core",
         "gradle-service-provider",
         "gradle-snapshots",
         "gradle-serialization",
