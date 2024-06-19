@@ -791,7 +791,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
     }
 
     def configureBoostrapClasspath(Jvm jvm) {
-        if (jvm.javaVersion.majorVersionNumber < 9) {
+        if (Integer.parseInt(jvm.javaVersion.majorVersion) < 9) {
             def rtJar = new File(jvm.javaHome, "jre/lib/rt.jar")
             def rtJarPath = TextUtil.escapeString(rtJar.absolutePath)
             return """

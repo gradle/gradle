@@ -128,7 +128,7 @@ public class Jvm implements JavaInfo {
      */
     @Deprecated
     public static Jvm discovered(File javaHome, String implementationJavaVersion, JavaVersion javaVersion) {
-        return create(javaHome, implementationJavaVersion, javaVersion.getMajorVersionNumber());
+        return create(javaHome, implementationJavaVersion, Integer.parseInt(javaVersion.getMajorVersion()));
     }
 
     @Override

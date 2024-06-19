@@ -98,7 +98,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
             if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
                 return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
             } else {
-                return JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersionNumber();
+                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
             }
         }).max(Comparator.naturalOrder()).get();
     }

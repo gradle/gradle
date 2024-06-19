@@ -604,7 +604,7 @@ public void error${errorIndex}() {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${testedJdkVersion.getMajorVersionNumber()})
+                    languageVersion = JavaLanguageVersion.of(${Integer.parseInt(testedJdkVersion.getMajorVersion())})
                 }
             }
         """
@@ -639,7 +639,7 @@ public void error${errorIndex}() {
             import java.util.Set;
 
             @SupportedAnnotationTypes("com.example.DummyAnnotation")
-            @SupportedSourceVersion(SourceVersion.RELEASE_${testedJdkVersion.getMajorVersionNumber()})
+            @SupportedSourceVersion(SourceVersion.RELEASE_${Integer.parseInt(testedJdkVersion.majorVersion)})
             public class DummyProcessor extends AbstractProcessor {
                 @Override
                 public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -659,7 +659,7 @@ public void error${errorIndex}() {
         buildFile << """\
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${testedJdkVersion.getMajorVersionNumber()})
+                    languageVersion = JavaLanguageVersion.of(${Integer.parseInt(testedJdkVersion.majorVersion)})
                 }
             }
 
