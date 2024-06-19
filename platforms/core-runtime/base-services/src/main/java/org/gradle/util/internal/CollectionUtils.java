@@ -15,7 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
@@ -655,17 +654,6 @@ public abstract class CollectionUtils {
             action.execute(new InjectionStep<T, I>(target, item));
         }
         return target;
-    }
-
-    public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, InternalTransformer<? extends K, V> grouper) {
-        ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
-
-        for (V element : iterable) {
-            K key = grouper.transform(element);
-            builder.put(key, element);
-        }
-
-        return builder.build().asMap();
     }
 
     public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
