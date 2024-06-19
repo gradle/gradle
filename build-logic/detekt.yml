@@ -1,0 +1,73 @@
+style:
+  MaxLineLength:
+    maxLineLength: 275                    # default is 120
+  ReturnCount:
+    max: 5                                # default is 2
+  ForbiddenComment:
+    active: false
+  WildcardImport:
+    excludeImports:
+      - 'org.gradle.kotlin.dsl.*'
+  MagicNumber:
+    active: false
+  LoopWithTooManyJumpStatements:
+    active: false
+  NewLineAtEndOfFile:
+    active: false
+  UnusedPrivateMember:
+    active: false
+  UseRequire:
+    active: false
+  UseCheckOrError:
+    active: false
+  UnusedPrivateProperty:
+    active: false
+  DestructuringDeclarationWithTooManyEntries:
+    active: false
+  ThrowsCount:
+    active: false
+
+empty-blocks:
+  EmptyFunctionBlock:
+    active: false
+
+potential-bugs:
+  ImplicitDefaultLocale:
+    active: false
+
+complexity:
+  TooManyFunctions:
+    active: false
+  LongMethod:
+    threshold: 175                        # default is 60
+  LongParameterList:
+    functionThreshold: 13                 # default is 6
+    constructorThreshold: 12              # default is 7
+  ComplexCondition:
+    active: false
+  CyclomaticComplexMethod:
+    threshold: 25                         # default is 15
+  NestedBlockDepth:
+    threshold: 7                          # default is 4
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+  SwallowedException:
+    active: false
+
+naming:
+  TopLevelPropertyNaming:
+    active: false
+  MemberNameEqualsClassName:
+    active: false
+  MatchingDeclarationName:
+    active: false
+
+performance:
+  ForEachOnRange:
+    active: false
+  SpreadOperator:
+    active: false                         # we need to take a look at these !!!
