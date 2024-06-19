@@ -112,7 +112,7 @@ public class DaemonMain extends EntryPoint {
 
         NativeServices.initializeOnDaemon(gradleHomeDir, NativeServicesMode.fromSystemProperties());
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, nativeServicesMode);
-        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
+        ServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
         DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));

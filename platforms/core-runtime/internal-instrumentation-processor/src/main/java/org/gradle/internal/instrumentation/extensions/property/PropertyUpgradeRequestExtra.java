@@ -16,10 +16,10 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.objectweb.asm.Type;
 
 import javax.lang.model.element.ExecutableElement;
 
@@ -27,11 +27,11 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     private final String propertyName;
     private final String methodName;
-    private final Type returnType;
+    private final TypeName returnType;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final String methodDescriptor;
-    private final Type newReturnType;
+    private final TypeName newPropertyType;
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
@@ -41,11 +41,11 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         String propertyName,
         String methodName,
         String methodDescriptor,
-        Type returnType,
+        TypeName returnType,
         String implementationClassName,
         String interceptedPropertyName,
         String interceptedPropertyAccessorName,
-        Type newReturnType,
+        TypeName newPropertyType,
         DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility,
         ExecutableElement bridgedMethod
@@ -53,8 +53,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.newReturnType = newReturnType;
         this.returnType = returnType;
+        this.newPropertyType = newPropertyType;
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyName = interceptedPropertyName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
@@ -75,8 +75,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return methodDescriptor;
     }
 
-    public Type getNewReturnType() {
-        return newReturnType;
+    public TypeName getNewPropertyType() {
+        return newPropertyType;
     }
 
     public String getImplementationClassName() {
@@ -92,7 +92,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return interceptedPropertyAccessorName;
     }
 
-    public Type getReturnType() {
+    public TypeName getReturnType() {
         return returnType;
     }
 

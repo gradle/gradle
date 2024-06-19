@@ -16,6 +16,4 @@ jobs:
     steps:
       # Feedback loop: ask for something on PR/Issue and close if not provided or return to the queue on update.
       # https://github.com/gradle/issue-management-action/blob/main/src/feedback.ts
-      - uses: gradle/issue-management-action@v1
-        with:
-          script: "feedback"
+      - uses: gradle/issue-management-action/feedback@v2

@@ -29,18 +29,14 @@ import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 
 import java.io.InputStream;
@@ -51,16 +47,12 @@ import java.util.UUID;
  *
  * @see DaemonClientServices
  */
-public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
+public abstract class DaemonClientServicesSupport implements ServiceRegistrationProvider {
+
     private final InputStream buildStandardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
-        super(parent);
+    public DaemonClientServicesSupport(InputStream buildStandardInput) {
         this.buildStandardInput = buildStandardInput;
-        add(daemonParameters);
-        add(requestContext);
-        addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
-        addProvider(new DaemonClientToolchainServices(daemonParameters.getToolchainConfiguration()));
     }
 
     protected InputStream getBuildStandardInput() {

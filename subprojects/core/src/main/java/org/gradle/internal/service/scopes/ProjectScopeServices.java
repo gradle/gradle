@@ -86,9 +86,12 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ScopedServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
@@ -108,26 +111,45 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Contains the services for a given project.
  */
-public class ProjectScopeServices extends ScopedServiceRegistry {
+public class ProjectScopeServices implements ServiceRegistrationProvider {
+
+    public static CloseableServiceRegistry create(
+        ServiceRegistry parent,
+        ProjectInternal project,
+        Factory<LoggingManagerInternal> loggingManagerInternalFactory
+    ) {
+        return ServiceRegistryBuilder.builder()
+            .displayName("project services")
+            .parent(parent)
+            .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
+            .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
+            .build();
+    }
+
     private final ProjectInternal project;
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
-    public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
-        super(Scope.Project.class, "Project services", parent);
+    public ProjectScopeServices(final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
-        register(registration -> {
-            registration.add(ProjectInternal.class, project);
-            parent.get(DependencyManagementServices.class).addDslServices(registration, project);
-            for (GradleModuleServices services : parent.getAll(GradleModuleServices.class)) {
-                services.registerProjectServices(registration);
-            }
-        });
-        addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
+    }
+
+    @Provides
+    protected void configure(
+        ServiceRegistration registration,
+        List<GradleModuleServices> gradleModuleServiceProviders,
+        DependencyManagementServices dependencyManagementServices
+    ) {
+        registration.add(ProjectInternal.class, project);
+        dependencyManagementServices.addDslServices(registration, project);
+        for (GradleModuleServices services : gradleModuleServiceProviders) {
+            services.registerProjectServices(registration);
+        }
     }
 
     @Provides
@@ -199,18 +221,22 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
     protected PluginManagerInternal createPluginManager(
         Instantiator instantiator,
         InstantiatorFactory instantiatorFactory,
+        ServiceRegistry projectScopeServiceRegistry,
+        ModelRuleExtractor modelRuleExtractor,
+        ModelRuleSourceDetector modelRuleSourceDetector,
+        PluginRegistry pluginRegistry,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         SoftwareTypeRegistry softwareTypeRegistry
-        ) {
+    ) {
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
             new ImperativeOnlyPluginTarget<>(project),
-            get(ModelRuleExtractor.class),
-            get(ModelRuleSourceDetector.class)
+            modelRuleExtractor,
+            modelRuleSourceDetector
         );
         PluginTarget pluginTarget = new AddSoftwareTypesAsExtensionsPluginTarget(
             project,
@@ -220,10 +246,10 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         );
         return instantiator.newInstance(
             DefaultPluginManager.class,
-            get(PluginRegistry.class),
+            pluginRegistry,
             new PluginInstantiator(
-                instantiatorFactory.injectScheme().withServices(this).instantiator(),
-                pluginScheme.getInstantiationScheme().withServices(this).instantiator()
+                instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
+                pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
             pluginTarget,
             buildOperationRunner,
@@ -234,8 +260,8 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
     }
 
     @Provides
-    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, TaskScheme taskScheme) {
-        return parentFactory.createChild(project, taskScheme.getInstantiationScheme().withServices(this));
+    protected ITaskFactory createTaskFactory(ServiceRegistry projectScopeServiceRegistry, ITaskFactory parentFactory, TaskScheme taskScheme) {
+        return parentFactory.createChild(project, taskScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry));
     }
 
     @Provides
@@ -245,6 +271,9 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
 
     @Provides
     protected TaskContainerInternal createTaskContainerInternal(
+        Instantiator instantiator,
+        TaskIdentityFactory taskIdentityFactory,
+        ITaskFactory taskFactory,
         TaskStatistics taskStatistics,
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
@@ -252,9 +281,9 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         ProjectRegistry<ProjectInternal> projectRegistry
     ) {
         return new DefaultTaskContainerFactory(
-            get(Instantiator.class),
-            get(TaskIdentityFactory.class),
-            get(ITaskFactory.class),
+            instantiator,
+            taskIdentityFactory,
+            taskFactory,
             project,
             taskStatistics,
             buildOperationRunner,
@@ -395,9 +424,13 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
     }
 
     @Provides
-    protected DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator, CrossProjectConfigurator projectConfigurator) {
-        ServiceRegistry services = ProjectScopeServices.this;
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
+    protected DomainObjectCollectionFactory createDomainObjectCollectionFactory(
+        InstantiatorFactory instantiatorFactory,
+        ServiceRegistry projectScopeServiceRegistry,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        CrossProjectConfigurator projectConfigurator
+    ) {
+        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, projectScopeServiceRegistry, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
     }
 
     @Provides
