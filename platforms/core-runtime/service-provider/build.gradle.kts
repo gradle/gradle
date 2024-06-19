@@ -10,6 +10,4 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.errorProneAnnotations)
-
-    implementation(projects.serviceProviderCore)
 }

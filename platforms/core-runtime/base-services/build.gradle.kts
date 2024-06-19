@@ -27,7 +27,6 @@ dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.fileTemp)
-    api(projects.serviceProviderCore)
     api(projects.serviceProvider)
     api(project(":hashing"))
     api(project(":build-operations"))
@@ -37,6 +36,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.io)
+    implementation(projects.serviceProviderCore)
     implementation(projects.time)
 
     implementation(libs.asm)

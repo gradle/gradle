@@ -20,5 +20,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.errorProneAnnotations)
+
+    implementation(libs.inject)
 }
 
