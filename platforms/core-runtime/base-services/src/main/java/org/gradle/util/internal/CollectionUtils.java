@@ -15,7 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
@@ -116,13 +115,12 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
-        return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
+        return filter(list, new ArrayList<T>(list.size()), filter);
     }
 
     public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
-        return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
+        return filter(Arrays.asList(array), new ArrayList<T>(array.length), filter);
     }
-
 
     /**
      * Returns a sorted copy of the provided collection of things. Uses the provided comparator to sort.
