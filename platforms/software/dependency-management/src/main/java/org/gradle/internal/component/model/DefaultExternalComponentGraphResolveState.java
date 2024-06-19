@@ -67,6 +67,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         );
         this.idGenerator = idGenerator;
         this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().stream()
+            .map(ConfigurationMetadata.class::cast)
             .flatMap(variant -> variant.getArtifactVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),

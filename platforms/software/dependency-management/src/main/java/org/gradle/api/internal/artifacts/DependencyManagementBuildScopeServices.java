@@ -101,7 +101,6 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -342,10 +341,10 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     ResolvedVariantCache createResolvedVariantCache() {
-        ConcurrentHashMap<VariantResolveMetadata.Identifier, ResolvedVariant> map = new ConcurrentHashMap<>();
+        ConcurrentHashMap<ResolvedVariantCache.CacheKey, ResolvedVariant> map = new ConcurrentHashMap<>();
         return new ResolvedVariantCache() {
             @Override
-            public ResolvedVariant computeIfAbsent(VariantResolveMetadata.Identifier key, Function<? super VariantResolveMetadata.Identifier, ? extends ResolvedVariant> mappingFunction) {
+            public ResolvedVariant computeIfAbsent(ResolvedVariantCache.CacheKey key, Function<? super ResolvedVariantCache.CacheKey, ? extends ResolvedVariant> mappingFunction) {
                 return map.computeIfAbsent(key, mappingFunction);
             }
         };

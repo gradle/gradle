@@ -105,7 +105,7 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
+                variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
             }
         });
 
@@ -292,13 +292,13 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
     }
 
     /**
-     * {@link VariantResolveMetadata.Identifier} implementation for non-implicit sub-variants of a configuration.
+     * Identifier for non-implicit artifact variants of a local graph variant.
      */
-    private static class NestedVariantIdentifier implements VariantResolveMetadata.Identifier {
+    private static class NonImplicitArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
         private final VariantResolveMetadata.Identifier parent;
         private final String name;
 
-        public NestedVariantIdentifier(VariantResolveMetadata.Identifier parent, String name) {
+        public NonImplicitArtifactVariantIdentifier(VariantResolveMetadata.Identifier parent, String name) {
             this.parent = parent;
             this.name = name;
         }
@@ -316,7 +316,7 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            NestedVariantIdentifier other = (NestedVariantIdentifier) obj;
+            NonImplicitArtifactVariantIdentifier other = (NonImplicitArtifactVariantIdentifier) obj;
             return parent.equals(other.parent) && name.equals(other.name);
         }
     }

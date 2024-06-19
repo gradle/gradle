@@ -24,13 +24,19 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import javax.annotation.Nullable;
 
 /**
- * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
+ * Also known as an "Artifact Variant". We should find a better name for this.
+ * <p>
+ * Describes the artifacts of a {@link VariantGraphResolveMetadata}. Graph variants may have multiple
+ * artifact variants, where each artifact variant may have different artifacts, but inherit the dependencies
+ * of its graph variant.
  */
 public interface VariantResolveMetadata {
     String getName();
 
     /**
-     * An identifier for this variant, if available. A variant may not necessarily have an identifier associated with it, for example if it represents some ad hoc variant.
+     * An identifier for this artifact variant.
+     * <p>
+     * May be null for adhoc variants.
      */
     @Nullable
     Identifier getIdentifier();
@@ -41,6 +47,8 @@ public interface VariantResolveMetadata {
 
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
+    // TODO: This type should not expose capabilities, as all artifact variants within a single graph variant
+    // should have the same capability.
     ImmutableCapabilities getCapabilities();
 
     boolean isExternalVariant();
@@ -56,6 +64,9 @@ public interface VariantResolveMetadata {
         return false;
     }
 
+    /**
+     * An opaque identifier for a an artifact variant.
+     */
     interface Identifier {
     }
 }

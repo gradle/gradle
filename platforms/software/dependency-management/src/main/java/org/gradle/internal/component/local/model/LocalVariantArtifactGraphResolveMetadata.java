@@ -31,9 +31,8 @@ public interface LocalVariantArtifactGraphResolveMetadata extends VariantArtifac
     ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
 
     /**
-     * Returns the "sub variants" of this variant.
-     *
-     * <p>This concept should disappear.</p>
+     * The artifact options for this variant. These are effectively precomputed or
+     * producer-defined transforms.
      */
     Set<? extends VariantResolveMetadata> getArtifactVariants();
 }
