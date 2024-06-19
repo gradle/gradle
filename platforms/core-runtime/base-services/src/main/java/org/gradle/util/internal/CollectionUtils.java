@@ -15,7 +15,6 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -697,9 +696,5 @@ public abstract class CollectionUtils {
     public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
         ImmutableList<T> list = ImmutableList.copyOf(iterable);
         return list.isEmpty() ? null : list;
-    }
-
-    public static String asCommandLine(Iterable<String> arguments) {
-        return Joiner.on(" ").join(collect(arguments, InternalTransformers.asSafeCommandLineArgument()));
     }
 }
