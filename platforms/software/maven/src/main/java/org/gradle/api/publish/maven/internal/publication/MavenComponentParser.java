@@ -42,6 +42,7 @@ import org.gradle.api.internal.provider.MergeProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant;
 import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
 import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
@@ -224,7 +225,8 @@ public class MavenComponentParser {
             if (platformSupport.isTargetingPlatform(dependency)) {
                 dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
             } else {
-                dependencyFactory.convertDependency(dependency, dependencies::add);
+                boolean transitiveConfiguration = variant instanceof ConfigurationSoftwareComponentVariant && ((ConfigurationSoftwareComponentVariant) variant).getConfiguration().isTransitive();
+                dependencyFactory.convertDependency(dependency, dependencies::add, transitiveConfiguration);
             }
         }
 
@@ -304,7 +306,7 @@ public class MavenComponentParser {
             this.globalExcludes = globalExcludes;
         }
 
-        private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
+        private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector, boolean transitiveConfiguration) {
 
             // TODO: These warnings are not very useful. There are cases where a dependency declared
             // with attributes or capabilities is correctly converted to maven coordinates -- even
@@ -317,7 +319,7 @@ public class MavenComponentParser {
                 warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
             }
 
-            Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
+            Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, transitiveConfiguration, dependency);
 
             if (dependency.getArtifacts().isEmpty()) {
                 ResolvedCoordinates coordinates = resolveDependency(dependency, true);
@@ -432,7 +434,11 @@ public class MavenComponentParser {
             );
         }
 
-        private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
+        private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, boolean transitiveConfiguration, ModuleDependency dependency) {
+            if (!transitiveConfiguration) {
+                return EXCLUDE_ALL_RULE;
+            }
+
             if (!dependency.isTransitive()) {
                 return EXCLUDE_ALL_RULE;
             }
