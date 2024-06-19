@@ -34,7 +34,7 @@ abstract class AbstractProblemsListener : ProblemsListener {
             throw error
         }
         throw ConfigurationCacheError(
-            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message)}",
+            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).asString()}",
             error.maybeUnwrapInvocationTargetException()
         )
     }

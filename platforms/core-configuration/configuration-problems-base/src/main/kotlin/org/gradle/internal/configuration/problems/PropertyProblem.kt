@@ -61,14 +61,14 @@ typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 data class StructuredMessage(val fragments: List<Fragment>) {
 
-    fun asString(quote: Char) = fragments.joinToString(separator = "") { fragment ->
+    fun asString(quote: Char = '\'') = fragments.joinToString(separator = "") { fragment ->
         when (fragment) {
             is Fragment.Text -> fragment.text
             is Fragment.Reference -> "$quote${fragment.name}$quote"
         }
     }
 
-    override fun toString(): String = asString('\'')
+    override fun toString(): String = asString()
 
     sealed class Fragment {
 
