@@ -15,7 +15,6 @@ dependencies {
     api(project(":tooling-api"))
 
     implementation(project(":model-core"))
-    implementation(project(":base-services"))
 
     api(libs.jsr305)
     implementation(libs.guava)
