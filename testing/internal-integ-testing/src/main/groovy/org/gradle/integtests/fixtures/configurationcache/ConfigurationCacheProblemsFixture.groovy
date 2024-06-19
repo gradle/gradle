@@ -176,7 +176,7 @@ final class ConfigurationCacheProblemsFixture {
         } else {
             assertNoProblemsSummary(result.output)
         }
-        // TODO:bamboo avoid reading jsModel more than once when asserting on problems AND inputs AND incompatible tasks        assertInputs(result.output, rootDir, spec)
+        // TODO:bamboo avoid reading jsModel more than once when asserting on problems AND inputs AND incompatible tasks
         assertInputs(result.output, rootDir, spec)
         assertIncompatibleTasks(result.output, rootDir, spec)
     }

@@ -61,12 +61,14 @@ typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 data class StructuredMessage(val fragments: List<Fragment>) {
 
-    override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
+    fun asString(quote: Char) = fragments.joinToString(separator = "") { fragment ->
         when (fragment) {
             is Fragment.Text -> fragment.text
-            is Fragment.Reference -> "'${fragment.name}'"
+            is Fragment.Reference -> "$quote${fragment.name}$quote"
         }
     }
+
+    override fun toString(): String = asString('\'')
 
     sealed class Fragment {
 
@@ -126,12 +128,14 @@ sealed class PropertyTrace {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
         override fun hashCode(): Int = 0
+        override fun describe(builder: StructuredMessage.Builder) = builder.text("unknown location")
     }
 
     object Gradle : PropertyTrace() {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
         override fun hashCode(): Int = 1
+        override fun describe(builder: StructuredMessage.Builder) = builder.text("Gradle runtime")
     }
 
     @Suppress("DataClassPrivateConstructor")
@@ -142,12 +146,22 @@ sealed class PropertyTrace {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
         constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            text(source.displayName)
+            lineNumber?.let {
+                text(": line $it")
+            }
+        }
     }
 
     data class BuildLogicClass(
         val name: String
     ) : PropertyTrace() {
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            text("class ")
+            reference(name)
+        }
     }
 
     data class Task(
@@ -155,16 +169,25 @@ sealed class PropertyTrace {
         val path: String
     ) : PropertyTrace() {
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            text("task ")
+            reference(path)
+            text(" of type ")
+            reference(type.name)
+        }
     }
 
     data class Bean(
         val type: Class<*>,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            reference(type.name)
+            text(" bean found in ")
+        }
     }
 
     data class Property(
@@ -172,119 +195,71 @@ sealed class PropertyTrace {
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            text("$kind ")
+            reference(name)
+            text(" of ")
+        }
     }
 
     data class Project(
         val path: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            text("project ")
+            reference(path)
+            text(" in ")
+        }
     }
 
     data class SystemProperty(
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
+            text("system property ")
+            reference(name)
+            text(" set at ")
+        }
     }
-
-    abstract override fun toString(): String
 
     abstract override fun equals(other: Any?): Boolean
 
     abstract override fun hashCode(): Int
+
+    abstract override fun toString(): String
 
     /**
      * The shared logic for implementing `toString()` in subclasses.
      */
     protected
     fun asString(): String =
-        StringBuilder().apply {
+        StructuredMessage.Builder().apply {
             sequence.forEach {
-                appendStringOf(it)
+                it.describe(this)
             }
-        }.toString()
+        }.build().asString('`')
 
     /**
      * The user code where the problem occurred. User code should generally be some coarse-grained entity such as a plugin or script.
      */
     open val containingUserCode: String
-        get() = StringBuilder().apply {
-            appendStringOf(this@PropertyTrace)
-        }.toString()
+        get() = containingUserCodeMessage.asString('`')
 
-    private
-    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
-        when (trace) {
-            is Gradle -> {
-                append("Gradle runtime")
-            }
+    open val containingUserCodeMessage: StructuredMessage
+        get() = describe(StructuredMessage.Builder()).build()
 
-            is Property -> {
-                append(trace.kind)
-                append(" ")
-                quoted(trace.name)
-                append(" of ")
-            }
-
-            is SystemProperty -> {
-                append("system property ")
-                quoted(trace.name)
-                append(" set at ")
-            }
-
-            is Bean -> {
-                quoted(trace.type.name)
-                append(" bean found in ")
-            }
-
-            is Task -> {
-                append("task ")
-                quoted(trace.path)
-                append(" of type ")
-                quoted(trace.type.name)
-            }
-            is BuildLogic -> {
-                append(trace.source.displayName)
-                trace.lineNumber?.let {
-                    append(": line ")
-                    append(it)
-                }
-            }
-
-            is BuildLogicClass -> {
-                append("class ")
-                quoted(trace.name)
-            }
-
-            is Unknown -> {
-                append("unknown location")
-            }
-
-            is Project -> {
-                append("project ")
-                quoted(trace.path)
-                append(" in ")
-            }
-        }
-    }
-
-    private
-    fun StringBuilder.quoted(s: String) {
-        append('`')
-        append(s)
-        append('`')
-    }
+    abstract fun describe(builder: StructuredMessage.Builder): StructuredMessage.Builder
 
     val sequence: Sequence<PropertyTrace>
         get() = sequence {

@@ -175,14 +175,7 @@ class ConfigurationCacheProblems(
 
         val problem = problemFactory
             .problem {
-                if (trace is PropertyTrace.Task) {
-                    text("task ")
-                    reference(trace.path)
-                    text(" of type ")
-                    reference(trace.type)
-                } else {
-                    text(trace.containingUserCode)
-                }
+                message(trace.containingUserCodeMessage)
                 text(" is incompatible with the configuration cache. Reason: $reason.")
             }
             .mapLocation {
