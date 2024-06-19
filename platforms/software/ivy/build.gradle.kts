@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.internalInstrumentationApi)
     implementation(projects.functional)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.commonsLang)

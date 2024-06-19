@@ -34,6 +34,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.time)
+    implementation(projects.serviceLookup)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
     implementation(projects.logging)

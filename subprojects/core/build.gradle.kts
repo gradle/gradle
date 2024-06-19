@@ -75,6 +75,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.instrumentationAgentServices)
     api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
@@ -129,6 +130,7 @@ dependencies {
     implementation(projects.baseAsm)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
@@ -220,6 +222,9 @@ dependencies {
     }
     testFixturesApi(testFixtures(projects.snapshots)) {
         because("test fixtures expose file snapshot related functionality")
+    }
+    testFixturesApi(testFixtures(projects.serviceRegistryImpl)) {
+        because("test fixtures expose DefaultServiceRegistry")
     }
     testFixturesApi(projects.unitTestFixtures) {
         because("test fixtures expose ProjectBuilder")

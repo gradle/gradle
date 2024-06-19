@@ -10,6 +10,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.time)
     api(projects.baseServices)
@@ -29,6 +30,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.io)
     implementation(projects.messaging)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.errorProneAnnotations)
     implementation(libs.julToSlf4j)

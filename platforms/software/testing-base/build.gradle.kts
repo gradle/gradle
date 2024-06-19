@@ -32,7 +32,6 @@ dependencies {
     api(projects.reporting)
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
-    api(projects.serviceProvider)
     api(projects.time)
 
     api(libs.groovy)

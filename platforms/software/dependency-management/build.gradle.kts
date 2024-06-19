@@ -52,6 +52,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -90,6 +91,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.ant)
     implementation(libs.asm)

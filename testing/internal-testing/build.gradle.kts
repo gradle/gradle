@@ -15,6 +15,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
     api(projects.hashing)
+    api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)

@@ -23,6 +23,7 @@ dependencies {
     api(projects.platformJvm)
 
     implementation(projects.internalInstrumentationApi)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)
     implementation(projects.dependencyManagement)

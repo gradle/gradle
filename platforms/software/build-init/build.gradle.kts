@@ -45,6 +45,7 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.serviceLookup)
     implementation(projects.wrapperMain)
     implementation(projects.wrapperShared)
 

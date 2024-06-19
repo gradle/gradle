@@ -41,6 +41,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.loggingApi)

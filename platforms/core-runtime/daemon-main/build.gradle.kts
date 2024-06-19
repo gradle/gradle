@@ -32,4 +32,5 @@ dependencies {
     manifestClasspath(projects.buildProcessServices)
     manifestClasspath(projects.baseServices)
     manifestClasspath(projects.concurrent)
+    manifestClasspath(projects.serviceLookup)
 }

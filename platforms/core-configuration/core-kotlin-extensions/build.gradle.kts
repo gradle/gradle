@@ -13,9 +13,9 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
-    implementation(projects.baseServices)
     implementation(projects.messaging)
     implementation(projects.resources)
+    implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.stdlibKotlinExtensions)
 }

@@ -11,6 +11,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)

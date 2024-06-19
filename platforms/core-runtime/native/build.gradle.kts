@@ -15,6 +15,7 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
 }
 
 dependencies {
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.files)
 
@@ -25,6 +26,7 @@ dependencies {
     api(projects.fileTemp)
 
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.nativePlatformFileEvents)
     implementation(libs.slf4jApi)
