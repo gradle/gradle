@@ -8,7 +8,7 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Express
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.ExpressionResolutionProgress.UnresolvedReceiver
 
 
-class AssignmentResolver {
+class AssignmentResolver() {
     private
     val assignmentByNode = mutableMapOf<ResolutionNode.Property, GenerationResolutionNode>()
 
@@ -39,7 +39,6 @@ class AssignmentResolver {
         ) : AssignmentAdditionResult
     }
 
-    @Suppress("NestedBlockDepth")
     fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin, assignmentMethod: AssignmentMethod, generationId: OperationGenerationId): AssignmentAdditionResult =
         when (val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)) {
             is UnresolvedReceiver -> {
@@ -129,7 +128,6 @@ class AssignmentResolver {
         data class UnresolvedReceiver(val accessOrigin: ObjectOrigin) : ExpressionResolutionProgress
     }
 
-    @Suppress("NestedBlockDepth")
     fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> resolveToObjectOrPropertyReference(objectOrigin.delegate)

@@ -29,12 +29,12 @@ class MethodCache(
 
 ) {
     private
-    val cache = hashMapOf<Class<*>, Method?>()
+    val methodCache = hashMapOf<Class<*>, Method?>()
 
     fun forObject(value: Any) =
         forClass(value.javaClass)
 
-    fun forClass(type: Class<*>) = cache.computeIfAbsent(type) {
+    fun forClass(type: Class<*>) = methodCache.computeIfAbsent(type) {
         it.firstAccessibleMatchingMethodOrNull(predicate)
     }
 }

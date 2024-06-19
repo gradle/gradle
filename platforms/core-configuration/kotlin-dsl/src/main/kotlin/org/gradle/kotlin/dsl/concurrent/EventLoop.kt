@@ -27,14 +27,13 @@ class EventLoop<T>(
 ) {
 
     fun accept(event: T): Boolean {
-        if (q.offer(event, OFFER_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+        if (q.offer(event, offerTimeoutMillis, TimeUnit.MILLISECONDS)) {
             consumer.poke()
             return true
         }
         return false
     }
 
-    @Suppress("MagicNumber")
     private
     val q = ArrayBlockingQueue<T>(64)
 
@@ -44,13 +43,13 @@ class EventLoop<T>(
     }
 
     private
-    fun poll(): T? = q.poll(POLL_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+    fun poll(): T? = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS)
 }
 
 
 private
-const val OFFER_TIMEOUT_MILLIS = 50L
+const val offerTimeoutMillis = 50L
 
 
 internal
-const val POLL_TIMEOUT_MILLIS = 5_000L
+const val pollTimeoutMillis = 5_000L

@@ -49,7 +49,6 @@ abstract class KotlinDslPluginOptions internal constructor(objects: ObjectFactor
 
 private
 fun nagUserAboutJvmTarget() {
-    @Suppress("MagicNumber")
     DeprecationLogger.deprecateProperty(KotlinDslPluginOptions::class.java, "jvmTarget")
         .withAdvice("Configure a Java Toolchain instead.")
         .willBeRemovedInGradle9()

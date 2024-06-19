@@ -295,7 +295,6 @@ object ResolverCoordinator {
     fun classPathBlocksHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
         (previousDependencies as? KotlinBuildScriptDependencies)?.classPathBlocksHash
 
-    @Suppress("NestedBlockDepth")
     private
     fun classPathBlocksHashFor(script: ScriptContents, environment: Environment): ByteArray? {
 

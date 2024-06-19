@@ -23,12 +23,11 @@ import org.gradle.internal.declarativedsl.dom.writing.MutatedDocumentTextGenerat
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTag.BlockElement
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-@Suppress("LargeClass")
 object MutatedDocumentTextGeneratorTest {
     // This one does not include dot-access like z.f(...), TODO: add some once it is fixed for the DOM
     private

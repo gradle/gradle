@@ -23,7 +23,7 @@ import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
-import java.util.IdentityHashMap
+import java.util.*
 
 
 interface ResolutionTrace {

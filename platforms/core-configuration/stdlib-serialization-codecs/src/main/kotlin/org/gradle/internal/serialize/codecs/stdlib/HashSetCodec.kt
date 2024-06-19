@@ -55,7 +55,6 @@ suspend fun WriteContext.writeCollectionCheckingForCircularElements(collection: 
 }
 
 
-@Suppress("NestedBlockDepth")
 private
 suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionCheckingForCircularElementsInto(
     factory: (Int) -> T
@@ -69,7 +68,7 @@ suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionCheckingForC
             // before inserting the elements in the resulting set.
             val remainingSize = size - i
             val remaining = ArrayList<Any?>(remainingSize).apply {
-                for (ignored in 0 until remainingSize) {
+                for (j in 0 until remainingSize) {
                     add(read())
                 }
             }

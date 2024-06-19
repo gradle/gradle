@@ -376,7 +376,8 @@ class EmptyDependenciesResolverFactory : TransformUpstreamDependenciesResolverFa
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun finalizeIfNotAlready() = Unit
+    override fun finalizeIfNotAlready() {
+    }
 
     override fun computeArtifacts(): Try<TransformDependencies> {
         return Try.successful(DefaultTransformDependencies(FileCollectionFactory.empty()))

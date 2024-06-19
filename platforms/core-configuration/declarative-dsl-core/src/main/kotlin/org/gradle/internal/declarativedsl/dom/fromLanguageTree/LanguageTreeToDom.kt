@@ -149,7 +149,6 @@ class LanguageTreeToDomContext {
     }
 
 
-    @Suppress("NestedBlockDepth")
     private
     fun exprToValue(expr: Expr): ExprConversion = when (expr) {
         is Literal<*> -> ExprConversion.Converted(literalNode(expr))

@@ -60,7 +60,7 @@ class ConcurrentGroupingQueueTest {
 
         val pushElementSignal = CountDownLatch(1)
         thread {
-            pushElementSignal.await(DEFAULT_TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+            pushElementSignal.await(defaultTestTimeoutMillis, TimeUnit.MILLISECONDS)
             subject.push(42)
         }
         assertThat(
@@ -70,7 +70,7 @@ class ConcurrentGroupingQueueTest {
         pushElementSignal.countDown()
 
         assertThat(
-            subject.nextGroup(DEFAULT_TEST_TIMEOUT_MILLIS),
+            subject.nextGroup(defaultTestTimeoutMillis),
             equalTo(listOf(42))
         )
     }

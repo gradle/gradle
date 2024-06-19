@@ -84,7 +84,6 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
 
     private
     fun logMissingScope() {
-        @Suppress("MagicNumber")
         logger.debug {
             val stackTrace = IllegalStateException("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall").stackTraceToString()
             "Warning: " + stackTrace.lines().take(15).joinToString("\n")

@@ -8,16 +8,18 @@ import org.intellij.lang.annotations.Language
 import kotlin.test.assertEquals
 
 
-object ParseTestUtil {
+class ParseTestUtil {
 
-    fun parse(@Language("kts") code: String): LanguageTreeResult {
-        val parsedTree = org.gradle.internal.declarativedsl.parsing.parse(code)
-        return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test"))
-    }
+    companion object Parser {
+        fun parse(@Language("kts") code: String): LanguageTreeResult {
+            val parsedTree = org.gradle.internal.declarativedsl.parsing.parse(code)
+            return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test"))
+        }
 
-    fun parseAsTopLevelBlock(code: String): Block {
-        val parsedTree = org.gradle.internal.declarativedsl.parsing.parse(code)
-        return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test")).topLevelBlock
+        fun parseAsTopLevelBlock(code: String): Block {
+            val parsedTree = org.gradle.internal.declarativedsl.parsing.parse(code)
+            return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test")).topLevelBlock
+        }
     }
 }
 

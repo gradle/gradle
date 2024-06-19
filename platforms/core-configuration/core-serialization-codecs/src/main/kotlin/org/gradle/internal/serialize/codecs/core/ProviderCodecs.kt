@@ -41,20 +41,20 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.flow.services.BuildWorkResultProvider
 import org.gradle.internal.flow.services.RegisteredFlowAction
+import org.gradle.internal.serialize.graph.codecs.BeanCodec
+import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.BeanCodec
-import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
@@ -94,7 +94,6 @@ class FixedValueReplacingProviderCodec(
         encodeValue(state)
     }
 
-    @Suppress("MagicNumber")
     suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
         val sideEffect = value.sideEffect
         when {
@@ -143,7 +142,7 @@ class FixedValueReplacingProviderCodec(
             }
 
             4.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue<Any>(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
-            else -> error("Unexpected provider value")
+            else -> throw IllegalStateException("Unexpected provider value")
         }
 }
 
@@ -279,14 +278,14 @@ class ValueSourceProviderCodec(
             // cached state fingerprint.
             // Currently not necessary due to the unpacking that happens
             // to the TypeSanitizingProvider put around the ValueSourceProvider.
-            error("build logic input")
+            throw IllegalStateException("build logic input")
         }
     }
 
     override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
         when (readBoolean()) {
             true -> decodeValueSource()
-            false -> error("")
+            false -> throw IllegalStateException()
         }
 
     private

@@ -43,7 +43,8 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 
 
 object NullValueSnapshotCodec : Codec<NullValueSnapshot> {
-    override suspend fun WriteContext.encode(value: NullValueSnapshot) = Unit
+    override suspend fun WriteContext.encode(value: NullValueSnapshot) {
+    }
 
     override suspend fun ReadContext.decode(): NullValueSnapshot {
         return NullValueSnapshot.INSTANCE

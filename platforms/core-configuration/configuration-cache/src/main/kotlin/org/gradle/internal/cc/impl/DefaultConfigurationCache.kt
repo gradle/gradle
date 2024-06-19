@@ -65,7 +65,6 @@ import java.io.OutputStream
 import java.util.Locale
 
 
-@Suppress("LongParameterList")
 class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,

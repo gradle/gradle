@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("FunctionNaming")
-
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.jvm.JvmMethodSignature
@@ -322,7 +320,7 @@ fun pluginImplementationClassesExposedBy(pluginDependencySpecAccessors: List<Plu
 private
 fun pluginDependenciesSpecOf(extendedType: String): String = when (extendedType) {
     "PluginDependenciesSpec" -> "this"
-    else -> PLUGINS_FIELD_NAME
+    else -> pluginsFieldName
 }
 
 
@@ -387,7 +385,7 @@ private
 fun MethodVisitor.GETPLUGINS(receiverType: TypeSpec) {
     ALOAD(0)
     if (receiverType !== pluginDependenciesSpecTypeSpec) {
-        GETFIELD(receiverType.internalName, PLUGINS_FIELD_NAME, pluginDependenciesSpecTypeDesc)
+        GETFIELD(receiverType.internalName, pluginsFieldName, pluginDependenciesSpecTypeDesc)
     }
 }
 
@@ -397,13 +395,13 @@ fun emitClassForGroup(group: PluginDependencySpecAccessor.ForGroup): Pair<Intern
 
     val className = extension.returnType.internalName
     val classBytes = publicClass(className) {
-        packagePrivateField(PLUGINS_FIELD_NAME, pluginDependenciesSpecTypeDesc)
+        packagePrivateField(pluginsFieldName, pluginDependenciesSpecTypeDesc)
         publicMethod("<init>", groupTypeConstructorSignature) {
             ALOAD(0)
             INVOKESPECIAL(InternalNameOf.javaLangObject, "<init>", "()V")
             ALOAD(0)
             ALOAD(1)
-            PUTFIELD(className, PLUGINS_FIELD_NAME, pluginDependenciesSpecTypeDesc)
+            PUTFIELD(className, pluginsFieldName, pluginDependenciesSpecTypeDesc)
             RETURN()
         }
     }
@@ -421,7 +419,7 @@ fun ClassWriter.packagePrivateField(name: String, desc: String) {
 
 
 private
-const val PLUGINS_FIELD_NAME = "plugins"
+const val pluginsFieldName = "plugins"
 
 
 private

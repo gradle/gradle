@@ -148,7 +148,6 @@ class Interpreter(val host: Host) {
         }
     }
 
-    @Suppress("LongParameterList")
     fun eval(
         target: Any,
         scriptSource: ScriptSource,
@@ -286,7 +285,6 @@ class Interpreter(val host: Host) {
         )
     }
 
-    @Suppress("LongParameterList")
     private
     fun compile(
         scriptHost: KotlinScriptHost<*>,

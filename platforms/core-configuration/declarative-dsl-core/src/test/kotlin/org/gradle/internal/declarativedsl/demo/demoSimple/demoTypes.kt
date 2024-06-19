@@ -12,7 +12,6 @@ class Abc {
     var a: Int = 0
 
     @Restricted
-    @Suppress("FunctionOnlyReturningConstant")
     fun b(): Int = 1
 
     @get:Restricted
@@ -45,7 +44,6 @@ class C(var x: Int = 0) {
     val y = "test"
 
     @Restricted
-    @Suppress("FunctionOnlyReturningConstant")
     fun f(y: String) = 0
 }
 

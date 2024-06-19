@@ -18,16 +18,21 @@ package org.gradle.kotlin.dsl.execution
 
 
 internal
-fun CharSequence.linePreservingSubstring(range: IntRange): String {
-    val lineCount = take(range.first).count { it == '\n' }
-    return (lineCount to "\n".repeat(lineCount) + substring(range)).second
+fun CharSequence.linePreservingSubstring(range: IntRange): String =
+    linePreservingSubstring_(range).second
+
+
+internal
+fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
+    val lineCount = take(range.start).count { it == '\n' }
+    return lineCount to "\n".repeat(lineCount) + substring(range)
 }
 
 
 internal
 fun CharSequence.linePreservingBlankRanges(ranges: List<IntRange>): String =
     ranges
-        .sortedByDescending { it.first }
+        .sortedByDescending { it.start }
         .fold(this, CharSequence::linePreservingBlankRange)
         .toString()
 

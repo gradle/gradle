@@ -29,7 +29,6 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 
 
-@Suppress("LongParameterList")
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
     types: Iterable<KClass<*>>,

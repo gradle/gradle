@@ -1,9 +1,6 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.only
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.*
 import org.gradle.api.Action
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler

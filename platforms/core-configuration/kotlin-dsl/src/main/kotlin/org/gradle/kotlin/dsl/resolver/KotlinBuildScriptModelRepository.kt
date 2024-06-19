@@ -85,7 +85,6 @@ open class KotlinBuildScriptModelRepository {
         ignoringErrors { k.resumeWith(result) }
     }
 
-    @Suppress("PrintStackTrace")
     private
     inline fun ignoringErrors(block: () -> Unit) {
         try {

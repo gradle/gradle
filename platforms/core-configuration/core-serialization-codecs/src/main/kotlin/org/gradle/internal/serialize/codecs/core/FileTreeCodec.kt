@@ -48,7 +48,6 @@ private
 sealed class FileTreeSpec
 
 
-@Suppress("UnusedPrivateClass")
 private
 class AdaptedFileTreeSpec(val tree: MinimalFileTree) : FileTreeSpec()
 

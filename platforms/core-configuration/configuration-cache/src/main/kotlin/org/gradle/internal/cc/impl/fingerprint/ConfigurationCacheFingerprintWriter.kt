@@ -886,4 +886,9 @@ class ConfigurationCacheFingerprintWriter(
 
 
 internal
-fun jvmFingerprint() = "${System.getProperty("java.vm.name")}|${System.getProperty("java.vm.vendor")}|${System.getProperty("java.vm.version")}"
+fun jvmFingerprint() = String.format(
+    "%s|%s|%s",
+    System.getProperty("java.vm.name"),
+    System.getProperty("java.vm.vendor"),
+    System.getProperty("java.vm.version")
+)

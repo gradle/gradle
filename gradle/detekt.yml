@@ -1,0 +1,42 @@
+style:
+  MaxLineLength:
+    maxLineLength: 250
+  ReturnCount:
+    max: 5
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 5
+  ForbiddenComment:
+    active: false
+  ExplicitItLambdaParameter:
+    active: false
+  WildcardImport:
+    active: true
+    excludeImports:
+      - 'org.gradle.kotlin.dsl.*'
+  SerialVersionUIDInSerializableClass:
+    active: false
+
+complexity:
+  TooManyFunctions:
+    active: false
+  LongParameterList:
+    functionThreshold: 8                  # default is 6
+    constructorThreshold: 12              # default is 7
+  LongMethod:
+    active: true
+    threshold: 100                        # default is 60
+  CyclomaticComplexMethod:
+    threshold: 25                         # default is 15
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+  SwallowedException:
+    ignoredExceptionTypes:
+      - 'InterruptedException'        # detekt default
+      - 'MalformedURLException'       # detekt default
+      - 'NumberFormatException'       # detekt default
+      - 'ParseException'              # detekt default
+      - 'InvocationTargetException'   # added by us

@@ -102,7 +102,6 @@ class DataSchemaBuilder(
         fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
     }
 
-    @Suppress("NestedBlockDepth")
     private
     fun createPreIndex(types: Iterable<KClass<*>>): PreIndex {
         val allTypesToVisit = buildSet {

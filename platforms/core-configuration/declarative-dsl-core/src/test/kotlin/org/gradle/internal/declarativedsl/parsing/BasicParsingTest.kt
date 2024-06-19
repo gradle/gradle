@@ -1,6 +1,8 @@
-package org.gradle.internal.declarativedsl.parsing
+package org.gradle.internal.declarativedsl.astToLanguageTree
 
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
+import org.gradle.internal.declarativedsl.parsing.assert
 import org.junit.jupiter.api.Test
 
 

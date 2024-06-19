@@ -18,13 +18,13 @@ package org.gradle.internal.cc.impl.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.configuration.problems.documentationLinkFor
 import org.gradle.internal.configuration.problems.DecoratedFailure
 import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configuration.problems.documentationLinkFor
 import org.gradle.internal.configuration.problems.firstTypeFrom
 import org.gradle.internal.configuration.problems.projectPathFrom
 import org.gradle.internal.configuration.problems.taskPathFrom
@@ -301,7 +301,6 @@ class JsonModelWriter(val writer: Writer) {
         write('"')
     }
 
-    @Suppress("MagicNumber")
     private
     val buffer = CharBuf.create(255)
 

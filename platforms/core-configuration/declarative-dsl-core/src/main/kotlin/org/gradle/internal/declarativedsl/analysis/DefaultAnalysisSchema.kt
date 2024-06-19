@@ -45,7 +45,6 @@ data class DefaultAnalysisSchema(
         override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey> = mapOf()
         override val defaultImports: Set<FqName> = setOf()
 
-        @Suppress("unused")
         private
         fun readResolve(): Any = Empty
     }
@@ -70,8 +69,6 @@ data class DefaultDataClass(
         override val properties: List<DataProperty> = Collections.emptyList()
         override val memberFunctions: List<SchemaMemberFunction> = Collections.emptyList()
         override val constructors: List<DataConstructor> = Collections.emptyList()
-
-        @Suppress("unused")
         private
         fun readResolve(): Any = Empty
     }
@@ -91,7 +88,6 @@ data class DefaultDataProperty(
     data object DefaultPropertyMode {
         @Serializable
         data object DefaultReadWrite : PropertyMode.ReadWrite {
-            @Suppress("unused")
             private
             fun readResolve(): Any = DefaultReadWrite
         }
@@ -99,7 +95,6 @@ data class DefaultDataProperty(
 
         @Serializable
         data object DefaultReadOnly : PropertyMode.ReadOnly {
-            @Suppress("unused")
             private
             fun readResolve(): Any = DefaultReadOnly
         }
@@ -107,7 +102,6 @@ data class DefaultDataProperty(
 
         @Serializable
         data object DefaultWriteOnly : PropertyMode.WriteOnly {
-            @Suppress("unused")
             private
             fun readResolve(): Any = DefaultWriteOnly
         }
@@ -188,7 +182,6 @@ object ParameterSemanticsInternal {
     @Serializable
     @SerialName("unknown")
     data object DefaultUnknown : ParameterSemantics.Unknown {
-        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultUnknown
     }
@@ -222,7 +215,6 @@ object FunctionSemanticsInternal {
             @Serializable
             @SerialName("configuredObject")
             data object DefaultConfiguredObject : ReturnType.ConfiguredObject {
-                @Suppress("unused")
                 private
                 fun readResolve(): Any = DefaultConfiguredObject
             }
@@ -230,7 +222,6 @@ object FunctionSemanticsInternal {
             @Serializable
             @SerialName("unit")
             object DefaultUnit : ReturnType.Unit {
-                @Suppress("unused")
                 private
                 fun readResolve(): Any = DefaultUnit
             }
@@ -259,7 +250,6 @@ object FunctionSemanticsInternal {
         @Serializable
         @SerialName("notAllowed")
         data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed {
-            @Suppress("unused")
             private
             fun readResolve(): Any = DefaultNotAllowed
         }
@@ -267,7 +257,6 @@ object FunctionSemanticsInternal {
         @Serializable
         @SerialName("optional")
         data object DefaultOptional : ConfigureBlockRequirement.Optional {
-            @Suppress("unused")
             private
             fun readResolve(): Any = DefaultOptional
         }
@@ -275,7 +264,6 @@ object FunctionSemanticsInternal {
         @Serializable
         @SerialName("required")
         data object DefaultRequired : ConfigureBlockRequirement.Required {
-            @Suppress("unused")
             private
             fun readResolve(): Any = DefaultRequired
         }

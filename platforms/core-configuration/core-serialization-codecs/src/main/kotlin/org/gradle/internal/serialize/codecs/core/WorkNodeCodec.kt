@@ -20,6 +20,17 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodePreservingIdentity
+import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
 import org.gradle.execution.plan.FinalizerGroup
@@ -30,17 +41,6 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
-import org.gradle.internal.cc.base.serialize.withGradleIsolate
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.decodePreservingIdentity
-import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
-import org.gradle.internal.serialize.graph.ownerService
-import org.gradle.internal.serialize.graph.readCollection
-import org.gradle.internal.serialize.graph.readCollectionInto
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.writeCollection
 
 
 class WorkNodeCodec(
@@ -99,7 +99,7 @@ class WorkNodeCodec(
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
-        for (ignored in 0 until nodeCount) {
+        for (i in 0 until nodeCount) {
             val node = readNode()
             nodesById[nodesById.size] = node
             if (node is LocalTaskNode) {
@@ -128,7 +128,6 @@ class WorkNodeCodec(
         return node
     }
 
-    @Suppress("MagicNumber")
     private
     fun WriteContext.writeNodeGroup(group: NodeGroup, nodesById: Map<Node, Int>) {
         encodePreservingIdentityOf(group) {
@@ -157,12 +156,11 @@ class WorkNodeCodec(
                     writeSmallInt(3)
                 }
 
-                else -> error("")
+                else -> throw IllegalArgumentException()
             }
         }
     }
 
-    @Suppress("MagicNumber")
     private
     fun ReadContext.readNodeGroup(nodesById: Map<Int, Node>): NodeGroup {
         return decodePreservingIdentity { id ->
@@ -186,7 +184,7 @@ class WorkNodeCodec(
                 }
 
                 3 -> NodeGroup.DEFAULT_GROUP
-                else -> error("")
+                else -> throw IllegalArgumentException()
             }.also {
                 isolate.identities.putInstance(id, it)
             }

@@ -104,7 +104,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
         } else if (releasedVersions.latestReleaseSnapshot.gradleVersion().baseVersion == expectedBaseVersion) {
             return releasedVersions.latestReleaseSnapshot.gradleVersion()
         } else {
-            error("Expected version: $expectedBaseVersion but can't find it")
+            throw IllegalStateException("Expected version: $expectedBaseVersion but can't find it")
         }
     }
 
@@ -123,7 +123,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
         val baseVersion = commitBaseline.get().substringBefore("-")
         val distribution = checkoutDir.resolve("subprojects/distributions-full/build/distributions/gradle-$baseVersion-bin.zip")
         if (!distribution.isFile) {
-            error("${distribution.absolutePath} doesn't exist. Did you set the wrong base version?\n${distribution.parentFile.list()?.joinToString("\n")}")
+            throw IllegalStateException("${distribution.absolutePath} doesn't exist. Did you set the wrong base version?\n${distribution.parentFile.list()?.joinToString("\n")}")
         }
         distribution.copyTo(commitDistribution.asFile.get(), true)
     }

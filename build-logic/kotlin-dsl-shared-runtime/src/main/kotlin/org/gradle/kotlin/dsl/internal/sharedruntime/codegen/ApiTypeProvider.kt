@@ -138,10 +138,9 @@ class ApiTypeProvider internal constructor(
     }
 
     private
-    fun <T> open(action: () -> T): T {
-        check(!closed) { "ApiTypeProvider closed!" }
-        return action()
-    }
+    fun <T> open(action: () -> T): T =
+        if (closed) throw IllegalStateException("ApiTypeProvider closed!")
+        else action()
 
     internal
     class Context(

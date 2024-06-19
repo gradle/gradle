@@ -184,6 +184,11 @@ fun ScriptApiMembers.missingMembersFrom(scriptTemplate: KClass<*>): List<KCallab
 
 
 private
+fun KClass<*>.implements(api: KCallable<*>) =
+    publicMembers.containsMemberCompatibleWith(api)
+
+
+private
 val KClass<*>.publicMembers
     get() = members.filter { it.isPublic }
 

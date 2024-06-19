@@ -30,17 +30,17 @@ data class KotlinCompilerOptions(
 
 fun kotlinCompilerOptions(gradleProperties: GradlePropertiesController): KotlinCompilerOptions =
     KotlinCompilerOptions(
-        allWarningsAsErrors = getCompilerOptionBoolean(gradleProperties, ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME, false),
-        skipMetadataVersionCheck = getCompilerOptionBoolean(gradleProperties, SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME, true)
+        allWarningsAsErrors = getCompilerOptionBoolean(gradleProperties, allWarningsAsErrorsPropertyName, false),
+        skipMetadataVersionCheck = getCompilerOptionBoolean(gradleProperties, skipMetadataVersionCheckPropertyName, true)
     )
 
 
 private
-const val ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME = "org.gradle.kotlin.dsl.allWarningsAsErrors"
+val allWarningsAsErrorsPropertyName = "org.gradle.kotlin.dsl.allWarningsAsErrors"
 
 
 private
-const val SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME = "org.gradle.kotlin.dsl.skipMetadataVersionCheck"
+val skipMetadataVersionCheckPropertyName = "org.gradle.kotlin.dsl.skipMetadataVersionCheck"
 
 
 /**

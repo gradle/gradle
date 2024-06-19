@@ -124,7 +124,6 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         return result
     }
 
-    @Suppress("MagicNumber")
     private
     fun observingTasksMaybeFromOtherProjects(tasks: Collection<Task>) {
         val otherProjects = tasks.mapNotNullTo(LinkedHashSet(tasks.size / 8)) { task ->

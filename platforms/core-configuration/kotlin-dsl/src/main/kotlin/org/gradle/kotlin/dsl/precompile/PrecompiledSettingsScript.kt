@@ -33,7 +33,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 open class PrecompiledSettingsScript(target: Settings) : @Suppress("deprecation") SettingsScriptApi(target) {
 
     init {
-        @Suppress("MagicNumber")
         DeprecationLogger.deprecateBehaviour("Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0.")
             .withAdvice("Use a version of the plugin published with Gradle >= 6.0.")
             .willBeRemovedInGradle9()

@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import java.util.EnumSet
+import java.util.*
 
 
 enum class EvalOption {

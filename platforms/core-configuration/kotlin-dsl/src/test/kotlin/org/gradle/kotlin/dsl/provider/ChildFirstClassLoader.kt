@@ -34,7 +34,7 @@ class ChildFirstClassLoader(parent: ClassLoader, classPath: ClassPath) : Visitab
     fun tryToLoadLocally(name: String): Class<*>? =
         try {
             findClass(name)
-        } catch (_: ClassNotFoundException) {
+        } catch (e: ClassNotFoundException) {
             null
         }
 }

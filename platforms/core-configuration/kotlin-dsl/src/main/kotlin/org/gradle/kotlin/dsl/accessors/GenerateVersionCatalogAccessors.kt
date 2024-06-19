@@ -168,7 +168,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 versionCatalogAccessor.buildscriptExtension,
                 signature,
                 scriptHandlerScopeInternalInternalName,
-                SCRIPT_HANDLER_SCOPE_INTERNAL_VERSION_CATALOG_EXTENSION_METHOD_NAME,
+                scriptHandlerScopeInternalVersionCatalogExtensionMethodName,
                 scriptHandlerScopeInternalVersionCatalogExtensionMethodDesc,
             )
         }
@@ -177,7 +177,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 versionCatalogAccessor.pluginsExtension,
                 signature,
                 pluginDependenciesSpecScopeInternalInternalName,
-                PLUGIN_DEPENDENCIES_SPEC_SCOPE_INTERNAL_VERSION_CATALOG_FOR_PLUGINS_BLOCK_METHOD_NAME,
+                pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName,
                 pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodDesc,
             )
         }
@@ -233,8 +233,8 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
     }
 
     versionCatalogs.forEach { catalog ->
-        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class, SCRIPT_HANDLER_SCOPE_INTERNAL_VERSION_CATALOG_EXTENSION_METHOD_NAME)
-        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class, PLUGIN_DEPENDENCIES_SPEC_SCOPE_INTERNAL_VERSION_CATALOG_FOR_PLUGINS_BLOCK_METHOD_NAME)
+        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class, scriptHandlerScopeInternalVersionCatalogExtensionMethodName)
+        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class, pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName)
     }
 }
 
@@ -267,7 +267,7 @@ val scriptHandlerScopeInternalInternalName = ScriptHandlerScopeInternal::class.i
 
 
 private
-const val SCRIPT_HANDLER_SCOPE_INTERNAL_VERSION_CATALOG_EXTENSION_METHOD_NAME = "versionCatalogExtension"
+const val scriptHandlerScopeInternalVersionCatalogExtensionMethodName = "versionCatalogExtension"
 
 
 private
@@ -283,7 +283,7 @@ val pluginDependenciesSpecScopeTypeSpec = TypeSpec("PluginDependenciesSpecScope"
 
 
 private
-const val PLUGIN_DEPENDENCIES_SPEC_SCOPE_INTERNAL_VERSION_CATALOG_FOR_PLUGINS_BLOCK_METHOD_NAME = "versionCatalogForPluginsBlock"
+const val pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName = "versionCatalogForPluginsBlock"
 
 
 private

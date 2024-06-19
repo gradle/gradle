@@ -27,7 +27,7 @@ import org.gradle.kotlin.dsl.support.listFilesOrdered
 import java.io.File
 
 
-const val BUILD_SRC_SOURCE_ROOTS_FILE_PATH = "build/source-roots/buildSrc/source-roots.txt"
+const val buildSrcSourceRootsFilePath = "build/source-roots/buildSrc/source-roots.txt"
 
 
 object SourcePathProvider {
@@ -60,7 +60,7 @@ object SourcePathProvider {
      * Returns source directories from buildSrc if any.
      */
     fun buildSrcRootsOf(projectRoot: File): Collection<File> =
-        projectRoot.resolve("buildSrc/$BUILD_SRC_SOURCE_ROOTS_FILE_PATH")
+        projectRoot.resolve("buildSrc/$buildSrcSourceRootsFilePath")
             .takeIf { it.isFile }
             ?.readLines()
             ?.map { projectRoot.resolve("buildSrc/$it") }

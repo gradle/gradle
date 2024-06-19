@@ -155,7 +155,6 @@ class NFA(
         }
     }
 
-    @Suppress("NestedBlockDepth")
     fun matches(scope: Scope, matchTransition: (ScopeLocationElement, parentElement: ElementNode?, scopeElement: ElementNode) -> Boolean): Boolean {
         var possibleStates = MarkedStates(noOfStates)
         possibleStates.mark(epsilonTransitions, 0)

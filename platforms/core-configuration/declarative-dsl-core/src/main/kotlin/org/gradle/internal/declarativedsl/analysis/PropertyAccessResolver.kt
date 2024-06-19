@@ -70,7 +70,6 @@ class PropertyAccessResolverImpl(
         }
     }
 
-    @Suppress("NestedBlockDepth")
     private
     fun AnalysisContext.doResolvePropertyAccessToObject(
         propertyAccess: PropertyAccess

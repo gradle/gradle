@@ -28,7 +28,6 @@ class MutatedDocumentTextGenerator {
     private
     val canonicalCodeGenerator = CanonicalCodeGenerator()
 
-    @Suppress("NestedBlockDepth")
     fun generateText(
         tree: TextPreservingTree,
         mapNames: (ownerTag: ChildTag, name: String) -> String = { _, name -> name },

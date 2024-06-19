@@ -32,8 +32,8 @@ class AccessorsClassPathIntegrationTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings()
         withBuildScript("")
 
-        withFile(PROJECT_SCHEMA_RESOURCE_PATH)
+        withFile(projectSchemaResourcePath)
 
-        assertThat(build("help").output, containsString(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING))
+        assertThat(build("help").output, containsString(projectSchemaResourceDiscontinuedWarning))
     }
 }

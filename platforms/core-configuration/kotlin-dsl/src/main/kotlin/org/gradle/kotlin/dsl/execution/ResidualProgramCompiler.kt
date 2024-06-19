@@ -80,7 +80,6 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
  * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
  * stored in the given [outputDir].
  */
-@Suppress("LongParameterList")
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
@@ -154,7 +153,6 @@ class ResidualProgramCompiler(
         }
     }
 
-    @Suppress("MagicNumber")
     private
     fun mightBeLargerThan64KB(secondStageScriptText: String) =
         // We use a simple heuristic to avoid converting the string to bytes
@@ -198,7 +196,7 @@ class ResidualProgramCompiler(
                 is Program.Plugins -> emitCompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
-                else -> error("Expecting a residual program with plugins, got `$program'")
+                else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
             }
         }
     }
@@ -457,7 +455,6 @@ class ResidualProgramCompiler(
         )
     }
 
-    @Suppress("MagicNumber")
     private
     fun ClassWriter.overrideLoadSecondStageFor() {
         publicMethod(
@@ -613,7 +610,6 @@ class ResidualProgramCompiler(
         )
     }
 
-    @Suppress("MagicNumber")
     private
     fun MethodVisitor.emitOnScriptException(compiledScriptClass: InternalName) {
         // Exception is on the stack

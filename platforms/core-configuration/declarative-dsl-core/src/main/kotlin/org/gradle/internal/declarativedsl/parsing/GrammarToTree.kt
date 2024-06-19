@@ -365,7 +365,6 @@ class GrammarToTree(
         return Element(Literal.StringLiteral(sb.toString(), tree.sourceData(node)))
     }
 
-    @Suppress("ReturnCount")
     private
     fun constantExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> {
         val type = node.tokenType
@@ -547,7 +546,6 @@ class GrammarToTree(
             else tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
         }
 
-    @Suppress("NestedBlockDepth")
     private
     fun binaryStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> {
         val children = tree.children(node)

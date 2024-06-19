@@ -99,14 +99,15 @@ class FixedUpstreamDependencies(private val dependencies: TransformDependencies,
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {
-        error("Should not be called")
+        throw IllegalStateException("Should not be called")
     }
 
     override fun selectedArtifacts(): FileCollection {
         return dependencies.files.orElseThrow { IllegalStateException("Transform does not use artifact dependencies.") }
     }
 
-    override fun finalizeIfNotAlready() = Unit
+    override fun finalizeIfNotAlready() {
+    }
 
     override fun computeArtifacts(): Try<TransformDependencies> {
         return Try.successful(dependencies)

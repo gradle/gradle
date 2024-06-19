@@ -16,8 +16,9 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.concurrent.POLL_TIMEOUT_MILLIS
+import org.gradle.kotlin.dsl.concurrent.pollTimeoutMillis
 
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
@@ -66,7 +67,7 @@ class ConcurrentGroupingQueue<T>(
      * The group contains the most recently pushed element plus all
      * elements superseded by it ordered from most recent to least recent.
      */
-    fun nextGroup(timeoutMillis: Long = POLL_TIMEOUT_MILLIS): List<T> {
+    fun nextGroup(timeoutMillis: Long = pollTimeoutMillis): List<T> {
         lock.withLock {
             if (q.isNotEmpty()) {
                 return takeNextGroup()

@@ -174,7 +174,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
     }
 
-    @Suppress("LargeClass")
     private
     class ProblemReportingProject(
         val delegate: ProjectInternal,
@@ -1136,7 +1135,6 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
-        @Suppress("ThrowingExceptionsWithoutMessageOrCause")
         private
         fun reportCrossProjectAccessProblem(
             accessRef: String,

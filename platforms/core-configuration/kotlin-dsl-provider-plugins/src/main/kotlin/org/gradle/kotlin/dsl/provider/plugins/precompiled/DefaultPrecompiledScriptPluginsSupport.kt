@@ -56,7 +56,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompi
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.STRICT_MODE_SYSTEM_PROPERTY_NAME
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -231,7 +231,7 @@ fun Project.enableScriptCompilationOf(
                 @Suppress("DEPRECATION")
                 strict.set(
                     providers
-                        .systemProperty(STRICT_MODE_SYSTEM_PROPERTY_NAME)
+                        .systemProperty(strictModeSystemPropertyName)
                         .map(strictModeSystemPropertyNameMapper)
                         .orElse(true)
                 )
@@ -282,8 +282,7 @@ fun Project.enableScriptCompilationOf(
 
 private
 val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transformer { prop ->
-    @Suppress("MagicNumber")
-    DeprecationLogger.deprecateSystemProperty(STRICT_MODE_SYSTEM_PROPERTY_NAME)
+    DeprecationLogger.deprecateSystemProperty(strictModeSystemPropertyName)
         .willBeRemovedInGradle9()
         .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors-by-default")
         .nagUser()
@@ -373,7 +372,6 @@ fun Task.validateKotlinCompilerArguments() {
 
 private
 fun Task.configureKotlinCompilerArgumentsEagerly(resolverEnvironment: Provider<String>) {
-    @Suppress("MagicNumber")
     DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
         .withAdvice(
             "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
@@ -484,19 +482,24 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
 
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
-            "The precompiled plugin (${this.relativePath(scriptPlugin.scriptFile)}) cannot start with '${DefaultPluginManager.CORE_PLUGIN_NAMESPACE}' " +
-                "or be in the '${DefaultPluginManager.CORE_PLUGIN_NAMESPACE}' package.",
+            String.format(
+                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.", this.relativePath(scriptPlugin.scriptFile),
+                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE
+            ),
             null,
-            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage
+            PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage()
         )
     }
     val existingPlugin = plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
-            "The precompiled plugin (${this.relativePath(scriptPlugin.scriptFile)}) conflicts with the core plugin '${scriptPlugin.id}'. " +
-                "Rename your plugin.",
+            String.format(
+                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.",
+                this.relativePath(scriptPlugin.scriptFile),
+                scriptPlugin.id
+            ),
             null,
-            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage
+            PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage()
         )
     }
 }

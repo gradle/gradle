@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.inClassPathMode
-import org.gradle.kotlin.dsl.resolver.BUILD_SRC_SOURCE_ROOTS_FILE_PATH
+import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
 
 
 internal
@@ -49,7 +49,7 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
             tasks {
                 val generateSourceRoots by registering(GenerateSourceRootsFile::class) {
                     sourceRoots.set(projectDependenciesSourceRootsFrom("runtimeClasspath"))
-                    destinationFile.set(layout.projectDirectory.file(BUILD_SRC_SOURCE_ROOTS_FILE_PATH))
+                    destinationFile.set(layout.projectDirectory.file(buildSrcSourceRootsFilePath))
                 }
                 named("jar") {
                     it.finalizedBy(generateSourceRoots)

@@ -64,9 +64,8 @@ data class LexedScript(
 /**
  * Returns the comments and [top-level blocks][topLevelBlockIds] found in the given [script].
  */
-@Suppress("CyclomaticComplexMethod", "NestedBlockDepth")
 internal
-fun lex(script: String, topLevelBlockIds: Array<TopLevelBlockId>): Packaged<LexedScript> {
+fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<LexedScript> {
 
     var packageName: String? = null
     val comments = mutableListOf<IntRange>()
@@ -268,7 +267,7 @@ data class TopLevelBlock(val identifier: TopLevelBlockId, val section: ScriptSec
 }
 
 
-@Suppress("EnumEntryName", "EnumNaming")
+@Suppress("EnumEntryName")
 internal
 enum class TopLevelBlockId {
     buildscript,
