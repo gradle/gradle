@@ -62,7 +62,8 @@ public class ConnectorServices {
 
     private static class ConnectorServiceRegistry implements ServiceRegistrationProvider {
 
-        public static CloseableServiceRegistry create() {
+        // Note: if the class or the method changes, this has to be adjusted in `ToolingApi.createClientConnectorServiceRegistry()` fixture
+        private static CloseableServiceRegistry create() {
             return ServiceRegistryBuilder.builder()
                 .displayName("connector services")
                 .provider(new ConnectorServiceRegistry())
