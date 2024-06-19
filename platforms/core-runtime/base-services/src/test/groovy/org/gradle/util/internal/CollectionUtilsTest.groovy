@@ -32,7 +32,6 @@ import static org.gradle.util.internal.CollectionUtils.groupBy
 import static org.gradle.util.internal.CollectionUtils.inject
 import static org.gradle.util.internal.CollectionUtils.intersection
 import static org.gradle.util.internal.CollectionUtils.join
-import static org.gradle.util.internal.CollectionUtils.nonEmptyOrNull
 import static org.gradle.util.internal.CollectionUtils.partition
 import static org.gradle.util.internal.CollectionUtils.replace
 import static org.gradle.util.internal.CollectionUtils.sort
@@ -403,12 +402,6 @@ class CollectionUtilsTest extends Specification {
         expect:
         unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]
         unpack([]).toList().isEmpty()
-    }
-
-    def nonEmptyOrNull() {
-        expect:
-        nonEmptyOrNull([1, 2, 3]) == [1, 2, 3]
-        nonEmptyOrNull([]) == null
     }
 
     InternalTransformer<?, ?> transformer(Closure c) {
