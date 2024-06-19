@@ -16,6 +16,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.concurrent)
+    api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
     api(libs.errorProneAnnotations)
