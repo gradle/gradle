@@ -17,7 +17,6 @@
 package org.gradle.internal.service
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.Action
 import org.gradle.api.NonNullApi
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
@@ -113,7 +112,7 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
         registry.register({ ServiceRegistration registration ->
             registration.add(TestServiceImpl)
-        } as Action)
+        })
 
         expect:
         registry.get(TestService) instanceof TestServiceImpl
@@ -125,7 +124,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.register({ ServiceRegistration registration ->
             registration.add(ServiceWithDependency)
             registration.add(TestServiceImpl)
-        } as Action)
+        })
 
         expect:
         registry.get(ServiceWithDependency).service == registry.get(TestServiceImpl)
@@ -734,7 +733,7 @@ class DefaultServiceRegistryTest extends Specification {
                     return "hi"
                 }
             })
-        } as Action)
+        })
 
         expect:
         registry.get(Number) == 12
@@ -792,7 +791,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def failsWhenCannotCreateServiceInstanceFromImplementationClass() {
         given:
-        registry.register({ registration -> registration.add(ClassWithBrokenConstructor) } as Action)
+        registry.register({ registration -> registration.add(ClassWithBrokenConstructor) })
 
         when:
         registry.get(ClassWithBrokenConstructor)
@@ -1146,7 +1145,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def closeInvokesCloseMethodOnEachServiceCreatedFromImplementationClass() {
         given:
-        registry.register({ registration -> registration.add(CloseableService) } as Action)
+        registry.register({ registration -> registration.add(CloseableService) })
         def service = registry.get(CloseableService)
 
         when:
