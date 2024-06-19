@@ -8,7 +8,7 @@ plugins {
     id("gradlebuild.reproducible-archives")
     id("gradlebuild.repositories")
     id("gradlebuild.code-quality")
-    id("gradlebuild.ktlint")
+    id("gradlebuild.detekt")
     id("gradlebuild.test-retry")
     id("gradlebuild.ci-reporting")
 }
