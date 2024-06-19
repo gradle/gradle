@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.nativePlatform)
+    implementation(projects.internalInstrumentationApi)
 
     testImplementation(testFixtures(project(":core")))
 

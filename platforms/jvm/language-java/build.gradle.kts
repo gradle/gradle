@@ -52,6 +52,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.time)
     implementation(project(":file-temp"))

@@ -33,6 +33,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.stdlibJavaExtensions)
     implementation(project(":base-services"))

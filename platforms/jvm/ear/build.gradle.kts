@@ -22,6 +22,7 @@ dependencies {
     api(project(":model-core"))
     api(project(":platform-jvm"))
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
     implementation(project(":core"))
     implementation(project(":dependency-management"))

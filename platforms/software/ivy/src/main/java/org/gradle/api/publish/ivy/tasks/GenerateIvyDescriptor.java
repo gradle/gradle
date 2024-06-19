@@ -26,6 +26,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
@@ -56,6 +57,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * @return The module descriptor.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public IvyModuleDescriptorSpec getDescriptor() {
         return descriptor.get();
     }
@@ -70,6 +72,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * @return The file the descriptor will be written to
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getDestination() {
         return destination == null ? null : getFileResolver().resolve(destination);
     }

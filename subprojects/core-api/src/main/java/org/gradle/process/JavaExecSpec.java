@@ -32,6 +32,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.Acce
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -106,6 +107,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the arguments passed to the main class to be executed.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     List<String> getArgs();
 
@@ -152,6 +154,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @since 4.6
      */
     @Nested
+    @ToBeReplacedByLazyProperty
     List<CommandLineArgumentProvider> getArgumentProviders();
 
     /**
@@ -167,6 +170,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Returns the classpath for executing the main class.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     FileCollection getClasspath();
 
     /**

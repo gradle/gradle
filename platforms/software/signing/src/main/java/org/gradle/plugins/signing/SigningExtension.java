@@ -36,6 +36,7 @@ import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -149,6 +150,7 @@ public abstract class SigningExtension {
      *
      * @see #setRequired(Object)
      */
+    @ToBeReplacedByLazyProperty
     public boolean isRequired() {
         return castToBoolean(force(required));
     }
@@ -195,6 +197,7 @@ public abstract class SigningExtension {
      *
      * <p>Delegates to the signatory provider's default signatory.</p>
      */
+    @ToBeReplacedByLazyProperty
     public Signatory getSignatory() {
         return signatories.getDefaultSignatory(project);
     }
@@ -204,6 +207,7 @@ public abstract class SigningExtension {
      *
      * <p>Delegates to the signature type provider's default type.</p>
      */
+    @ToBeReplacedByLazyProperty
     public SignatureType getSignatureType() {
         return signatureTypes.getDefaultType();
     }
@@ -214,6 +218,7 @@ public abstract class SigningExtension {
     }
 
     @SuppressWarnings("unused")
+    @ToBeReplacedByLazyProperty
     public SignatureTypeProvider getSignatureTypes() {
         return signatureTypes;
     }
@@ -279,6 +284,7 @@ public abstract class SigningExtension {
     /**
      * The configuration that signature artifacts are added to.
      */
+    @ToBeReplacedByLazyProperty
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -523,6 +529,7 @@ public abstract class SigningExtension {
         return project.getObjects();
     }
 
+    @ToBeReplacedByLazyProperty
     public SignatoryProvider<?> getSignatories() {
         return signatories;
     }
