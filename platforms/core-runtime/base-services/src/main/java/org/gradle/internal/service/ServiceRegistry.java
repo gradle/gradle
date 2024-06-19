@@ -31,7 +31,7 @@ public interface ServiceRegistry extends ServiceLookup {
      * Locates the service of the given type.
      *
      * @param serviceType The service type.
-     * @param <T>         The service type.
+     * @param <T> The service type.
      * @return The service instance. Never returns null.
      * @throws UnknownServiceException When there is no service of the given type available.
      * @throws ServiceLookupException On failure to lookup the specified service.
@@ -43,7 +43,7 @@ public interface ServiceRegistry extends ServiceLookup {
      * Locates all services of the given type.
      *
      * @param serviceType The service type.
-     * @param <T>         The service type.
+     * @param <T> The service type.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
     <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException;
@@ -73,7 +73,7 @@ public interface ServiceRegistry extends ServiceLookup {
      * Locates a factory which can create services of the given type.
      *
      * @param type The service type that the factory should create.
-     * @param <T>  The service type that the factory should create.
+     * @param <T> The service type that the factory should create.
      * @return The factory. Never returns null.
      * @throws UnknownServiceException When there is no factory available for services of the given type.
      * @throws ServiceLookupException On failure to lookup the specified service factory.
@@ -84,7 +84,7 @@ public interface ServiceRegistry extends ServiceLookup {
      * Creates a new service instance of the given type.
      *
      * @param type The service type
-     * @param <T>  The service type.
+     * @param <T> The service type.
      * @return The instance. Never returns null.
      * @throws UnknownServiceException When there is no factory available for services of the given type.
      * @throws ServiceLookupException On failure to lookup the specified service factory.
