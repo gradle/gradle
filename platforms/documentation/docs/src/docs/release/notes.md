@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features enhanced [error and warning reporting](#error-warning) to better handle variant ambiguity issues and missing variants during dependency resolution.
 
-Additionally, this release includes improvements for [ide integrators](#ide-integration) and [other improvements](#other), including information about JVMs used by Gradle.
+Additionally, this release includes improvements for [IDE integrators](#ide-integration) and [other improvements](#other), including information about JVMs used by Gradle.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [/dev/mataha](https://github.com/mataha),
