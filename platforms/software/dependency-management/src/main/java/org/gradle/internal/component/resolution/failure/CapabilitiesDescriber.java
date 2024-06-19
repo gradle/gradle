@@ -15,10 +15,7 @@
  */
 package org.gradle.internal.component.resolution.failure;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -29,22 +26,18 @@ import java.util.stream.Collectors;
 public final class CapabilitiesDescriber {
     private CapabilitiesDescriber() {}
 
-    public static String describeCapabilitiesWithTitle(ComponentIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
+    public static String describeCapabilitiesWithTitle(Collection<? extends Capability> capabilities) {
         StringBuilder sb = new StringBuilder("capabilit");
         if (capabilities.size() > 1) {
             sb.append("ies ");
-            sb.append(describeCapabilities(targetComponentId, capabilities));
         } else {
-            sb.append("y ").append(describeCapabilities(targetComponentId, capabilities));
+            sb.append("y ");
         }
+        sb.append(describeCapabilities(capabilities));
         return sb.toString();
     }
 
-    public static String describeCapabilities(ComponentIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
-        if (capabilities.isEmpty() && targetComponentId instanceof ModuleVersionIdentifier) {
-            ModuleVersionIdentifier targetModuleVersionId = (ModuleVersionIdentifier) targetComponentId;
-            return describeCapability(new DefaultImmutableCapability(targetModuleVersionId.getGroup(), targetModuleVersionId.getName(), targetModuleVersionId.getVersion()));
-        }
+    public static String describeCapabilities(Collection<? extends Capability> capabilities) {
         return capabilities.stream()
             .map(CapabilitiesDescriber::describeCapability)
             .sorted()
@@ -54,8 +47,8 @@ public final class CapabilitiesDescriber {
     private static String describeCapability(Capability c) {
         String version = c.getVersion();
         if (version != null) {
-            return c.getGroup() + ":" + c.getName() + ":" + c.getVersion();
+            return '\'' + c.getGroup() + ":" + c.getName() + ":" + c.getVersion() + '\'';
         }
-        return c.getGroup() + ":" + c.getName();
+        return '\'' + c.getGroup() + ":" + c.getName() + '\'';
     }
 }

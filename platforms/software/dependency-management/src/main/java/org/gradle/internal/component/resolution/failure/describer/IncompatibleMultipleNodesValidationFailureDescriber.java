@@ -22,7 +22,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.GraphValidationException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 
 import java.util.Comparator;
@@ -32,15 +32,15 @@ import java.util.Optional;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodesValidationFailure}.
  */
-public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodesValidationFailure> {
+public abstract class IncompatibleMultipleNodesValidationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodesValidationFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(IncompatibleMultipleNodesValidationFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public GraphValidationException describeFailure(IncompatibleMultipleNodesValidationFailure failure, Optional<AttributesSchemaInternal> schema) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
-        return new ArtifactVariantSelectionException(msg, failure, resolutions);
+        return new GraphValidationException(msg, failure, resolutions);
     }
 
     private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodesValidationFailure failure) {

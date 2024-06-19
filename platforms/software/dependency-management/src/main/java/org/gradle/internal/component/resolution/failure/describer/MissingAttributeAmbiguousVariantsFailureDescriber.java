@@ -35,12 +35,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes a {@link AmbiguousVariantsFailure} where
+ * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousVariantsFailure} where
  * there is a single differing attribute between all available variants that is missing from the request.
  * <p>
  * In this situation, we can provide a very brief message pointing to the exact solution needed.
  */
-public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber extends AmbiguousGraphVariantsFailureDescriber {
+public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends AmbiguousVariantsFailureDescriber {
     /**
      * Map from failure -> name of attribute that would distinguish each candidate.
      * This map exists to avoid re-discovering the unrequested attributes between the calls to `canDescribeFailure` and `describeFailure`.
@@ -75,7 +75,7 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
     }
 
     @Override
-    protected String buildAmbiguousGraphVariantsFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
+    protected String buildFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
         String distinguishingAttribute = suggestableDistinctAttributes.remove(failure);
         assert distinguishingAttribute != null;
 

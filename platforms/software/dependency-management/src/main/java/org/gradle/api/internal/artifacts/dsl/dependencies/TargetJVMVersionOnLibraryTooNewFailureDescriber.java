@@ -23,7 +23,7 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
@@ -61,7 +61,7 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
         JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         String message = buildNeedsNewerJDKFailureMsg(failure.describeRequestTarget(), minJVMVersionSupported, failure);
         List<String> resolutions = buildResolutions(suggestChangeLibraryVersion(failure.describeRequestTarget(), minJVMVersionSupported));
-        return new VariantSelectionException(message, failure, resolutions);
+        return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
     private String buildNeedsNewerJDKFailureMsg(String requestedName, JavaVersion minRequiredJVMVersion, NoCompatibleVariantsFailure failure) {

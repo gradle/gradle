@@ -17,9 +17,9 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
@@ -34,7 +34,7 @@ import java.util.Set;
 public final class NoVariantsWithMatchingCapabilitiesFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<AssessedCandidate> candidates;
 
-    public NoVariantsWithMatchingCapabilitiesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public NoVariantsWithMatchingCapabilitiesFailure(ComponentGraphResolveState targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(targetComponent, requestedAttributes, requestedCapabilities);
         this.candidates = ImmutableList.copyOf(candidates);
     }

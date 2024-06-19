@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
 
 import java.util.Optional;
@@ -28,7 +28,7 @@ import java.util.Optional;
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ConfigurationDoesNotExistFailure}.
  */
-public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationDoesNotExistFailure> {
+public abstract class ConfigurationDoesNotExistFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationDoesNotExistFailure> {
     @Override
     public ConfigurationSelectionException describeFailure(ConfigurationDoesNotExistFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildConfigurationNotFoundFailureMsg(failure);
@@ -45,7 +45,7 @@ public abstract class RequestedConfigurationNotFoundFailureDescriber extends Abs
         return new ConfigurationSelectionException(message, failure, resolutions.build());
     }
 
-    private String buildConfigurationNotFoundFailureMsg(ConfigurationDoesNotExistFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedConfigurationName(), failure.describeRequestTarget());
+    private String buildFailureMsg(ConfigurationDoesNotExistFailure failure) {
+        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for '%s'.", failure.getRequestedConfigurationName(), failure.getTargetComponent().getDisplayName());
     }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -37,18 +36,18 @@ import static org.gradle.internal.exceptions.StyledException.style;
 /**
  * A {@link ResolutionFailureDescriber} that describes a generic {@link AmbiguousVariantsFailure}.
  */
-public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
+public abstract class AmbiguousVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public VariantSelectionException describeFailure(AmbiguousVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
-        String message = buildAmbiguousGraphVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
+    public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
-        return new VariantSelectionException(message, failure, resolutions);
+        return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
-    protected String buildAmbiguousGraphVariantsFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
+    protected String buildFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
         TreeFormatter formatter = new TreeFormatter();
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = summarizeAmbiguousVariants(failure, describer, formatter, true);
@@ -57,7 +56,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ResolutionCandidateAssessor.AssessedCandidate assessedCandidate : ambiguousVariants.values()) {
-            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponent(), describer);
+            formatUnselectable(assessedCandidate, formatter, describer);
         }
         formatter.endChildren();
 
@@ -95,13 +94,12 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     private void formatUnselectable(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
-        ComponentIdentifier targetComponentId,
         AttributeDescriber describer
     ) {
         formatter.node("Variant '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
-        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponentId, assessedCandidate.getCandidateCapabilities().asSet()));
+        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(assessedCandidate.getCandidateCapabilities().asSet()));
 
         formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
     }

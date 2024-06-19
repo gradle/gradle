@@ -16,16 +16,21 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 import java.util.List;
 
 /**
- * Represents a failure during variant selection when a variant of a component cannot be selected
- * by the {@link org.gradle.internal.component.model.GraphVariantSelector GraphVariantSelector}.
+ * Represents a failure during variant selection when a named {@link org.gradle.api.artifacts.Configuration Configuration}
+ * cannot be selected
  */
-public final class VariantSelectionException extends AbstractResolutionFailureException {
-    public VariantSelectionException(String message, ResolutionFailure failure, List<String> resolutions) {
+public final class VariantSelectionByNameException extends AbstractResolutionFailureException {
+    public VariantSelectionByNameException(String message, VariantSelectionByNameFailure failure, List<String> resolutions) {
         super(message, failure, resolutions);
+    }
+
+    @Override
+    public VariantSelectionByNameFailure getFailure() {
+        return (VariantSelectionByNameFailure) failure;
     }
 }

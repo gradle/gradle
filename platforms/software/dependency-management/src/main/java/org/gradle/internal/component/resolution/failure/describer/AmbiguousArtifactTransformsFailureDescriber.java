@@ -22,7 +22,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -36,18 +36,18 @@ import java.util.stream.Collectors;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousArtifactTransformsFailure}.
  */
-public abstract class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformsFailure> {
+public abstract class AmbiguousArtifactTransformsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformsFailure> {
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure, Optional<AttributesSchemaInternal> schema) {
-        String message = buildAmbiguousTransformMsg(failure);
+    public ArtifactSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION), suggestReviewAlgorithm());
-        return new ArtifactVariantSelectionException(message, failure, resolutions);
+        return new ArtifactSelectionException(message, failure, resolutions);
     }
 
-    private String buildAmbiguousTransformMsg(AmbiguousArtifactTransformsFailure failure) {
+    private String buildFailureMsg(AmbiguousArtifactTransformsFailure failure) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Found multiple transforms that can produce a variant of " + failure.describeRequestTarget() + " with requested attributes");
         formatSortedAttributes(formatter, failure.getRequestedAttributes());

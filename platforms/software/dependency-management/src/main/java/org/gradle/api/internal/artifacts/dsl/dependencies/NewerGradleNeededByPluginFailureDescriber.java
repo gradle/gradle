@@ -23,7 +23,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.util.GradleVersion;
@@ -54,7 +54,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
         GradleVersion minGradleApiVersionSupportedByPlugin = findMinGradleVersionSupportedByPlugin(failure.getCandidates());
         String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.describeRequestTarget(), minGradleApiVersionSupportedByPlugin);
         List<String> resolutions = buildResolutions(suggestUpdateGradle(minGradleApiVersionSupportedByPlugin), suggestDowngradePlugin(failure.describeRequestTarget()));
-        return new VariantSelectionException(message, failure, resolutions);
+        return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
     private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(NoCompatibleVariantsFailure failure) {

@@ -16,19 +16,20 @@
 
 package org.gradle.internal.component.resolution.failure;
 
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.MissingAttributeAmbiguousGraphVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.NoMatchingCapabilitiesFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.RequestedConfigurationNotFoundFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoCompatibleArtifactFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoCompatibleVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotCompatibleFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.IncompatibleMultipleNodesValidationFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.MissingAttributeAmbiguousVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoVariantsWithMatchingCapabilitiesFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationDoesNotExistFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
@@ -77,19 +78,19 @@ public final class ResolutionFailureDescriberRegistry {
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
-        registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousGraphVariantsFailureDescriber.class); // Added ahead of AmbiguousGraphVariantsFailureDescriber so the more specific ambiguity case is checked first
-        registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
-        registry.registerDescriber(NoCompatibleVariantsFailure.class, IncompatibleGraphVariantsFailureDescriber.class);
+        registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousVariantsFailureDescriber.class); // Added ahead of AmbiguousVariantsFailureDescriber so the more specific ambiguity case is checked first
+        registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousVariantsFailureDescriber.class);
+        registry.registerDescriber(NoCompatibleVariantsFailure.class, NoCompatibleVariantsFailureDescriber.class);
 
-        registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(NoCompatibleArtifactFailure.class, IncompatibleArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, InvalidMultipleVariantsFailureDescriber.class);
-        registry.registerDescriber(AmbiguousArtifactTransformsFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
+        registry.registerDescriber(AmbiguousArtifactsFailure.class, AmbiguousArtifactsFailureDescriber.class);
+        registry.registerDescriber(NoCompatibleArtifactFailure.class, NoCompatibleArtifactFailureDescriber.class);
+        registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, IncompatibleMultipleNodesValidationFailureDescriber.class);
+        registry.registerDescriber(AmbiguousArtifactTransformsFailure.class, AmbiguousArtifactTransformsFailureDescriber.class);
 
-        registry.registerDescriber(ConfigurationNotCompatibleFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);
-        registry.registerDescriber(ConfigurationDoesNotExistFailure.class, RequestedConfigurationNotFoundFailureDescriber.class);
+        registry.registerDescriber(ConfigurationNotCompatibleFailure.class, ConfigurationNotCompatibleFailureDescriber.class);
+        registry.registerDescriber(ConfigurationDoesNotExistFailure.class, ConfigurationDoesNotExistFailureDescriber.class);
 
-        registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoMatchingCapabilitiesFailureDescriber.class);
+        registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoVariantsWithMatchingCapabilitiesFailureDescriber.class);
 
         registry.registerDescriber(UnknownArtifactSelectionFailure.class, UnknownArtifactSelectionFailureDescriber.class);
 

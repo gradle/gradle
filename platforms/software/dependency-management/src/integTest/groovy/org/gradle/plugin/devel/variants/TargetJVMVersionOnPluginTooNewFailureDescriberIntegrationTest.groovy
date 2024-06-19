@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -106,7 +106,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
      Required by:
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
     }
 
@@ -186,7 +186,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
      Required by:
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Dependency requires at least JVM runtime version $tooHighJava. This build uses a Java $currentJava JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
@@ -261,7 +261,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
      Required by:
          project :
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
     }
 
@@ -333,7 +333,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
      Required by:
          project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
       > Dependency requires at least JVM runtime version 17. This build uses a Java $currentJava JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }
 

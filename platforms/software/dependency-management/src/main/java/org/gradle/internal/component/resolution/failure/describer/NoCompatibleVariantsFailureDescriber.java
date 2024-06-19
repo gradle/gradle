@@ -21,7 +21,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.StyledAttributeDescriber;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -34,22 +34,22 @@ import static org.gradle.internal.exceptions.StyledException.style;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link NoCompatibleVariantsFailure}.
  */
-public abstract class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
+public abstract class NoCompatibleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String NO_VARIANTS_EXIST_PREFIX = "Creating consumable variants is explained in more detail at ";
     private static final String NO_VARIANTS_EXIST_SECTION = "sec:resolvable-consumable-configs";
 
     @Override
-    public VariantSelectionException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public VariantSelectionByAttributesException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
         FailureSubType failureSubType = FailureSubType.determineFailureSubType(failure);
-        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure, failureSubType);
+        String message = buildFailureMsg(new StyledAttributeDescriber(describer), failure, failureSubType);
         List<String> resolutions = buildResolutions(failureSubType);
-        return new VariantSelectionException(message, failure, resolutions);
+        return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
-    private String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, NoCompatibleVariantsFailure failure, FailureSubType failureSubType) {
+    private String buildFailureMsg(StyledAttributeDescriber describer, NoCompatibleVariantsFailure failure, FailureSubType failureSubType) {
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, failure.describeRequestTarget());
         if (failure.getRequestedAttributes().isEmpty()) {

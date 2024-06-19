@@ -42,6 +42,14 @@ public class ImmutableCapabilities {
         this.capabilities = capabilities;
     }
 
+    public ImmutableCapabilities(ImmutableSet<ImmutableCapability> capabilities, ImmutableCapability defaultCapability) {
+        if (capabilities.isEmpty()) {
+            this.capabilities = ImmutableSet.of(defaultCapability);
+        } else {
+            this.capabilities = capabilities;
+        }
+    }
+
     public static ImmutableCapabilities of(@Nullable Capability capability) {
         if (capability == null) {
             return EMPTY;

@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -36,7 +37,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure;
@@ -92,50 +93,49 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException configurationNotCompatibleFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,
-        ComponentIdentifier targetComponent,
-        String targetConfigurationName,
+        ComponentGraphResolveState targetComponent,
+        VariantGraphResolveState targetConfiguration,
         AttributeContainerInternal requestedAttributes,
         ImmutableCapabilities targetConfigurationCapabilities
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfigurationName, targetConfigurationCapabilities, requestedAttributes.asImmutable()));
-        ConfigurationNotCompatibleFailure failure = new ConfigurationNotCompatibleFailure(targetComponent, targetConfigurationName, requestedAttributes, assessedCandidates);
+        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfigurationCapabilities, targetConfiguration.getAttributes()));
+        ConfigurationNotCompatibleFailure failure = new ConfigurationNotCompatibleFailure(targetComponent.getId(), targetConfiguration.getName(), requestedAttributes, assessedCandidates);
         return describeFailure(schema, failure);
     }
 
     public AbstractResolutionFailureException configurationNotConsumableFailure(
-        ComponentIdentifier targetComponent,
+        ComponentGraphResolveState targetComponent,
         String targetConfigurationName
     ) {
         // We hard-code the exception here since we do not currently support dynamically describing this type of failure.
         // It might make sense to do this for other similar failures that do not have dynamic failure handling.
-        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(targetComponent, targetConfigurationName);
-        String message = String.format("Selected configuration '" + failure.describeRequestTarget() + "' on '" + failure.describeRequestTarget() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(targetComponent.getId(), targetConfigurationName);
+        String message = String.format("Selected configuration '" + failure.describeRequestTarget() + "' on '" + failure.getTargetComponent().getDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
+        throw new VariantSelectionByNameException(message, failure, Collections.emptyList());
     }
 
-    public AbstractResolutionFailureException configurationDoesNotExistFailure(ComponentIdentifier targetComponent, String targetConfigurationName) {
-        ConfigurationDoesNotExistFailure failure = new ConfigurationDoesNotExistFailure(targetComponent, targetConfigurationName);
+    public AbstractResolutionFailureException configurationDoesNotExistFailure(ComponentGraphResolveState targetComponent, String targetConfigurationName) {
+        ConfigurationDoesNotExistFailure failure = new ConfigurationDoesNotExistFailure(targetComponent.getId(), targetConfigurationName);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException ambiguousVariantsFailure(
         AttributesSchemaInternal schema, AttributeMatcher matcher,
-        ComponentIdentifier targetComponent,
+        ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
         Set<Capability> requestedCapabilities,
         List<? extends VariantGraphResolveState> matchingVariants
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants, targetComponent.getDefaultCapability());
         AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(targetComponent, requestedAttributes, requestedCapabilities, assessedCandidates);
         return describeFailure(schema, failure);
     }
 
     public AbstractResolutionFailureException noCompatibleVariantsFailure(
-        AttributesSchemaInternal schema,
-        AttributeMatcher matcher,
-        ComponentIdentifier targetComponent,
+        AttributesSchemaInternal schema, AttributeMatcher matcher,
+        ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
         Set<Capability> requestedCapabilities,
         GraphSelectionCandidates candidates
@@ -146,9 +146,15 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
-    public AbstractResolutionFailureException noVariantsWithMatchingCapabilitiesFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ComponentIdentifier targetComponent, ImmutableAttributes requestedAttributes, Set<Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
+    public AbstractResolutionFailureException noVariantsWithMatchingCapabilitiesFailure(
+        AttributesSchemaInternal schema, AttributeMatcher matcher,
+        ComponentGraphResolveState targetComponent,
+        ImmutableAttributes requestedAttributes,
+        Set<Capability> requestedCapabilities,
+        List<? extends VariantGraphResolveState> candidates
+    ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates, targetComponent.getDefaultCapability());
         NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent, requestedAttributes, requestedCapabilities, assessedCandidates);
         return describeFailure(schema, failure);
     }

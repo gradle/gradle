@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -87,4 +89,14 @@ public interface ComponentGraphResolveState {
      * <p>Note that this may be expensive, and should be used only when required.</p>
      */
     ComponentArtifactResolveState prepareForArtifactResolution();
+
+    /**
+     * Attempts to reconstruct the default capability for this component.
+     *
+     * @return The default capability for this component.
+     * @implNote subtypes are encouraged to override this method to provide a more efficient and reliable implementation.
+     */
+    default ImmutableCapability getDefaultCapability() {
+        return DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId());
+    }
 }

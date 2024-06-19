@@ -20,7 +20,7 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -33,18 +33,18 @@ import static org.gradle.internal.exceptions.StyledException.style;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link NoCompatibleArtifactFailure}.
  */
-public abstract class IncompatibleArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleArtifactFailure> {
+public abstract class NoCompatibleArtifactFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleArtifactFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(NoCompatibleArtifactFailure failure, Optional<AttributesSchemaInternal> schema) {
-        String message = buildIncompatibleArtifactVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
+    public ArtifactSelectionException describeFailure(NoCompatibleArtifactFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
-        return new ArtifactVariantSelectionException(message, failure, resolutions);
+        return new ArtifactSelectionException(message, failure, resolutions);
     }
 
-    private String buildIncompatibleArtifactVariantsFailureMsg(NoCompatibleArtifactFailure failure, AttributesSchemaInternal schema) {
+    private String buildFailureMsg(NoCompatibleArtifactFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("No variants of " + style(StyledTextOutput.Style.Info, failure.describeRequestTarget()) + " match the consumer attributes");

@@ -35,8 +35,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -111,7 +111,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectVariants(variantSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)
 
         then:
-        def e = thrown(VariantSelectionException)
+        def e = thrown(VariantSelectionByAttributesException)
         e.message == toPlatformLineSeparators("""Configuration 'default' in [target] does not match the consumer attributes
 Configuration 'default':
   - Incompatible because this component declares attribute 'key' with value 'nothing' and the consumer needed attribute 'key' with value 'other'""")
@@ -128,7 +128,7 @@ Configuration 'default':
         dep.selectVariants(variantSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)
 
         then:
-        def e = thrown(VariantSelectionException)
+        def e = thrown(VariantSelectionByAttributesException)
         e.message == toPlatformLineSeparators("""Configuration 'bar' in [target] does not match the consumer attributes
 Configuration 'bar':
   - Incompatible because this component declares attribute 'key' with value 'something else' and the consumer needed attribute 'key' with value 'something'""")
@@ -154,7 +154,7 @@ Configuration 'bar':
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (VariantSelectionException e) {
+        } catch (VariantSelectionByAttributesException e) {
             if (expected == null) {
                 def distinguisher = queryAttributes.containsKey('flavor') ? 'extra' : 'flavor'
                 def distinguishingValues = distinguisher == 'flavor' ? "\n  - Value: 'paid' selects variant: 'bar'\n  - Value: 'free' selects variant: 'foo'" : "\n  - Value: 'bar' selects variant: 'bar'\n  - Value: 'foo' selects variant: 'foo'"
@@ -205,7 +205,7 @@ Configuration 'bar':
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (VariantSelectionException e) {
+        } catch (VariantSelectionByAttributesException e) {
             if (expected == null) {
                 def distinguisher = queryAttributes.containsKey('flavor') ? 'extra' : 'flavor'
                 def distinguishingValues = distinguisher == 'flavor' ? "\n  - Value: 'paid' selects variant: 'bar'\n  - Value: 'free' selects variant: 'foo'" : "\n  - Value: 'bar' selects variant: 'bar'\n  - Value: 'foo' selects variant: 'foo'"
