@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -47,9 +46,4 @@ public interface VariantMetadataFactory {
      */
     @Nullable
     LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
-
-    /**
-     * Get all names such that {@link #getVariantByConfigurationName(String)} return a non-null value.
-     */
-    Set<String> getConfigurationNames();
 }

@@ -32,11 +32,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @ServiceScope(Scope.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
@@ -176,13 +173,6 @@ public class LocalComponentGraphResolveStateFactory {
                 .findFirst()
                 .orElse(null);
         }
-
-        @Override
-        public Set<String> getConfigurationNames() {
-            return variants.stream()
-                .map(LocalVariantGraphResolveMetadata::getName)
-                .collect(Collectors.toSet());
-        }
     }
 
     /**
@@ -243,15 +233,6 @@ public class LocalComponentGraphResolveStateFactory {
 
                 return createVariantMetadata(configuration);
             });
-        }
-
-        @Override
-        public Set<String> getConfigurationNames() {
-            Set<String> names = new HashSet<>();
-            model.applyToMutableState(p ->
-                configurationsProvider.visitAll(configuration -> names.add(configuration.getName()))
-            );
-            return names;
         }
 
         private LocalVariantGraphResolveMetadata createVariantMetadata(ConfigurationInternal configuration) {

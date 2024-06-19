@@ -36,7 +36,7 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
 
     /**
      * Get a variant derived from the configuration with the given name, or null if no such
-     * configuration exists.
+     * variant exists.
      *
      * This method should only be used to fetch the root variant of a resolution. There are plans
      * to migrate away from this method for that purpose.
