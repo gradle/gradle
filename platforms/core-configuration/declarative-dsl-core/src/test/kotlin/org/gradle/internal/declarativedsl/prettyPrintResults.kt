@@ -35,7 +35,7 @@ import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parse
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parse
 
 
 fun prettyPrintLanguageTreeResult(languageTreeResult: LanguageTreeResult): String {
