@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.junit.Assume
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -71,6 +72,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
+        Assume.assumeTrue("Compression no longer exposes the raw data", enabled)
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
@@ -141,10 +143,10 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         (findRequiredKeystoreFile(false) != null) == keystoreExpected
 
         where:
-        kind                    | enabled   | keystoreExpected
-        EncryptionKind.NONE     | false     | false
-        EncryptionKind.KEYSTORE | true      | true
-        EncryptionKind.ENV_VAR  | true      | false
+        kind                    | enabled | keystoreExpected
+        EncryptionKind.NONE     | false   | false
+        EncryptionKind.KEYSTORE | true    | true
+        EncryptionKind.ENV_VAR  | true    | false
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
