@@ -29,6 +29,7 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.io.ByteBufferPool
 import org.gradle.internal.cc.impl.io.ParallelOutputStream
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.Codecs
@@ -254,7 +255,8 @@ class ConfigurationCacheIO internal constructor(
     fun writerContextFor(outputStream: OutputStream, parallelize: Boolean, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
         KryoBackedEncoder(
             if (parallelize) ParallelOutputStream.of { FramedSnappyCompressorOutputStream(outputStream) }
-            else FramedSnappyCompressorOutputStream(outputStream)
+            else FramedSnappyCompressorOutputStream(outputStream),
+            ByteBufferPool.bufferCapacity
         ).let { encoder ->
             writeContextFor(
                 encoder,
