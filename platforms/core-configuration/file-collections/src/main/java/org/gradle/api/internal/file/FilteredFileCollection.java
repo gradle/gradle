@@ -67,7 +67,7 @@ public class FilteredFileCollection extends AbstractFileCollection {
 
     @Override
     public Set<File> getFiles() {
-        return CollectionUtils.filter(collection, new LinkedHashSet<>(), filterSpec::isSatisfiedBy);
+        return CollectionUtils.filter(collection, new LinkedHashSet<>(), filterSpec);
     }
 
     @Override

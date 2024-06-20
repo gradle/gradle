@@ -311,7 +311,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            Set<LanguageSourceSet> filtered = CollectionUtils.filter(inputs, filterSpec::isSatisfiedBy);
+            Set<LanguageSourceSet> filtered = CollectionUtils.filter(inputs, filterSpec);
             for (LanguageSourceSet languageSourceSet : filtered) {
                 visitor.accept((FileCollectionInternal) transformer.transform(languageSourceSet));
             }
