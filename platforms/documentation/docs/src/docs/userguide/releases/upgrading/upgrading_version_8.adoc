@@ -35,6 +35,20 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.10]]
+== Upgrading from 8.9 and earlier
+
+=== Deprecations
+
+[[consuming_non_consumable_variants_from_ivy_component]]
+==== Deprecated consuming non-consumable configurations from Ivy
+
+In prior versions of Gradle, it was possible to consume non-consumable configurations of a project using published Ivy metadata.
+An Ivy dependency may sometimes be substituted for a project dependency, either explicitly through the `link:{groovyDslPath}/org.gradle.api.artifacts.DependencySubstitutions.html[DependencySubstitutions]` API or through included builds.
+When this happens, configurations in the substituted project could be selected that were marked as non-consumable.
+
+Consuming non-consumable configurations in this manner is deprecated and will result in an error in Gradle 9.0.
+
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
 

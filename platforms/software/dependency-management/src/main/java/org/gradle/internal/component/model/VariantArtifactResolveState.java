@@ -38,7 +38,8 @@ public interface VariantArtifactResolveState {
     ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
 
     /**
-     * Get all artifact variants, or "sub-variants" of this variant.
+     * The artifact options for this variant. These are effectively precomputed or
+     * producer-defined transforms.
      */
     Set<? extends VariantResolveMetadata> getArtifactVariants();
 }

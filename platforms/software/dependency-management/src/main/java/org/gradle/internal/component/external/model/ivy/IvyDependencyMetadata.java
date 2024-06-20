@@ -16,19 +16,25 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ExternalModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,7 +75,46 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema
     ) {
-        return getDependencyDescriptor().selectLegacyConfigurations(configuration, targetComponentState, variantSelector.getFailureHandler());
+        // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
+        // configurations from another ivy component.
+        if (targetComponentState instanceof IvyComponentGraphResolveState) {
+            IvyComponentGraphResolveState ivyComponent = (IvyComponentGraphResolveState) targetComponentState;
+            return getDependencyDescriptor().selectLegacyConfigurations(configuration, ivyComponent, variantSelector.getFailureHandler());
+        }
+
+        // We have already verified that the target component does not support attribute matching,
+        // so if it is not an ivy component, use the standard legacy selection mechanism.
+
+        // TODO: We check hasLegacyVariant so we can fall-back to the deprecated behavior in case the legacy variant
+        // is present but non-consumable. Once we remove the deprecation, we can avoid this check and allow
+        // selectLegacyVariant to throw an exception if there is no legacy variant.
+        boolean hasLegacyVariant = targetComponentState.getCandidatesForGraphVariantSelection().getLegacyVariant() != null;
+        if (hasLegacyVariant) {
+            VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
+        }
+
+        // Perhaps the legacy variant is present, but comes from a non-consumable configuration.
+        if (targetComponentState instanceof LocalComponentGraphResolveState) {
+            LocalComponentGraphResolveState localComponent = (LocalComponentGraphResolveState) targetComponentState;
+
+            // getConfigurationLegacy is a legacy mechanism and does _not_ check if the target variant comes from a consumable configuration
+            @SuppressWarnings("deprecation")
+            LocalVariantGraphResolveState legacyVariant = localComponent.getConfigurationLegacy(Dependency.DEFAULT_CONFIGURATION);
+            if (legacyVariant != null) {
+                // The legacy variant is present, but comes from a non-consumable configuration.
+
+                DeprecationLogger.deprecateBehaviour("Consuming non-consumable variants from from an ivy component.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "consuming_non_consumable_variants_from_ivy_component")
+                    .nagUser();
+
+                return new GraphVariantSelectionResult(Collections.singletonList(legacyVariant), false);
+            }
+        }
+
+        // The variant was not present, even after checking for a legacy non-consumable version. We can fail now.
+        throw variantSelector.getFailureHandler().noVariantsExistFailure(consumerSchema, consumerAttributes, targetComponentState.getId());
     }
 
     @Override

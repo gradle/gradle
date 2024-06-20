@@ -21,7 +21,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Immutable metadata for a component variant instance that is used to perform dependency graph resolution.
@@ -42,13 +41,6 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
     @Override
     ImmutableAttributes getAttributes();
 
-    /**
-     * Returns the "sub variants" of this variant.
-     *
-     * <p>This concept should disappear.</p>
-     */
-    Set<? extends Subvariant> getVariants();
-
     List<? extends DependencyMetadata> getDependencies();
 
     List<? extends ExcludeMetadata> getExcludes();
@@ -64,13 +56,5 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      */
     default boolean isDeprecated() {
         return false;
-    }
-
-    interface Subvariant {
-        String getName();
-
-        ImmutableAttributes getAttributes();
-
-        ImmutableCapabilities getCapabilities();
     }
 }

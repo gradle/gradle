@@ -32,7 +32,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.ModelContainer;
 
@@ -77,11 +77,16 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
-        ConfigurationGraphResolveState configuration = state.getConfiguration(configurationName);
-        if (configuration == null) {
+
+        // TODO: We should not ask the component for a resolvable configuration. Components should only
+        // expose variants -- which are by definition consumable only. Instead, we should create our own
+        // root variant and add it to a new one-off root component that holds only that root variant.
+        // The root variant should not live in a standard local component alongside other (consumable) variants.
+        @SuppressWarnings("deprecation")
+        LocalVariantGraphResolveState rootVariant = state.getConfigurationLegacy(configurationName);
+        if (rootVariant == null) {
             throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, componentIdentifier));
         }
-        VariantGraphResolveState rootVariant = configuration.asVariant();
 
         return new RootComponentState() {
             @Override

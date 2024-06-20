@@ -24,6 +24,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  */
 public class RequestedConfigurationNotFoundFailure extends AbstractConfigurationSelectionFailure {
     public RequestedConfigurationNotFoundFailure(String requestedConfigurationName, ComponentIdentifier requestedComponent) {
-        super(requestedConfigurationName, requestedComponent.getDisplayName());
+        super(requestedConfigurationName, requestedComponent);
     }
 }
