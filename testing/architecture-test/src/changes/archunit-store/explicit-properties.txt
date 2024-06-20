@@ -20,7 +20,6 @@ Method <org.gradle.api.tasks.AbstractCopyTask.getSource()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getExecutionResult()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDirectory()> is not abstract
 Method <org.gradle.api.tasks.Copy.getDestinationDirectory()> is not abstract
-Method <org.gradle.api.tasks.Delete.getTargetFiles()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getBootstrapClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getExecutionResult()> is not abstract
