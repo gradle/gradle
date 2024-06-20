@@ -27,10 +27,10 @@ import org.gradle.internal.logging.console.GlobalUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -55,21 +55,25 @@ class BuildActionsFactoryTest extends Specification {
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
-    ServiceRegistry loggingServices = new DefaultServiceRegistry()
+    ServiceRegistry loggingServices
     boolean useCurrentProcess
     ServiceRegistry basicServices
 
     def setup() {
         def factoryLoggingManager = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
-        loggingServices.add(OutputEventListener, Mock(OutputEventListener))
-        loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
-        loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
-        loggingServices.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Factory<LoggingManagerInternal> createFactory() {
-                return factoryLoggingManager
+        loggingServices = ServiceRegistryBuilder.builder()
+            .provider { registration ->
+                registration.add(OutputEventListener, Mock(OutputEventListener))
+                registration.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
+                registration.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
+                registration.addProvider(new ServiceRegistrationProvider() {
+                    @Provides
+                    Factory<LoggingManagerInternal> createFactory() {
+                        return factoryLoggingManager
+                    }
+                })
             }
-        })
+            .build()
 
         basicServices = new DefaultCommandLineActionFactory().createBasicGlobalServices(loggingServices)
     }
@@ -166,7 +170,7 @@ class BuildActionsFactoryTest extends Specification {
         daemon.daemonOpts == request.daemonOpts
     }
 
-    private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts=[]) {
+    private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts = []) {
         def request = new DaemonRequestContext(new DaemonJvmCriteria.Spec(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL)
         request
     }

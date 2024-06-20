@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
@@ -227,9 +226,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     /**
      * Adds services to this container using the given action.
      */
-    public void register(Action<? super ServiceRegistration> action) {
+    public void register(ServiceRegistrationAction action) {
         assertMutable();
-        action.execute(newRegistration());
+        action.registerServices(newRegistration());
     }
 
     private void assertMutable() {
