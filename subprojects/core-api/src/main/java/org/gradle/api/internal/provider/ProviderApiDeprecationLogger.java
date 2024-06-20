@@ -22,9 +22,9 @@ public class ProviderApiDeprecationLogger {
     public static void logDeprecation(Class<?> clazz, String methodWithParams, String replacement) {
         DeprecationLogger.deprecateMethod(clazz, methodWithParams)
             .withAdvice("Use " + replacement + " property instead")
-            .willBeRemovedInGradle9()
+            .willBeRemovedInGradle10()
             // TODO: add upgrade guide section
-            .withUpgradeGuideSection(8, "provider_api_migration")
+            .withUpgradeGuideSection(9, "provider_api_migration")
             .nagUser();
     }
 }
