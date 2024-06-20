@@ -1,9 +1,9 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release improves [error and warning reporting](#error-warning) for variant issues during dependency resolution. 
+This release improves [error and warning reporting](#error-warning) for variant issues during dependency resolution.
 It also exposes structural details of Java compilation errors for [IDE integrators](#ide-integration), making it easier to analyze and resolve issues.
 
-Additionally, this release includes the ability to [display more detailed information about JVMs ](#other) used by Gradle, as well as other minor improvements.
+Additionally, this release includes the ability to [display more detailed information about JVMs](#other) used by Gradle, as well as other minor improvements.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [/dev/mataha](https://github.com/mataha),
@@ -139,7 +139,8 @@ The following improvements are for IDE integrators.
 
 #### Adoption of the Problems API with Java compilation
 
-Gradle now collects and manages problems through the [Problems API](userguide/implementing_gradle_plugins_binary.html#reporting_problems). This means [IDEs and other Tooling API clients](userguide/third_party_integration.html) can access precise and detailed information about any issues that arise during the build process.
+Gradle now collects and manages problems through the [Problems API](userguide/implementing_gradle_plugins_binary.html#reporting_problems).
+This means [IDEs and other Tooling API clients](userguide/third_party_integration.html) can access precise and detailed information about any issues that arise during the build process.
 
 Several Gradle components leverage this powerful API, including deprecation, task validation, and the dependency version catalog. In this release, the Java compiler is also integrated into this infrastructure.
 
@@ -153,10 +154,9 @@ This integration allows popular IDEs like IntelliJ IDEA and Visual Studio Code t
 Prior to this release, running `gradle --version` displayed the JVM used to launch Gradle, but this JVM did not execute any build logic. Instead, Gradle starts a [Deamon](userguide/gradle_daemon.html) that actually runs the build.
 
 Starting from Gradle 8.8, users can configure the JVM used to run the Gradle Deamon.
+With this release, you can view information about the JVM used for the [Daemon](userguide/gradle_daemon.html) (which executes the build process) as well as the Launcher JVM (which initiates the Gradle build process) from the [command line](userguide/command_line_interface.html).
 
-You can view information about the JVM used for the [Daemon](userguide/gradle_daemon.html) (which executes the build process) as well as the Launcher JVM (which initiates the Gradle build process) from the [command line](userguide/command_line_interface.html).
-
-Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Launcher and the Daemon :
+Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Launcher and the Daemon:
 
 ```
 [...]
