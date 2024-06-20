@@ -17,7 +17,10 @@
 package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(IntegTestPreconditions.NotIsolatedProjects)
 class GradleLifecycleAllprojectsIntegrationTest extends AbstractIntegrationSpec {
 
     def 'lifecycle.allprojects is executed only once for a project'() {
@@ -277,31 +280,4 @@ root
 a
 """
     }
-
-//    @ToBeImplemented
-//    def 'lifecycle.allprojects is executed eagerly only if a mutable state of a project touched by using gradle.rootProject'() {
-//        given:
-//        settingsFile << """
-//            rootProject.name = 'root'
-//            gradle.lifecycle.allprojects { project ->
-//                println "lifecycle.allprojects for \${project.getName()}"
-//                project.ext {
-//                    foo = "bar"
-//                }
-//            }
-//            gradle.rootProject { project ->
-//                "State access for root: \${project.$stateAccess}"
-//            }
-//        """
-//
-//        when:
-//        run "help", "-q"
-//
-//        then:
-//        outputContains ""
-//        where:
-//        stateAccess | expectedOutput
-//        "foo"       | ""
-//        "getName()" | ""
-//    }
 }

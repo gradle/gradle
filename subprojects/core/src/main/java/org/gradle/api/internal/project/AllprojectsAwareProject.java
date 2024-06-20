@@ -130,9 +130,19 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     }
 
     @Override
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object other) {
-        return delegate.equals(other);
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (other instanceof AllprojectsAwareProject) {
+            AllprojectsAwareProject allprojectsAwareProject = (AllprojectsAwareProject) other;
+            return delegate.equals(allprojectsAwareProject.delegate);
+        } else {
+            return delegate.equals(other);
+        }
     }
 
     @Override
