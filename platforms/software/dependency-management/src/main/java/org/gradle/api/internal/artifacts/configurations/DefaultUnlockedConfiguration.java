@@ -22,7 +22,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -51,7 +50,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -78,7 +76,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,

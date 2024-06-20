@@ -22,7 +22,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -55,7 +54,6 @@ public class DefaultConfigurationFactory {
     private final Instantiator instantiator;
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
@@ -77,7 +75,6 @@ public class DefaultConfigurationFactory {
         Instantiator instantiator,
         ConfigurationResolver resolver,
         ListenerManager listenerManager,
-        ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
@@ -96,7 +93,6 @@ public class DefaultConfigurationFactory {
         this.instantiator = instantiator;
         this.resolver = resolver;
         this.listenerManager = listenerManager;
-        this.componentIdentifierFactory = componentIdentifierFactory;
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -133,7 +129,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -176,7 +171,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -218,7 +212,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -260,7 +253,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,

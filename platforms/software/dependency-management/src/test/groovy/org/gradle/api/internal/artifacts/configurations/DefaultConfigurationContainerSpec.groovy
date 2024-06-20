@@ -21,7 +21,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
@@ -52,7 +51,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
-    private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private BuildOperationRunner buildOperationRunner = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
@@ -74,7 +72,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         instantiator,
         resolver,
         listenerManager,
-        componentIdentifierFactory,
         dependencyLockingProvider,
         domainObjectContext,
         fileCollectionFactory,

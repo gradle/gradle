@@ -39,7 +39,7 @@ public interface RootComponentMetadataBuilder {
     RootComponentMetadataBuilder newBuilder(DependencyMetaDataProvider identity, ConfigurationsProvider provider);
 
     /**
-     * Get the identity of the component build by this builder.
+     * Get the identity of the component built by this builder.
      */
     DependencyMetaDataProvider getComponentIdentity();
 

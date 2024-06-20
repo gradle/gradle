@@ -67,7 +67,6 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
@@ -159,7 +158,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 @SuppressWarnings("rawtypes")
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private final ConfigurationResolver resolver;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final DefaultDependencySet dependencies;
     private final DefaultDependencyConstraintSet dependencyConstraints;
@@ -253,7 +251,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -286,7 +283,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
-        this.componentIdentifierFactory = componentIdentifierFactory;
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;

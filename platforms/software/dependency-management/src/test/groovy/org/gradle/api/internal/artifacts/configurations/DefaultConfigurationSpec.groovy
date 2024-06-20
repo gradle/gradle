@@ -45,7 +45,6 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
@@ -102,7 +101,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
-    def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
@@ -1834,7 +1832,6 @@ All Artifacts:
             DirectInstantiator.INSTANCE,
             resolver,
             listenerManager,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
