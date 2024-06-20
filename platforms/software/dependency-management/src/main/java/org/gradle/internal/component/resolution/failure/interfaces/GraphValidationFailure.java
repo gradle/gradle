@@ -17,10 +17,12 @@
 package org.gradle.internal.component.resolution.failure.interfaces;
 
 /**
- * Represents a failure validating the final resulting dependency graph
- * during Stage 4 of dependency resolution.
+ * Represents a failure validating the resulting variant graph
+ * during Stage 3 of dependency resolution.
  * <p>
  * When this failure occurs, we have always selected a component.
+ * <p>
+ * This validation is done prior to selecting an artifact variant for each resolved component variant.
  *
  * @implSpec This interface is meant only to be extended by other interfaces, it should not
  * be implemented directly.

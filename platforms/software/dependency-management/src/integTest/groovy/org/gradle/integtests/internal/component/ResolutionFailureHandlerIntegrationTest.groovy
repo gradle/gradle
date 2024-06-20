@@ -46,8 +46,8 @@ import org.gradle.util.GradleVersion
  * different types of failures.
  */
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
-    // region resolution failures
-    // region Graph Variant failures
+
+    // region Stage 2 - VariantSelectionFailure
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute.prepare()
 
@@ -215,7 +215,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
     }
 
-    // region Configuration requested by name
     def "demonstrate configuration not found selection failure"() {
         configurationNotFound.prepare()
 
@@ -234,11 +233,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsReviewingAlgorithm()
         // TODO: Nothing specific here
     }
+    // endregion Stage 2 - VariantSelectionFailure
 
-    // endregion Configuration requested by name
-    // endregion Graph Variant failures
+    // region Stage 3 - GraphValidationFailure
+    // endregion Stage 3 - GraphValidationFailure
 
-    // region Artifact Variant failures
+    // region Stage 4 - ArtifactSelectionFailure
     def "demonstrate incompatible artifact variants exception"() {
         incompatibleArtifactVariants.prepare()
 
@@ -330,8 +330,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
-    // endregion Artifact Variant failures
-    // endregion resolution failures
+    // endregion Stage 4 - ArtifactSelectionFailure
 
     // region dependencyInsight failures
     /**

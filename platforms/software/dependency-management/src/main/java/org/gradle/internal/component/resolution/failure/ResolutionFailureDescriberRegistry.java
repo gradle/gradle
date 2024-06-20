@@ -78,20 +78,21 @@ public final class ResolutionFailureDescriberRegistry {
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
+        // Stage 2 - VariantSelectionFailure
         registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousVariantsFailureDescriber.class); // Added ahead of AmbiguousVariantsFailureDescriber so the more specific ambiguity case is checked first
         registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousVariantsFailureDescriber.class);
         registry.registerDescriber(NoCompatibleVariantsFailure.class, NoCompatibleVariantsFailureDescriber.class);
+        registry.registerDescriber(ConfigurationNotCompatibleFailure.class, ConfigurationNotCompatibleFailureDescriber.class);
+        registry.registerDescriber(ConfigurationDoesNotExistFailure.class, ConfigurationDoesNotExistFailureDescriber.class);
 
+        // Stage 3 - GraphValidationFailure
+        registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoVariantsWithMatchingCapabilitiesFailureDescriber.class);
+
+        // Stage 4 - ArtifactSelectionFailure
         registry.registerDescriber(AmbiguousArtifactsFailure.class, AmbiguousArtifactsFailureDescriber.class);
         registry.registerDescriber(NoCompatibleArtifactFailure.class, NoCompatibleArtifactFailureDescriber.class);
         registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, IncompatibleMultipleNodesValidationFailureDescriber.class);
         registry.registerDescriber(AmbiguousArtifactTransformsFailure.class, AmbiguousArtifactTransformsFailureDescriber.class);
-
-        registry.registerDescriber(ConfigurationNotCompatibleFailure.class, ConfigurationNotCompatibleFailureDescriber.class);
-        registry.registerDescriber(ConfigurationDoesNotExistFailure.class, ConfigurationDoesNotExistFailureDescriber.class);
-
-        registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoVariantsWithMatchingCapabilitiesFailureDescriber.class);
-
         registry.registerDescriber(UnknownArtifactSelectionFailure.class, UnknownArtifactSelectionFailureDescriber.class);
 
         return registry;

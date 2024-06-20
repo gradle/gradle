@@ -147,7 +147,16 @@ public class ResolutionFailureHandler {
     }
     // endregion Stage 2 - VariantSelectionFailures
 
-    // region State 3 - ArtifactSelectionFailures
+    // region State 3 - GraphValidationFailures
+    public AbstractResolutionFailureException incompatibleMultipleNodesValidationFailure(AttributesSchemaInternal schema, ComponentGraphResolveMetadata selectedComponent, Set<VariantGraphResolveMetadata> incompatibleNodes) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeMetadatas(incompatibleNodes);
+        IncompatibleMultipleNodesValidationFailure failure = new IncompatibleMultipleNodesValidationFailure(selectedComponent, incompatibleNodes, assessedCandidates);
+        return describeFailure(schema, failure);
+    }
+    // endregion State 3 - GraphValidationFailures
+
+    // region State 4 - ArtifactSelectionFailures
     public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(AttributesSchemaInternal schema, ComponentIdentifier targetComponent, String targetVariant, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
         AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(targetComponent, targetVariant, requestedAttributes, transformedVariants);
         return describeFailure(schema, failure);
@@ -171,16 +180,7 @@ public class ResolutionFailureHandler {
         UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(targetComponent, targetVariant, requestAttributes, cause);
         return describeFailure(schema, failure);
     }
-    // endregion State 3 - ArtifactSelectionFailures
-
-    // region State 4 - GraphValidationFailures
-    public AbstractResolutionFailureException incompatibleMultipleNodesValidationFailure(AttributesSchemaInternal schema, ComponentGraphResolveMetadata selectedComponent, Set<VariantGraphResolveMetadata> incompatibleNodes) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeMetadatas(incompatibleNodes);
-        IncompatibleMultipleNodesValidationFailure failure = new IncompatibleMultipleNodesValidationFailure(selectedComponent, incompatibleNodes, assessedCandidates);
-        return describeFailure(schema, failure);
-    }
-    // endregion State 4 - GraphValidationFailures
+    // endregion State 4 - ArtifactSelectionFailures
 
     private <FAILURE extends ResolutionFailure> AbstractResolutionFailureException describeFailure(FAILURE failure) {
         @SuppressWarnings("unchecked")
