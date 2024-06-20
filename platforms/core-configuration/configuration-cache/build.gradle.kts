@@ -83,6 +83,7 @@ dependencies {
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
+    implementation(libs.commonsCompress)
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
     implementation(libs.guava)

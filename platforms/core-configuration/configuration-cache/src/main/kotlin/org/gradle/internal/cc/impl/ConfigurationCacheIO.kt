@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream
+import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -249,7 +251,7 @@ class ConfigurationCacheIO internal constructor(
      */
     internal
     fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
+        KryoBackedEncoder(FramedSnappyCompressorOutputStream(outputStreamFor(stateType, outputStream))).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -297,7 +299,7 @@ class ConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
+        readerContextFor(KryoBackedDecoder(FramedSnappyCompressorInputStream(inputStreamFor(stateType, inputStream))))
             .let { (context, codecs) ->
                 context.useToRun {
                     initClassLoader(javaClass.classLoader)
@@ -308,6 +310,7 @@ class ConfigurationCacheIO internal constructor(
                     }
                 }
             }
+        }
 
     internal
     fun readerContextFor(
