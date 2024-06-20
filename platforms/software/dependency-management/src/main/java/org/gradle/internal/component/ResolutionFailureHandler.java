@@ -37,11 +37,9 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
@@ -102,17 +100,6 @@ public class ResolutionFailureHandler {
         List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfigurationCapabilities, targetConfiguration.getAttributes()));
         ConfigurationNotCompatibleFailure failure = new ConfigurationNotCompatibleFailure(targetComponent.getId(), targetConfiguration.getName(), requestedAttributes, assessedCandidates);
         return describeFailure(schema, failure);
-    }
-
-    public AbstractResolutionFailureException configurationNotConsumableFailure(
-        ComponentGraphResolveState targetComponent,
-        String targetConfigurationName
-    ) {
-        // We hard-code the exception here since we do not currently support dynamically describing this type of failure.
-        // It might make sense to do this for other similar failures that do not have dynamic failure handling.
-        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(targetComponent.getId(), targetConfigurationName);
-        String message = String.format("Selected configuration '" + failure.describeRequestTarget() + "' on '" + failure.getTargetComponent().getDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-        throw new VariantSelectionByNameException(message, failure, Collections.emptyList());
     }
 
     public AbstractResolutionFailureException configurationDoesNotExistFailure(ComponentGraphResolveState targetComponent, String targetConfigurationName) {
