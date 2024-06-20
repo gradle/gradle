@@ -25,11 +25,8 @@ detekt {
     // customize some of the rules, until we can fix the offending cases
     config.setFrom(project.isolated.rootProject.projectDirectory.file("detekt.yml"))
 
-    // also check .gradle.kts build files
-    val buildFiles = project
-        .fileTree(project.projectDir)
-        .filter { it.name.endsWith("gradle.kts") }
-    source.from(buildFiles)
+    // also check the project build file
+    source.from(project.buildFile)
 }
 
 pluginManager.withPlugin("gradlebuild.code-quality") {

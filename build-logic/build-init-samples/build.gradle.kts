@@ -11,9 +11,3 @@ dependencies {
         because("This is a transitive dependency of 'gradle-guides-plugin' not declared there")
     }
 }
-
-tasks {
-    named("detekt") {
-        dependsOn(extractPrecompiledScriptPluginPlugins)
-    }
-}
