@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
+import org.gradle.util.Path;
 
 import java.util.Optional;
 
@@ -30,19 +31,19 @@ import java.util.Optional;
  */
 public abstract class ConfigurationDoesNotExistFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationDoesNotExistFailure> {
     @Override
-    public ConfigurationSelectionException describeFailure(ConfigurationDoesNotExistFailure failure, Optional<AttributesSchemaInternal> schema) {
-        String message = buildConfigurationNotFoundFailureMsg(failure);
+    public VariantSelectionByNameException describeFailure(ConfigurationDoesNotExistFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildFailureMsg(failure);
 
         ImmutableList.Builder<String> resolutions = ImmutableList.builder();
-        boolean isLocalComponent = failure.getRequestedComponentId() instanceof ProjectComponentIdentifier;
+        boolean isLocalComponent = failure.getTargetComponent() instanceof ProjectComponentIdentifier;
         if (isLocalComponent) {
-            ProjectComponentIdentifierInternal id = (ProjectComponentIdentifierInternal) failure.getRequestedComponentId();
+            ProjectComponentIdentifierInternal id = (ProjectComponentIdentifierInternal) failure.getTargetComponent();
             Path outgoingVariantsPath = id.getIdentityPath().append(Path.path("outgoingVariants"));
             resolutions.add("To determine which configurations are available in the target project, run " + outgoingVariantsPath.getPath());
         }
 
         resolutions.addAll(buildResolutions(suggestReviewAlgorithm()));
-        return new ConfigurationSelectionException(message, failure, resolutions.build());
+        return new VariantSelectionByNameException(message, failure, resolutions.build());
     }
 
     private String buildFailureMsg(ConfigurationDoesNotExistFailure failure) {

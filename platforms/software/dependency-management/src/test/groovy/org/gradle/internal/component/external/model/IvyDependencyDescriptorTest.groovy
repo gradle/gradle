@@ -40,7 +40,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 
 import static com.google.common.collect.ImmutableList.copyOf
 

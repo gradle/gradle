@@ -35,8 +35,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -111,7 +111,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectVariants(variantSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)
 
         then:
-        def e = thrown(VariantSelectionByAttributesException)
+        def e = thrown(VariantSelectionByNameException)
         e.message == toPlatformLineSeparators("""Configuration 'default' in [target] does not match the consumer attributes
 Configuration 'default':
   - Incompatible because this component declares attribute 'key' with value 'nothing' and the consumer needed attribute 'key' with value 'other'""")
@@ -128,7 +128,7 @@ Configuration 'default':
         dep.selectVariants(variantSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)
 
         then:
-        def e = thrown(VariantSelectionByAttributesException)
+        def e = thrown(VariantSelectionByNameException)
         e.message == toPlatformLineSeparators("""Configuration 'bar' in [target] does not match the consumer attributes
 Configuration 'bar':
   - Incompatible because this component declares attribute 'key' with value 'something else' and the consumer needed attribute 'key' with value 'something'""")
@@ -243,8 +243,8 @@ Configuration 'bar':
         dep.selectVariants(variantSelector, attributes([:]), toComponent, attributesSchema,[] as Set)
 
         then:
-        def e = thrown(ConfigurationSelectionException)
-        e.message == "A dependency was declared on configuration 'to' of '[target]' but no variant with that configuration name exists."
+        def e = thrown(VariantSelectionByNameException)
+        e.message == "A dependency was declared on configuration 'to' which is not declared in the descriptor for '[target]'."
     }
 
     def "excludes nothing when no exclude rules provided"() {
