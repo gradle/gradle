@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl
 
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream
+import org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream
+import org.apache.commons.compress.compressors.snappy.SnappyCompressorOutputStream
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -29,6 +31,7 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.io.ParallelOutputStream
 import org.gradle.internal.cc.impl.io.safeWrap
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.Codecs
@@ -60,7 +63,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
-import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -251,7 +253,7 @@ class ConfigurationCacheIO internal constructor(
      */
     internal
     fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(FramedSnappyCompressorOutputStream(outputStreamFor(stateType, outputStream))).let { encoder ->
+        encoderFor(stateType, outputStream).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -260,17 +262,48 @@ class ConfigurationCacheIO internal constructor(
         }
 
     private
-    fun outputStreamFor(stateType: StateType, outputStream: () -> OutputStream) =
-        maybeEncrypt(stateType, outputStream, encryptionService::outputStream)
+    fun encoderFor(stateType: StateType, outputStream: () -> OutputStream) =
+        safeWrap(outputStream) { output ->
+
+            fun compressorStream() = compressorOutputStreamFor(
+                when {
+                    stateType.encryptable -> encryptionService.outputStream(output)
+                    else -> output
+                }
+            )
+
+            when (stateType) {
+                StateType.Work -> KryoBackedEncoder(
+                    ParallelOutputStream.of(::compressorStream),
+                    ParallelOutputStream.recommendedBufferSize
+                )
+
+                else -> KryoBackedEncoder(compressorStream())
+            }
+        }
 
     private
-    fun inputStreamFor(stateType: StateType, inputStream: () -> InputStream) =
-        maybeEncrypt(stateType, inputStream, encryptionService::inputStream)
+    fun decoderFor(stateType: StateType, inputStream: () -> InputStream) =
+        safeWrap(inputStream) { input ->
+            KryoBackedDecoder(
+                FramedSnappyCompressorInputStream(
+                    when {
+                        stateType.encryptable -> encryptionService.inputStream(input)
+                        else -> input
+                    }
+                )
+            )
+        }
 
     private
-    fun <I : Closeable, O : I> maybeEncrypt(stateType: StateType, inner: () -> I, outer: (I) -> O): I =
-        if (stateType.encryptable) safeWrap(inner, outer)
-        else inner()
+    fun compressorOutputStreamFor(outputStream: OutputStream) =
+        FramedSnappyCompressorOutputStream(
+            outputStream,
+            SnappyCompressorOutputStream
+                .createParameterBuilder(SnappyCompressorInputStream.DEFAULT_BLOCK_SIZE)
+                .tunedForSpeed()
+                .build()
+        )
 
     private
     fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
@@ -299,7 +332,7 @@ class ConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(KryoBackedDecoder(FramedSnappyCompressorInputStream(inputStreamFor(stateType, inputStream))))
+        readerContextFor(decoderFor(stateType, inputStream))
             .let { (context, codecs) ->
                 context.useToRun {
                     initClassLoader(javaClass.classLoader)
@@ -310,7 +343,6 @@ class ConfigurationCacheIO internal constructor(
                     }
                 }
             }
-        }
 
     internal
     fun readerContextFor(
