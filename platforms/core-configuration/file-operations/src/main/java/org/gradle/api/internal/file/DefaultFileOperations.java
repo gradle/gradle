@@ -260,18 +260,19 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public boolean delete(Object... paths) {
-        return delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(false)).getDidWork();
+        return delete(deleteSpec -> deleteSpec.delete(paths).getFollowSymlinks().set(false)).getDidWork();
     }
 
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
-        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
+        DeleteSpecInternal deleteSpec = objectFactory.newInstance(DefaultDeleteSpec.class);
         action.execute(deleteSpec);
         FileCollectionInternal roots = fileCollectionFactory.resolving(deleteSpec.getPaths());
         boolean didWork = false;
+        boolean followSymlinks = deleteSpec.getFollowSymlinks().get();
         for (File root : roots) {
             try {
-                didWork |= deleter.deleteRecursively(root, deleteSpec.isFollowSymlinks());
+                didWork |= deleter.deleteRecursively(root, followSymlinks);
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }
