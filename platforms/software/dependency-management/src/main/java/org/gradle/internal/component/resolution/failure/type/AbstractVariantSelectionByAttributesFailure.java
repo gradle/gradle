@@ -17,10 +17,10 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
 
 import java.util.Set;
@@ -30,11 +30,11 @@ import java.util.Set;
  * was requested via variant-aware matching and that matching failed.
  */
 public abstract class AbstractVariantSelectionByAttributesFailure implements VariantSelectionByAttributesFailure {
-    private final ComponentGraphResolveState targetComponent;
+    private final ComponentIdentifier targetComponent;
     private final ImmutableAttributes requestedAttributes;
     private final ImmutableSet<Capability> requestedCapabilities;
 
-    public AbstractVariantSelectionByAttributesFailure(ComponentGraphResolveState targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities) {
+    public AbstractVariantSelectionByAttributesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities) {
         this.targetComponent = targetComponent;
         this.requestedAttributes = requestedAttributes.asImmutable();
         this.requestedCapabilities = ImmutableSet.copyOf(requestedCapabilities);
@@ -42,11 +42,11 @@ public abstract class AbstractVariantSelectionByAttributesFailure implements Var
 
     @Override
     public String describeRequestTarget() {
-        return targetComponent.getId().getDisplayName();
+        return targetComponent.getDisplayName();
     }
 
     @Override
-    public ComponentGraphResolveState getTargetComponentState() {
+    public ComponentIdentifier getTargetComponent() {
         return targetComponent;
     }
 

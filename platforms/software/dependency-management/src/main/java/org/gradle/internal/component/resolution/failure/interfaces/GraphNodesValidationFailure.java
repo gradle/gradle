@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.interfaces;
 
-import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import java.util.Set;
 
@@ -31,16 +31,16 @@ import java.util.Set;
  */
 public interface GraphNodesValidationFailure extends GraphValidationFailure {
     /**
-     * Gets the component state in the graph for the component for which nodes validation failed.
+     * Gets the metadata for the component state in the graph for the component for which nodes validation failed.
      *
      * @return the component resolve state for the component containing the nodes failing validation
      */
-    ComponentGraphResolveState getFailingComponent();
+    ComponentGraphResolveMetadata getFailingComponent();
 
     /**
-     * Gets the resolve states of the nodes in the graph that failed validation.
+     * Gets the metadata for the resolve states of the nodes in the graph that failed validation.
      *
      * @return the set of resolve states for the nodes that failed validation
      */
-    Set<VariantGraphResolveState> getFailingNodes();
+    Set<VariantGraphResolveMetadata> getFailingNodes();
 }

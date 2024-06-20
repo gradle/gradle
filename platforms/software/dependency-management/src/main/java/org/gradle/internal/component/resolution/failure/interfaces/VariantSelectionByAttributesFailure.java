@@ -17,26 +17,14 @@
 package org.gradle.internal.component.resolution.failure.interfaces;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 
 /**
  * Represents a specific type of {@link VariantSelectionFailure} where the failure occurred
  * due to a failure to select a variant of a component based on the requested attributes.
  */
 public interface VariantSelectionByAttributesFailure extends VariantSelectionFailure {
-    /**
-     * Gets the state of the component for which a variant could not be selected.
-     * <p>
-     * Note that we can't merely use the {@link ComponentIdentifier} here, as we may have to reconstruct
-     * the default capabilities of the component.
-     *
-     * @return component for which a variant could not be selected
-     */
-    ComponentGraphResolveState getTargetComponentState();
-
     /**
      * Gets the attributes that were used to attempt to select a variant.
      * <p>
@@ -53,9 +41,4 @@ public interface VariantSelectionByAttributesFailure extends VariantSelectionFai
      * @return the capabilities associated with the component failing to select a variant
      */
     ImmutableSet<Capability> getRequestedCapabilities();
-
-    @Override
-    default ComponentIdentifier getTargetComponent() {
-        return getTargetComponentState().getId();
-    }
 }

@@ -18,8 +18,8 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.interfaces.GraphNodesValidationFailure;
 
@@ -31,11 +31,11 @@ import java.util.Set;
  * are selected during a request.
  */
 public final class IncompatibleMultipleNodesValidationFailure implements GraphNodesValidationFailure {
-    private final ComponentGraphResolveState selectedComponent;
-    private final Set<VariantGraphResolveState> incompatibleNodes;
+    private final ComponentGraphResolveMetadata selectedComponent;
+    private final Set<VariantGraphResolveMetadata> incompatibleNodes;
     private final ImmutableList<AssessedCandidate> assessedCandidates;
 
-    public IncompatibleMultipleNodesValidationFailure(ComponentGraphResolveState selectedComponent, Set<VariantGraphResolveState> incompatibleNodes, List<AssessedCandidate> assessedCandidates) {
+    public IncompatibleMultipleNodesValidationFailure(ComponentGraphResolveMetadata selectedComponent, Set<VariantGraphResolveMetadata> incompatibleNodes, List<AssessedCandidate> assessedCandidates) {
         this.selectedComponent = selectedComponent;
         this.incompatibleNodes = ImmutableSet.copyOf(incompatibleNodes);
         this.assessedCandidates = ImmutableList.copyOf(assessedCandidates);
@@ -43,16 +43,16 @@ public final class IncompatibleMultipleNodesValidationFailure implements GraphNo
 
     @Override
     public String describeRequestTarget() {
-        return selectedComponent.getMetadata().getModuleVersionId().toString();
+        return selectedComponent.getModuleVersionId().toString();
     }
 
     @Override
-    public ComponentGraphResolveState getFailingComponent() {
+    public ComponentGraphResolveMetadata getFailingComponent() {
         return selectedComponent;
     }
 
     @Override
-    public Set<VariantGraphResolveState> getFailingNodes() {
+    public Set<VariantGraphResolveMetadata> getFailingNodes() {
         return incompatibleNodes;
     }
 
