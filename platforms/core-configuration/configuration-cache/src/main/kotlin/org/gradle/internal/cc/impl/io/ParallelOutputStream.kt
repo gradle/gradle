@@ -148,10 +148,10 @@ class ByteBufferPool {
     companion object {
 
         val bufferCount = System.getProperty("org.gradle.configuration-cache.internal.buffer-count", null)?.toInt()
-            ?: (32 * 1024)
+            ?: (8 * 1024)
 
         val bufferCapacity = System.getProperty("org.gradle.configuration-cache.internal.buffer-capacity", null)?.toInt()
-            ?: (1 * 1024)
+            ?: (1 * 32)
 
         val timeoutMinutes: Long = System.getProperty("org.gradle.configuration-cache.internal.buffer-timeout-seconds", null)?.toLong()
             ?: 30L /* stream can be kept open during the whole configuration phase */
