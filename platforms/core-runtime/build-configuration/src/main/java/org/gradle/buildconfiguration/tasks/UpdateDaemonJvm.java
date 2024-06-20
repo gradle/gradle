@@ -120,6 +120,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @OptionValues("jvm-vendor")
     public List<String> getAvailableVendors() {
-        return Arrays.stream(JvmVendor.KnownJvmVendor.values()).map(Enum::name).collect(Collectors.toList());
+        return Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e!=JvmVendor.KnownJvmVendor.UNKNOWN).map(Enum::name).collect(Collectors.toList());
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -33,11 +34,13 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class DaemonParameters {
@@ -143,8 +146,16 @@ public class DaemonParameters {
 
             final JvmVendorSpec javaVendor;
             String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
+
             if (requestedVendor != null) {
-                javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
+                Optional<JvmVendor.KnownJvmVendor> knownVendor =
+                    Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
+
+                if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
+                    javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
+                } else {
+                    javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
+                }
             } else {
                 // match any vendor
                 javaVendor = DefaultJvmVendorSpec.any();
