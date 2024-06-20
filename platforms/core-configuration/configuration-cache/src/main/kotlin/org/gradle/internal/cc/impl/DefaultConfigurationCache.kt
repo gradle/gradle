@@ -327,7 +327,7 @@ class DefaultConfigurationCache internal constructor(
                     val description = formatBootstrapSummary(
                         "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                        checkedFingerprint.reason.asString()
+                        checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.STORE to description
@@ -337,7 +337,7 @@ class DefaultConfigurationCache internal constructor(
                     val description = formatBootstrapSummary(
                         "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                        checkedFingerprint.reason.asString()
+                        checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.UPDATE to description
@@ -634,7 +634,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun logBootstrapSummary(message: StructuredMessage) {
-        logger.log(configurationCacheLogLevel, message.asString())
+        logger.log(configurationCacheLogLevel, message.render())
     }
 
     private

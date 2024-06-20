@@ -61,14 +61,14 @@ typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 data class StructuredMessage(val fragments: List<Fragment>) {
 
-    fun asString(quote: Char = '\'') = fragments.joinToString(separator = "") { fragment ->
+    fun render(quote: Char = '\'') = fragments.joinToString(separator = "") { fragment ->
         when (fragment) {
             is Fragment.Text -> fragment.text
             is Fragment.Reference -> "$quote${fragment.name}$quote"
         }
     }
 
-    override fun toString(): String = asString()
+    override fun toString(): String = render()
 
     sealed class Fragment {
 
@@ -128,14 +128,18 @@ sealed class PropertyTrace {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
         override fun hashCode(): Int = 0
-        override fun describe(builder: StructuredMessage.Builder) = builder.text("unknown location")
+        override fun describe(builder: StructuredMessage.Builder) {
+            builder.text("unknown location")
+        }
     }
 
     object Gradle : PropertyTrace() {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
         override fun hashCode(): Int = 1
-        override fun describe(builder: StructuredMessage.Builder) = builder.text("Gradle runtime")
+        override fun describe(builder: StructuredMessage.Builder) {
+            builder.text("Gradle runtime")
+        }
     }
 
     @Suppress("DataClassPrivateConstructor")
@@ -146,10 +150,12 @@ sealed class PropertyTrace {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
         constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            text(source.displayName)
-            lineNumber?.let {
-                text(": line $it")
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text(source.displayName)
+                lineNumber?.let {
+                    text(": line $it")
+                }
             }
         }
     }
@@ -158,9 +164,11 @@ sealed class PropertyTrace {
         val name: String
     ) : PropertyTrace() {
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            text("class ")
-            reference(name)
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("class ")
+                reference(name)
+            }
         }
     }
 
@@ -169,11 +177,13 @@ sealed class PropertyTrace {
         val path: String
     ) : PropertyTrace() {
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            text("task ")
-            reference(path)
-            text(" of type ")
-            reference(type.name)
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("task ")
+                reference(path)
+                text(" of type ")
+                reference(type.name)
+            }
         }
     }
 
@@ -184,9 +194,11 @@ sealed class PropertyTrace {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            reference(type.name)
-            text(" bean found in ")
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                reference(type.name)
+                text(" bean found in ")
+            }
         }
     }
 
@@ -198,10 +210,12 @@ sealed class PropertyTrace {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            text("$kind ")
-            reference(name)
-            text(" of ")
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("$kind ")
+                reference(name)
+                text(" of ")
+            }
         }
     }
 
@@ -212,10 +226,12 @@ sealed class PropertyTrace {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            text("project ")
-            reference(path)
-            text(" in ")
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("project ")
+                reference(path)
+                text(" in ")
+            }
         }
     }
 
@@ -226,10 +242,12 @@ sealed class PropertyTrace {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
-        override fun describe(builder: StructuredMessage.Builder) = builder.apply {
-            text("system property ")
-            reference(name)
-            text(" set at ")
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("system property ")
+                reference(name)
+                text(" set at ")
+            }
         }
     }
 
@@ -248,18 +266,20 @@ sealed class PropertyTrace {
             sequence.forEach {
                 it.describe(this)
             }
-        }.build().asString('`')
+        }.build().render('`')
 
     /**
      * The user code where the problem occurred. User code should generally be some coarse-grained entity such as a plugin or script.
      */
     open val containingUserCode: String
-        get() = containingUserCodeMessage.asString('`')
+        get() = containingUserCodeMessage.render('`')
 
     open val containingUserCodeMessage: StructuredMessage
-        get() = describe(StructuredMessage.Builder()).build()
+        get() = StructuredMessage.Builder().also {
+            describe(it)
+        }.build()
 
-    abstract fun describe(builder: StructuredMessage.Builder): StructuredMessage.Builder
+    abstract fun describe(builder: StructuredMessage.Builder)
 
     val sequence: Sequence<PropertyTrace>
         get() = sequence {
