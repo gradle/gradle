@@ -16,19 +16,23 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+
+import static org.gradle.api.internal.provider.ProviderApiDeprecationLogger.logDeprecation;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 
 /**
  * <p>Deletes files or directories. Example:</p>
@@ -39,20 +43,18 @@ import java.util.Set;
  * }
  * </pre>
  *
- * Be default symlinks will not be followed when deleting files. To change this behavior call
- * {@link Delete#setFollowSymlinks(boolean)} with true. On systems that do not support symlinks,
+ * Be default symlinks will not be followed when deleting files. To change this behavior, set
+ * {@link Delete#getFollowSymlinks()} property to true. On systems that do not support symlinks,
  * this will have no effect.
  */
 @DisableCachingByDefault(because = "Deletion cannot be cached")
 public abstract class Delete extends ConventionTask implements DeleteSpec {
-    private ConfigurableFileCollection paths = getProject().getObjects().fileCollection();
-
-    private boolean followSymlinks;
 
     @TaskAction
     protected void clean() throws IOException {
         boolean didWork = false;
-        for (File path : paths) {
+        boolean followSymlinks = getFollowSymlinks().getOrElse(false);
+        for (File path : getTargetFiles().getFiles()) {
             didWork |= getDeleter().deleteRecursively(path, followSymlinks);
         }
         setDidWork(didWork);
@@ -62,22 +64,33 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Returns the resolved set of files which will be deleted by this task.
      *
      * @return The files. Never returns null.
+     * @since 8.10
      */
     @Destroys
-    @ToBeReplacedByLazyProperty
-    public FileCollection getTargetFiles() {
-        return paths;
-    }
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getTargetFiles"))
+    public abstract ConfigurableFileCollection getTargetFiles();
+
+    /**
+     * Specifies whether or not symbolic links should be followed during deletion.
+     *
+     * @since 8.10
+     **/
+    @Override
+    @Incubating
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class))
+    public abstract Property<Boolean> getFollowSymlinks();
 
     /**
      * Returns the set of files which will be deleted by this task.
      *
      * @return The files. Never returns null.
+     * @deprecated Use {@link #getTargetFiles()} property instead
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()", willBeDeprecated = true)
+    @Deprecated
     public Set<Object> getDelete() {
-        return paths.getFrom();
+        logDeprecation(Delete.class, "getDelete()", "targetFiles");
+        return getTargetFiles().getFrom();
     }
 
     /**
@@ -85,39 +98,24 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      *
      * @param targets A set of any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @since 4.0
+     * @deprecated Use {@link #getTargetFiles()} property instead
      */
+    @Deprecated
     public void setDelete(Set<Object> targets) {
-        this.paths.setFrom(targets);
+        logDeprecation(Delete.class, "setDelete(Set<Object>)", "targetFiles");
+        this.getTargetFiles().setFrom(targets);
     }
 
     /**
      * Sets the files to be deleted by this task.
      *
      * @param target Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @deprecated Use {@link #getTargetFiles()} property instead
      */
+    @Deprecated
     public void setDelete(Object target) {
-        this.paths.setFrom(target);
-    }
-
-    /**
-     * Returns if symlinks should be followed when doing a delete.
-     *
-     * @return true if symlinks will be followed.
-     */
-    @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFollowSymlinks() {
-        return followSymlinks;
-    }
-
-    /**
-     * Set if symlinks should be followed. If the platform doesn't support symlinks, then this will have no effect.
-     *
-     * @param followSymlinks if symlinks should be followed.
-     */
-    @Override
-    public void setFollowSymlinks(boolean followSymlinks) {
-        this.followSymlinks = followSymlinks;
+        logDeprecation(Delete.class, "setDelete(Object)", "targetFiles");
+        this.getTargetFiles().setFrom(target);
     }
 
     /**
@@ -127,7 +125,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      */
     @Override
     public Delete delete(Object... targets) {
-        paths.from(targets);
+        getTargetFiles().from(targets);
         return this;
     }
 
@@ -135,4 +133,5 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     protected Deleter getDeleter() {
         throw new UnsupportedOperationException("Decorator injects implementation");
     }
+
 }
