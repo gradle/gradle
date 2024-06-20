@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Collections;
 
@@ -56,5 +57,11 @@ public abstract class AmbiguousVariantSelectionException extends ArtifactSelecti
 
     public AmbiguousVariantSelectionException(String message) {
         super(message, EMPTY_RESOLUTION_FAILURE, Collections.emptyList());
+
+        DeprecationLogger.deprecateType(AmbiguousVariantSelectionException.class)
+            .withAdvice("The " + AmbiguousVariantSelectionException.class.getName() + " type is temporarily available for migration only.")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
     }
 }

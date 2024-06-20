@@ -210,10 +210,6 @@ class RecordingVariantSet(
     var targetAttributes: ImmutableAttributes? = null
     var transformChain: TransformChain? = null
 
-    override fun getComponentIdentifier(): ComponentIdentifier {
-        throw IllegalStateException("No component identifier available")
-    }
-
     override fun asDescribable(): DisplayName {
         return Describables.of(source)
     }
@@ -240,6 +236,10 @@ class RecordingVariantSet(
 
     override fun getCapabilities(): ImmutableCapabilities {
         return ImmutableCapabilities.EMPTY
+    }
+
+    override fun getComponentIdentifier(): ComponentIdentifier {
+        throw UnsupportedOperationException("Should not be called")
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {
