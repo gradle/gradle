@@ -69,7 +69,7 @@ public final class ResolutionCandidateAssessor {
         return variantStates.stream()
             .map(VariantGraphResolveState::getMetadata)
             .map(variant -> {
-                ImmutableCapabilities capabilities = new ImmutableCapabilities(variant.getCapabilities().asSet(), defaultCapabilityForComponent);
+                ImmutableCapabilities capabilities = variant.getCapabilities().orElse(defaultCapabilityForComponent);
                 return assessCandidate(variant.getName(), capabilities, variant.getAttributes().asImmutable());
             }).sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
             .collect(Collectors.toList());

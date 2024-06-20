@@ -42,21 +42,6 @@ public class ImmutableCapabilities {
         this.capabilities = capabilities;
     }
 
-    /**
-     * Creates a new instance containing the given capabilities, or alternately containing the default capability
-     * if the given capabilities set it empty.
-     *
-     * @param capabilities the capabilities to include in the result
-     * @param defaultCapability the default capability to include in the result if the given capabilities set is empty
-     */
-    public ImmutableCapabilities(ImmutableSet<ImmutableCapability> capabilities, ImmutableCapability defaultCapability) {
-        if (capabilities.isEmpty()) {
-            this.capabilities = ImmutableSet.of(defaultCapability);
-        } else {
-            this.capabilities = capabilities;
-        }
-    }
-
     public static ImmutableCapabilities of(@Nullable Capability capability) {
         if (capability == null) {
             return EMPTY;
@@ -90,6 +75,21 @@ public class ImmutableCapabilities {
 
     public ImmutableSet<ImmutableCapability> asSet() {
         return capabilities;
+    }
+
+    /**
+     * Returns this instance if it contains any capabilities, or returns a new instance containing the default capability
+     * if this is empty.
+     *
+     * @param defaultCapability the default capability to include in the result if the given capabilities set is empty
+     * @return {@code this} if it contains any capabilities; otherwise a new instance containing the given capability
+     */
+    public ImmutableCapabilities orElse(ImmutableCapability defaultCapability) {
+        if (capabilities.isEmpty()) {
+            return ImmutableCapabilities.of(defaultCapability);
+        } else {
+            return this;
+        }
     }
 
     @Override
