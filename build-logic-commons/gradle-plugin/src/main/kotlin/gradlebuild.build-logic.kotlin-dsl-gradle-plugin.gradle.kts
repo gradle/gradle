@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradle.kotlin.dsl.accessors._caaef686956ef05d8c7d73205bf1c4b7.detekt
 import gradlebuild.commons.configureJavaToolChain
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -38,6 +39,11 @@ tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         allWarningsAsErrors = true
     }
+}
+
+detekt {
+    // overwrite the config file's location
+    config.convention(project.isolated.rootProject.projectDirectory.file("../gradle/detekt.yml"))
 }
 
 tasks.named("codeQuality") {

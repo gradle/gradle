@@ -1,3 +1,4 @@
+import gradle.kotlin.dsl.accessors._caaef686956ef05d8c7d73205bf1c4b7.detekt
 import gradlebuild.commons.configureJavaToolChain
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -24,4 +25,9 @@ kotlin {
         allWarningsAsErrors = true
         jvmTarget.set(JvmTarget.JVM_1_8)
     }
+}
+
+detekt {
+    // overwrite the config file's location
+    config.convention(project.isolated.rootProject.projectDirectory.file("../gradle/detekt.yml"))
 }

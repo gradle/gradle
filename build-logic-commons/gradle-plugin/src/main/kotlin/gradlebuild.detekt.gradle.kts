@@ -23,7 +23,7 @@ detekt {
     buildUponDefaultConfig = true
 
     // customize some of the rules, until we can fix the offending cases
-    config.setFrom(project.isolated.rootProject.projectDirectory.file("detekt.yml"))
+    config.convention(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml"))
 
     // also check the project build file
     source.from(project.buildFile)
