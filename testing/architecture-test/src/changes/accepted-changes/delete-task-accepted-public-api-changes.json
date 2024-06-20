@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Class org.gradle.api.tasks.Delete",
+            "acceptation": "provider api migration",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
+        }
+    ]
+}

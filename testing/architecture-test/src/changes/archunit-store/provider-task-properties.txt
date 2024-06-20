@@ -67,7 +67,6 @@ Method <org.gradle.api.tasks.Copy.getDestinationDir()> does not have raw return 
 Method <org.gradle.api.tasks.Copy.getRootSpec()> does not have raw return type (org.gradle.api.internal.file.copy.CopySpecInternal) assignable to any of [Provider] in (Copy.java:0)
 Method <org.gradle.api.tasks.Copy.getRootSpec()> does not have raw return type (org.gradle.api.internal.file.copy.DestinationRootCopySpec) assignable to any of [Provider] in (Copy.java:0)
 Method <org.gradle.api.tasks.Delete.getDelete()> does not have raw return type (java.util.Set) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Delete.java:0)
-Method <org.gradle.api.tasks.Delete.isFollowSymlinks()> does not have raw return type (boolean) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Delete.java:0)
 Method <org.gradle.api.tasks.Exec.getArgs()> does not have raw return type (java.util.List) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Exec.java:0)
 Method <org.gradle.api.tasks.Exec.getErrorOutput()> does not have raw return type (java.io.OutputStream) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Exec.java:0)
 Method <org.gradle.api.tasks.Exec.getStandardInput()> does not have raw return type (java.io.InputStream) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Exec.java:0)
