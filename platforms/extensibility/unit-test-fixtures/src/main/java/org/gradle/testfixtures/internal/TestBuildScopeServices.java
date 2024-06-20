@@ -27,7 +27,6 @@ import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
@@ -38,12 +37,14 @@ import java.util.Map;
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
 
-    public TestBuildScopeServices(ServiceRegistry parent, File homeDir, BuildModelControllerServices.Supplier supplier) {
-        super(parent, supplier);
+    public TestBuildScopeServices(File homeDir, BuildModelControllerServices.Supplier supplier) {
+        super(supplier);
         this.homeDir = homeDir;
-        register(registration -> {
-            registration.add(DefaultProjectDescriptorRegistry.class);
-        });
+    }
+
+    @Provides
+    protected DefaultProjectDescriptorRegistry createProjectDescriptorRegistry() {
+        return new DefaultProjectDescriptorRegistry();
     }
 
     @Override

@@ -45,8 +45,8 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -69,7 +69,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
 
-        BuildScopeServices buildServices = getBuildServices();
+        CloseableServiceRegistry buildServices = getBuildServices();
         try {
             BuildLifecycleController buildLifecycleController = getBuildController();
             BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
