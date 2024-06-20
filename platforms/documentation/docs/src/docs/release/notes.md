@@ -1,8 +1,9 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features enhanced [error and warning reporting](#error-warning) to better handle variant ambiguity issues and missing variants during dependency resolution.
+This release features significantly enhanced [error and warning reporting](#error-warning) to better handle variant ambiguity issues and missing variants during dependency resolution.
+It also includes richer Java compilation errors for [IDE integrators](#ide-integration).
 
-Additionally, this release includes improvements for [IDE integrators](#ide-integration) and [other improvements](#other), including information about JVMs used by Gradle.
+Additionally, this release includes the ability to [display more detailed information about JVMs used by Gradle](#other), and other improvements.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [/dev/mataha](https://github.com/mataha),
@@ -52,10 +53,17 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ### Error and warning reporting improvements
 
 Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+This release makes it easier to deal with dependency management issues and configuration cache misses.
 
-#### Better message for common variant ambiguity issues
+#### Better messages for common dependency variant issues
 
-When Gradle attempts to resolve a dependency and finds multiple [variants](userguide/dependency_management_terminology.html#sub:terminology_variant) available, all of which define attributes that would satisfy the resolution request, the resolution fails with a [variant ambiguity error](userguide/variant_model.html#sub:variant-ambiguity).
+Gradle provides a powerful dependency management engine that is [variant-aware](userguide/dependency_management_terminology.html#sub:terminology_variant).
+That means every dependency can have multiple variants (for example, for different Java versions) with separate transitive dependencies.
+This release significantly improves error reporting around dependency variants, continuing to address requests from a [highly voted issue](https://github.com/gradle/gradle/issues/12126).
+
+##### Variant ambiguity
+
+When Gradle attempts to resolve a dependency and finds multiple variants available, all of which define attributes that would satisfy the resolution request, the resolution fails with a [variant ambiguity error](userguide/variant_model.html#sub:variant-ambiguity).
 
 A common scenario is that all these variants contain only a single, unrequested attribute with distinct values.
 The addition of this attribute to the resolution request would resolve the ambiguity.
@@ -82,7 +90,7 @@ The message also adds a suggestion to run the [`dependencyInsight` task](usergui
 Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency. This report is described at https://docs.gradle.org/@version@/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.
 ```
 
-#### Better message for resolution failures due to missing variants
+##### Missing variants
 
 If a dependency is requested that declares no variants, dependency resolution will fail.
 
@@ -139,9 +147,16 @@ IDEs such as IntelliJ IDEA and Visual Studio Code can adopt this feature to prov
 
 #### Daemon JVM information report
 
-It is now possible to view information about the JVM used for the Gradle [Daemon](userguide/gradle_daemon.html) from the [command line](userguide/command_line_interface.html).
+Before this release, `gradle --version` displayed the JVM used to launch Gradle.
+However, that JVM did not run any real build logic.
+Gradle then starts a daemon that actually runs the build.
 
-Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Daemon (which executes the build process) and the Launcher (which initiates the Gradle build process):
+Starting from Gradle 8.8 users can configure the JVM used to run the [Gradle deamon](userguide/gradle_daemon.html).
+The JVM version of the launcher and daemon can thus be different.
+
+It is now possible to view information about the JVM used for the [Daemon](userguide/gradle_daemon.html) from the [command line](userguide/command_line_interface.html) in addition to the Launcher JVM.
+
+Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Launcher (which initiates the Gradle build process) and the Daemon (which executes the build process):
 
 ```
 [...]
@@ -161,7 +176,7 @@ Daemon JVM: Eclipse Temurin JDK 11.0.23+9
   | Architecture:       aarch64
   | Is JDK:             true
 ```
-#### Changes to Build init behavior when Gradle build files are present
+#### Build init does not override existing build files by default
 
 The [build `init` plugin](userguide/build_init_plugin.html) will now ask the user to confirm before proceeding if there are any files in the project directory, including Gradle `settings.gradle(.kts)` and `build.gradle(.kts)` files.
 
@@ -176,7 +191,7 @@ If the user declines to overwrite files that exist, or if the `--no-overwrite` o
 
 The exception to this behavior is when Gradle detects an existing Maven build via the presence of a `pom.xml` file - these builds will be converted to Gradle builds without prompting.
 
-#### New TestNG options supported
+#### Better control of parallelism in TestNG tests
 
 Test tasks using the TestNG framework now support configuring the `suiteThreadPoolSize` on the [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html).
 
