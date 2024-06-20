@@ -24,7 +24,7 @@ public class ProviderApiDeprecationLogger {
             .withAdvice("Use " + replacement + " property instead")
             .willBeRemovedInGradle10()
             // TODO: add upgrade guide section
-            .withUpgradeGuideSection(8, "provider_api_migration")
+            .withUpgradeGuideSection(9, "provider_api_migration")
             .nagUser();
     }
 }
