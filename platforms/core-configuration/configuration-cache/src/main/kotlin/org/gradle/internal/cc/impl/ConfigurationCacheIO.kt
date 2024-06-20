@@ -29,6 +29,7 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.io.ParallelOutputStream
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
@@ -215,7 +216,10 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream)) {
+        val (context, codecs) = writerContextFor(
+            encryptionService.outputStream(stateFile.stateType, stateFile::outputStream),
+            parallelize = stateFile.stateType == StateType.Work
+        ) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
         return context.useToRun {
@@ -247,8 +251,11 @@ class ConfigurationCacheIO internal constructor(
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
     internal
-    fun writerContextFor(outputStream: OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(FramedSnappyCompressorOutputStream(outputStream)).let { encoder ->
+    fun writerContextFor(outputStream: OutputStream, parallelize: Boolean, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
+        KryoBackedEncoder(
+            if (parallelize) ParallelOutputStream.of { FramedSnappyCompressorOutputStream(outputStream) }
+            else FramedSnappyCompressorOutputStream(outputStream)
+        ).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),

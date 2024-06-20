@@ -536,7 +536,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream, profile: () -> String): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(outputStream, profile)
+        val (context, codecs) = cacheIO.writerContextFor(outputStream, parallelize = false, profile = profile)
         return context.apply {
             push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
