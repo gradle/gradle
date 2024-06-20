@@ -167,7 +167,7 @@ This method is only meant to be called on configurations which allow the (non-de
         fails 'a:check'
 
         then:
-        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project :b' but no variant with that configuration name exists."
+        failure.assertHasCause "A dependency was declared on configuration 'internal' which is not declared in the descriptor for 'project :b'."
 
         where:
         role                    | code

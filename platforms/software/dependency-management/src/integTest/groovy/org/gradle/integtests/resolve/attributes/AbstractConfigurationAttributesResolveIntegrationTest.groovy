@@ -721,7 +721,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project :b' but no variant with that configuration name exists."
+        failure.assertHasCause "A dependency was declared on configuration 'someConf' which is not declared in the descriptor for 'project :b'."
 
     }
 

@@ -799,7 +799,7 @@ project(':b') {
         fails("resolve")
 
         then:
-        failure.assertHasCause("A dependency was declared on configuration 'absent' of '${projectDescription}' but no variant with that configuration name exists.")
+        failure.assertHasCause("A dependency was declared on configuration 'absent' which is not declared in the descriptor for '${projectDescription}'.")
         failure.assertHasResolution("To determine which configurations are available in the target project, run ${expectedCommand}")
 
         expect:
