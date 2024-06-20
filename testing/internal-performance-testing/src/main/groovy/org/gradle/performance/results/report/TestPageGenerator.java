@@ -287,8 +287,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
     private String getReproductionInstructions(PerformanceTestHistory history) {
         String baseline = "";
         if (history instanceof CrossVersionPerformanceTestHistory) {
-            baseline = ((CrossVersionPerformanceTestHistory) history).getResults().stream().findAny()
-                .flatMap(result -> result.getBaselineVersions().stream().findAny())
+            baseline = ((CrossVersionPerformanceTestHistory) history).getResults().stream().findFirst()
+                .flatMap(result -> result.getBaselineVersions().stream().findFirst())
                 .map(baselineVersion -> "-PperformanceBaselines='" + baselineVersion.getVersion() + "'")
                 .orElse("");
         }
