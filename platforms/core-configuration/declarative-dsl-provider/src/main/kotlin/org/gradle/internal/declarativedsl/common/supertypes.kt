@@ -16,8 +16,26 @@
 
 package org.gradle.internal.declarativedsl.common
 
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+
+
+/**
+ * Discovers all supertypes of a type that might be potentially declarative.
+ * So, for `A : B` and `B : C`, if `A` is included in the schema, this component will also discover `B` and `C`.
+ * This does not include the [Any] type.
+ */
+internal
+class SupertypeTypeDiscovery : AnalysisSchemaComponent {
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
+        object : TypeDiscovery {
+            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+                withAllPotentiallyDeclarativeSupertypes(kClass)
+        }
+    )
+}
 
 
 internal
