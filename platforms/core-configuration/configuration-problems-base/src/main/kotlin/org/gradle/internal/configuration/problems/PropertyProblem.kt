@@ -59,9 +59,28 @@ enum class DocumentationSection(val anchor: String) {
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
+private
+const val BACKTICK = '`'
+
+
+/**
+ * @see prefer [BACKTICK] if wrapping strings that may already use single quotes
+ */
+private
+const val SINGLE_QUOTE = '\''
+
+
 data class StructuredMessage(val fragments: List<Fragment>) {
 
-    fun render(quote: Char = '\'') = fragments.joinToString(separator = "") { fragment ->
+    /**
+     * Renders a message as a string using the given delimiter for symbol references.
+     *
+     * We conventionally use either [BACKTICK] or [SINGLE_QUOTE] for wrapping symbol references.
+     *
+     * For the configuration cache report, we should favor [BACKTICK] over [SINGLE_QUOTE] as
+     * quoted fragments may already contain single quotes which are used elsewhere.
+     */
+    fun render(quote: Char = SINGLE_QUOTE) = fragments.joinToString(separator = "") { fragment ->
         when (fragment) {
             is Fragment.Text -> fragment.text
             is Fragment.Reference -> "$quote${fragment.name}$quote"
@@ -259,20 +278,26 @@ sealed class PropertyTrace {
 
     /**
      * The shared logic for implementing `toString()` in subclasses.
+     *
+     * Renders this trace as a string (including a nested trace if it exists).
      */
     protected
-    fun asString(): String =
-        StructuredMessage.Builder().apply {
-            sequence.forEach {
-                it.describe(this)
-            }
-        }.build().render('`')
+    fun asString(): String = StructuredMessage.Builder().apply {
+        sequence.forEach {
+            it.describe(this)
+        }
+    }.build().render(BACKTICK)
+
+    /**
+     * Renders this trace using [BACKTICK] for wrapping symbols.
+     */
+    fun render(): String = asString()
 
     /**
      * The user code where the problem occurred. User code should generally be some coarse-grained entity such as a plugin or script.
      */
     open val containingUserCode: String
-        get() = containingUserCodeMessage.render('`')
+        get() = containingUserCodeMessage.render(BACKTICK)
 
     open val containingUserCodeMessage: StructuredMessage
         get() = StructuredMessage.Builder().also {
