@@ -15,12 +15,20 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
+    def "reports daemon JVM information"() {
+        when:
+        run(":buildEnvironment")
+
+        then:
+        // Not asserting over the exact output, just that important info is printed
+        outputContains("Daemon JVM: ")
+        outputContains(Jvm.current().javaHome.absolutePath)
     }
 
     @LeaksFileHandles("Putting an generated Jar on the classpath of the buildscript")
@@ -72,7 +80,7 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run(":impl:buildEnvironment")
 
         then:
-        output.contains """
+        outputContains """
 classpath
 \\--- org:toplevel2:1.0
      +--- org:leaf3:1.0
@@ -82,7 +90,7 @@ classpath
         run(":client:buildEnvironment")
 
         then:
-        output.contains """
+        outputContains """
 classpath
 No dependencies
 """
@@ -91,7 +99,7 @@ No dependencies
         run(":buildEnvironment")
 
         then:
-        output.contains """
+        outputContains """
 classpath
 \\--- org:toplevel1:1.0
      +--- org:leaf1:1.0

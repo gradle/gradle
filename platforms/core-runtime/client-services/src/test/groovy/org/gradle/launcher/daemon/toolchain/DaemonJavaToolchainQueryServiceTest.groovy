@@ -172,7 +172,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12'."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: Compatible with Java 12 (from gradle/gradle-daemon-jvm.properties)."
         e.cause == null
     }
 
@@ -243,7 +243,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         return (begin..end).collect { it.toString() }
     }
 
-    DaemonJvmCriteria createSpec(JavaLanguageVersion javaVersion, JvmVendorSpec vendor = DefaultJvmVendorSpec.any(), JvmImplementation implementation = JvmImplementation.VENDOR_SPECIFIC) {
-        new DaemonJvmCriteria(javaVersion, vendor, implementation)
+    DaemonJvmCriteria.Spec createSpec(JavaLanguageVersion javaVersion, JvmVendorSpec vendor = DefaultJvmVendorSpec.any(), JvmImplementation implementation = JvmImplementation.VENDOR_SPECIFIC) {
+        new DaemonJvmCriteria.Spec(javaVersion, vendor, implementation)
     }
 }

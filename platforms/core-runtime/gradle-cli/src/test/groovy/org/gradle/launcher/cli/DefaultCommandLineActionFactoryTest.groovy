@@ -47,6 +47,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final ExecutionListener executionListener = Mock()
     final ServiceRegistry loggingServices = Mock()
+    final ServiceRegistry basicServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()
     final CommandLineActionCreator actionFactory1 = Mock()
     final CommandLineActionCreator actionFactory2 = Mock()
@@ -57,7 +58,12 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         }
 
         @Override
-        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
+        ServiceRegistry createBasicGlobalServices(ServiceRegistry loggingServices) {
+            return basicServices
+        }
+
+        @Override
+        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, ServiceRegistry basicServices, List<CommandLineActionCreator> actionCreators) {
             actionCreators.add(actionFactory1)
             actionCreators.add(actionFactory2)
         }
@@ -88,7 +94,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
             CommandLineParser parser -> parser.option("some-option")
         }
         1 * actionFactory2.configureCommandLineParser(!null)
-        1 * actionFactory1.createAction(!null, !null) >> rawAction
+        1 * actionFactory1.createAction(!null, !null, !null) >> rawAction
         1 * rawAction.execute(executionListener)
     }
 
@@ -105,7 +111,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         and:
         1 * actionFactory1.configureCommandLineParser(!null)
         1 * actionFactory2.configureCommandLineParser(!null)
-        1 * actionFactory1.createAction(!null, !null) >> rawAction
+        1 * actionFactory1.createAction(!null, !null, !null) >> rawAction
     }
 
     def "reports command-line parse failure"() {
@@ -140,7 +146,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         and:
         1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
+        1 * actionFactory1.createAction(!null, !null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
         0 * executionListener._
     }
@@ -173,7 +179,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('<broken>')
 
         and:
-        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
+        1 * actionFactory1.createAction(!null, !null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
         0 * executionListener._
     }
@@ -209,31 +215,35 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
     }
 
-    def "displays version message"() {
+    private static final String EXPECTED_VERSION_TEXT
+    static {
         def version = DefaultGradleVersion.current()
-        def expectedText = [
-                "",
-                "------------------------------------------------------------",
-                "Gradle ${version.version}",
-                "------------------------------------------------------------",
-                "",
-                "Build time:   $version.buildTimestamp",
-                "Revision:     $version.gitRevision",
-                "",
-                "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
-                "Groovy:       $GroovySystem.version",
-                "Ant:          $Main.antVersion",
-                "JVM:          ${Jvm.current()}",
-                "OS:           ${OperatingSystem.current()}",
-                ""
+        EXPECTED_VERSION_TEXT = [
+            "",
+            "------------------------------------------------------------",
+            "Gradle ${version.version}",
+            "------------------------------------------------------------",
+            "",
+            "Build time:    $version.buildTimestamp",
+            "Revision:      $version.gitRevision",
+            "",
+            "Kotlin:        ${KotlinDslVersion.current().kotlinVersion}",
+            "Groovy:        $GroovySystem.version",
+            "Ant:           $Main.antVersion",
+            "Launcher JVM:  ${Jvm.current()}",
+            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)",
+            "OS:            ${OperatingSystem.current()}",
+            ""
         ].join(System.lineSeparator())
+    }
 
+    def "displays version message"() {
         when:
         def commandLineExecution = factory.convert(options)
         commandLineExecution.execute(executionListener)
 
         then:
-        outputs.stdOut.contains(expectedText)
+        outputs.stdOut.contains(EXPECTED_VERSION_TEXT)
 
         and:
         1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
@@ -246,40 +256,22 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     }
 
     def "displays version message and continues build"() {
-        def version = DefaultGradleVersion.current()
-        def expectedText = [
-                "",
-                "------------------------------------------------------------",
-                "Gradle ${version.version}",
-                "------------------------------------------------------------",
-                "",
-                "Build time:   $version.buildTimestamp",
-                "Revision:     $version.gitRevision",
-                "",
-                "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
-                "Groovy:       $GroovySystem.version",
-                "Ant:          $Main.antVersion",
-                "JVM:          ${Jvm.current()}",
-                "OS:           ${OperatingSystem.current()}",
-                ""
-        ].join(System.lineSeparator())
-
         when:
         def commandLineExecution = factory.convert(options)
         commandLineExecution.execute(executionListener)
 
         then:
-        outputs.stdOut.contains(expectedText)
+        outputs.stdOut.contains(EXPECTED_VERSION_TEXT)
         outputs.stdOut.contains("action1")
         !action1Intermediary || outputs.stdOut.contains("action2")
 
         and:
-        1 * actionFactory1.createAction(!null, !null) >> {
+        1 * actionFactory1.createAction(!null, !null, !null) >> {
             def action1 = { println "action1" }
             action1Intermediary ? action1 as ContinuingAction<ExecutionListener> : action1 as Action<ExecutionListener>
 
         }
-        action2Called * actionFactory2.createAction(!null, !null) >> {
+        action2Called * actionFactory2.createAction(!null, !null, !null) >> {
             { println "action2" } as Action<ExecutionListener>
         }
         1 * loggingManager.start()

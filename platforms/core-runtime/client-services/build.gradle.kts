@@ -29,7 +29,6 @@ dependencies {
     api(project(":base-services"))
     api(project(":jvm-services"))
     api(project(":native"))
-    api(project(":toolchains-jvm-shared"))
     api(project(":enterprise-logging"))
     api(project(":process-services"))
     api(project(":serialization"))
@@ -51,6 +50,7 @@ dependencies {
     implementation(project(":instrumentation-agent-services"))
     implementation(project(":logging-api"))
     implementation(project(":time"))
+    implementation(project(":toolchains-jvm-shared"))
     implementation(project(":io"))
 
     testImplementation(testFixtures(project(":core"))) {

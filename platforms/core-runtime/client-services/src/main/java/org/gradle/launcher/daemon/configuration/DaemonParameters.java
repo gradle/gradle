@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -28,6 +28,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.util.internal.GUtil;
 
@@ -65,8 +66,7 @@ public class DaemonParameters {
     private boolean stop;
     private boolean status;
     private DaemonPriority priority = DaemonPriority.NORMAL;
-    private JavaInfo requestedJvmBasedOnJavaHome;
-    private DaemonJvmCriteria requestedJvmCriteria;
+    private DaemonJvmCriteria requestedJvmCriteria = new DaemonJvmCriteria.LauncherJvm();
 
     public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
         this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
@@ -83,6 +83,10 @@ public class DaemonParameters {
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
         envVariables = new HashMap<>(System.getenv());
+    }
+
+    public DaemonRequestContext toRequestContext() {
+        return new DaemonRequestContext(getRequestedJvmCriteria(), getEffectiveJvmArgs(), shouldApplyInstrumentationAgent(), getNativeServicesMode(), getPriority());
     }
 
     public boolean isEnabled() {
@@ -124,17 +128,21 @@ public class DaemonParameters {
     public List<String> getEffectiveSingleUseJvmArgs() {
         return jvmOptions.getAllSingleUseImmutableJvmArgs();
     }
-    @Nullable
+
     public DaemonJvmCriteria getRequestedJvmCriteria() {
         return requestedJvmCriteria;
     }
 
-    public void setRequestedJvmCriteria(@Nullable Map<String, String> buildProperties) {
+    public void setRequestedJvmCriteria(DaemonJvmCriteria requestedJvmCriteria) {
+        this.requestedJvmCriteria = requestedJvmCriteria;
+    }
+
+    public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> buildProperties) {
         String requestedVersion = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
         if (requestedVersion != null) {
             try {
                 JavaLanguageVersion javaVersion = DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
-                this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC);
+                setRequestedJvmCriteria(new DaemonJvmCriteria.Spec(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC));
             } catch (Exception e) {
                 // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
                 throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
@@ -142,17 +150,9 @@ public class DaemonParameters {
         }
     }
 
-    @Nullable
-    public JavaInfo getRequestedJvmBasedOnJavaHome() {
-        return requestedJvmBasedOnJavaHome;
-    }
-
-    public void setRequestedJvmBasedOnJavaHome(@Nullable JavaInfo requestedJvmBasedOnJavaHome) {
-        this.requestedJvmBasedOnJavaHome = requestedJvmBasedOnJavaHome;
-    }
-
-    public void applyDefaultsFor(JavaLanguageVersion javaVersion) {
-        if (javaVersion.asInt() >= 9) {
+    // TODO: Move this to the construction of DaemonRequestContext to avoid mutating the parameters? Is that possible?
+    public void applyDefaultsFromJvmCriteria(JvmVersionDetector detector) {
+        if (getRequestedJvmCriteria().probeJavaLanguageVersion(detector).asInt() >= 9) {
             Set<String> jpmsArgs = new LinkedHashSet<>(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
             jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
             jvmOptions.jvmArgs(jpmsArgs);
