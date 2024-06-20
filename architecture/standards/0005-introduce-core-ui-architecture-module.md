@@ -1,4 +1,4 @@
-# ADR-0004 - Introduce a UI architecture module to the core platform
+# ADR-0005 - Introduce a UI architecture module to the core platform
 
 ## Date
 
