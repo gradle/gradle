@@ -44,6 +44,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -94,7 +95,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class AllprojectsAwareProject extends GroovyObjectSupport implements ProjectInternal {
+public class AllprojectsAwareProject extends GroovyObjectSupport implements ProjectInternal, DynamicObjectAware {
 
     private final ProjectInternal delegate;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
@@ -129,15 +130,9 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     }
 
     @Override
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null || getClass() != other.getClass()) {
-            return false;
-        }
-        AllprojectsAwareProject project = (AllprojectsAwareProject) other;
-        return this.delegate == project.delegate;
+        return delegate.equals(other);
     }
 
     @Override
@@ -1158,5 +1153,10 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     @Override
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return ((DefaultProject) delegate).getAsDynamicObject();
     }
 }
