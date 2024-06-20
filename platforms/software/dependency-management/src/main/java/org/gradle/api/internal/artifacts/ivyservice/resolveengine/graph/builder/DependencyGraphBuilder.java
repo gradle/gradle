@@ -55,6 +55,7 @@ import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
@@ -507,7 +508,10 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes, consumerSchema);
         }
         if (!incompatibleNodes.isEmpty()) {
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected, incompatibleNodes);
+            Set<VariantGraphResolveState> incompatibleNodeStates = incompatibleNodes.stream()
+                .map(NodeState::getResolveState)
+                .collect(Collectors.toSet());
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected.getResolveState(), incompatibleNodeStates);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

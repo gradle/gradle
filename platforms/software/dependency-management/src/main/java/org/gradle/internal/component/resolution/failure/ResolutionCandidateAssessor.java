@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -31,7 +30,6 @@ import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
@@ -59,13 +57,6 @@ public final class ResolutionCandidateAssessor {
         return requestedAttributes;
     }
 
-    public List<AssessedCandidate> assessVariantMetadatas(List<? extends VariantGraphResolveMetadata> variantMetadatas) {
-        return variantMetadatas.stream()
-            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
-    }
-
     public List<AssessedCandidate> assessResolvedVariants(List<? extends ResolvedVariant> resolvedVariants) {
         return resolvedVariants.stream()
             .map(variant -> assessCandidate(variant.asDescribable().getCapitalizedDisplayName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
@@ -83,9 +74,8 @@ public final class ResolutionCandidateAssessor {
             .collect(Collectors.toList());
     }
 
-    public List<AssessedCandidate> assessNodeStates(Set<NodeState> nodes) {
+    public List<AssessedCandidate> assessNodeStates(Set<VariantGraphResolveState> nodes) {
         return nodes.stream()
-            .map(NodeState::getMetadata)
             .map(variant -> assessCandidate(variant.getName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
             .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
             .collect(Collectors.toList());
