@@ -67,7 +67,6 @@ Method <org.gradle.api.tasks.Copy.getDestinationDir()> does not have raw return 
 Method <org.gradle.api.tasks.Copy.getRootSpec()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Copy.java:0)
 Method <org.gradle.api.tasks.Copy.getRootSpec()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Copy.java:0)
 Method <org.gradle.api.tasks.Delete.getDelete()> does not have raw return type assignable to org.gradle.api.provider.Property in (Delete.java:0)
-Method <org.gradle.api.tasks.Delete.isFollowSymlinks()> does not have raw return type assignable to org.gradle.api.provider.Property in (Delete.java:0)
 Method <org.gradle.api.tasks.GradleBuild.getBuildFile()> does not have raw return type assignable to org.gradle.api.provider.Property in (GradleBuild.java:0)
 Method <org.gradle.api.tasks.GradleBuild.getBuildName()> does not have raw return type assignable to org.gradle.api.provider.Property in (GradleBuild.java:0)
 Method <org.gradle.api.tasks.GradleBuild.getDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (GradleBuild.java:0)
