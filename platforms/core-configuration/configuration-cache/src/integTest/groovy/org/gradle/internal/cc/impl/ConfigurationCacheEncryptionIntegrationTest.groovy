@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.junit.Assume
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -73,6 +74,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
+        Assume.assumeTrue("Compression no longer exposes the raw data", enabled)
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
