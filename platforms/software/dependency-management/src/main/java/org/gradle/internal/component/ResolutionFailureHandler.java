@@ -17,7 +17,6 @@
 package org.gradle.internal.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
@@ -111,7 +110,7 @@ public class ResolutionFailureHandler {
         AttributesSchemaInternal schema, AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
-        Set<Capability> requestedCapabilities,
+        ImmutableCapabilities requestedCapabilities,
         List<? extends VariantGraphResolveState> matchingVariants
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
@@ -124,7 +123,7 @@ public class ResolutionFailureHandler {
         AttributesSchemaInternal schema, AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
-        Set<Capability> requestedCapabilities,
+        ImmutableCapabilities requestedCapabilities,
         GraphSelectionCandidates candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
@@ -137,7 +136,7 @@ public class ResolutionFailureHandler {
         AttributesSchemaInternal schema, AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         ImmutableAttributes requestedAttributes,
-        Set<Capability> requestedCapabilities,
+        ImmutableCapabilities requestedCapabilities,
         List<? extends VariantGraphResolveState> candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);

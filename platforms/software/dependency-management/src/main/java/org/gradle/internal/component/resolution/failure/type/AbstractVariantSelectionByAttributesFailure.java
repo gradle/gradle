@@ -16,14 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
-
-import java.util.Set;
 
 /**
  * An abstract {@link VariantSelectionByAttributesFailure} that represents the situation when a variant
@@ -32,12 +29,12 @@ import java.util.Set;
 public abstract class AbstractVariantSelectionByAttributesFailure implements VariantSelectionByAttributesFailure {
     private final ComponentIdentifier targetComponent;
     private final ImmutableAttributes requestedAttributes;
-    private final ImmutableSet<Capability> requestedCapabilities;
+    private final ImmutableCapabilities requestedCapabilities;
 
-    public AbstractVariantSelectionByAttributesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<Capability> requestedCapabilities) {
+    public AbstractVariantSelectionByAttributesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableCapabilities requestedCapabilities) {
         this.targetComponent = targetComponent;
         this.requestedAttributes = requestedAttributes.asImmutable();
-        this.requestedCapabilities = ImmutableSet.copyOf(requestedCapabilities);
+        this.requestedCapabilities = requestedCapabilities;
     }
 
     @Override
@@ -56,7 +53,7 @@ public abstract class AbstractVariantSelectionByAttributesFailure implements Var
     }
 
     @Override
-    public ImmutableSet<Capability> getRequestedCapabilities() {
+    public ImmutableCapabilities getRequestedCapabilities() {
         return requestedCapabilities;
     }
 }

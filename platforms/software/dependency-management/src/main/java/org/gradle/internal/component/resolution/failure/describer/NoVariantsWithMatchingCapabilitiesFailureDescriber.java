@@ -38,7 +38,7 @@ public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends
 
     private String buildFailureMsg(NoVariantsWithMatchingCapabilitiesFailure failure) {
         StringBuilder sb = new StringBuilder("Unable to find a variant providing the requested ");
-        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getRequestedCapabilities()));
+        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getRequestedCapabilities().asSet()));
         sb.append(":\n");
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             sb.append("   - Variant '").append(candidate.getDisplayName()).append("' provides ");
