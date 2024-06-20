@@ -61,6 +61,7 @@ val propagatedEnvironmentVariables = listOf(
     "PUBLIC",
     "windir",
 
+    "CHROME_BIN",
     // Used by performance test to recognize TeamCity buildId
     "BUILD_ID",
     // Used by some tests to be ignored in specific build
