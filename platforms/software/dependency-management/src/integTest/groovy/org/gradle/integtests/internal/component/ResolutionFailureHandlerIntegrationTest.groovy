@@ -434,7 +434,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactSelectionException.class, AmbiguousArtifactTransformsFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
     private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactSelectionException.class, AmbiguousArtifactsFailure.class, this.&setupAmbiguousArtifactsFailureForProject)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible graph variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
 
     private final List<Demonstration> demonstrations = [
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute,

@@ -88,7 +88,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private Configuration findProjectConfiguration() {
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
-        Configuration selectedConfiguration = dependencyConfigurations.getByName(java.util.Objects.requireNonNull(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION)));
+        Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.isTrue(declaredConfiguration) ? declaredConfiguration : Dependency.DEFAULT_CONFIGURATION);
         if (!selectedConfiguration.isCanBeConsumed()) {
             failDueToNonConsumableConfigurationSelection(selectedConfiguration);
         }
