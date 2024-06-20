@@ -40,6 +40,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 
 import static com.google.common.collect.ImmutableList.copyOf
 
@@ -416,7 +417,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler)
 
         then:
-        1 * resolutionFailureHandler.externalConfigurationNotFoundFailure(_, _, _) >> failure
+        1 * resolutionFailureHandler.configurationDoesNotExistFailure(_, _) >> failure
         def e = thrown(AbstractResolutionFailureException)
         e == failure
 
