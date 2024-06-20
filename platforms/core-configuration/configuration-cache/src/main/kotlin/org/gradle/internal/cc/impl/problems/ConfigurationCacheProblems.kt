@@ -172,9 +172,10 @@ class ConfigurationCacheProblems(
 
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
+
         val problem = problemFactory
             .problem {
-                text(trace.containingUserCode)
+                message(trace.containingUserCodeMessage)
                 text(" is incompatible with the configuration cache. Reason: $reason.")
             }
             .mapLocation {
@@ -201,7 +202,7 @@ class ConfigurationCacheProblems(
 
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
-        val message = problem.message.toString()
+        val message = problem.message.render()
         internalReporter.create {
             id(
                 DeprecationMessageBuilder.createDefaultDeprecationId(message),
@@ -364,7 +365,7 @@ class ConfigurationCacheProblems(
 
     private
     fun incompatibleTasksSummary() = when {
-        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'$it'" }}."
+        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'${it.render()}'" }}."
         else -> "."
     }
 

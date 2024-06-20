@@ -59,14 +59,35 @@ enum class DocumentationSection(val anchor: String) {
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
+private
+const val BACKTICK = '`'
+
+
+/**
+ * @see prefer [BACKTICK] if wrapping strings that may already use single quotes
+ */
+private
+const val SINGLE_QUOTE = '\''
+
+
 data class StructuredMessage(val fragments: List<Fragment>) {
 
-    override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
+    /**
+     * Renders a message as a string using the given delimiter for symbol references.
+     *
+     * We conventionally use either [BACKTICK] or [SINGLE_QUOTE] for wrapping symbol references.
+     *
+     * For the configuration cache report, we should favor [BACKTICK] over [SINGLE_QUOTE] as
+     * quoted fragments may already contain single quotes which are used elsewhere.
+     */
+    fun render(quote: Char = SINGLE_QUOTE) = fragments.joinToString(separator = "") { fragment ->
         when (fragment) {
             is Fragment.Text -> fragment.text
-            is Fragment.Reference -> "'${fragment.name}'"
+            is Fragment.Reference -> "$quote${fragment.name}$quote"
         }
     }
+
+    override fun toString(): String = render()
 
     sealed class Fragment {
 
@@ -126,12 +147,18 @@ sealed class PropertyTrace {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
         override fun hashCode(): Int = 0
+        override fun describe(builder: StructuredMessage.Builder) {
+            builder.text("unknown location")
+        }
     }
 
     object Gradle : PropertyTrace() {
         override fun toString(): String = asString()
         override fun equals(other: Any?): Boolean = other === this
         override fun hashCode(): Int = 1
+        override fun describe(builder: StructuredMessage.Builder) {
+            builder.text("Gradle runtime")
+        }
     }
 
     @Suppress("DataClassPrivateConstructor")
@@ -142,12 +169,26 @@ sealed class PropertyTrace {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
         constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text(source.displayName)
+                lineNumber?.let {
+                    text(": line $it")
+                }
+            }
+        }
     }
 
     data class BuildLogicClass(
         val name: String
     ) : PropertyTrace() {
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("class ")
+                reference(name)
+            }
+        }
     }
 
     data class Task(
@@ -155,16 +196,29 @@ sealed class PropertyTrace {
         val path: String
     ) : PropertyTrace() {
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("task ")
+                reference(path)
+                text(" of type ")
+                reference(type.name)
+            }
+        }
     }
 
     data class Bean(
         val type: Class<*>,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                reference(type.name)
+                text(" bean found in ")
+            }
+        }
     }
 
     data class Property(
@@ -172,119 +226,85 @@ sealed class PropertyTrace {
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("$kind ")
+                reference(name)
+                text(" of ")
+            }
+        }
     }
 
     data class Project(
         val path: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("project ")
+                reference(path)
+                text(" in ")
+            }
+        }
     }
 
     data class SystemProperty(
         val name: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
-        override val containingUserCode: String
-            get() = trace.containingUserCode
-
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
         override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("system property ")
+                reference(name)
+                text(" set at ")
+            }
+        }
     }
-
-    abstract override fun toString(): String
 
     abstract override fun equals(other: Any?): Boolean
 
     abstract override fun hashCode(): Int
 
+    abstract override fun toString(): String
+
     /**
      * The shared logic for implementing `toString()` in subclasses.
+     *
+     * Renders this trace as a string (including a nested trace if it exists).
      */
     protected
-    fun asString(): String =
-        StringBuilder().apply {
-            sequence.forEach {
-                appendStringOf(it)
-            }
-        }.toString()
+    fun asString(): String = StructuredMessage.Builder().apply {
+        sequence.forEach {
+            it.describe(this)
+        }
+    }.build().render(BACKTICK)
+
+    /**
+     * Renders this trace using [BACKTICK] for wrapping symbols.
+     */
+    fun render(): String = asString()
 
     /**
      * The user code where the problem occurred. User code should generally be some coarse-grained entity such as a plugin or script.
      */
     open val containingUserCode: String
-        get() = StringBuilder().apply {
-            appendStringOf(this@PropertyTrace)
-        }.toString()
+        get() = containingUserCodeMessage.render(BACKTICK)
 
-    private
-    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
-        when (trace) {
-            is Gradle -> {
-                append("Gradle runtime")
-            }
+    open val containingUserCodeMessage: StructuredMessage
+        get() = StructuredMessage.Builder().also {
+            describe(it)
+        }.build()
 
-            is Property -> {
-                append(trace.kind)
-                append(" ")
-                quoted(trace.name)
-                append(" of ")
-            }
-
-            is SystemProperty -> {
-                append("system property ")
-                quoted(trace.name)
-                append(" set at ")
-            }
-
-            is Bean -> {
-                quoted(trace.type.name)
-                append(" bean found in ")
-            }
-
-            is Task -> {
-                append("task ")
-                quoted(trace.path)
-                append(" of type ")
-                quoted(trace.type.name)
-            }
-            is BuildLogic -> {
-                append(trace.source.displayName)
-                trace.lineNumber?.let {
-                    append(": line ")
-                    append(it)
-                }
-            }
-
-            is BuildLogicClass -> {
-                append("class ")
-                quoted(trace.name)
-            }
-
-            is Unknown -> {
-                append("unknown location")
-            }
-
-            is Project -> {
-                append("project ")
-                quoted(trace.path)
-                append(" in ")
-            }
-        }
-    }
-
-    private
-    fun StringBuilder.quoted(s: String) {
-        append('`')
-        append(s)
-        append('`')
-    }
+    abstract fun describe(builder: StructuredMessage.Builder)
 
     val sequence: Sequence<PropertyTrace>
         get() = sequence {

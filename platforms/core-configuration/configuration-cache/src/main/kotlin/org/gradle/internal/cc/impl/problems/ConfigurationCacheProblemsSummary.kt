@@ -237,7 +237,7 @@ data class UniquePropertyProblem(
         fun of(problem: PropertyProblem) = problem.run {
             UniquePropertyProblem(
                 trace.containingUserCode,
-                message.toString(),
+                message.render(),
                 documentationSection?.anchor
             )
         }
