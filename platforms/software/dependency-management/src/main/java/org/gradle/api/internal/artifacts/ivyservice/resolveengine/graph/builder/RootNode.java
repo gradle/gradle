@@ -30,6 +30,8 @@ class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
     private final List<? extends DependencyMetadata> syntheticDependencies;
 
+    boolean incomingEdgeWasAdded = false;
+
     RootNode(long resultId, ComponentState moduleRevision, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
         super(resultId, moduleRevision, resolveState, root, false);
         this.resolveOptimizations = resolveState.getResolveOptimizations();
@@ -44,6 +46,21 @@ class RootNode extends NodeState implements RootGraphNode {
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
         return getMetadata().getFiles();
+    }
+
+    @Override
+    void addIncomingEdge(EdgeState dependencyEdge) {
+        super.addIncomingEdge(dependencyEdge);
+        incomingEdgeWasAdded = true;
+
+        // TODO: We read `incomingEdgeWasAdded` at the end of graph resolution.
+        // If this method is ever called, we trigger a deprecation warning.
+        // In Gradle 9.0, we should fail here immediately if someone tries to
+        // add an incoming edge to a root node.
+    }
+
+    public boolean wasIncomingEdgeAdded() {
+        return incomingEdgeWasAdded;
     }
 
     @Override
