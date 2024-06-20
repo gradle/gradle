@@ -150,6 +150,8 @@ class DependencyGraphBuilderTest extends Specification {
     def rootComponent = Stub(RootComponentMetadataBuilder.RootComponentState) {
         getRootComponent() >> root
         getRootVariant() >> root.getConfigurationLegacy('root')
+        getComponentIdentifier() >> root.id
+        getModuleVersionIdentifier() >> root.moduleVersionId
     }
 
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {

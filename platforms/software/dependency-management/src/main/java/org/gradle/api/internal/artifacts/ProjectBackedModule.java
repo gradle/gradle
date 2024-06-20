@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 
+/**
+ * Exposes the dependency management identity of a project.
+ *
+ * TODO: Once any mutable field on this class is accessed, we should consider that as the project being observed.
+ * Just like we do with configurations, we should then prohibit any changes to the project that would affect the identity.
+ */
 public class ProjectBackedModule implements Module {
 
     private final ProjectInternal project;
@@ -48,7 +54,7 @@ public class ProjectBackedModule implements Module {
     }
 
     @Override
-    public ProjectComponentIdentifier getProjectId() {
+    public ProjectComponentIdentifier getComponentId() {
         return project.getOwner().getComponentIdentifier();
     }
 

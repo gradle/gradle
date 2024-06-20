@@ -45,7 +45,6 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
@@ -102,7 +101,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
-    def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
@@ -118,7 +116,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
         _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
-        _ * rootComponentMetadataBuilder.withConfigurationsProvider(_) >> rootComponentMetadataBuilder
+        _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
     }
 
     void defaultValues() {
@@ -1834,8 +1832,6 @@ All Artifacts:
             DirectInstantiator.INSTANCE,
             resolver,
             listenerManager,
-            metaDataProvider,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
