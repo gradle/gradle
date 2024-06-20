@@ -20,13 +20,16 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.internal.provider.ValueProvenance;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
@@ -37,38 +40,38 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 public enum ValidationActions implements ValidationAction {
     NO_OP("file collection") {
         @Override
-        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
         }
 
         @Override
-        public void validate(String propertyName, Supplier<Object> propertyValue, PropertyValidationContext context) {
+        public void validate(String propertyName, @Nonnull Supplier<Object> value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
         }
     },
     INPUT_FILE_VALIDATOR("file") {
         @Override
-        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
             File file = toFile(context, value);
             if (!file.exists()) {
-                reportMissingInput(context, "File", propertyName, file);
+                reportMissingInput(context, "File", propertyName, file, provenance.get());
             } else if (!file.isFile()) {
-                reportUnexpectedInputKind(context, "File", propertyName, file);
+                reportUnexpectedInputKind(context, "File", propertyName, file, provenance.get());
             }
         }
     },
     INPUT_DIRECTORY_VALIDATOR("directory") {
         @Override
-        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
-                reportMissingInput(context, "Directory", propertyName, directory);
+                reportMissingInput(context, "Directory", propertyName, directory, provenance.get());
             } else if (!directory.isDirectory()) {
-                reportUnexpectedInputKind(context, "Directory", propertyName, directory);
+                reportUnexpectedInputKind(context, "Directory", propertyName, directory, provenance.get());
             }
         }
     },
     OUTPUT_DIRECTORY_VALIDATOR("file") {
         @Override
-        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
             File directory = toFile(context, value);
             validateNotInReservedFileSystemLocation(propertyName, context, directory);
             if (directory.exists()) {
@@ -87,7 +90,7 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_FILE_VALIDATOR("file") {
         @Override
-        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
             File file = toFile(context, value);
             validateNotInReservedFileSystemLocation(propertyName, context, file);
             if (file.exists()) {
@@ -107,7 +110,7 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_FILE_TREE_VALIDATOR("directory") {
         @Override
-        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
             File directory = toFile(context, value);
             validateNotInReservedFileSystemLocation(propertyName, context, directory);
             if (directory.exists()) {
@@ -156,14 +159,15 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String INPUT_FILE_DOES_NOT_EXIST = "INPUT_FILE_DOES_NOT_EXIST";
 
-    private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input) {
+    private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input, @Nullable ValueProvenance provenance) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem
+            InternalProblemSpec baseProblem = problem
                 .forProperty(propertyName)
                 .id(TextUtil.screamingSnakeToKebabCase(INPUT_FILE_DOES_NOT_EXIST), "Input file does not exist", GradleCoreProblemGroup.validation().property())
                 .contextualLabel("specifies " + lowerKind + " '" + input + "' which doesn't exist")
-                .documentedAt(userManual("validation_problems", INPUT_FILE_DOES_NOT_EXIST.toLowerCase()))
+                .documentedAt(userManual("validation_problems", INPUT_FILE_DOES_NOT_EXIST.toLowerCase()));
+            withProvenance(provenance, baseProblem)
                 .severity(Severity.ERROR)
                 .details("An input file was expected to be present but it doesn't exist")
                 .solution("Make sure the " + lowerKind + " exists before the task is called")
@@ -173,14 +177,17 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String UNEXPECTED_INPUT_FILE_TYPE = "UNEXPECTED_INPUT_FILE_TYPE";
 
-    private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
+    private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input, ValueProvenance provenance) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem
+            InternalProblemSpec baseProblem = problem
                 .forProperty(propertyName)
                 .id(TextUtil.screamingSnakeToKebabCase(UNEXPECTED_INPUT_FILE_TYPE), "Unexpected input file type", GradleCoreProblemGroup.validation().property())
                 .contextualLabel(lowerKind + " '" + input + "' is not a " + lowerKind)
                 .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
+                .contextualLabel(lowerKind + " '" + input + "' is not a " + lowerKind)
+                .documentedAt(userManual("validation_problems", "unexpected_input_file_type"));
+            withProvenance(provenance, baseProblem)
                 .severity(Severity.ERROR)
                 .details("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
                 .solution("Use a " + lowerKind + " as an input")
@@ -276,12 +283,12 @@ public enum ValidationActions implements ValidationAction {
         this.targetType = targetType;
     }
 
-    protected abstract void doValidate(String propertyName, Object value, PropertyValidationContext context);
+    protected abstract void doValidate(String propertyName, Object value, PropertyValidationContext context, Supplier<ValueProvenance> provenance);
 
     @Override
-    public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
+    public void validate(String propertyName, @Nonnull Supplier<Object> value, PropertyValidationContext context, Supplier<ValueProvenance> provenance) {
         try {
-            doValidate(propertyName, value.get(), context);
+            doValidate(propertyName, value.get(), context, provenance);
         } catch (UnsupportedNotationException unsupportedNotationException) {
             reportUnsupportedValue(propertyName, context, targetType, value.get(), unsupportedNotationException.getCandidates());
         }
@@ -334,5 +341,11 @@ public enum ValidationActions implements ValidationAction {
 
     private static File toFile(PropertyValidationContext context, Object value) {
         return context.getFileResolver().resolve(value);
+    }
+
+    private static InternalProblemSpec withProvenance(@Nullable ValueProvenance provenance, InternalProblemSpec baseProblem) {
+        return provenance != null ?
+            baseProblem.lineInFileLocation(provenance.getSourceUnit(), provenance.getLine(), provenance.getColumn()) :
+            baseProblem;
     }
 }

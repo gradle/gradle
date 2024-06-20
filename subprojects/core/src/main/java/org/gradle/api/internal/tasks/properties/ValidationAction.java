@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.internal.provider.ValueProvenance;
+
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
@@ -29,5 +31,5 @@ public interface ValidationAction {
      * @param value a supplier of a non-null value - side effects are guaranteed to happen only once
      * @param context
      */
-    void validate(String propertyName, @Nonnull Supplier<Object> value, PropertyValidationContext context);
+    void validate(String propertyName, @Nonnull Supplier<Object> value, PropertyValidationContext context, Supplier<ValueProvenance> provenance);
 }
