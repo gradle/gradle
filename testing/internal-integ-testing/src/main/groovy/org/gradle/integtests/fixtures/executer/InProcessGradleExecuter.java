@@ -125,6 +125,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+/**
+ * Runs Gradle within the current process.
+ * <p>
+ * There is some initialization happening in {@link InProcessGradleExecutorInitialization}, so that the global services
+ * are correctly in place.
+ */
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
