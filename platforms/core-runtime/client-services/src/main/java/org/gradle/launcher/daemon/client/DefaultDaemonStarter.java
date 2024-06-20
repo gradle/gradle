@@ -82,18 +82,19 @@ public class DefaultDaemonStarter implements DaemonStarter {
     public DaemonStartupInfo startDaemon(boolean singleUse) {
         String daemonUid = UUID.randomUUID().toString();
 
+        DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
         final JavaInfo resolvedJvm;
-        // Gradle daemon properties have been defined
-        if (daemonParameters.getRequestedJvmCriteria() != null) {
+        if (criteria instanceof DaemonJvmCriteria.Spec) {
+            // Gradle daemon properties have been defined
             IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
-            DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-            JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain(criteria);
+            JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain((DaemonJvmCriteria.Spec) criteria);
             resolvedJvm = Jvm.forHome(jvmInstallationMetadata.getJavaHome().toFile());
-        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null && daemonParameters.getRequestedJvmBasedOnJavaHome() != Jvm.current()) {
-            // Either the TAPI client or org.gradle.java.home has been provided
-            resolvedJvm = Jvm.forHome(daemonParameters.getRequestedJvmBasedOnJavaHome().getJavaHome());
-        } else {
+        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
+            resolvedJvm = Jvm.forHome(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
+        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
             resolvedJvm = Jvm.current();
+        } else {
+            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
 
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();

@@ -81,7 +81,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         if (toolchain != null) {
             languageVersion = toolchain.getLanguageVersion().asInt();
         } else {
-            languageVersion = JavaVersion.current().getMajorVersionNumber();
+            languageVersion = JavaVersion.current().ordinal() + 1;
         }
 
         return getForkingSpec(fallbackJavaHome, languageVersion);

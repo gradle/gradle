@@ -100,7 +100,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assert runtimeElements.files*.name == [artifact(feature, artifactFileExtension)]
 
         // Verify it contains expected attributes
-        def currentJavaVersion = JavaVersion.current().majorVersionNumber
+        def currentJavaVersion = JavaVersion.current().majorVersion.toInteger()
         assertAttributes(apiElements, ["org.gradle.category": "library",
                                        "org.gradle.dependency.bundling": "external",
                                        "org.gradle.jvm.version": currentJavaVersion,

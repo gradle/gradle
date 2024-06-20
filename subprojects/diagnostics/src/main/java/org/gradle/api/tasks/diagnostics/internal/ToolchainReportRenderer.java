@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.task;
+package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.base.Strings;
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -31,23 +30,38 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
 
-    public void printToolchain(JvmToolchainMetadata toolchain) {
+    private static final String DETECTED_TOOLCHAIN_INDENT = Strings.repeat(" ", 5);
+    private static final String TOOLCHAIN_METADATA_INDENT = Strings.repeat(" ", 2);
+
+    public void printDetectedToolchain(JvmToolchainMetadata toolchain) {
         StyledTextOutput output = getTextOutput();
         JvmInstallationMetadata metadata = toolchain.metadata;
         String displayName = metadata.getDisplayName();
         output.withStyle(Identifier).println(" + " + displayName + " " + metadata.getRuntimeVersion());
-        printAttribute("Location", metadata.getJavaHome().toString());
-        printAttribute("Language Version", metadata.getLanguageVersion().getMajorVersion());
-        printAttribute("Vendor", metadata.getVendor().getDisplayName());
-        printAttribute("Architecture", metadata.getArchitecture());
-        printAttribute("Is JDK", String.valueOf(metadata.hasCapability(JAVA_COMPILER)));
-        printAttribute("Detected by", toolchain.location.getSource());
+        printMetadata(DETECTED_TOOLCHAIN_INDENT, metadata);
+        printAttribute(DETECTED_TOOLCHAIN_INDENT, "Detected by", toolchain.location.getSource());
         output.println();
     }
 
-    private void printAttribute(String key, String value) {
+    public void printToolchainMetadata(JvmInstallationMetadata metadata) {
+        StyledTextOutput output = getTextOutput();
+        String displayName = metadata.getDisplayName();
+        output.withStyle(Identifier).println(displayName + " " + metadata.getRuntimeVersion());
+        printMetadata(TOOLCHAIN_METADATA_INDENT, metadata);
+        output.println();
+    }
+
+    private void printMetadata(String indent, JvmInstallationMetadata metadata) {
+        printAttribute(indent, "Location", metadata.getJavaHome().toString());
+        printAttribute(indent, "Language Version", metadata.getLanguageVersion().getMajorVersion());
+        printAttribute(indent, "Vendor", metadata.getVendor().getDisplayName());
+        printAttribute(indent, "Architecture", metadata.getArchitecture());
+        printAttribute(indent, "Is JDK", String.valueOf(metadata.hasCapability(JAVA_COMPILER)));
+    }
+
+    private void printAttribute(String indent, String key, String value) {
         final String paddedKey = Strings.padEnd(key + ":", 20, ' ');
-        getTextOutput().withStyle(Normal).format("     | %s", paddedKey);
+        getTextOutput().withStyle(Normal).format("%s| %s", indent, paddedKey);
         getTextOutput().withStyle(Description).println(value);
     }
 

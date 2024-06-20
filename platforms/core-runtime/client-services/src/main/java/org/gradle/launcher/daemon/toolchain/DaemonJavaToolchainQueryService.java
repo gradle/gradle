@@ -46,7 +46,7 @@ public class DaemonJavaToolchainQueryService {
         this.currentJavaHome = currentJavaHome;
     }
 
-    public JvmInstallationMetadata findMatchingToolchain(DaemonJvmCriteria toolchainSpec) throws GradleException {
+    public JvmInstallationMetadata findMatchingToolchain(DaemonJvmCriteria.Spec toolchainSpec) throws GradleException {
         Optional<JvmToolchainMetadata> installation = locateToolchain(toolchainSpec);
         if (!installation.isPresent()) {
             String exceptionMessage = String.format(
@@ -57,7 +57,7 @@ public class DaemonJavaToolchainQueryService {
         return installation.get().metadata;
     }
 
-    private Optional<JvmToolchainMetadata> locateToolchain(DaemonJvmCriteria toolchainSpec) {
+    private Optional<JvmToolchainMetadata> locateToolchain(DaemonJvmCriteria.Spec toolchainSpec) {
         Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(toolchainSpec.getJavaVersion(), toolchainSpec.getVendorSpec(), toolchainSpec.getJvmImplementation());
         JvmInstallationMetadataComparator metadataComparator = new JvmInstallationMetadataComparator(currentJavaHome);
 

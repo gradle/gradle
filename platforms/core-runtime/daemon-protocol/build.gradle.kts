@@ -27,6 +27,7 @@ dependencies {
     api(project(":serialization"))
     api(project(":logging"))
     api(project(":stdlib-java-extensions"))
+    api(projects.jvmServices)
     api(project(":messaging"))
     api(project(":native"))
     api(project(":toolchains-jvm-shared"))
