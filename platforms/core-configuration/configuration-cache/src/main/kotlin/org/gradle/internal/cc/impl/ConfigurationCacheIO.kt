@@ -16,9 +16,16 @@
 
 package org.gradle.internal.cc.impl
 
+import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream
+import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.service
+import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -26,11 +33,6 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
-import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.base.serialize.service
-import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
@@ -246,7 +248,7 @@ class ConfigurationCacheIO internal constructor(
      */
     internal
     fun writerContextFor(outputStream: OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(outputStream).let { encoder ->
+        KryoBackedEncoder(FramedSnappyCompressorOutputStream(outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -296,7 +298,7 @@ class ConfigurationCacheIO internal constructor(
     private
     fun readerContextFor(
         inputStream: InputStream,
-    ) = readerContextFor(KryoBackedDecoder(inputStream))
+    ) = readerContextFor(KryoBackedDecoder(FramedSnappyCompressorInputStream(inputStream)))
 
     internal
     fun readerContextFor(
