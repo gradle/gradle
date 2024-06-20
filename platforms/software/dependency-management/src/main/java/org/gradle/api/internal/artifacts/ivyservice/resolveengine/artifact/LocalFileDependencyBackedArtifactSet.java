@@ -202,11 +202,6 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
-        public ComponentIdentifier getComponentIdentifier() {
-            return artifactIdentifier.getComponentIdentifier();
-        }
-
-        @Override
         public VariantResolveMetadata.Identifier getIdentifier() {
             return null;
         }
@@ -220,7 +215,8 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
             return artifact.getFile();
         }
 
-        public ComponentIdentifier getComponentId() {
+        @Override
+        public ComponentIdentifier getComponentIdentifier() {
             return artifactIdentifier.getComponentIdentifier();
         }
 
@@ -303,7 +299,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
                                                TransformChain transformChain,
                                                TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentId(), delegate, attributes, ImmutableCapabilities.EMPTY, transformChain, dependenciesResolverFactory, calculatedValueContainerFactory);
+            super(delegate.getComponentIdentifier(), delegate, attributes, ImmutableCapabilities.EMPTY, transformChain, dependenciesResolverFactory, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
     }
