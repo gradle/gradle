@@ -17,15 +17,25 @@
 package org.gradle.api.internal.file.delete;
 
 import org.gradle.api.NonExtensible;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Property;
+
+import javax.inject.Inject;
 
 @NonExtensible
 public class DefaultDeleteSpec implements DeleteSpecInternal {
+    private final Property<Boolean> followSymlinks;
     private Object[] paths;
-    private boolean followSymlinks;
 
-    public DefaultDeleteSpec() {
-        paths = new Object[0];
-        followSymlinks = false;
+    @Inject
+    public DefaultDeleteSpec(PropertyFactory propertyFactory) {
+        this.paths = new Object[0];
+        this.followSymlinks = propertyFactory.property(Boolean.class).convention(false);
+    }
+
+    @Override
+    public Property<Boolean> getFollowSymlinks() {
+        return followSymlinks;
     }
 
     @Override
@@ -37,15 +47,5 @@ public class DefaultDeleteSpec implements DeleteSpecInternal {
     public DefaultDeleteSpec delete(Object... files) {
         paths = files;
         return this;
-    }
-
-    @Override
-    public void setFollowSymlinks(boolean followSymlinks) {
-        this.followSymlinks = followSymlinks;
-    }
-
-    @Override
-    public boolean isFollowSymlinks() {
-        return followSymlinks;
     }
 }
