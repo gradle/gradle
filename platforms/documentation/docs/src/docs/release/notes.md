@@ -151,10 +151,10 @@ This integration allows popular IDEs like IntelliJ IDEA and Visual Studio Code t
 
 #### Daemon JVM information report
 
-Prior to this release, running `gradle --version` displayed the JVM used to launch Gradle, but this JVM did not execute any build logic. Instead, Gradle starts a [Deamon](userguide/gradle_daemon.html) that actually runs the build.
+Before this release, running `gradle --version` displayed the JVM used to launch Gradle, but this JVM did not execute any build logic. Instead, Gradle started a [Deamon](userguide/gradle_daemon.html) that actually ran the build.
+Then, Gradle 8.8 introduced a feature that allowed users to configure the JVM used to run the Gradle Daemon. 
 
-Starting from Gradle 8.8, users can configure the JVM used to run the Gradle Deamon.
-With this release, you can view information about the JVM used for the [Daemon](userguide/gradle_daemon.html) (which executes the build process) as well as the Launcher JVM (which initiates the Gradle build process) from the [command line](userguide/command_line_interface.html).
+In this release, users can view information about the JVM used for both the [Daemon](userguide/gradle_daemon.html) (which executes the build process) and the Launcher JVM (which initiates the Gradle build process) from the [command line](userguide/command_line_interface.html).
 
 Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Launcher and the Daemon:
 
@@ -185,9 +185,7 @@ This change is intended to prevent accidental overwriting of existing files in t
 Build init now has a new `--overwrite` option, which allows users to bypass this confirmation message.
 This can be used if initialization is canceled or fails, and the user wants to re-run the init task without being prompted to confirm.
 
-If the user declines to overwrite files that exist, or if the `--no-overwrite` option is provided, initialization will fail with the message:
-
-```Aborting build initialization due to existing files in the project directory: <PATH>```
+If the user declines to overwrite files that exist, or if the `--no-overwrite` option is provided, initialization will fail with the message: ```Aborting build initialization due to existing files in the project directory: <PATH>```.
 
 The exception to this behavior is when Gradle detects an existing Maven build via the presence of a `pom.xml` file - these builds will be converted to Gradle builds without prompting.
 
