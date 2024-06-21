@@ -14,11 +14,11 @@ description = """Verifies that Gradle code complies with architectural rules.
 """.trimMargin()
 
 dependencies {
-    currentClasspath(project(":distributions-full"))
-    testImplementation(project(":base-services"))
-    testImplementation(project(":model-core"))
-    testImplementation(project(":file-temp"))
-    testImplementation(project(":core"))
+    currentClasspath(projects.distributionsFull)
+    testImplementation(projects.baseServices)
+    testImplementation(projects.modelCore)
+    testImplementation(projects.fileTemp)
+    testImplementation(projects.core)
     testImplementation(libs.kotlinStdlib)
     testImplementation(libs.inject)
 
@@ -27,7 +27,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(libs.assertj)
 
-    testRuntimeOnly(project(":distributions-full"))
+    testRuntimeOnly(projects.distributionsFull)
 }
 
 val acceptedApiChangesDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")

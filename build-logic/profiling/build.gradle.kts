@@ -10,7 +10,7 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":documentation"))
+    implementation(projects.documentation)
 
     implementation("me.champeau.jmh:jmh-gradle-plugin")
 }

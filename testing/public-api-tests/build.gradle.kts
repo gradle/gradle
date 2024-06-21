@@ -36,8 +36,8 @@ val resolveTestRepo = configurations.resolvable("resolveTestRepo") {
 }
 
 dependencies {
-    testRepo(project(":public-api"))
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    testRepo(projects.publicApi)
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 abstract class IntegTestCommandLineArgumentProvider(

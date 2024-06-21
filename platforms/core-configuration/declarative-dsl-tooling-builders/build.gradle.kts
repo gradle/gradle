@@ -6,15 +6,15 @@ description = "Declarative DSL Tooling Builders for IDEs"
 
 dependencies {
     api(projects.serviceProvider)
-    api(project(":core"))
-    api(project(":core-api"))
+    api(projects.core)
+    api(projects.coreApi)
 
     api(libs.kotlinStdlib)
 
     implementation(projects.stdlibJavaExtensions)
-    implementation(project(":declarative-dsl-evaluator"))
-    implementation(project(":declarative-dsl-provider"))
-    implementation(project(":declarative-dsl-tooling-models"))
+    implementation(projects.declarativeDslEvaluator)
+    implementation(projects.declarativeDslProvider)
+    implementation(projects.declarativeDslToolingModels)
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

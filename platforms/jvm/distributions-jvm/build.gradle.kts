@@ -5,31 +5,31 @@ plugins {
 description = "The collector project for the 'jvm' portion of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(platform(project(":distributions-basics")))
+    pluginsRuntimeOnly(platform(projects.distributionsBasics))
 
-    pluginsRuntimeOnly(project(":base-ide-plugins"))
-    pluginsRuntimeOnly(project(":code-quality"))
-    pluginsRuntimeOnly(project(":ear"))
-    pluginsRuntimeOnly(project(":ide"))
-    pluginsRuntimeOnly(project(":ide-plugins"))
-    pluginsRuntimeOnly(project(":jacoco"))
-    pluginsRuntimeOnly(project(":plugins-application"))
-    pluginsRuntimeOnly(project(":plugins-groovy"))
-    pluginsRuntimeOnly(project(":plugins-java"))
-    pluginsRuntimeOnly(project(":plugins-java-base"))
-    pluginsRuntimeOnly(project(":plugins-java-library"))
-    pluginsRuntimeOnly(project(":plugins-jvm-test-fixtures"))
-    pluginsRuntimeOnly(project(":plugins-jvm-test-suite"))
-    pluginsRuntimeOnly(project(":plugins-test-report-aggregation"))
-    pluginsRuntimeOnly(project(":plugins-version-catalog"))
-    pluginsRuntimeOnly(project(":scala"))
-    pluginsRuntimeOnly(project(":war"))
+    pluginsRuntimeOnly(projects.baseIdePlugins)
+    pluginsRuntimeOnly(projects.codeQuality)
+    pluginsRuntimeOnly(projects.ear)
+    pluginsRuntimeOnly(projects.ide)
+    pluginsRuntimeOnly(projects.idePlugins)
+    pluginsRuntimeOnly(projects.jacoco)
+    pluginsRuntimeOnly(projects.pluginsApplication)
+    pluginsRuntimeOnly(projects.pluginsGroovy)
+    pluginsRuntimeOnly(projects.pluginsJava)
+    pluginsRuntimeOnly(projects.pluginsJavaBase)
+    pluginsRuntimeOnly(projects.pluginsJavaLibrary)
+    pluginsRuntimeOnly(projects.pluginsJvmTestFixtures)
+    pluginsRuntimeOnly(projects.pluginsJvmTestSuite)
+    pluginsRuntimeOnly(projects.pluginsTestReportAggregation)
+    pluginsRuntimeOnly(projects.pluginsVersionCatalog)
+    pluginsRuntimeOnly(projects.scala)
+    pluginsRuntimeOnly(projects.war)
 
-    pluginsRuntimeOnly(project(":java-platform")) {
+    pluginsRuntimeOnly(projects.javaPlatform) {
         because("Aspirationally, we likely need a platform-base plugin that would ship in the same distribution as dependency-management, and isn't java specific - unfortunately this plugin applies the JvmEcosystemPlugin.")
     }
 }

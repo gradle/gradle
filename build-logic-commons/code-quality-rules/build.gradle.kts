@@ -29,7 +29,7 @@ java {
 group = "gradlebuild"
 
 dependencies {
-    api(platform(project(":build-platform")))
+    api(platform(projects.buildPlatform))
     compileOnly(localGroovy())
     compileOnly("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")
