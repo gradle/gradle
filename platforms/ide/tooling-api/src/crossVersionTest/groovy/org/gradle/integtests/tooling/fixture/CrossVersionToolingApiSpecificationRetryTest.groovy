@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.GradleException
+import org.gradle.integtests.fixtures.daemon.FakeDaemonLog
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -25,6 +26,7 @@ import org.gradle.tooling.GradleConnectionException
 //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
 @LeaksFileHandles
 class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecification {
+    private final FakeDaemonLog daemonLog = new FakeDaemonLog(daemonsFixture)
 
     def setup() {
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
@@ -80,7 +82,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.",
             new IOException("Some exception in the chain",
                 new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
@@ -95,7 +97,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -113,7 +115,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
@@ -131,7 +133,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
+        daemonLog.logException("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -143,13 +145,5 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         if (condition) {
             throw throwable
         }
-    }
-
-    private void logToFakeDaemonLog(String exceptionInDaemon) {
-        def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
-        logDir.mkdirs()
-        def log = new File(logDir, "daemon-fake.log")
-        log << "DefaultDaemonContext[uid=40b63fc1-2506-4fa8-bf48-1bfbfc6a457f,javaHome=/home/mlopatkin/.asdf/installs/java/temurin-11.0.16+101,javaVersion=11,javaVendor=Oracle Corporation,daemonRegistryDir=/home/mlopatkin/gradle/local/.gradle/daemon,pid=1234,idleTimeout=1000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=NOT_SET,daemonOpts=--add-opens=java.base/java.util=ALL-UNNAMED,-Xms256m,-Duser.language=en,-Duser.variant]\n"
-        log << exceptionInDaemon
     }
 }
