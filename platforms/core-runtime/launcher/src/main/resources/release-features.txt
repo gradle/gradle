@@ -1,3 +1,3 @@
  - Enhanced Error and Warning Messages
  - IDE Integration Improvements
- - Daemon JVM information
+ - Daemon JVM Information
