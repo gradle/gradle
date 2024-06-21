@@ -58,7 +58,7 @@ class DaemonContextParserTest extends Specification {
         parsedContext.javaVendor == "unknown" // hardcoded in fixture
     }
 
-    def "parses entries for 8.8"() {
+    def "parses entries for #version"() {
         def contextString = "DefaultDaemonContext[" +
             "uid=40b63fc1-2506-4fa8-bf48-1bfbfc6a457f," +
             "javaHome=/home/mlopatkin/.asdf/installs/java/temurin-11.0.16+101," +
@@ -87,12 +87,15 @@ class DaemonContextParserTest extends Specification {
                     "-Duser.variant"
             ) + "]"
         when:
-        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString, GradleVersion.version("8.8"))
+        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString, GradleVersion.version(version))
 
         then:
         parsedContext != null
         parsedContext.javaVersion == JavaLanguageVersion.of(11)
         parsedContext.javaVendor == "unknown" // hardcoded in fixture
+
+        where:
+        version << ["8.8", "8.9"]
     }
 
     def "parses entries"() {

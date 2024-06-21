@@ -58,7 +58,7 @@ public class DaemonContextParser {
         if (version.getBaseVersion().compareTo(GradleVersion.version("8.7")) <= 0) {
             return parseFrom87(source);
         }
-        if (version.getBaseVersion().compareTo(GradleVersion.version("8.8")) <= 0) {
+        if (version.getBaseVersion().compareTo(GradleVersion.version("8.9")) <= 0) {
             return parseFrom88(source);
         }
         return parseCurrent(source);
