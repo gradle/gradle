@@ -34,9 +34,9 @@ public class ProcessBootstrap {
      *
      * @param moduleName the name of the Gradle module to use for the main class implementation
      */
-    public static void run(String moduleName, String mainClassName, String[] args) {
+    public static void run(String bootstrapName, String moduleName, String mainClassName, String[] args) {
         try {
-            runNoExit(moduleName, mainClassName, args);
+            runNoExit(bootstrapName, moduleName, mainClassName, args);
             System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -44,14 +44,23 @@ public class ProcessBootstrap {
         }
     }
 
-    private static void runNoExit(String moduleName, String mainClassName, String[] args) throws Exception {
-        DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
-        ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
-        ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
-        ClassPath antClasspath = classPathRegistry.getClassPath("ANT");
-        ClassPath runtimeClasspath = moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath();
-        ClassLoader antClassLoader = classLoaderFactory.createIsolatedClassLoader("ant-loader", antClasspath);
-        ClassLoader runtimeClassLoader = VisitableURLClassLoader.fromClassPath("ant-and-gradle-loader", antClassLoader, runtimeClasspath);
+    private static void runNoExit(String bootstrapName, String moduleName, String mainClassName, String[] args) throws Exception {
+        ClassLoader runtimeClassLoader;
+        ClassLoader antClassLoader;
+
+        try {
+            DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
+            ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
+            ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
+            ClassPath antClasspath = classPathRegistry.getClassPath("ANT");
+            ClassPath runtimeClasspath = moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath();
+            antClassLoader = classLoaderFactory.createIsolatedClassLoader("ant-loader", antClasspath);
+            runtimeClassLoader = VisitableURLClassLoader.fromClassPath("ant-and-gradle-loader", antClassLoader, runtimeClasspath);
+        } catch (NoClassDefFoundError e) {
+            throw new RuntimeException(
+                "Failed to bootstrap Gradle. Check MANIFEST.MF 'Class-Path' of the entry-point " +
+                    "'" + bootstrapName + "' and ensure there are no missing dependencies for the manifest classpath", e);
+        }
 
         ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(runtimeClassLoader);
