@@ -83,6 +83,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         dependsOn(systemIncludes);
 
         this.source = getObjects().fileCollection();
+        this.source.finalizeValueOnRead();
+
         this.objectFileDir = getObjects().directoryProperty();
         this.compilerArgs = getObjects().listProperty(String.class);
         this.targetPlatform = getObjects().property(NativePlatform.class);
