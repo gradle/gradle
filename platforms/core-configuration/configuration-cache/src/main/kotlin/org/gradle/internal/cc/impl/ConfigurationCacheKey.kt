@@ -80,7 +80,6 @@ class ConfigurationCacheKey(
         putHash(encryptionConfiguration.encryptionKeyHashCode)
     }
 
-    @Suppress("MagicNumber")
     private
     fun Hasher.putBuildScan() {
         putByte(

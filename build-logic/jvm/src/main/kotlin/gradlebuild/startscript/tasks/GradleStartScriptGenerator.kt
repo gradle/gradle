@@ -140,9 +140,7 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
                 else -> line
             }
         }.toByteArray(StandardCharsets.UTF_8))
-        if (replacementsCount != 1) {
-            throw IllegalArgumentException("The script file produced by the default start script doesn't match expected layout")
-        }
+        require(replacementsCount == 1) { "The script file produced by the default start script doesn't match expected layout" }
     }
 
     private

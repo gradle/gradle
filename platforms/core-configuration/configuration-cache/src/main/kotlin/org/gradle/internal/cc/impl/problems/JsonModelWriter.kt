@@ -301,7 +301,6 @@ class JsonModelWriter(val writer: Writer) {
         write('"')
     }
 
-    @Suppress("MagicNumber")
     private
     val buffer = CharBuf.create(255)
 

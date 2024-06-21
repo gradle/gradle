@@ -48,7 +48,7 @@ data class GitHubPullRequest(
 val contributorLineRegex = "\\[(.*)]\\(https://github.com/(.*)\\)".toRegex()
 
 
-const val pageSize = 100
+const val PAGE_SIZE = 100
 
 
 @DisableCachingByDefault(because = "Depends on GitHub API")
@@ -101,11 +101,11 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
             error("Milestone not set: please rerun the task with `--milestone <milestone>`")
         }
         val prs: MutableList<GitHubPullRequest> = mutableListOf()
-        (1..10).forEach { page ->
+        for (page in 1..10) {
             val prPage = getMergedContributorPullRequests(page)
             prs.addAll(prPage)
-            if (prPage.size < pageSize) {
-                return@forEach
+            if (prPage.size < PAGE_SIZE) {
+                break
             }
         }
         return prs
@@ -141,7 +141,7 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
 
     private
     fun getMergedContributorPullRequests(pageNumber: Int): List<GitHubPullRequest> {
-        val uri = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:gradle/gradle+label:%22from:contributor%22&sort=updated&order=desc&per_page=$pageSize&page=$pageNumber"
+        val uri = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:gradle/gradle+label:%22from:contributor%22&sort=updated&order=desc&per_page=$PAGE_SIZE&page=$pageNumber"
         return invokeGitHubApi(uri, GitHubPullRequestSearchResult::class.java).items
     }
 }

@@ -107,9 +107,7 @@ val credentialsKeywords = listOf(
 fun Test.filterEnvironmentVariables() {
     environment = makePropagatedEnvironment()
     environment.forEach { (key, _) ->
-        if (credentialsKeywords.any { key.contains(it, true) }) {
-            throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key")
-        }
+        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
     }
 }
 

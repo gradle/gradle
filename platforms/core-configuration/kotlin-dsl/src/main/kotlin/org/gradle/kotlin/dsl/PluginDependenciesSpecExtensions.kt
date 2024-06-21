@@ -36,7 +36,6 @@ import org.gradle.plugin.use.PluginDependencySpec
 @Suppress("TopLevelPropertyNaming", "ObjectPropertyName")
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() {
-        @Suppress("MagicNumber")
         DeprecationLogger.deprecate("The ${PluginDependencySpec::class.simpleName}.`gradle-enterprise` property")
             .withAdvice("Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedDevelocityPlugin.VERSION}\"' instead.")
             .willBeRemovedInGradle9()

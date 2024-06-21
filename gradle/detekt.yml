@@ -12,37 +12,12 @@ style:
   WildcardImport:
     excludeImports:
       - 'org.gradle.kotlin.dsl.*'
-      - 'java.util.*'                     # fixed in follow-up branch
-      - 'org.hamcrest.CoreMatchers.*'     # fixed in follow-up branch
-      - 'com.nhaarman.mockito_kotlin.*'   # fixed in follow-up branch
   MagicNumber:
-    active: false                         # fixed in follow-up branch
+    active: false
   NewLineAtEndOfFile:
     active: false
   SerialVersionUIDInSerializableClass:
     active: false
-  UnusedPrivateMember:
-    active: false                         # fixed in follow-up branch
-  UseCheckOrError:
-    active: false                         # fixed in follow-up branch
-  UnusedParameter:
-    active: false                         # fixed in follow-up branch
-  UnusedPrivateProperty:
-    active: false                         # fixed in follow-up branch
-  UnusedPrivateClass:
-    active: false                         # fixed in follow-up branch
-  MayBeConst:
-    active: false                         # fixed in follow-up branch
-  FunctionOnlyReturningConstant:
-    active: false                         # fixed in follow-up branch
-  LoopWithTooManyJumpStatements:
-    active: false                         # fixed in follow-up branch
-  UseRequire:
-    active: false                         # fixed in follow-up branch
-  UtilityClassWithPublicConstructor:
-    active: false                         # fixed in follow-up branch
-  ThrowsCount:
-    active: false                         # fixed in follow-up branch
 
 complexity:
   TooManyFunctions:
@@ -52,14 +27,12 @@ complexity:
     constructorThreshold: 40              # can be much smaller in follow-up branch            # default is 7
   LongMethod:
     threshold: 550                        # can be much smaller in follow-up branch            # default is 60
-  LargeClass:
-    active: false                         # fixed in follow-up branch
   CyclomaticComplexMethod:
     threshold: 45                         # can be much smaller in follow-up branch            # default is 15
   ComplexCondition:
     active: false
   NestedBlockDepth:
-    active: false                         # fixed in follow-up branch
+    threshold: 7
 
 exceptions:
   TooGenericExceptionCaught:
@@ -77,3 +50,7 @@ exceptions:
 performance:
   SpreadOperator:
     active: false                         # we need to take a look at these !!!
+
+naming:
+  MemberNameEqualsClassName:
+    active: false

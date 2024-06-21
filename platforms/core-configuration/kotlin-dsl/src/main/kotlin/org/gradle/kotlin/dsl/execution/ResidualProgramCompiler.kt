@@ -154,7 +154,6 @@ class ResidualProgramCompiler(
         }
     }
 
-    @Suppress("MagicNumber")
     private
     fun mightBeLargerThan64KB(secondStageScriptText: String) =
         // We use a simple heuristic to avoid converting the string to bytes
@@ -457,7 +456,6 @@ class ResidualProgramCompiler(
         )
     }
 
-    @Suppress("MagicNumber")
     private
     fun ClassWriter.overrideLoadSecondStageFor() {
         publicMethod(
@@ -613,7 +611,6 @@ class ResidualProgramCompiler(
         )
     }
 
-    @Suppress("MagicNumber")
     private
     fun MethodVisitor.emitOnScriptException(compiledScriptClass: InternalName) {
         // Exception is on the stack

@@ -47,7 +47,7 @@ import java.util.concurrent.Callable
 
 // Android Studio Jellyfish 2023.3.1
 private
-const val defaultAndroidStudioVersion = "2023.3.1.18"
+const val DEFAULT_ANDROID_STUDIO_VERSION = "2023.3.1.18"
 
 
 class AndroidStudioProvisioningPlugin : Plugin<Project> {
@@ -56,7 +56,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
             val androidStudioProvisioningExtension = extensions
                 .create("androidStudioProvisioning", AndroidStudioProvisioningExtension::class)
                 .apply {
-                    androidStudioVersion.convention(defaultAndroidStudioVersion)
+                    androidStudioVersion.convention(DEFAULT_ANDROID_STUDIO_VERSION)
                 }
 
             repositories {

@@ -113,11 +113,8 @@ fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
     fun targetFile(): File {
         val file = findProperty(installPathProperty)?.let { File(findProperty(installPathProperty) as String) }
 
-        if (true == file?.isAbsolute) {
-            return file
-        } else {
-            throw IllegalArgumentException("Property $installPathProperty is required and must be absolute!")
-        }
+        require(true == file?.isAbsolute) { "Property $installPathProperty is required and must be absolute!" }
+        return file!!
     }
     tasks.register<Copy>("install${project.name.kebabToPascal()}ShadedJar") {
         from(shadedJarTask.map { it.jarFile })

@@ -94,7 +94,6 @@ class FixedValueReplacingProviderCodec(
         encodeValue(state)
     }
 
-    @Suppress("MagicNumber")
     suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
         val sideEffect = value.sideEffect
         when {

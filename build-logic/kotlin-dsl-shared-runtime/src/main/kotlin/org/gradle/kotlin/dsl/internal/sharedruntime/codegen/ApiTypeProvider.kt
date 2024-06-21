@@ -228,6 +228,7 @@ class ApiType internal constructor(
             candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
         }
 
+        @Suppress("LoopWithTooManyJumpStatements")
         while (superTypeStack.isNotEmpty()) {
             val superTypeName = superTypeStack.pop()
 

@@ -177,7 +177,6 @@ class ConfigurationCacheRepository(
             }
         }
 
-        @Suppress("MagicNumber")
         override fun <T> useForStore(action: (Layout) -> T): T =
             withExclusiveAccessToCache(baseDir) { cacheDir ->
                 // TODO GlobalCache require(!cacheDir.isDirectory)

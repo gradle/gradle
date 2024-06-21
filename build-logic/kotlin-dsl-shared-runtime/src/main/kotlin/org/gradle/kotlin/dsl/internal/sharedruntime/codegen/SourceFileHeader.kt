@@ -41,13 +41,15 @@ fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
 package $packageName
 """
 
-
+@Suppress("TopLevelPropertyNaming") // TODO: renaming leads to "Unresolved reference" error at use sites... why is that?
 const val kotlinDslPackageName = "org.gradle.kotlin.dsl"
 
 
+@Suppress("TopLevelPropertyNaming") // TODO: renaming leads to "Unresolved reference" error at use sites... why is that?
 const val kotlinDslPackagePath = "org/gradle/kotlin/dsl"
 
 
+@Suppress("TopLevelPropertyNaming") // TODO: renaming leads to "Unresolved reference" error at use sites... why is that?
 const val licenseHeader = """/*
  * Copyright 2018 the original author or authors.
  *

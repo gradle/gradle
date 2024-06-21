@@ -156,7 +156,6 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    @Suppress("MagicNumber")
     suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
         writeBuildInvocationId()
         writeRootBuild(build).also {
@@ -164,7 +163,6 @@ class ConfigurationCacheState(
         }
     }
 
-    @Suppress("MagicNumber")
     suspend fun DefaultReadContext.readRootBuildState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,

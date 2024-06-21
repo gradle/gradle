@@ -134,7 +134,6 @@ class ConfigurationCacheReport(
                 return this
             }
 
-            @Suppress("MagicNumber")
             override fun commitReportTo(
                 outputDirectory: File,
                 details: ConfigurationCacheReportDetails
