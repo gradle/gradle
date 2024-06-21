@@ -16,6 +16,10 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
+import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.ProjectInvalidationReasons
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.operations.BuildOperationContext
@@ -77,4 +81,69 @@ object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 internal
 data class StoreResult(val stateFile: File, val storeFailure: Throwable?) : ConfigurationCacheStoreBuildOperationType.Result {
     override fun getCacheEntrySize(): Long = stateFile.length()
+}
+
+
+internal
+fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> CheckedFingerprint): CheckedFingerprint {
+    return call(object : CallableBuildOperation<CheckedFingerprint> {
+        override fun description() = BuildOperationDescriptor
+            .displayName("Check configuration cache fingerprint")
+            .details(FingerprintCheckDetails)
+
+        override fun call(context: BuildOperationContext): CheckedFingerprint {
+            return block().also {
+                context.setResult(FingerprintCheckResult(it))
+            }
+        }
+    })
+}
+
+
+private
+object FingerprintCheckDetails : ConfigurationCacheCheckFingerprintBuildOperationType.Details
+
+
+private
+class FingerprintCheckResult(
+    private val checkResult: CheckedFingerprint
+) : ConfigurationCacheCheckFingerprintBuildOperationType.Result {
+    init {
+        require(checkResult !is CheckedFingerprint.NotFound) {
+            "Should not emit build operation when entry is not found"
+        }
+    }
+
+    override fun getBuildInvalidationReasons(): List<FingerprintInvalidationReason> {
+        return when (checkResult) {
+            is CheckedFingerprint.EntryInvalid -> listOf(FingerprintInvalidationReasonImpl(checkResult.reason.toString()))
+            else -> emptyList()
+        }
+    }
+
+    override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> {
+        return when (checkResult) {
+            is CheckedFingerprint.ProjectsInvalid -> checkResult.invalidProjects.map {
+                ProjectInvalidationReasonsImpl(
+                    it.key.path, listOf(FingerprintInvalidationReasonImpl(it.value.toString()))
+                )
+            }
+            else -> emptyList()
+        }
+    }
+
+    private
+    data class FingerprintInvalidationReasonImpl(private val message: String) : FingerprintInvalidationReason {
+        override fun getMessage() = message
+    }
+
+    private
+    data class ProjectInvalidationReasonsImpl(
+        private val identityPath: String,
+        private val invalidationReasons: List<FingerprintInvalidationReason>
+    ) : ProjectInvalidationReasons {
+        override fun getIdentityPath() = identityPath
+
+        override fun getInvalidationReasons() = invalidationReasons
+    }
 }

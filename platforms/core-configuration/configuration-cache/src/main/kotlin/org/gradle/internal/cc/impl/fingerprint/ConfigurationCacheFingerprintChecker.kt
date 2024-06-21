@@ -27,6 +27,7 @@ import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -90,7 +91,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     @Suppress("NestedBlockDepth")
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
-        var firstReason: InvalidationReason? = null
+        var firstInvalidatedPath: Path? = null
         val projects = mutableMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
@@ -102,10 +103,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     if (!state.isInvalid) {
                         val reason = check(input.value)
                         if (reason != null) {
-                            if (firstReason == null) {
-                                firstReason = reason
+                            if (firstInvalidatedPath == null) {
+                                firstInvalidatedPath = input.projectPath
                             }
-                            state.invalidate()
+                            state.invalidate(reason)
                         }
                     }
                 }
@@ -128,10 +129,15 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return if (firstReason == null) {
-            CheckedFingerprint.Valid
-        } else {
-            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { it.key }.toSet())
+        return when (val path = firstInvalidatedPath) {
+            null -> CheckedFingerprint.Valid
+            else -> {
+                val firstInvalidatedState = projects.remove(path)!!
+                CheckedFingerprint.ProjectsInvalid(
+                    path to firstInvalidatedState.invalidationReason,
+                    projects.filterValues { it.isInvalid }.mapValues { it.value.invalidationReason }
+                )
+            }
         }
     }
 
@@ -419,34 +425,46 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     private
     class ProjectInvalidationState {
-        // When true, the project is definitely invalid
-        // When false, validity is not known
+        // When not null, the project is definitely invalid
+        // When null, validity is not known
         private
-        var invalid = false
+        var _invalidationReason: InvalidationReason? = null
 
         private
         val consumedBy = mutableSetOf<ProjectInvalidationState>()
 
         val isInvalid: Boolean
-            get() = invalid
+            get() = _invalidationReason != null
+
+        val invalidationReason
+            get() = _invalidationReason!!
 
         fun consumedBy(consumer: ProjectInvalidationState) {
-            if (invalid) {
-                consumer.invalidate()
+            if (isInvalid) {
+                invalidateConsumer(consumer)
             } else {
                 consumedBy.add(consumer)
             }
         }
 
-        fun invalidate() {
-            if (invalid) {
+        fun invalidate(reason: StructuredMessageBuilder) {
+            invalidate(StructuredMessage.Builder().apply(reason).build())
+        }
+
+        fun invalidate(reason: InvalidationReason) {
+            if (isInvalid) {
                 return
             }
-            invalid = true
-            for (consumer in consumedBy) {
-                consumer.invalidate()
-            }
+            _invalidationReason = reason
+            consumedBy.forEach(this::invalidateConsumer)
             consumedBy.clear()
+        }
+
+        private
+        fun invalidateConsumer(consumer: ProjectInvalidationState) {
+            consumer.invalidate {
+                text("project dependency has changed")
+            }
         }
     }
 }

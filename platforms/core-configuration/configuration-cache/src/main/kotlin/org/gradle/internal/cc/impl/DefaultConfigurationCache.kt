@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
+import org.gradle.configurationcache.withFingerprintCheckOperations
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
 import org.gradle.initialization.GradlePropertiesController
@@ -324,7 +325,7 @@ class DefaultConfigurationCache internal constructor(
                     val description = formatBootstrapSummary(
                         "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                        checkedFingerprint.reason.render()
+                        checkedFingerprint.firstReason.render()
                     )
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.UPDATE to description
@@ -368,7 +369,9 @@ class DefaultConfigurationCache internal constructor(
                 // No entry file -> treat the entry as empty/missing/invalid
                 CheckedFingerprint.NotFound
             } else {
-                checkFingerprint(entryDetails, layout)
+                buildOperationRunner.withFingerprintCheckOperations {
+                    checkFingerprint(entryDetails, layout)
+                }
             }
         }
     }
