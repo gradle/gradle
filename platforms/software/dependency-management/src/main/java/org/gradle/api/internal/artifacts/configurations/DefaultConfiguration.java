@@ -1216,13 +1216,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
         warnOnDeprecatedUsage("copy(Spec)", ProperMethodUsage.RESOLVABLE);
-        return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec::isSatisfiedBy), getDependencyConstraints());
+        return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), getDependencyConstraints());
     }
 
     @Override
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
         warnOnDeprecatedUsage("copyRecursive(Spec)", ProperMethodUsage.RESOLVABLE);
-        return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec::isSatisfiedBy), getAllDependencyConstraints());
+        return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints());
     }
 
     /**

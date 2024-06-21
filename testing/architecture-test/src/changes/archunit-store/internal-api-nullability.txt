@@ -1769,7 +1769,6 @@ Class <org.gradle.internal.classpath.DefaultCachedClasspathTransformer$Convert> 
 Class <org.gradle.internal.classpath.DefaultCachedClasspathTransformer$TransformPipeline> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCachedClasspathTransformer.java:0)
 Class <org.gradle.internal.classpath.DefaultCachedClasspathTransformer$ValueOrTransformProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCachedClasspathTransformer.java:0)
 Class <org.gradle.internal.classpath.DefaultCachedClasspathTransformer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCachedClasspathTransformer.java:0)
-Class <org.gradle.internal.classpath.DefaultClassPath$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultClassPath.java:0)
 Class <org.gradle.internal.classpath.DefaultClassPath$Builder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultClassPath.java:0)
 Class <org.gradle.internal.classpath.DefaultClassPath$ImmutableUniqueList$Builder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultClassPath.java:0)
 Class <org.gradle.internal.classpath.DefaultClassPath$ImmutableUniqueList> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultClassPath.java:0)
