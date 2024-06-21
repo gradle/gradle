@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -150,7 +151,7 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return String.format("JVM version '%s', %s", getJavaVersion(), getVendorSpec());
+            return String.format("Compatible with Java %s, %s (from %s)", getJavaVersion(), getVendorSpec(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
         }
     }
 }
