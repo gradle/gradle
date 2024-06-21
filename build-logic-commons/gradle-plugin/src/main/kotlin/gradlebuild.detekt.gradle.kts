@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,25 @@
  */
 
 plugins {
-    id("org.gradle.kotlin-dsl.ktlint-convention")
+    id("io.gitlab.arturbosch.detekt")
 }
 
-tasks {
-    runKtlintCheckOverKotlinScripts {
-        // Only check the build files, not all *.kts files in the project
-        includes += listOf("*.gradle.kts")
-    }
+detekt {
+    // enable all default rules
+    buildUponDefaultConfig = true
 
-    withType<Test>().configureEach {
-        shouldRunAfter(ktlintCheck)
-    }
+    // customize some of the rules, until we can fix the offending cases
+    config.convention(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml"))
+
+    // also check the project build file
+    source.from(project.buildFile)
 }
 
 pluginManager.withPlugin("gradlebuild.code-quality") {
     tasks {
         named("codeQuality") {
-            dependsOn(ktlintCheck)
+            dependsOn(detekt)
         }
     }
 }
+

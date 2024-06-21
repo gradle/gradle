@@ -1,0 +1,121 @@
+style:
+  MaxLineLength:
+    maxLineLength: 500                    # can be much smaller in follow-up branch              # default is 120
+  ReturnCount:
+    max: 15                                # can be much smaller in follow-up branch             # default is 2
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 5            # default is 3
+  ForbiddenComment:
+    active: false
+  ExplicitItLambdaParameter:
+    active: false
+  WildcardImport:
+    excludeImports:
+      - 'org.gradle.kotlin.dsl.*'
+      - 'java.util.*'                     # fixed in follow-up branch
+      - 'org.hamcrest.CoreMatchers.*'     # fixed in follow-up branch
+      - 'com.nhaarman.mockito_kotlin.*'   # fixed in follow-up branch
+  MagicNumber:
+    active: false                         # fixed in follow-up branch
+  NewLineAtEndOfFile:
+    active: false
+  SerialVersionUIDInSerializableClass:
+    active: false
+  UnusedPrivateMember:
+    active: false                         # fixed in follow-up branch
+  UseCheckOrError:
+    active: false                         # fixed in follow-up branch
+  UnusedParameter:
+    active: false                         # fixed in follow-up branch
+  UnusedPrivateProperty:
+    active: false                         # fixed in follow-up branch
+  UnusedPrivateClass:
+    active: false                         # fixed in follow-up branch
+  MayBeConst:
+    active: false                         # fixed in follow-up branch
+  FunctionOnlyReturningConstant:
+    active: false                         # fixed in follow-up branch
+  LoopWithTooManyJumpStatements:
+    active: false                         # fixed in follow-up branch
+  UseRequire:
+    active: false                         # fixed in follow-up branch
+  UtilityClassWithPublicConstructor:
+    active: false                         # fixed in follow-up branch
+  ThrowsCount:
+    active: false                         # fixed in follow-up branch
+
+complexity:
+  TooManyFunctions:
+    active: false
+  LongParameterList:
+    functionThreshold: 30                 # can be much smaller in follow-up branch            # default is 6
+    constructorThreshold: 40              # can be much smaller in follow-up branch            # default is 7
+  LongMethod:
+    threshold: 550                        # can be much smaller in follow-up branch            # default is 60
+  LargeClass:
+    active: false                         # fixed in follow-up branch
+  CyclomaticComplexMethod:
+    threshold: 45                         # can be much smaller in follow-up branch            # default is 15
+  ComplexCondition:
+    active: false
+  NestedBlockDepth:
+    active: false                         # fixed in follow-up branch
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+  SwallowedException:
+    ignoredExceptionTypes:
+      - 'InterruptedException'            # default
+      - 'MalformedURLException'           # default
+      - 'NumberFormatException'           # default
+      - 'ParseException'                  # default
+      - 'Exception'                       # added by us
+      - 'IllegalArgumentException'        # added by us
+      - 'InvocationTargetException'       # added by us
+      - 'Throwable'                       # added by us
+      - 'ClassNotFoundException'          # fixed in follow-up branch                  # added by us
+      - 'UnknownDomainObjectException'    # fixed in follow-up branch                  # added by us
+      - 'URISyntaxException'              # fixed in follow-up branch                  # added by us
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: false                         # fixed in follow-up branch
+  PrintStackTrace:
+    active: false                         # fixed in follow-up branch
+
+performance:
+  SpreadOperator:
+    active: false                         # we need to take a look at these !!!
+  ForEachOnRange:
+    active: false                         # fixed in follow-up branch
+
+naming:
+  FunctionNaming:
+    active: false                         # fixed in follow-up branch
+  FunctionParameterNaming:
+    active: false                         # fixed in follow-up branch
+  TopLevelPropertyNaming:
+    active: false                         # fixed in follow-up branch
+  EnumNaming:
+    active: false                         # fixed in follow-up branch
+  VariableNaming:
+    active: false                         # fixed in follow-up branch
+  ObjectPropertyNaming:
+    active: false                         # fixed in follow-up branch
+  MatchingDeclarationName:
+    active: false                         # fixed in follow-up branch
+  InvalidPackageDeclaration:
+    active: false                         # fixed in follow-up branch
+  MemberNameEqualsClassName:
+    active: false                         # fixed in follow-up branch
+
+potential-bugs:
+  ImplicitDefaultLocale:
+    active: false                         # fixed in follow-up branch
+
+empty-blocks:
+  EmptyFunctionBlock:
+    active: false                         # fixed in follow-up branch
+  EmptyDefaultConstructor:
+    active: false                         # fixed in follow-up branch
