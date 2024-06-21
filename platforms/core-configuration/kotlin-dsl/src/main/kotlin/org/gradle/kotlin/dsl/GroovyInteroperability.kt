@@ -319,7 +319,7 @@ class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBui
         groovyMetaClass.getProperty(delegate, propertyName)
 
     override fun setMetaClass(metaClass: MetaClass?) =
-        error("")
+        error("Setting meta class not supported")
 
     override fun getMetaClass(): MetaClass =
         groovyMetaClass

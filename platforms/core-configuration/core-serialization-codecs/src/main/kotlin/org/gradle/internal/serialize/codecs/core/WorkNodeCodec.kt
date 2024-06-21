@@ -99,7 +99,7 @@ class WorkNodeCodec(
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
-        for (ignored in 0 until nodeCount) {
+        repeat(nodeCount) {
             val node = readNode()
             nodesById[nodesById.size] = node
             if (node is LocalTaskNode) {
@@ -156,7 +156,7 @@ class WorkNodeCodec(
                     writeSmallInt(3)
                 }
 
-                else -> error("")
+                else -> error("Unexpected node group: ${group.javaClass.name}")
             }
         }
     }
@@ -184,7 +184,7 @@ class WorkNodeCodec(
                 }
 
                 3 -> NodeGroup.DEFAULT_GROUP
-                else -> error("")
+                else -> error("Unexpected input when decoding node group")
             }.also {
                 isolate.identities.putInstance(id, it)
             }

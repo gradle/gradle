@@ -325,7 +325,7 @@ class ConfigurationCacheState(
             }
 
             else -> {
-                error("")
+                error("Unexpected build state ${state.javaClass.name}")
             }
         }
     }

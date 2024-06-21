@@ -285,7 +285,7 @@ class ValueSourceProviderCodec(
     override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
         when (readBoolean()) {
             true -> decodeValueSource()
-            false -> error("")
+            false -> error("Unexpected boolean value (false) while decoding")
         }
 
     private

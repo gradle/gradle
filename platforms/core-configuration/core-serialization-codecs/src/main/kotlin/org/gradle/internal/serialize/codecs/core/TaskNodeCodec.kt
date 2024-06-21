@@ -307,7 +307,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
                     writeBoolean(false)
                 }
 
-                else -> error("")
+                else -> error("Unexpected registered property: ${this.javaClass.name}")
             }
         }
     }
