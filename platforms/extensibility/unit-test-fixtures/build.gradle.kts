@@ -22,6 +22,7 @@ description = "Public types for unit testing plugins"
 
 dependencies {
     api(libs.jsr305)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -43,6 +44,7 @@ dependencies {
     implementation(projects.daemonProtocol)
     implementation(projects.daemonServices)
     implementation(projects.native)
+    implementation(projects.serviceRegistryBuilder)
 
     testImplementation(projects.testingBase)
 

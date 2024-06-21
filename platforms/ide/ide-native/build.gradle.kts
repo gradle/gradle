@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.testingNative)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
     implementation(libs.commonsLang)
 
     runtimeOnly(projects.dependencyManagement)

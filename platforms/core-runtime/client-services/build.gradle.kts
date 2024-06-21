@@ -21,7 +21,6 @@ plugins {
 description = "Services used by the Gradle client to interact with the daemon"
 
 dependencies {
-    api(libs.jsr305)
     api(projects.concurrent)
     api(projects.messaging)
     api(projects.logging)
@@ -32,6 +31,7 @@ dependencies {
     api(projects.enterpriseLogging)
     api(projects.processServices)
     api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
@@ -41,6 +41,10 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileCollections)
+
+    api(libs.jsr305)
+
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.guava)
     implementation(libs.asm)

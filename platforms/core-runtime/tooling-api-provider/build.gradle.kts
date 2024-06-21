@@ -24,7 +24,9 @@ dependencies {
     api(projects.toolingApi)
 
     implementation(projects.instrumentationAgentServices)
+    implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(projects.launcher)

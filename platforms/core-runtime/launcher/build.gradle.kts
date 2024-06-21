@@ -32,6 +32,7 @@ dependencies {
     api(projects.native)
     api(projects.processServices)
     api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.time)
@@ -50,6 +51,7 @@ dependencies {
     implementation(projects.io)
     implementation(projects.problemsApi)
     implementation(projects.toolchainsJvmShared)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
 

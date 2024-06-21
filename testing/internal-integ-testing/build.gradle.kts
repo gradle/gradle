@@ -39,6 +39,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.processServices)
     api(projects.daemonProtocol)
+    api(projects.serviceLookup)
 
     api(testFixtures(projects.core)) {
         because("HttpServer leaks PortAllocator to spock AST transformer")
@@ -78,7 +79,6 @@ dependencies {
         because("Part of the public API")
     }
 
-    implementation(projects.serviceProvider)
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildCache)
     implementation(projects.buildEvents)
@@ -97,6 +97,8 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.platformJvm)
     implementation(projects.serialization)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
     implementation(projects.toolchainsJvmShared)
     implementation(projects.buildProcessServices)

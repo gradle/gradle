@@ -13,6 +13,7 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseServices)
     implementation(projects.diagnostics)

@@ -18,6 +18,7 @@ dependencies {
     api(projects.modelCore)
     api(projects.processServices)
     api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.workerMain)
@@ -28,6 +29,7 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.time)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

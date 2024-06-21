@@ -7,6 +7,7 @@ description = "Infrastructure that bootstraps a worker process"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
+    api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(projects.baseServices)
@@ -22,6 +23,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.enterpriseLogging)
     implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
 

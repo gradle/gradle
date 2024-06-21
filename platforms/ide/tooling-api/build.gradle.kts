@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.core)
     implementation(projects.buildProcessServices)
     implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.guava)
 

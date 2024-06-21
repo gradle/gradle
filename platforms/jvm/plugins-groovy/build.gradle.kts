@@ -16,6 +16,7 @@ dependencies {
     api(projects.modelCore)
     api(projects.buildProcessServices)
 
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.fileCollections)
     implementation(projects.languageGroovy)

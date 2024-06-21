@@ -35,6 +35,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseServices)
     implementation(projects.fileCollections)

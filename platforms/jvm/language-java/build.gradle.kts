@@ -54,6 +54,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
     implementation(projects.loggingApi)

@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.publish)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.commonsLang)

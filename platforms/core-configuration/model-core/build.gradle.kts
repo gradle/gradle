@@ -12,8 +12,9 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
     api(projects.coreApi)
     api(projects.problemsApi)
     api(projects.hashing)
@@ -35,6 +36,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
     implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)

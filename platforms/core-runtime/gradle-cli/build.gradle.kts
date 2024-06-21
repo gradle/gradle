@@ -29,6 +29,7 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.logging)
     api(projects.loggingApi)
+    api(projects.serviceLookup)
 
     // The client is able to run builds, so uses core and other projects
     api(projects.core)
@@ -49,6 +50,7 @@ dependencies {
     implementation(projects.jvmServices)
     implementation(projects.native)
     implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvmShared)
 

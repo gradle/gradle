@@ -28,4 +28,5 @@ dependencies {
     testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(projects.serviceRegistryBuilder)
 }

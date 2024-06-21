@@ -27,7 +27,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.fileTemp)
-    api(projects.serviceProvider)
+    api(projects.serviceLookup)
     api(projects.hashing)
     api(projects.buildOperations)
     api(libs.inject)

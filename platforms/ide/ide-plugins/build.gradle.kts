@@ -53,6 +53,7 @@ dependencies {
     implementation(projects.pluginsJvmTestFixtures)
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.scala)
+    implementation(projects.serviceLookup)
     implementation(projects.testSuitesBase)
     implementation(projects.war)
 

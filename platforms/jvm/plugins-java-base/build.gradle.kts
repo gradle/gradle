@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.testingBase)
     implementation(projects.testingJvm)
     implementation(projects.toolchainsJvm)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)

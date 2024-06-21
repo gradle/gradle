@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.native)
     implementation(projects.pluginsGroovy)
+    implementation(projects.serviceLookup)
     compileOnly(projects.internalInstrumentationApi)
 
     implementation(libs.groovyXml)
