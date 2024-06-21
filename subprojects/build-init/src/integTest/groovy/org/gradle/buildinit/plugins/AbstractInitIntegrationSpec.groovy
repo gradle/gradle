@@ -135,8 +135,6 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         if (scriptText.contains("repositories")) {
             assertThat(scriptText, containsString("mavenCentral()"))
             assertThat(scriptText, containsString("Use Maven Central for resolving dependencies."))
-            assertThat(scriptText, not(containsString("jcenter()")))
-            assertThat(scriptText, not(containsString("Use JCenter for resolving dependencies.")))
         }
     }
 

@@ -368,10 +368,6 @@ abstract class AbstractSmokeTest extends Specification {
         file.text = text
     }
 
-    protected static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        RepoScriptBlockUtil.jcenterRepository(dsl)
-    }
-
     protected static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
         RepoScriptBlockUtil.mavenCentralRepository(dsl)
     }
