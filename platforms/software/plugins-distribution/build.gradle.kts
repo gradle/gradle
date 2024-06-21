@@ -24,22 +24,22 @@ dependencies {
     api(libs.inject)
 
     api(projects.stdlibJavaExtensions)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
 
-    implementation(project(":dependency-management"))
-    implementation(project(":file-collections"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-base"))
+    implementation(projects.dependencyManagement)
+    implementation(projects.fileCollections)
+    implementation(projects.modelCore)
+    implementation(projects.platformBase)
 
     implementation(libs.commonsLang)
 
     runtimeOnly(libs.groovy)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
 }

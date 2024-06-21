@@ -23,5 +23,5 @@ description = "Base asm classes and utilities for Gradle's internal use"
 dependencies {
     api(libs.asm)
     api(libs.jsr305)
-    implementation(project(":base-services"))
+    implementation(projects.baseServices)
 }

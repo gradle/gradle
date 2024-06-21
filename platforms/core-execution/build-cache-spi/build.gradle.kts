@@ -8,6 +8,6 @@ description = "Public API for extending the build cache"
 dependencies {
     implementation(projects.stdlibJavaExtensions)
 
-    integTestImplementation(project(":logging"))
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestImplementation(projects.logging)
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
