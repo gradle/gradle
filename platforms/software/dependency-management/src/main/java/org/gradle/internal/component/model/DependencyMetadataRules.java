@@ -28,9 +28,9 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependenciesMetadataAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataAdapter;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
-import org.gradle.internal.function.Predicate;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.CollectionUtils;
@@ -45,8 +45,8 @@ import java.util.List;
  * in the {@link #execute(VariantResolveMetadata, List)} method when the dependencies of a variant are needed during dependency resolution.
  */
 public class DependencyMetadataRules {
-    private static final Predicate<ModuleDependencyMetadata> DEPENDENCY_FILTER = dep -> !dep.isConstraint();
-    private static final Predicate<ModuleDependencyMetadata> DEPENDENCY_CONSTRAINT_FILTER = DependencyMetadata::isConstraint;
+    private static final Spec<ModuleDependencyMetadata> DEPENDENCY_FILTER = dep -> !dep.isConstraint();
+    private static final Spec<ModuleDependencyMetadata> DEPENDENCY_CONSTRAINT_FILTER = DependencyMetadata::isConstraint;
 
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser;
@@ -55,10 +55,12 @@ public class DependencyMetadataRules {
     private final List<VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<>();
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DependencyMetadataRules(Instantiator instantiator,
-                                   NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-                                   NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
-                                   ImmutableAttributesFactory attributesFactory) {
+    public DependencyMetadataRules(
+        Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+        ImmutableAttributesFactory attributesFactory
+    ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;

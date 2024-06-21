@@ -184,6 +184,18 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
+        return new DependencyMetaDataProviderImpl();
+    }
+
+    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+        @Override
+        public Module getModule() {
+            return new AnonymousModule();
+        }
+    }
+
+    @Provides
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildState currentBuild, BuildStateRegistry buildRegistry) {
         return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(currentBuild.getBuildIdentifier()));
     }

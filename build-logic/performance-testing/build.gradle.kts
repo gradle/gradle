@@ -9,9 +9,9 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":integration-testing"))
-    implementation(project(":cleanup"))
-    implementation(project(":build-update-utils"))
+    implementation(projects.integrationTesting)
+    implementation(projects.cleanup)
+    implementation(projects.buildUpdateUtils)
 
     implementation("org.openmbee.junit:junit-xml-parser") {
         exclude(module = "lombok") // don't need it at runtime

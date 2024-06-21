@@ -7,25 +7,24 @@ description = "The Build configuration properties modifiers and helpers."
 dependencies {
     api(libs.jsr305)
     api(libs.inject)
+    
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.toolchainsJvmShared)
+    api(projects.stdlibJavaExtensions)
 
-    api(project(":core"))
-    api(project(":core-api"))
+    implementation(projects.baseServices)
+    implementation(projects.logging)
+    implementation(projects.daemonProtocol)
+    implementation(projects.jvmServices)
 
-    api(project(":toolchains-jvm-shared"))
-    api(project(":stdlib-java-extensions"))
+    testImplementation(testFixtures(projects.core))
 
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":daemon-protocol"))
-    implementation(project(":jvm-services"))
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.internalIntegTesting)
 
-    testImplementation(testFixtures(project(":core")))
-
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

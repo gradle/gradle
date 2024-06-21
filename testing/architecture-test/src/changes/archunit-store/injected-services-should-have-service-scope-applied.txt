@@ -9,7 +9,6 @@ Class <org.gradle.api.component.SoftwareComponentContainer> is not annotated wit
 Class <org.gradle.api.execution.TaskExecutionGraph> is not annotated with @ServiceScope in (TaskExecutionGraph.java:0)
 Class <org.gradle.api.initialization.dsl.ScriptHandler> is not annotated with @ServiceScope in (ScriptHandler.java:0)
 Class <org.gradle.api.internal.ProcessOperations> is not annotated with @ServiceScope in (ProcessOperations.java:0)
-Class <org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider> is not annotated with @ServiceScope in (DependencyMetaDataProvider.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator> is not annotated with @ServiceScope in (VersionComparator.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme> is not annotated with @ServiceScope in (VersionSelectorScheme.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver> is not annotated with @ServiceScope in (ProjectDependencyPublicationResolver.java:0)

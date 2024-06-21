@@ -5,6 +5,6 @@ plugins {
 description = "Execution engine end-to-end tests"
 
 dependencies {
-    integTestImplementation(project(":execution"))
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestImplementation(projects.execution)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

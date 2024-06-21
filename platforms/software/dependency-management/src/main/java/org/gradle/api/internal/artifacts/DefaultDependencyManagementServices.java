@@ -31,7 +31,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory;
@@ -389,6 +388,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(
             Instantiator instantiator,
             CollectionCallbackActionDecorator callbackDecorator,
+            DependencyMetaDataProvider dependencyMetaDataProvider,
+            DomainObjectContext domainObjectContext,
+            AttributesSchemaInternal attributesSchema,
             DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory
@@ -396,6 +398,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
                 callbackDecorator,
+                dependencyMetaDataProvider,
+                domainObjectContext,
+                attributesSchema,
                 rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
                 resolutionStrategyFactory
@@ -544,7 +549,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DependencyGraphResolver dependencyGraphResolver,
             RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
-            ComponentIdentifierFactory componentIdentifierFactory,
             ResolutionResultsStoreFactory resolutionResultsStoreFactory,
             StartParameter startParameter,
             AttributesSchemaInternal attributesSchema,
@@ -598,12 +602,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 dependencyLockingProvider
             );
 
-            return new ShortCircuitEmptyConfigurationResolver(
-                defaultResolver,
-                componentIdentifierFactory,
-                moduleIdentifierFactory,
-                currentBuild.getBuildIdentifier()
-            );
+            return new ShortCircuitEmptyConfigurationResolver(defaultResolver);
         }
 
         @Provides

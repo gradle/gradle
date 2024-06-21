@@ -16,19 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.AnonymousModule
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.Module
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -37,10 +35,9 @@ import spock.lang.Specification
 
 class DefaultRootComponentMetadataBuilderTest extends Specification {
 
-    DependencyMetaDataProvider metaDataProvider = Mock() {
-        getModule() >> Mock(Module)
+    DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider) {
+        getModule() >> new AnonymousModule()
     }
-    ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
         create(_, _, _, _, _, _) >> { args ->
@@ -49,15 +46,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
 
     def configurationsProvider = Stub(ConfigurationsProvider)
-    ProjectStateRegistry projectStateRegistry = Mock()
-
-    def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
     def builderFactory = new DefaultRootComponentMetadataBuilder.Factory(
-        metaDataProvider,
-        componentIdentifierFactory,
         moduleIdentifierFactory,
-        projectStateRegistry,
         new LocalComponentGraphResolveStateFactory(
             Stub(AttributeDesugaring),
             Stub(ComponentIdGenerator),
@@ -66,12 +57,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         )
     )
 
-    def builder = builderFactory.create(configurationsProvider)
+    def builder = builderFactory.create(RootScriptDomainObjectContext.INSTANCE, configurationsProvider, metaDataProvider, EmptySchema.INSTANCE)
 
     def "caches root component resolve state and metadata"() {
-        componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier(mid, '1.0')
-        }
         configurationsProvider.findByName('conf') >> resolvable()
         configurationsProvider.findByName('conf-2') >> resolvable()
 
@@ -93,9 +81,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
 
     def "reevaluates component metadata when #mutationType change"() {
-        componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier(mid, '1.0')
-        }
         configurationsProvider.findByName('root') >> resolvable()
         configurationsProvider.findByName('conf') >> resolvable()
 
@@ -125,9 +110,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
 
     def "does not reevaluate component metadata when #mutationType change"() {
-        componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier(mid, '1.0')
-        }
         configurationsProvider.findByName('root') >> resolvable()
         configurationsProvider.findByName('conf') >> resolvable()
 

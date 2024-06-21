@@ -1207,10 +1207,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return services.get(ServiceRegistryFactory.class);
     }
 
-    @Inject
-    @Override
-    public abstract DependencyMetaDataProvider getDependencyMetaDataProvider();
-
     @Override
     public AntBuilder ant(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getAnt());

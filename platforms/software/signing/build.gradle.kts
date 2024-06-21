@@ -6,38 +6,38 @@ description = "Plugin for cryptographic signing of publications, artifacts or fi
 
 dependencies {
     api(projects.stdlibJavaExtensions)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":file-collections"))
-    api(project(":publish"))
-    api(project(":security"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.publish)
+    api(projects.security)
 
     api(libs.jsr305)
     api(libs.groovy)
     api(libs.inject)
 
     implementation(projects.internalInstrumentationApi)
-    implementation(project(":model-core"))
-    implementation(project(":functional"))
-    implementation(project(":platform-base"))
+    implementation(projects.modelCore)
+    implementation(projects.functional)
+    implementation(projects.platformBase)
 
     implementation(libs.guava)
 
-    testFixturesImplementation(project(":base-services")) {
+    testFixturesImplementation(projects.baseServices) {
         because("Required to access org.gradle.internal.SystemProperties")
     }
 
-    testImplementation(project(":maven"))
-    testImplementation(project(":ivy"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.maven)
+    testImplementation(projects.ivy)
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(testFixtures(project(":security")))
-    testRuntimeOnly(project(":distributions-publishing")) {
+    testRuntimeOnly(testFixtures(projects.security))
+    testRuntimeOnly(projects.distributionsPublishing) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributions-publishing"))
+    integTestDistributionRuntimeOnly(projects.distributionsPublishing)
 }
 
 strictCompile {

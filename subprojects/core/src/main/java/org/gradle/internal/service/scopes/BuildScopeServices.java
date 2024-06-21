@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Project;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -29,9 +28,6 @@ import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.artifacts.DefaultModule;
-import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -684,11 +680,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProviderImpl();
-    }
-
-    @Provides
     protected ComponentTypeRegistry createComponentTypeRegistry() {
         return new DefaultComponentTypeRegistry();
     }
@@ -696,13 +687,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
         return new PluginInspector(modelRuleSourceDetector);
-    }
-
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        @Override
-        public Module getModule() {
-            return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
-        }
     }
 
     @Provides

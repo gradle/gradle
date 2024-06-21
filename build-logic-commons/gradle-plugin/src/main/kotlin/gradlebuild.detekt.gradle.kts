@@ -13,13 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.function;
 
-/**
- * Represents some predicate against objects of type T.
- *
- * @param <T> The target type for this predicate
- */
-public interface Predicate<T> {
-    boolean isSatisfiedBy(T element);
+plugins {
+    id("io.gitlab.arturbosch.detekt")
 }
+
+detekt {
+    // enable all default rules
+    buildUponDefaultConfig = true
+
+    // customize some of the rules, until we can fix the offending cases
+    config.convention(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml"))
+
+    // also check the project build file
+    source.from(project.buildFile)
+}
+
+pluginManager.withPlugin("gradlebuild.code-quality") {
+    tasks {
+        named("codeQuality") {
+            dependsOn(detekt)
+        }
+    }
+}
+

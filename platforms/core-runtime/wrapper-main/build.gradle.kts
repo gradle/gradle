@@ -28,29 +28,29 @@ description = "Entry point of the Gradle wrapper command"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":cli"))
-    implementation(project(":wrapper-shared"))
+    implementation(projects.cli)
+    implementation(projects.wrapperShared)
 
-    testImplementation(project(":base-services"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.baseServices)
+    testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":core-api"))
+    integTestImplementation(projects.buildOption)
+    integTestImplementation(projects.launcher)
+    integTestImplementation(projects.logging)
+    integTestImplementation(projects.coreApi)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
 
-    crossVersionTestImplementation(project(":logging"))
-    crossVersionTestImplementation(project(":persistent-cache"))
-    crossVersionTestImplementation(project(":launcher"))
+    crossVersionTestImplementation(projects.logging)
+    crossVersionTestImplementation(projects.persistentCache)
+    crossVersionTestImplementation(projects.launcher)
 
-    integTestNormalizedDistribution(project(":distributions-full"))
-    crossVersionTestNormalizedDistribution(project(":distributions-full"))
+    integTestNormalizedDistribution(projects.distributionsFull)
+    crossVersionTestNormalizedDistribution(projects.distributionsFull)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
 val executableJar by tasks.registering(Jar::class) {

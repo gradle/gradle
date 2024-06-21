@@ -22,10 +22,13 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
@@ -47,14 +50,12 @@ class NameValidatorTest extends Specification {
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
     static invalidNames = forbiddenCharacters.collect { "a${it}b" } + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
     @Shared
-    def rootComponentMetaDataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
-    }
+    def rootComponentMetaDataBuilderFactory = Stub(DefaultRootComponentMetadataBuilder.Factory)
 
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
-        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, rootComponentMetaDataBuilderFactory, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory))],
+        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, Mock(DependencyMetaDataProvider), RootScriptDomainObjectContext.INSTANCE, EmptySchema.INSTANCE, rootComponentMetaDataBuilderFactory, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory))],
         ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
