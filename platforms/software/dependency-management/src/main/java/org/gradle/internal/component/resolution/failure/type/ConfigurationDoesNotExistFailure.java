@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 /**
@@ -25,6 +26,6 @@ import org.gradle.internal.component.resolution.failure.interfaces.VariantSelect
  */
 public final class ConfigurationDoesNotExistFailure extends AbstractVariantSelectionByNameFailure {
     public ConfigurationDoesNotExistFailure(ComponentIdentifier targetComponent, String requestedConfigurationName) {
-        super(targetComponent, requestedConfigurationName);
+        super(ResolutionFailureProblemId.CONFIGURATION_DOES_NOT_EXIST, targetComponent, requestedConfigurationName);
     }
 }

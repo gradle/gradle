@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure.type;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
@@ -33,7 +34,7 @@ public final class NoCompatibleVariantsFailure extends AbstractVariantSelectionB
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public NoCompatibleVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableCapabilities requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(targetComponent, requestedAttributes, requestedCapabilities);
+        super(ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS, targetComponent, requestedAttributes, requestedCapabilities);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 

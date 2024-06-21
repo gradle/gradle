@@ -77,7 +77,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     /**
      * If the file collection is not lenient, rethrow any failures that occurred during the visit.
      *
-     * @throws ArtifactSelectionException subtypes for resolution failures; may throw other exceptions encountered when downloading artifacts
+     * @throws ArtifactSelectionException subtypes
      */
     private void maybeThrowResolutionFailures(ResolvedFileCollectionVisitor collectingVisitor) {
         if (!lenient) {

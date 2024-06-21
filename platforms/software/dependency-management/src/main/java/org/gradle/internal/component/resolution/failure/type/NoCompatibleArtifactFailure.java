@@ -18,8 +18,8 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public final class NoCompatibleArtifactFailure extends AbstractArtifactSelection
     private final List<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public NoCompatibleArtifactFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(targetComponent, targetVariant, requestedAttributes);
+        super(ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT, targetComponent, targetVariant, requestedAttributes);
         this.candidates = candidates;
     }
 

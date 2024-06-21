@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
 
 import org.gradle.internal.component.ResolutionFailureHandler
@@ -50,7 +51,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(failureDescriberRegistry)
+    def variantSelectionFailureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems))
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {
