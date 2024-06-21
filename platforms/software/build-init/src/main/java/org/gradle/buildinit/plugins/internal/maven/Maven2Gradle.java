@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradleinternal.buildinit.plugins.internal.maven;
+package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Exclusion;
