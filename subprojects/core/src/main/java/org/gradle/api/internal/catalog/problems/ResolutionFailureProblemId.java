@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.catalog.problems;
 
+import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 
 /**
@@ -25,26 +26,37 @@ import org.gradle.api.NonNullApi;
  * in the {@code org.gradle.internal.component.resolution.failure.type} package.
  */
 @NonNullApi
-public enum ResolutionFailureProblemId {
+public enum ResolutionFailureProblemId implements Describable {
     // Stage 2 failures
-    CONFIGURATION_NOT_COMPATIBLE,
-    CONFIGURATION_NOT_CONSUMABLE,
-    CONFIGURATION_DOES_NOT_EXIST,
-    AMBIGUOUS_VARIANTS,
-    NO_COMPATIBLE_VARIANTS,
-    NO_VARIANTS_WITH_MATCHING_CAPABILITIES,
+    CONFIGURATION_NOT_COMPATIBLE("Configuration selected by name is not compatible"),
+    CONFIGURATION_NOT_CONSUMABLE("Configuration selected by name is not consumable"),
+    CONFIGURATION_DOES_NOT_EXIST("Configuration selected by name does not exist"),
+    AMBIGUOUS_VARIANTS("Multiple variants exist that would match the request"),
+    NO_COMPATIBLE_VARIANTS("No variants exist that would match the request"),
+    NO_VARIANTS_WITH_MATCHING_CAPABILITIES("No variants exist with capabilities that would match the request"),
 
     // Stage 3 failures
-    AMBIGUOUS_ARTIFACT_TRANSFORM,
-    NO_COMPATIBLE_ARTIFACT,
-    AMBIGUOUS_ARTIFACTS,
-    UNKNOWN_ARTIFACT_SELECTION_FAILURE,
+    AMBIGUOUS_ARTIFACT_TRANSFORM("Multiple artifacts transforms exist that would satisfy the request"),
+    NO_COMPATIBLE_ARTIFACT("No artifacts exist that would match the request"),
+    AMBIGUOUS_ARTIFACTS("Multiple artifacts exist that would match the request"),
+    UNKNOWN_ARTIFACT_SELECTION_FAILURE("Unknown artifact selection failure"),
 
     // Stage 4 failures
-    INCOMPATIBLE_MULTIPLE_NODES,
+    INCOMPATIBLE_MULTIPLE_NODES("Incompatible nodes of a single component were selected"),
 
     /**
      * Indicates that the resolution failed for an unknown reason not enumerated above.
      */
-    UNKNOWN_RESOLUTION_FAILURE
+    UNKNOWN_RESOLUTION_FAILURE("Unknown resolution failure");
+
+    private final String displayName;
+
+    ResolutionFailureProblemId(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
 }

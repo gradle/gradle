@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
@@ -236,7 +237,8 @@ public class ResolutionFailureHandler {
 
     private AbstractResolutionFailureException reportExceptionAsProblem(AbstractResolutionFailureException exception) {
         Problem problem = problemsService.getInternalReporter().create(builder -> {
-            builder.id(TextUtil.screamingSnakeToKebabCase(exception.getFailure().getProblemId().name()), "variant resolution error", GradleCoreProblemGroup.variantResolution())
+            ResolutionFailureProblemId problemId = exception.getFailure().getProblemId();
+            builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
                 .contextualLabel(exception.getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
                 .severity(ERROR);
