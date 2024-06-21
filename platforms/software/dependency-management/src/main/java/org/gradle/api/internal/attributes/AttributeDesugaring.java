@@ -77,8 +77,8 @@ public class AttributeDesugaring {
             DefaultProjectComponentSelector project = (DefaultProjectComponentSelector) selector;
             AttributeContainer projectAttributes = project.getAttributes();
             if (!projectAttributes.isEmpty()) {
-                ImmutableAttributes attributes = ((AttributeContainerInternal) projectAttributes).asImmutable();
-                return new DefaultProjectComponentSelector(project.getBuildIdentifier(), project.getIdentityPath(), project.projectPath(), project.getProjectName(), desugar(attributes), project.getRequestedCapabilities());
+                ImmutableAttributes immutableAttributes = ((AttributeContainerInternal) projectAttributes).asImmutable();
+                return DefaultProjectComponentSelector.withAttributes(project, desugar(immutableAttributes));
             }
         }
         return selector;

@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
@@ -71,21 +72,29 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         if (Implementation.ROOT_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             String projectName = decoder.readString();
-            return new DefaultProjectComponentSelector(buildIdentifier, Path.ROOT, Path.ROOT, projectName, readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilities(decoder));
         } else if (Implementation.ROOT_BUILD_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, projectPath, projectPath, projectPath.getName(), readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, projectPath, projectPath, projectPath.getName());
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilities(decoder));
         } else if (Implementation.OTHER_BUILD_ROOT_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path identityPath = Path.path(decoder.readString());
             String projectName = decoder.readString();
-            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, Path.ROOT, projectName, readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, identityPath, Path.ROOT, projectName);
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilities(decoder));
         } else if (Implementation.OTHER_BUILD_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path identityPath = Path.path(decoder.readString());
             Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, projectPath, projectPath.getName(), readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, identityPath, projectPath, projectPath.getName());
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilities(decoder));
         } else if (Implementation.MODULE.getId() == id) {
             return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), readVersionConstraint(decoder), readAttributes(decoder), readCapabilities(decoder));
         } else if (Implementation.LIBRARY.getId() == id) {

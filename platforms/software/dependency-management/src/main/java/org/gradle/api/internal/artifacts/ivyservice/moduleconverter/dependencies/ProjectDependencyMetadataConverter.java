@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -39,14 +40,11 @@ public class ProjectDependencyMetadataConverter extends AbstractDependencyMetada
     @Override
     public LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
-        ProjectInternal projectInternal = (ProjectInternal) projectDependency.getDependencyProject();
-        ProjectComponentIdentifier projectComponentIdentifier = projectInternal.getOwner().getComponentIdentifier();
+        ProjectIdentity targetProjectId = projectDependency.getTargetProjectIdentity();
 
-        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(
-            projectComponentIdentifier,
-            ((AttributeContainerInternal) projectDependency.getAttributes()).asImmutable(),
-            projectDependency.getRequestedCapabilities()
-        );
+        ImmutableAttributes attributes = ((AttributeContainerInternal) projectDependency.getAttributes()).asImmutable();
+        List<Capability> requestedCapabilities = projectDependency.getRequestedCapabilities();
+        ComponentSelector selector = new DefaultProjectComponentSelector(targetProjectId, attributes, requestedCapabilities);
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

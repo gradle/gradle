@@ -20,14 +20,13 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
@@ -60,15 +59,11 @@ public class DefaultDependencyMetadataFactory implements DependencyMetadataFacto
 
     private ComponentSelector createSelector(DependencyConstraint dependencyConstraint) {
         if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
-            ProjectDependency projectDependency = ((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency();
-            ProjectInternal projectInternal = (ProjectInternal) projectDependency.getDependencyProject();
-            ProjectComponentIdentifier projectComponentIdentifier = projectInternal.getOwner().getComponentIdentifier();
+            ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) ((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency();
+            ProjectIdentity targetProjectId = projectDependency.getTargetProjectIdentity();
 
-            return DefaultProjectComponentSelector.newSelector(
-                projectComponentIdentifier,
-                ((ImmutableAttributes) projectDependency.getAttributes()).asImmutable(),
-                Collections.emptyList()
-            );
+            ImmutableAttributes attributes = ((ImmutableAttributes) projectDependency.getAttributes()).asImmutable();
+            return new DefaultProjectComponentSelector(targetProjectId, attributes, Collections.emptyList());
         }
 
         return DefaultModuleComponentSelector.newSelector(

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
 
 import java.util.Objects;
@@ -36,6 +37,15 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         this.projectName = projectName;
         this.buildIdentifier = buildIdentifier;
         this.projectPath = projectPath;
+    }
+
+    public DefaultProjectComponentIdentifier(ProjectIdentity projectIdentity) {
+        // TODO: Do not deconstruct.
+        this(projectIdentity.getBuildIdentifier(),
+            projectIdentity.getBuildTreePath(),
+            projectIdentity.getProjectPath(),
+            projectIdentity.getProjectName()
+        );
     }
 
     @Override

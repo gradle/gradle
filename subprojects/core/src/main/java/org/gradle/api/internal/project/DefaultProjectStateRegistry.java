@@ -341,6 +341,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             return identityPath;
         }
 
+        public ProjectIdentity getIdentity() {
+            // TODO: Implement
+        }
+
         @Override
         public Path getProjectPath() {
             return projectPath;

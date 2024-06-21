@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -83,6 +84,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public Path getIdentityPath() {
         return dependencyProject.getIdentityPath();
+    }
+
+    @Override
+    public ProjectIdentity getTargetProjectIdentity() {
+        return dependencyProject.getOwner().getIdentity();
     }
 
     private Configuration findProjectConfiguration() {

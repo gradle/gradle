@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleSelectors
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentGraphResolveState
@@ -202,9 +203,10 @@ class SelectorStateResolverTest extends Specification {
     }
 
     def 'short circuits for matching project selectors'() {
-        def projectId = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
-        def nine = new TestProjectSelectorState(projectId)
-        def otherNine = new TestProjectSelectorState(projectId)
+        ProjectIdentity id = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
+        def projectId = new DefaultProjectComponentIdentifier(id)
+        def nine = new TestProjectSelectorState(id)
+        def otherNine = new TestProjectSelectorState(id)
         ModuleConflictResolver mockResolver = Mock()
         SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 

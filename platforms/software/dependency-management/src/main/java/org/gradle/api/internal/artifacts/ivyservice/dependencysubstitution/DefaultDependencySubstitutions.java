@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VariantSelectionDetails;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.attributes.AttributeContainer;
@@ -44,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Describables;
@@ -313,8 +313,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void convert(String notation, NotationConvertResult<? super ProjectComponentSelector> result) throws TypeConversionException {
-            ProjectComponentIdentifier id = build.getProjects().getProject(Path.path(notation)).getComponentIdentifier();
-            result.converted(DefaultProjectComponentSelector.newSelector(id, ImmutableAttributes.EMPTY, Collections.emptyList()));
+            ProjectIdentity id = build.getProjects().getProject(Path.path(notation)).getIdentity();
+            result.converted(new DefaultProjectComponentSelector(id, ImmutableAttributes.EMPTY, Collections.emptyList()));
         }
     }
 

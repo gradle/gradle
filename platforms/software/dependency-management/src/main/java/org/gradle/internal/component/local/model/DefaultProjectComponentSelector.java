@@ -24,6 +24,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
@@ -31,33 +32,19 @@ import java.util.List;
 import java.util.Objects;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
-    private final BuildIdentifier buildIdentifier;
-    private final Path projectPath;
-    private final Path buildTreePath;
-    private final String projectName;
+
+    private final ProjectIdentity projectIdentity;
     private final ImmutableAttributes attributes;
     private final List<Capability> requestedCapabilities;
+
     private String displayName;
 
     public DefaultProjectComponentSelector(
-        BuildIdentifier buildIdentifier,
-        Path buildTreePath,
-        Path projectPath,
-        String projectName,
+        ProjectIdentity projectIdentity,
         ImmutableAttributes attributes,
         List<Capability> requestedCapabilities
     ) {
-        assert buildIdentifier != null : "build cannot be null";
-        assert buildTreePath != null : "build tree path path cannot be null";
-        assert projectPath != null : "project path cannot be null";
-        assert projectName != null : "project name cannot be null";
-        assert attributes != null : "attributes cannot be null";
-        assert requestedCapabilities != null : "capabilities cannot be null";
-
-        this.buildIdentifier = buildIdentifier;
-        this.buildTreePath = buildTreePath;
-        this.projectPath = projectPath;
-        this.projectName = projectName;
+        this.projectIdentity = projectIdentity;
         this.attributes = attributes;
         this.requestedCapabilities = requestedCapabilities;
     }
@@ -65,24 +52,25 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @Override
     public String getDisplayName() {
         String prefix;
-        if (Objects.equals(buildTreePath, Path.ROOT)) {
+        if (Objects.equals(projectIdentity.getBuildTreePath(), Path.ROOT)) {
             prefix =  "root project";
         } else {
             prefix = "project";
         }
         if (displayName == null) {
-            displayName = prefix + " " + buildTreePath;
+            displayName = prefix + " " + projectIdentity.getBuildTreePath().getPath();
         }
         return displayName;
     }
 
+    // TODO: Get rid of this
     public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
+        return projectIdentity.getBuildIdentifier();
     }
 
     @Override
     public String getBuildPath() {
-        return buildIdentifier.getBuildPath();
+        return projectIdentity.getBuildIdentifier().getBuildPath();
     }
 
     @SuppressWarnings("deprecation")
@@ -93,25 +81,27 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "build_identifier_name_and_current_deprecation")
             .nagUser();
-        return DeprecationLogger.whileDisabled(buildIdentifier::getName);
+        return DeprecationLogger.whileDisabled(() -> projectIdentity.getBuildIdentifier().getName());
     }
 
     @Override
     public Path getIdentityPath() {
-        return buildTreePath;
+        return projectIdentity.getBuildTreePath();
     }
 
     @Override
     public String getProjectPath() {
-        return projectPath.getPath();
+        return projectIdentity.getProjectPath().getPath();
     }
 
+    // TODO: Get rid of this
     public Path projectPath() {
-        return projectPath;
+        return projectIdentity.getProjectPath();
     }
 
+    // TODO: Get rid of this.
     public String getProjectName() {
-        return projectName;
+        return projectIdentity.getProjectName();
     }
 
     @Override
@@ -120,7 +110,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
         if (identifier instanceof ProjectComponentIdentifier) {
             ProjectComponentIdentifierInternal projectComponentIdentifier = (ProjectComponentIdentifierInternal) identifier;
-            return projectComponentIdentifier.getIdentityPath().equals(buildTreePath);
+
+            // TODO: Compare ProjectIdentity directly.
+            return projectComponentIdentifier.getIdentityPath().equals(projectIdentity.getBuildTreePath());
         }
 
         return false;
@@ -145,7 +137,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             return false;
         }
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
-        if (!buildTreePath.equals(that.buildTreePath)) {
+        if (!projectIdentity.equals(that.projectIdentity)) {
             return false;
         }
         if (!attributes.equals(that.attributes)) {
@@ -156,7 +148,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public int hashCode() {
-        return Objects.hash(buildTreePath, attributes, requestedCapabilities);
+        return Objects.hash(projectIdentity, attributes, requestedCapabilities);
     }
 
     @Override
@@ -164,29 +156,10 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
-    public static ProjectComponentSelector newSelector(
-        ProjectComponentIdentifier identifier,
-        ImmutableAttributes attributes,
-        List<Capability> requestedCapabilities
-    ) {
-        DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
-        return new DefaultProjectComponentSelector(
-            projectComponentIdentifier.getBuild(),
-            projectComponentIdentifier.getIdentityPath(),
-            projectComponentIdentifier.projectPath(),
-            projectComponentIdentifier.getProjectName(),
-            attributes,
-            requestedCapabilities
-        );
-    }
-
     public static ProjectComponentSelector withAttributes(ProjectComponentSelector selector, ImmutableAttributes attributes) {
         DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
         return new DefaultProjectComponentSelector(
-            current.buildIdentifier,
-            current.buildTreePath,
-            current.projectPath,
-            current.projectName,
+            current.projectIdentity,
             attributes,
             current.requestedCapabilities
         );
@@ -195,10 +168,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, List<Capability> requestedCapabilities) {
         DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
         return new DefaultProjectComponentSelector(
-            current.buildIdentifier,
-            current.buildTreePath,
-            current.projectPath,
-            current.projectName,
+            current.projectIdentity,
             current.attributes,
             requestedCapabilities
         );
@@ -207,16 +177,13 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
         DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
         return new DefaultProjectComponentSelector(
-            current.buildIdentifier,
-            current.buildTreePath,
-            current.projectPath,
-            current.projectName,
+            current.projectIdentity,
             attributes,
             requestedCapabilities
         );
     }
 
     public ProjectComponentIdentifier toIdentifier() {
-        return new DefaultProjectComponentIdentifier(buildIdentifier, buildTreePath, projectPath, projectName);
+        return new DefaultProjectComponentIdentifier(projectIdentity);
     }
 }
