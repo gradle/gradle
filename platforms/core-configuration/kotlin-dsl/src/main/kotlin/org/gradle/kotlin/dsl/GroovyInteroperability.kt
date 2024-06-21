@@ -231,6 +231,7 @@ interface GroovyBuilderScope : GroovyObject {
     /**
      * Invokes with Groovy semantics and no arguments.
      */
+    @Suppress("SpreadOperator")
     operator fun String.invoke(): Any? =
         invoke(*emptyArray<Any>())
 

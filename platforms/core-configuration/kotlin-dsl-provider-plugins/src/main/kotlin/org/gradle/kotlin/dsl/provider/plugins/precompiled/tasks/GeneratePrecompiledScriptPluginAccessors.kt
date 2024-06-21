@@ -477,6 +477,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
         }.toTypedArray()
+        @Suppress("SpreadOperator")
         return configurations.detachedConfiguration(*dependencies)
     }
 
