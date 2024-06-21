@@ -20,9 +20,8 @@ import org.gradle.internal.cc.base.debug
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.extensions.stdlib.useToRun
 import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.nio.channels.Channels
-import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -32,37 +31,44 @@ import kotlin.concurrent.thread
 internal
 object ParallelOutputStream {
 
-    fun of(createOutputStream: () -> OutputStream): OutputStream {
+    // By default, move 32 bytes at a time to the writer thread.
+    val bufferCapacity = System.getProperty("org.gradle.configuration-cache.internal.buffer-capacity", null)?.toInt()
+        ?: (1 * 32)
 
-        val buffers = ByteBufferPool()
-        val ready = ArrayBlockingQueue<ByteBuffer>(buffers.size)
+    // By default, keep at most 32MB in memory if the producer ends up being faster than the writer thread.
+    private
+    val bufferCount = System.getProperty("org.gradle.configuration-cache.internal.buffer-count", null)?.toInt()
+        ?: (1024 * 1024)
+
+    fun of(createOutputStream: () -> OutputStream): OutputStream {
+        val failure = AtomicReference<Throwable>(null)
+        val ready = LinkedBlockingQueue<ByteArray>(bufferCount)
         val writer = thread(name = "CC writer", isDaemon = true, priority = Thread.NORM_PRIORITY - 1) {
             // consider sharing a single (Gradle) thread among all stream writers
             try {
                 createOutputStream().useToRun {
-                    val outputChannel = Channels.newChannel(this)
                     while (true) {
-                        val buffer = ready.takeWithTimeout()
-                        if (!buffer.hasRemaining()) {
+                        val buffer = ready.poll(timeoutMinutes, TimeUnit.MINUTES)
+                            ?: throw TimeoutException("Writer thread timed out.")
+                        if (buffer.isEmpty()) {
                             /** client is signaling end of stream
                              * see [QueuedOutputStream.close]
                              **/
                             break
                         }
-                        try {
-                            outputChannel.write(buffer)
-                        } finally {
-                            // always return the buffer
-                            buffers.put(buffer)
-                        }
+                        write(buffer)
                     }
                 }
-            } catch (e: Exception) {
-                buffers.fail(e)
+            } catch (e: Throwable) {
+                failure.set(e)
+            } finally {
+                ready.clear()
             }
-            logger.debug { "${javaClass.name} writer ${Thread.currentThread()} finished." }
+            logger.debug {
+                "${javaClass.name} writer ${Thread.currentThread()} finished."
+            }
         }
-        return QueuedOutputStream(buffers, ready) {
+        return QueuedOutputStream(ready, failure) {
             writer.join()
         }
     }
@@ -71,143 +77,46 @@ object ParallelOutputStream {
 
 internal
 class QueuedOutputStream(
-    private val buffers: ByteBufferPool,
-    private val ready: ArrayBlockingQueue<ByteBuffer>,
+    private val ready: BlockingQueue<ByteArray>,
+    private val failure: AtomicReference<Throwable>,
     private val onClose: () -> Unit,
 ) : OutputStream() {
 
-    private
-    var buffer = buffers.take()
-
     override fun write(b: ByteArray, off: Int, len: Int) {
-        writeByteArray(b, off, len)
-    }
-
-    override fun write(b: Int) {
-        buffer.put(b.toByte())
-        maybeFlush()
-    }
-
-    override fun close() {
-        // send remaining data
-        if (buffer.position() > 0) {
-            sendBuffer()
-            takeNextBuffer()
-        }
-        // send a last empty buffer to signal the end
-        sendBuffer()
-        onClose()
-        buffers.rethrowFailureIfAny()
-        super.close()
-    }
-
-    private
-    tailrec fun writeByteArray(b: ByteArray, off: Int, len: Int) {
         if (len <= 0) {
             return
         }
-        val remaining = buffer.remaining()
-        if (remaining > len) {
-            putByteArrayAndFlush(b, off, len)
-        } else {
-            putByteArrayAndFlush(b, off, remaining)
-            writeByteArray(b, off + remaining, len - remaining)
-        }
+        failure.rethrowIfPresent()
+        ready.put(b.copyOfRange(off, off + len))
     }
 
-    private
-    fun putByteArrayAndFlush(b: ByteArray, off: Int, len: Int) {
-        buffer.put(b, off, len)
-        maybeFlush()
+    override fun write(b: Int) {
+        failure.rethrowIfPresent()
+        ready.put(
+            ByteArray(1).apply {
+                set(0, b.toByte())
+            }
+        )
     }
 
-    private
-    fun maybeFlush() {
-        if (!buffer.hasRemaining()) {
-            sendBuffer()
-            takeNextBuffer()
-        }
-    }
-
-    private
-    fun sendBuffer() {
-        buffer.flip()
-        ready.put(buffer)
-    }
-
-    private
-    fun takeNextBuffer() {
-        buffer = buffers.take()
-    }
-}
-
-
-internal
-class ByteBufferPool {
-
-    companion object {
-
-        val bufferCount = System.getProperty("org.gradle.configuration-cache.internal.buffer-count", null)?.toInt()
-            ?: (8 * 1024)
-
-        val bufferCapacity = System.getProperty("org.gradle.configuration-cache.internal.buffer-capacity", null)?.toInt()
-            ?: (1 * 32)
-
-        val timeoutMinutes: Long = System.getProperty("org.gradle.configuration-cache.internal.buffer-timeout-seconds", null)?.toLong()
-            ?: 30L /* stream can be kept open during the whole configuration phase */
-    }
-
-    private
-    val buffers = ArrayBlockingQueue<ByteBuffer>(bufferCount).apply {
-        while (remainingCapacity() > 0) {
-            put(ByteBuffer.allocate(bufferCapacity))
-        }
-    }
-
-    private
-    val failure = AtomicReference<Exception>(null)
-
-    val size: Int
-        get() {
-            rethrowFailureIfAny()
-            return bufferCount
-        }
-
-    fun put(buffer: ByteBuffer) {
-        rethrowFailureIfAny()
-        buffer.flip()
-        buffers.offerWithTimeout(buffer)
-    }
-
-    fun take(): ByteBuffer {
-        rethrowFailureIfAny()
-        return buffers.takeWithTimeout()
-    }
-
-    fun fail(e: Exception) {
-        failure.set(e)
-    }
-
-    fun rethrowFailureIfAny() {
-        failure.get()?.let {
-            throw it
-        }
+    override fun close() {
+        // send a last empty buffer to signal the end
+        ready.put(ByteArray(0))
+        onClose()
+        failure.rethrowIfPresent()
+        super.close()
     }
 }
 
 
 private
-fun timeout(): Nothing = throw TimeoutException("Writer thread timed out.")
-
-
-private
-fun ArrayBlockingQueue<ByteBuffer>.offerWithTimeout(buffer: ByteBuffer) {
-    if (!offer(buffer, ByteBufferPool.timeoutMinutes, TimeUnit.MINUTES)) {
-        timeout()
+fun AtomicReference<Throwable>.rethrowIfPresent() {
+    get()?.let {
+        throw it
     }
 }
 
-
+/** 30 minutes by default since the stream can be kept open during the whole configuration phase. */
 private
-fun ArrayBlockingQueue<ByteBuffer>.takeWithTimeout() =
-    poll(ByteBufferPool.timeoutMinutes, TimeUnit.MINUTES) ?: timeout()
+val timeoutMinutes: Long = System.getProperty("org.gradle.configuration-cache.internal.buffer-timeout-minutes", null)?.toLong()
+    ?: 30L
