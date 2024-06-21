@@ -25,7 +25,7 @@ moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.fileTemp)
     api(projects.serviceProvider)
     api(project(":hashing"))
@@ -34,6 +34,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.guava)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.io)
     implementation(projects.time)
 

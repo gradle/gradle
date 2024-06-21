@@ -26,7 +26,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":ide"))
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":core"))
     implementation(project(":logging"))
     implementation(project(":logging-api"))

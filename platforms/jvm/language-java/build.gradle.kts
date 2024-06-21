@@ -19,7 +19,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(projects.serviceProvider)
     api(project(":base-services"))
@@ -52,6 +52,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.time)
     implementation(project(":file-temp"))

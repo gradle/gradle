@@ -16,11 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
+import org.gradle.util.Path;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,11 +33,23 @@ public abstract class RequestedConfigurationNotFoundFailureDescriber extends Abs
     @Override
     public ConfigurationSelectionException describeFailure(RequestedConfigurationNotFoundFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildConfigurationNotFoundFailureMsg(failure);
-        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
-        return new ConfigurationSelectionException(message, failure, resolutions);
+
+        ImmutableList.Builder<String> resolutions = ImmutableList.builder();
+        boolean isLocalComponent = failure.getRequestedComponentId() instanceof ProjectComponentIdentifier;
+        if (isLocalComponent) {
+            ProjectComponentIdentifierInternal id = (ProjectComponentIdentifierInternal) failure.getRequestedComponentId();
+            Path outgoingVariantsPath = id.getIdentityPath().append(Path.path("outgoingVariants"));
+            resolutions.add("To determine which configurations are available in the target project, run " + outgoingVariantsPath.getPath());
+        }
+
+        resolutions.addAll(buildResolutions(suggestReviewAlgorithm()));
+        return new ConfigurationSelectionException(message, failure, resolutions.build());
     }
 
-    private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponentDisplayName());
+    private static String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
+        return String.format(
+            "A dependency was declared on configuration '%s' of '%s' but no variant with that configuration name exists.",
+            failure.getRequestedName(), failure.getRequestedComponentId().getDisplayName()
+        );
     }
 }

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -123,7 +122,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
-    public GraphVariantSelectionResult selectLegacyConfigurations(ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, ResolutionFailureHandler resolutionFailureHandler) {
+    public GraphVariantSelectionResult selectLegacyConfigurations(ConfigurationMetadata fromConfiguration, IvyComponentGraphResolveState ivyComponent, ResolutionFailureHandler resolutionFailureHandler) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = new LinkedList<>();
         boolean matched = false;
@@ -135,13 +134,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
                     matched = true;
                 }
                 for (String targetPattern : targetPatterns) {
-                    findMatches(targetComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(ivyComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler);
                 }
             }
         }
         if (!matched && confs.containsKey("%")) {
             for (String targetPattern : confs.get("%")) {
-                findMatches(targetComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
             }
         }
 
@@ -157,7 +156,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
             if (!excludeWildcards) {
                 for (String targetPattern : wildcardPatterns) {
-                    findMatches(targetComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
                 }
             }
         }
@@ -170,7 +169,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return new GraphVariantSelectionResult(builder.build(), false);
     }
 
-    private void findMatches(ComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
+    private void findMatches(IvyComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {

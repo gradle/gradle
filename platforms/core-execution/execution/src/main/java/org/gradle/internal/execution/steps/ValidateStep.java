@@ -30,6 +30,8 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -172,6 +174,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .get();
     }
 
+    @ServiceScope(Scope.Global.class)
     public interface ValidationWarningRecorder {
         void recordValidationWarnings(UnitOfWork work, Collection<? extends Problem> warnings);
     }

@@ -17,7 +17,9 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -65,6 +67,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * Returns the URI to the cache.
      */
     @Nullable
+    @Nested
     public URI getUrl() {
         return url;
     }
@@ -93,6 +96,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Returns the credentials used to access the HTTP cache backend.
      */
+    @Nested
     public HttpBuildCacheCredentials getCredentials() {
         return credentials;
     }
@@ -119,6 +123,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 4.2
      */
+    @ToBeReplacedByLazyProperty
     public boolean isAllowUntrustedServer() {
         return allowUntrustedServer;
     }
@@ -150,6 +155,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 6.0
      */
+    @ToBeReplacedByLazyProperty
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
     }
@@ -189,6 +195,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * @see #setUseExpectContinue(boolean)
      * @since 7.2
      */
+    @ToBeReplacedByLazyProperty
     public boolean isUseExpectContinue() {
         return useExpectContinue;
     }

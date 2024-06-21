@@ -11,7 +11,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -32,6 +32,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.time)
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))

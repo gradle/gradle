@@ -16,9 +16,9 @@
 
 package org.gradle.internal.buildprocess;
 
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;

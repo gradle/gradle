@@ -104,7 +104,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * When unset, any vendor is acceptable.
      * </p>
      *
-     * @since 8.9
+     * @since 8.10
      */
     @Input
     @Optional
@@ -116,7 +116,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * Returns the supported JVM vendors.
      *
      * @return supported JVM vendors
-     * @since 8.9
+     * @since 8.10
      */
     @OptionValues("jvm-vendor")
     public List<String> getAvailableVendors() {

@@ -12,7 +12,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":files"))
@@ -20,6 +20,7 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":base-services"))
     implementation(project(":platform-jvm"))
     implementation(project(":plugins-java-base"))

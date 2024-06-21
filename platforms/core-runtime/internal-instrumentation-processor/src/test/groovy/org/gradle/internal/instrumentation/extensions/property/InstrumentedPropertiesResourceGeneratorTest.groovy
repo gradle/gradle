@@ -38,8 +38,8 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
             public abstract class Task {
                 @ReplacesEagerProperty(fluentSetter = true)
@@ -48,6 +48,29 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
                 public abstract Property<String> getSourceCompatibility();
                 @ReplacesEagerProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
+                @ReplacesEagerProperty(adapter = Task.MinErrorsAdapter.class)
+                public abstract Property<Integer> getMinErrors();
+
+                static class MinErrorsAdapter {
+                    @BytecodeUpgrade
+                    static int minErrors(Task task) {
+                        return 0;
+                    }
+
+                    @BytecodeUpgrade
+                    static int getMinErrors(Task task) {
+                        return 0;
+                    }
+
+                    @BytecodeUpgrade
+                    static Task minErrors(Task task, int maxErrors) {
+                        return task;
+                    }
+
+                    @BytecodeUpgrade
+                    static void setMinErrors(Task task, int maxErrors) {
+                    }
+                }
             }
         """
 
@@ -56,9 +79,16 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
 
         then:
         def maxErrorAccessors = [
-                // Order is important
-                new ReplacedAccessor("getMaxErrors", "()I", ACCESSORS_REMOVED),
-                new ReplacedAccessor("setMaxErrors", "(I)V", ACCESSORS_REMOVED)
+            // Order is important
+            new ReplacedAccessor("getMaxErrors", "()I", ACCESSORS_REMOVED),
+            new ReplacedAccessor("setMaxErrors", "(I)V", ACCESSORS_REMOVED)
+        ]
+        def minErrorAccessors = [
+            // Order is important
+            new ReplacedAccessor("getMinErrors", "()I", ACCESSORS_REMOVED),
+            new ReplacedAccessor("minErrors", "()I", ACCESSORS_REMOVED),
+            new ReplacedAccessor("minErrors", "(I)Lorg/gradle/test/Task;", ACCESSORS_REMOVED),
+            new ReplacedAccessor("setMinErrors", "(I)V", ACCESSORS_REMOVED),
         ]
         def sourceCompatibilityAccessors = [
                 // Order is important
@@ -73,6 +103,7 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         def properties = [
                 // Order is important
                 new UpgradedProperty("org.gradle.test.Task", "maxErrors", "getMaxErrors", "()Lorg/gradle/api/provider/Property;", maxErrorAccessors),
+                new UpgradedProperty("org.gradle.test.Task", "minErrors", "getMinErrors", "()Lorg/gradle/api/provider/Property;", minErrorAccessors),
                 new UpgradedProperty("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", "()Lorg/gradle/api/provider/Property;", sourceCompatibilityAccessors),
                 new UpgradedProperty("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", "()Lorg/gradle/api/provider/Property;", targetCompatibilityAccessors)
         ]
@@ -88,7 +119,6 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {

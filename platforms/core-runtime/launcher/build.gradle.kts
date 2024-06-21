@@ -22,20 +22,19 @@ dependencies {
     api(project(":file-watching"))
     api(project(":files"))
     api(project(":hashing"))
-    api(project(":java-language-extensions"))
+    api(projects.instrumentationAgentServices)
+    api(project(":stdlib-java-extensions"))
     api(project(":jvm-services"))
     api(project(":logging"))
     api(project(":logging-api"))
     api(project(":messaging"))
     api(project(":model-core"))
     api(project(":native"))
-    api(project(":persistent-cache"))
     api(project(":process-services"))
     api(project(":serialization"))
     api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":time"))
-    api(project(":toolchains-jvm-shared"))
     api(project(":tooling-api"))
 
     // This project contains the Gradle client, daemon and tooling API provider implementations.
@@ -46,18 +45,13 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
-    implementation(project(":build-configuration"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(projects.io)
     implementation(project(":problems-api"))
-    implementation(project(":build-process-services"))
+    implementation(project(":toolchains-jvm-shared"))
 
-    implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
-    implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
-    implementation(libs.ant)
 
     runtimeOnly(project(":gradle-cli-main"))
     runtimeOnly(project(":declarative-dsl-provider"))
@@ -71,21 +65,11 @@ dependencies {
     manifestClasspath(project(":gradle-cli-main"))
 
     testImplementation(project(":internal-integ-testing"))
-    testImplementation(project(":native"))
-    testImplementation(project(":cli"))
-    testImplementation(project(":process-services"))
-    testImplementation(project(":core-api"))
-    testImplementation(project(":model-core"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":base-services-groovy")) // for 'Specs'
-
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":language-java")))
-    testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":tooling-api")))
+    testImplementation(testFixtures(project(":daemon-protocol")))
 
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(libs.slf4jApi)
@@ -94,9 +78,6 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(project(":build-configuration")))
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
     integTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")
     }

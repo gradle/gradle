@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.ResultAssertion
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -52,7 +52,7 @@ class ToolingApi implements TestRule {
     private boolean useSeparateDaemonBaseDir
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
-    private DefaultServiceRegistry isolatedToolingClient
+    private ServiceRegistry isolatedToolingClient
     private context = new IntegrationTestBuildContext()
 
     private final List<Closure> connectorConfigurers = []
@@ -103,7 +103,18 @@ class ToolingApi implements TestRule {
 
     void requireIsolatedToolingApi() {
         requireIsolatedDaemons()
-        isolatedToolingClient = new ConnectorServices.ConnectorServiceRegistry()
+        isolatedToolingClient = createClientConnectorServiceRegistry()
+    }
+
+    private static ServiceRegistry createClientConnectorServiceRegistry() {
+        // This fixture can be loaded with a classloader of TAPI jar from previous Gradle releases
+        def currentVersion = GradleVersion.current().baseVersion
+        if (currentVersion <= GradleVersion.version("8.9")) {
+            // In 8.9 and before, ConnectorServiceRegistry directly implemented a ServiceRegistry
+            return new ConnectorServices.ConnectorServiceRegistry()
+        } else {
+            return ConnectorServices.ConnectorServiceRegistry.create()
+        }
     }
 
     void close() {

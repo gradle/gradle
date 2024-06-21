@@ -49,6 +49,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
@@ -130,6 +132,7 @@ public abstract class InitBuild extends DefaultTask {
      * Possible values for the option are provided by {@link #getAvailableBuildTypes()}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getType() {
         return isNullOrEmpty(type) ? detectType() : type;
     }
@@ -158,6 +161,7 @@ public abstract class InitBuild extends DefaultTask {
      */
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
     }
@@ -206,6 +210,7 @@ public abstract class InitBuild extends DefaultTask {
      * @since 5.0
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getProjectName() {
         return projectName == null ? projectDir.getAsFile().getName() : projectName;
     }
@@ -218,6 +223,7 @@ public abstract class InitBuild extends DefaultTask {
      * @since 5.0
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getPackageName() {
         return packageName == null ? "" : packageName;
     }
@@ -230,6 +236,7 @@ public abstract class InitBuild extends DefaultTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getTestFramework() {
         return testFramework;
     }
@@ -260,6 +267,7 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "comments", description = "Include clarifying comments in files.")
     public abstract Property<Boolean> getComments();
 
+    @NotToBeReplacedByLazyProperty(because = "Injected service")
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
         if (projectLayoutRegistry == null) {
             projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);
@@ -548,6 +556,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     @OptionValues("type")
+    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableBuildTypes() {
         return getProjectLayoutRegistry().getAllTypes();
     }
@@ -568,6 +577,7 @@ public abstract class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @OptionValues("dsl")
+    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableDSLs() {
         return BuildInitDsl.listSupported();
     }
@@ -584,6 +594,7 @@ public abstract class InitBuild extends DefaultTask {
      * Available test frameworks.
      */
     @OptionValues("test-framework")
+    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
     }

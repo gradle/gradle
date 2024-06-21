@@ -64,7 +64,7 @@ class ConfigurationCacheStartParameter(
 
     val keystoreDir: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
 
-    val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)
+    val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
     /**
      * Should be provided if a link to the report is expected even if no errors were found.

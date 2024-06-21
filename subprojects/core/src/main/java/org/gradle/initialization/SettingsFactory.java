@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.SettingsScopeServices;
@@ -73,11 +74,11 @@ public class SettingsFactory {
     }
 
     private class SettingsServiceRegistryFactory implements ServiceRegistryFactory {
-        private SettingsScopeServices services;
+        private CloseableServiceRegistry services;
 
         @Override
         public ServiceRegistry createFor(Object domainObject) {
-            services = new SettingsScopeServices(buildScopeServices, (SettingsInternal) domainObject);
+            services = SettingsScopeServices.create(buildScopeServices, (SettingsInternal) domainObject);
             return services;
         }
     }

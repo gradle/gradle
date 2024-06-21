@@ -33,8 +33,9 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(project(":base-services"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))

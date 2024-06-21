@@ -26,7 +26,7 @@ description = """Problem SPI implementations.
 dependencies {
     api(project(":problems-api"))
     api(project(":build-operations"))
-    api(project(":java-language-extensions"))
+    api(project(":stdlib-java-extensions"))
     api(project(":service-provider"))
 
     integTestImplementation(project(":internal-testing"))

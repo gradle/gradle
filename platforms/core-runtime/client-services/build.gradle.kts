@@ -21,20 +21,37 @@ plugins {
 description = "Services used by the Gradle client to interact with the daemon"
 
 dependencies {
+    api(libs.jsr305)
     api(project(":concurrent"))
     api(project(":messaging"))
     api(project(":logging"))
     api(project(":daemon-protocol"))
     api(project(":base-services"))
+    api(project(":jvm-services"))
+    api(project(":native"))
+    api(project(":enterprise-logging"))
+    api(project(":process-services"))
+    api(project(":serialization"))
+    api(project(":service-provider"))
+    api(project(":persistent-cache"))
+    api(project(":stdlib-java-extensions"))
 
-    // The client should not depend on core, but core still contains some types that are shared between the client and daemon
+    // The client should not depend on core or core-api or projects that depend on these.
+    // However, these project still contains some types that are shared between the client and daemon.
     api(project(":core"))
+    api(project(":core-api"))
+    api(project(":file-collections"))
 
-    implementation(libs.jsr305)
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.slf4jApi)
-    implementation(project(":java-language-extensions"))
+    implementation(project(":build-operations"))
+    implementation(project(":build-process-services"))
+    implementation(project(":instrumentation-agent-services"))
+    implementation(project(":logging-api"))
+    implementation(project(":time"))
+    implementation(project(":toolchains-jvm-shared"))
+    implementation(project(":io"))
 
     testImplementation(testFixtures(project(":core"))) {
         because("ConcurrentSpecification")

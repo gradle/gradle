@@ -244,7 +244,7 @@ Configuration 'bar':
 
         then:
         def e = thrown(ConfigurationSelectionException)
-        e.message == "A dependency was declared on configuration 'to' which is not declared in the descriptor for [target]."
+        e.message == "A dependency was declared on configuration 'to' of '[target]' but no variant with that configuration name exists."
     }
 
     def "excludes nothing when no exclude rules provided"() {
@@ -387,7 +387,7 @@ Configuration 'bar':
         }
 
         @Override
-        VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler resolutionFailureHandler) {
+        VariantGraphResolveState getVariantByConfigurationName(String name) {
             variants.find { it -> it.name == name }
         }
     }

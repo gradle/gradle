@@ -18,10 +18,12 @@ package org.gradle.api.java.archives;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 /**
  * Specifies how the entries of multiple manifests should be merged together.
  */
+@NotToBeMigratedToLazy
 public interface ManifestMergeSpec {
 
     /**

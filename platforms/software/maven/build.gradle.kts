@@ -15,7 +15,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
@@ -38,6 +38,7 @@ dependencies {
         because("We use the metadata model classes to create repository metadata files")
     }
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":functional"))
     implementation(project(":hashing"))
     implementation(project(":logging-api"))

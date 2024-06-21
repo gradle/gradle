@@ -34,7 +34,8 @@ import java.io.Writer
 internal
 enum class DiagnosticKind {
     PROBLEM,
-    INPUT
+    INPUT,
+    INCOMPATIBLE_TASK
 }
 
 
@@ -54,7 +55,7 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int) {
+    fun endModel(details: ConfigurationCacheReportDetails) = with(details) {
         endArray()
 
         comma()
@@ -71,6 +72,10 @@ class JsonModelWriter(val writer: Writer) {
         }
         comma()
         property("cacheAction", cacheAction)
+        comma()
+        property("cacheActionDescription") {
+            writeStructuredMessage(cacheActionDescription)
+        }
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
@@ -135,6 +140,7 @@ class JsonModelWriter(val writer: Writer) {
     fun keyFor(kind: DiagnosticKind) = when (kind) {
         DiagnosticKind.PROBLEM -> "problem"
         DiagnosticKind.INPUT -> "input"
+        DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
     }
 
     private

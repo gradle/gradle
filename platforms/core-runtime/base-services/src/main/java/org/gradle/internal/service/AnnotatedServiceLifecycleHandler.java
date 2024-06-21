@@ -39,7 +39,11 @@ public interface AnnotatedServiceLifecycleHandler {
     void whenRegistered(Class<? extends Annotation> annotation, Registration registration);
 
     interface Registration {
-        Class<?> getDeclaredType();
+
+        /**
+         * One or more services provided by this registration.
+         */
+        List<Class<?>> getDeclaredTypes();
 
         /**
          * Returns the service instance, creating it if required.

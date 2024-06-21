@@ -37,10 +37,8 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
@@ -178,17 +176,6 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException externalConfigurationNotFoundFailure(String fromConfigurationName, ComponentIdentifier toComponent, String toConfigurationName) {
         ExternalRequestedConfigurationNotFoundFailure failure = new ExternalRequestedConfigurationNotFoundFailure(toConfigurationName, toComponent, fromConfigurationName);
         return describeFailure(failure);
-    }
-
-    public AbstractResolutionFailureException nonConsumableConfigurationFailure(
-        String configurationName,
-        ComponentIdentifier componentId
-    ) {
-        // We hard-code the exception here since we do not currently support dynamically describing this type of failure.
-        // It might make sense to do this for other similar failures that do not have dynamic failure handling.
-        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(configurationName, componentId.getDisplayName());
-        String message = String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
     }
 
     // endregion Configuration by name

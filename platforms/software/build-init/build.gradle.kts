@@ -25,7 +25,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.maven3Settings)
 
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
@@ -38,6 +38,7 @@ dependencies {
     api(project(":workers"))
     api(project(":daemon-services"))
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":logging-api"))
     implementation(project(":platform-native"))
     implementation(project(":plugins-application")) {

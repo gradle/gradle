@@ -16,13 +16,11 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 
 /**
  * A registry validating that all registered services are annotated with a corresponding {@link Scope}.
  */
-@NonNullApi
 public class ScopedServiceRegistry extends DefaultServiceRegistry {
 
     public ScopedServiceRegistry(

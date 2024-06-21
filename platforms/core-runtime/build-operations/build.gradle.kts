@@ -9,7 +9,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(libs.jsr305)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
 
     implementation(libs.slf4jApi)
 

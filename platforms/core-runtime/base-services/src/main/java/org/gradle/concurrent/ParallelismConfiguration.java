@@ -16,11 +16,14 @@
 
 package org.gradle.concurrent;
 
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+
 /**
  * A {@code ParallelismConfiguration} defines the parallel settings for a Gradle build.
  *
  * @since 4.1
  */
+@NotToBeMigratedToLazy
 public interface ParallelismConfiguration {
     /**
      * Returns true if parallel project execution is enabled.

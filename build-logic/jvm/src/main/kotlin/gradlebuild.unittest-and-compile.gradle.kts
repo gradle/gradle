@@ -271,7 +271,7 @@ fun configureTests() {
             this as TestDistributionConfigurationInternal
             server = uri("https://ge.gradle.org")
 
-            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
@@ -315,6 +315,8 @@ fun removeTeamcityTempProperty() {
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
 fun Project.isNativeProject() = name.contains("native")
+
+fun Project.isKotlinDslToolingBuilders() = name.contains("kotlin-dsl-tooling-builders")
 
 /**
  * Whether the project supports running with predictive test selection.

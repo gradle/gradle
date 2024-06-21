@@ -24,6 +24,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
@@ -40,7 +41,7 @@ public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;
     private ProjectInternal project;
-    private ProjectScopeServices projectScopeServices;
+    private CloseableServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
         NotCreated, Created, Configured
@@ -68,7 +69,7 @@ public class ProjectLifecycleController implements Closeable {
             ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
                 final Factory<LoggingManagerInternal> loggingManagerFactory = buildServices.getFactory(LoggingManagerInternal.class);
-                projectScopeServices = new ProjectScopeServices(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
+                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
                 return projectScopeServices;
             };
             project = projectFactory.createProject(build.getMutableModel(), descriptor, owner, parentModel, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);

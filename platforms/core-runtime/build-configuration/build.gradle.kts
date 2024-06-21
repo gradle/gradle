@@ -10,11 +10,13 @@ dependencies {
 
     api(project(":core"))
     api(project(":core-api"))
-    api(project(":java-language-extensions"))
+
     api(project(":toolchains-jvm-shared"))
+    api(project(":stdlib-java-extensions"))
 
     implementation(project(":base-services"))
     implementation(project(":logging"))
+    implementation(project(":daemon-protocol"))
     implementation(project(":jvm-services"))
 
     testImplementation(testFixtures(project(":core")))

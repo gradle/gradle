@@ -12,7 +12,7 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(project(":core-api"))
     api(project(":problems-api"))
@@ -34,6 +34,7 @@ dependencies {
 
     implementation(project(":base-services-groovy"))
     implementation(project(":base-asm"))
+    implementation(project(":service-provider"))
 
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)

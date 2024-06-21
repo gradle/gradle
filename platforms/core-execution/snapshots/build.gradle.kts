@@ -6,7 +6,7 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":files"))
     api(project(":functional"))
     api(project(":hashing"))

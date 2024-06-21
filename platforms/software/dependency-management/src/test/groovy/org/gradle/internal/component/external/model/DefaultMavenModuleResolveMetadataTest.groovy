@@ -84,8 +84,8 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         def runtime = metadata.getConfiguration("runtime")
 
         then:
-        runtime.variants.size() == 1
-        def firstVariant = runtime.variants.first()
+        runtime.artifactVariants.size() == 1
+        def firstVariant = runtime.artifactVariants.first()
         assertHasOnlyStatusAttribute(firstVariant.attributes)
         firstVariant.artifacts == runtime.artifacts
     }

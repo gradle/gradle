@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.util.GradleVersion
@@ -107,7 +107,7 @@ class DaemonContextParserTest extends Specification {
             Arrays.asList("--add-opens=java.base/java.util=ALL-UNNAMED", "-Xms256m", "-Duser.language=en", "-Duser.variant"),
             true,
             NativeServices.NativeServicesMode.NOT_SET,
-            DaemonParameters.Priority.NORMAL)
+            DaemonPriority.NORMAL)
 
         def contextString = context.toString()
         when:

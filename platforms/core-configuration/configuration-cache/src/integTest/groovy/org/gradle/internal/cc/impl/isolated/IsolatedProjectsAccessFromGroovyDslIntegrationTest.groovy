@@ -632,6 +632,44 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
+    def "reports problem when cross-project access happens in a script-owned configure-action"() {
+        given:
+        createDirs("a", "aa")
+        settingsFile """
+            include(":a")
+            include(":a:aa")
+        """
+        buildFile """
+            project.extensions.extraProperties["projectProperty"] = "hello"
+        """
+
+        groovyFile "a/aa/myscript.gradle", """
+            // Using `withPlugin` as an example of a configure action
+            project.pluginManager.withPlugin('base', {
+                println("My property: " + projectProperty)
+            })
+        """
+        groovyFile "a/aa/build.gradle", """
+            plugins {
+                id "base"
+            }
+            apply from: 'myscript.gradle'
+        """
+
+        when:
+        isolatedProjectsFails("help")
+
+        then:
+        outputContains("My property: hello")
+
+        // an additional subproject demonstrates that the problems are duplicated as the property lookup traverses up the project hierarchy
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":a:aa")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project ':a'")
+        }
+    }
+
     def "build script can query basic details of projects in allprojects block"() {
         createDirs("a", "b")
         settingsFile << """

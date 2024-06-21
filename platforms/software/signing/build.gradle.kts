@@ -5,7 +5,7 @@ plugins {
 description = "Plugin for cryptographic signing of publications, artifacts or files."
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -17,6 +17,7 @@ dependencies {
     api(libs.groovy)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(project(":model-core"))
     implementation(project(":functional"))
     implementation(project(":platform-base"))

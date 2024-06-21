@@ -398,8 +398,8 @@ public class DependencyGraphBuilder {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
-        List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
-        if (!incomingRootEdges.isEmpty()) {
+
+        if (resolveState.getRoot().wasIncomingEdgeAdded()) {
             String rootNodeName = resolveState.getRoot().getMetadata().getName();
             DeprecationLogger.deprecate(
                     String.format(

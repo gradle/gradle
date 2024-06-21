@@ -272,7 +272,7 @@ class TransformReplacerTest extends Specification {
     }
 
     private static int getCurrentJvmMajor() {
-        return JavaVersion.current().majorVersionNumber
+        return JavaVersion.current().majorVersion.toInteger()
     }
 
     private static ProtectionDomain protectionDomain(File path) {

@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -48,6 +49,7 @@ public abstract class GradleBuild extends ConventionTask {
      * @return the parameters. Never returns null.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public StartParameter getStartParameter() {
         return startParameter;
     }
@@ -67,6 +69,7 @@ public abstract class GradleBuild extends ConventionTask {
      * @return The project directory. Never returns null.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getDir() {
         return getStartParameter().getCurrentDir();
     }
@@ -154,6 +157,7 @@ public abstract class GradleBuild extends ConventionTask {
      * @return The sequence. May be empty. Never returns null.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getTasks() {
         return getStartParameter().getTaskNames();
     }
@@ -186,6 +190,7 @@ public abstract class GradleBuild extends ConventionTask {
      * @since 6.0
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getBuildName() {
         return buildName;
     }

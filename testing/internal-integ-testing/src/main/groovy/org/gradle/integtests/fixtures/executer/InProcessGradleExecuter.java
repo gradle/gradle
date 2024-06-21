@@ -31,7 +31,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.execution.MultipleBuildFailures;
@@ -48,19 +47,19 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.agents.AgentInitializer;
-import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.function.Predicate;
+import org.gradle.internal.instrumentation.agent.AgentInitializer;
+import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Time;
-import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -258,7 +257,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
             builder.environment(invocation.environmentVars);
 
-            builder.getMainClass().set(Main.class.getName());
+            builder.getMainClass().set("org.gradle.launcher.Main");
             builder.args(invocation.args);
             builder.setStandardInput(connectStdIn());
 
@@ -477,7 +476,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     public static class InProcessExecutionResult implements ExecutionResult {
-        protected static final Spec<String> NOT_BUILD_SRC_TASK = t -> !t.startsWith(":buildSrc:");
+        protected static final Predicate<String> NOT_BUILD_SRC_TASK = t -> !t.startsWith(":buildSrc:");
         protected final List<String> executedTasks;
         protected final Set<String> skippedTasks;
         private final ExecutionResult outputResult;

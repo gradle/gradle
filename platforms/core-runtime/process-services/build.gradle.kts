@@ -8,7 +8,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(project(":base-services"))
     api(project(":messaging"))
 
@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.nativePlatform)
+    implementation(projects.internalInstrumentationApi)
 
     testImplementation(testFixtures(project(":core")))
 

@@ -28,14 +28,13 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))
-    api(project(":diagnostics"))
     api(project(":enterprise-operations"))
     api(project(":enterprise-logging"))
     api(project(":file-collections"))
@@ -54,6 +53,7 @@ dependencies {
         because("Required for SystemInfo")
     }
 
+    implementation(projects.diagnostics)
     implementation(project(":logging"))
 
     implementation(libs.commonsIo)

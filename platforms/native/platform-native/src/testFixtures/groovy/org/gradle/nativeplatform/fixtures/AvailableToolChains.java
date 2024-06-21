@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -172,12 +171,7 @@ public class AvailableToolChains {
     }
 
     static private VisualStudioVersion getVisualStudioVersion(final VersionNumber version) {
-        return CollectionUtils.findFirst(VisualStudioVersion.values(), new Spec<VisualStudioVersion>() {
-            @Override
-            public boolean isSatisfiedBy(VisualStudioVersion candidate) {
-                return candidate.getVersion().getMajor() == version.getMajor();
-            }
-        });
+        return CollectionUtils.findFirst(VisualStudioVersion.values(), candidate -> candidate.getVersion().getMajor() == version.getMajor());
     }
 
     static private List<ToolChainCandidate> findVisualCpps() {

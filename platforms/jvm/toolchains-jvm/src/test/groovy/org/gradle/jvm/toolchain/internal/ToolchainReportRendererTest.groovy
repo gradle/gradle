@@ -21,7 +21,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.internal.task.ToolchainReportRenderer
+import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -89,7 +89,7 @@ class ToolchainReportRendererTest extends Specification {
         def renderer = new ToolchainReportRenderer()
         def output = new TestStyledTextOutput()
         renderer.output = output
-        renderer.printToolchain(new JvmToolchainMetadata(metadata, installation))
+        renderer.printDetectedToolchain(new JvmToolchainMetadata(metadata, installation))
         assert output.value == expectedOutput
     }
 }
