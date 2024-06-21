@@ -51,7 +51,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     public DefaultCppComponent(String name, ObjectFactory objectFactory) {
         super(objectFactory);
         this.name = name;
-        cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
+        cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc", "cxx", "cp", "CPP", "C"));
         privateHeaders = objectFactory.fileCollection();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
