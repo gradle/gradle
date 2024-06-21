@@ -24,7 +24,7 @@ import org.gradle.work.DisableCachingByDefault
 abstract class GenerateSubprojectsInfo : SubprojectsInfo() {
 
     @TaskAction
-    fun generateSubprojectsInfo() {
+    fun action() {
         subprojectsJson.asFile.writeText(generateSubprojectsJson())
     }
 

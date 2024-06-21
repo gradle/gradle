@@ -50,7 +50,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
     abstract val libraryVersionFile: RegularFileProperty
 
     @TaskAction
-    fun updateInitPluginTemplateVersionFile() {
+    fun action() {
         val versionProperties = Properties()
 
         findLatest("scala-library", "org.scala-lang:scala-library:2.13.+", versionProperties)
@@ -92,6 +92,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
     private
     fun findLatest(name: String, notation: String, dest: Properties) {
         val libDependencies = arrayOf(project.dependencies.create(notation))
+        @Suppress("SpreadOperator")
         val templateVersionConfiguration = project.configurations.detachedConfiguration(*libDependencies)
         templateVersionConfiguration.resolutionStrategy.componentSelection.all {
             devSuffixes.forEach {

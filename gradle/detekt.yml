@@ -23,12 +23,12 @@ complexity:
   TooManyFunctions:
     active: false
   LongParameterList:
-    functionThreshold: 30                 # can be much smaller in follow-up branch            # default is 6
-    constructorThreshold: 40              # can be much smaller in follow-up branch            # default is 7
+    functionThreshold: 15                 # default is 6
+    constructorThreshold: 15              # default is 7
   LongMethod:
-    threshold: 550                        # can be much smaller in follow-up branch            # default is 60
+    threshold: 100                        # default is 60
   CyclomaticComplexMethod:
-    threshold: 45                         # can be much smaller in follow-up branch            # default is 15
+    threshold: 25                         # default is 15
   ComplexCondition:
     active: false
   NestedBlockDepth:
@@ -46,11 +46,3 @@ exceptions:
       - 'NumberFormatException'           # default
       - 'ParseException'                  # default
       - 'InvocationTargetException'       # added by us
-
-performance:
-  SpreadOperator:
-    active: false                         # we need to take a look at these !!!
-
-naming:
-  MemberNameEqualsClassName:
-    active: false

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 
 class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest() {
     @Test
+    @Suppress("LongMethod")
     fun `verify misordered changes can be sorted`() {
         //language=JSON
         firstAcceptedApiChangesFile.writeText(
