@@ -107,6 +107,25 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
+    def 'can declare and configure a software type with custom lifecycle'() {
+        given: 'a software type with custom model lifecycle and some imperative conventions'
+        withSoftwareTypePluginThatDefinesCustomLifecycle().prepareToExecute()
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        and: 'a build file that configures a part of the model'
+        file("build.gradle.dcl") << """
+            testSoftwareType {
+                id = "test"
+            }
+        """
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then: 'both the build file content and the imperative conventions are applied'
+        outputContains("""id = test\nbar = bar""")
+    }
+
     def 'can declare multiple custom software types from a single settings plugin'() {
         given:
         withSettingsPluginThatExposesMultipleSoftwareTypes().prepareToExecute()

@@ -126,10 +126,12 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
         }
 
         @Override
-        public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, SoftwareType softwareType) {
+        public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, SoftwareType softwareType, boolean hasCustomLifecycle) {
             ExtensionContainer extensions = ((ExtensionAware) target).getExtensions();
             Class<?> returnType = softwareType.modelPublicType();
-            extensions.add(returnType, softwareType.name(), Cast.uncheckedNonnullCast(value.call()));
+            if (!hasCustomLifecycle) {
+                extensions.add(returnType, softwareType.name(), Cast.uncheckedNonnullCast(value.call()));
+            }
         }
     }
 }

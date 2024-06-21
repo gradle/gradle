@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.internal.plugins.software.CustomSoftwareTypeLifecycle;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
@@ -68,7 +69,6 @@ import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumen
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.List;
 
 public class PluginUseServices extends AbstractGradleModuleServices {
@@ -140,7 +140,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             ));
             InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
                 allPropertyTypes.build(),
-                Collections.emptySet(),
+                ImmutableSet.of(CustomSoftwareTypeLifecycle.class),
                 instantiationScheme,
                 MissingPropertyAnnotationHandler.DO_NOTHING
             );

@@ -32,7 +32,6 @@ dependencies {
     implementation(libs.inject)
     testImplementation(libs.mockitoKotlin2)
 
-    implementation(projects.baseServices)
     implementation(projects.resources)
     implementation(projects.modelCore)
     implementation(projects.serviceLookup)

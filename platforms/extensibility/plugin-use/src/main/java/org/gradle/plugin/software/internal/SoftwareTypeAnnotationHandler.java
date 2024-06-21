@@ -17,6 +17,7 @@
 package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.plugins.software.CustomSoftwareTypeLifecycle;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -30,7 +31,11 @@ import org.gradle.model.internal.type.ModelType;
 public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHandler {
 
     public SoftwareTypeAnnotationHandler() {
-        super(SoftwareType.class, Kind.OTHER, ImmutableSet.of());
+        super(
+            SoftwareType.class,
+            Kind.OTHER,
+            ImmutableSet.of(CustomSoftwareTypeLifecycle.class)
+        );
     }
 
     @Override
@@ -40,9 +45,10 @@ public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHan
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType ->
-            visitor.visitSoftwareTypeProperty(propertyName, value, softwareType)
-        );
+        propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
+            boolean hasCustomLifecycle = propertyMetadata.getAnnotation(CustomSoftwareTypeLifecycle.class).isPresent();
+            visitor.visitSoftwareTypeProperty(propertyName, value, softwareType, hasCustomLifecycle);
+        });
     }
 
     @Override
