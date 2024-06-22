@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.util.internal.ArrayUtils.contains;
 
-public class RelevantMethods {
+class RelevantMethods {
     private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
     private static final ServiceMethodFactory SERVICE_METHOD_FACTORY = new DefaultServiceMethodFactory();
 

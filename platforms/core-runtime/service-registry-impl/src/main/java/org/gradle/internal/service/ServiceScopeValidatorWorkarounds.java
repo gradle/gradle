@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @NonNullApi
-public class ServiceScopeValidatorWorkarounds {
+class ServiceScopeValidatorWorkarounds {
 
     private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<String>(Arrays.asList(
         "com.google.common.collect.ImmutableList",
