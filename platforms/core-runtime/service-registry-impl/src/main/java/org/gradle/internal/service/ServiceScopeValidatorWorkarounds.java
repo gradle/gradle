@@ -16,13 +16,10 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.api.NonNullApi;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-@NonNullApi
 class ServiceScopeValidatorWorkarounds {
 
     private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<String>(Arrays.asList(
