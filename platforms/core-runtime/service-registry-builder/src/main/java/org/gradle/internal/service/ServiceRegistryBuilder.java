@@ -89,6 +89,14 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
+    /**
+     * Creates a service registry with the provided configuration.
+     * <p>
+     * The registry <b>should be {@link CloseableServiceRegistry#close() closed}</b> when it is no longer required
+     * to cleanly dispose of the resources potentially held by created services.
+     *
+     * @see CloseableServiceRegistry
+     */
     public CloseableServiceRegistry build() {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
