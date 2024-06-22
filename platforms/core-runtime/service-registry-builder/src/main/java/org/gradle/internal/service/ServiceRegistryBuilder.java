@@ -21,7 +21,13 @@ import org.gradle.internal.service.scopes.Scope;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A builder for a {@link ServiceRegistry}.
+ *
+ * @see ServiceRegistryBuilder#builder()
+ */
 public class ServiceRegistryBuilder {
+
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
     private final List<ServiceRegistrationProvider> providers = new ArrayList<ServiceRegistrationProvider>();
     private String displayName;
@@ -31,25 +37,62 @@ public class ServiceRegistryBuilder {
     private ServiceRegistryBuilder() {
     }
 
+    /**
+     * Creates a new builder.
+     */
     public static ServiceRegistryBuilder builder() {
         return new ServiceRegistryBuilder();
     }
 
+    /**
+     * Sets the display name to be used by the service registry.
+     * <p>
+     * The display name is used for debugging and in the errors messages.
+     * The errors are not user-facing and oriented at troubleshooting.
+     * For instance, errors when services fail validation at registration time,
+     * or when their dependencies are missing at instantiation time.
+     */
     public ServiceRegistryBuilder displayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
 
+    /**
+     * Adds a parent for the service registry.
+     * <p>
+     * Parent registries are used to lookup services not found in the current registry.
+     * <p>
+     * There can be more than one parent.
+     */
     public ServiceRegistryBuilder parent(ServiceRegistry parent) {
         this.parents.add(parent);
         return this;
     }
 
+    /**
+     * Adds a service provider for the service registry.
+     * <p>
+     * Providers are examined for service declarations and service registration logic
+     * at the time of building the registry.
+     * <p>
+     * There can be more than one service provider.
+     *
+     * @see ServiceRegistrationProvider
+     */
     public ServiceRegistryBuilder provider(ServiceRegistrationProvider provider) {
         this.providers.add(provider);
         return this;
     }
 
+    /**
+     * Adds a service provider for the service registry in the form of a registration action.
+     * <p>
+     * The registration action is executed at the time of building the registry.
+     * <p>
+     * There can be more than one registration action.
+     *
+     * @see ServiceRegistrationAction
+     */
     public ServiceRegistryBuilder provider(final ServiceRegistrationAction register) {
         return provider(new ServiceRegistrationProvider() {
             @SuppressWarnings("unused")
