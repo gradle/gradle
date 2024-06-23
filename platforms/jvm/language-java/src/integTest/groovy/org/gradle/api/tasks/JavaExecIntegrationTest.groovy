@@ -22,14 +22,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-// TODO: add some tests
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
     TestFile mainJavaFile
 
     def setup() {
         mainJavaFile = file('src/main/java/Driver.java')
-        file("src/main/java/Driver.java").text = mainClass("""
+        mainJavaFile << mainClass("""
             try {
                 FileWriter out = new FileWriter("out.txt");
                 for (String arg: args) {
