@@ -18,6 +18,7 @@ package org.gradle.internal.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -171,28 +172,32 @@ public class ResolutionFailureHandler {
     // endregion State 3 - GraphValidationFailures
 
     // region State 4 - ArtifactSelectionFailures
-    public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(AttributesSchemaInternal schema, ComponentIdentifier targetComponent, String targetVariant, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
-        AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(targetComponent, targetVariant, requestedAttributes, transformedVariants);
+    public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(AttributesSchemaInternal schema, ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
+        AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, transformedVariants);
         return describeFailure(schema, failure);
     }
 
-    public AbstractResolutionFailureException noCompatibleArtifactFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ComponentIdentifier targetComponent, String targetVariant, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
+    public AbstractResolutionFailureException noCompatibleArtifactFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(candidateVariants);
-        NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(targetComponent, targetVariant, requestedAttributes, assessedCandidates);
+        NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
         return describeFailure(schema, failure);
     }
 
-    public AbstractResolutionFailureException ambiguousArtifactsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ComponentIdentifier targetComponent, String targetVariant, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants) {
+    public AbstractResolutionFailureException ambiguousArtifactsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
-        AmbiguousArtifactsFailure failure = new AmbiguousArtifactsFailure(targetComponent, targetVariant, requestedAttributes, assessedCandidates);
+        AmbiguousArtifactsFailure failure = new AmbiguousArtifactsFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
         return describeFailure(schema, failure);
     }
 
-    public AbstractResolutionFailureException unknownArtifactVariantSelectionFailure(AttributesSchemaInternal schema, ComponentIdentifier targetComponent, String targetVariant, ImmutableAttributes requestAttributes, Exception cause) {
-        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(targetComponent, targetVariant, requestAttributes, cause);
+    public AbstractResolutionFailureException unknownArtifactVariantSelectionFailure(AttributesSchemaInternal schema, ResolvedVariantSet targetVariantSet, ImmutableAttributes requestAttributes, Exception cause) {
+        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestAttributes, cause);
         return describeFailure(schema, failure);
+    }
+
+    private ComponentIdentifier getOrCreateVariantSetComponentIdentifier(ResolvedVariantSet resolvedVariantSet) {
+        return resolvedVariantSet.getComponentIdentifier() != null ? resolvedVariantSet.getComponentIdentifier() : () -> resolvedVariantSet.asDescribable().getDisplayName();
     }
     // endregion State 4 - ArtifactSelectionFailures
 

@@ -118,7 +118,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             writeBoolean(artifactType != null)
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->
-                val recordingSet = RecordingVariantSet(value.dependencyMetadata.files, sourceAttributes)
+                val recordingSet = RecordingVariantSet(value.dependencyMetadata.componentId, value.dependencyMetadata.files, sourceAttributes)
                 val selected = value.variantSelector.select(recordingSet, value.requestAttributes, true, recordingSet)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
@@ -204,6 +204,7 @@ class DeserializedLocalFileDependencyArtifactSet(
 
 private
 class RecordingVariantSet(
+    private val componentId: ComponentIdentifier?,
     private val source: FileCollectionInternal,
     private val attributes: ImmutableAttributes
 ) : ResolvedVariantSet, ResolvedVariant, ArtifactVariantSelector.ResolvedArtifactTransformer, ResolvedArtifactSet {
@@ -238,8 +239,8 @@ class RecordingVariantSet(
         return ImmutableCapabilities.EMPTY
     }
 
-    override fun getComponentIdentifier(): ComponentIdentifier {
-        throw UnsupportedOperationException("Should not be called")
+    override fun getComponentIdentifier(): ComponentIdentifier? {
+        return componentId
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -33,6 +34,7 @@ public interface ResolvedVariantSet {
      *
      * @return component identifier as described
      */
+    @Nullable
     ComponentIdentifier getComponentIdentifier();
 
     Describable asDescribable();
