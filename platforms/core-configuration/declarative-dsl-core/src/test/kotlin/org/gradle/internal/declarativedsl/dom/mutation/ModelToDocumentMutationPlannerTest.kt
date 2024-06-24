@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
+import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationIssueReason.ScopeLocationNotMatched
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
@@ -126,7 +126,7 @@ class ModelToDocumentMutationPlannerTest {
 
         // Expected to do nothing:
         assertEquals(emptyList(), mutationPlan.documentMutations)
-        assertEquals(emptyList(), mutationPlan.unsuccessfulModelMutations)
+        assertEquals(emptyList(), mutationPlan.modelMutationIssues)
     }
 
     @Test
@@ -195,7 +195,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertFailedMutation(
             mutationPlan,
-            UnsuccessfulModelMutation(request, listOf(ModelMutationFailureReason.TargetPropertyNotFound))
+            ModelMutationIssue(ModelMutationIssueReason.TargetPropertyNotFound)
         )
     }
 
@@ -222,7 +222,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertFailedMutation(
             mutationPlan,
-            UnsuccessfulModelMutation(request, listOf(ScopeLocationNotMatched))
+            ModelMutationIssue(ScopeLocationNotMatched)
         )
     }
 
@@ -244,7 +244,7 @@ class ModelToDocumentMutationPlannerTest {
     private
     fun assertSuccessfulMutation(planModelMutations: ModelMutationPlan, expectedDocumentMutation: DocumentMutation) {
         assertTrue(isEquivalentMutation(expectedDocumentMutation, planModelMutations.documentMutations.single()))
-        assertTrue { planModelMutations.unsuccessfulModelMutations.isEmpty() }
+        assertTrue { planModelMutations.modelMutationIssues.isEmpty() }
     }
 
     private
@@ -259,11 +259,11 @@ class ModelToDocumentMutationPlannerTest {
     }
 
     private
-    fun assertFailedMutation(planModelMutations: ModelMutationPlan, expectedFailure: UnsuccessfulModelMutation) {
+    fun assertFailedMutation(planModelMutations: ModelMutationPlan, expectedFailure: ModelMutationIssue) {
         assertTrue { planModelMutations.documentMutations.isEmpty() }
         assertEquals(
             listOf(expectedFailure),
-            planModelMutations.unsuccessfulModelMutations
+            planModelMutations.modelMutationIssues
         )
     }
 }

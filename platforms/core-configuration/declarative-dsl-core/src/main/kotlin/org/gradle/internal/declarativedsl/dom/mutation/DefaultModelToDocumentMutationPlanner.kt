@@ -128,7 +128,7 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
     ): ModelMutationPlan {
         val matchingScopes = scopeLocationMatcher.match(request.location)
         return when {
-            matchingScopes.isEmpty() -> DefaultModelMutationPlan(emptyList(), listOf(UnsuccessfulModelMutation(request, listOf(ModelMutationFailureReason.ScopeLocationNotMatched))))
+            matchingScopes.isEmpty() -> DefaultModelMutationPlan(emptyList(), listOf(ModelMutationIssue(ModelMutationIssueReason.ScopeLocationNotMatched)))
             else -> mapScopesToMutationPlan(matchingScopes)
         }
     }
@@ -164,7 +164,7 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
 
                 else -> DefaultModelMutationPlan(
                     emptyList(),
-                    listOf(UnsuccessfulModelMutation(request, listOf(ModelMutationFailureReason.TargetPropertyNotFound)))
+                    listOf(ModelMutationIssue(ModelMutationIssueReason.TargetPropertyNotFound))
                 )
             }
         }
