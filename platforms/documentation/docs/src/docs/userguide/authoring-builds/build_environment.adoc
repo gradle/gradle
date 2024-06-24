@@ -37,7 +37,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 
 |<<#sec:gradle_system_properties,System properties>>
 |Properties that are passed to the Gradle runtime (JVM)
-|`systemProp.http.proxyHost=somehost.org`
+|`http.proxyHost=somehost.org`
 
 |<<#sec:gradle_configuration_properties,Gradle properties>>
 |Properties that configure Gradle settings and the Java process that executes your build
@@ -59,25 +59,25 @@ The following table lists these methods in order of highest to lowest precedence
 |Priority |Method |Location |Notes
 
 |1
-|<<command_line_interface#command_line_interface,Command-line flags>>
-|Command line
+|<<command_line_interface#command_line_interface,Command-line>>
+|> Command line
 |Flags have precedence over properties and environment variables
 
 |2
 |<<#sec:gradle_system_properties,System properties>>
-|Project Root Dir
+|> Project Root Dir
 |Stored in a `gradle.properties` file
 
 |3
 |<<#sec:gradle_configuration_properties,Gradle properties>>
-|`GRADLE_USER_HOME` +
-Project Root Dir +
-`GRADLE_HOME`
+|> `GRADLE_USER_HOME` +
+> Project Root Dir +
+> `GRADLE_HOME`
 |Stored in a `gradle.properties` file
 
 |4
 |<<#sec:gradle_environment_variables,Environment variables>>
-|Environment
+|> Environment
 |Sourced by the environment that executes Gradle
 |===
 
@@ -87,19 +87,45 @@ Here are all possible configurations of specifying the JDK installation director
 +
 [source,text]
 ----
-$ ./gradlew yourTask -Dorg.gradle.java.home=/path/to/your/java/home
+$ ./gradlew exampleTask -Dorg.gradle.java.home=/path/to/your/java/home --scan
 ----
 2. Gradle Properties File
 +
 [source,text]
+.gradle.properties
 ----
 org.gradle.java.home=/path/to/your/java/home
+systemProp.http.proxyHost=host.org
 ----
 3. Environment Variable
 +
 [source,text]
 ----
 $ export JAVA_HOME=/path/to/your/java/home
+$ export JAVA_OPTS="-Xmx18928m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -Djava.awt.headless=true -Dkotlin.daemon.jvm.options=-Xmx6309m"
+----
+
+== The `gradle.properties` file
+
+Gradle properties, system properties, and project properties can be found in the `gradle.properties` file:
+
+[source, properties]
+.gradle.properties
+----
+# Gradle properties
+org.gradle.parallel=true
+org.gradle.caching=true
+org.gradle.jvmargs=-Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8
+
+# System properties
+systemProp.pts.enabled=true
+systemProp.log4j2.disableJmx=true
+systemProp.file.encoding = UTF-8
+
+# Project properties
+kotlin.code.style=official
+android.nonTransitiveRClass=false
+spring-boot.version = 2.2.1.RELEASE
 ----
 
 [[sec:project_properties]]
@@ -107,19 +133,20 @@ $ export JAVA_HOME=/path/to/your/java/home
 
 Project properties are specific to your Gradle project, they are variables or configuration blocks defined in your build script or in the `project` object.
 
-For example, the project property `myProperty` is created in a build file:
+For example, the project property `dryRun`, in the build file below, enables a specific test mode:
 
 .build.gradle
 [source,groovy]
 ----
-ext {
-    myProperty = findProperty('myProperty') ?: 'Hello, world!'
+test {
+  predictiveSelection {
+    enabled = true
+      dryRun = true
+  }
 }
-
-println "My property value: ${project.ext.myProperty}"
 ----
 
-=== Setting a project properties
+=== Setting a project property
 
 You have three options to add project properties, listed in order of priority:
 
@@ -127,25 +154,25 @@ You have three options to add project properties, listed in order of priority:
 +
 [source,text]
 ----
-$ ./gradlew build -PmyProperty='Hi, world'
+$ ./gradlew test -Pgradle.testselection.dryRun
 ----
-2. *System Property:* Gradle creates specially-named system properties for project properties which you can set using the `-D` command line flag or `gradle.properties` file. For the project property `prop`, the system property created is called `org.gradle.project.__prop__`.
+2. *As a System Property:* Gradle creates specially-named system properties for project properties which you can set using the `-D` command line flag or `gradle.properties` file. For the project property `prop`, the system property created is called `org.gradle.project.__prop__`.
 +
 [source,text]
 ----
-$ ./gradlew build -Dorg.gradle.project.myProperty='Hi, world'
+$ ./gradlew build -Dorg.gradle.project.prop='Hi, world'
 ----
 +
 .gradle.properties
 [source,properties]
 ----
-org.gradle.project.myProperty='Hi, world'
+org.gradle.project.prop='Hi, world'
 ----
 3. *Environment Variables:* You can set project properties with environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
 +
 [source,text]
 ----
-$ export ORG_GRADLE_PROJECT_myProperty='Hi, world'
+$ export ORG_GRADLE_PROJECT_myProperty=somevalue
 ----
 +
 This feature is very useful when you don't have admin rights to a continuous integration server and need to set property values that are not easily visible.
@@ -161,9 +188,9 @@ The command line interface and the available flags are described in <<command_li
 == System properties
 
 System properties are variables set at the JVM level and accessible to the Gradle build process.
-System properties can be accessed using the `System` class in the build script.
+System properties can be accessed using `System.getProperty` or `providers.systemProperty` in the build script.
 
-=== Setting system properties
+=== Setting a system property
 
 You have two options to add system properties listed in order of priority:
 
@@ -197,41 +224,13 @@ Additional Java system properties are listed link:https://docs.oracle.com/javase
 In a multi-project build, `systemProp` properties set in any project except the root will be *ignored*.
 Only the root project's `gradle.properties` file will be checked for properties that begin with `systemProp`.
 
-=== Using system properties
-
-The following examples demonstrate how to use system properties:
-
-*Example 1:* Setting system properties with a `gradle.properties` file:
-====
-include::sample[dir="snippets/tutorial/systemProperties/groovy",files="gradle.properties[]"]
-====
-
-*Example 2:* Reading system properties at configuration time:
-====
-include::sample[dir="snippets/tutorial/systemProperties/kotlin",files="init.gradle.kts[];settings.gradle.kts[];build.gradle.kts[tags=system-properties]"]
-include::sample[dir="snippets/tutorial/systemProperties/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=system-properties]"]
-====
-
-*Example 3:* Reading system properties for consumption at execution time:
-====
-include::sample[dir="snippets/tutorial/systemProperties/kotlin",files="build.gradle.kts[tags=system-properties-task-inputs]"]
-include::sample[dir="snippets/tutorial/systemProperties/groovy",files="build.gradle[tags=system-properties-task-inputs]"]
-====
-
-*Example 4:* Setting system properties from the command line `-D gradle.wrapperUser=username`:
-====
-----
-$ gradle -Dsystem=commandLineValue
-----
-====
-
 [[sec:gradle_configuration_properties]]
 == Gradle properties
 
-Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
-While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to be able to store certain settings like JVM memory configuration and `JAVA_HOME` location in version control so that an entire team can work with a consistent environment.
+Gradle properties configure Gradle itself and usually have the name `org.gradle.\*`.
+Using `providers.gradleProperty` is **not** recommended to access Gradle properties.
 
-=== Setting Gradle properties
+=== Setting a Gradle property
 
 You have two options to add Gradle properties listed in order of priority:
 
@@ -392,58 +391,12 @@ When configured, Gradle will use a maximum of the <<command_line_interface.adoc#
 +
 _Default is the number of CPU processors._
 
-=== Using Gradle properties
-
-The following examples demonstrate how to use Gradle properties.
-
-*Example 1:* Setting Gradle properties with a `gradle.properties` file:
-====
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="gradle.properties[tags=gradle-properties]"]
-====
-
-*Example 2:* Reading Gradle properties at configuration time:
-====
-include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="settings.gradle.kts[tags=gradle-properties];build.gradle.kts[tags=gradle-properties]"]
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="settings.gradle[tags=gradle-properties];build.gradle[tags=gradle-properties]"]
-====
-
-[.multi-language-text.lang-kotlin]
-The link:https://kotlinlang.org/docs/delegated-properties.html[Kotlin delegated properties] are part of the Gradle Kotlin DSL.
-You need to explicitly specify the type as `String`.
-If you need to branch depending on the presence of the property, you can also use `String?` and check for `null`.
-
-[.multi-language-text.lang-groovy]
-Note that using the dynamic Groovy names is impossible if a Gradle property has a dot in its name.
-You have to use the API or the dynamic array notation instead.
-
-*Example 3:* Reading Gradle properties for consumption at execution time:
-====
-include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="build.gradle.kts[tags=gradle-properties-task-inputs]"]
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gradle[tags=gradle-properties-task-inputs]"]
-====
-
-*Example 4:* Setting Gradle properties from the command line:
-====
-----
-$ gradle -DgradlePropertiesProp=commandLineValue
-----
-====
-
-Note that <<init_scripts.adoc#init_scripts, initialization scripts>> can't read Gradle properties directly.
-The earliest Gradle properties can be read in initialization scripts is on `settingsEvaluated {}`:
-
-*Example 5:* Reading Gradle properties from initialization scripts:
-====
-include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="init.gradle.kts[tags=gradle-properties]"]
-include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="init.gradle[tags=gradle-properties]"]
-====
-
-Properties declared in a `gradle.properties` file present in a subproject directory are only available to that project and its children.
-
 [[sec:gradle_environment_variables]]
 == Environment variables
 
 Gradle provides a number of environment variables, which are listed below.
+Environment variables can be access via `System.getenv` or `providers.environmentVariable`.
+
 
 === Setting environment variables
 
@@ -504,19 +457,3 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
-
-=== Using environment variables
-
-The following examples demonstrate how to use environment variables.
-
-*Example 1:* Reading environment variables at configuration time:
-====
-include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="init.gradle.kts[];settings.gradle.kts[];build.gradle.kts[tags=configuration]"]
-include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=configuration]"]
-====
-
-*Example 2:* Reading environment variables for consumption at execution time:
-====
-include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build.gradle.kts[tags=execution]"]
-include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build.gradle[tags=execution]"]
-====
