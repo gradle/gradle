@@ -20,7 +20,8 @@ package org.gradle.internal.component.resolution.failure.interfaces;
  * Represents a failure validating the resulting variant graph
  * during Stage 3 of dependency resolution.
  * <p>
- * When this failure occurs, we have always selected a component.
+ * When this failure occurs, we have always selected a component, as the entire graph has been resolved and
+ *  * all components are selected.
  * <p>
  * This validation is done prior to selecting an artifact variant for each resolved component variant.
  *

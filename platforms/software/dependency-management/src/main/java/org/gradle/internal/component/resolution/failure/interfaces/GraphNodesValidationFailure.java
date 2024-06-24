@@ -24,7 +24,8 @@ import java.util.Set;
 /**
  * Represents a failure validating the nodes for a specific component in the final resulting dependency graph.
  * <p>
- * When this failure occurs, we have always selected a component.
+ * When this failure occurs, we have always selected a component, as the entire graph has been resolved and
+ * all components are selected.
  *
  * @implSpec This interface is meant only to be extended by other interfaces, it should not
  * be implemented directly.

@@ -15,7 +15,7 @@
  */
 
 /**
- * This package contains a hierachy of {@link org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure ResolutionFailure}
+ * This package contains a hierarchy of {@link org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure ResolutionFailure}
  * interfaces that exist to categorize types of failure conditions that can occur during dependency resolution and
  * delineate which stage of resolution a failure occurred in.
  */

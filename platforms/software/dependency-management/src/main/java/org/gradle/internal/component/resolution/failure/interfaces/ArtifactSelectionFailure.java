@@ -25,13 +25,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  * <p>
  * When this failure occurs, we have always selected a component and a graph variant,
  * we are now attempting to select an artifact using a possibly different set of
- * attributes from those used during Stage 2 to select the graph variant.
+ * attributes from those used during Stage 2 (Variant Selection) to select the graph variant.
  */
 public interface ArtifactSelectionFailure extends ResolutionFailure {
     /**
-     * Gets the identifier of the component for which a variant could not be selected.
+     * Gets the identifier of the component for which an artifact variant could not be selected.
      *
-     * @return identifier for the component for which a variant could not be selected
+     * @return identifier for the component for which an artifact variant could not be selected
      */
     ComponentIdentifier getTargetComponent();
 
@@ -45,7 +45,7 @@ public interface ArtifactSelectionFailure extends ResolutionFailure {
     /**
      * Gets the attributes that were used to attempt to select an artifact.
      * <p>
-     * This is the combination of originally requested attributes on the variant and any potential attribute modifications
+     * This is the combination of originally requested attributes during graph selection and any potential attribute modifications
      * performed by an {@link org.gradle.api.artifacts.ArtifactView ArtifactView} that is being used to select an artifact.
      *
      * @return the attributes that were used to attempt to select an artifact for this variant

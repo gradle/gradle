@@ -27,7 +27,7 @@ public interface VariantSelectionByAttributesFailure extends VariantSelectionFai
     /**
      * Gets the attributes that were used to attempt to select a variant.
      * <p>
-     * This includes attributes from the resolvable configuration and any additional attributes added
+     * This includes the original request attributes from the root variant and any additional attributes added
      * to the specific dependency used to select the {@link #getTargetComponent()} represented by this edge in the graph.
      *
      * @return the requested attributes that were used to attempt to select a variant
@@ -35,9 +35,10 @@ public interface VariantSelectionByAttributesFailure extends VariantSelectionFai
     ImmutableAttributes getRequestedAttributes();
 
     /**
-     * Gets the capabilities present on the {@link #getTargetComponent()} represented by this edge in the graph
+     * Gets the capabilities requested on the dependency that selected the {@link #getTargetComponent()}
+     * represented by this edge in the graph.
      *
-     * @return the capabilities associated with the component failing to select a variant
+     * @return the capabilities used to select the component in the graph failing to select a variant
      */
     ImmutableCapabilities getRequestedCapabilities();
 }

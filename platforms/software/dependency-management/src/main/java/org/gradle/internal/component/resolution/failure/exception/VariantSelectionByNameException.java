@@ -21,8 +21,7 @@ import org.gradle.internal.component.resolution.failure.interfaces.VariantSelect
 import java.util.List;
 
 /**
- * Represents a failure during variant selection when a named {@link org.gradle.api.artifacts.Configuration Configuration}
- * cannot be selected
+ * Represents a failure during variant selection when a variant cannot be selected via an explicit request for a variant by name.
  */
 public final class VariantSelectionByNameException extends AbstractResolutionFailureException {
     public VariantSelectionByNameException(String message, VariantSelectionByNameFailure failure, List<String> resolutions) {

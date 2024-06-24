@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * A specialization of {@link VariantSelectionByAttributesFailure} that represents the situation when multiple variants are
- * available that would satisfy a dependency selection request during a variant-aware matching scenario.
+ * available for attribute matching that would satisfy the request attributes.
  */
 public final class AmbiguousVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;

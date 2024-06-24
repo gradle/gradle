@@ -20,6 +20,9 @@ import org.gradle.internal.component.resolution.failure.interfaces.GraphValidati
 
 import java.util.List;
 
+/**
+ * Exception that occurs while validating a graph after the graph has been constructed.
+ */
 public class GraphValidationException extends AbstractResolutionFailureException {
     public GraphValidationException(String message, GraphValidationFailure failure, List<String> resolutions) {
         super(message, failure, resolutions);

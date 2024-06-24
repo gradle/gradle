@@ -119,6 +119,21 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
+    // TODO: This is the same logic as the noCompatibleVariantsFailure case for now.  We want to split the NoCompatibleVariantsFailureDescriber into
+    // separate describers, with separate failures, for these different types.
+    public AbstractResolutionFailureException noVariantsFailure(
+        AttributesSchemaInternal schema, AttributeMatcher matcher,
+        ComponentGraphResolveState targetComponent,
+        AttributeContainerInternal requestedAttributes,
+        ImmutableCapabilities requestedCapabilities,
+        GraphSelectionCandidates candidates
+    ) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        return describeFailure(schema, failure);
+    }
+
     public AbstractResolutionFailureException noCompatibleVariantsFailure(
         AttributesSchemaInternal schema, AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
