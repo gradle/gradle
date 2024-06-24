@@ -34,8 +34,8 @@ data class ParsedLightTree(
 )
 
 
-fun parse(@Language("kts") code: String, source: String? = null): ParsedLightTree {
-    val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code, source)
+fun parse(@Language("kts") code: String): ParsedLightTree {
+    val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code)
     return ParsedLightTree(
         KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
         wrappedCode,
@@ -55,7 +55,7 @@ fun main() {
 
 
 private
-fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String, source: String?): Triple<String, Int, Int> {
+fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Triple<String, Int, Int> {
     val packageStatements = mutableListOf<String>()
     val importStatements = mutableListOf<String>()
     val codeStatements = mutableListOf<String>()
@@ -85,7 +85,7 @@ fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String, source: S
         } // TODO: ugly, brittle hack...
     }
 
-    if (packageStatements.size > 2) interpretationFailure("Multiple package statements in $source")
+    if (packageStatements.size > 2) interpretationFailure("Multiple package statements in $code")
 
     fun addNewlineIfNotBlank(it: String) = when {
         it.isNotBlank() -> it + "\n"

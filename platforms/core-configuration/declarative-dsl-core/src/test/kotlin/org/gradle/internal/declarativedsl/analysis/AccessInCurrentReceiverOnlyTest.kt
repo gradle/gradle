@@ -69,7 +69,7 @@ class Nested {
 }
 
 
-class AccessInCurrentReceiverOnlyTestOne {
+class AccessInCurrentReceiverOnlyTest {
     val schema = schemaFromTypes(TopLevelForTest::class, listOf(TopLevelForTest::class, HasAnnotatedMembers::class, Nested::class))
 
     @Test

@@ -81,8 +81,8 @@ fun SchemaFunction.format(receiver: ObjectOrigin?, lowercase: Boolean = true): S
         null -> "top level function ${this.simpleName}"
         else -> "function ${this.simpleName} (having as receiver $receiver)"
     }
-    if (!lowercase) {
-        text.replaceFirstChar { it.uppercase() }
+    return when {
+        !lowercase -> text.replaceFirstChar { it.uppercase() }
+        else -> text
     }
-    return text
 }

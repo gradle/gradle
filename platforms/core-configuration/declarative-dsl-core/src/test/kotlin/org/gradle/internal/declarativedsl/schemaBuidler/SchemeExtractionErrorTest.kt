@@ -73,7 +73,7 @@ object SchemeExtractionErrorTest {
         )
         assertThat(
             exception.message,
-            equalTo("Conversion to data types failed for parameter type of function ReceiverFunctionParam.size: org.gradle.api.provider.ListProperty<kotlin.String>")
+            equalTo("Conversion to data types failed for parameter `list` of function ReceiverFunctionParam.size: org.gradle.api.provider.ListProperty<kotlin.String>")
         )
     }
 

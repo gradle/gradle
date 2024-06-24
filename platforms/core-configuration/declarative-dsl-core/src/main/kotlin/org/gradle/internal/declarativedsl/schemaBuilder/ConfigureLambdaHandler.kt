@@ -116,7 +116,7 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
     }
 
     init {
-        check(functionalInterface.java.isInterface) // TODO: can this happen due to user error?
+        check(functionalInterface.java.isInterface)
         interpretationCheck(typeParameters.size <= 1) {
             "${functionalInterface.simpleName} interpreted as a configure lambda, but generic types with more than one type parameter are not supported"
         }

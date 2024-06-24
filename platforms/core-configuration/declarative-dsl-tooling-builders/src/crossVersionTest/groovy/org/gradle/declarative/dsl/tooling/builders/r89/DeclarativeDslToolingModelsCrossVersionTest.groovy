@@ -16,7 +16,6 @@
 
 package org.gradle.declarative.dsl.tooling.builders.r89
 
-import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion

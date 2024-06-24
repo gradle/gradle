@@ -81,13 +81,12 @@ fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFuncti
 
 
 fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>, typeMapping: (KParameter) -> KType) =
-    typeMapping(this).toDataTypeRef() ?: interpretationFailure("Conversion to data types failed for parameter type of function ${format(receiver, function)}: ${typeMapping(this)}")
+    typeMapping(this).toDataTypeRef() ?: interpretationFailure("Conversion to data types failed for parameter `${this.name}` of function ${format(receiver, function)}: ${typeMapping(this)}")
 
 
 private
 fun format(receiver: KClass<*>?, callable: KCallable<*>) =
-    "${receiver?.simpleName.let { s -> "$s." }}${callable.name}"
-
+    "${receiver?.simpleName?.let { s -> "$s." }.orEmpty()}${callable.name}"
 
 fun KType.toDataTypeRef(): DataTypeRef? = when {
     // isMarkedNullable -> TODO: support nullable types
