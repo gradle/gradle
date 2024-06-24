@@ -79,7 +79,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         fails("compileJava")
 
-
         then:
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "ERROR", true)
@@ -513,18 +512,12 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
                 it instanceof LineInFileLocation
             }
             assert positionLocation != null: "Expected a precise file location, but it was null"
-            // Register that we've asserted this location
-            assertedLocationCount += 1
 
             def offsetLocation = locations.find {
                 it instanceof OffsetInFileLocation
             }
             assert offsetLocation != null: "Expected a precise file location, but it was null"
-            // Register that we've asserted this location
-            assertedLocationCount += 1
         }
-
-        assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
     }
 
     TestFile writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {

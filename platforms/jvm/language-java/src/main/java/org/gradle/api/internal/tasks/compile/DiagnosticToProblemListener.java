@@ -104,7 +104,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 break;
         }
 
-        problemReporter.reporting(spec -> buildProblem(diagnostic, spec), reportedProblems);
+        problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
     }
 
     /**

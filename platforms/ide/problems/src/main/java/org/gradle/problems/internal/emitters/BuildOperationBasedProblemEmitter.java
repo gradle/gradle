@@ -18,6 +18,7 @@ package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
+import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
@@ -31,6 +32,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +45,7 @@ import java.util.Optional;
 @Incubating
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildOperationListener {
 
-    private final Map<OperationIdentifier, ExecuteTaskBuildOperationDetails> runningOps = new HashMap<>();
+    private final Map<OperationIdentifier, String> taskNames = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildOperationAncestryTracker ancestryTracker;
 
@@ -58,10 +60,20 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
         buildOperationListenerManager.addListener(this);
     }
 
+    @SuppressWarnings("unused")
     @Override
-    public void emit(Problem problem, OperationIdentifier id) {
-        Optional<OperationIdentifier> taskId = ancestryTracker.findClosestMatchingAncestor(id, runningOps::containsKey);
-        eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+        // Conditionally, if we can find a task name for the operation, add a location to the problem
+        Problem enrichedProblem = ancestryTracker
+            .findClosestMatchingAncestor(id, taskNames::containsKey)
+            .map(taskNames::get)
+            .map(taskName -> new DefaultProblemBuilder(problem)
+                .taskPathLocation(taskName)
+                .build())
+            .orElse(problem);
+
+        // Emit the problem as a progress event
+        eventEmitter.emitNow(id, new DefaultProblemProgressDetails(enrichedProblem));
     }
 
     @Override
@@ -69,9 +81,10 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
         Optional.ofNullable(buildOperation.getDetails())
             .map(
                 details -> details instanceof ExecuteTaskBuildOperationDetails ? (ExecuteTaskBuildOperationDetails) details : null
-            ).ifPresent(
-                details -> runningOps.put(buildOperation.getId(), details)
-            );
+            ).ifPresent(details -> {
+                String taskName = details.getTask().getIdentityPath().getPath();
+                taskNames.put(buildOperation.getId(), taskName);
+            });
     }
 
     @Override
@@ -81,7 +94,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        runningOps.remove(buildOperation.getId());
+        taskNames.remove(buildOperation.getId());
     }
 
 }
