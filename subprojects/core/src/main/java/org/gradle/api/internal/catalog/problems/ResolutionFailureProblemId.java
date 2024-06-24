@@ -27,7 +27,7 @@ import org.gradle.api.NonNullApi;
  */
 @NonNullApi
 public enum ResolutionFailureProblemId implements Describable {
-    // Stage 2 failures
+    // Variant Selection failures
     CONFIGURATION_NOT_COMPATIBLE("Configuration selected by name is not compatible"),
     CONFIGURATION_NOT_CONSUMABLE("Configuration selected by name is not consumable"),
     CONFIGURATION_DOES_NOT_EXIST("Configuration selected by name does not exist"),
@@ -35,14 +35,14 @@ public enum ResolutionFailureProblemId implements Describable {
     NO_COMPATIBLE_VARIANTS("No variants exist that would match the request"),
     NO_VARIANTS_WITH_MATCHING_CAPABILITIES("No variants exist with capabilities that would match the request"),
 
-    // Stage 3 failures
+    // Graph Validation failures
+    INCOMPATIBLE_MULTIPLE_NODES("Incompatible nodes of a single component were selected"),
+
+    // Artifact Selection failures
     AMBIGUOUS_ARTIFACT_TRANSFORM("Multiple artifacts transforms exist that would satisfy the request"),
     NO_COMPATIBLE_ARTIFACT("No artifacts exist that would match the request"),
     AMBIGUOUS_ARTIFACTS("Multiple artifacts exist that would match the request"),
     UNKNOWN_ARTIFACT_SELECTION_FAILURE("Unknown artifact selection failure"),
-
-    // Stage 4 failures
-    INCOMPATIBLE_MULTIPLE_NODES("Incompatible nodes of a single component were selected"),
 
     /**
      * Indicates that the resolution failed for an unknown reason not enumerated above.
