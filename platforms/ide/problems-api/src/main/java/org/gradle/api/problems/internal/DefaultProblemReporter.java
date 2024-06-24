@@ -23,6 +23,8 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
 
+import java.util.Collection;
+
 public class DefaultProblemReporter implements InternalProblemReporter {
 
     private final ProblemEmitter emitter;
@@ -43,10 +45,13 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public void reporting(Action<ProblemSpec> spec) {
+    public void reporting(Action<ProblemSpec> spec, Collection<Problem> problems) {
         DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
         spec.execute(problemBuilder);
-        report(problemBuilder.build());
+//        report(problemBuilder.build());
+        Problem problem = problemBuilder.build();
+        problems.add(problem);
+        report(problem);
     }
 
     @Override

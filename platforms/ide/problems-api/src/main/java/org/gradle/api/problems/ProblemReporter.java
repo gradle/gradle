@@ -18,6 +18,9 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.internal.Problem;
+
+import java.util.Collection;
 
 /**
  * Defines different ways to report problems.
@@ -35,7 +38,7 @@ public interface ProblemReporter {
      * @param spec the problem configuration
      * @since 8.6
      */
-    void reporting(Action<ProblemSpec> spec);
+    void reporting(Action<ProblemSpec> spec, Collection<Problem> problems);
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.

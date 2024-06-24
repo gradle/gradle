@@ -17,11 +17,23 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Emits problems as build operation progress events.
@@ -29,16 +41,47 @@ import org.gradle.internal.operations.OperationIdentifier;
  * @since 8.6
  */
 @Incubating
-public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
+public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildOperationListener {
 
+    private final Map<OperationIdentifier, ExecuteTaskBuildOperationDetails> runningOps = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
+    private final BuildOperationAncestryTracker ancestryTracker;
 
-    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
+    public BuildOperationBasedProblemEmitter(
+        BuildOperationProgressEventEmitter eventEmitter,
+        BuildOperationAncestryTracker ancestryTracker,
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
         this.eventEmitter = eventEmitter;
+        this.ancestryTracker = ancestryTracker;
+
+        buildOperationListenerManager.addListener(this);
     }
 
     @Override
     public void emit(Problem problem, OperationIdentifier id) {
+        Optional<OperationIdentifier> taskId = ancestryTracker.findClosestMatchingAncestor(id, runningOps::containsKey);
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
+
+    @Override
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        Optional.ofNullable(buildOperation.getDetails())
+            .map(
+                details -> details instanceof ExecuteTaskBuildOperationDetails ? (ExecuteTaskBuildOperationDetails) details : null
+            ).ifPresent(
+                details -> runningOps.put(buildOperation.getId(), details)
+            );
+    }
+
+    @Override
+    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+        // No-op: we don't care about progress events
+    }
+
+    @Override
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        runningOps.remove(buildOperation.getId());
+    }
+
 }

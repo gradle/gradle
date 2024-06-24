@@ -24,6 +24,7 @@ description = """Problem SPI implementations.
 """.trimMargin()
 
 dependencies {
+    api(project(":core"))
     api(project(":problems-api"))
     api(project(":build-operations"))
     api(project(":stdlib-java-extensions"))

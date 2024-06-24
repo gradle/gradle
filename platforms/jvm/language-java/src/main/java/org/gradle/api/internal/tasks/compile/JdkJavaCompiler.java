@@ -19,6 +19,7 @@ import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.ExceptionWithProblems;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -76,7 +77,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         boolean success = task.call();
         diagnosticToProblemListener.printDiagnosticCounts();
         if (!success) {
-            throw new CompilationFailedException(result);
+            throw new ExceptionWithProblems(
+                new CompilationFailedException(result),
+                diagnosticToProblemListener.getReportedProblems()
+            );
         }
         return result;
     }
