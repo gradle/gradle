@@ -55,6 +55,9 @@ class KnownProblemIds {
         'validation:type-validation' : 'Gradle type validation',
         'validation:configuration-cache' : 'Configuration cache',
 
+        // dependency resolution failures
+        'dependency-variant-resolution' : 'Dependency variant resolution',
+
         // groups from integration tests
         'generic' : 'Generic'
     ]
@@ -124,6 +127,23 @@ class KnownProblemIds {
         'validation:type-validation:invalid-use-of-type-annotation' : 'Incorrect use of type annotation',
         'validation:type-validation:not-cacheable-without-reason' : 'Not cacheable without reason',
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache' : 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.',
+
+        // dependency resolution failures
+        'dependency-variant-resolution:configuration-not-compatible' : 'Configuration selected by name is not compatible',
+        'dependency-variant-resolution:configuration-not-consumable' : 'Configuration selected by name is not consumable',
+        'dependency-variant-resolution:configuration-does-not-exist' : 'Configuration selected by name does not exist',
+        'dependency-variant-resolution:ambiguous-variants' : 'Multiple variants exist that would match the request',
+        'dependency-variant-resolution:no-compatible-variants' : 'No variants exist that would match the request',
+        'dependency-variant-resolution:no-variants-with-matching-capabilities' : 'No variants exist with capabilities that would match the request',
+
+        'dependency-variant-resolution:ambiguous-artifact-transform' : 'Multiple artifacts transforms exist that would satisfy the request',
+        'dependency-variant-resolution:no-compatible-artifact' : 'No artifacts exist that would match the request',
+        'dependency-variant-resolution:ambiguous-artifacts' : 'Multiple artifacts exist that would match the request',
+        'dependency-variant-resolution:unknown-artifact-selection-failure' : 'Unknown artifact selection failure',
+
+        'dependency-variant-resolution:incompatible-multiple-nodes' : 'Incompatible nodes of a single component were selected',
+
+        'dependency-variant-resolution:unknown-resolution-failure' : 'Unknown resolution failure',
 
         // integration test problems
         'deprecation:some-indirect-deprecation' : 'Some indirect deprecation has been deprecated.',
