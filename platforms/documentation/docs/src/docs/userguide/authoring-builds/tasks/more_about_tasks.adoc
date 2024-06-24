@@ -927,5 +927,3 @@ abstract class MyCopyTask : DefaultTask() {
 ----
 =====
 ====
-
-You can learn more about developing custom task types in <<more_about_tasks.adoc#sec:implementing_tasks,Implementing Tasks>>.
