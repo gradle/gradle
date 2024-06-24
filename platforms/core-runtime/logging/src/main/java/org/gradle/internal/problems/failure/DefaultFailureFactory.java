@@ -31,6 +31,13 @@ import java.util.Set;
 
 public class DefaultFailureFactory implements FailureFactory {
 
+    public static DefaultFailureFactory withDefaultClassifier() {
+        return new DefaultFailureFactory(new CompositeStackTraceClassifier(
+            new InternalStackTraceClassifier(),
+            StackTraceClassifier.USER_CODE
+        ));
+    }
+
     private final StackTraceClassifier stackTraceClassifier;
 
     public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier) {

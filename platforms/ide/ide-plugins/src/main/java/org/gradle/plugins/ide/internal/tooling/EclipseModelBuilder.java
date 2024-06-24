@@ -33,6 +33,7 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.AccessRule;
@@ -126,7 +127,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
         HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
         projectsInBuild.removeAll(gatherExternalProjects((ProjectInternal) project.getRootProject(), projects));
-        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a | b));
+        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         return buildAll(modelName, project);
     }
@@ -290,7 +291,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                     classpathElements.getExternalDependencies().add(DefaultEclipseExternalDependency.createResolved(projectDependency.getPublication().getFile(), javadoc, source, null, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
                     classpathElements.getBuildDependencies().add(projectDependency.getBuildDependencies());
                 } else {
-                    projectDependencyMap.put(path, new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
+                    DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
+                    projectDependencyMap.merge(path, dependency, (oldDependency, newDependency) -> !hasTestSourcesAttribute(oldDependency) && hasTestSourcesAttribute(newDependency) ? oldDependency : newDependency);
                 }
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
@@ -459,6 +461,10 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             }
         }
         return externalProjects;
+    }
+
+    private static boolean hasTestSourcesAttribute(DefaultEclipseProjectDependency projectDependency) {
+        return projectDependency.getClasspathAttributes().stream().anyMatch(attribute -> EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY.equals(attribute.getName()) && EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE.equals(attribute.getValue()));
     }
 
 

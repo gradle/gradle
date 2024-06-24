@@ -15,9 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
-class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec {
+class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
 
     def "reports project structure with single composite"() {
         given:
@@ -34,12 +37,19 @@ includeBuild('another')"""
 
         then:
         outputContains """
+Projects:
+
+------------------------------------------------------------
+Root project 'my-root-project'
+------------------------------------------------------------
+
 Root project 'my-root-project'
 +--- Project ':p1'
 \\--- Project ':p2'
      \\--- Project ':p2:p22'
 
-Included builds
+Included builds:
+
 \\--- Included build ':another'
 """
     }
@@ -60,7 +70,8 @@ includeBuild('another')"""
 Root project 'my-root-project'
 No sub-projects
 
-Included builds
+Included builds:
+
 +--- Included build ':another'
 \\--- Included build ':third'"""
     }
@@ -106,5 +117,193 @@ this shouldn't be visible
 Root project 'my-root-project' - this is a long description...
 No sub-projects
 """
+    }
+
+    def "project project structure and software types for multi-project build using declarative dcl"() {
+        given: "a build-logic build registering an ecosystem plugin defining several software types via several plugins"
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            @Restricted
+            public abstract interface LibraryExtension {
+                @Restricted
+                Property<String> getName();
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/ApplicationExtension.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            @Restricted
+            public abstract interface ApplicationExtension {
+                @Restricted
+                Property<String> getName();
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/UtilityExtension.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            @Restricted
+            public abstract interface UtilityExtension {
+                @Restricted
+                Property<String> getName();
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/LibraryPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
+
+            public abstract class LibraryPlugin implements Plugin<Project> {
+                @SoftwareType(name = "library", modelPublicType = LibraryExtension.class)
+                public abstract LibraryExtension getLibrary();
+
+                @Override
+                public void apply(Project project) {}
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/ApplicationPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
+
+            public abstract class ApplicationPlugin implements Plugin<Project> {
+                @SoftwareType(name = "application", modelPublicType = ApplicationExtension.class)
+                public abstract ApplicationExtension getApplication();
+
+                @Override
+                public void apply(Project project) {}
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/UtilityPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
+
+            public abstract class UtilityPlugin implements Plugin<Project> {
+                @SoftwareType(name = "utility", modelPublicType = UtilityExtension.class)
+                public abstract UtilityExtension getUtility();
+
+                @Override
+                public void apply(Project project) {}
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import ${ RegistersSoftwareTypes.class.name};
+
+            @RegistersSoftwareTypes({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
+            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings target) {}
+            }
+        """
+        file("build-logic/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            ${mavenCentralRepository()}
+
+            gradlePlugin {
+                plugins {
+                    create("softwareTypeRegistrator") {
+                        id = "com.example.restricted.ecosystem"
+                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
+                    }
+                }
+            }
+        """
+
+        and: "a build that applies that ecosystem plugin to a multi-project build, with each project using a different software type"
+        settingsFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+
+            plugins {
+                id("com.example.restricted.ecosystem")
+            }
+
+            rootProject.name = 'example'
+
+            include("lib")
+            include("app")
+            include("util")
+        """
+        buildFile << """
+            project(":lib") {
+                description = "Sample library project"
+            }
+            project(":util") {
+                description = "Utilities and common code"
+            }
+            project(":app") {
+                description = "Sample application project"
+            }
+        """
+
+        file("lib/build.gradle.dcl") << """
+            library {
+                name = "my-lib"
+            }
+        """
+        file("app/build.gradle.dcl") << """
+            application {
+                name = "my-app"
+            }
+        """
+        file("util/build.gradle.dcl") << """
+            utility {
+                name = "my-util"
+            }
+        """
+
+        expect:
+        succeeds("projects")
+
+        outputContains("""
+
+Available software types:
+
+application (com.example.restricted.ApplicationExtension)
+        Defined in: com.example.restricted.ApplicationPlugin
+        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+library (com.example.restricted.LibraryExtension)
+        Defined in: com.example.restricted.LibraryPlugin
+        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+utility (com.example.restricted.UtilityExtension)
+        Defined in: com.example.restricted.UtilityPlugin
+        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+
+Projects:
+
+------------------------------------------------------------
+Root project 'example'
+------------------------------------------------------------
+
+Root project 'example'
++--- Project ':app' (application) - Sample application project
++--- Project ':lib' (library) - Sample library project
+\\--- Project ':util' (utility) - Utilities and common code
+""")
     }
 }

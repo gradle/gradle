@@ -24,7 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
@@ -51,19 +50,14 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
     // dynamic dispatch has to happen somewhere. Wrapping the dispatch logic into the CallInterceptor allows
     // to reuse the common MethodHandle decoration routine in maybeDecorateIndyCallSite instead of using a
     // dedicated MethodHandle decorator method just for constructors.
-    private final CallInterceptor dispatchingConstructorInterceptor = new CallInterceptor() {
+    private final CallInterceptor dispatchingConstructorInterceptor = new AbstractCallInterceptor() {
         @Override
-        public BytecodeInterceptorType getType() {
-            throw new UnsupportedOperationException("Calling dispatchingConstructorInterceptor.getType() is not supported");
-        }
-
-        @Override
-        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object intercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof Class) {
                 CallInterceptor realConstructorInterceptor = interceptors.get(InterceptScope.constructorsOf((Class<?>) receiver));
                 if (realConstructorInterceptor != null) {
-                    return realConstructorInterceptor.doIntercept(invocation, consumer);
+                    return realConstructorInterceptor.intercept(invocation, consumer);
                 }
             }
             return invocation.callOriginal();
@@ -79,12 +73,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
 
     private void addInterceptor(CallInterceptor interceptor) {
         for (InterceptScope scope : interceptor.getInterceptScopes()) {
-            CallInterceptor oldInterceptor = interceptors.put(scope, interceptor);
-            if (oldInterceptor != null) {
-                throw new IllegalArgumentException("Interceptor " + interceptor +
-                    " attempted to overwrite already registered " + oldInterceptor +
-                    " in the scope " + scope);
-            }
+            interceptors.compute(scope, (__, previous) -> previous == null ? interceptor : new CompositeCallInterceptor(previous, interceptor));
             interceptedCallSiteNames.add(scope.getCallSiteName());
         }
     }
@@ -164,7 +153,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         public Object call(Object receiver, Object[] args) throws Throwable {
             CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
-                return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, args) {
+                return interceptor.intercept(new AbstractInvocation<Object>(receiver, args) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.call(receiver, args);
@@ -178,7 +167,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         public Object callGetProperty(Object receiver) throws Throwable {
             CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.readsOfPropertiesNamed(getName()));
             if (interceptor != null) {
-                return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, new Object[0]) {
+                return interceptor.intercept(new AbstractInvocation<Object>(receiver, new Object[0]) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.callGetProperty(receiver);
@@ -192,7 +181,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         public Object callStatic(Class receiver, Object[] args) throws Throwable {
             CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
-                return interceptor.doIntercept(new AbstractInvocation<Class<?>>(receiver, args) {
+                return interceptor.intercept(new AbstractInvocation<Class<?>>(receiver, args) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.callStatic(receiver, args);
@@ -204,7 +193,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
 
         @Override
         public Object callConstructor(Object receiver, Object[] args) throws Throwable {
-            return dispatchingConstructorInterceptor.doIntercept(new AbstractInvocation<Object>(receiver, args) {
+            return dispatchingConstructorInterceptor.intercept(new AbstractInvocation<Object>(receiver, args) {
                 @Override
                 public Object callOriginal() throws Throwable {
                     return DecoratingCallSite.super.callConstructor(receiver, args);

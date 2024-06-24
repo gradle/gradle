@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution and that is independent of the particular
@@ -52,11 +53,6 @@ public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
 
     /**
-     * Information about the origin of this component.
-     */
-    ModuleSources getSources();
-
-    /**
      * The immutable metadata for this component.
      */
     ComponentGraphResolveMetadata getMetadata();
@@ -79,6 +75,11 @@ public interface ComponentGraphResolveState {
      * @return true when this instance is ad hoc, false when this instance is not ad hoc and can be cached.
      */
     boolean isAdHoc();
+
+    /**
+     * Get all names such that {@link #getConfiguration(String)} return a non-null value.
+     */
+    Set<String> getConfigurationNames();
 
     /**
      * Returns the configuration with the given name. A component does not necessarily define any configurations.

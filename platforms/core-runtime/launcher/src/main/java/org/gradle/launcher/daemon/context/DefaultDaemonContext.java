@@ -16,12 +16,12 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -44,12 +44,12 @@ public class DefaultDaemonContext implements DaemonContext {
     private final boolean applyInstrumentationAgent;
     private final DaemonParameters.Priority priority;
     private final NativeServicesMode nativeServicesMode;
-    private final JavaVersion javaVersion;
+    private final JavaLanguageVersion javaVersion;
 
     public DefaultDaemonContext(
         String uid,
         File javaHome,
-        JavaVersion javaVersion,
+        JavaLanguageVersion javaVersion,
         File daemonRegistryDir,
         Long pid,
         Integer idleTimeout,
@@ -88,7 +88,7 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     @Override
-    public JavaVersion getJavaVersion() {
+    public JavaLanguageVersion getJavaVersion() {
         return javaVersion;
     }
 
@@ -129,7 +129,7 @@ public class DefaultDaemonContext implements DaemonContext {
 
     @Override
     public DaemonRequestContext toRequest() {
-        return new DaemonRequestContext(Jvm.forHome(javaHome), null, this.getDaemonOpts(), this.shouldApplyInstrumentationAgent(), this.getNativeServicesMode(), this.getPriority());
+        return new DaemonRequestContext(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.EXISTING_DAEMON, javaHome), this.getDaemonOpts(), this.shouldApplyInstrumentationAgent(), this.getNativeServicesMode(), this.getPriority());
     }
 
     static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
@@ -139,7 +139,7 @@ public class DefaultDaemonContext implements DaemonContext {
             String uid = decoder.readNullableString();
             String pathname = decoder.readString();
             File javaHome = new File(pathname);
-            JavaVersion javaVersion = JavaVersion.valueOf(decoder.readString());
+            JavaLanguageVersion javaVersion = JavaLanguageVersion.of(decoder.readSmallInt());
             File registryDir = new File(decoder.readString());
             Long pid = decoder.readBoolean() ? decoder.readLong() : null;
             Integer idle = decoder.readBoolean() ? decoder.readInt() : null;
@@ -159,7 +159,7 @@ public class DefaultDaemonContext implements DaemonContext {
         public void write(Encoder encoder, DefaultDaemonContext context) throws Exception {
             encoder.writeNullableString(context.uid);
             encoder.writeString(context.javaHome.getPath());
-            encoder.writeString(context.javaVersion.name());
+            encoder.writeSmallInt(context.javaVersion.asInt());
             encoder.writeString(context.daemonRegistryDir.getPath());
             encoder.writeBoolean(context.pid != null);
             if (context.pid != null) {

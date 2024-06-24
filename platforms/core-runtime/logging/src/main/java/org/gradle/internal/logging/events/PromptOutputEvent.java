@@ -17,52 +17,56 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.Either;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+
+import javax.annotation.Nullable;
 
 /**
  * Requests that the client present the given prompt to the user and return the user's response as a single line of text.
  *
  * The response is delivered to the {@link UserInputReader} service.
  */
-public class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
-    private final String prompt;
-    private final boolean newQuestion;
-
-    public PromptOutputEvent(long timestamp, String prompt, boolean newQuestion) {
+public abstract class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
+    public PromptOutputEvent(long timestamp) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
-        this.prompt = prompt;
-        this.newQuestion = newQuestion;
     }
 
     @Override
     public void render(StyledTextOutput output) {
-        if (newQuestion) {
-            // Add a newline at the start of each question
-            output.println();
-        }
-        output.text(prompt);
+        // Add a newline at the start of each question
+        output.println();
+        output.text(getPrompt());
     }
 
     /**
      * Converts the given text into the response object, or returns a new prompt to display to the user.
      */
-    public Either<?, String> convert(String text) {
-        return Either.left(text);
+    public abstract PromptResult<?> convert(String text);
+
+    public static class PromptResult<T> {
+        public final T response;
+        public final String newPrompt;
+
+        private PromptResult(@Nullable T response, @Nullable String newPrompt) {
+            this.response = response;
+            this.newPrompt = newPrompt;
+        }
+
+        public static <T> PromptResult<T> response(T response) {
+            return new PromptResult<T>(response, null);
+        }
+
+        public static <T> PromptResult<T> newPrompt(String newPrompt) {
+            return new PromptResult<T>(null, newPrompt);
+        }
     }
 
-    public String getPrompt() {
-        return prompt;
-    }
-
-    public boolean isNewQuestion() {
-        return newQuestion;
-    }
+    public abstract String getPrompt();
 
     @Override
     public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + prompt + "'";
+        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + getPrompt() + "'";
     }
 
     @Override

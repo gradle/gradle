@@ -17,12 +17,10 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
@@ -125,8 +123,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
-        final Jvm current = Jvm.current();
-        if (getJavaHomeLocation().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible() && !isUseDaemon()) {
+        if (!isUseDaemon() && getJavaVersionFromJavaHome().isJava9Compatible()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;
@@ -143,15 +140,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected boolean supportsWhiteSpaceInEnvVars() {
-        final Jvm current = Jvm.current();
-        if (getJavaHomeLocation().equals(current.getJavaHome())) {
-            // we can tell for sure
-            return current.getJavaVersion().isJava7Compatible();
-        } else {
-            // TODO improve lookup by reusing AvailableJavaHomes testfixture
-            // for now we play it safe and just return false;
-            return false;
-        }
+        return getJavaVersionFromJavaHome().isJava7Compatible();
     }
 
     @Override
@@ -229,11 +218,11 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             } else {
                 cmd = "gradle";
             }
-            builder.executable("cmd");
+            builder.executable("cmd.exe");
 
             List<String> allArgs = builder.getArgs();
             String actualCommand = quote(quote(cmd) + " " + allArgs.stream().map(NoDaemonGradleExecuter::quote).collect(joining(" ")));
-            builder.setArgs(Arrays.asList("/c", actualCommand));
+            builder.setArgs(Arrays.asList("/d", "/c", actualCommand));
 
             String gradleHome = getDistribution().getGradleHomeDir().getAbsolutePath();
 

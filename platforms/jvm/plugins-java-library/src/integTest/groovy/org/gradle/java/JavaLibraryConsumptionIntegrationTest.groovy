@@ -88,21 +88,9 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
         fails 'resolve'
 
         then:
-        failure.assertHasCause """The consumer was configured to find a component for use during runtime, compatible with Java 7, and its dependencies declared externally. However we cannot choose between the following variants of org.junit.jupiter:junit-jupiter-api:5.6.0:
-  - javadocElements
-  - sourcesElements
-All of them match the consumer attributes:
-  - Variant 'javadocElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component for use during runtime, and its dependencies declared externally:
-      - Unmatched attributes:
-          - Doesn't say anything about its target Java version (required compatibility with Java 7)
-          - Provides documentation but the consumer didn't ask for it
-          - Provides javadocs but the consumer didn't ask for it
-          - Provides release status but the consumer didn't ask for it
-  - Variant 'sourcesElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component for use during runtime, and its dependencies declared externally:
-      - Unmatched attributes:
-          - Doesn't say anything about its target Java version (required compatibility with Java 7)
-          - Provides documentation but the consumer didn't ask for it
-          - Provides release status but the consumer didn't ask for it
-          - Provides sources but the consumer didn't ask for it"""
+        failure.assertHasCause """The consumer was configured to find a component for use during runtime, compatible with Java 7, and its dependencies declared externally. There are several available matching variants of org.junit.jupiter:junit-jupiter-api:5.6.0
+The only attribute distinguishing these variants is 'org.gradle.docstype'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+  - Value: 'javadoc' selects variant: 'javadocElements'
+  - Value: 'sources' selects variant: 'sourcesElements'"""
     }
 }

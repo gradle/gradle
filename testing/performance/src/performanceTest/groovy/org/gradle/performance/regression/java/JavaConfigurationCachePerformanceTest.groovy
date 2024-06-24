@@ -53,11 +53,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         // use the deprecated property so it works with previous versions
         runner.args = ["-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
 
-        // Workaround to make that test work on Java 17
-        // Unable to make field private final java.lang.Object[] java.lang.invoke.SerializedLambda.capturedArgs accessible
-        // module java.base does not "opens java.lang.invoke" to unnamed module
-        runner.gradleOpts += ["--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"]
-
         and:
         runner.useDaemon = daemon == hot
         runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }

@@ -6,17 +6,9 @@ description = "Utility code shared between the wrapper and the Gradle distributi
 
 gradlebuildJava.usedInWorkers()
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 3 occurrences
-        "MixedMutabilityReturnType", // 1 occurrences
-        "StringCharset", // 2 occurrences
-    )
-}
-
 dependencies {
 
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
 
     implementation(project(":files")) {
         because("We need org.gradle.internal.file.PathTraversalChecker")

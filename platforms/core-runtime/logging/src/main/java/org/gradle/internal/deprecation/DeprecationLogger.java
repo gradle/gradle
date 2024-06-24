@@ -328,7 +328,6 @@ public class DeprecationLogger {
      */
     private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
         return new Runnable() {
-            @Nullable
             @Override
             public void run() {
                 @SuppressWarnings("unchecked")

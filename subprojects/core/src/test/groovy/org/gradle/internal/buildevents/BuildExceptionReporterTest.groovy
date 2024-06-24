@@ -19,7 +19,7 @@ package org.gradle.internal.buildevents
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
@@ -470,7 +470,7 @@ $GET_HELP
         def ultimateCause = new RuntimeException("ultimate cause")
         def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
         def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
-        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
 
         when:
         reporter.buildFinished(result(exception))
@@ -500,7 +500,7 @@ $GET_HELP
         def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
         def intermediateFailure = new DefaultMultiCauseException("intermediate failure", ultimateCause)
         def branch3 = new DefaultMultiCauseException("third failure", intermediateFailure)
-        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3]))
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3]))
 
         when:
         reporter.buildFinished(result(exception))
@@ -532,7 +532,7 @@ $GET_HELP
 
         def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
         def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
-        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
 
         when:
         reporter.buildFinished(result(exception))
@@ -569,7 +569,7 @@ $GET_HELP
         def intermediateFailure2 = new DefaultMultiCauseException("intermediate failure 2", ultimateCause2)
         def branch6 = new DefaultMultiCauseException("sixth failure", intermediateFailure2)
 
-        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3, branch4, branch5, branch6]))
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3, branch4, branch5, branch6]))
 
         when:
         reporter.buildFinished(result(exception))

@@ -31,7 +31,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
@@ -58,7 +57,6 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
     @Override
-    @Nullable
     public PotentialConflict registerCandidate(CandidateModule candidate) {
         ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();

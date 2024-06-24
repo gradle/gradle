@@ -39,6 +39,7 @@ import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildGenerator;
+import org.gradle.buildinit.plugins.internal.BuildInitException;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.GenerationSettings;
 import org.gradle.buildinit.plugins.internal.InitSettings;
@@ -57,9 +58,11 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -101,6 +104,19 @@ public abstract class InitBuild extends DefaultTask {
     @Optional
     @Option(option = "use-defaults", description = "Use default values for options not configured explicitly")
     public abstract Property<Boolean> getUseDefaults();
+
+    /**
+    * Should we allow existing files in the build directory to be overwritten?
+    *
+    * This property can be set via command-line option '--overwrite'. Defaults to false.
+    *
+    * @since 8.9
+    */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "overwrite", description = "Allow existing files in the build directory to be overwritten?")
+    public abstract Property<Boolean> getAllowFileOverwrite();
 
     /**
      * The desired type of project to generate, such as 'java-application' or 'kotlin-library'.
@@ -270,6 +286,8 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private GenerationSettings calculateGenerationSettings(UserQuestions userQuestions) {
+        validateBuildDirectory(userQuestions);
+
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
         BuildInitializer initializer = getBuildInitializer(userQuestions, projectLayoutRegistry);
@@ -338,6 +356,42 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         return getUserInputHandler();
+    }
+
+    /**
+     * If not converting an existing Maven build, then validate the build directory is either
+     * empty, or overwritable before generating the project.
+     *
+     * @param userQuestions the user questions to ask if {@link #getAllowFileOverwrite()} is not set and the directory is non-empty
+     * @throws BuildInitException if the build directory is non-empty, this isn't a POM conversion and the user does not allow overwriting
+     */
+    private void validateBuildDirectory(UserQuestions userQuestions) {
+        if (!isPomConversion()) {
+            File projectDirFile = projectDir.getAsFile();
+            File[] existingProjectFiles = projectDirFile.listFiles();
+
+            boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
+            if (isNotEmptyDirectory) {
+                boolean fileOverwriteAllowed = getAllowFileOverwrite().get();
+                if (!fileOverwriteAllowed) {
+                    fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
+                        "'." + System.lineSeparator() + "Directory will be modified and existing files may be overwritten.  Continue?", false);
+                }
+
+                if (!fileOverwriteAllowed) {
+                    abortBuildDueToExistingFiles(projectDirFile);
+                }
+            }
+        }
+    }
+
+    private boolean isPomConversion() {
+        return Objects.equals(getType(), "pom");
+    }
+
+    private void abortBuildDueToExistingFiles(File projectDirFile) {
+        List<String> resolutions = Arrays.asList("Remove any existing files in the project directory and run the init task again.", "Enable the --overwrite option to allow existing files to be overwritten.");
+        throw new BuildInitException("Aborting build initialization due to existing files in the project directory: '" + projectDirFile + "'.", resolutions);
     }
 
     private static void validatePackageName(String packageName) {

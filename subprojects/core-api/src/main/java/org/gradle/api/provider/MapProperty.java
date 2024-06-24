@@ -18,7 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -115,10 +114,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     /**
      * Adds a map entry to the property value.
      *
-     * <p>
-     * Contrary to {@link #insert(Object, Object)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     *
      * @param key the key
      * @param value the value
      */
@@ -128,12 +123,7 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * Adds a map entry to the property value.
      *
      * <p>The given provider will be queried when the value of this property is queried.
-     * <p>
-     * Contrary to {@link #insert(Object, Provider)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     * <p>
-     * Also contrary to {@link #insert(Object, Provider)}, this property will have no value when the given provider has no value.
-     * </p>
+     * This property will have no value when the given provider has no value.
      *
      * @param key the key
      * @param providerOfValue the provider of the value
@@ -143,10 +133,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     /**
      * Adds all entries from another {@link Map} to the property value.
      *
-     * <p>
-     * Contrary to {@link #insertAll(Map)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     *
      * @param entries a {@link Map} containing the entries to add
      */
     void putAll(Map<? extends K, ? extends V> entries);
@@ -155,85 +141,11 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * Adds all entries from another {@link Map} to the property value.
      *
      * <p>The given provider will be queried when the value of this property is queried.
-     * <p>
-     * Contrary to {@link #insertAll(Provider)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     * <p>
-     * Also contrary to {@link #insertAll(Provider)}, this property will have no value when the given provider has no value.
-     * </p>
+     * This property will have no value when the given provider has no value.
      *
      * @param provider the provider of the entries
      */
     void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
-
-    /**
-     * Adds a map entry to the property value.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty map.
-     * </p>
-     *
-     * @param key the key
-     * @param value the value
-     *
-     * @since 8.7
-     */
-    @Incubating
-    void insert(K key, V value);
-
-    /**
-     * Adds a map entry to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty map.
-     * </p>
-     * <p>Even if the given provider has no value, after this method is invoked,
-     * the actual value of this property is guaranteed to be present.</p>
-     *
-     * @param key the key
-     * @param providerOfValue the provider of the value
-     *
-     * @since 8.7
-     */
-    @Incubating
-    void insert(K key, Provider<? extends V> providerOfValue);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty map.
-     * </p>
-     *
-     * @param entries a {@link Map} containing the entries to add
-     *
-     * @since 8.7
-     */
-    @Incubating
-    void insertAll(Map<? extends K, ? extends V> entries);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty map.
-     * </p>
-     * <p>Even if the given provider has no value, after this method is invoked,
-     * the actual value of this property is guaranteed to be present.</p>
-     *
-     * @param provider the provider of the entries
-     *
-     * @since 8.7
-     */
-    @Incubating
-    void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
@@ -289,49 +201,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     @Incubating
     @Override
     MapProperty<K, V> unsetConvention();
-
-    /**
-     * Replaces the current value of this property with a one computed by the provided transformation.
-     * The transformation is applied to the provider of the current value, and the returned provider is used as a new value.
-     * The provider of the value can be used to derive the new value, but doesn't have to.
-     * Returning null from the transformation unsets the property.
-     * For example, the current value of a string map property can be filtered to retain only vowel keys:
-     * <pre class='autoTested'>
-     *     def property = objects.mapProperty(String, String).value(a: "a", b: "b")
-     *
-     *     property.replace { it.map { value -&gt; value.subMap("a", "e", "i", "o", "u") } }
-     *
-     *     println(property.get()) // [a: "a"]
-     * </pre>
-     * Note that simply writing {@code property.set(property.map { ... } } doesn't work and will cause an exception because of a circular reference evaluation at runtime.
-     * <p>
-     * <b>Further changes to the value of the property, such as calls to {@link #set(Map)}, are not transformed, and override the replacement instead</b>.
-     * Because of this, this method inherently depends on the order of property changes, and therefore must be used sparingly.
-     * <p>
-     * If the value of the property is specified via a provider, then the current value provider tracks that provider.
-     * For example, changes to the upstream property are visible:
-     * <pre class='autoTested'>
-     *     def upstream = objects.mapProperty(String, String).value(a: "a", b: "b")
-     *     def property = objects.mapProperty(String, String).value(upstream)
-     *
-     *     property.replace { it.map { value -&gt; value.subMap("a", "e", "i", "o", "u") } }
-     *     upstream.value(e: "e", f: "f")
-     *
-     *     println(property.get()) // [e: "e"]
-     * </pre>
-     * The provided transformation runs <b>eagerly</b>, so it can capture any objects without introducing memory leaks and without breaking configuration caching.
-     * However, transformations applied to the current value provider (like {@link Provider#map(Transformer)}) are subject to the usual constraints.
-     * <p>
-     * If the property has no explicit value set, then the current value comes from the convention.
-     * Changes to convention of this property do not affect the current value provider in this case, though upstream changes are still visible if the convention was set to a provider.
-     * If there is no convention too, then the current value is a provider without a value.
-     * The replacement value becomes the explicit value of the property.
-
-     * @param transformation the transformation to apply to the current value. May return null, which unsets the property.
-     * @since 8.8
-     */
-    @Incubating
-    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation);
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.

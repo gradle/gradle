@@ -21,20 +21,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoRunnable;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
-import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
@@ -51,12 +49,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter.filterSnapshot;
 
 public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefaultExcludesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
 
     private final VirtualFileSystem virtualFileSystem;
-    private final Stat stat;
+    private final FileMetadataAccessor stat;
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
@@ -68,7 +67,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     public DefaultFileSystemAccess(
         FileHasher hasher,
         Interner<String> stringInterner,
-        Stat stat,
+        FileMetadataAccessor stat,
         VirtualFileSystem virtualFileSystem,
         WriteListener writeListener,
         DirectorySnapshotterStatistics.Collector statisticsCollector,
@@ -85,15 +84,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
-    public FileSystemLocationSnapshot read(String location) {
-        return readSnapshotFromLocation(
-            location,
-            Function.identity(),
-            () -> snapshot(location, SnapshottingFilter.EMPTY)
-        );
-    }
-
-    @Override
     public Optional<HashCode> readRegularFileContentHash(String location) {
         return virtualFileSystem.findMetadata(location)
             .<Optional<FileSystemLocationSnapshot>>flatMap(snapshot -> {
@@ -105,7 +95,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 }
                 return Optional.empty();
             })
-            .orElseGet(() -> virtualFileSystem.store(location, vfsStorer -> {
+            .orElseGet(() -> virtualFileSystem.storeWithAction(location, vfsStorer -> {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 switch (fileMetadata.getType()) {
@@ -130,59 +120,22 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
+    public FileSystemLocationSnapshot read(String location) {
+        return readSnapshotFromLocation(location,
+            Optional::of,
+            () -> snapshot(location, SnapshottingFilter.EMPTY)
+        ).orElseThrow(() -> new IllegalStateException("Snapshot not found for " + location));
+    }
+
+    @Override
     public Optional<FileSystemLocationSnapshot> read(String location, SnapshottingFilter filter) {
         if (filter.isEmpty()) {
             return Optional.of(read(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = readSnapshotFromLocation(location,
-                snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot),
-                () -> {
-                    FileSystemLocationSnapshot snapshot = snapshot(location, filter);
-                    return snapshot.getType() == FileType.Directory
-                        // Directory snapshots have been filtered while walking the file system
-                        ? snapshot
-                        : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
-                });
-
-            if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
-                return Optional.of((FileSystemLocationSnapshot) filteredSnapshot);
-            } else {
-                return Optional.empty();
-            }
+            return readSnapshotFromLocation(location,
+                storedFilteredSnapshot -> filterSnapshot(filter, storedFilteredSnapshot),
+                () -> snapshot(location, filter));
         }
-    }
-
-    private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
-        ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots = virtualFileSystem
-            .findRootSnapshotsUnder(location)
-            .collect(ImmutableMap.toImmutableMap(
-                FileSystemLocationSnapshot::getAbsolutePath,
-                Function.identity()
-            ));
-        FileSystemLocationSnapshot knownExactSnapshot = previouslyKnownSnapshots.get(location);
-        if (knownExactSnapshot != null) {
-            return knownExactSnapshot;
-        }
-        return virtualFileSystem.store(location, vfsStorer -> {
-            File file = new File(location);
-            FileMetadata fileMetadata = this.stat.stat(file);
-            switch (fileMetadata.getType()) {
-                case RegularFile:
-                    HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                    return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hash, fileMetadata));
-                case Missing:
-                    return vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
-                case Directory:
-                    // This will only store the captured snapshot in the VFS if the filter did not match anything
-                    return directorySnapshotter.snapshot(
-                        location,
-                        filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
-                        previouslyKnownSnapshots,
-                        vfsStorer::store);
-                default:
-                    throw new UnsupportedOperationException();
-            }
-        });
     }
 
     private <T> T readSnapshotFromLocation(
@@ -198,6 +151,55 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                     .map(snapshotProcessor)
                     .orElseGet(readFromDisk)
             ));
+    }
+
+    /**
+     * Takes a snapshot of the given location and filters it according to the given filter.
+     */
+    private Optional<FileSystemLocationSnapshot> snapshot(String location, SnapshottingFilter filter) {
+        ImmutableMap<String, FileSystemLocationSnapshot> alreadyStoredSnapshots = virtualFileSystem
+            .findRootSnapshotsUnder(location)
+            .collect(ImmutableMap.toImmutableMap(
+                FileSystemLocationSnapshot::getAbsolutePath,
+                Function.identity()
+            ));
+        FileSystemLocationSnapshot unfilteredSnapshot = alreadyStoredSnapshots.get(location);
+        if (unfilteredSnapshot != null) {
+            return filterSnapshot(filter, unfilteredSnapshot);
+        } else {
+            return snapshotAndReuse(location, filter, alreadyStoredSnapshots);
+        }
+    }
+
+    /**
+     * Takes a snapshot of the given location and filters it according to the given filter, reusing previously known snapshots.
+     */
+    private Optional<FileSystemLocationSnapshot> snapshotAndReuse(String location, SnapshottingFilter filter, ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots) {
+        return virtualFileSystem.storeWithAction(location, vfsStorer -> {
+            File file = new File(location);
+            FileMetadata fileMetadata = this.stat.stat(file);
+            FileSystemLocationSnapshot unfilteredSnapshot;
+            switch (fileMetadata.getType()) {
+                case RegularFile:
+                    HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                    unfilteredSnapshot = vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hash, fileMetadata));
+                    break;
+                case Missing:
+                    unfilteredSnapshot = vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                    break;
+                case Directory:
+                    // This will capture a filtered snapshot, and only store the captured snapshot in the VFS
+                    // if the filter did not filter out anything.
+                    return Optional.of(directorySnapshotter.snapshot(
+                        location,
+                        filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
+                        previouslyKnownSnapshots,
+                        vfsStorer::store));
+                default:
+                    throw new UnsupportedOperationException();
+            }
+            return filterSnapshot(filter, unfilteredSnapshot);
+        });
     }
 
     @Override
@@ -243,8 +245,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
         public <V> V guardByKey(T key, Supplier<V> supplier) {
             Lock lock = locks.get(key);
+            lock.lock();
             try {
-                lock.lock();
                 return supplier.get();
             } finally {
                 lock.unlock();

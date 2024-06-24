@@ -83,6 +83,13 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertThatDescription(Matcher<? super String> matcher);
 
     /**
+     * Asserts that there all failures match the given description (ie the bit after '* What went wrong').
+     *
+     * <p>Error messages are normalized to use new-line char as line separator.
+     */
+    ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher);
+
+    /**
      * Asserts that the reported failure has exactly the given resolutions (ie the bit after '* Try').
      */
     ExecutionFailure assertHasResolutions(String... resolutions);

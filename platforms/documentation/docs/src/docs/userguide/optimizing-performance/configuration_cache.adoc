@@ -586,7 +586,7 @@ Enable the configuration cache by default, configure CI to disable it, and if re
 
 Build logic or plugin implementations can detect if the configuration cache is enabled for a given build, and react to it accordingly.
 The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the configuration cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
-You can access it by <<custom_gradle_types#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
 
 You can use this information to configure features of your plugin differently or to disable an optional feature that is not yet compatible.
 Another example involves providing additional guidance for your users, should they need to adjust their setup or be informed of temporary limitations.
@@ -771,7 +771,7 @@ Some cases can be fixed in the same way as for <<configuration_cache#config_cach
 Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
 
-Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
+Otherwise, you can use <<service_injection.adoc#service_injection,injected services>> instead of the methods of `Project`.
 
 Here's an example of a problematic task type using the `Project` object at execution time:
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.demo.demoPlugins.schema
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization

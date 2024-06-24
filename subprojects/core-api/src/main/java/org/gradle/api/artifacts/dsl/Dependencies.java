@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -38,7 +39,7 @@ import javax.inject.Inject;
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  * <p>
- * @see <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#custom_dependencies_blocks">Creating custom dependencies blocks.</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks">Creating custom dependencies blocks.</a>
  *
  * @since 7.6
  */
@@ -88,6 +89,7 @@ public interface Dependencies {
      *
      * @see org.gradle.api.Project#project(String)
      */
+    @Restricted
     default ProjectDependency project(String projectPath) {
         return getDependencyFactory().create(getProject().project(projectPath));
     }

@@ -94,6 +94,7 @@ public class GUtil {
         return flatten(elements, addTo, true);
     }
 
+    @SuppressWarnings("TypeParameterUnusedInFormals")
     public static <T extends Collection<?>> T flattenElements(Object... elements) {
         Collection<T> out = new LinkedList<T>();
         flatten(elements, out, true);
@@ -112,10 +113,10 @@ public class GUtil {
                 flatten((Collection<?>) element, addTo, flattenMaps, flattenArrays);
             } else if ((element instanceof Map) && flattenMaps) {
                 flatten(((Map<?, ?>) element).values(), addTo, flattenMaps, flattenArrays);
-            } else if ((element.getClass().isArray()) && flattenArrays) {
+            } else if (element.getClass().isArray() && flattenArrays) {
                 flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);
             } else {
-                (Cast.<Collection<Object>>uncheckedNonnullCast(addTo)).add(element);
+                Cast.<Collection<Object>>uncheckedNonnullCast(addTo).add(element);
             }
         }
         return addTo;
@@ -127,6 +128,7 @@ public class GUtil {
      * @param input any object
      * @return collection of flattened input or single input wrapped in a collection.
      */
+    @SuppressWarnings("MixedMutabilityReturnType")
     public static Collection<?> collectionize(Object input) {
         if (input == null) {
             return emptyList();
@@ -376,6 +378,7 @@ public class GUtil {
     /**
      * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -&gt; CAMEL_CASE
      */
+    @SuppressWarnings("StringCaseLocaleUsage")
     public static String toConstant(CharSequence string) {
         if (string == null) {
             return null;
@@ -390,6 +393,7 @@ public class GUtil {
         return toWords(string, ' ');
     }
 
+    @SuppressWarnings("StringCaseLocaleUsage")
     public static String toWords(CharSequence string, char separator) {
         if (string == null) {
             return null;

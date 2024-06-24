@@ -22,6 +22,7 @@ import groovy.xml.MarkupBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -54,6 +55,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY;
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
+    private static final int DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT = 1;
 
     private File outputDirectory;
 
@@ -99,6 +101,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Inject
     public TestNGOptions(ProjectLayout projectLayout) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
+        this.getSuiteThreadPoolSize().convention(DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT);
     }
 
     /**
@@ -113,6 +116,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         replace(this.listeners, other.listeners);
         this.parallel = other.parallel;
         this.threadCount = other.threadCount;
+        this.getSuiteThreadPoolSize().set(other.getSuiteThreadPoolSize());
         this.useDefaultListeners = other.useDefaultListeners;
         this.threadPoolFactoryClass = other.threadPoolFactoryClass;
         this.suiteName = other.suiteName;
@@ -327,6 +331,14 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public void setThreadCount(int threadCount) {
         this.threadCount = threadCount;
     }
+
+    /**
+     * The number of XML suites will run parallel
+     * @since 8.9
+     */
+    @Internal
+    @Incubating
+    public abstract Property<Integer> getSuiteThreadPoolSize();
 
     @Internal
     public boolean getUseDefaultListeners() {

@@ -7,14 +7,13 @@ description = "Adds support for building Groovy projects"
 errorprone {
     disabledChecks.addAll(
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnusedMethod", // 4 occurrences
         "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-services"))
+    api(projects.serviceProvider)
     api(project(":build-option"))
     api(project(":core-api"))
     api(project(":core"))
@@ -28,12 +27,15 @@ dependencies {
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
+    api(project(":build-process-services"))
 
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.concurrent)
+    implementation(projects.javaLanguageExtensions)
+    implementation(project(":base-services"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":logging-api"))

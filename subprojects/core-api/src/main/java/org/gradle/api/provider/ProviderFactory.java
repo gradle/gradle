@@ -317,6 +317,12 @@ public interface ProviderFactory {
      * provider value using the supplied combiner function.
      *
      * <p>
+     * The resulting provider will be live, so that each time it is queried, it queries both supplied providers
+     * and applies the combiner to the results. Whenever any of the providers has no value, the new provider
+     * will also have no value and the combiner will not be called.
+     * </p>
+     *
+     * <p>
      * If the supplied providers represents a task or the output of a task, the resulting provider
      * will carry the dependency information.
      * </p>

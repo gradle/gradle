@@ -22,11 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.events.problems.FileLocation
-import org.gradle.tooling.events.problems.LineInFileLocation
-import org.gradle.tooling.events.problems.OffsetInFileLocation
-import org.gradle.tooling.events.problems.Severity
-import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion("=8.6")
@@ -68,31 +63,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems.collect { it.descriptor }
     }
 
-    static def assertProblemDetailsForTAPIProblemEvent(List<?> problems, String expectedDetails = null, String expectedDocumentation = null) {
-        assertProblemDetailsForTAPIProblemEventWithoutSolution(problems, expectedDetails, expectedDocumentation)
-        problems[0].solutions[0].solution == 'try this instead'
-    }
-
-    static void assertProblemDetailsForTAPIProblemEventWithoutSolution(List<?> problems, String expectedDetails, String expectedDocumentation) {
-        problems.size() == 1
-        problems[0].category.namespace == 'org.example.plugin'
-        problems[0].category.category == 'main'
-        problems[0].category.subcategories == ['sub', 'id']
-        problems[0].additionalData.asMap == ['aKey': 'aValue']
-        problems[0].label.label == 'shortProblemMessage'
-        problems[0].details.details == expectedDetails
-        problems[0].severity == Severity.WARNING
-        problems[0].locations.size() == 2
-        problems[0].locations[0] instanceof LineInFileLocation
-        def lineInFileLocation = problems[0].locations[0] as LineInFileLocation
-        lineInFileLocation.path == '/tmp/foo'
-        lineInFileLocation.line == 1
-        lineInFileLocation.column == 2
-        lineInFileLocation.length == 3
-        problems[0].locations[1] instanceof TaskPathLocation
-        problems[0].documentationLink.url == expectedDocumentation
-        problems[0].solutions.size() == 1
-    }
 
     @TargetGradleVersion("=8.3")
     def "Older Gradle versions do not report problems"() {
@@ -145,14 +115,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         def problems = listener.problems
-        problems.size() == 2
-
-
-        def firstProblem = problems[0].getDescriptor()
-        firstProblem.label.label == "The 'standard-plugin' is deprecated"
-        firstProblem.details.details == null
+        problems.size() == 0
     }
 
+    @TargetGradleVersion(">=8.6 <8.9")
     def "Problems expose details via Tooling API events"() {
         given:
         withReportProblemTask """
@@ -172,7 +138,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
+        problems.size() == 0
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -193,9 +159,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        problems.size() == 1
-        FileLocation location = (FileLocation) problems[0].locations.find { it instanceof FileLocation }
-        location.path == '/tmp/foo'
+        problems.size() == 0
     }
 
     def "Problems expose file locations with path and line"() {
@@ -212,12 +176,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        problems.size() == 1
-        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
-        location.path == '/tmp/foo'
-        location.line == 1
-        location.column < 1
-        location.length < 0
+        problems.size() == 0
     }
 
     def "Problems expose file locations with path, line and column"() {
@@ -233,12 +192,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        problems.size() == 1
-        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
-        location.path == '/tmp/foo'
-        location.line == 1
-        location.column == 2
-        location.length < 0
+        problems.size() == 0
     }
 
     def "Problems expose file locations with path, line, column and length"() {
@@ -254,12 +208,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        problems.size() == 1
-        LineInFileLocation location = (LineInFileLocation) problems[0].locations.find { it instanceof LineInFileLocation }
-        location.path == '/tmp/foo'
-        location.line == 1
-        location.column == 2
-        location.length == 3
+        problems.size() == 0
     }
 
     def "Problems expose file locations with offset and length"() {
@@ -275,10 +224,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        problems.size() == 1
-        OffsetInFileLocation location = (OffsetInFileLocation) problems[0].locations.find { it instanceof OffsetInFileLocation }
-        location.path == '/tmp/foo'
-        location.offset == 20
-        location.length == 10
+        problems.size() == 0
     }
 }

@@ -144,7 +144,7 @@ public abstract class ClassLoaderUtils {
             }
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
         protected <T> T invoke(ClassLoader classLoader, String methodName, MethodType methodType, Object... arguments) {
             try {
                 MethodHandles.Lookup lookup = getLookupForClassLoader(classLoader);

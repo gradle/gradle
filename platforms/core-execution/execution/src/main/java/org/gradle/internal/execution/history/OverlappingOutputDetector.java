@@ -17,10 +17,13 @@
 package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
 
+@ServiceScope(Scope.Global.class)
 public interface OverlappingOutputDetector {
     @Nullable
     OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current);

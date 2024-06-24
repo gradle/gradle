@@ -19,6 +19,8 @@ import java.lang.annotation.*;
 
 /**
  * Specifies the range of tooling API versions that the given tooling API test can work with.
+ * <p>
+ * A default version range is defined on the ToolingApiSpecification, which can be overridden by a separate annotation placed on a test task or test method.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

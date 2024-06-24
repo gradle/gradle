@@ -33,7 +33,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @ServiceScope(Scope.BuildTree.class)
 public class ReportGeneratingProfileListener {
-    private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private final StyledTextOutputFactory textOutputFactory;
     private final BuildStateRegistry buildStateRegistry;
 
@@ -47,7 +46,8 @@ public class ReportGeneratingProfileListener {
 
     public void buildFinished(BuildProfile buildProfile) {
         ProfileReportRenderer renderer = new ProfileReportRenderer();
-        File file = new File(getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");
+        SimpleDateFormat fileDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        File file = new File(getBuildDir(), "reports/profile/profile-" + fileDateFormat.format(new Date(buildProfile.getBuildStarted())) + ".html");
         renderer.writeTo(buildProfile, file);
         renderReportUrl(file);
     }

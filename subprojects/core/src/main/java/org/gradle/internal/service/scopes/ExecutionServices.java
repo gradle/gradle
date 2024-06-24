@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 
-public class ExecutionServices extends AbstractPluginServiceRegistry {
+public class ExecutionServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ExecutionGlobalServices());
@@ -31,7 +31,7 @@ public class ExecutionServices extends AbstractPluginServiceRegistry {
     }
 
     @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        registration.addProvider(new ExecutionGradleServices());
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new ExecutionBuildServices());
     }
 }

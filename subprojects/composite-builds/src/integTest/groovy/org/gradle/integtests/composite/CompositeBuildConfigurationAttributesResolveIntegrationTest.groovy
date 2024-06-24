@@ -919,7 +919,7 @@ All of them match the consumer attributes:
                         com {
                             acme {
                                 'Flavor.groovy'('package com.acme; enum Flavor { free, paid }')
-                                'BuildType.groovy'('package com.acme; enum BuildType { debug, release }')
+                                'BuildType.groovy'('package com.acme; enum BuildType { debug {}, release {} }')
                                 'TypedAttributesPlugin.groovy'('''package com.acme
 
                                     import org.gradle.api.Plugin

@@ -122,6 +122,7 @@ class EdgeState implements DependencyGraphEdge {
         return selector;
     }
 
+    @Override
     public boolean isTransitive() {
         return isTransitive;
     }

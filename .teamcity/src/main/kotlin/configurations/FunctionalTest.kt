@@ -9,6 +9,7 @@ import model.CIBuildModel
 import model.Stage
 import model.StageName
 import model.TestCoverage
+import model.TestType
 
 const val functionalTestTag = "FunctionalTest"
 
@@ -103,7 +104,8 @@ private fun determineFlakyTestStrategy(stage: Stage): String {
 }
 
 fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): String {
-    val testTaskName = "${testCoverage.testType.name}Test"
+    val testTaskName =
+        if (testCoverage.testType == TestType.isolatedProjects) "isolatedProjectsIntegTest" else "${testCoverage.testType.name}Test"
     return when {
         subprojects.isEmpty() -> {
             testTaskName

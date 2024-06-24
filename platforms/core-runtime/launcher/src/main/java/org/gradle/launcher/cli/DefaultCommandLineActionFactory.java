@@ -16,16 +16,20 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
@@ -35,8 +39,12 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
@@ -52,9 +60,7 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -85,8 +91,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
-    private static GradleLauncherMetaData clientMetaData() {
-        return new GradleLauncherMetaData();
+    private static BuildClientMetaData clientMetaData() {
+        return new DefaultBuildClientMetaData(new GradleLauncherMetaData());
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {
@@ -104,11 +110,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      * don't actually attempt to run the build per normally.
      *
      * @param loggingServices logging services to use when instantiating any {@link CommandLineActionCreator}s
+     * @param basicServices basic services to use when instantiating any {@link CommandLineActionCreator}s
      * @param actionCreators collection of {@link CommandLineActionCreator}s to which to add a new {@link BuildActionsFactory}
      */
     @VisibleForTesting
-    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
-        actionCreators.add(new BuildActionsFactory(loggingServices));
+    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, ServiceRegistry basicServices, List<CommandLineActionCreator> actionCreators) {
+        actionCreators.add(new BuildActionsFactory(loggingServices, basicServices));
     }
 
     /**
@@ -131,12 +138,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         @Nullable
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(HELP)) {
                 return new ShowUsageAction(parser);
             }
             if (commandLine.hasOption(VERSION)) {
-                return new ShowVersionAction();
+                return new ShowVersionAction(parameters);
             }
             return null;
         }
@@ -148,9 +155,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class ContinuingActionCreator extends NonParserConfiguringCommandLineActionCreator {
         @Override
         @Nullable
-        public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
-                return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction().execute(executionListener);
+                return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction(parameters).execute(executionListener);
             }
             return null;
         }
@@ -192,48 +199,106 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     public static class ShowVersionAction implements Action<ExecutionListener> {
+        private final Parameters parameters;
+
+        public ShowVersionAction(Parameters parameters) {
+            this.parameters = parameters;
+        }
+
         @Override
         public void execute(ExecutionListener executionListener) {
             DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
 
-            final StringBuilder sb = new StringBuilder();
-            sb.append("%n------------------------------------------------------------%nGradle ");
-            sb.append(currentVersion.getVersion());
-            sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
-            sb.append(currentVersion.getBuildTimestamp());
-            sb.append("%nRevision:     ");
-            sb.append(currentVersion.getGitRevision());
-            sb.append("%n%nKotlin:       ");
-            sb.append(KotlinDslVersion.current().getKotlinVersion());
-            sb.append("%nGroovy:       ");
-            sb.append(ReleaseInfo.getVersion());
-            sb.append("%nAnt:          ");
-            sb.append(Main.getAntVersion());
-            sb.append("%nJVM:          ");
-            sb.append(Jvm.current());
-            sb.append("%nOS:           ");
-            sb.append(OperatingSystem.current());
-            sb.append("%n");
+            System.out.println();
+            System.out.println("------------------------------------------------------------");
+            System.out.println("Gradle " + currentVersion.getVersion());
+            System.out.println("------------------------------------------------------------");
+            System.out.println();
+            printAligned(ImmutableList.of(
+                new Line.KeyValue("Build time", currentVersion.getBuildTimestamp()),
+                new Line.KeyValue("Revision", currentVersion.getGitRevision()),
+                new Line.Blank(),
+                new Line.KeyValue("Kotlin", KotlinDslVersion.current().getKotlinVersion()),
+                new Line.KeyValue("Groovy", ReleaseInfo.getVersion()),
+                new Line.KeyValue("Ant", Main.getAntVersion()),
+                new Line.KeyValue("Launcher JVM", Jvm.current().toString()),
+                new Line.KeyValue("Daemon JVM", parameters.getDaemonParameters().getRequestedJvmCriteria().toString()),
+                new Line.KeyValue("OS", OperatingSystem.current().toString()),
+                new Line.Blank()
+            ));
+        }
 
-            System.out.println(String.format(sb.toString()));
+        private interface Line {
+            class KeyValue implements Line {
+                private final String key;
+                private final String value;
+
+                public KeyValue(String key, String value) {
+                    this.key = key;
+                    this.value = value;
+                }
+            }
+
+            class Blank implements Line {
+            }
+        }
+
+        /**
+         * Print a list of lines, aligning values to the right of the keys.
+         *
+         * <p>
+         * For example, given the following lines:
+         * <pre>
+         * new Line.KeyValue("Key", "Value"),
+         * new Line.KeyValue("Another key", "Another value"),
+         * new Line.Blank()
+         * </pre>
+         * This method would print:
+         * <pre>
+         * Key:          Value
+         * Another key:  Another value
+         * [blank line]
+         * </pre>
+         * </p>
+         *
+         * @param lines the lines to print
+         */
+        private static void printAligned(List<Line> lines) {
+            int maxKeyLength = lines.stream()
+                .filter(line -> line instanceof Line.KeyValue)
+                .map(line -> ((Line.KeyValue) line).key.length())
+                .max(Integer::compare)
+                .orElse(0);
+            for (Line line : lines) {
+                if (line instanceof Line.KeyValue) {
+                    Line.KeyValue keyValue = (Line.KeyValue) line;
+                    System.out.print(keyValue.key + ": ");
+                    // Add one to account for colon
+                    for (int i = keyValue.key.length(); i < maxKeyLength + 1; i++) {
+                        System.out.print(' ');
+                    }
+                    System.out.println(keyValue.value);
+                } else {
+                    System.out.println();
+                }
+            }
         }
     }
 
     /**
-     * This {@link Action} is also a {@link CommandLineActionCreator} that, when run, will create new {@link Action}s that
-     * will be immediately executed.
+     * This {@link Action} will create new {@link Action}s that will be immediately executed.
      *
      * This class accomplishes this be maintaining a list of {@link CommandLineActionCreator}s which can each attempt to
      * create an {@link Action} from the given CLI args, and handles the logic for deciding whether or not to continue processing
      * based on whether the result is a {@link ContinuingAction} or not.  It allows for injecting alternate Creators which
-     * won't actually attempt to run a build via the containing class' {@link #createBuildActionFactoryActionCreator(ServiceRegistry, List)}
+     * won't actually attempt to run a build via the containing class' {@link #createBuildActionFactoryActionCreator(ServiceRegistry, ServiceRegistry, List)}
      * method - this is why this class is not {@code static}.
      */
-    private class ParseAndBuildAction extends NonParserConfiguringCommandLineActionCreator implements Action<ExecutionListener> {
+    private class ParseAndBuildAction implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
-        private List<CommandLineActionCreator> actionCreators;
-        private CommandLineParser parser = new CommandLineParser();
+        private final List<CommandLineActionCreator> actionCreators;
+        private final CommandLineParser parser = new CommandLineParser();
 
         private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
             this.loggingServices = loggingServices;
@@ -246,14 +311,21 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
+            ServiceRegistry basicServices = createBasicGlobalServices(loggingServices);
+            BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
+                new BuildLayoutFactory(),
+                basicServices.get(FileCollectionFactory.class));
+            buildEnvironmentConfigurationConverter.configure(parser);
+
             // This must be added only during execute, because the actual constructor is called by various tests and this will not succeed if called then
-            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
+            createBuildActionFactoryActionCreator(loggingServices, basicServices, actionCreators);
             configureCreators();
 
             Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);
-                action = createAction(parser, commandLine);
+                Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(commandLine, null);
+                action = createAction(parser, commandLine, parameters);
             } catch (CommandLineArgumentException e) {
                 action = new CommandLineParseFailureAction(parser, e);
             }
@@ -265,11 +337,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
         }
 
-        @Override
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             List<Action<? super ExecutionListener>> actions = new ArrayList<>(2);
             for (CommandLineActionCreator actionCreator : actionCreators) {
-                Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine);
+                Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine, parameters);
                 if (action != null) {
                     actions.add(action);
                     if (!(action instanceof ContinuingAction)) {
@@ -286,8 +357,19 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
     }
 
+    @VisibleForTesting
+    public ServiceRegistry createBasicGlobalServices(ServiceRegistry loggingServices) {
+        return ServiceRegistryBuilder.builder()
+            .scopeStrictly(Scope.Global.class)
+            .displayName("Basic global services")
+            .parent(loggingServices)
+            .parent(NativeServices.getInstance())
+            .provider(new BasicGlobalScopeServices())
+            .build();
+    }
+
     /**
-     * Abstract type for any {@link CommandLineActionCreator} that does not make use of the {@link#configureCommandLineParser(CommandLineParser)}
+     * Abstract type for any {@link CommandLineActionCreator} that does not make use of the {@link #configureCommandLineParser(CommandLineParser)}
      * method.
      */
     private static abstract class NonParserConfiguringCommandLineActionCreator implements CommandLineActionCreator {
@@ -331,7 +413,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             parser.allowMixedSubcommandsAndOptions();
 
             WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
-            Map<String, String> allProperties = Collections.emptyMap();
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
@@ -342,7 +423,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 // Read *.properties files
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
-                allProperties = properties.getProperties();
 
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
@@ -359,7 +439,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, allProperties,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);

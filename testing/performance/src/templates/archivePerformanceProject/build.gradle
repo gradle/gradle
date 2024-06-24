@@ -14,53 +14,54 @@
 * limitations under the License.
 */
 
-task zip(type: Zip) {
-    (1..10000).each { suffix ->
-        from ('build.gradle') {
-            into "folder$suffix"
-        }
-    }
-}
+def visitIterations = (1..10)
 
-task visitZip(dependsOn: zip) {
+tasks.register("visitZip") {
     doLast {
-        (1..4).each {
-            zipTree(zip.archivePath).each {
+        visitIterations.each {
+            zipTree(file("archive.zip")).each {
                 logger.info it.path
             }
         }
     }
 }
 
-task tar(type: Tar) {
-    with zip
-}
-
-task visitTar(dependsOn: tar) {
+tasks.register("visitTar") {
     doLast {
-        (1..4).each {
-            tarTree(tar.archivePath).each {
+        visitIterations.each {
+            tarTree(file("archive.tar")).each {
                 logger.info it.path
             }
         }
     }
 }
 
-task tarGz(type: Tar) {
-    with zip
+tasks.register("visitTarGz") {
+    doLast {
+        visitIterations.each {
+            tarTree(file("archive.tar.gz")).each {
+                logger.info it.path
+            }
+        }
+    }
+}
+
+tasks.register("zip", Zip) {
+    from "archive-contents"
+    archiveFileName = "archive.zip"
+}
+
+tasks.register("tar", Tar) {
+    from "archive-contents"
+    archiveFileName = "archive.tar"
+}
+
+tasks.register("tarGz", Tar) {
+    from "archive-contents"
+    archiveFileName = "archive.tar.gz"
     compression = 'gzip'
 }
 
-task visitTarGz(dependsOn: tarGz) {
-    doLast {
-        (1..4).each {
-            tarTree(tarGz.archivePath).each {
-                logger.info it.path
-            }
-        }
-    }
-}
-
-tasks.withType(AbstractArchiveTask) {
-    destinationDirectory = projectDir
+tasks.withType(AbstractArchiveTask).configureEach {
+    destinationDirectory = layout.buildDirectory
 }

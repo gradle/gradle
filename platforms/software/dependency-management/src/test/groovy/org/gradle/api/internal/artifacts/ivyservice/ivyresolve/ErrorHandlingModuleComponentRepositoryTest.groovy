@@ -26,8 +26,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
@@ -164,7 +164,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access = createAccess(maxRetries)
 
         given:
-        def component = Mock(ComponentResolveMetadata)
+        def component = Mock(ComponentArtifactResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
         def artifactType = ArtifactType.MAVEN_POM
         def result = Mock(BuildableArtifactSetResolveResult)

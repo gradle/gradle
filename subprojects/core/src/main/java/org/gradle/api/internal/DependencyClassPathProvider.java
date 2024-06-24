@@ -33,13 +33,14 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 
 public class DependencyClassPathProvider implements ClassPathProvider {
     private static final List<String> MODULES = Arrays.asList(
-        "gradle-worker-processes",
+        "gradle-worker-main",
         "gradle-launcher",
         "gradle-workers",
         "gradle-dependency-management",
         "gradle-plugin-use",
         "gradle-tooling-api-builders",
-        "gradle-configuration-cache"
+        "gradle-configuration-cache",
+        "gradle-unit-test-fixtures"
     );
 
     private final ModuleRegistry moduleRegistry;

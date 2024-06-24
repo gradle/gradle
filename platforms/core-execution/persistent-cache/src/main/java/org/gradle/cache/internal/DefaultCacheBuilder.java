@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
@@ -27,6 +26,7 @@ import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
@@ -34,8 +34,8 @@ public class DefaultCacheBuilder implements CacheBuilder {
     private final CacheFactory factory;
     private final File baseDir;
     private Map<String, ?> properties = Collections.emptyMap();
-    private Action<? super PersistentCache> initializer;
-    private CacheCleanupStrategy cacheCleanupStrategy;
+    private Consumer<? super PersistentCache> initializer;
+    private CacheCleanupStrategy cacheCleanupStrategy = CacheCleanupStrategy.NO_CLEANUP;
     private LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
     private String displayName;
 
@@ -63,7 +63,7 @@ public class DefaultCacheBuilder implements CacheBuilder {
     }
 
     @Override
-    public CacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
+    public CacheBuilder withInitializer(Consumer<? super PersistentCache> initializer) {
         this.initializer = initializer;
         return this;
     }

@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
@@ -27,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -36,18 +39,27 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
-    private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private final Context context;
+    private final Factory<ContextAwareJavaCompiler> compilerFactory;
+    private final InternalProblems problemsService;
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
-        this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter());
+    public JdkJavaCompiler(
+        Factory<ContextAwareJavaCompiler> compilerFactory,
+        InternalProblems problemsService
+    ) {
+        this.context = new Context();
+        this.compilerFactory = compilerFactory;
+        this.problemsService = problemsService;
+        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
     }
 
     @Override
@@ -55,28 +67,37 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result);
+        JavaCompiler.CompilationTask task;
+        try {
+            task = createCompileTask(spec, result);
+        } catch (RuntimeException ex) {
+            throw problemsService.getInternalReporter().rethrowing(ex, builder -> buildProblemFrom(ex, builder));
+        }
         boolean success = task.call();
+        diagnosticToProblemListener.printDiagnosticCounts();
         if (!success) {
             throw new CompilationFailedException(result);
         }
         return result;
     }
 
+    @SuppressWarnings("DefaultCharset")
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
-        // We check here if the Problems API is used
-        // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
-        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
-
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
-        JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
+        ContextAwareJavaCompiler compiler = compilerFactory.create();
+        Objects.requireNonNull(compiler, "Compiler factory returned null compiler");
+
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
-        Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticListener, null, charset);
+        Charset charset = Optional.ofNullable(compileOptions.getEncoding())
+            .map(Charset::forName)
+            .orElse(null);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticToProblemListener, null, charset);
+
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits);
+
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticToProblemListener, options, spec.getClassesToProcess(), compilationUnits, context);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
                 task,
@@ -92,11 +113,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return task;
     }
 
-    private static boolean shouldUseProblemsApiReporting() {
-        String property = System.getProperty("org.gradle.internal.emit-compiler-problems");
-        return Boolean.parseBoolean(property);
-    }
-
     private static boolean emptySourcepathIn(List<String> options) {
         Iterator<String> optionsIter = options.iterator();
         while (optionsIter.hasNext()) {
@@ -107,4 +123,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         }
         return false;
     }
+
+    private void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
+        spec.severity(Severity.ERROR);
+        spec.id("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
+        spec.details(ex.getLocalizedMessage());
+        spec.withException(ex);
+    }
+
+
 }

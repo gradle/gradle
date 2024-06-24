@@ -29,10 +29,8 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
-import org.gradle.internal.classpath.types.DefaultInstrumentationTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistryFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -72,7 +70,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final AgentStatus agentStatus;
     private final ManagedExecutor executor;
     private final ParallelTransformExecutor parallelTransformExecutor;
-    private final InstrumentationTypeRegistryFactory typeRegistryFactory;
     private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingRegistry;
     private final ClasspathElementTransformFactoryForAgent classpathElementTransformFactoryForAgent;
     private final ClasspathElementTransformFactoryForLegacy classpathElementTransformFactoryForLegacy;
@@ -81,7 +78,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ClasspathWalker classpathWalker,
         ClasspathFingerprinter classpathFingerprinter,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
@@ -102,7 +98,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
         this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
-        this.typeRegistryFactory = new DefaultInstrumentationTypeRegistryFactory(gradleCoreInstrumentingRegistry, cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
         this.classpathElementTransformFactoryForAgent = classpathElementTransformFactoryForAgent;
         this.classpathElementTransformFactoryForLegacy = classpathElementTransformFactoryForLegacy;
     }
@@ -184,19 +179,17 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             return ImmutableList.of();
         }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
-        InstrumentationTypeRegistry typeRegistry = typeRegistryFactory.createFor(urls, transformer);
         return parallelTransformExecutor.transformAll(
             urls,
-            (url, seen) -> cachedURL(url, transformer, seen, typeRegistry)
+            (url, seen) -> cachedURL(url, transformer, seen, InstrumentationTypeRegistry.empty())
         );
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        InstrumentationTypeRegistry typeRegistry = typeRegistryFactory.createFor(classPath.getAsFiles(), transformer);
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
-                (file, seen) -> cachedFile(file, transformer, seen, typeRegistry)
+                (file, seen) -> cachedFile(file, transformer, seen, InstrumentationTypeRegistry.empty())
             )
         );
     }

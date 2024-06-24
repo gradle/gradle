@@ -11,13 +11,10 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":functional"))
-    implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":language-jvm"))
     implementation(project(":logging"))
-    implementation(project(":model-core"))
     implementation(project(":plugin-development"))
-    implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":resources"))
@@ -28,7 +25,7 @@ dependencies {
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("compiler-embeddable"))
+    implementation(libs.kotlinCompilerEmbeddable)
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

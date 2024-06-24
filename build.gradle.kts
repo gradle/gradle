@@ -1,5 +1,4 @@
 plugins {
-    id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
 
     id("gradlebuild.teamcity-import-test-data")  // CI: Import Test tasks' JUnit XML if they're UP-TO-DATE or FROM-CACHE

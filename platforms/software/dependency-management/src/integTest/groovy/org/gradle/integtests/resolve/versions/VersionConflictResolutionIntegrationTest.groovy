@@ -19,6 +19,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -73,6 +77,13 @@ project(':tool') {
         expect:
         runAndFail("tool:dependencies")
         failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        failure.assertHasResolutions("Run with :tool:dependencyInsight --configuration runtimeClasspath " +
+            "--dependency org:foo to get more insight on how to solve the conflict.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
     }
 
     void "strict conflict resolution should pass when no conflicts"() {

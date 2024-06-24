@@ -8,12 +8,13 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":jvm-services"))
     api(project(":toolchains-jvm-shared"))
-    api(project(":base-annotations"))
+    api(project(":java-language-extensions"))
+
+    implementation(project(":base-services"))
     implementation(project(":logging"))
 
     testImplementation(testFixtures(project(":core")))

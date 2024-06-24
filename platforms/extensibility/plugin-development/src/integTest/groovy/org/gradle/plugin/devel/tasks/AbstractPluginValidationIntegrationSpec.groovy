@@ -44,9 +44,6 @@ import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def "detects missing annotations on Java properties"() {
@@ -145,7 +142,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'badTime',
                 ]
@@ -158,7 +155,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'oldThing',
                 ]
@@ -171,7 +168,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'parentPropertyName' : 'options',
                     'typeName' : 'MyTask',
                     'propertyName' : 'badNested',
@@ -185,7 +182,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'ter',
                 ]
@@ -276,7 +273,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the @Optional annotation',
                     "Use the java.lang.$className type instead"
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'primitive'
                 ]
@@ -338,28 +335,28 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 contextualLabel == 'Type \'MyTask\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTask'
                 details == 'This annotation only makes sense on Task types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(2)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(3)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @DisableCachingByDefault'
                 details == 'This annotation only makes sense on Task, TransformAction types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
         }
     }
@@ -413,7 +410,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'badTime',
                 ]
@@ -426,7 +423,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'parentPropertyName' : 'options',
                     'typeName' : 'MyTask',
                     'propertyName' : 'badNested',
@@ -567,7 +564,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 contextualLabel == "Type \'MyTask\' property \'mutablePropertyWithSetter\' of mutable type '${testedType.replace('<String>', '')}' is writable"
                 details == "Properties of type '${testedType.replace('<String>', '')}' are already mutable"
                 solutions == [ 'Remove the \'setMutablePropertyWithSetter\' method' ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'mutablePropertyWithSetter',
                 ]
@@ -635,7 +632,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Make the getter public',
                     'Annotate the public version of the getter',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'badTime',
                 ]
@@ -648,7 +645,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Make the getter public',
                     'Annotate the public version of the getter',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'parentPropertyName' : 'options',
                     'typeName' : 'MyTask',
                     'propertyName' : 'badNested',
@@ -662,7 +659,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Make the getter public',
                     'Annotate the public version of the getter',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'outputDir',
                 ]
@@ -721,7 +718,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -731,7 +728,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
         }
     }
@@ -802,7 +799,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Add an input or output annotation',
                     'Mark it as @Internal',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'readWrite',
                 ]
@@ -815,7 +812,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(2)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -825,7 +822,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(3)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -835,7 +832,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(4)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -845,7 +842,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             }
         }
     }
@@ -897,7 +894,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the input annotations',
                     'Remove the @ReplacedBy annotation',
                 ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'oldProperty',
                 ]
@@ -940,7 +937,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 contextualLabel == 'Type \'MyTask\' property \'file\' has conflicting type annotations declared: @InputFile, @OutputFile'
                 details == 'The different annotations have different semantics and Gradle cannot determine which one to pick'
                 solutions == [ 'Choose between one of the conflicting annotations' ]
-                additionalData == [
+                additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'file',
                 ]
@@ -961,44 +958,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
-
-    static <T extends ValidationMessageDisplayConfiguration> DocumentedProblem error(T message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, ERROR, id, section)
-    }
-
-    static <T extends ValidationMessageDisplayConfiguration> DocumentedProblem warning(T message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, WARNING, id, section)
-    }
-
-    static <T extends ValidationMessageDisplayConfiguration> DocumentedProblem warning(String message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, WARNING, id, section)
-    }
-
-    TestFile getJavaTaskSource() {
-        source("src/main/java/MyTask.java")
-    }
-
-    TestFile getGroovyTaskSource() {
-        buildFile  """
-            apply plugin: "groovy"
-        """
-        source("src/main/groovy/MyTask.groovy")
-    }
-
-    TestFile getKotlinTaskSource() {
-        buildFile.delete()
-        buildKotlinFile << """
-            plugins {
-                id("java-gradle-plugin")
-                `kotlin-dsl`
-            }
-
-            repositories {
-                mavenCentral()
-            }
-        """
-        source("src/main/kotlin/MyTask.kt")
-    }
 
     static class DocumentedProblem {
         final String message

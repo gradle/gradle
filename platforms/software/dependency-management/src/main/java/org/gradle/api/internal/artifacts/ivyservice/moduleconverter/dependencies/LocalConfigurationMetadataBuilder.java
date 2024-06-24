@@ -17,15 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,17 +38,13 @@ import java.util.function.Function;
  * Builds {@link LocalConfigurationMetadata} instances from {@link ConfigurationInternal}s, while
  * caching intermediary dependency and exclude state.
  */
+@ServiceScope(Scope.Global.class)
 public interface LocalConfigurationMetadataBuilder {
 
-    /**
-     * TODO: Ideally, building a configuration's metadata should not require the parent component
-     * reference. We currently need it in order to traverse the configuration hierarchy for building
-     * artifact metadata.
-     */
-    LocalConfigurationMetadata create(
+    LocalConfigurationGraphResolveMetadata create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
-        LocalComponentMetadata parent,
+        ComponentIdentifier componentId,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory

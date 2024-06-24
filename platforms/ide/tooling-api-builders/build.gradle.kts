@@ -11,32 +11,32 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
     implementation(project(":base-services-groovy")) // for 'Specs'
-    implementation(project(":enterprise-operations"))
-    implementation(project(":build-events"))
-    implementation(project(":composite-builds"))
-    implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":launcher"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":reporting"))
     implementation(project(":resources"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
-    implementation(project(":tooling-api"))
     implementation(project(":workers"))
-
-    implementation(libs.groovy) // for 'Closure'
+    implementation(project(":testing-base-infrastructure"))
     implementation(libs.guava)
-    implementation(libs.gson)
     implementation(libs.commonsIo)
+
+    api(libs.jsr305)
+    api(project(":base-services"))
+    api(project(":build-events"))
+    api(project(":build-operations"))
+    api(project(":core"))
+    api(project(":daemon-protocol"))
+    api(project(":enterprise-operations"))
+    api(project(":java-language-extensions"))
+    api(project(":problems-api"))
+    api(project(":service-provider"))
+    api(project(":tooling-api"))
+
+    runtimeOnly(project(":composite-builds"))
+    runtimeOnly(libs.groovy) // for 'Closure'
 
     testCompileOnly(project(":toolchains-jvm")) {
         because("JavaLauncher is required for mocking Test.")

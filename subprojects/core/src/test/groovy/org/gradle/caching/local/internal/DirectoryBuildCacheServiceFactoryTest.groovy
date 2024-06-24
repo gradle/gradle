@@ -20,9 +20,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.provider.Provider
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CleanupAction
 import org.gradle.cache.UnscopedCacheBuilderFactory
-import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
@@ -41,10 +39,9 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(UnscopedCacheBuilderFactory)
     def globalScopedCache = Mock(GlobalScopedCacheBuilderFactory)
     def resolver = Mock(FileResolver)
-    def cleanupActionDecorator = Mock(CleanupActionDecorator)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def cacheConfigurations = Mock(CacheConfigurationsInternal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, cleanupActionDecorator, fileAccessTimeJournal, cacheConfigurations)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileAccessTimeJournal, cacheConfigurations)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -60,7 +57,6 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
-        1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
         0 * _
     }
@@ -76,7 +72,6 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
-        1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
         0 * _
     }

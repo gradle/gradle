@@ -190,6 +190,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     def "task cannot write into transform directory"() {
+        enableProblemsApiCheck()
         def forbiddenPath = ".transforms/not-allowed.txt"
 
         buildFile << """
@@ -204,16 +205,28 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         fails "badTask", "--continue"
+
         then:
-        ['lib', 'app', 'util'].each {
-            def reserved = file("${it}/build/${forbiddenPath}")
-            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
-            failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
-                property('output')
-                    .forbiddenAt(reserved)
-                    .includeLink()
-            }))
-        }
+        ['app', 'lib', 'util'].withIndex()
+            .each { appType, index ->
+                def reserved = file("${appType}/build/${forbiddenPath}")
+                failure.assertHasDescription("A problem was found with the configuration of task ':${appType}:badTask' (type 'DefaultTask').")
+                failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
+                    property('output')
+                        .forbiddenAt(reserved)
+                        .includeLink()
+                }))
+                verifyAll(receivedProblem(index as Integer)) {
+                    fqid == 'validation:property-validation:cannot-write-to-reserved-location'
+                    contextualLabel == "Property \'output\' points to \'${reserved.absolutePath}\' which is managed by Gradle"
+                    details == 'Trying to write an output to a read-only location which is for Gradle internal use only'
+                    solutions == ['Select a different output location']
+                    additionalData.asMap == [
+                        'typeName': 'org.gradle.api.DefaultTask',
+                        'propertyName': 'output',
+                    ]
+                }
+            }
     }
 
     def "scheduled transformation is invoked before consuming task is executed"() {
@@ -1431,7 +1444,7 @@ resultsFile:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [${ ["lib1", "lib2", "lib3", "lib4-1.0"].collectMany { lib -> targetJarsFor(lib) }.sort().join(", ") }]") == 2
+        output.count("files: [${["lib1", "lib2", "lib3", "lib4-1.0"].collectMany { lib -> targetJarsFor(lib) }.sort().join(", ")}]") == 2
     }
 
     def "failure in transformation chain propagates (position in chain: #failingTransform)"() {
@@ -1606,9 +1619,9 @@ resultsFile:
                 }
 
                 ${incremental
-                    ? "@Inject abstract InputChanges getInputChanges()"
-                    : ""
-                }
+            ? "@Inject abstract InputChanges getInputChanges()"
+            : ""
+        }
 
                 ${normalization}
                 @InputArtifact
@@ -1912,6 +1925,82 @@ resultsFile:
         output.count("Transformed") == 1
         isTransformed("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt")
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
+    }
+
+    def "can disable storing to build-cache with experimental property"() {
+        given:
+        buildFile << declareAttributes() << withExternalLibDependency("lib1") << """
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    outputs.file(input.name + ".green").text = 'green'
+                    println "Transformed \$input.name to green"
+                }
+            }
+            @CacheableTransform
+            abstract class MakeBlue implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    outputs.file(input.name + ".blue").text = 'blue'
+                    println "Transformed \$input.name to blue"
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'green')
+                    }
+                    registerTransform(MakeBlue) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'blue')
+                    }
+                }
+                task resolveGreen(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'green') }
+                    }.artifacts
+                }
+                task resolveBlue(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'blue') }
+                    }.artifacts
+                }
+                task resolve {
+                    dependsOn(resolveGreen, resolveBlue)
+                }
+            }
+        """
+
+        when:
+        executer.requireOwnGradleUserHomeDir("Test checks existence of build-cache entries")
+        executer.withArguments("--build-cache", "--info", "-Dorg.gradle.internal.transform-caching-disabled=${transformsDisabled}")
+        succeeds ":lib:resolve"
+
+        then:
+        output.contains("Transformed lib1-1.0.jar to green")
+        output.contains("Transformed lib1-1.0.jar to blue")
+
+        def localBuildCacheDir = executer.gradleUserHomeDir.file("caches/build-cache-1")
+        def localBuildCacheFiles = localBuildCacheDir.list { dir, fileName -> fileName != "gc.properties" && fileName != "build-cache-1.lock" }
+        localBuildCacheFiles.length == entryCount
+
+        where:
+        transformsDisabled   | entryCount
+        "true"               | 0
+        "false"              | 2
+        "MakeGreen"          | 1
+        "MakeGreen,MakeBlue" | 0
     }
 
     def "cleans up cache"() {
@@ -2291,9 +2380,9 @@ resultsFile:
                 }
 
                 ${incremental
-                    ? "@Inject abstract InputChanges getInputChanges()"
-                    : ""
-                }
+            ? "@Inject abstract InputChanges getInputChanges()"
+            : ""
+        }
 
                 void transform(TransformOutputs outputs) {
                     assert input.exists()
@@ -2307,11 +2396,11 @@ resultsFile:
                     } else {
                         output = outputs.dir(input.name + ".dir")
                         ${
-                            // Do not check for an empty output for incremental transforms
-                            incremental
-                                ? ""
-                                : "assert output.directory && output.list().length == 0"
-                        }
+            // Do not check for an empty output for incremental transforms
+            incremental
+                ? ""
+                : "assert output.directory && output.list().length == 0"
+        }
                         new File(output, "child.txt").text = "transformed"
                     }
                     def outputDirectory = output.parentFile

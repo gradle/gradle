@@ -25,11 +25,15 @@ class AcceptedApiChanges {
     GradleVersion baseVersion
     Map<ApiChange, String> acceptedChanges
 
-    static AcceptedApiChanges parse(String jsonText) {
+    static AcceptedApiChanges parse(List<String> jsonTexts) {
         def acceptedApiChanges = new AcceptedApiChanges()
-        def json = new Gson().fromJson(jsonText, new TypeToken<Map<String, List<AcceptedApiChange>>>() {}.type)
-        acceptedApiChanges.acceptedChanges = json.acceptedApiChanges.collectEntries { jsonChange ->
-            [(jsonChange.toApiChange()): jsonChange.acceptation]
+        acceptedApiChanges.acceptedChanges = [:]
+        for (String jsonText : jsonTexts) {
+            def json = new Gson().fromJson(jsonText, new TypeToken<Map<String, List<AcceptedApiChange>>>() {}.type)
+            Map<ApiChange, String> acceptedChanges = json.acceptedApiChanges.collectEntries { jsonChange ->
+                [(jsonChange.toApiChange()): jsonChange.acceptation]
+            }
+            acceptedApiChanges.acceptedChanges.putAll(acceptedChanges)
         }
         return acceptedApiChanges
     }

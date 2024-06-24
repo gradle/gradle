@@ -16,11 +16,14 @@
 
 package org.gradle.internal.buildtree;
 
+import javax.annotation.Nullable;
+
 /**
  * Responsible for creating a model from the build tree model.
  */
 public interface BuildTreeModelCreator {
     <T> void beforeTasks(BuildTreeModelAction<? extends T> action);
 
+    @Nullable
     <T> T fromBuildModel(BuildTreeModelAction<? extends T> action);
 }

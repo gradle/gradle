@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
@@ -28,7 +27,6 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=3.3")
 @TargetGradleVersion('>=6.8')
 class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 
@@ -351,7 +349,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("do something")
     }
 
-    @ToolingApiVersion(">=6.8")
     def "can launch test with test launcher via build operation"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -400,7 +397,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("BUILD SUCCESSFUL")
     }
 
-    @ToolingApiVersion(">=6.8")
     def "can launch test with test launcher via test filter targeting a specific task"() {
         setup:
         settingsFile << "includeBuild('other-build')"

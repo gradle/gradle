@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
@@ -24,12 +23,14 @@ import org.gradle.cache.LockTimeoutException
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.cache.internal.locklistener.InetAddressProvider
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+
+import java.util.function.Consumer
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -37,10 +38,22 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, new InetAddressFactory())
-    FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, new InetAddressFactory())
-    FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler, new LongIdGenerator())
-    FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler2, new LongIdGenerator())
+    def addressFactory = new InetAddressFactory()
+    def addressProvider = new InetAddressProvider() {
+        @Override
+        InetAddress getWildcardBindingAddress() {
+            return addressFactory.wildcardBindingAddress
+        }
+
+        @Override
+        Iterable<InetAddress> getCommunicationAddresses() {
+            return addressFactory.communicationAddresses
+        }
+    }
+    FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler)
+    FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler2)
 
     List<Closeable> openedLocks = []
 
@@ -51,7 +64,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     def "lock manager is notified while holding an exclusive lock when another lock manager in same process requires lock with mode #lockMode"() {
         given:
         def file = tmpDir.file("lock-file.bin")
-        def action = Mock(Action)
+        def action = Mock(Consumer)
 
         def lock = createLock(Exclusive, file, manager, action)
 
@@ -60,7 +73,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
 
         then:
         lock2
-        1 * action.execute(_) >> { FileLockReleasedSignal signal ->
+        1 * action.accept(_) >> { FileLockReleasedSignal signal ->
             lock.close()
             signal.trigger()
         }
@@ -87,7 +100,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     def "lock manage resets the timeout if the lock owner changes"() {
         given:
         FileLockContentionHandler contentionHandler3 = Mock(FileLockContentionHandler)
-        FileLockManager manager3 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler3, new LongIdGenerator())
+        FileLockManager manager3 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler3)
 
         int port1 = contentionHandler.communicator.socket.localPort
         int port2 = contentionHandler2.communicator.socket.localPort
@@ -114,7 +127,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         }
     }
 
-    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Action<FileLockReleasedSignal> whenContended = null) {
+    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
         def lock = lockManager.lock(file, DefaultLockOptions.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
         lock

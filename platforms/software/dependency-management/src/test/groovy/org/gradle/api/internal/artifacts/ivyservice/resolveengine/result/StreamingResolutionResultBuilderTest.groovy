@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
-import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
@@ -52,7 +51,6 @@ class StreamingResolutionResultBuilderTest extends Specification {
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
         new ThisBuildOnlyComponentDetailsSerializer(new DefaultImmutableModuleIdentifierFactory()),
         new ThisBuildOnlySelectedVariantSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )
@@ -64,7 +62,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(rootNode)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         with(result.rootSource.get()) {
@@ -96,7 +94,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -125,7 +123,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -165,7 +163,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -204,7 +202,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0

@@ -16,43 +16,4 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 
-
-internal
-interface InterpretationSchemaBuilder {
-    fun getEvaluationSchemaForScript(
-        targetInstance: Any,
-        scriptContext: RestrictedScriptContext,
-    ): InterpretationSchemaBuildingResult
-}
-
-
-internal
-sealed interface InterpretationSchemaBuildingResult {
-    class InterpretationSequenceAvailable(val sequence: InterpretationSequence) : InterpretationSchemaBuildingResult
-    object SchemaNotBuilt : InterpretationSchemaBuildingResult
-}
-
-
-internal
-sealed interface RestrictedScriptContext {
-    sealed interface ScriptDependentContext : RestrictedScriptContext {
-        val targetScope: ClassLoaderScope
-        val scriptSource: ScriptSource
-    }
-
-    data class SettingsScript(
-        override val targetScope: ClassLoaderScope,
-        override val scriptSource: ScriptSource
-    ) : ScriptDependentContext
-
-    class ProjectScript(
-        override val targetScope: ClassLoaderScope,
-        override val scriptSource: ScriptSource
-    ) : ScriptDependentContext
-
-    object UnknownScript : RestrictedScriptContext
-}

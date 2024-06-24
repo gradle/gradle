@@ -125,7 +125,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        if (targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants()) {
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 consumerAttributes,
                 explicitRequestedCapabilities,
@@ -136,8 +136,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
             return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
 
-        // Fallback to legacy variant selection for target components without variants.
-        VariantGraphResolveState selected = variantSelector.selectLegacyConfiguration(consumerAttributes, targetComponentState, consumerSchema);
+        // Fallback to legacy variant selection for target components that don't support attribute matching.
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
         return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 

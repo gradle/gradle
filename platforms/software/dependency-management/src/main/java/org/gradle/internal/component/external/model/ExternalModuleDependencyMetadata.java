@@ -60,7 +60,7 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
      */
     @Override
     public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        if (targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants()) {
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 consumerAttributes,
                 explicitRequestedCapabilities,

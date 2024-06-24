@@ -10,31 +10,42 @@ errorprone {
     )
 }
 
-dependencies {
-    api(project(":base-services"))
-    api(project(":enterprise-operations"))
-    api(project(":enterprise-logging"))
+tasks.isolatedProjectsIntegTest {
+    enabled = true
+}
 
-    implementation(libs.inject)
-    implementation(libs.jsr305)
-    implementation(libs.guava)
-    implementation(project(":build-option"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
+dependencies {
+    api(projects.serviceProvider)
+    api(project(":build-operations"))
+    api(project(":base-services"))
+    api(project(":configuration-cache"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":daemon-services"))
+    api(project(":enterprise-logging"))
+    api(project(":file-collections"))
+    api(project(":java-language-extensions"))
+    api(project(":jvm-services"))
+    api(project(":launcher"))
+    api(project(":model-core"))
+    api(project(":snapshots"))
+    api(project(":testing-jvm"))
+    api(project(":time"))
+    api(project(":problems-api"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":concurrent"))
     implementation(project(":dependency-management"))
-    implementation(project(":execution"))
-    implementation(project(":configuration-cache"))
-    implementation(project(":file-collections"))
-    implementation(project(":jvm-services"))
-    implementation(project(":launcher"))
+    implementation(project(":files"))
+    implementation(project(":hashing"))
     implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
     implementation(project(":process-services"))
-    implementation(project(":reporting"))
-    implementation(project(":snapshots"))
+    implementation(project(":serialization"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
+
+    implementation(libs.guava)
 
     compileOnly(libs.groovy) {
         because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")
@@ -51,6 +62,7 @@ dependencies {
     integTestImplementation(project(":messaging"))
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(project(":native"))
+    integTestImplementation(testFixtures(project(":problems-api")))
     integTestImplementation(libs.guava)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))

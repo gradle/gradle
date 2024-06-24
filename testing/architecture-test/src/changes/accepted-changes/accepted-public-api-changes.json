@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.setRenderer(org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer)",
+            "acceptation": "Cleaning up unused @VisibleForTesting method",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

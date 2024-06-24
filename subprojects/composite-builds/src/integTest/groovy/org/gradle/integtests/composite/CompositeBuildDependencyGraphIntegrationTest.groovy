@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -696,8 +696,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         when:
         checkDependenciesFails()
 
-        then:
-        failure.assertHasCause("A dependency was declared on configuration 'default' which is not declared in the descriptor for project :buildC.")
+        then: "Build C does not have any configurations defined, and thus no variants exist"
+        failure.assertHasCause("""No matching variant of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - No variants exist.""")
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")

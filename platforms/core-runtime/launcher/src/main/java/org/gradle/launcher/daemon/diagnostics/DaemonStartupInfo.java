@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.diagnostics;
 
 import org.gradle.internal.remote.Address;
 
+import javax.annotation.Nullable;
+
 public class DaemonStartupInfo {
     private final String uid;
     private final Address address;
@@ -37,12 +39,12 @@ public class DaemonStartupInfo {
         return address;
     }
 
-    public Long getPid() {
+    public @Nullable Long getPid() {
         return diagnostics.getPid();
     }
 
     /**
-     * @return the diagnostics. Can be null, this means the existing daemon hasn't yet provided the diagnostics.
+     * @return the diagnostics
      */
     public DaemonDiagnostics getDiagnostics() {
         return diagnostics;
@@ -54,11 +56,7 @@ public class DaemonStartupInfo {
     }
 
     public String describe() {
-        if (diagnostics == null) {
-            return "Daemon uid: " + uid + " without diagnostics.";
-        } else {
-            return "Daemon uid: " + uid + " with diagnostics:\n"
-                    + diagnostics.describe();
-        }
+        return "Daemon uid: " + uid + " with diagnostics:\n"
+            + diagnostics.describe();
     }
 }

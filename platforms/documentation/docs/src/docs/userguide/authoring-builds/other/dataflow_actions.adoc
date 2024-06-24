@@ -49,14 +49,14 @@ abstract class ReportConsumption : FlowAction<ReportConsumption.Params> {
 ----
 
 The `execute` method must be implemented because this is where the work happens.
-An action implementation is treated as a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>> and can use any of the features available to custom Gradle types.
+An action implementation is treated as a <<properties_providers.adoc#properties_and_providers,custom Gradle type>> and can use any of the features available to custom Gradle types.
 In particular, some Gradle services can be injected into the implementation.
 
 A dataflow action may accept parameters.
 To provide parameters, you define an abstract class (or interface) to hold the parameters:
 
 - The parameters type must implement (or extend) link:{javadocPath}/org/gradle/api/flow/FlowParameters.html[FlowParameters].
-- The parameters type is also a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>>.
+- The parameters type is also a <<properties_providers.adoc#properties_and_providers,custom Gradle type>>.
 - The action implementation gets the parameters as an argument of the `execute` method.
 
 When the action requires no parameters, you can use link:{javadocPath}/org/gradle/api/flow/FlowParameters.None.html[FlowParameters.None] as the type of parameter.

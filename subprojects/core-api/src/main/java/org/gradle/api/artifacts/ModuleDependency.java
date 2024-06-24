@@ -210,7 +210,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Endorse version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.
      *
      * Endorsing strict versions of another module/platform means that all strict versions will be interpreted during dependency
-     * resolution as if they where defined by the endorsing module itself.
+     * resolution as if they were defined by the endorsing module itself.
      *
      * @since 6.0
      */

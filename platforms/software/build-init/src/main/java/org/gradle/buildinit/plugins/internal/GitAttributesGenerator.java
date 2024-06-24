@@ -39,6 +39,9 @@ public class GitAttributesGenerator implements BuildContentGenerator {
                 writer.println("# These are Windows script files and should use crlf");
                 writer.println("*.bat           text eol=crlf");
                 writer.println();
+                writer.println("# Binary files should be left untouched");
+                writer.println("*.jar           binary");
+                writer.println();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

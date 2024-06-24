@@ -34,6 +34,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
@@ -90,6 +91,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -104,7 +106,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         TaskStatistics statistics,
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
-        CollectionCallbackActionDecorator callbackDecorator
+        CollectionCallbackActionDecorator callbackDecorator,
+        ProjectRegistry<ProjectInternal> projectRegistry
     ) {
         super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
@@ -113,6 +116,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
+        this.projectRegistry = projectRegistry;
     }
 
     @Override
@@ -471,7 +475,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-        ProjectInternal project = this.project.findProject(Strings.isNullOrEmpty(projectPath) ? Project.PATH_SEPARATOR : projectPath);
+        String projectPathOrRoot = Strings.isNullOrEmpty(projectPath) ? Project.PATH_SEPARATOR : projectPath;
+        ProjectInternal project = projectRegistry.getProject(this.project.absoluteProjectPath(projectPathOrRoot));
         if (project == null) {
             return null;
         }

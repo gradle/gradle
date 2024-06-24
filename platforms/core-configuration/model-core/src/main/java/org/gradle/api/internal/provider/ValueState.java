@@ -79,7 +79,7 @@ public abstract class ValueState<S> {
     /**
      * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
      *
-     * @param value
+     * @param value the new explicitly assigned value
      * @return the very <code>value</code> given
      */
     //TODO-RC rename this or the overload as they have significantly different semantics
@@ -92,8 +92,8 @@ public abstract class ValueState<S> {
      * A default value is a fallback value that is sensible to the caller, in the absence of the explicit value.
      * The default value is not related in any way to the convention value.
      *
-     * @param value
-     * @param defaultValue
+     * @param value the current explicit value
+     * @param defaultValue the default value
      * @return the given value, if this value state is not explicit, or given default value
      */
     //TODO-RC rename this or the overload as they have significantly different semantics
@@ -106,8 +106,8 @@ public abstract class ValueState<S> {
      *
      * This is similar to calling {@link #setConvention(Object)} followed by {@link #explicitValue(Object, Object)}.
      *
-     * @param value
-     * @param convention
+     * @param value the current explicit value
+     * @param convention the new convention
      * @return the given value, if this value state is not explicit, otherwise the new convention value
      */
     public abstract S applyConvention(S value, S convention);
@@ -115,6 +115,8 @@ public abstract class ValueState<S> {
     /**
      * Marks this value state as being non-explicit. Returns the convention, if any.
      */
+    public abstract S implicitValue(S convention);
+
     public abstract S implicitValue();
 
     public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
@@ -290,6 +292,12 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public S implicitValue(S newConvention) {
+            setConvention(newConvention);
+            return implicitValue();
+        }
+
+        @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
             if (!explicitValue) {
@@ -377,6 +385,11 @@ public abstract class ValueState<S> {
 
         @Override
         public S implicitValue() {
+            throw unexpected();
+        }
+
+        @Override
+        public S implicitValue(S defaultValue) {
             throw unexpected();
         }
 

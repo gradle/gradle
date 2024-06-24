@@ -323,7 +323,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     /**
-     * @see org.gradle.configurationcache.ConfigurationCacheMavenPublishIntegrationTest
+     * @see org.gradle.internal.cc.impl.ConfigurationCacheMavenPublishIntegrationTest
      */
     def "cannot publish to authenticated repository using credentials Provider with inferred identity if repo has incompatible name"() {
         given:

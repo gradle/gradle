@@ -41,9 +41,9 @@ enum class StageName(val stageName: String, val description: String, val uuid: S
 }
 
 private val performanceRegressionTestCoverages = listOf(
-    PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux"),
+    PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 50, oldUuid = "PerformanceTestTestLinux"),
     PerformanceTestCoverage(6, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 10, failsStage = false),
-    PerformanceTestCoverage(7, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, failsStage = false)
+    PerformanceTestCoverage(7, PerformanceTestType.per_commit, Os.MACOS, Arch.AARCH64, numberOfBuckets = 5, failsStage = false)
 )
 
 private val slowPerformanceTestCoverages = listOf(
@@ -68,7 +68,7 @@ data class CIBuildModel(
         Stage(
             StageName.QUICK_FEEDBACK,
             functionalTests = listOf(
-                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS)
+                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC)
             )
         ),
         Stage(
@@ -89,7 +89,8 @@ data class CIBuildModel(
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
-                TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
+                TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
+                TestCoverage(21, TestType.isolatedProjects, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             ),
             docsTests = listOf(
                 DocsTestCoverage(Os.LINUX, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_ENABLED, CONFIG_CACHE_DISABLED)),
@@ -104,7 +105,7 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, QUICK_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, QUICK_CROSS_VERSION_BUCKETS.size)
+                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, QUICK_CROSS_VERSION_BUCKETS.size)
             ),
             performanceTests = performanceRegressionTestCoverages
         ),
@@ -122,16 +123,16 @@ data class CIBuildModel(
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_LTS_VERSION, 1),
-                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, 1),
+                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, 1),
                 TestCoverage(35, TestType.soak, Os.MACOS, JvmCategory.MAX_LTS_VERSION, 1, arch = Arch.AARCH64),
                 TestCoverage(10, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
+                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
-                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 5, arch = Arch.AMD64),
+                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION_WINDOWS_MAC, expectedBucketNumber = 5, arch = Arch.AMD64),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
+                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = 20, arch = Arch.AARCH64)
             ),
             docsTests = listOf(
@@ -291,6 +292,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
 
     noDaemon(false, true, false, 300),
     configCache(false, true, false),
+    isolatedProjects(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
 }

@@ -76,7 +76,7 @@ include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="
 
 When developing plugins, it's a good idea to be flexible when accepting input configuration for file locations.
 
-It is recommended to use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>> and `project.layout` to select file or directory locations.
+It is recommended to use Gradle's <<properties_providers.adoc#managed_properties,managed properties>> and `project.layout` to select file or directory locations.
 This will enable lazy configuration so that the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
 
 This Gradle build file defines a task `GreetingToFileTask` that writes a greeting to a file.
@@ -196,7 +196,7 @@ include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buil
 
 In the example above, a deployment task is created dynamically for every user-configured environment.
 
-You can find out more about implementing project extensions in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
+You can find out more about implementing project extensions in <<properties_providers.adoc#properties_and_providers,Developing Custom Gradle Types>>.
 
 [[modeling_dsl_like_apis]]
 == Modeling DSL-like APIs
@@ -465,7 +465,7 @@ include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/
 
 To make the custom `dependencies` block configurable, the plugin needs to add a `getDependencies` method that returns the new type from above and a configurable block method named `dependencies`.
 
-By convention, the accessors for your custom `dependencies` block should be called `getDependencies()`/`dpeendencies(Action)`.
+By convention, the accessors for your custom `dependencies` block should be called `getDependencies()`/`dependencies(Action)`.
 This method could be named something else, but users would need to know that a different block can behave like a `dependencies` block.
 
 ====

@@ -16,6 +16,7 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.agents.AgentUtils
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -48,18 +49,16 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
                 doLast {
                     def systemLoader = ClassLoader.systemClassLoader
 
-                    systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
+                    def nonLauncherOrCoreClass = "org.gradle.api.reporting.Report"
 
-                    def nonLauncherOrCoreClass = "org.apache.commons.lang.WordUtils"
-
-                    // Check that this is a dependency (somewhat redundant, but for good measure)
-                    assert Project.classLoader.loadClass(nonLauncherOrCoreClass) != null
+                    // Check that this is a dependency (to verify that the class is not accidentally removed and so make the test verify nothing)
+                    assert Class.forName(nonLauncherOrCoreClass) != null
 
                     try {
                         def clazz = systemLoader.loadClass(nonLauncherOrCoreClass)
                         assert clazz == null : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass}” class from the system classloader as its not a launcher or core class (loaded class: \$clazz)"
                     } catch (ClassNotFoundException e) {
-                        //
+                        // expected
                     }
 
                     if (systemLoader instanceof java.net.URLClassLoader) {
@@ -94,7 +93,11 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
         def libraries = lines[headingIndex + 2..<headingIndex + 2 + classpathSize]
         libraries.any {
-            it.contains("gradle-launcher")
+            if (GradleContextualExecuter.isNoDaemon()) {
+                it.contains("gradle-cli-main")
+            } else {
+                it.contains("gradle-daemon-main")
+            }
         }
         !maybeHasAgent || libraries.any {
             it.contains(AgentUtils.AGENT_MODULE_NAME)

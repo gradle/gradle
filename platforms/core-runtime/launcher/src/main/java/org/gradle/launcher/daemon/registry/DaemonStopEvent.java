@@ -79,7 +79,7 @@ public class DaemonStopEvent implements Serializable {
         }
 
         DaemonStopEvent stopEvent = (DaemonStopEvent) o;
-        return timestamp.equals(stopEvent.timestamp)
+        return timestamp.getTime() == stopEvent.timestamp.getTime()
             && (reason != null ? reason.equals(stopEvent.reason) : stopEvent.reason == null);
     }
 

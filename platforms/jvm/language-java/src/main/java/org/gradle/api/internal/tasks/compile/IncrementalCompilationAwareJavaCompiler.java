@@ -21,7 +21,7 @@ import javax.tools.JavaCompiler;
 import java.util.Map;
 import java.util.Set;
 
-public interface IncrementalCompilationAwareJavaCompiler extends JavaCompiler {
+public interface IncrementalCompilationAwareJavaCompiler extends ContextAwareJavaCompiler {
     JavaCompiler.CompilationTask makeIncremental(
         JavaCompiler.CompilationTask task,
         Map<String, Set<String>> sourceToClassMapping,

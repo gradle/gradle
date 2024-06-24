@@ -102,7 +102,7 @@ trait WithPluginValidation {
                     !(it.outcome in [
                         TaskOutcome.NO_SOURCE,
                         TaskOutcome.SKIPPED
-                    ]) && it.path.contains(taskPattern)
+                    ]) && it.path.contains(taskPattern) && !it.path.startsWith(':plugins:') // ignore plugins project from previous version, it doesn't exist anymore (TODO: remove this check)
                 }
                 .collect {
                     def idx = it.path.indexOf(taskPattern)

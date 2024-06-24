@@ -50,13 +50,7 @@ JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-start
 
 == Continuous integration
 
-We have dedicated guides showing you how to integrate a Gradle project with the following CI platforms:
-
- * <<jenkins.adoc#build_jenkins,Jenkins>>
- * <<teamcity.adoc#build_teamcity,TeamCity>>
- * <<travis-ci.adoc#build_travis,Travis CI>>
-
-Even if you don't use one of the above, you can almost certainly configure your CI platform to use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> scripts.
+We have link:https://community.gradle.org/cookbook/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
 
 == How to integrate with Gradle
 

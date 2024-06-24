@@ -25,10 +25,14 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
+import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -150,8 +154,13 @@ class DefaultResolutionResultTest extends Specification {
         from.is(projectId)
     }
 
-    private static ResolutionResult newResolutionResult(root) {
-        new DefaultResolutionResult(new DefaultMinimalResolutionResult(() -> root, ImmutableAttributes.EMPTY))
+    private ResolutionResult newResolutionResult(ResolvedComponentResultInternal root) {
+        ResolutionAccess resolutionAccess = Mock(ResolutionAccess) {
+            getPublicView() >> Mock(ResolutionOutputsInternal) {
+                getRootComponent() >> Providers.of(root)
+            }
+        }
+        new DefaultResolutionResult(resolutionAccess, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
     }
 
 }

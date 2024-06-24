@@ -83,14 +83,21 @@ class DefaultJavaCompilerFactoryTest extends Specification {
 
     private static class TestForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
         private final File javaHome;
+        private final int javaLanguageVersion;
 
-        private TestForkingJavaCompileSpec(File javaHome) {
-            this.javaHome = javaHome;
+        private TestForkingJavaCompileSpec(File javaHome, int javaLanguageVersion) {
+            this.javaHome = javaHome
+            this.javaLanguageVersion = javaLanguageVersion
         }
 
         @Override
-        public File getJavaHome() {
-            return javaHome;
+        File getJavaHome() {
+            return javaHome
+        }
+
+        @Override
+        int getJavaLanguageVersion() {
+            return javaLanguageVersion
         }
     }
 }

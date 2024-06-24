@@ -146,18 +146,18 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
     }
 
-    private abstract static class MutationSafeCollection<T> implements Collection<T> {
-        private final Collection<T> delegate;
+    private abstract static class MutationSafeCollection<T, C extends Collection<T>> implements Collection<T> {
+        private final C delegate;
         private final ModelViewState state;
         private final ModelType<T> elementType;
 
-        public MutationSafeCollection(Collection<T> delegate, ModelViewState state, ModelType<T> elementType) {
+        public MutationSafeCollection(C delegate, ModelViewState state, ModelType<T> elementType) {
             this.delegate = delegate;
             this.state = state;
             this.elementType = elementType;
         }
 
-        public Collection<T> getDelegate(boolean forMutation) {
+        public C getDelegate(boolean forMutation) {
             if (forMutation) {
                 state.assertCanMutate();
             }
@@ -207,14 +207,10 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
 
         @Override
-        public boolean equals(Object o) {
-            return getDelegate(false).equals(o);
-        }
+        public abstract boolean equals(Object o);
 
         @Override
-        public int hashCode() {
-            return getDelegate(false).hashCode();
-        }
+        public abstract int hashCode();
 
         @Override
         public boolean isEmpty() {
@@ -252,7 +248,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
 
         @Override
-        public <T> T[] toArray(T[] a) {
+        public <E> E[] toArray(E[] a) {
             return getDelegate(false).toArray(a);
         }
 
@@ -286,7 +282,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
     }
 
-    private static class ListBackedCollection<T> extends MutationSafeCollection<T> implements List<T> {
+    private static class ListBackedCollection<T> extends MutationSafeCollection<T, List<T>> implements List<T> {
         public ListBackedCollection(List<T> delegate, ModelViewState state, ModelType<T> elementType) {
             super(delegate, state, elementType);
         }
@@ -294,44 +290,44 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         @Override
         public void add(int index, T element) {
             validateElementType(element);
-            ((List<T>)getDelegate(true)).add(index, element);
+            getDelegate(true).add(index, element);
         }
 
 
         @Override
         public boolean addAll(int index, Collection<? extends T> c) {
             validateCollection(c);
-            return ((List<T>)getDelegate(true)).addAll(index, c);
+            return getDelegate(true).addAll(index, c);
         }
 
         @Override
         public T get(int index) {
-            return ((List<T>)getDelegate(false)).get(index);
+            return getDelegate(false).get(index);
         }
 
         @Override
         public int indexOf(Object o) {
-            return ((List<T>)getDelegate(false)).indexOf(o);
+            return getDelegate(false).indexOf(o);
         }
 
         @Override
         public int lastIndexOf(Object o) {
-            return ((List<T>)getDelegate(false)).lastIndexOf(o);
+            return getDelegate(false).lastIndexOf(o);
         }
 
         @Override
         public ListIterator<T> listIterator() {
-            return ((List<T>)getDelegate(false)).listIterator();
+            return getDelegate(false).listIterator();
         }
 
         @Override
         public ListIterator<T> listIterator(int index) {
-            return ((List<T>)getDelegate(false)).listIterator(index);
+            return getDelegate(false).listIterator(index);
         }
 
         @Override
         public T remove(int index) {
-            return ((List<T>)getDelegate(true)).remove(index);
+            return getDelegate(true).remove(index);
         }
 
         @Override
@@ -342,15 +338,34 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         @Override
         public T set(int index, T element) {
             validateElementType(element);
-            return ((List<T>)getDelegate(true)).set(index, element);
+            return getDelegate(true).set(index, element);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return getDelegate(false).equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return getDelegate(false).hashCode();
         }
     }
 
-    private static class SetBackedCollection<T> extends MutationSafeCollection<T> implements Set<T> {
+    private static class SetBackedCollection<T> extends MutationSafeCollection<T, Set<T>> implements Set<T> {
 
         public SetBackedCollection(Set<T> delegate, ModelViewState state, ModelType<T> elementType) {
             super(delegate, state, elementType);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            return getDelegate(false).equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return getDelegate(false).hashCode();
+        }
     }
 }

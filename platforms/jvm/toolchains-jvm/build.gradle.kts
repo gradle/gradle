@@ -24,18 +24,17 @@ description = "Adds support for using JVM toolchains in projects"
 errorprone {
     disabledChecks.addAll(
         "StringCaseLocaleUsage", // 2 occurrences
-        "UnnecessaryLambda", // 2 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))
-    api(project(":diagnostics"))
     api(project(":enterprise-operations"))
     api(project(":enterprise-logging"))
     api(project(":file-collections"))
@@ -47,13 +46,14 @@ dependencies {
     api(project(":resources"))
     api(project(":toolchains-jvm-shared"))
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
     api(libs.inject)
     api(libs.jsr305)
     api(libs.nativePlatform) {
         because("Required for SystemInfo")
     }
 
+    implementation(projects.diagnostics)
     implementation(project(":logging"))
 
     implementation(libs.commonsIo)
@@ -74,6 +74,7 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {

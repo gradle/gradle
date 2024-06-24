@@ -17,10 +17,13 @@
 package org.gradle.buildinit.plugins
 
 import groovy.io.FileType
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
@@ -54,7 +57,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         return files
     }
 
-    void assertBuildLogicSources(BuildInitDsl dsl, String language, TestFile buildLogicDir, String settingsFile, String buildFile) {
+    void assertBuildLogicSources(BuildInitDsl dsl, String language, TestFile buildLogicDir, String settingsFile, String buildFile, String javaMajorVersion) {
         def commonConventionsPath = "src/main/${dsl.id}/buildlogic.${dsl.fileNameFor("${language}-common-conventions")}"
 
         buildLogicDir.assertHasDescendants(
@@ -66,7 +69,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         )
 
         buildLogicDir.file(commonConventionsPath).assertContents(
-            containsText("JavaLanguageVersion.of(21)")
+            containsText("JavaLanguageVersion.of(${javaMajorVersion})")
         )
     }
 
@@ -124,9 +127,10 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest1 extends Ab
         def ext = jvmLanguage.extension
         def settingsFile = dsl.fileNameFor('settings')
         def buildFile = dsl.fileNameFor('build')
+        def javaMajorVersion = JavaVersion.current().majorVersion
 
         when:
-        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
+        def tasks = ['init', '--java-version', javaMajorVersion, '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
         run(tasks)
 
         then:
@@ -134,7 +138,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest1 extends Ab
         !targetDir.file(buildFile).exists()
 
         def buildLogicDir = targetDir.file(incubating ? "build-logic" : "buildSrc")
-        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
+        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile, javaMajorVersion)
 
         assertApplicationProjectsSources(buildFile, language, "org.example.", ext)
 
@@ -169,12 +173,13 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest2 extends Ab
         def ext = jvmLanguage.extension
         def settingsFile = dsl.fileNameFor('settings')
         def buildFile = dsl.fileNameFor('build')
+        def javaMajorVersion = JavaVersion.current().majorVersion
 
         def sourcePackageOption = optionPackage == null ? [] : ['--package', optionPackage]
         def sourcePackageProperty = propertyPackage == null ? [] : ['-Porg.gradle.buildinit.source.package=' + propertyPackage]
 
         when:
-        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + sourcePackageProperty + sourcePackageOption
+        def tasks = ['init', '--java-version', javaMajorVersion,'--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id, '--overwrite'] + sourcePackageProperty + sourcePackageOption
         run(tasks)
 
         then:
@@ -182,7 +187,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest2 extends Ab
         !targetDir.file(buildFile).exists()
 
         def buildLogicDir = targetDir.file("buildSrc")
-        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
+        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile, javaMajorVersion)
 
         assertApplicationProjectsSources(buildFile, language, expectedPackagePrefix, ext)
 
@@ -212,13 +217,16 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest3 extends Ab
         def language = jvmLanguage.name
         def settingsFile = dsl.fileNameFor('settings')
         def buildFile = dsl.fileNameFor('build')
+        def javaMajorVersion = JavaVersion.current().majorVersion
 
         def commentsOption = option == null ? [] : [option ? '--comments' : '--no-comments']
         def commentsProperty = property == null ? [] : ['-Porg.gradle.buildinit.comments=' + property]
 
         when:
         run([
-            'init', '--use-defaults', '--dsl', dsl.id,
+            'init',
+            '--java-version', javaMajorVersion,
+            '--use-defaults', '--dsl', dsl.id,
             '--type', language + '-application',
             '--split-project'
         ] + commentsOption + commentsProperty)
@@ -294,18 +302,21 @@ class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
@@ -366,18 +377,21 @@ class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)

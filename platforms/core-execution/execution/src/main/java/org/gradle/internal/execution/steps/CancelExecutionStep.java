@@ -32,6 +32,7 @@ public class CancelExecutionStep<C extends Context, R extends Result> implements
         this.delegate = delegate;
     }
 
+    @SuppressWarnings("Finally")
     @Override
     public R execute(UnitOfWork work, C context) {
         Thread thread = Thread.currentThread();

@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.api.internal.artifacts.transform.UnzipTransform
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import spock.lang.Issue
 
@@ -262,6 +263,7 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
     def "producer task with a dependency on an artifact transform will run before destroyer tasks when ordered first"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')

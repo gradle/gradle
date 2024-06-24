@@ -162,7 +162,7 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
                             // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
-                            CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }
                     });
             // TODO: Publishing for test executable?

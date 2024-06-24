@@ -154,7 +154,7 @@ plugins {
     id("org.barfuin.gradle.taskinfo") version "2.1.0"
 }
 repositories {
-    jcenter()
+    mavenCentral()
 }
 dependencies {
     implementation(Libs.Kotlin.coroutines)

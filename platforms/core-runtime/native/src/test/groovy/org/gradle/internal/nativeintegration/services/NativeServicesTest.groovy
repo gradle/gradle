@@ -20,11 +20,11 @@ import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.file.Chmod
+import org.gradle.internal.file.FileCanonicalizer
 import org.gradle.internal.file.Stat
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.nativeintegration.console.ConsoleDetector
-import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires

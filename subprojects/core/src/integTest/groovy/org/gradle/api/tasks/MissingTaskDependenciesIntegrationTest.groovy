@@ -24,7 +24,9 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+import static org.hamcrest.core.AnyOf.anyOf
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -56,7 +58,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         when:
         runAndFail("producer", "consumer")
         then:
-        assertMissingDependency(":producer", ":consumer", file(consumedLocation))
+        def outputLocations = [consumedLocation, producedLocation, producerOutput]
+            .findAll { it != null }
+            .collect { file(it) } as File[]
+        assertMissingDependency(":producer", ":consumer", outputLocations)
 
         where:
         description            | producerOutput | outputType | producedLocation           | consumedLocation
@@ -202,7 +207,6 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         assertMissingDependency(":producer", ":consumer", file("output.txt"))
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fails with missing dependencies even if the consumer does not have outputs"() {
         buildFile """
             task producer {
@@ -295,7 +299,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         skipped(":producer", ":filteredConsumer")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(skip = FLAKY, because = "Due to extra parallelism with cc missing dependencies detection can be flaky")
     def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
         buildFile """
@@ -562,14 +566,30 @@ The following types/formats are supported:
         failureCauseContains(cause)
     }
 
-    void assertMissingDependency(String producerTask, String consumerTask, File producedConsumedLocation) {
+    void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
         expectReindentedValidationMessage()
-        def expectedMessage = implicitDependency {
-            at(producedConsumedLocation)
-            consumer(consumerTask)
-            producer(producerTask)
-            includeLink()
+        if (GradleContextualExecuter.configCache) {
+            // TODO: Remove this workaround once https://github.com/gradle/gradle/issues/27576 is fixed
+            // Due to extra parallelism with configuration cache missing dependencies detection mechanism
+            // can report multiple errors instead of just one as is the case without configuration cache.
+            def messageMatchers = producedConsumedLocations.collect { producedConsumedLocation ->
+                def message = implicitDependency {
+                    at(producedConsumedLocation)
+                    consumer(consumerTask)
+                    producer(producerTask)
+                    includeLink()
+                }
+                containsNormalizedString(message)
+            }
+            failure.assertThatAllDescriptions(anyOf(messageMatchers))
+        } else {
+            def expectedMessage = implicitDependency {
+                at(producedConsumedLocations[0])
+                consumer(consumerTask)
+                producer(producerTask)
+                includeLink()
+            }
+            failure.assertThatDescription(containsNormalizedString(expectedMessage))
         }
-        failure.assertThatDescription(containsNormalizedString(expectedMessage))
     }
 }

@@ -100,10 +100,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
                             }, {
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompatibility"
                             }]
@@ -162,10 +164,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
-                            "upgradedMethods": [{
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Z",
                                 "name": "isFailOnError"
                             }, {
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Z)V",
                                 "name": "setFailOnError"
                             }]
@@ -220,7 +224,8 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
-                            "upgradedMethods": [{
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Z",
                                 "name": "isFailOnError"
                             }]
@@ -278,10 +283,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
                             }, {
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompatibility"
                             }]
@@ -290,7 +297,196 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             }
         ) {
-            assertOutputContains("The following methods were upgraded, but didn't match any changed method:\n\ncom.example.Task#setSourceCompatibility(Ljava/lang/String;)V")
+            assertOutputContains("The following accessors were upgraded, but didn't match any removed/changed method:\n\ncom.example.Task#setSourceCompatibility(Ljava/lang/String;)V")
+        }
+    }
+
+    @Test
+    fun `should not fail if some method was upgraded and not removed but marked as kept`() {
+        checkBinaryCompatible(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public String getSourceCompatibility() {
+                                return "";
+                            }
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                            public abstract Property<String> getSourceCompatibility();
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+                withFile(
+                    "resources/upgraded-properties.json",
+                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getSourceCompatibility",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "sourceCompatibility",
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "()Ljava/lang/String;",
+                                "name": "getSourceCompatibility"
+                            }, {
+                                "binaryCompatibility": "ACCESSORS_KEPT",
+                                "descriptor": "(Ljava/lang/String;)V",
+                                "name": "setSourceCompatibility"
+                            }]
+                        }]
+                        """
+                )
+            }
+        ) {
+            assertHasNoError()
+            assertHasAccepted(
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract")
+            )
+        }
+    }
+
+    @Test
+    fun `should not fail if some method was upgraded and removed but marked as kept`() {
+        checkBinaryCompatible(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public String getSourceCompatibility() {
+                                return "";
+                            }
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                            public abstract Property<String> getSourceCompatibility();
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+                withFile(
+                    "resources/upgraded-properties.json",
+                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getSourceCompatibility",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "sourceCompatibility",
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "()Ljava/lang/String;",
+                                "name": "getSourceCompatibility"
+                            }, {
+                                "binaryCompatibility": "ACCESSORS_KEPT",
+                                "descriptor": "(Ljava/lang/String;)V",
+                                "name": "setSourceCompatibility"
+                            }]
+                        }]
+                        """
+                )
+            }
+        ) {
+            assertHasNoError()
+            assertHasAccepted(
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract")
+            )
+        }
+    }
+
+    @Test
+    fun `should accept upgraded property that used different name`() {
+        checkBinaryCompatible(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public String getSourceCompat() {
+                                return "";
+                            }
+                            public void setSourceCompat(String value) {
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                           /**
+                             * @since 2.0
+                             */
+                           public abstract Property<String> getSourceCompatibility();
+                        }
+                    """
+                )
+                withFile(
+                    "resources/upgraded-properties.json",
+                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getSourceCompatibility",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "sourceCompatibility",
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "()Ljava/lang/String;",
+                                "name": "getSourceCompat"
+                            }, {
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "(Ljava/lang/String;)V",
+                                "name": "setSourceCompat"
+                            }]
+                        }]
+                        """
+                )
+            }
+        ) {
+            assertHasNoError()
+            assertHasAccepted(
+                "Method com.example.Task.getSourceCompat(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
+                "Method com.example.Task.getSourceCompatibility(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.setSourceCompat(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
+            )
         }
     }
 }

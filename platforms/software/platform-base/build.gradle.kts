@@ -7,16 +7,15 @@ errorprone {
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifiedButNotUsed", // 1 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
         "UnusedMethod", // 5 occurrences
     )
 }
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
-    api(project(":dependency-management"))
     api(project(":files"))
     api(project(":logging"))
     api(project(":model-core"))
@@ -25,6 +24,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(project(":dependency-management"))
     implementation(project(":execution"))
 
     implementation(libs.commonsLang)

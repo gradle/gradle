@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
 import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 
 /**
@@ -31,6 +32,17 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
 
     static JavaLanguageVersion of(String version) {
         return of(Integer.parseInt(version));
+    }
+
+    /**
+     * Get the current (i.e., the current runtime) Java Language version.
+     *
+     * @return the current Java Language version
+     * @since 8.8
+     */
+    @Incubating
+    static JavaLanguageVersion current() {
+        return DefaultJavaLanguageVersion.fromFullVersion(System.getProperty("java.version"));
     }
 
     /**

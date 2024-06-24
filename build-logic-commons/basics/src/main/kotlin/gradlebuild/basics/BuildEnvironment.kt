@@ -20,22 +20,13 @@ import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 
 
-abstract class BuildEnvironmentExtension {
-    abstract val gitCommitId: Property<String>
-    abstract val gitBranch: Property<String>
-    abstract val repoRoot: DirectoryProperty
-}
-
-
 // `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
-fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
+fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = extensions.findByType(BuildEnvironmentExtension::class.java)
 
 
 fun Project.repoRoot(): Directory = getBuildEnvironmentExtension()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
@@ -63,24 +54,6 @@ fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnv
 
 
 fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitCommitId ?: objects.property(String::class.java)
-
-
-@Suppress("UnstableApiUsage")
-fun Project.git(vararg args: String): Provider<String> {
-    val projectDir = layout.projectDirectory.asFile
-    val execOutput = providers.exec {
-        workingDir = projectDir
-        isIgnoreExitValue = true
-        commandLine = listOf("git", *args)
-        if (OperatingSystem.current().isWindows) {
-            commandLine = listOf("cmd", "/c") + commandLine
-        }
-    }
-    return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
-        if (result.exitValue == 0) outputText.trim()
-        else "<unknown>" // It's a source distribution, we don't know.
-    }
-}
 
 
 // pre-test/master/queue/alice/feature -> master

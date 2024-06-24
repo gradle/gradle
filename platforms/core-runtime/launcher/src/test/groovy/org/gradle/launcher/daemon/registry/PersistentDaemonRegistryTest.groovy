@@ -16,12 +16,13 @@
 
 package org.gradle.launcher.daemon.registry
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.inet.InetEndpoint
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
@@ -156,7 +157,7 @@ class PersistentDaemonRegistryTest extends Specification {
     }
 
     DaemonContext daemonContext() {
-        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaVersion.current(), tmp.createDir("daemons"), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
+        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaLanguageVersion.current(), tmp.createDir("daemons"), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
     }
 
     Address address(int i = addressCounter++) {

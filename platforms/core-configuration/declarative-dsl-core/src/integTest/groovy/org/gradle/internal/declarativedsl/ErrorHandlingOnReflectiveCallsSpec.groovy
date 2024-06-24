@@ -16,13 +16,15 @@
 
 package org.gradle.internal.declarativedsl
 
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
     def 'when reflective invocation fails the cause is identified correctly'() {
         given:
-        file("buildSrc/build.gradle") << """
+        file("build-logic/build.gradle") << """
             plugins {
                 id('java-gradle-plugin')
             }
@@ -32,11 +34,15 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
                         id = "com.example.restricted"
                         implementationClass = "com.example.restricted.RestrictedPlugin"
                     }
+                    create("restrictedEcosystem") {
+                        id = "com.example.restricted.ecosystem"
+                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
+                    }
                 }
             }
         """
 
-        file("buildSrc/src/main/java/com/example/restricted/Extension.java") << """
+        file("build-logic/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
@@ -75,25 +81,37 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
             }
         """
 
-        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") <<
+            defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
             package com.example.restricted;
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
 
-            public class RestrictedPlugin implements Plugin<Project> {
+            public abstract class RestrictedPlugin implements Plugin<Project> {
+                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
+                public abstract Extension getExtension();
+
                 @Override
                 public void apply(Project target) {
-                    target.getExtensions().create("restricted", Extension.class);
                 }
             }
         """
 
-        file("build.gradle.something") << """
-            plugins {
-                id("com.example.restricted")
+        file("settings.gradle.dcl") << """
+            pluginManagement {
+                includeBuild("build-logic")
             }
 
+            plugins {
+                id("com.example.restricted.ecosystem")
+            }
+        """
+
+        file("build.gradle.dcl") << """
             restricted {
                 access {
                     name = "something"
@@ -106,6 +124,26 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("Boom")
+    }
+
+    private String defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin() {
+        return """
+        package com.example.restricted;
+
+        import org.gradle.api.DefaultTask;
+        import org.gradle.api.Plugin;
+        import org.gradle.api.initialization.Settings;
+        import org.gradle.api.internal.SettingsInternal;
+        import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+        import ${RegistersSoftwareTypes.class.name};
+
+        @RegistersSoftwareTypes({ RestrictedPlugin.class })
+        abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+            @Override
+            public void apply(Settings target) {
+            }
+        }
+        """
     }
 
 }

@@ -131,13 +131,13 @@ Here is an example of explicit task dependency:
 ----
 tasks.register("hello") {
     doLast {
-        println('Hello!')
+        println("Hello!")
     }
 }
 
 tasks.register("greet") {
     doLast {
-        println('How are you?')
+        println("How are you?")
     }
     dependsOn("hello")
 }

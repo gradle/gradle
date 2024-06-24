@@ -6,19 +6,19 @@ description = "Contains project diagnostics or report tasks, e.g. help, project 
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 1 occurrences
         "DefaultCharset", // 1 occurrences
         "InlineMeInliner", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType", // 5 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.jvmServices)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -34,6 +34,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.concurrent)
     implementation(project(":functional"))
     implementation(project(":logging-api"))
 
@@ -49,6 +50,7 @@ dependencies {
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
+    integTestImplementation(testFixtures(project(":declarative-dsl-provider")))
 
     testFixturesApi(testFixtures(project(":platform-native")))
     testFixturesApi(testFixtures(project(":logging")))
