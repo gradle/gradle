@@ -267,7 +267,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
       > A dependency was declared on configuration 'absent' of 'project :' but no variant with that configuration name exists.""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("To determine which configurations are available in the target project : run :outgoingVariants.")
+        failure.assertHasResolution("To determine which configurations are available in the target project :, run :outgoingVariants.")
         assertSuggestsReviewingAlgorithm()
 
         and: "Problems are reported"
