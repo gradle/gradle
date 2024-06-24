@@ -25,7 +25,7 @@ import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 
 interface ModelMutationPlan {
     val documentMutations: List<DocumentMutation>
-    val unsuccessfulModelMutations: List<UnsuccessfulModelMutation> // TODO: should this remain a list?
+    val modelMutationIssues: List<ModelMutationIssue>
 }
 
 
@@ -96,20 +96,19 @@ sealed interface NewValueNodeProvider {
 }
 
 
-data class UnsuccessfulModelMutation(
-    val mutationRequest: ModelMutationRequest,
-    val failureReasons: List<ModelMutationFailureReason> // TODO: should this remain a list?
+data class ModelMutationIssue(
+    val reason: ModelMutationIssueReason
 )
 
 
-sealed interface ModelMutationFailureReason {
-    data object TargetPropertyNotFound : ModelMutationFailureReason
-    data object ScopeLocationNotMatched : ModelMutationFailureReason
+sealed interface ModelMutationIssueReason {
+    data object TargetPropertyNotFound : ModelMutationIssueReason
+    data object ScopeLocationNotMatched : ModelMutationIssueReason
 }
 
 
 internal
 class DefaultModelMutationPlan(
     override val documentMutations: List<DocumentMutation>,
-    override val unsuccessfulModelMutations: List<UnsuccessfulModelMutation>
+    override val modelMutationIssues: List<ModelMutationIssue>
 ) : ModelMutationPlan
