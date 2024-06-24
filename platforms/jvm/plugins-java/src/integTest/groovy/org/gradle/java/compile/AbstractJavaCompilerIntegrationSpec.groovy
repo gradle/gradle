@@ -302,7 +302,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         fails("compileJava")
 
         then:
-        failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.')
+        failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrLater)
