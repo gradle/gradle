@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
@@ -191,8 +190,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         };
     }
 
-    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
+    protected ForkingGradleHandle createForkingGradleHandle(ResultAssertion resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion::execute, encoding, execHandleFactory, getDurationMeasurement());
     }
 
     @Override

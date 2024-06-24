@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
@@ -92,11 +93,12 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     @Delegate
     final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, stdout, stderr)
 
-    // TODO: react to the isolatedProejcts prop coming from build settings
+    // TODO: react to the isolatedProjects prop coming from build settings
 
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
+    private List<String> maybeExpectedDeprecations = []
     private List<String> expectedDeprecations = []
 
     // used reflectively by retry rule
@@ -121,6 +123,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+
+        // Enable deprecation logging for all tests
+        System.setProperty("org.gradle.warning.mode", "all")
+
         settingsFile.touch()
     }
 
@@ -176,6 +182,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
+        reset()
         try {
             toolingApi.withConnector(cl)
         } catch (GradleConnectionException e) {
@@ -184,7 +191,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         }
     }
 
-    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(ToolingApiConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        reset()
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -198,6 +206,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        reset()
         try {
             toolingApi.withConnection(cl)
         } catch (GradleConnectionException e) {
@@ -307,18 +316,18 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasBuildSuccessfulLogging() {
-        assertHasNoUnexpectedDeprecationWarnings()
+        validateOutput()
         assert stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     void assertHasBuildFailedLogging() {
-        assertHasNoUnexpectedDeprecationWarnings()
+        validateOutput()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         assert failureOutput.contains("BUILD FAILED")
     }
 
     void assertHasConfigureSuccessfulLogging() {
-        assertHasNoUnexpectedDeprecationWarnings()
+        validateOutput()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {
@@ -327,7 +336,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasConfigureFailedLogging() {
-        assertHasNoUnexpectedDeprecationWarnings()
+        validateOutput()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert failureOutput.contains("CONFIGURE FAILED")
@@ -336,28 +345,22 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         }
     }
 
+    private void reset() {
+        stdout.reset()
+        stderr.reset()
+        expectedDeprecations.clear()
+        maybeExpectedDeprecations.clear()
+    }
+
     def shouldCheckForDeprecationWarnings() {
         // Older versions have deprecations
         GradleVersion.version("6.9") < targetVersion
     }
 
-    private void assertHasNoUnexpectedDeprecationWarnings() {
-        // Clear all expected warnings first
-        String rawOutput = stdout.toString()
-        if (!expectedDeprecations.isEmpty()) {
-            expectedDeprecations.each { expectedDeprecation ->
-                assert rawOutput.contains(expectedDeprecation)
-                rawOutput = rawOutput.replace(expectedDeprecation, "")
-            }
-        }
-        // Then proceed as before
-        if (shouldCheckForDeprecationWarnings()) {
-            assert !rawOutput
-                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
-                .containsIgnoreCase("deprecated")
-        }
+    private boolean expectJavaVersionDeprecation = true
+    private boolean noJavaVersionDeprecationExpectation() {
+        expectJavaVersionDeprecation = false
     }
-
     ExecutionResult getResult() {
         return OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString())
     }
@@ -367,16 +370,34 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def validateOutput() {
-        def assertion = new ResultAssertion(0, [], false, shouldCheckForDeprecationWarnings(), true)
-        assertion.validate(stdout.toString(), "stdout")
-        assertion.validate(stderr.toString(), "stderr")
+        if (expectJavaVersionDeprecation) {
+            maybeExpectedDeprecations.add(
+                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Use JVM 17 or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${targetDist.version.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
+            )
+        }
+
+        ResultAssertion assertion = new ResultAssertion(
+            0,
+            expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            false,
+            shouldCheckForDeprecationWarnings(),
+            true
+        )
+
+        assertion.execute(stdout.toString(), stderr.toString())
+
         true
     }
 
     def <T> T loadToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure cl = {}) {
         def result = loadToolingLeanModel(modelClass, cl)
         assertHasConfigureSuccessfulLogging()
-        validateOutput()
         return result
     }
 

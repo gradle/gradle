@@ -102,7 +102,6 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
-import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
@@ -1479,9 +1478,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return withArgument("--build-cache");
     }
 
-    protected Action<ExecutionResult> getResultAssertion() {
+    protected ResultAssertion getResultAssertion() {
 
+        List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
         if (shouldAutomaticallyExpectJavaVersionDeprecation()) {
+//            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
             expectDocumentedDeprecationWarning(
                 "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
                     "This will fail with an error in Gradle 9.0. " +
@@ -1490,11 +1491,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
             );
+//            )));
         }
 
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
-            !stackTraceChecksOn, checkDeprecations, jdkWarningChecksOn
+            expectedGenericDeprecationWarnings,
+            expectedDeprecationWarnings,
+            maybeExpectedDeprecationWarnings,
+            !stackTraceChecksOn,
+            checkDeprecations,
+            jdkWarningChecksOn
         );
     }
 
@@ -1519,13 +1525,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        String normalized;
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+    }
+
+    private String normalizeDocumentationLink(String warning) {
         if (gradleVersionOverride != null) {
-            normalized = normalizeDocumentationLink(warning, gradleVersionOverride);
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
         } else {
-            normalized = normalizeDocumentationLink(warning);
+            return DocumentationUtils.normalizeDocumentationLink(warning);
         }
-        return expectDeprecationWarning(normalized);
     }
 
     @Override

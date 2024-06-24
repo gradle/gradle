@@ -150,12 +150,12 @@ class ToolingApi implements TestRule {
         connectorConfigurers << cl
     }
 
-    def <T> T withConnection(@DelegatesTo(ProjectConnection) Closure<T> cl) {
+    def <T> T withConnection(@DelegatesTo(value = ProjectConnection, strategy = Closure.DELEGATE_FIRST) Closure<T> cl) {
         def connector = connector()
         withConnection(connector, cl)
     }
 
-    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+    def <T> T withConnection(ToolingApiConnector connector, @DelegatesTo(value = ProjectConnection, strategy = Closure.DELEGATE_FIRST) Closure<T> cl) {
         return withConnectionRaw(connector, cl)
     }
 
@@ -163,7 +163,6 @@ class ToolingApi implements TestRule {
         withConnection {
             def builder = it.model(modelClass)
             builder.tap(configurator)
-            collectOutputs(builder)
             builder.get()
         }
     }
@@ -180,9 +179,8 @@ class ToolingApi implements TestRule {
     }
 
     def validateOutput() {
-        def assertion = new ResultAssertion(0, [], false, true, true)
-        assertion.validate(stdout.toString(), "stdout")
-        assertion.validate(stderr.toString(), "stderr")
+        def assertion = new ResultAssertion(0, [], [], false, true, true)
+        assertion.execute(stdout.toString(), stderr.toString())
         true
     }
 
@@ -205,7 +203,7 @@ class ToolingApi implements TestRule {
         assert throwableStack.endsWith(currentThreadStackStr)
     }
 
-    private <T> T withConnectionRaw(connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+    private <T> T withConnectionRaw(ToolingApiConnector connector, @DelegatesTo(value = ProjectConnection, strategy = Closure.DELEGATE_FIRST) Closure<T> cl) {
         try (def connection = connector.connect()) {
             return connection.with(cl)
         } catch (Throwable t) {

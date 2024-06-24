@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.io.CharSource;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
 import javax.annotation.Nullable;
@@ -31,9 +30,10 @@ import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 
-public class ResultAssertion implements Action<ExecutionResult> {
+public class ResultAssertion {
     private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
+    private final List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings;
     private final boolean expectStackTraces;
     private final boolean checkDeprecations;
     private final boolean checkJdkWarnings;
@@ -47,34 +47,44 @@ public class ResultAssertion implements Action<ExecutionResult> {
     private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
 
     public ResultAssertion(
-        int expectedGenericDeprecationWarnings, List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
-        boolean expectStackTraces, boolean checkDeprecations, boolean checkJdkWarnings
+        int expectedGenericDeprecationWarnings,
+        List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
+        List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
+        boolean expectStackTraces,
+        boolean checkDeprecations,
+        boolean checkJdkWarnings
     ) {
         this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
+        this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
         this.expectStackTraces = expectStackTraces;
         this.checkDeprecations = checkDeprecations;
         this.checkJdkWarnings = checkJdkWarnings;
     }
 
-    @Override
     public void execute(ExecutionResult executionResult) {
-        String normalizedOutput = executionResult.getNormalizedOutput();
-        String error = executionResult.getError();
+        // For tests using rich console standard out and error are combined in output of execution result
         boolean executionFailure = executionResult instanceof ExecutionFailure;
 
-        // for tests using rich console standard out and error are combined in output of execution result
+        String normalizedOutput = executionResult.getNormalizedOutput();
         if (executionFailure) {
             normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
         }
 
-        validate(normalizedOutput, "Standard output");
-
+        String error = executionResult.getError();
         if (executionFailure) {
             error = removeExceptionStackTraceForFailedExecution(error);
         }
 
-        validate(error, "Standard error");
+        execute(normalizedOutput, error);
+    }
+
+    public void execute(String stdout, String stderr) {
+
+        expectedDeprecationWarnings.addAll(maybeExpectedDeprecationWarnings);
+        validate(stdout, "Standard output");
+        validate(stderr, "Standard error");
+        expectedDeprecationWarnings.removeAll(maybeExpectedDeprecationWarnings);
 
         if (!expectedDeprecationWarnings.isEmpty()) {
             throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
@@ -96,7 +106,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
         return text;
     }
 
-    public void validate(String output, String displayName) {
+    private void validate(String output, String displayName) {
         List<String> lines = getLines(output);
         int i = 0;
         boolean insideVariantDescriptionBlock = false;

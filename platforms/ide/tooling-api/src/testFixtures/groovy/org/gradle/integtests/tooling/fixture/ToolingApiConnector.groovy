@@ -30,7 +30,7 @@ class ToolingApiConnector {
         this.connector = connector
     }
 
-    def connect() {
+    ProjectConnection connect() {
         new ToolingApiConnection(connector.connect(), stdout, stderr) as ProjectConnection
     }
 
