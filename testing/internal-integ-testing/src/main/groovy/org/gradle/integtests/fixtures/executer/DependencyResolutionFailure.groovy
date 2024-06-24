@@ -21,7 +21,7 @@ import java.util.regex.Pattern
 import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher
 
-public class DependencyResolutionFailure {
+/* package */ class DependencyResolutionFailure {
     private final ExecutionFailure failure
 
     DependencyResolutionFailure(ExecutionFailure failure, String configuration) {
@@ -34,8 +34,8 @@ public class DependencyResolutionFailure {
         this
     }
 
-    DependencyResolutionFailure assertFailedDependencyRequiredBy(String dependency) {
-        failure.assertThatCause(matchesRegexp("(?ms).*Required by:\\s+$dependency.*"))
+    DependencyResolutionFailure assertFailedDependencyRequiredBy(String dependencyRegex) {
+        failure.assertThatCause(matchesRegexp("(?ms).*Required by:\\s+$dependencyRegex.*"))
         this
     }
 
