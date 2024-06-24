@@ -76,10 +76,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         boolean success = task.call();
         diagnosticToProblemListener.printDiagnosticCounts();
         if (!success) {
-            throw new ExceptionWithProblems(
-                new CompilationFailedException(result),
-                diagnosticToProblemListener.getReportedProblems()
-            );
+            throw new CompilationFailedException(result);
         }
         return result;
     }
