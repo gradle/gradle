@@ -91,7 +91,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @since 7.1
      */
-    public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer);
+    public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
 
     /**
      * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.

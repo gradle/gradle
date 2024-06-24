@@ -12,6 +12,8 @@ sourceSets {
 }
 
 dependencies {
+    compileOnly(libs.jetbrainsAnnotations)
+
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
