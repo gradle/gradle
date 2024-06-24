@@ -67,7 +67,7 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                 withMatchingProperties(
                     scopeLocationMatcher, documentMemberMatcher, mutationRequest, mutation.property,
                     mapFoundPropertyToDocumentMutation = { ReplaceValue(it.value) { mutation.newValue.value(mutationArguments) } },
-                    mapMatchingScopeToDocumentMutation =  {
+                    mapMatchingScopeToDocumentMutation = {
                         AddChildrenToEndOfBlock(it.elements.last()) {
                             NewDocumentNodes(listOf(DefaultPropertyNode(mutation.property.property.name, SyntheticallyProduced, mutation.newValue.value(mutationArguments))))
                         }
@@ -156,13 +156,13 @@ class DefaultModelToDocumentMutationPlanner : ModelToDocumentMutationPlanner {
                 }
             } else emptyList()
 
-            if (mutationsFromScopes.isNotEmpty()) {
-                DefaultModelMutationPlan(
+            when {
+                mutationsFromScopes.isNotEmpty() -> DefaultModelMutationPlan(
                     mutationsFromScopes,
                     emptyList()
                 )
-            } else {
-                DefaultModelMutationPlan(
+
+                else -> DefaultModelMutationPlan(
                     emptyList(),
                     listOf(UnsuccessfulModelMutation(request, listOf(ModelMutationFailureReason.TargetPropertyNotFound)))
                 )

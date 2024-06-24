@@ -23,7 +23,6 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.AddConfiguringBlockIfAbsent
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.SetPropertyValue
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
@@ -146,11 +145,11 @@ val xyMutationDefinition = object : MutationDefinition {
         listOf(
             ModelMutationRequest(
                 ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()),
-                SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! }, Ignore)
+                SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! })
             ),
             ModelMutationRequest(
                 ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()).inObjectsConfiguredBy(functionFor(NestedOne::nestedTwo)),
-                SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! }, Ignore)
+                SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! })
             )
         )
     }

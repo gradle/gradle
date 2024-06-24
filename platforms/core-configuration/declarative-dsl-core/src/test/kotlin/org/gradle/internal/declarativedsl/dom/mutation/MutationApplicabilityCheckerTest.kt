@@ -21,7 +21,6 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.AddConfiguringBlockIfAbsent
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -30,7 +29,6 @@ import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 
 
 internal
@@ -196,7 +194,7 @@ val setX = object : MutationDefinition {
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
         ModelMutationRequest(
             ScopeLocation.inAnyScope(),
-            ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!), ifPresentBehavior = Ignore)
+            ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!))
         )
     )
 }

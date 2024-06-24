@@ -55,7 +55,6 @@ sealed interface ModelMutation {
     data class SetPropertyValue(
         override val property: TypedMember.TypedProperty,
         val newValue: NewValueNodeProvider,
-        val ifPresentBehavior: IfPresentBehavior,
     ) : ModelPropertyMutation
 
     data class AddNewElement(
@@ -78,12 +77,6 @@ sealed interface ModelMutation {
     data class UnsetProperty(
         override val property: TypedMember.TypedProperty
     ) : ModelPropertyMutation
-
-    sealed interface IfPresentBehavior {
-        data object Overwrite : IfPresentBehavior
-        data object FailAndReport : IfPresentBehavior
-        data object Ignore : IfPresentBehavior
-    }
 }
 
 
@@ -111,7 +104,6 @@ data class UnsuccessfulModelMutation(
 
 sealed interface ModelMutationFailureReason {
     data object TargetPropertyNotFound : ModelMutationFailureReason
-
     data object ScopeLocationNotMatched : ModelMutationFailureReason
 }
 
