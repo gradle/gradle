@@ -21,11 +21,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * Represents a failure selecting an artifact variant for a selected graph variant
- * during the final Stage 4 of dependency resolution.
+ * during the {@link org.gradle.internal.component.resolution.failure.interfaces Artifact Selection} part of dependency resolution.
  * <p>
  * When this failure occurs, we have always selected a component and a graph variant,
  * we are now attempting to select an artifact using a possibly different set of
- * attributes from those used during Stage 2 (Variant Selection) to select the graph variant.
+ * attributes from those used during {@link org.gradle.internal.component.resolution.failure.interfaces Variant Selection}
+ * to select the graph variant.
  */
 public interface ArtifactSelectionFailure extends ResolutionFailure {
     /**

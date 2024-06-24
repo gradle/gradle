@@ -29,10 +29,13 @@ public interface ResolutionFailure {
      * Returns a human-readable description of the requested target component, for use
      * primarily in error messages.
      * <p>
-     * If this is a Stage 1 (Component Selection) failure, this should describe the requested component selector.  If this is
-     * a Stage 2 (Variant Selection) failure, this should describe the component identifier of the selected component.
+     * If this is a {@link org.gradle.internal.component.resolution.failure.interfaces Component Selection} failure,
+     * this should describe the requested component selector.  If this is
+     * a {@link org.gradle.internal.component.resolution.failure.interfaces Variant Selection} failure,
+     * this should describe the component identifier of the selected component.
      *
      * @return description of the requested target
+     * {@link org.gradle.internal.component.resolution.failure.interfaces}
      */
     String describeRequestTarget();
 }

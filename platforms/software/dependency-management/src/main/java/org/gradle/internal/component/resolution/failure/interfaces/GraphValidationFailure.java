@@ -18,10 +18,10 @@ package org.gradle.internal.component.resolution.failure.interfaces;
 
 /**
  * Represents a failure validating the resulting variant graph
- * during Stage 3 of dependency resolution.
+ * during {@link org.gradle.internal.component.resolution.failure.interfaces Graph Validation} during dependency resolution.
  * <p>
  * When this failure occurs, we have always selected a component, as the entire graph has been resolved and
- *  * all components are selected.
+ * all components are selected.
  * <p>
  * This validation is done prior to selecting an artifact variant for each resolved component variant.
  *

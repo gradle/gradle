@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * Represents a failure during variant selection when an artifact variant of a component cannot be selected
- * from the result of Stage 2 (Variant Selection) by the {@link AttributeMatchingArtifactVariantSelector AttributeMatchingArtifactVariantSelector}.
+ * from the result of {@link org.gradle.internal.component.resolution.failure.interfaces Variant Selection} by the {@link AttributeMatchingArtifactVariantSelector AttributeMatchingArtifactVariantSelector}.
  *
  * Note: Temporarily non-{@code final}, so long as {@link org.gradle.internal.component.AmbiguousVariantSelectionException} is not yet removed.
  */

@@ -28,8 +28,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Abstract base class for all {@link ResolutionFailure}s occurring at any stage of dependency resolution.
- *
+ * Abstract base class for all {@link ResolutionFailure}s occurring during dependency resolution that can be handled
+ * by the {@link org.gradle.internal.component.ResolutionFailureHandler ResolutionFailureHandler}.
+ * <p>
  * This exception type carries information about the failure, and implements {@link ResolutionProvider} to provide a
  * list of resolutions that may help the user to fix the problem.  This class is meant to be immutable.
  *

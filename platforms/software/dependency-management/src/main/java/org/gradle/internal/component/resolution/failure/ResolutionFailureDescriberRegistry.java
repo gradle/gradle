@@ -70,7 +70,10 @@ public final class ResolutionFailureDescriberRegistry {
 
     /**
      * Creates a new, registry of {@link ResolutionFailureDescriber}s containing the default internal list of describers
-     * that can describe the complete set of {@link ResolutionFailure} types used by Gradle.
+     * that can describe the {@link org.gradle.internal.component.resolution.failure.interfaces complete set} of {@link ResolutionFailure}
+     * types used by Gradle.
+     * <p>
+     * This list should be ordered according to the order in which the failures can occur during the resolution process.
      *
      * @param instanceGenerator The instance generator to use to create describers
      * @return a new registry instance with the default describers registered
@@ -78,17 +81,17 @@ public final class ResolutionFailureDescriberRegistry {
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
-        // Stage 2 - VariantSelectionFailure
+        // Variant Selection failure
         registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousVariantsFailureDescriber.class); // Added ahead of AmbiguousVariantsFailureDescriber so the more specific ambiguity case is checked first
         registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousVariantsFailureDescriber.class);
         registry.registerDescriber(NoCompatibleVariantsFailure.class, NoCompatibleVariantsFailureDescriber.class);
         registry.registerDescriber(ConfigurationNotCompatibleFailure.class, ConfigurationNotCompatibleFailureDescriber.class);
         registry.registerDescriber(ConfigurationDoesNotExistFailure.class, ConfigurationDoesNotExistFailureDescriber.class);
 
-        // Stage 3 - GraphValidationFailure
+        // Graph Validation failures
         registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoVariantsWithMatchingCapabilitiesFailureDescriber.class);
 
-        // Stage 4 - ArtifactSelectionFailure
+        // Artifact Selection failures
         registry.registerDescriber(AmbiguousArtifactsFailure.class, AmbiguousArtifactsFailureDescriber.class);
         registry.registerDescriber(NoCompatibleArtifactFailure.class, NoCompatibleArtifactFailureDescriber.class);
         registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, IncompatibleMultipleNodesValidationFailureDescriber.class);

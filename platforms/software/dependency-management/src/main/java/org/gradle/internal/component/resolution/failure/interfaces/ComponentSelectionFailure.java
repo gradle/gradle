@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
  * Represents a failure selecting a component when building the graph
- * during Stage 1 of dependency resolution.
+ * during the {@link org.gradle.internal.component.resolution.failure.interfaces Component Selection} part of dependency resolution.
  * <p>
  * When this failure occurs, we have only a component selector, and no component, as the
  * selection did not succeed.

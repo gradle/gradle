@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
  * Represents a failure selecting a variant of a component in the graph
- * during Stage 2 of dependency resolution.
+ * during {@link org.gradle.internal.component.resolution.failure.interfaces Variant Selection}.
  * <p>
  * When this failure occurs, we have always selected a component.
  *
