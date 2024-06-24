@@ -24,9 +24,8 @@ import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.Comparator;
 import java.util.List;
@@ -38,16 +37,16 @@ import java.util.stream.Collectors;
  * Abstract base class for building {@link ResolutionFailureDescriber}s that describe {@link ResolutionFailure}s caused by
  * incompatibilities related to a dependency requiring a higher JVM version.
  */
-public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantFailure> {
+public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
     /**
      * Returns the JVM version used in the comparison against the library that is causing the failure.
      *
      * @param failure the failure
      * @return the JVM version that is incompatible
      */
-    protected abstract JavaVersion getJVMVersion(IncompatibleGraphVariantFailure failure);
+    protected abstract JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure);
 
-    protected final boolean isDueToJVMVersionTooNew(IncompatibleGraphVariantFailure failure) {
+    protected final boolean isDueToJVMVersionTooNew(NoCompatibleVariantsFailure failure) {
         if (allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(failure)) {
             JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
             return minJVMVersionSupported.compareTo(getJVMVersion(failure)) > 0;
@@ -56,7 +55,7 @@ public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractR
         }
     }
 
-    private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(IncompatibleResolutionFailure failure) {
+    private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(NoCompatibleVariantsFailure failure) {
         List<ResolutionCandidateAssessor.AssessedCandidate> libraryCandidates = failure.getCandidates().stream()
             .filter(this::isLibraryCandidate)
             .collect(Collectors.toList());

@@ -19,22 +19,23 @@ package org.gradle.integtests.internal.component
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
-import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure
-import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure
-import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure
-import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
+import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
+
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
@@ -45,8 +46,8 @@ import spock.lang.Ignore
  * different types of failures.
  */
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
-    // region resolution failures
-    // region Graph Variant failures
+
+    // region Stage 2 - VariantSelectionFailure
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute.prepare()
 
@@ -83,15 +84,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
           - blueSquareOpaqueElements
           - blueSquareTransparentElements
         All of them match the consumer attributes:
-          - Variant 'blueRoundTransparentElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+          - Variant 'blueRoundTransparentElements' capability ':${temporaryFolder.getTestDirectory().getName()}:unspecified' declares attribute 'color' with value 'blue':
               - Unmatched attributes:
                   - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'round' but the consumer didn't ask for it
-          - Variant 'blueSquareOpaqueElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+          - Variant 'blueSquareOpaqueElements' capability ':${temporaryFolder.getTestDirectory().getName()}:unspecified' declares attribute 'color' with value 'blue':
               - Unmatched attributes:
                   - Provides opacity 'opaque' but the consumer didn't ask for it
                   - Provides shape 'square' but the consumer didn't ask for it
-          - Variant 'blueSquareTransparentElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+          - Variant 'blueSquareTransparentElements' capability ':${temporaryFolder.getTestDirectory().getName()}:unspecified' declares attribute 'color' with value 'blue':
               - Unmatched attributes:
                   - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'square' but the consumer didn't ask for it""")
@@ -214,7 +215,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
     }
 
-    // region Configuration requested by name
     def "demonstrate configuration not found selection failure"() {
         configurationNotFound.prepare()
 
@@ -233,29 +233,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsReviewingAlgorithm()
         // TODO: Nothing specific here
     }
+    // endregion Stage 2 - VariantSelectionFailure
 
-    @Ignore("Is the configuration key in the dependency map just not used for Maven deps?  Should this be an error?")
-    def "demonstrate external configuration not found selection failure"() {
-        externalConfigurationNotFound.prepare()
+    // region Stage 3 - GraphValidationFailure
+    // endregion Stage 3 - GraphValidationFailure
 
-        expect:
-        assertResolutionFailsAsExpected(externalConfigurationNotFound)
-
-        and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.")
-
-        and: "Helpful resolutions are provided"
-        assertSuggestsReviewingAlgorithm()
-        // TODO: Nothing specific here
-    }
-
-    // endregion Configuration requested by name
-    // endregion Graph Variant failures
-
-    // region Artifact Variant failures
+    // region Stage 4 - ArtifactSelectionFailure
     def "demonstrate incompatible artifact variants exception"() {
         incompatibleArtifactVariants.prepare()
 
@@ -347,8 +330,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
-    // endregion Artifact Variant failures
-    // endregion resolution failures
+    // endregion Stage 4 - ArtifactSelectionFailure
 
     // region dependencyInsight failures
     /**
@@ -363,15 +345,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         String basicOutput = """   Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5."""
-        String fullOutput = """          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:
-               - Variant compile provides com.google.code.gson:gson:2.8.5
-               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
-               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
-               - Variant javadoc provides com.google.code.gson:gson:2.8.5
-               - Variant platform-compile provides com.google.code.gson:gson-derived-platform:2.8.5
-               - Variant platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
-               - Variant runtime provides com.google.code.gson:gson:2.8.5
-               - Variant sources provides com.google.code.gson:gson:2.8.5"""
+        String fullOutput = """          - Unable to find a variant providing the requested capability 'com.google.code.gson:gson-test-fixtures':
+               - Variant 'compile' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
+               - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
+               - Variant 'javadoc' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'platform-compile' provides 'com.google.code.gson:gson-derived-platform:2.8.5'
+               - Variant 'platform-runtime' provides 'com.google.code.gson:gson-derived-platform:2.8.5'
+               - Variant 'runtime' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'sources' provides 'com.google.code.gson:gson:2.8.5'"""
 
         outputContains(basicOutput)
         outputContains(fullOutput)
@@ -419,6 +401,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @SuppressWarnings('GroovyAccessibility')
     private static class Demonstration {
         private final String name
         private final Class<AbstractResolutionFailureException> exception
@@ -437,59 +420,42 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
-    private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
-    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
-    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
-    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
-    private final Demonstration noGraphVariantsExistForProject = new Demonstration("Blah", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoGraphVariantsExistFailureForProject)
+    private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
+    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionByAttributesException.class, NoCompatibleVariantsFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
+    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionByAttributesException.class, NoCompatibleVariantsFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
+    private final Demonstration noGraphVariantsExistForProject = new Demonstration("No variants exist (project dependency)", VariantSelectionByAttributesException.class, NoCompatibleVariantsFailure.class, this.&setupNoGraphVariantsExistFailureForProject)
 
-    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionException.class, IncompatibleRequestedConfigurationFailure.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionByNameException.class, ConfigurationNotCompatibleFailure.class, this.&setupConfigurationNotCompatibleFailureForProject)
+    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", VariantSelectionByNameException.class, ConfigurationDoesNotExistFailure.class, this.&setupConfigurationNotFound)
 
-    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupConfigurationNotFound)
-    private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupExternalConfigurationNotFound)
+    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactSelectionException.class, NoCompatibleArtifactFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
+    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactSelectionException.class, AmbiguousArtifactTransformsFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
+    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactSelectionException.class, AmbiguousArtifactsFailure.class, this.&setupAmbiguousArtifactsFailureForProject)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", ArtifactVariantSelectionException.class, IncompatibleMultipleNodeSelectionFailure.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
-    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, IncompatibleResolutionFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
-    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactVariantSelectionException.class, AmbiguousArtifactTransformFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
-    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, AmbiguousResolutionFailure.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible graph variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
 
     private final List<Demonstration> demonstrations = [
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute,
+        ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute,
         ambiguousGraphVariantForExternalDep,
         noMatchingGraphVariantsForProject,
         noMatchingGraphVariantsForExternalDep,
         noGraphVariantsExistForProject,
+
         incompatibleRequestedConfiguration,
-        incompatibleArtifactVariants,
+        configurationNotFound,
+
         noMatchingArtifactVariants,
         ambiguousArtifactTransforms,
         ambiguousArtifactVariants,
-        configurationNotFound
+
+        incompatibleArtifactVariants
     ]
     // endregion error showcase
 
     // region setup
-    private void setupExternalConfigurationNotFound() {
-        buildKotlinFile << """
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
-
-            configurations {
-                dependencyScope("myLibs")
-
-                resolvable("resolveMe") {
-                    extendsFrom(configurations.getByName("myLibs"))
-                }
-            }
-
-            dependencies {
-                add("myLibs", module(mapOf("group" to "com.squareup.okhttp3", "name" to "okhttp", "version" to "4.4.0", "configuration" to "absent")))
-            }
-
-            ${forceConsumerResolution()}
-        """
-    }
-
     private void setupConfigurationNotFound() {
         buildKotlinFile << """
             configurations {
@@ -508,7 +474,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupAmbiguousArtifactVariantsFailureForProject() {
+    private void setupAmbiguousArtifactsFailureForProject() {
         buildKotlinFile << """
             configurations {
                 consumable("default") {
@@ -821,7 +787,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         file("producer/build.gradle.kts").touch()
     }
 
-    private void setupIncompatibleRequestedConfigurationFailureForProject() {
+    private void setupConfigurationNotCompatibleFailureForProject() {
         buildKotlinFile <<  """
             plugins {
                 id("base")
@@ -850,7 +816,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupIncompatibleArtifactVariantsFailureForProject() {
+    private void setupIncompatibleMultipleNodesValidationFailureForProject() {
         buildKotlinFile <<  """
             group = "org.example"
             version = "1.0"
