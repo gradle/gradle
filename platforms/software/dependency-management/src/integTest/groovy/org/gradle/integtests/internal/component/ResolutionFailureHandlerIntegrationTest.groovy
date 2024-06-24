@@ -214,6 +214,23 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
     }
 
+    def "demonstrate multiple selected variants with incompatible attributes failure"() {
+        multipleConfigurationsWithIncompatibleAttributesSelected.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(multipleConfigurationsWithIncompatibleAttributesSelected)
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve project :.")
+        assertFullMessageCorrect("""Multiple incompatible variants of org:test:1.0 were selected:""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+        assertSuggestsReviewingAlgorithm()
+    }
+
     // region Configuration requested by name
     def "demonstrate configuration not found selection failure"() {
         configurationNotFound.prepare()
@@ -250,6 +267,24 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         // TODO: Nothing specific here
+    }
+
+    def "demonstrate multiple selected configuration with the same capabilities failure"() {
+        multipleConfigurationsWithSameCapabilities.prepare()
+
+        expect:
+        fails "forceResolution" // Graph validation failure is not a failure currently handled by the ResolutionFailureHandler
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve project :.")
+        assertFullMessageCorrect("""     Required by:
+         project :
+      > Module 'org.example:test' has been rejected:
+           Cannot select module with conflict on capability 'org:example:test-conflicting' also provided by [org.example:test:1.0(c1)]""")
+
+        // TODO: No helpful resolutions are provided in this case"
     }
 
     // endregion Configuration requested by name
@@ -448,6 +483,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupConfigurationNotFound)
     private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupExternalConfigurationNotFound)
+    private final Demonstration multipleConfigurationsWithSameCapabilities = new Demonstration("Multiple configurations with the same capabilities", ConfigurationSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupMultipleConfigurationsWithSameCapabilities)
+    private final Demonstration multipleConfigurationsWithIncompatibleAttributesSelected = new Demonstration("Multiple selected variants with incompatible attributes", ConfigurationSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupMultipleSelectedVariantsWithIncompatibleAttributes)
 
     private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", ArtifactVariantSelectionException.class, IncompatibleMultipleNodeSelectionFailure.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
     private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, IncompatibleResolutionFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
@@ -465,11 +502,146 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingArtifactVariants,
         ambiguousArtifactTransforms,
         ambiguousArtifactVariants,
-        configurationNotFound
+        configurationNotFound,
+        multipleConfigurationsWithSameCapabilities,
+        multipleConfigurationsWithIncompatibleAttributesSelected
     ]
     // endregion error showcase
 
     // region setup
+    private void setupMultipleSelectedVariantsWithIncompatibleAttributes() {
+        settingsKotlinFile << """
+            rootProject.name = "test"
+
+            include("producer");
+        """
+
+        file("producer/build.gradle.kts") << """
+            group = "org.example"
+            version = "1.0"
+            val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java)
+
+            configurations {
+                create("v1") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a1")
+                    }
+                    outgoing {
+                        capability("org:example:c1")
+                    }
+                }
+
+                create("v2") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a1")
+                    }
+                    outgoing {
+                        capability("org:example:c2")
+                    }
+                }
+
+                create("v3") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a2")
+                    }
+                    outgoing {
+                        capability("org:example:c1")
+                    }
+                }
+
+                create("v4") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a2")
+                    }
+                    outgoing {
+                        capability("org:example:c2")
+                    }
+                }
+            }
+        """
+
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+            val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java)
+
+            configurations {
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":producer")) {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a1")
+                    }
+                    capabilities {
+                        requireCapability("org:example:c1")
+                    }
+                }
+
+                add("myDependencies", project(":producer")) {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a2")
+                    }
+                    capabilities {
+                        requireCapability("org:example:c2")
+                    }
+                }
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupMultipleConfigurationsWithSameCapabilities() {
+        settingsKotlinFile << """
+            rootProject.name = "test"
+        """
+
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+
+            configurations {
+                create("c1") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-nonconflicting")
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                create("c2") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c1")))
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c2")))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
     private void setupExternalConfigurationNotFound() {
         buildKotlinFile << """
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
