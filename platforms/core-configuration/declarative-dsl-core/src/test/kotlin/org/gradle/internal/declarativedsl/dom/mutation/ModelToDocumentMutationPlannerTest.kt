@@ -23,7 +23,6 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.Document
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
@@ -81,8 +80,7 @@ class ModelToDocumentMutationPlannerTest {
             mutationRequest(
                 ModelMutation.SetPropertyValue(
                     schema.propertyFor(TestApi.NestedReceiver::number),
-                    NewValueNodeProvider.Constant(newValue),
-                    ModelMutation.IfPresentBehavior.Overwrite
+                    NewValueNodeProvider.Constant(newValue)
                 )
             )
         )
@@ -189,8 +187,7 @@ class ModelToDocumentMutationPlannerTest {
         val request = mutationRequest(
             ModelMutation.SetPropertyValue(
                 schema.propertyFor(TestApi.NestedReceiver::number),
-                NewValueNodeProvider.Constant(DefaultLiteralNode("789", SyntheticallyProduced)),
-                ModelMutation.IfPresentBehavior.Overwrite
+                NewValueNodeProvider.Constant(DefaultLiteralNode("789", SyntheticallyProduced))
             ),
             ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<TestApi.TopLevelElement>())
         )
@@ -198,7 +195,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertFailedMutation(
             mutationPlan,
-            UnsuccessfulModelMutation(request, listOf(TargetPropertyNotFound))
+            UnsuccessfulModelMutation(request, listOf(ModelMutationFailureReason.TargetPropertyNotFound))
         )
     }
 
