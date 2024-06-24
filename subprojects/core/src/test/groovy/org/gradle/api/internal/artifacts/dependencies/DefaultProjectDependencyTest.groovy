@@ -121,7 +121,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(ConfigurationSelectionException)
-        e.message == "Selected configuration 'conf' on 'root project 'test-project'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        e.message == "Selected configuration 'conf' on 'project :' but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 
     void "does not build project dependencies if configured so"() {

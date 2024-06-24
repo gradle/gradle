@@ -22,6 +22,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
@@ -64,7 +65,7 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
         ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(getBuildIdentifier(), project.getIdentityPath(), project.getProjectPath(), project.getName());
-        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getDependencyMetaDataProvider().getModule());
+        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getServices().get(DependencyMetaDataProvider.class).getModule());
         LOGGER.info("Registering {} in composite build. Will substitute for module '{}'.", project, moduleId.getModule());
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }

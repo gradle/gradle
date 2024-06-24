@@ -113,13 +113,6 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
                 return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
             }
-        });
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        // Not build scoped because of dependency on GradleInternal for build path
-        registration.addProvider(new ServiceRegistrationProvider() {
 
             @Provides
             TarPackerFileSystemSupport createPackerFileSystemSupport(Deleter deleter) {

@@ -26,10 +26,11 @@ app {
 }
 
 dependencies {
-    implementation(project(":build-process-services"))
+    implementation(projects.buildProcessServices)
 
     manifestClasspath(projects.stdlibJavaExtensions)
-    manifestClasspath(project(":build-process-services"))
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":concurrent"))
+    manifestClasspath(projects.buildProcessServices)
+    manifestClasspath(projects.baseServices)
+    manifestClasspath(projects.concurrent)
+    manifestClasspath(projects.serviceLookup)
 }

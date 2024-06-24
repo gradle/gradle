@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.DeferredUtil;
 
@@ -70,6 +71,7 @@ public abstract class WriteProperties extends DefaultTask {
      * @since 3.3
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public Map<String, String> getProperties() {
         ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
         propertiesBuilder.putAll(properties);
@@ -145,6 +147,7 @@ public abstract class WriteProperties extends DefaultTask {
      * Defaults to {@literal `\n`}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getLineSeparator() {
         return lineSeparator;
     }
@@ -162,6 +165,7 @@ public abstract class WriteProperties extends DefaultTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getComment() {
         return comment;
     }
@@ -178,6 +182,7 @@ public abstract class WriteProperties extends DefaultTask {
      * If set to anything different, unicode escaping is turned off.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getEncoding() {
         return encoding;
     }

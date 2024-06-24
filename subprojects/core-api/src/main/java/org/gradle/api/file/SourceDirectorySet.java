@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.model.internal.core.UnmanagedStruct;
 
 import java.io.File;
@@ -36,6 +37,7 @@ import java.util.function.Function;
  * <p>You can create an instance of {@code SourceDirectorySet} using the {@link org.gradle.api.model.ObjectFactory#sourceDirectorySet(String, String)} method.</p>
  */
 @UnmanagedStruct
+@NotToBeMigratedToLazy
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, Describable {
 
     /**

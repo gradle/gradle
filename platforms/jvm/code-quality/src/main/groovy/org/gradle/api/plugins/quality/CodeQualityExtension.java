@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
 import java.util.Collection;
@@ -33,6 +34,7 @@ public abstract class CodeQualityExtension {
     /**
      * The version of the code quality tool to be used.
      */
+    @ToBeReplacedByLazyProperty
     public String getToolVersion() {
         return toolVersion;
     }
@@ -47,6 +49,7 @@ public abstract class CodeQualityExtension {
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public Collection<SourceSet> getSourceSets() {
         return sourceSets;
     }
@@ -63,6 +66,7 @@ public abstract class CodeQualityExtension {
      *
      * Example: ignoreFailures = true
      */
+    @ToBeReplacedByLazyProperty
     public boolean isIgnoreFailures() {
         return ignoreFailures;
     }
@@ -79,6 +83,7 @@ public abstract class CodeQualityExtension {
     /**
      * The directory where reports will be generated.
      */
+    @ToBeReplacedByLazyProperty
     public File getReportsDir() {
         return reportsDir;
     }

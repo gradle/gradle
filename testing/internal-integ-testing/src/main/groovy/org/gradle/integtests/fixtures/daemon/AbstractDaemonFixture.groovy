@@ -18,13 +18,13 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.launcher.daemon.server.api.DaemonStateControl.State
+import org.gradle.launcher.daemon.server.api.DaemonState
 import org.gradle.util.GradleVersion
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Stopped
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonState.Stopped
 
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
@@ -108,9 +108,9 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
         this
     }
 
-    protected abstract void waitForState(State state)
+    protected abstract void waitForState(DaemonState state)
 
-    protected abstract void assertHasState(State state)
+    protected abstract void assertHasState(DaemonState state)
 
     @Override
     void kill() {

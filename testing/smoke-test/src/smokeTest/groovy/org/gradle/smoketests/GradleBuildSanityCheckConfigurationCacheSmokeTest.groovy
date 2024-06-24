@@ -57,7 +57,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
 
         then:
         result.assertConfigurationCacheStateLoaded()
-        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.FROM_CACHE
+        result.task(":configuration-cache:detekt").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.UP_TO_DATE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.FROM_CACHE

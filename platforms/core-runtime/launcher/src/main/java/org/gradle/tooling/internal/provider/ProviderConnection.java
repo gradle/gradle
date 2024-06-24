@@ -41,8 +41,8 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.configuration.AllProperties;
@@ -55,6 +55,7 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
+import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -165,24 +166,25 @@ public class ProviderConnection {
                 params.daemonParams.getEffectiveJvmArgs());
         }
 
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
     private static File reportableJavaHomeForBuild(Parameters params) {
         DaemonParameters daemonParameters = params.daemonParams;
-        // Gradle daemon properties have been defined
-        if (daemonParameters.getRequestedJvmCriteria() != null) {
+        DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
+        if (criteria instanceof DaemonJvmCriteria.Spec) {
+            // Gradle daemon properties have been defined
             // TODO: We don't know what this will be without searching.
             // We'll say it's the current JVM because we don't know any better for now.
             return Jvm.current().getJavaHome();
-        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null) {
-            // Either the TAPI client or org.gradle.java.home has been provided
-            return daemonParameters.getRequestedJvmBasedOnJavaHome().getJavaHome();
-        } else {
+        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
+            return ((DaemonJvmCriteria.JavaHome) criteria).getJavaHome();
+        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
             return Jvm.current().getJavaHome();
+        } else {
+            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
     }
 
@@ -236,7 +238,7 @@ public class ProviderConnection {
     }
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
         NotifyDaemonAboutChangedPathsClient client = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
@@ -244,7 +246,7 @@ public class ProviderConnection {
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
         ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
@@ -305,30 +307,12 @@ public class ProviderConnection {
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
         } else {
-            LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
+            ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
             executor = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager);
-    }
-
-    // TODO: This needs to be shared with the regular launcher
-    private DaemonRequestContext configureForRequestContext(DaemonParameters daemonParameters) {
-        // Gradle daemon properties have been defined
-        if (daemonParameters.getRequestedJvmCriteria() != null) {
-            DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-            daemonParameters.applyDefaultsFor(criteria.getJavaVersion());
-            return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
-        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null && daemonParameters.getRequestedJvmBasedOnJavaHome() != Jvm.current()) {
-            // Either the TAPI client or org.gradle.java.home has been provided
-            JavaLanguageVersion detectedVersion = JavaLanguageVersion.of(jvmVersionDetector.getJavaVersionMajor(daemonParameters.getRequestedJvmBasedOnJavaHome()));
-            daemonParameters.applyDefaultsFor(detectedVersion);
-            return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
-        } else {
-            daemonParameters.applyDefaultsFor(JavaLanguageVersion.current());
-            return new DaemonRequestContext(Jvm.current(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
-        }
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
@@ -365,7 +349,7 @@ public class ProviderConnection {
             daemonParams.setJvmArgs(jvmArguments);
         }
 
-        daemonParams.setRequestedJvmCriteria(properties.getDaemonJvmProperties());
+        daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
@@ -377,10 +361,11 @@ public class ProviderConnection {
 
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
-            daemonParams.setRequestedJvmBasedOnJavaHome(Jvm.forHome(javaHome));
+            daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
         }
 
-        DaemonRequestContext requestContext = configureForRequestContext(daemonParams);
+        daemonParams.applyDefaultsFromJvmCriteria(jvmVersionDetector);
+        DaemonRequestContext requestContext = daemonParams.toRequestContext();
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
@@ -396,7 +381,14 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, requestContext);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+
+        Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
+        gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
+        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
+        new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+
+        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
 
     private static class Parameters {
@@ -404,13 +396,15 @@ public class ProviderConnection {
         final BuildLayoutResult buildLayout;
         final AllProperties properties;
         final Map<String, String> tapiSystemProperties;
+        final StartParameterInternal startParameter;
         final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, DaemonRequestContext requestContext) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
             this.tapiSystemProperties = tapiSystemProperties;
+            this.startParameter = startParameter;
             this.requestContext = requestContext;
         }
     }

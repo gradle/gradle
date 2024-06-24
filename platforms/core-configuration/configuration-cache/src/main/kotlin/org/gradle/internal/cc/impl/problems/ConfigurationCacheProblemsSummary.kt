@@ -43,7 +43,7 @@ internal
 enum class ProblemSeverity {
     Info,
     Failure,
-
+    Warning,
     /**
      * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
      */
@@ -106,6 +106,7 @@ class ConfigurationCacheProblemsSummary(
             when (severity) {
                 ProblemSeverity.Failure -> failureCount += 1
                 ProblemSeverity.Suppressed -> suppressedCount += 1
+                ProblemSeverity.Warning -> {}
                 ProblemSeverity.Info -> {}
             }
             if (overflowed) {
@@ -236,7 +237,7 @@ data class UniquePropertyProblem(
         fun of(problem: PropertyProblem) = problem.run {
             UniquePropertyProblem(
                 trace.containingUserCode,
-                message.toString(),
+                message.render(),
                 documentationSection?.anchor
             )
         }

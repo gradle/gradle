@@ -49,6 +49,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -219,6 +220,7 @@ import java.util.concurrent.Callable;
  * </ul>
  */
 @HasInternalProtocol
+@NotToBeMigratedToLazy
 public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
     /**
      * The default project build file name.

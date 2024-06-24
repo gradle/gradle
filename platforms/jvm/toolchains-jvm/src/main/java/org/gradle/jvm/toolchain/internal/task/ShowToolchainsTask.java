@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -60,7 +61,7 @@ public abstract class ShowToolchainsTask extends DefaultTask {
         List<JvmToolchainMetadata> validToolchains = validToolchains(toolchains);
         List<JvmToolchainMetadata> invalidToolchains = invalidToolchains(toolchains);
         printOptions(output);
-        validToolchains.forEach(toolchainRenderer::printToolchain);
+        validToolchains.forEach(toolchainRenderer::printDetectedToolchain);
         toolchainRenderer.printInvalidToolchains(invalidToolchains);
     }
 

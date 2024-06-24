@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * At some point we aim to better model services who need data from the Gradle model, and this complexity can go away.
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface LifecycleAwareBuildCacheController extends BuildCacheController {
     /**
      * Called when the configuration for this controller is available.

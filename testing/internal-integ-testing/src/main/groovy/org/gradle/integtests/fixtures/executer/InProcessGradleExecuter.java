@@ -60,7 +60,6 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Time;
-import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -258,7 +257,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
             builder.environment(invocation.environmentVars);
 
-            builder.getMainClass().set(Main.class.getName());
+            builder.getMainClass().set("org.gradle.launcher.Main");
             builder.args(invocation.args);
             builder.setStandardInput(connectStdIn());
 

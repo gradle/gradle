@@ -17,8 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
-import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
@@ -29,6 +27,7 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -44,7 +43,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
     static {
         PARAMETER_DESC = new String[255];
         for (int i = 0; i < PARAMETER_DESC.length; i++) {
-            PARAMETER_DESC[i] = "parameter " + (i+1);
+            PARAMETER_DESC[i] = "parameter " + (i + 1);
         }
     }
 
@@ -127,12 +126,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
     }
 
     private ModelReference<?> reference(List<Annotation> annotations, int i) {
-        Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
-            @Override
-            public boolean isSatisfiedBy(Annotation element) {
-                return element.annotationType().equals(Path.class);
-            }
-        });
+        Path pathAnnotation = (Path) findFirst(annotations, element -> element.annotationType().equals(Path.class));
         ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
         ModelType<?> cast = method.getGenericParameterTypes().get(i);
         return ModelReference.of(path, cast, PARAMETER_DESC[i]);

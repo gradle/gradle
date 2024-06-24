@@ -16,6 +16,7 @@
 
 package org.gradle.internal.concurrent
 
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import spock.lang.Specification
 
 class CompositeStoppableTest extends Specification {
@@ -66,8 +67,32 @@ class CompositeStoppableTest extends Specification {
         then:
         1 * a.stop() >> { throw failure1 }
         1 * b.stop() >> { throw failure2 }
-        def e = thrown(RuntimeException)
-        e == failure1
+        def e = thrown(DefaultMultiCauseException)
+        e.causes[0] == failure1
+        e.causes[1] == failure2
+    }
+
+    def stopsAllElementsWhenClosingInResponseToAnExceptionAndMultipleFailToStop() {
+        RuntimeException original = new RuntimeException()
+
+        Stoppable a = Mock()
+        Stoppable b = Mock()
+        RuntimeException failure1 = new RuntimeException()
+        RuntimeException failure2 = new RuntimeException()
+        stoppable.addFailure(original)
+        stoppable.add(a)
+        stoppable.add(b)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.stop() >> { throw failure1 }
+        1 * b.stop() >> { throw failure2 }
+        def e = thrown(DefaultMultiCauseException)
+        e.causes[0] == original
+        e.causes[1] == failure1
+        e.causes[2] == failure2
     }
 
     def closesACloseableElement() {

@@ -27,7 +27,7 @@ import org.gradle.launcher.daemon.server.DaemonProcessState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 
 public class ForegroundDaemonAction implements Runnable {
 

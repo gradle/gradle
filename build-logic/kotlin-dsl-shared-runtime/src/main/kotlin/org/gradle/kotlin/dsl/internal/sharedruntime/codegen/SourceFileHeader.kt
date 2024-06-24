@@ -33,11 +33,10 @@ fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
     "redundant_projection",
     "RemoveRedundantBackticks",
     "ObjectPropertyName",
-    "deprecation"
+    "deprecation",
+    "detekt:all"
 )
 @file:org.gradle.api.Generated${if (isIncubating) "\n@file:org.gradle.api.Incubating" else ""}
-
-/* ktlint-disable */
 
 package $packageName
 """

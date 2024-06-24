@@ -51,7 +51,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
-import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
+import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
@@ -1196,7 +1196,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
         }
 
-        properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
+        properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         // Having this unset is now deprecated, will default to `false` in Gradle 9.0
         // TODO remove - see https://github.com/gradle/gradle/issues/26810
@@ -1556,8 +1556,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return durationMeasurement;
     }
 
-    private static LoggingServiceRegistry newCommandLineProcessLogging() {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+    private static ServiceRegistry newCommandLineProcessLogging() {
+        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;

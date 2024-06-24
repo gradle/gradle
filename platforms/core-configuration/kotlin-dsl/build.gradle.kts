@@ -9,28 +9,28 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    api(project(":kotlin-dsl-tooling-models"))
+    api(projects.kotlinDslToolingModels)
     api(libs.kotlinStdlib)
     api(libs.kotlinReflect)
 
     implementation(projects.io)
-    implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":functional"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":files"))
-    implementation(project(":resources"))
-    implementation(project(":tooling-api"))
-    implementation(project(":execution"))
-    implementation(project(":normalization-java"))
+    implementation(projects.baseServices)
+    implementation(projects.enterpriseOperations)
+    implementation(projects.functional)
+    implementation(projects.messaging)
+    implementation(projects.logging)
+    implementation(projects.processServices)
+    implementation(projects.persistentCache)
+    implementation(projects.coreApi)
+    implementation(projects.modelCore)
+    implementation(projects.core)
+    implementation(projects.fileCollections)
+    implementation(projects.fileTemp)
+    implementation(projects.files)
+    implementation(projects.resources)
+    implementation(projects.toolingApi)
+    implementation(projects.execution)
+    implementation(projects.normalizationJava)
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
@@ -66,16 +66,16 @@ dependencies {
         isTransitive = false
     }
 
-    testImplementation(project(":build-cache-http"))
-    testImplementation(project(":build-cache-local"))
-    testImplementation(project(":build-init"))
-    testImplementation(project(":jacoco"))
-    testImplementation(project(":platform-native")) {
+    testImplementation(projects.buildCacheHttp)
+    testImplementation(projects.buildCacheLocal)
+    testImplementation(projects.buildInit)
+    testImplementation(projects.jacoco)
+    testImplementation(projects.platformNative) {
         because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
     }
-    testImplementation(project(":platform-jvm"))
-    testImplementation(project(":version-control"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.platformJvm)
+    testImplementation(projects.versionControl)
+    testImplementation(testFixtures(projects.core))
     testImplementation(libs.ant)
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.jacksonKotlin)
@@ -83,30 +83,30 @@ dependencies {
     testImplementation(libs.kotlinCoroutines)
     testImplementation(libs.awaitility)
 
-    integTestImplementation(project(":build-option")) {
+    integTestImplementation(projects.buildOption) {
         because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
     }
-    integTestImplementation(project(":language-groovy")) {
+    integTestImplementation(projects.languageGroovy) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
-    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(projects.internalTesting)
     integTestImplementation(libs.mockitoKotlin)
 
-    testRuntimeOnly(project(":distributions-native")) {
+    testRuntimeOnly(projects.distributionsNative) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
     }
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":file-temp"))
-    testFixturesImplementation(project(":resources"))
-    testFixturesImplementation(project(":kotlin-dsl-tooling-builders"))
-    testFixturesImplementation(project(":test-kit"))
-    testFixturesImplementation(project(":internal-testing"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.fileTemp)
+    testFixturesImplementation(projects.resources)
+    testFixturesImplementation(projects.kotlinDslToolingBuilders)
+    testFixturesImplementation(projects.testKit)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.internalIntegTesting)
 
-    testFixturesImplementation(testFixtures(project(":hashing")))
+    testFixturesImplementation(testFixtures(projects.hashing))
 
     testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 
@@ -115,7 +115,7 @@ dependencies {
     testFixturesImplementation(libs.jacksonKotlin)
     testFixturesImplementation(libs.asm)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
 packageCycles {

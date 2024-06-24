@@ -21,7 +21,7 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.20" else "3.0.21"
-    val configurationCacheReportVersion = "1.5"
+    val configurationCacheReportVersion = "1.7"
     val gradleIdeStarterVersion = "0.3"
     val kotlinVersion = "1.9.23"
 
@@ -251,6 +251,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
+        guice to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
         hamcrestCore to License.BSD3,

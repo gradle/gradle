@@ -37,7 +37,6 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
@@ -209,8 +208,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
-        private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
-
         private final String templateId;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
@@ -253,7 +250,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             // Disabled since enabling it introduced negative savings to Groovy script compilation.
             // It's not disabled for Kotlin since Kotlin has better compile avoidance, additionally
             // Kotlin has build cache from the beginning and there was no report of a problem with it.
-            return Optional.of(NOT_CACHEABLE);
+            return Optional.of(NOT_WORTH_CACHING);
         }
 
         @Override

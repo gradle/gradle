@@ -289,14 +289,15 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 Gradle {gradleVersion}
 ------------------------------------------------------------
 
-Build time:   2023-03-03 16:41:37 UTC
-Revision:     7d6581558e226a580d91d399f7dfb9e3095c2b1d
+Build time:    2024-06-17 18:10:00 UTC
+Revision:      6028379bb5a8512d0b2c1be6403543b79825ef08
 
-Kotlin:       1.8.10
-Groovy:       3.0.13
-Ant:          Apache Ant(TM) version 1.10.11 compiled on July 10 2021
-JVM:          17.0.6 (Homebrew 17.0.6+0)
-OS:           Mac OS X 13.2.1 aarch64
+Kotlin:        1.9.23
+Groovy:        3.0.21
+Ant:           Apache Ant(TM) version 1.10.13 compiled on January 4 2023
+Launcher JVM:  11.0.23 (Eclipse Adoptium 11.0.23+9)
+Daemon JVM:    /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home (no JDK specified, using current Java home)
+OS:            Mac OS X 14.5 aarch64
 
 ----
 

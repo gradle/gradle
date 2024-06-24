@@ -358,7 +358,7 @@ The following APIs, which were not usable via command line options anymore since
 
 Gradle no longer supports discovering the settings file in a directory named `master` in a sibling directory.
 If your build still uses this deprecated feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
-You can find more information about <<multi_project_builds.adoc#multi_project_builds,how to structure a Gradle build>> or a <<structuring_software_products.adoc#structure_large_projects,composition of builds>> in the user manual.
+You can find more information about <<multi_project_builds.adoc#multi_project_builds,how to structure a Gradle build>> in the user manual.
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
 <<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 

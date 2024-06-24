@@ -17,11 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory;
-import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class DependencyServices extends AbstractGradleModuleServices {
@@ -54,17 +50,5 @@ public class DependencyServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementBuildTreeScopeServices());
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyManagementGradleServices());
-    }
-
-    private static class DependencyManagementGradleServices implements ServiceRegistrationProvider {
-        @Provides
-        TransformExecutionListener createTransformExecutionListener(ListenerManager listenerManager) {
-            return listenerManager.getBroadcaster(TransformExecutionListener.class);
-        }
     }
 }

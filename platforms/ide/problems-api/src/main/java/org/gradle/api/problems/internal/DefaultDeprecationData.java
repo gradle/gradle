@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import javax.annotation.Nullable;
+
 public class DefaultDeprecationData implements DeprecationData {
 
     private final Type type;
@@ -29,11 +31,10 @@ public class DefaultDeprecationData implements DeprecationData {
         return type;
     }
 
-    public static AdditionalDataBuilder<DeprecationData> builder() {
-        return new DefaultDeprecationDataBuilder();
-    }
-
-    public static AdditionalDataBuilder<DeprecationData> builder(DeprecationData from) {
+    public static AdditionalDataBuilder<DeprecationData> builder(@Nullable DeprecationData from) {
+        if(from == null) {
+            return new DefaultDeprecationDataBuilder();
+        }
         return new DefaultDeprecationDataBuilder(from);
     }
 

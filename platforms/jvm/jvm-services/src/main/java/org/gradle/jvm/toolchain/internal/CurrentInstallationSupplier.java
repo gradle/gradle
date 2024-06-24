@@ -31,8 +31,13 @@ public class CurrentInstallationSupplier implements InstallationSupplier {
 
     @Override
     public Set<InstallationLocation> get() {
-        return Collections.singleton(asInstallation(Jvm.current().getJavaHome()));
+        return Collections.singleton(getInstallation());
     }
+
+    public InstallationLocation getInstallation() {
+        return asInstallation(Jvm.current().getJavaHome());
+    }
+
     private InstallationLocation asInstallation(File javaHome) {
         return InstallationLocation.autoDetected(javaHome, getSourceName());
     }

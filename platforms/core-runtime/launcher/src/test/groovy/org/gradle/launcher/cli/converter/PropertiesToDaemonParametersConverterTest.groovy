@@ -21,6 +21,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -76,7 +77,8 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         then:
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
-        params.requestedJvmBasedOnJavaHome == Jvm.current()
+        params.requestedJvmCriteria instanceof DaemonJvmCriteria.JavaHome
+        ((DaemonJvmCriteria.JavaHome) params.requestedJvmCriteria).javaHome == Jvm.current().javaHome.absoluteFile
         !params.enabled
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115

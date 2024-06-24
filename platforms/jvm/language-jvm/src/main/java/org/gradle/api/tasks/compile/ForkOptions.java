@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -45,6 +46,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExecutable() {
         return executable;
     }
@@ -69,6 +71,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public File getJavaHome() {
         return javaHome;
     }
@@ -91,6 +94,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public String getTempDir() {
         return tempDir;
     }

@@ -19,6 +19,7 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -47,6 +48,7 @@ public abstract class AntTarget extends ConventionTask {
      * Returns the Ant target to execute.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public Target getTarget() {
         return target;
     }
@@ -62,6 +64,7 @@ public abstract class AntTarget extends ConventionTask {
      * Returns the Ant project base directory to use when executing the target.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getBaseDir() {
         return baseDir;
     }
@@ -78,6 +81,7 @@ public abstract class AntTarget extends ConventionTask {
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public String getDescription() {
         return target == null ? null : target.getDescription();
     }

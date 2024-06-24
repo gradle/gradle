@@ -33,7 +33,7 @@ import java.util.Optional;
  *
  * <p>Note that some implementations are mutable and may change behavior over the lifetime of a build.</p>
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildCacheController extends Closeable {
 
     boolean isEnabled();
