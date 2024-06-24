@@ -234,7 +234,7 @@ class DocumentMemberAndTypeMatcher(
                 a != null && b != null &&
                     a.name == b.name &&
                     a.type.isEquivalentTo(b.type) // semantics for the parameters is probably irrelevant
-            }
+            } && semantics.matchesOrOverrides(other.semantics)
 
     private
     fun FunctionSemantics.matchesOrOverrides(other: FunctionSemantics) = when (this) {
