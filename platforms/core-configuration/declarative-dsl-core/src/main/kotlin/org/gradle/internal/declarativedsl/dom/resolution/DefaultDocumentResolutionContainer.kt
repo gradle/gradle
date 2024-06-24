@@ -29,6 +29,7 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.analysis.format
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.AmbiguousName
@@ -175,7 +176,7 @@ class DocumentResolver(
                     )
                 }
 
-                else -> error("unexpected semantics of element function")
+                else -> error("unexpected semantics of element ${function.format(functionOrigin)}: ${semantics::class.simpleName}")
             }
         }
 
