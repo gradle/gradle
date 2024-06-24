@@ -49,7 +49,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         fails("test")
-        result.assertHasErrorOutput("A dependency was declared on configuration '$configuration' which is not declared in the descriptor for 'project :producer'.")
+        result.assertHasErrorOutput("A dependency was declared on configuration '$configuration' of 'project :producer' but no variant with that configuration name exists.")
 
         where:
         plugin       | configuration

@@ -119,7 +119,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         then:
         !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Please use attributes to consume the ${alternatives} configuration instead.")
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
-        !doesNotExist(alternatives) || errorOutput.contains("A dependency was declared on configuration '$configuration' which is not declared in the descriptor for 'project :sub'.")
+        !doesNotExist(alternatives) || errorOutput.contains("A dependency was declared on configuration '$configuration' of 'project :sub' but no variant with that configuration name exists.")
 
         where:
         plugin         | configuration                  | alternatives

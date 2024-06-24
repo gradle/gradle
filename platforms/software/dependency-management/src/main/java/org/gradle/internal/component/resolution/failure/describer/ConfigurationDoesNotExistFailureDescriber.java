@@ -47,6 +47,10 @@ public abstract class ConfigurationDoesNotExistFailureDescriber extends Abstract
     }
 
     private String buildFailureMsg(ConfigurationDoesNotExistFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for '%s'.", failure.getRequestedConfigurationName(), failure.getTargetComponent().getDisplayName());
+        return String.format(
+            "A dependency was declared on configuration '%s' of '%s' but no variant with that configuration name exists.",
+            failure.getRequestedConfigurationName(),
+            failure.getTargetComponent().getDisplayName()
+        );
     }
 }

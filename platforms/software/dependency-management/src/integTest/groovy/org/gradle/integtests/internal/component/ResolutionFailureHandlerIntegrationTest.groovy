@@ -227,7 +227,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""Required by:
          project :
-      > A dependency was declared on configuration 'absent' which is not declared in the descriptor for 'project :'.""")
+      > A dependency was declared on configuration 'absent' of 'project :' but no variant with that configuration name exists.""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
