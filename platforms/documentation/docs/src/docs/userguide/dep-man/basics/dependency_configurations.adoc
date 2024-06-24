@@ -1,0 +1,137 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-configurations]]
+= 2. Dependency Configurations
+
+[[sec:what-are-dependency-configurations]]
+== Understanding dependency configurations
+Every dependency declared for a Gradle project applies to a specific scope.
+For example some dependencies should be used for compiling source code whereas others only need to be available at runtime.
+Gradle represents the scope of a dependency with the help of a link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration].
+Every configuration can be identified by a unique name.
+
+Many Gradle plugins add pre-defined configurations to your project.
+The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like.
+See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example.
+
+image::dependency-management-configurations.png[]
+
+[[sec:resolvable-consumable-configs]]
+== Understanding resolvable and consumable configurations
+
+Configurations are a fundamental part of dependency resolution in Gradle.
+In the context of dependency resolution, it is useful to distinguish between a _consumer_ and a _producer_. Along these lines, configurations have at least 3 different roles:
+
+1. to declare dependencies
+2. as a _consumer_, to resolve a set of dependencies to files
+3. as a _producer_, to expose artifacts and their dependencies for consumption by other projects
+(such _consumable_ configurations usually represent the <<variant_model.adoc#understanding-variant-selection,variants>> the producer offers to its consumers)
+
+For example, to express that an application `app` _depends on_ library `lib`, _at least_ one configuration is required:
+
+.Configurations are used to declare dependencies
+====
+include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=declare-configuration]"]
+====
+
+Configurations can inherit dependencies from other configurations by extending from them.
+Now, notice that the code above doesn't tell us anything about the intended _consumer_ of this configuration.
+In particular, it doesn't tell us how the configuration is meant to be _used_.
+Let's say that `lib` is a Java library: it might expose different things, such as its API, implementation, or test fixtures.
+It might be necessary to change how we resolve the dependencies of `app` depending upon the task we're performing (compiling against the API of `lib`, executing the application, compiling tests, etc.).
+To address this problem, you'll often find companion configurations, which are meant to unambiguously declare the usage:
+
+.Configurations representing concrete dependency graphs
+====
+include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=concrete-classpath]"]
+====
+
+At this point, we have 3 different configurations with different roles:
+
+- `someConfiguration` declares the dependencies of my application. It is simply a collection of dependencies.
+- `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
+
+This distinction is represented by the `canBeResolved` flag in the `Configuration` type.
+A configuration that _can be resolved_ is a configuration for which we can compute a dependency graph, because it contains all the necessary information for resolution to happen.
+That is to say we're going to compute a dependency graph, resolve the components in the graph, and eventually get artifacts.
+A configuration which has `canBeResolved` set to `false` is not meant to be resolved.
+Such a configuration is there _only to declare dependencies_.
+The reason is that depending on the usage (compile classpath, runtime classpath), it _can_ resolve to different graphs.
+It is an error to try to resolve a configuration which has `canBeResolved` set to `false`.
+To some extent, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
+A resolvable configuration will extend at least one non-resolvable configuration (and may extend more than one).
+
+On the other end, at the library project side (the _producer_), we also use configurations to represent what can be consumed.
+For example, the library may expose an API or a runtime, and we would attach artifacts to either one, the other, or both.
+Typically, to compile against `lib`, we need the API of `lib`, but we don't need its runtime dependencies.
+So the `lib` project will expose an `apiElements` configuration, which is aimed at consumers looking for its API.
+Such a configuration is consumable, but is not meant to be resolved.
+This is expressed via the _canBeConsumed_ flag of a `Configuration`:
+
+.Setting up configurations
+====
+include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=setup-configurations]"]
+====
+
+In short, a configuration's role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
+
+.Configuration roles
+|===
+|Configuration role|can be resolved|can be consumed
+|Dependency Scope|false|false
+|Resolve for certain usage|true|false
+|Exposed to consumers|false|true
+|Legacy, don't use|true|true
+|===
+
+For backwards compatibility, both flags have a default value of `true`, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
+
+== Viewing configurations
+
+To focus on the information about one dependency configuration, provide the optional parameter `--configuration`.
+Just like <<command_line_interface#sec:name_abbreviation, project and task names>>, Gradle accepts abbreviated names to select a dependency configuration.
+For example, you can specify `tRC` instead of `testRuntimeClasspath` if the pattern matches to a single dependency configuration.
+Both of the following examples show dependencies in the `testRuntimeClasspath` dependency configuration of a Java project:
+
+----
+> gradle -q dependencies --configuration testRuntimeClasspath
+----
+
+[[sec:defining-custom-configurations]]
+== Creating custom configurations
+
+You can define configurations yourself, so-called _custom configurations_.
+A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
+
+Consider a project that uses the link:https://www.eclipse.org/jgit/[JGit library] to execute Source Control Management (SCM) operations for a release process.
+You can declare dependencies for external tooling with the help of a <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,custom dependency configuration>>.
+This avoids polluting other contexts, such as the compilation classpath for your production source code.
+
+The following example declares a custom dependency configuration named "scm" that contains the JGit dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+====
+
+Use the following command to view a dependency tree for the `scm` dependency configuration:
+
+----
+> gradle -q dependencies --configuration scm
+include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
+----

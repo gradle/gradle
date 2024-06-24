@@ -51,7 +51,12 @@ In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven
 
 You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
 
-== 2. Declaring Repositories
+== 2. Understanding Configurations
+
+A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
+
+== 3. Declaring Repositories
 
 You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
 
@@ -62,12 +67,16 @@ Subsequent builds use this cache to avoid unnecessary network calls and speed up
 Repositories offer dependencies in multiple formats.
 For information about the formats supported by Gradle, see <<declaring_dependencies.adoc#sec:dependency-types,dependency types>>.
 
-== 3. Understanding Configurations
+== 4. Centralizing Dependencies
 
-A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
-Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
+Centralizing dependencies in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
+Some concepts include:
 
-== 4. Dependency Constraints
+- A lockfile is a file that stores the exact versions of dependencies used in a project
+- A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
+- A convention plugin defines conventions and configurations that can be applied consistently across projects.
+
+== 5. Dependency Constraints and Conflict Resolution
 
 Metadata describes dependencies.
 Some examples of metadata include:
@@ -78,11 +87,3 @@ Some examples of metadata include:
 * other dependencies required for a dependency to work properly, known as _transitive dependencies_
 
 You can <<dependency_constraints.adoc#dependency-constraints,customize Gradle's handling of transitive dependencies>> based on the requirements of a project.
-
-== 5. Conflict Resolution
-
-== 6. Debugging Dependencies
-
-Projects with hundreds of declared dependencies can be difficult to debug.
-Gradle provides tools to visualize and analyze a project's dependency graph (i.e. dependency tree).
-You can use a link:https://scans.gradle.com/get-started[Build Scan(TM)] or <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,built-in tasks>>.

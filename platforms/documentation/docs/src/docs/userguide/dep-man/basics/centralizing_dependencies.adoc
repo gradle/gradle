@@ -1,0 +1,42 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[centralizing-dependencies]]
+= 4. Centralizing dependencies
+
+== Understanding dependency centralization
+Central dependencies can be managed in Gradle using various techniques such as a lockfile, version catalog, and convention plugins. Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
+
+== Using Convention plugins
+
+3. **Convention Plugins**:
+- **Description**: Convention plugins define conventions and configurations that can be applied consistently across projects.
+- **Implementation**: Create a custom Gradle plugin that configures common dependencies, repositories, and other settings according to your organization's conventions. Apply this plugin in your projects to enforce these conventions.
+- **Benefits**: Promotes consistency, reduces boilerplate code, and makes it easier to onboard new team members.
+
+== Using a Version catalog
+
+2. **Version Catalog**:
+- **Description**: A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
+- **Implementation**: Use a custom plugin or script to define a version catalog containing versions of commonly used dependencies. Reference this catalog in your projects to ensure consistent version management.
+- **Benefits**: Simplifies dependency management by centralizing version definitions and promoting consistency across projects.
+
+== Using Dependency locking
+
+1. **Lockfile**:
+- **Description**: A lockfile is a file that stores the exact versions of dependencies used in a project, preventing unexpected changes in dependencies when a project is built on different machines or at different times.
+- **Implementation**: Gradle does not natively support lockfiles like some other tools (e.g., npm with `package-lock.json`). However, you can achieve a similar result by generating a `dependencies.lock` file using a custom task or plugin that resolves and records the exact versions of dependencies.
+- **Benefits**: Ensures reproducible builds and avoids dependency version conflicts.
+
+

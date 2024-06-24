@@ -13,9 +13,12 @@
 // limitations under the License.
 
 [[declaring-dependencies]]
-= 1. Declaring dependencies
+= Declaring dependencies
+
+Before looking at dependency declarations themselves, the concept of _dependency configuration_ needs to be defined.
 
 [[sec:what-are-dependency-configurations]]
+== What are dependency configurations
 
 Every dependency declared for a Gradle project applies to a specific scope.
 For example some dependencies should be used for compiling source code whereas others only need to be available at runtime.
@@ -26,6 +29,7 @@ Many Gradle plugins add pre-defined configurations to your project.
 The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like.
 See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example.
 
+.Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
 For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<dependency_resolution.adoc#sec:programmatic_api,resolution result APIs>>.
