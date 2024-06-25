@@ -510,7 +510,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert op.result.resolvedDependenciesCount == 3
             def resolvedComponents = op.result.components
             assert resolvedComponents.size() == 8
-            assert resolvedComponents.'project :'.repoId == null
+            assert resolvedComponents.'root project :'.repoId == null
             assert resolvedComponents.'org.foo:direct1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:direct2:1.0'.repoId == maven2Id
             assert resolvedComponents.'org.foo:transitive1:1.0'.repoId == maven1Id
@@ -580,7 +580,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def repoId = repoId('maven1', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 4
-        resolvedComponents.'project :'.repoId == null
+        resolvedComponents.'root project :'.repoId == null
         resolvedComponents.'project :child'.repoId == null
         resolvedComponents.'org.foo:direct1:1.0'.repoId == repoId
         resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId

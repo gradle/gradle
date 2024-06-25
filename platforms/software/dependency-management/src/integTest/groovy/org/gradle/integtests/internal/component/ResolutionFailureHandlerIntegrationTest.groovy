@@ -260,11 +260,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""Required by:
-         project :
-      > A dependency was declared on configuration 'absent' of 'project :' but no variant with that configuration name exists.""")
+         root project :
+      > A dependency was declared on configuration 'absent' of 'root project :' but no variant with that configuration name exists.""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("To determine which configurations are available in the target project :, run :outgoingVariants.")
+        failure.assertHasResolution("To determine which configurations are available in the target root project :, run :outgoingVariants.")
         assertSuggestsReviewingAlgorithm()
 
         and: "Problems are reported"
@@ -434,6 +434,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // endregion dependencyInsight failures
 
     // region error showcase
+    @SuppressWarnings('UnnecessaryQualifiedReference')
     @spock.lang.Ignore("This test is used to generate a summary of all possible errors, it shouldn't usually be run as part of testing")
     def "generate resolution failure showcase report"() {
         given:
