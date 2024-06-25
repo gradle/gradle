@@ -29,6 +29,7 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeParameter
 
 
 fun KClassifier.toDataTypeRef(): DataTypeRef =
@@ -39,7 +40,8 @@ fun KClassifier.toDataTypeRef(): DataTypeRef =
         Boolean::class -> DataTypeInternal.DefaultBooleanDataType.ref
         Long::class -> DataTypeInternal.DefaultLongDataType.ref
         is KClass<*> -> DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(qualifiedName)))
-        else -> error("can't convert unexpected type to data type reference: ${this::class.simpleName}")
+        is KTypeParameter -> error("can't convert an unexpected type to data type reference: ${this.name}")
+        else -> error("can't convert an unexpected type to data type reference: $this (of ${this::class.simpleName} kind)")
     }
 
 
