@@ -61,7 +61,7 @@ dependencies {
 ----
 =====
 
-Dependencies are declared using a configuration name (e.g., `implementation`, `compile`, `testImplementation`) followed by the dependency notation, which includes the group ID, artifact ID, and version.
+Dependencies are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID, artifact ID, and version.
 In the example:
 
 * `implementation` is the configuration.

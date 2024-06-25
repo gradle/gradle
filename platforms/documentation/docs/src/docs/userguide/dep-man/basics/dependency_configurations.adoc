@@ -15,74 +15,173 @@
 [[dependency-configurations]]
 = 2. Dependency Configurations
 
-[[sec:what-are-dependency-configurations]]
-== Understanding dependency configurations
 Every dependency declared for a Gradle project applies to a specific scope.
 For example some dependencies should be used for compiling source code whereas others only need to be available at runtime.
+
+Dependency configurations are a way to define different sets of dependencies for different purposes within a project.
+They determine how and when dependencies are used in various stages of the build process.
+
+Configurations are a fundamental part of dependency resolution in Gradle.
+
+[[sec:what-are-dependency-configurations]]
+== Understanding dependency configurations
+
 Gradle represents the scope of a dependency with the help of a link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration].
 Every configuration can be identified by a unique name.
 
 Many Gradle plugins add pre-defined configurations to your project.
-The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like.
-See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example.
 
 image::dependency-management-configurations.png[]
+
+The <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin>>, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests, and more.
+Here is a snapshot of those configurations:
+
+1. `implementation`: Used for dependencies required to compile the main source set. These dependencies are not exposed to consumers of the module.
++
+[source,kotlin]
+----
+dependencies {
+    implementation("com.google.guava:guava:30.1.1-jre")
+}
+----
+2. `api`: Used in libraries to expose dependencies to consumers. Dependencies declared here are available to consumers that depend on this library.
++
+[source,kotlin]
+----
+dependencies {
+    api("org.apache.commons:commons-lang3:3.12.0")
+}
+----
+3. `apiElements`: Used to expose the API of the project to consumers. Includes dependencies needed to compile against the API, not for internal implementation.
++
+[source,kotlin]
+----
+configurations {
+    apiElements {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    apiElements(tasks.jar)
+}
+----
+4. `runtimeClasspath`: Used to resolves dependencies required at runtime. Includes compile-time and runtime dependencies.
++
+[source,kotlin]
+----
+dependencies {
+    runtimeOnly("org.springframework:spring-core:5.3.8")
+}
+
+tasks.run {
+    classpath = configurations.runtimeClasspath
+}
+----
+
+Note that the <<swift_application_plugin.adoc#swift_application_plugin, Swift Application plugin>>, adds many different configurations such as `mainDebugImplementation` and `nativeRuntimeDebug`.
 
 [[sec:resolvable-consumable-configs]]
 == Understanding resolvable and consumable configurations
 
-Configurations are a fundamental part of dependency resolution in Gradle.
-In the context of dependency resolution, it is useful to distinguish between a _consumer_ and a _producer_. Along these lines, configurations have at least 3 different roles:
+In the context of dependency resolution, it is useful to distinguish between a _consumer_ and a _producer_.
+Along these lines, configurations have at least 3 different roles:
 
 1. to declare dependencies
 2. as a _consumer_, to resolve a set of dependencies to files
 3. as a _producer_, to expose artifacts and their dependencies for consumption by other projects
-(such _consumable_ configurations usually represent the <<variant_model.adoc#understanding-variant-selection,variants>> the producer offers to its consumers)
+
+Gradle configurations can be categorized as resolvable, consumable, or both, depending on their purpose in the build process:
+
+- *Resolvable Configurations*: Provide dependencies needed for task execution (e.g., `compileClasspath`).
+- *Consumable Configurations*: Expose artifacts for other projects to consume (e.g., `runtimeElements`).
+- *Dual-Purpose Configurations*: Can serve as both sources and sinks for dependencies.
+
+Let's once again look at the available configurations for a Java project which applies the Java plugin:
+
+image::java-plugin-configurations.png[]
+
+The dependency declaration configurations (`compileOnlyApi`, `api`, `compileOnly`, `implementation`, `runtimeOnly`) focus on declaring and managing dependencies based on their usage (compile time, runtime, API exposure):
+
+[source,kotlin]
+----
+dependencies {
+    api("org.apache.commons:commons-lang3:3.12.0")
+    implementation("com.google.guava:guava:30.1.1-jre")
+    compileOnly("org.projectlombok:lombok:1.18.20")
+    runtimeOnly("mysql:mysql-connector-java:8.0.23")
+}
+----
+
+The consuming configurations (`apiElements`, `runtimeElements`) focus on exposing specific parts of the project (API, runtime) to consumers:
+
+[source,kotlin]
+----
+configurations {
+    runtimeElements {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+----
+
+The resolving configurations (`runtimeClasspath`, `compileClasspath`) focus on resolving dependencies needed at different stages of the build process (compilation, runtime):
+
+[source,kotlin]
+----
+tasks.compileJava {
+    classpath = configurations.compileClasspath
+}
+----
 
 For example, to express that an application `app` _depends on_ library `lib`, _at least_ one configuration is required:
 
-.Configurations are used to declare dependencies
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=declare-configuration]"]
 ====
 
 Configurations can inherit dependencies from other configurations by extending from them.
-Now, notice that the code above doesn't tell us anything about the intended _consumer_ of this configuration.
-In particular, it doesn't tell us how the configuration is meant to be _used_.
-Let's say that `lib` is a Java library: it might expose different things, such as its API, implementation, or test fixtures.
-It might be necessary to change how we resolve the dependencies of `app` depending upon the task we're performing (compiling against the API of `lib`, executing the application, compiling tests, etc.).
-To address this problem, you'll often find companion configurations, which are meant to unambiguously declare the usage:
 
-.Configurations representing concrete dependency graphs
+Notice that the code above doesn't specify the intended _consumer_ of this configuration or how it is meant to be _used_.
+
+Let's say `lib` is a Java library that might expose different components, such as its API, implementation, or test fixtures.
+Depending on the task we're performing (e.g., compiling against the API of `lib`, executing the application, compiling tests), we may need to change how we resolve the dependencies of `app`.
+
+To address this problem, you'll often find companion configurations that are designed to unambiguously declare the usage:
+
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=concrete-classpath]"]
 ====
 
-At this point, we have 3 different configurations with different roles:
+At this point, we have three different configurations with distinct roles:
 
-- `someConfiguration` declares the dependencies of my application. It is simply a collection of dependencies.
-- `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
+- `someConfiguration` declares the dependencies of the application. It is simply a collection of dependencies.
+- `compileClasspath` and `runtimeClasspath` are configurations meant to be _resolved_: when resolved, they should contain the compile classpath and runtime classpath of the application, respectively.
 
 This distinction is represented by the `canBeResolved` flag in the `Configuration` type.
-A configuration that _can be resolved_ is a configuration for which we can compute a dependency graph, because it contains all the necessary information for resolution to happen.
-That is to say we're going to compute a dependency graph, resolve the components in the graph, and eventually get artifacts.
-A configuration which has `canBeResolved` set to `false` is not meant to be resolved.
-Such a configuration is there _only to declare dependencies_.
-The reason is that depending on the usage (compile classpath, runtime classpath), it _can_ resolve to different graphs.
-It is an error to try to resolve a configuration which has `canBeResolved` set to `false`.
-To some extent, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
+
+- **Resolvable Configuration (`canBeResolved=true`)**: A configuration that can be resolved allows Gradle to compute a dependency graph because it contains all necessary information for resolution.
++
+When resolved, it produces a dependency graph, resolves the components, and eventually retrieves artifacts.
+- **Non-Resolvable Configuration (`canBeResolved=false`)**: A configuration that is not meant to be resolved.
++
+It is only used to _declare dependencies_. Depending on the usage (compile classpath, runtime classpath), it can resolve to different graphs.
++
+Attempting to resolve a configuration with `canBeResolved` set to `false` results in an error.
+
+To some extent, this is similar to an abstract class (`canBeResolved=false`) that is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved=true`).
 A resolvable configuration will extend at least one non-resolvable configuration (and may extend more than one).
 
-On the other end, at the library project side (the _producer_), we also use configurations to represent what can be consumed.
-For example, the library may expose an API or a runtime, and we would attach artifacts to either one, the other, or both.
-Typically, to compile against `lib`, we need the API of `lib`, but we don't need its runtime dependencies.
-So the `lib` project will expose an `apiElements` configuration, which is aimed at consumers looking for its API.
-Such a configuration is consumable, but is not meant to be resolved.
+On the producer side (library project), configurations represent what can be consumed.
+For example, a library may expose an API or a runtime, attaching artifacts to either one or both.
+Typically, to compile against `lib`, we need its API but not its runtime dependencies. Thus, the `lib` project will expose an `apiElements` configuration aimed at consumers seeking its API.
+Such a configuration is consumable but not meant to be resolved.
+
 This is expressed via the _canBeConsumed_ flag of a `Configuration`:
 
-.Setting up configurations
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=setup-configurations]"]
@@ -90,7 +189,6 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 In short, a configuration's role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
 
-.Configuration roles
 |===
 |Configuration role|can be resolved|can be consumed
 |Dependency Scope|false|false
@@ -99,7 +197,7 @@ In short, a configuration's role is determined by the `canBeResolved` and `canBe
 |Legacy, don't use|true|true
 |===
 
-For backwards compatibility, both flags have a default value of `true`, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
+Both flags have a default value of `true`.
 
 == Viewing configurations
 

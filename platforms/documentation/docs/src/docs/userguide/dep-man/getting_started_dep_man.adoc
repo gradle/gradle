@@ -22,7 +22,8 @@ Gradle's dependency management provides APIs to declare, resolve, use, and bundl
 Understanding dependency management in Gradle is important for structuring projects into components.
 It is also important when you want to reuse existing libraries, or you need to upgrade those libraries while dealing with their versions.
 
-Let's look at a Java based example:
+Let's look at a Java project where the code relies on link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] which is a suite of Google Core libraries for Java.
+The build file of the project includes the following:
 
 ====
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro]"]
@@ -36,7 +37,7 @@ Within the `dependencies` block, there are three things to notice when a depende
 3. The version: `32.1.2-jre` which is only required for published dependencies
 
 Dependencies can be local or remote.
-To let Gradle know where to find the dependencies declared, you can use the <<settings_file_basics.adoc#sec:settings_file_script,Settings File>> or the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
+To let Gradle know where to find the dependencies declared, you can use the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
 
 Let's expand our example:
 
@@ -45,7 +46,7 @@ include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotl
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-repo]"]
 ====
 
-In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
+In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
 
 == 1. Declaring Dependencies
 
@@ -61,11 +62,6 @@ Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configura
 You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
 
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
-Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
-Subsequent builds use this cache to avoid unnecessary network calls and speed up the build process.
-
-Repositories offer dependencies in multiple formats.
-For information about the formats supported by Gradle, see <<declaring_dependencies.adoc#sec:dependency-types,dependency types>>.
 
 == 4. Centralizing Dependencies
 
