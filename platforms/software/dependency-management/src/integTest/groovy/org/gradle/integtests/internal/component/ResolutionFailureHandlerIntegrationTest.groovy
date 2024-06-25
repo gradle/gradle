@@ -17,7 +17,6 @@
 package org.gradle.integtests.internal.component
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
@@ -113,7 +112,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for externalDep"() {
         ambiguousGraphVariantForExternalDep.prepare()
 
@@ -121,7 +119,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousGraphVariantForExternalDep)
 
         and: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'")
+        // This doesn't appear with CC: failure.assertHasDescription("Execution failed for task ':forceResolution'")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
@@ -169,7 +167,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "demonstrate no matching graph variants selection failure for externalDep"() {
         noMatchingGraphVariantsForExternalDep.prepare()
 
@@ -177,7 +174,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(noMatchingGraphVariantsForExternalDep)
 
         and: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
+        // This doesn't appear with CC: failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
