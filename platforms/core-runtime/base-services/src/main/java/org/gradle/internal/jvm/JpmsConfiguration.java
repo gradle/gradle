@@ -44,8 +44,7 @@ public class JpmsConfiguration {
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
     static {
-        List<String> gradleDaemonJvmArgs = new ArrayList<String>();
-        gradleDaemonJvmArgs.addAll(GROOVY_JPMS_ARGS);
+        List<String> gradleDaemonJvmArgs = new ArrayList<String>(GROOVY_JPMS_ARGS);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
             "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
