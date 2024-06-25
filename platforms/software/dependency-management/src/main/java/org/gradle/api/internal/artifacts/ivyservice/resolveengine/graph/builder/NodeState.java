@@ -38,12 +38,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
@@ -1155,7 +1156,7 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
+    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super CapabilityInternal> action) {
         ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
@@ -1164,15 +1165,20 @@ public class NodeState implements DependencyGraphNode {
         // capability in order to detect the conflict between the two.
         // Note that the fact that the implicit capability is not included in other cases
         // is not a bug but a performance optimization.
-        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || capabilitiesConflictHandler.hasSeenCapability(component.getImplicitCapability()))) {
+        boolean defaultCapabilityHasConflict = capabilitiesConflictHandler.hasSeenNonDefaultCapabilityExplicitly(component.getImplicitCapability());
+        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || defaultCapabilityHasConflict)) {
             action.execute(component.getImplicitCapability());
         } else {
             // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
             // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
             // so just adding this check has a significant impact because most components do not declare any capability
             if (!capabilities.isEmpty()) {
-                for (Capability capability : capabilities) {
-                    action.execute(capability);
+                for (CapabilityInternal capability : capabilities) {
+                    // Only process non-default capabilities
+                    // Or, for the default capability if we have seen that capability on a node for which it is not the default
+                    if (!capability.equals(component.getImplicitCapability()) || defaultCapabilityHasConflict) {
+                        action.execute(capability);
+                    }
                 }
             }
         }

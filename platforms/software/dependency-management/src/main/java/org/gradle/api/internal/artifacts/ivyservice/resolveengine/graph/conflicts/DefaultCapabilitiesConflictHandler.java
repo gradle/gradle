@@ -42,7 +42,12 @@ import java.util.Set;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
+
+    /**
+     * Tracks capabilities for which nodes exist with that capability as non-default
+     */
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = new HashMap<>();
+
     private final Deque<String> conflicts = new ArrayDeque<>();
     private final Map<String, CapabilityConflict> capabilityIdToConflict = new HashMap<>();
 
@@ -52,11 +57,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     @Override
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
-        CapabilityInternal capability = (CapabilityInternal) candidate.getCapability();
-        String group = capability.getGroup();
-        String name = capability.getName();
+        CapabilityInternal capability = candidate.getCapability();
 
-        final Set<NodeState> nodes = findNodesFor(capability);
+        Set<NodeState> nodes = capabilityWithoutVersionToNodes.computeIfAbsent(capability.getCapabilityId(), k -> new LinkedHashSet<>());
         Collection<NodeState> implicitCapabilityProviders = candidate.getImplicitCapabilityProviders();
         nodes.addAll(implicitCapabilityProviders);
 
@@ -94,6 +97,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                         return true;
                     }
                 };
+
+                String group = capability.getGroup();
+                String name = capability.getName();
                 if (capabilityIdToConflict.put(capability.getCapabilityId(), new CapabilityConflict(group, name, candidatesForConflict)) == null) {
                     // No previous conflict, enqueue the capability for resolution
                     conflicts.add(capability.getCapabilityId());
@@ -102,11 +108,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             }
         }
         return PotentialConflictFactory.noConflict();
-    }
-
-    private Set<NodeState> findNodesFor(CapabilityInternal capability) {
-        String capabilityId = capability.getCapabilityId();
-        return capabilityWithoutVersionToNodes.computeIfAbsent(capabilityId, k -> new LinkedHashSet<>());
     }
 
     @Override
@@ -122,6 +123,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         if (conflict.nodes.isEmpty()) {
             return;
         }
+
+        // TODO: What if, after we filter, we only have nodes with the default capability?
+        // We should treat this conflict as a version conflict.
 
         Details details = new Details(conflict);
         for (Resolver resolver : resolvers) {
@@ -143,8 +147,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     @Override
-    public boolean hasSeenCapability(Capability capability) {
-        return capabilityWithoutVersionToNodes.containsKey(((CapabilityInternal) capability).getCapabilityId());
+    public boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability) {
+        return capabilityWithoutVersionToNodes.containsKey(capability.getCapabilityId());
     }
 
     @Override
@@ -161,16 +165,16 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             .anyMatch(node -> node.getComponent().getId().equals(id));
     }
 
-    public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
+    public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {
         return new Candidate(node, capability, implicitCapabilityProviders);
     }
 
     private static class Candidate implements CapabilitiesConflictHandler.Candidate {
         private final NodeState node;
-        private final Capability capability;
+        private final CapabilityInternal capability;
         private final Collection<NodeState> implicitCapabilityProviders;
 
-        public Candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
+        public Candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {
             this.node = node;
             this.capability = capability;
             this.implicitCapabilityProviders = implicitCapabilityProviders;
@@ -182,7 +186,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         @Override
-        public Capability getCapability() {
+        public CapabilityInternal getCapability() {
             return capability;
         }
 
