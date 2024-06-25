@@ -46,26 +46,15 @@ class AddSoftwareTypesAsExtensionsPluginTargetTest extends Specification {
         then:
         1 * softwareTypeRegistry.isRegistered(_) >> true
         1 * inspectionScheme.getPropertyWalker() >> propertyWalker
-        1 * propertyWalker.visitProperties(plugin, _, _) >> { args -> args[2].visitSoftwareTypeProperty("foo", propertyValue, softwareType, isCustomLifecycle) }
+        1 * propertyWalker.visitProperties(plugin, _, _) >> { args -> args[2].visitSoftwareTypeProperty("foo", propertyValue, softwareType) }
         1 * target.getExtensions() >> extensions
         1 * softwareType.modelPublicType() >> Foo.class
-
-        if (isCustomLifecycle) {
-            0 * propertyValue.call()
-            0 * extensions.add(_, _, _)
-        } else {
-            1 * softwareType.name() >> "foo"
-            1 * propertyValue.call() >> foo
-            1 * extensions.add(Foo.class, "foo", foo)
-        }
+        1 * softwareType.name() >> "foo"
+        1 * propertyValue.call() >> foo
+        1 * extensions.add(Foo.class, "foo", foo)
 
         and:
         1 * delegate.applyImperative(null, plugin)
-
-        where:
-        isCustomLifecycle | _
-        true              | _
-        false             | _
     }
 
     def "does not add software types for plugins that are not registered"() {

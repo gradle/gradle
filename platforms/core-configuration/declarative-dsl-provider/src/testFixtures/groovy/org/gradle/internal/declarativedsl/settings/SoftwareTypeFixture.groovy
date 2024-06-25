@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import org.gradle.api.internal.plugins.software.CustomSoftwareTypeLifecycle
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -130,14 +129,6 @@ trait SoftwareTypeFixture {
         return withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesPrivateSoftwareType,
-            settingsPluginThatRegistersSoftwareType
-        )
-    }
-
-    PluginBuilder withSoftwareTypePluginThatDefinesCustomLifecycle() {
-        return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            getProjectPluginThatProvidesSoftwareTypeWithCustomLifecycle(),
             settingsPluginThatRegistersSoftwareType
         )
     }
@@ -343,62 +334,6 @@ trait SoftwareTypeFixture {
             }
         """
     }
-
-    static String getProjectPluginThatProvidesSoftwareTypeWithCustomLifecycle(
-        String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String publicTypeClassName = null,
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
-        String softwareType = "testSoftwareType",
-        String conventions = testSoftwareTypeExtensionConventions
-    ) {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import ${CustomSoftwareTypeLifecycle.class.name};
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                private final Project project;
-                private ${implementationTypeClassName} softwareTypeInstance = null;
-
-                @Inject
-                public ${softwareTypePluginClassName}(Project project) {
-                    this.project = project;
-                }
-
-                @SoftwareType(${getSoftwareTypeArguments(softwareType, publicTypeClassName)})
-                @${CustomSoftwareTypeLifecycle.class.simpleName}
-                public ${implementationTypeClassName} getTestSoftwareTypeExtension() {
-                    if (softwareTypeInstance == null) {
-                        softwareTypeInstance = project.getObjects().newInstance(${implementationTypeClassName}.class);
-                    }
-                    return softwareTypeInstance;
-                }
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                    getTestSoftwareTypeExtension();
-                    ${implementationTypeClassName} extension = softwareTypeInstance;
-                    ${conventions}
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                }
-            }
-        """
-    }
-
 
     private static getSoftwareTypeArguments(String name, String modelPublicType) {
         return "name=\"${name}\"" +

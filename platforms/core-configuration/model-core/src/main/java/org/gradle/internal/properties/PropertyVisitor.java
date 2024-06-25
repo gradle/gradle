@@ -43,5 +43,5 @@ public interface PropertyVisitor {
      */
     default void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {}
 
-    default void visitSoftwareTypeProperty(String propertyName, PropertyValue value, SoftwareType softwareType, boolean hasCustomLifecycle) {}
+    default void visitSoftwareTypeProperty(String propertyName, PropertyValue value, SoftwareType softwareType) {}
 }
