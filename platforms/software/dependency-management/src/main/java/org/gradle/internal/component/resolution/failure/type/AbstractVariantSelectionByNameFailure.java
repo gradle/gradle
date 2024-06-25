@@ -17,17 +17,19 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 /**
  * An abstract {@link VariantSelectionByNameFailure} that represents the situation when a variant is requested
  * via a configuration name and this request fails.
  */
-public abstract class AbstractVariantSelectionByNameFailure implements VariantSelectionByNameFailure {
+public abstract class AbstractVariantSelectionByNameFailure extends AbstractResolutionFailure implements VariantSelectionByNameFailure {
     private final ComponentIdentifier targetComponent;
     private final String requestedConfigurationName;
 
-    public AbstractVariantSelectionByNameFailure(ComponentIdentifier targetComponent, String requestedConfigurationName) {
+    public AbstractVariantSelectionByNameFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, String requestedConfigurationName) {
+        super(problemId);
         this.targetComponent = targetComponent;
         this.requestedConfigurationName = requestedConfigurationName;
     }

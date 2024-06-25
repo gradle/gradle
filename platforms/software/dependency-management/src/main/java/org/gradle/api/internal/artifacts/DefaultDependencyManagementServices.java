@@ -111,6 +111,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
@@ -533,10 +534,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+        ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
             InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
             ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
-            return new ResolutionFailureHandler(failureDescriberRegistry);
+            return new ResolutionFailureHandler(failureDescriberRegistry, problemsService);
         }
 
         @Provides

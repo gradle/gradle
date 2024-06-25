@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public final class AmbiguousArtifactTransformsFailure extends AbstractArtifactSe
     private final ImmutableList<TransformedVariant> transformedVariants;
 
     public AmbiguousArtifactTransformsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
-        super(targetComponent, targetVariant, requestedAttributes);
+        super(ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM, targetComponent, targetVariant, requestedAttributes);
         this.transformedVariants = ImmutableList.copyOf(transformedVariants);
     }
 

@@ -24,6 +24,10 @@ import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -48,12 +52,16 @@ import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatch
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
  * Provides a central location for handling failures encountered during
@@ -78,9 +86,11 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
+    private final InternalProblems problemsService;
 
-    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry) {
+    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry, InternalProblems problemsService) {
         this.defaultFailureDescribers = failureDescriberRegistry;
+        this.problemsService = problemsService;
     }
 
     // region Stage 1 - ComponentSelectionFailures
@@ -101,7 +111,6 @@ public class ResolutionFailureHandler {
         ConfigurationNotCompatibleFailure failure = new ConfigurationNotCompatibleFailure(targetComponent.getId(), targetConfiguration.getName(), requestedAttributes, assessedCandidates);
         return describeFailure(schema, failure);
     }
-
     public AbstractResolutionFailureException configurationDoesNotExistFailure(ComponentGraphResolveState targetComponent, String targetConfigurationName) {
         ConfigurationDoesNotExistFailure failure = new ConfigurationDoesNotExistFailure(targetComponent.getId(), targetConfigurationName);
         return describeFailure(failure);
@@ -222,6 +231,20 @@ public class ResolutionFailureHandler {
             .filter(describer -> describer.canDescribeFailure(failure))
             .findFirst()
             .map(describer -> describer.describeFailure(failure, schema))
+            .map(this::reportExceptionAsProblem)
             .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+    }
+
+    private AbstractResolutionFailureException reportExceptionAsProblem(AbstractResolutionFailureException exception) {
+        Problem problem = problemsService.getInternalReporter().create(builder -> {
+            ResolutionFailureProblemId problemId = exception.getFailure().getProblemId();
+            builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
+                .contextualLabel(exception.getMessage())
+                .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
+                .severity(ERROR);
+        });
+        problemsService.getInternalReporter().report(problem);
+
+        return exception;
     }
 }

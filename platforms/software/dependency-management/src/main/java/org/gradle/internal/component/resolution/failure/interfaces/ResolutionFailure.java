@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.interfaces;
 
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+
 /**
  * Represents any failure that can occur during variant selection and
  * contains contextual information specific to that type of failure.
@@ -38,4 +40,12 @@ public interface ResolutionFailure {
      * {@link org.gradle.internal.component.resolution.failure.interfaces}
      */
     String describeRequestTarget();
+
+    /**
+     * Returns the problem id associated with this failure, for use in identifying the failure and
+     * reporting it to the Problems API.
+     *
+     * @return the problem id
+     */
+    ResolutionFailureProblemId getProblemId();
 }

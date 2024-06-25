@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure.type;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
@@ -34,7 +35,7 @@ public final class NoVariantsWithMatchingCapabilitiesFailure extends AbstractVar
     private final ImmutableList<AssessedCandidate> candidates;
 
     public NoVariantsWithMatchingCapabilitiesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableCapabilities requestedCapabilities, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(targetComponent, requestedAttributes, requestedCapabilities);
+        super(ResolutionFailureProblemId.NO_VARIANTS_WITH_MATCHING_CAPABILITIES, targetComponent, requestedAttributes, requestedCapabilities);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 

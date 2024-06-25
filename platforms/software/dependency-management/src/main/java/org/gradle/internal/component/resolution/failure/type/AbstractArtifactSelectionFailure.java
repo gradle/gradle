@@ -19,18 +19,20 @@ package org.gradle.internal.component.resolution.failure.type;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 
 /**
  * An abstract {@link ArtifactSelectionFailure} that represents the situation when an artifact is requested
  * for a variant and this request fails.
  */
-public abstract class AbstractArtifactSelectionFailure implements ArtifactSelectionFailure {
+public abstract class AbstractArtifactSelectionFailure extends AbstractResolutionFailure implements ArtifactSelectionFailure {
     private final ComponentIdentifier targetComponent;
     private final String targetVariant;
     private final ImmutableAttributes requestedAttributes;
 
-    public AbstractArtifactSelectionFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes) {
+    public AbstractArtifactSelectionFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes) {
+        super(problemId);
         this.targetComponent = targetComponent;
         this.targetVariant = targetVariant;
         this.requestedAttributes = requestedAttributes.asImmutable();

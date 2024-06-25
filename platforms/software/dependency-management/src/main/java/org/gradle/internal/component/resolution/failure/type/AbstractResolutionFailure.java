@@ -16,18 +16,22 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
-import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
- * A {@link VariantSelectionByNameFailure} that represents the situation when the explicitly selected configuration
- * is not consumable.
- *
- * This is exclusive to project dependencies when a configuration is requested by name.
+ * An abstract {@link ResolutionFailure} that represents a resolution failure and can provide
+ * a {@link ResolutionFailureProblemId} identifying the problem to the Problems API.
  */
-public final class ConfigurationNotConsumableFailure extends AbstractVariantSelectionByNameFailure {
-    public ConfigurationNotConsumableFailure(ComponentIdentifier targetComponent, String requestedConfigurationName) {
-        super(ResolutionFailureProblemId.CONFIGURATION_NOT_CONSUMABLE, targetComponent, requestedConfigurationName);
+public abstract class AbstractResolutionFailure implements ResolutionFailure {
+    private final ResolutionFailureProblemId problemId;
+
+    public AbstractResolutionFailure(ResolutionFailureProblemId problemId) {
+        this.problemId = problemId;
+    }
+
+    @Override
+    public ResolutionFailureProblemId getProblemId() {
+        return problemId;
     }
 }

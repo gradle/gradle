@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure.type;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public final class AmbiguousArtifactsFailure extends AbstractArtifactSelectionFa
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public AmbiguousArtifactsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(targetComponent, targetVariant, requestedAttributes);
+        super(ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS, targetComponent, targetVariant, requestedAttributes);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 
