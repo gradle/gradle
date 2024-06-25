@@ -63,10 +63,14 @@ class ReceivedProblem implements Problem {
         locations.each { location ->
             if (location['pluginId'] != null) {
                 result += new ReceivedPluginIdLocation(location as Map<String, Object>)
-            } else if (location['line'] != null) {
-                result += new ReceivedLineInFileLocation(location as Map<String, Object>)
-            } else if (location['offset'] != null) {
-                result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
+            } else if (location['path'] != null) {
+                if (location['line'] != null) {
+                    result += new ReceivedLineInFileLocation(location as Map<String, Object>)
+                } else if (location['offset'] != null) {
+                    result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
+                } else {
+                    result += new ReceivedFileLocation(location as Map<String, Object>)
+                }
             } else if (location['buildTreePath'] != null) {
                 result += new ReceivedTaskPathLocation(location as Map<String, Object>)
             } else {
