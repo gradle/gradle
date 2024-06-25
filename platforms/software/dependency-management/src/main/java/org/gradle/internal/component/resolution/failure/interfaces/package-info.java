@@ -20,7 +20,7 @@
  * delineate when during dependency resolution a failure occurred.
  * <p>
  * There are currently 4 different categories of resolution failures processed by the
- * {@link org.gradle.internal.component.ResolutionFailureHandler ResolutionFailureHandler}.  There may be
+ * {@link org.gradle.internal.component.resolution.failure.ResolutionFailureHandler ResolutionFailureHandler}.  There may be
  * more in the future.
  * <p>
  * These categories are represented by the immediate children of

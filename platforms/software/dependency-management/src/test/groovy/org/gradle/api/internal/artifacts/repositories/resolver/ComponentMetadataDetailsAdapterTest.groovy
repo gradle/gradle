@@ -27,7 +27,7 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata

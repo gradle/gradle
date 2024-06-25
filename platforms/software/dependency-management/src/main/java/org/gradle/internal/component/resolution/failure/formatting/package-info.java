@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 
 /**
- * This package exists as a non-intermediate package only to contain the
- * deprecated {@code AmbiguousVariantSelectionException} type.
- * <p>
- * This file should be deleted when that type is removed.
+ * Contains formatting utilities for rendering resolution failure information.
  */
 @org.gradle.api.NonNullApi
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure.formatting;

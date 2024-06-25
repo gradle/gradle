@@ -51,7 +51,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities

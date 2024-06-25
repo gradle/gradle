@@ -29,7 +29,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
 
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
