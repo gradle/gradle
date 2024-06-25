@@ -470,9 +470,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 edge("org.slf4j:slf4j-log4j12:1.5.6", "ch.qos.logback:logback-classic:1.3.11") {
                     byConflictResolution()
                 }
-                module("org.slf4j:log4j-over-slf4j:1.4.2") {
-                    byConflictResolution()
-                }
+                module("org.slf4j:log4j-over-slf4j:1.4.2")
             }
         }
     }
@@ -498,8 +496,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 implementation("org.bouncycastle:bcpkix-jdk18on:1.72")
             }
         """
-
-        // TODO: Why do we detect a conflict between bcprov-jdk18on 1.71 and 1.72?
 
         capability("org.gradlex", "bouncycastle-bcprov") {
             forModule("org.bouncycastle:bcprov-jdk12")

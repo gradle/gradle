@@ -24,7 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -48,6 +47,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -224,11 +224,9 @@ public class DependencyGraphBuilder {
         AtomicBoolean foundConflict = new AtomicBoolean(false);
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getConflictTracker().getCapabilitiesConflictHandler();
 
-        // TODO: We sometimes record a conflict for nodes that should only version conflict
-
-        node.forEachCapability(capabilitiesConflictHandler, new Action<Capability>() {
+        node.forEachCapability(capabilitiesConflictHandler, new Action<CapabilityInternal>() {
             @Override
-            public void execute(Capability capability) {
+            public void execute(CapabilityInternal capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
                 // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
                 // then we try to find a module which provides the same capability. It that module has been found, then we register it.
