@@ -44,9 +44,9 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -94,7 +94,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class LifecycleAwareProject extends GroovyObjectSupport implements ProjectInternal {
+public class LifecycleAwareProject extends GroovyObjectSupport implements ProjectInternal, DynamicObjectAware {
 
     private final ProjectInternal delegate;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
@@ -1066,11 +1066,6 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     }
 
     @Override
-    public DependencyMetaDataProvider getDependencyMetaDataProvider() {
-        return delegate.getDependencyMetaDataProvider();
-    }
-
-    @Override
     public RoleBasedConfigurationContainerInternal getConfigurations() {
         executeAllprojectsAction();
         return delegate.getConfigurations();
@@ -1165,5 +1160,10 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     @Override
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return ((DefaultProject)delegate).getAsDynamicObject();
     }
 }

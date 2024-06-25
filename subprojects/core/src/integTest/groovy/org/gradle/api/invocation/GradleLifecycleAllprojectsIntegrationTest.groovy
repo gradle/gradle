@@ -90,9 +90,7 @@ lifecycle.beforeProject for a
             rootProject.name = 'root'
 
             gradle.lifecycle.allprojects { project ->
-                project.ext {
-                    foo = "bar"
-                }
+                project.ext.foo = "bar"
             }
             include(":a")
             include(":b")
@@ -150,9 +148,7 @@ foo = bar for b
             rootProject.name = 'root'
             gradle.lifecycle.allprojects { project ->
                 println "lifecycle.allprojects for \${project.name}"
-                project.ext {
-                    foo = "bar"
-                }
+                project.ext.foo = "bar"
             }
             include(":a")
             include(":b")
@@ -168,12 +164,11 @@ foo = bar for b
             println 'root'
             $invocation { project ->
                 if (project.getName() == 'a') {
-                    println "Mutable state access for 'a': foo = \${project.foo}"
+                    ${mutableStateAccessFor("a")}
                 } else {
                     println "Immutable state access for \${project.getName()}"
                 }
             }
-            println "$api is executed"
         """
 
         when:
@@ -186,18 +181,18 @@ foo = bar for b
         api              | invocation                 | expectedOutput
         "allprojects"    | "allprojects"              | mutableStateAccessProjectAllprojectsExpectedOutput
         "subprojects"    | "subprojects"              | mutableStateAccessProjectSubprojectsExpectedOutput
-        "getAllprojects" | "getAllprojects().forEach" | mutableStateAccessProjectGetAllprojectsExpectedOutput
-        "getSubprojects" | "getSubprojects().forEach" | mutableStateAccessProjectGetSubprojectsExpectedOutput
+        "getAllprojects" | "getAllprojects().forEach" | mutableStateAccessProjectAllprojectsExpectedOutput
+        "getSubprojects" | "getSubprojects().forEach" | mutableStateAccessProjectSubprojectsExpectedOutput
     }
 
     private static def mutableStateAccessProjectAllprojectsExpectedOutput = """
 lifecycle.allprojects for root
 root
 Immutable state access for root
+Before mutable state access for a
 lifecycle.allprojects for a
-Mutable state access for 'a': foo = bar
+After mutable state access for a(foo = bar)
 Immutable state access for b
-allprojects is executed
 a
 lifecycle.allprojects for b
 b
@@ -206,35 +201,10 @@ foo = bar for b
     private static def mutableStateAccessProjectSubprojectsExpectedOutput = """
 lifecycle.allprojects for root
 root
+Before mutable state access for a
 lifecycle.allprojects for a
-Mutable state access for 'a': foo = bar
+After mutable state access for a(foo = bar)
 Immutable state access for b
-subprojects is executed
-a
-lifecycle.allprojects for b
-b
-foo = bar for b
-"""
-    private static def mutableStateAccessProjectGetAllprojectsExpectedOutput = """
-lifecycle.allprojects for root
-root
-Immutable state access for root
-lifecycle.allprojects for a
-Mutable state access for 'a': foo = bar
-Immutable state access for b
-getAllprojects is executed
-a
-lifecycle.allprojects for b
-b
-foo = bar for b
-"""
-    private static def mutableStateAccessProjectGetSubprojectsExpectedOutput = """
-lifecycle.allprojects for root
-root
-lifecycle.allprojects for a
-Mutable state access for 'a': foo = bar
-Immutable state access for b
-getSubprojects is executed
 a
 lifecycle.allprojects for b
 b
@@ -247,13 +217,11 @@ foo = bar for b
             rootProject.name = 'root'
             gradle.lifecycle.allprojects { project ->
                 println "lifecycle.allprojects for \${project.getName()}"
-                project.ext {
-                    foo = "bar"
-                }
+                project.ext.foo = "bar"
             }
             gradle.allprojects { project ->
                 if (project.getName() == 'a') {
-                    println "Mutable state access for 'a': foo = \${project.foo}"
+                    ${mutableStateAccessFor("a")}
                 } else {
                     println "Immutable state access for \${project.getName()}"
                 }
@@ -273,11 +241,20 @@ foo = bar for b
         then:
         outputContains """
 Immutable state access for root
+Before mutable state access for a
 lifecycle.allprojects for a
-Mutable state access for 'a': foo = bar
+After mutable state access for a(foo = bar)
 lifecycle.allprojects for root
 root
 a
+"""
+    }
+
+    private static String mutableStateAccessFor(String project) {
+        return """
+println "Before mutable state access for $project"
+def value = project.foo
+println "After mutable state access for $project(foo = \$value)"
 """
     }
 }

@@ -225,7 +225,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
-        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, gradle, isolatedProjectEvaluationListenerProvider)
+        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, gradle, isolatedProjectEvaluationListenerProvider, crossProjectConfigurator)
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
         pluginManager.getPluginContainer() >> pluginContainer
