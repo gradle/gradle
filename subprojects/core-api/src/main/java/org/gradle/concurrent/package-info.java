@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+/**
+ * Classes related to Gradle parallelism and concurrency.
+ */
+@NonNullApi
+package org.gradle.concurrent;
 
 import org.gradle.api.NonNullApi;
-
-@NonNullApi
-public class DefaultWorkerLimits implements WorkerLimits {
-
-    private final int maxWorkerCount;
-
-    public DefaultWorkerLimits(int maxWorkerCount) {
-        this.maxWorkerCount = maxWorkerCount;
-    }
-
-    @Override
-    public int getMaxWorkerCount() {
-        return maxWorkerCount;
-    }
-}

@@ -22,7 +22,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.DefaultLease;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
