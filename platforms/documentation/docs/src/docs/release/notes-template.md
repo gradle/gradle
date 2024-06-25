@@ -71,6 +71,15 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+## Preview features
+Preview features are available and supported but do not yet offer complete functionality. Their behavior may change while they are in preview.
+
+Preview features are provided primarily for evaluation and testing purposes and should not be used in production systems or with production data.
+
+<!--
+### Example preview
+-->
+
 ## Fixed issues
 
 <!--
