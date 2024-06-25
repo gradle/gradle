@@ -24,13 +24,15 @@ description = """Problem SPI implementations.
 """.trimMargin()
 
 dependencies {
-    api(projects.core)
     api(projects.problemsApi)
     api(projects.buildOperations)
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
+    api(libs.jsr305)
+    implementation(projects.core)
+    implementation(projects.baseServices)
 
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
+    integTestImplementation(projects.internalTesting)
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
