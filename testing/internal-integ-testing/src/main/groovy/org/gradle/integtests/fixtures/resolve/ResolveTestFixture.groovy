@@ -489,11 +489,7 @@ $END_MARKER
         }
 
         private NodeBuilder projectNode(String projectIdentityPath, String moduleVersion) {
-            if (Path.path(projectIdentityPath) == Path.ROOT) {
-                return node("project:$projectIdentityPath", "root project $projectIdentityPath", moduleVersion)
-            } else {
-                return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
-            }
+            return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
         }
 
         private NodeBuilder moduleNode(String moduleVersionId) {
