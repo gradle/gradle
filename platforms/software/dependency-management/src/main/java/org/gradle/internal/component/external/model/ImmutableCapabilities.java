@@ -77,6 +77,21 @@ public class ImmutableCapabilities {
         return capabilities;
     }
 
+    /**
+     * Returns this instance if it contains any capabilities, or returns a new instance containing the default capability
+     * if this is empty.
+     *
+     * @param defaultCapability the default capability to include in the result if the given capabilities set is empty
+     * @return {@code this} if it contains any capabilities; otherwise a new instance containing the given capability
+     */
+    public ImmutableCapabilities orElse(ImmutableCapability defaultCapability) {
+        if (capabilities.isEmpty()) {
+            return ImmutableCapabilities.of(defaultCapability);
+        } else {
+            return this;
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

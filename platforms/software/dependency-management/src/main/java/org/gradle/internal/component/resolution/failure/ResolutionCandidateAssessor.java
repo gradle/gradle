@@ -21,10 +21,10 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -58,13 +58,6 @@ public final class ResolutionCandidateAssessor {
         return requestedAttributes;
     }
 
-    public List<AssessedCandidate> assessVariantMetadatas(List<? extends VariantGraphResolveMetadata> variantMetadatas) {
-        return variantMetadatas.stream()
-            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
-    }
-
     public List<AssessedCandidate> assessResolvedVariants(List<? extends ResolvedVariant> resolvedVariants) {
         return resolvedVariants.stream()
             .map(variant -> assessCandidate(variant.asDescribable().getCapitalizedDisplayName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
@@ -72,17 +65,18 @@ public final class ResolutionCandidateAssessor {
             .collect(Collectors.toList());
     }
 
-    public List<AssessedCandidate> assessResolvedVariantStates(List<? extends VariantGraphResolveState> variantStates) {
+    public List<AssessedCandidate> assessResolvedVariantStates(List<? extends VariantGraphResolveState> variantStates, ImmutableCapability defaultCapabilityForComponent) {
         return variantStates.stream()
             .map(VariantGraphResolveState::getMetadata)
-            .map(variant -> assessCandidate(variant.getName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+            .map(variant -> {
+                ImmutableCapabilities capabilities = variant.getCapabilities().orElse(defaultCapabilityForComponent);
+                return assessCandidate(variant.getName(), capabilities, variant.getAttributes().asImmutable());
+            }).sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
             .collect(Collectors.toList());
     }
 
-    public List<AssessedCandidate> assessNodeStates(Set<NodeState> nodes) {
+    public List<AssessedCandidate> assessNodeMetadatas(Set<VariantGraphResolveMetadata> nodes) {
         return nodes.stream()
-            .map(NodeState::getMetadata)
             .map(variant -> assessCandidate(variant.getName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
             .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
             .collect(Collectors.toList());

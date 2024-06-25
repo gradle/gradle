@@ -401,8 +401,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Variant 'foo2' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
-  - Variant 'foo3' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'"""
+  - Variant 'foo2' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
+  - Variant 'foo3' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'"""
     }
 
     def "can select best compatible match when single best matches are found on individual attributes"() {

@@ -601,10 +601,10 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar' capability test:b:unspecified:
+  - Variant 'bar' capability 'test:b:unspecified':
       - Unmatched attribute:
           - Provides buildType 'release' but the consumer didn't ask for it
-  - Variant 'foo' capability test:b:unspecified:
+  - Variant 'foo' capability 'test:b:unspecified':
       - Unmatched attributes:
           - Provides buildType 'release' but the consumer didn't ask for it
           - Provides flavor 'free' but the consumer didn't ask for it""")
@@ -892,10 +892,10 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with value 'free':
+  - Variant 'bar' capability 'test:b:unspecified' declares attribute 'flavor' with value 'free':
       - Unmatched attribute:
           - Doesn't say anything about buildType (required 'debug')
-  - Variant 'foo' capability test:b:unspecified declares attribute 'buildType' with value 'debug':
+  - Variant 'foo' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug':
       - Unmatched attribute:
           - Doesn't say anything about flavor (required 'free')""")
     }
@@ -987,8 +987,8 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar' capability test:b:unspecified declares attribute 'buildType' with value 'debug'
-  - Variant 'foo' capability test:b:unspecified declares attribute 'buildType' with value 'debug'"""
+  - Variant 'bar' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug'
+  - Variant 'foo' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug'"""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -1109,10 +1109,10 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
   - compile
   - debug
 All of them match the consumer attributes:
-  - Variant 'compile' capability test:b:unspecified declares attribute 'flavor' with value 'free':
+  - Variant 'compile' capability 'test:b:unspecified' declares attribute 'flavor' with value 'free':
       - Unmatched attribute:
           - Doesn't say anything about buildType (required 'debug')
-  - Variant 'debug' capability test:b:unspecified declares attribute 'buildType' with value 'debug':
+  - Variant 'debug' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug':
       - Unmatched attribute:
           - Doesn't say anything about flavor (required 'free')"""
     }

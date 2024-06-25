@@ -465,7 +465,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask rename(Transformer<String, String> renamer) {
+    public AbstractCopyTask rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer) {
         getMainSpec().rename(renamer);
         return this;
     }
@@ -519,7 +519,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask filter(Transformer<String, String> transformer) {
+    public AbstractCopyTask filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer) {
         getMainSpec().filter(transformer);
         return this;
     }

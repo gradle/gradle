@@ -27,7 +27,7 @@ import org.gradle.internal.Describables
 
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -88,7 +88,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactVariantSelectionException
+        result.failure instanceof ArtifactSelectionException
 
         1 * variantSet.getSchema() >> attributesSchema
         1 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
@@ -149,7 +149,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactVariantSelectionException
+        result.failure instanceof ArtifactSelectionException
 
         1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants

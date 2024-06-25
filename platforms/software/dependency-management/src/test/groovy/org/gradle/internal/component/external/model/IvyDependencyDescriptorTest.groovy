@@ -417,7 +417,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler)
 
         then:
-        1 * resolutionFailureHandler.externalConfigurationNotFoundFailure(_, _, _) >> failure
+        1 * resolutionFailureHandler.configurationDoesNotExistFailure(_, _) >> failure
         def e = thrown(AbstractResolutionFailureException)
         e == failure
 
