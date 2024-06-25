@@ -46,3 +46,8 @@ exceptions:
       - 'NumberFormatException'           # default
       - 'ParseException'                  # default
       - 'InvocationTargetException'       # added by us
+
+naming:
+  MemberNameEqualsClassName:
+    active: false
+

@@ -83,7 +83,7 @@ internal
 fun Decoder.readTransformedClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = TransformedClassPath.builderWithExactSize(size)
-    repeat (size) {
+    repeat(size) {
         builder.add(readFile(), readFile())
     }
     return builder.build()

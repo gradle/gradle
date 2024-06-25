@@ -78,7 +78,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     }
 
     @TaskAction
-    fun action() {
+    fun buildCommitDistribution() {
         val rootProjectDir = project.repoRoot().asFile.absolutePath
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
         val checkoutDir = RemoteProject.checkout(fsOps, execOps, rootProjectDir, commit.get(), temporaryDir)

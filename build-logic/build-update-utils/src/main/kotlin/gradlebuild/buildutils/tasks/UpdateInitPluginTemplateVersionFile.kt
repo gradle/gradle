@@ -50,7 +50,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
     abstract val libraryVersionFile: RegularFileProperty
 
     @TaskAction
-    fun action() {
+    fun updateInitPluginTemplateVersionFile() {
         val versionProperties = Properties()
 
         findLatest("scala-library", "org.scala-lang:scala-library:2.13.+", versionProperties)

@@ -18,7 +18,6 @@ package gradlebuild.packaging
 
 import gradlebuild.basics.repoRoot
 import org.gradle.api.Project
-import org.gradle.internal.impldep.org.bouncycastle.util.Arrays.prepend
 import org.gradle.kotlin.dsl.*
 import java.io.File
 
