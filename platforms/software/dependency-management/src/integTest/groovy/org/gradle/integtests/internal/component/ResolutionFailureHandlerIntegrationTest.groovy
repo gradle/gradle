@@ -38,15 +38,19 @@ import org.gradle.util.GradleVersion
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
- *
+ * <p>
  * It can also build a text report demonstrating all these errors in a single place by running
  * the [generateFailureShowcase] method, which is marked with [spock.lang.Ignore] so it doesn't
  * run as part of a typical test run.  It is useful for viewing and comparing the behavior of
  * different types of failures.
+ * <p>
+ * These tests are ordered according to the different categories of
+ * {@link org.gradle.internal.component.resolution.failure.interfaces Resolution failure}.
  */
+@SuppressWarnings('GroovyDocCheck')
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
-    // region Stage 2 - VariantSelectionFailure
+    // region Variant Selection failures
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute.prepare()
 
@@ -272,12 +276,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'dependency-variant-resolution:configuration-does-not-exist'
         }
     }
-    // endregion Stage 2 - VariantSelectionFailure
+    // endregion Variant Selection failure
 
-    // region Stage 3 - GraphValidationFailure
-    // endregion Stage 3 - GraphValidationFailure
+    // region Graph Validation failures
+    // endregion Graph Validation failures
 
-    // region Stage 4 - ArtifactSelectionFailure
+    // region Artifact Selection failures
     def "demonstrate incompatible artifact variants exception"() {
         incompatibleArtifactVariants.prepare()
 
@@ -398,7 +402,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
         }
     }
-    // endregion Stage 4 - ArtifactSelectionFailure
+    // endregion Artifact Selection failures
 
     // region dependencyInsight failures
     /**
