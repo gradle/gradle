@@ -44,7 +44,6 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -95,33 +94,36 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class AllprojectsAwareProject extends GroovyObjectSupport implements ProjectInternal, DynamicObjectAware {
+public class LifecycleAwareProject extends GroovyObjectSupport implements ProjectInternal {
 
     private final ProjectInternal delegate;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+    private final CrossProjectConfigurator crossProjectConfigurator;
     private final GradleInternal gradle;
 
-    private boolean isAllprojectsActionInitialized = false;
-    private IsolatedAction<? super ProjectInternal> allprojectsAction = null;
+    private boolean isAllprojectsActionExecuted = false;
 
-    public AllprojectsAwareProject(
+    public LifecycleAwareProject(
         ProjectInternal delegate,
+        GradleInternal gradle,
         IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider,
-        GradleInternal gradle
+        CrossProjectConfigurator crossProjectConfigurator
     ) {
         this.delegate = delegate;
         this.isolatedProjectEvaluationListenerProvider = isolatedProjectEvaluationListenerProvider;
+        this.crossProjectConfigurator = crossProjectConfigurator;
         this.gradle = gradle;
     }
 
-    private void applyAllprojects() {
-        if (!isAllprojectsActionInitialized) {
-            allprojectsAction = isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(gradle);
-            isAllprojectsActionInitialized = true;
+    private void executeAllprojectsAction() {
+        if (isAllprojectsActionExecuted) {
+            return;
         }
+        IsolatedAction<? super Project> allprojectsAction = isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(gradle);
         if (allprojectsAction != null) {
-            allprojectsAction.execute(delegate);
+            crossProjectConfigurator.project(delegate, allprojectsAction::execute);
         }
+        isAllprojectsActionExecuted = true;
     }
 
     @Override
@@ -137,8 +139,8 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
         if (other == null) {
             return false;
         }
-        if (other instanceof AllprojectsAwareProject) {
-            AllprojectsAwareProject allprojectsAwareProject = (AllprojectsAwareProject) other;
+        if (other instanceof LifecycleAwareProject) {
+            LifecycleAwareProject allprojectsAwareProject = (LifecycleAwareProject) other;
             return delegate.equals(allprojectsAwareProject.delegate);
         } else {
             return delegate.equals(other);
@@ -153,14 +155,14 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     @Override
     @Nullable
     public Object invokeMethod(String name, Object args) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return ((DefaultProject) delegate).invokeMethod(name, args);
     }
 
     @Override
     @Nullable
     public Object getProperty(String propertyName) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return ((DefaultProject) delegate).getProperty(propertyName);
     }
 
@@ -183,49 +185,49 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     @Nullable
     @Override
     public String getDescription() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getDescription();
     }
 
     @Override
     public void setDescription(@Nullable String description) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setDescription(description);
     }
 
     @Override
     public Object getGroup() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getGroup();
     }
 
     @Override
     public void setGroup(Object group) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setGroup(group);
     }
 
     @Override
     public Object getVersion() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getVersion();
     }
 
     @Override
     public void setVersion(Object version) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setVersion(version);
     }
 
     @Override
     public Object getStatus() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getStatus();
     }
 
     @Override
     public void setStatus(Object status) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setStatus(status);
     }
 
@@ -249,21 +251,21 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
     @Override
     @SuppressWarnings("deprecation")
     public File getBuildDir() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getBuildDir();
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void setBuildDir(File path) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setBuildDir(path);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void setBuildDir(Object path) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setBuildDir(path);
     }
 
@@ -289,7 +291,7 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public TaskContainerInternal getTasks() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getTasks();
     }
 
@@ -335,33 +337,33 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public boolean hasProperty(String propertyName) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.hasProperty(propertyName);
     }
 
     @Override
     public Map<String, ?> getProperties() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getProperties();
     }
 
     @Nullable
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.property(propertyName);
     }
 
     @Nullable
     @Override
     public Object findProperty(String propertyName) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.findProperty(propertyName);
     }
 
     @Override
     public Logger getLogger() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getLogger();
     }
 
@@ -387,13 +389,13 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getAllTasks(recursive);
     }
 
     @Override
     public Set<Task> getTasksByName(String name, boolean recursive) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getTasksByName(name, recursive);
     }
 
@@ -404,145 +406,145 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public File file(Object path) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.file(path);
     }
 
     @Override
     public File file(Object path, PathValidation validation) throws InvalidUserDataException {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.file(path, validation);
     }
 
     @Override
     public URI uri(Object path) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.uri(path);
     }
 
     @Override
     public String relativePath(Object path) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.relativePath(path);
     }
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.files(paths);
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.files(paths, configureClosure);
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.files(paths, configureAction);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.fileTree(baseDir);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.fileTree(baseDir, configureClosure);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.fileTree(baseDir, configureAction);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.fileTree(args);
     }
 
     @Override
     public FileTree zipTree(Object zipPath) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.zipTree(zipPath);
     }
 
     @Override
     public FileTree tarTree(Object tarPath) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.tarTree(tarPath);
     }
 
     @Override
     public <T> Provider<T> provider(Callable<? extends T> value) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.provider(value);
     }
 
     @Override
     public ProviderFactory getProviders() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getProviders();
     }
 
     @Override
     public ObjectFactory getObjects() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getObjects();
     }
 
     @Override
     public ProjectLayout getLayout() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getLayout();
     }
 
     @Override
     public File mkdir(Object path) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.mkdir(path);
     }
 
     @Override
     public boolean delete(Object... paths) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.delete(paths);
     }
 
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.delete(action);
     }
 
     @Override
     public ExecResult javaexec(Closure closure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.javaexec(closure);
     }
 
     @Override
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.javaexec(action);
     }
 
     @Override
     public ExecResult exec(Closure closure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.exec(closure);
     }
 
     @Override
     public ExecResult exec(Action<? super ExecSpec> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.exec(action);
     }
 
@@ -558,25 +560,25 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public AntBuilder getAnt() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getAnt();
     }
 
     @Override
     public AntBuilder createAntBuilder() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.createAntBuilder();
     }
 
     @Override
     public AntBuilder ant(Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.ant(configureClosure);
     }
 
     @Override
     public AntBuilder ant(Action<? super AntBuilder> configureAction) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.ant(configureAction);
     }
 
@@ -619,7 +621,7 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setProperty(name, value);
     }
 
@@ -640,31 +642,31 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public Task task(String name) throws InvalidUserDataException {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.task(name);
     }
 
     @Override
     public Task task(Map<String, ?> args, String name) throws InvalidUserDataException {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.task(args, name);
     }
 
     @Override
     public Task task(Map<String, ?> args, String name, Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.task(args, name, configureClosure);
     }
 
     @Override
     public Task task(String name, Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.task(name, configureClosure);
     }
 
     @Override
     public Task task(String name, Action<? super Task> configureAction) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.task(name, configureAction);
     }
 
@@ -686,31 +688,31 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public List<String> getDefaultTasks() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getDefaultTasks();
     }
 
     @Override
     public void setDefaultTasks(List<String> defaultTasks) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.setDefaultTasks(defaultTasks);
     }
 
     @Override
     public void defaultTasks(String... defaultTasks) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.defaultTasks(defaultTasks);
     }
 
     @Override
     public Project evaluationDependsOn(String path) throws UnknownProjectException {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.evaluationDependsOn(path);
     }
 
     @Override
     public void evaluationDependsOnChildren() {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.evaluationDependsOnChildren();
     }
 
@@ -736,61 +738,61 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public GradleInternal getGradle() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getGradle();
     }
 
     @Override
     public LoggingManager getLogging() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getLogging();
     }
 
     @Override
     public Object configure(Object object, Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.configure(object, configureClosure);
     }
 
     @Override
     public Iterable<?> configure(Iterable<?> objects, Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.configure(objects, configureClosure);
     }
 
     @Override
     public <T> Iterable<T> configure(Iterable<T> objects, Action<? super T> configureAction) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.configure(objects, configureAction);
     }
 
     @Override
     public RepositoryHandler getRepositories() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getRepositories();
     }
 
     @Override
     public void repositories(Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.repositories(configureClosure);
     }
 
     @Override
     public DependencyHandler getDependencies() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getDependencies();
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.dependencies(configureClosure);
     }
 
     @Override
     public DependencyFactory getDependencyFactory() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getDependencyFactory();
     }
 
@@ -836,49 +838,49 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public ProjectStateInternal getState() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getState();
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.container(type);
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.container(type, factory);
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.container(type, factoryClosure);
     }
 
     @Override
     public ExtensionContainerInternal getExtensions() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getExtensions();
     }
 
     @Override
     public ResourceHandler getResources() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getResources();
     }
 
     @Override
     public SoftwareComponentContainer getComponents() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getComponents();
     }
 
     @Override
     public void components(Action<? super SoftwareComponentContainer> configuration) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.components(configuration);
     }
 
@@ -982,73 +984,73 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public InputNormalizationHandlerInternal getNormalization() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getNormalization();
     }
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.normalization(configuration);
     }
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.dependencyLocking(configuration);
     }
 
     @Override
     public DependencyLockingHandler getDependencyLocking() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getDependencyLocking();
     }
 
     @Override
     public ScriptHandlerInternal getBuildscript() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getBuildscript();
     }
 
     @Override
     public void buildscript(Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.buildscript(configureClosure);
     }
 
     @Override
     public WorkResult copy(Closure closure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.copy(closure);
     }
 
     @Override
     public WorkResult copy(Action<? super CopySpec> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.copy(action);
     }
 
     @Override
     public CopySpec copySpec(Closure closure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.copySpec(closure);
     }
 
     @Override
     public CopySpec copySpec(Action<? super CopySpec> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.copySpec(action);
     }
 
     @Override
     public CopySpec copySpec() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.copySpec();
     }
 
     @Override
     public WorkResult sync(Action<? super SyncSpec> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.sync(action);
     }
 
@@ -1059,7 +1061,7 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public Property<Object> getInternalStatus() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getInternalStatus();
     }
 
@@ -1070,38 +1072,38 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public RoleBasedConfigurationContainerInternal getConfigurations() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getConfigurations();
     }
 
     @Override
     public void configurations(Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.configurations(configureClosure);
     }
 
     @Override
     public ArtifactHandler getArtifacts() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getArtifacts();
     }
 
     @Override
     public void artifacts(Closure configureClosure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.artifacts(configureClosure);
     }
 
     @Override
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.artifacts(configureAction);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public org.gradle.api.plugins.Convention getConvention() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getConvention();
     }
 
@@ -1132,41 +1134,36 @@ public class AllprojectsAwareProject extends GroovyObjectSupport implements Proj
 
     @Override
     public PluginContainer getPlugins() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getPlugins();
     }
 
     @Override
     public void apply(Closure closure) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.apply(closure);
     }
 
     @Override
     public void apply(Action<? super ObjectConfigurationAction> action) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.apply(action);
     }
 
     @Override
     public void apply(Map<String, ?> options) {
-        applyAllprojects();
+        executeAllprojectsAction();
         delegate.apply(options);
     }
 
     @Override
     public PluginManagerInternal getPluginManager() {
-        applyAllprojects();
+        executeAllprojectsAction();
         return delegate.getPluginManager();
     }
 
     @Override
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
-    }
-
-    @Override
-    public DynamicObject getAsDynamicObject() {
-        return ((DefaultProject) delegate).getAsDynamicObject();
     }
 }

@@ -32,15 +32,18 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     private final GradleInternal gradle;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+    private final CrossProjectConfigurator crossProjectConfigurator;
 
     public DefaultCrossProjectModelAccess(
         ProjectRegistry<ProjectInternal> projectRegistry,
         GradleInternal gradle,
-        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider
+        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider,
+        CrossProjectConfigurator crossProjectConfigurator
     ) {
         this.gradle = gradle;
         this.projectRegistry = projectRegistry;
         this.isolatedProjectEvaluationListenerProvider = isolatedProjectEvaluationListenerProvider;
+        this.crossProjectConfigurator = crossProjectConfigurator;
     }
 
     @Override
@@ -66,14 +69,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getSubProjects(relativeTo.getPath()).stream()
-            .map(this::asAllprojectsAwareProject)
+            .map(this::asLifecycleAwareProject)
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getAllProjects(relativeTo.getPath()).stream()
-            .map(this::asAllprojectsAwareProject)
+            .map(this::asLifecycleAwareProject)
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -98,9 +101,9 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return parent != null ? parent.getInheritedScope() : null;
     }
 
-    private ProjectInternal asAllprojectsAwareProject(ProjectInternal project) {
-        return project instanceof AllprojectsAwareProject
+    private ProjectInternal asLifecycleAwareProject(ProjectInternal project) {
+        return project instanceof LifecycleAwareProject
             ? project
-            : new AllprojectsAwareProject(project, isolatedProjectEvaluationListenerProvider, gradle);
+            : new LifecycleAwareProject(project, gradle, isolatedProjectEvaluationListenerProvider, crossProjectConfigurator);
     }
 }
