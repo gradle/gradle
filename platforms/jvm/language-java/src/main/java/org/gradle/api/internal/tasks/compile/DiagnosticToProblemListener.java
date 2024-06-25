@@ -32,15 +32,10 @@ import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.Problem;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
@@ -59,8 +54,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private final InternalProblemReporter problemReporter;
     private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
-
-    private final List<Problem> reportedProblems = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
@@ -84,10 +77,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 return diagnostic.getMessage(Locale.getDefault());
             }
         };
-    }
-
-    public Collection<Problem> getReportedProblems() {
-        return Collections.unmodifiableCollection(reportedProblems);
     }
 
     @Override
