@@ -20,9 +20,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * An immutable sequence of file collections.
@@ -79,6 +82,37 @@ public class UnionFileCollection extends CompositeFileCollection {
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         for (FileCollectionInternal fileCollection : source) {
             visitor.accept(fileCollection);
+        }
+    }
+
+    @Override
+    public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
+        Set<FileCollectionExecutionTimeValue> sourceExecutionTimeValues = new HashSet<>();
+        for (FileCollectionInternal fileCollection : source) {
+            Optional<FileCollectionExecutionTimeValue> executionTimeValue = fileCollection.calculateExecutionTimeValue();
+            if (!executionTimeValue.isPresent()) {
+                return Optional.empty();
+            }
+            sourceExecutionTimeValues.add(executionTimeValue.get());
+        }
+
+        return Optional.of(new UnionExecutionTimeValue(ImmutableSet.copyOf(sourceExecutionTimeValues)));
+    }
+
+    private static class UnionExecutionTimeValue implements FileCollectionExecutionTimeValue {
+        private final ImmutableSet<FileCollectionExecutionTimeValue> source;
+
+        public UnionExecutionTimeValue(ImmutableSet<FileCollectionExecutionTimeValue> source) {
+            this.source = source;
+        }
+
+        @Override
+        public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
+            Set<FileCollectionInternal> source = this.source.stream()
+                .map(value -> value.toFileCollection(fileCollectionFactory))
+                .collect(Collectors.toSet());
+
+            return source.stream().reduce(FileCollectionFactory.empty(), (acc, collection) -> (FileCollectionInternal) acc.plus(collection));
         }
     }
 }
