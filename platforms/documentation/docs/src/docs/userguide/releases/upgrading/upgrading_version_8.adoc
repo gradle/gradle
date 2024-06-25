@@ -89,7 +89,7 @@ The Java compilation infrastructure has been updated to use the [Problems API](h
 This change will supply the Tooling API clients with structured, rich information about compilation issues.
 
 The feature should not have any visible impact on the usual build output, with JDK8 being an exception.
-When annotation processors are used in the compiler, the output message might slightly differ from the previous ones.
+When annotation processors are used in the compiler, the output message differs slightly from the previous ones.
 
 The change mainly manifests itself in typename printed.
 For example, Java standard types like `java.lang.String` will be reported as `java.lang.String` instead of `String`.
