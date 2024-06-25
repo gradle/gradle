@@ -63,18 +63,14 @@ class ReceivedProblem implements Problem {
         locations.each { location ->
             if (location['pluginId'] != null) {
                 result += new ReceivedPluginIdLocation(location as Map<String, Object>)
-            } else if (location['path'] != null) {
-                if (location['line'] != null) {
-                    result += new ReceivedLineInFileLocation(location as Map<String, Object>)
-                } else if (location['offset'] != null) {
-                    result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
-                } else {
-                    result += new ReceivedFileLocation(location as Map<String, Object>)
-                }
+            } else if (location['line'] != null) {
+                result += new ReceivedLineInFileLocation(location as Map<String, Object>)
+            } else if (location['offset'] != null) {
+                result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
             } else if (location['buildTreePath'] != null) {
                 result += new ReceivedTaskPathLocation(location as Map<String, Object>)
             } else {
-                throw new IllegalArgumentException("Unknown location type: $location")
+                result += new ReceivedFileLocation(location as Map<String, Object>)
             }
         }
         result
@@ -82,6 +78,13 @@ class ReceivedProblem implements Problem {
 
     long getOperationId() {
         operationId
+    }
+
+    <T> T oneLocation(Class<T> type) {
+        def locations = getLocations()
+        assert locations.size() == 1
+        assert type.isInstance(locations[0])
+        locations[0] as T
     }
 
     @Override
@@ -118,13 +121,6 @@ class ReceivedProblem implements Problem {
         locations
     }
 
-    /**
-     * Helper method for tests that expect a single location of a specific type.
-     *
-     *
-     * @param locationType
-     * @return
-     */
     <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
         def location = locations.find {
             locationType.isInstance(it)
@@ -346,19 +342,6 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedTaskPathLocation implements TaskPathLocation {
-        private final String buildTreePath
-
-        ReceivedTaskPathLocation(Map<String, Object> location) {
-            this.buildTreePath = location['buildTreePath'] as String
-        }
-
-        @Override
-        String getBuildTreePath() {
-            buildTreePath
-        }
-    }
-
     static class ReceivedPluginIdLocation implements PluginIdLocation {
         private final String pluginId
 
@@ -369,6 +352,19 @@ class ReceivedProblem implements Problem {
         @Override
         String getPluginId() {
             pluginId
+        }
+    }
+
+    static class ReceivedTaskPathLocation implements TaskPathLocation {
+        private final String buildTreePath
+
+        ReceivedTaskPathLocation(Map<String, Object> location) {
+            this.buildTreePath = location['buildTreePath'] as String
+        }
+
+        @Override
+        String getBuildTreePath() {
+            buildTreePath
         }
     }
 
