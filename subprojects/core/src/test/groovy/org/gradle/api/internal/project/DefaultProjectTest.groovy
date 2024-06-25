@@ -89,6 +89,7 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
@@ -248,6 +249,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
         serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
+        serviceRegistryMock.get((Type) IsolatedProjectEvaluationListenerProvider) >> Stub(IsolatedProjectEvaluationListenerProvider)
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'

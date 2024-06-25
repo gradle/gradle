@@ -17,16 +17,19 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
+
+import javax.annotation.Nullable;
 
 public interface CrossProjectConfigurator {
 
-    void project(ProjectInternal project, Action<? super Project> configureAction);
+    void project(ProjectInternal project, Action<? super Project> configureAction, @Nullable IsolatedAction<? super Project> allprojectsAction);
 
-    void subprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
+    void subprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction, @Nullable IsolatedAction<? super Project> allprojectsAction);
 
-    void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
+    void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction, @Nullable IsolatedAction<? super Project> allprojectsAction);
 
-    void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor);
+    void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor, @Nullable IsolatedAction<? super Project> allprojectsAction);
 
 }

@@ -30,5 +30,10 @@ inline fun <reified T> Project.popSingletonProperty(): T? =
     extra.remove(T::class.java.name)?.uncheckedCast()
 
 
+inline fun <reified T> Project.peekSingletonProperty(): T? =
+    if (extra.has(T::class.java.name)) extra[T::class.java.name]?.uncheckedCast()
+    else null
+
+
 val Project.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties

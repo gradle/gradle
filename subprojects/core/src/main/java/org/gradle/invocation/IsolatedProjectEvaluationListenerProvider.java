@@ -42,11 +42,19 @@ public interface IsolatedProjectEvaluationListenerProvider {
     void afterProject(IsolatedAction<? super Project> action);
 
     /**
+     * @see org.gradle.api.invocation.GradleLifecycle#allprojects(IsolatedAction)
+     */
+    void allprojects(IsolatedAction<? super Project> action);
+
+    /**
      * Returns an isolated listener for the registered actions, if any. The listener makes it impossible for
      * the actions to carry any shared mutable state across projects and can be safely executed in parallel.
      */
     @Nullable
     ProjectEvaluationListener isolateFor(Gradle owner);
+
+    @Nullable
+    IsolatedAction<? super Project> isolateAllprojectsActionFor(Gradle owner);
 
     /**
      * Discards any registered actions. This doesn't affect any {@link #isolateFor(Gradle) previously returned isolated listeners}.

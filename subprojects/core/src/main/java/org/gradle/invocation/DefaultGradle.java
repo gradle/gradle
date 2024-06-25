@@ -114,10 +114,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
-                if (!rootProjectActions.isEmpty()) {
-                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
-                }
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
+
+                if (!rootProjectActions.isEmpty()) {
+                    services.get(CrossProjectConfigurator.class).rootProject(
+                        rootProject,
+                        rootProjectActions,
+                        isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(DefaultGradle.this)
+                    );
+                }
+
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
@@ -643,6 +649,12 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         public void afterProject(IsolatedAction<? super Project> action) {
             assertBeforeProjectsLoaded("afterProject");
             gradle.isolatedProjectEvaluationListenerProvider.afterProject(action);
+        }
+
+        @Override
+        public void allprojects(IsolatedAction<? super Project> action) {
+            assertBeforeProjectsLoaded("allprojects");
+            gradle.isolatedProjectEvaluationListenerProvider.allprojects(action);
         }
 
         private void assertBeforeProjectsLoaded(String methodName) {

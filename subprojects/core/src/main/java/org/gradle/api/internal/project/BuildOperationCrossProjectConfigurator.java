@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -27,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
@@ -39,34 +41,61 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     @Override
-    public void project(ProjectInternal project, Action<? super Project> configureAction) {
-        runProjectConfigureAction(project, configureAction);
+    public void project(
+        ProjectInternal project,
+        Action<? super Project> configureAction,
+        @Nullable IsolatedAction<? super Project> allprojectsAction
+    ) {
+        runProjectConfigureAction(project, configureAction, allprojectsAction);
     }
 
     @Override
-    public void subprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(SUBPROJECTS_DETAILS, projects, configureAction);
+    public void subprojects(
+        Iterable<? extends ProjectInternal> projects,
+        Action<? super Project> configureAction,
+        @Nullable IsolatedAction<? super Project> allprojectsAction
+    ) {
+        runBlockConfigureAction(SUBPROJECTS_DETAILS, projects, configureAction, allprojectsAction);
     }
 
     @Override
-    public void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(ALLPROJECTS_DETAILS, projects, configureAction);
+    public void allprojects(
+        Iterable<? extends ProjectInternal> projects,
+        Action<? super Project> configureAction,
+        @Nullable IsolatedAction<? super Project> allprojectsAction
+    ) {
+        runBlockConfigureAction(ALLPROJECTS_DETAILS, projects, configureAction, allprojectsAction);
     }
 
     @Override
-    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationRunner) {
-        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationRunner);
+    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationRunner, @Nullable IsolatedAction<? super Project> allprojectsAction) {
+        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationRunner, allprojectsAction);
     }
 
-    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<? extends ProjectInternal> projects, final Action<? super Project> configureAction) {
-        buildOperationRunner.run(new BlockConfigureBuildOperation(details, projects, configureAction));
+    private void runBlockConfigureAction(
+        final BuildOperationDescriptor.Builder details,
+        final Iterable<? extends ProjectInternal> projects,
+        final Action<? super Project> configureAction,
+        @Nullable final IsolatedAction<? super Project> allprojectsAction
+    ) {
+        buildOperationRunner.run(new BlockConfigureBuildOperation(details, projects, configureAction, allprojectsAction));
     }
 
-    private void runProjectConfigureAction(final ProjectInternal project, final Action<? super Project> configureAction) {
+    private void runProjectConfigureAction(
+        final ProjectInternal project,
+        final Action<? super Project> configureAction,
+        @Nullable final IsolatedAction<? super Project> allprojectsAction
+    ) {
         project.getOwner().applyToMutableState(p -> buildOperationRunner.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, mutationGuard.withMutationEnabled(configureAction));
+                Action<? super Project> action = allprojectsAction == null
+                    ? configureAction
+                    : (Action<Project>) p -> {
+                        allprojectsAction.execute(p);
+                        configureAction.execute(p);
+                    };
+                Actions.with(project, mutationGuard.withMutationEnabled(action));
             }
         }));
     }
@@ -89,11 +118,19 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         private final BuildOperationDescriptor.Builder details;
         private final Iterable<? extends ProjectInternal> projects;
         private final Action<? super Project> configureAction;
+        @Nullable
+        private final IsolatedAction<? super Project> allprojectsAction;
 
-        private BlockConfigureBuildOperation(BuildOperationDescriptor.Builder details, Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction) {
+        private BlockConfigureBuildOperation(
+            BuildOperationDescriptor.Builder details,
+            Iterable<? extends ProjectInternal> projects,
+            Action<? super Project> configureAction,
+            @Nullable IsolatedAction<? super Project> allprojectsAction
+        ) {
             this.details = details;
             this.projects = projects;
             this.configureAction = configureAction;
+            this.allprojectsAction = allprojectsAction;
         }
 
         @Override
@@ -104,7 +141,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         @Override
         public void run(BuildOperationContext context) {
             for (ProjectInternal project : projects) {
-                runProjectConfigureAction(project, configureAction);
+                runProjectConfigureAction(project, configureAction, allprojectsAction);
             }
         }
     }
