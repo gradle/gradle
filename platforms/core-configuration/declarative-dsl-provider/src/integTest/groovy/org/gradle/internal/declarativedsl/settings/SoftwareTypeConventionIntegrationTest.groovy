@@ -72,10 +72,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
-        file("foo").createDir()
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention) + """
-            include("foo")
-        """
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
@@ -289,26 +286,24 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("foo").createDir()
-        file("bar").createDir()
         file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
-            include("foo")
-            include("bar")
+            include("non-declarative")
+            include("declarative")
         """
 
-        file("foo/build.gradle${extension}") << """
+        file("non-declarative/build.gradle${extension}") << """
             plugins { id("com.example.test-software-type-impl") }
         """
-        file("bar/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("bar"))
+        file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("bar"))
 
         when:
-        run(":foo:printTestSoftwareTypeExtensionConfiguration")
+        run(":non-declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
         outputContains("""id = convention\nbar = convention""")
 
         when:
-        run(":bar:printTestSoftwareTypeExtensionConfiguration")
+        run(":declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
         outputContains("""id = bar\nbar = convention""")
