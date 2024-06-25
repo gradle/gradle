@@ -223,6 +223,9 @@ public class DependencyGraphBuilder {
     private static boolean registerCapabilities(final ResolveState resolveState, final NodeState node) {
         AtomicBoolean foundConflict = new AtomicBoolean(false);
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getConflictTracker().getCapabilitiesConflictHandler();
+
+        // TODO: We sometimes record a conflict for nodes that should only version conflict
+
         node.forEachCapability(capabilitiesConflictHandler, new Action<Capability>() {
             @Override
             public void execute(Capability capability) {
