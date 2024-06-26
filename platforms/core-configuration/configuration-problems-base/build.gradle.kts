@@ -26,10 +26,16 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.problemsApi)
+    api(projects.buildOption)
+    api(projects.concurrent)
+    api(projects.fileTemp)
+    api(projects.loggingApi)
 
     api(libs.kotlinStdlib)
 
+    implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
 
+    implementation(libs.groovyJson)
     implementation(libs.guava)
 }

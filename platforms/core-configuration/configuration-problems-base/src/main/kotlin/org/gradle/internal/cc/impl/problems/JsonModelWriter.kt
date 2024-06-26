@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package org.gradle.internal.cc.impl.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.configuration.problems.documentationLinkFor
 import org.gradle.internal.configuration.problems.DecoratedFailure
 import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.documentationLinkFor
 import org.gradle.internal.configuration.problems.firstTypeFrom
 import org.gradle.internal.configuration.problems.projectPathFrom
 import org.gradle.internal.configuration.problems.taskPathFrom
