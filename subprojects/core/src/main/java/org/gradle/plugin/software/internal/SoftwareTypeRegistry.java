@@ -37,7 +37,7 @@ public interface SoftwareTypeRegistry {
     void register(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
-     * Returns a set of the software types available along with their model types and associated plugins.  Note that once
+     * Returns a map of available software types, along with their model types and associated plugins, keyed by software type name.  Note that once
      * method is called, calling {@link #register(Class, Class)} will result in an error.
      */
     Map<String, SoftwareTypeImplementation<?>> getSoftwareTypeImplementations();
