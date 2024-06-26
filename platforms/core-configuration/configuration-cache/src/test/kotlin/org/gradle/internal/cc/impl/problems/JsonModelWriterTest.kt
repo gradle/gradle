@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import groovy.json.JsonSlurper
-import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
+import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -36,7 +36,7 @@ class JsonModelWriterTest {
                 beginModel()
                 writeDiagnostic(
                     DiagnosticKind.INPUT,
-                    DecoratedPropertyProblem(
+                    DecoratedReportProblem(
                         PropertyTrace.Unknown,
                         StructuredMessage.build { reference("") }
                     )

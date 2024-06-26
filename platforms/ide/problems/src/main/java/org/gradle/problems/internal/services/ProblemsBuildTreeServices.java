@@ -16,23 +16,48 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.configuration.problems.ProblemFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.problems.internal.DefaultProblemsReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
 
+import java.util.Collection;
+
+@ServiceScope(Scope.BuildTree.class)
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
 
     @Provides
     InternalProblems createProblemsService(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        ProblemStream problemStream
+        ProblemStream problemStream,
+        Collection<ProblemEmitter> problemEmitters
     ) {
-        BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
-        return new DefaultProblems(emitter, problemStream, CurrentBuildOperationRef.instance());
+        return new DefaultProblems(problemEmitters, problemStream, CurrentBuildOperationRef.instance());
+    }
+
+    @Provides
+    ProblemEmitter createProblemEmitter(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
+    }
+
+    @Provides
+    DefaultProblemsReportCreator createProblemsReportCreator(
+        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
+        InternalOptions internalOptions,
+        ProblemFactory problemFactory
+    ) {
+        return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, problemFactory);
     }
 }

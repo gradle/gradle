@@ -21,6 +21,25 @@ plugins {
 
 description = "Base utilities and services to report and track configuration problems"
 
+val configurationCacheReportPath by configurations.creating {
+    isVisible = false
+    isCanBeConsumed = false
+    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
+}
+
+// You can have a faster feedback loop by running `configuration-cache-report` as an included build
+// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
+dependencies {
+    configurationCacheReportPath(libs.configurationCacheReport)
+}
+
+tasks.processResources {
+    from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
+        into("org/gradle/internal/cc/impl/problems")
+        exclude("META-INF/**")
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
@@ -33,9 +52,9 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
+    implementation(libs.groovyJson)
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
 
-    implementation(libs.groovyJson)
     implementation(libs.guava)
 }
