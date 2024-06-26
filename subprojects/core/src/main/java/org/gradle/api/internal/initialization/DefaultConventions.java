@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.initialization.Conventions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;

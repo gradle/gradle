@@ -227,6 +227,42 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 }
 
 
+internal
+fun buildConventionAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleBuildConventionAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleBuildConventionAccessorFor(name, type)
+    }
+}
+
+
+private
+fun accessibleBuildConventionAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+    """
+        /**
+         * Adds a convention to the [$original][$name] software type.
+         */
+        fun Conventions.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+            add("$stringLiteral", $type, configure)
+    """
+}
+
+
+private
+fun inaccessibleBuildConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Configures the `$original` extension.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
+         */
+        fun Conventions.`$kotlinIdentifier`(configure: Action<Any>): Unit =
+            add("$stringLiteral", KotlinType.Any, configure)
+
+    """
+}
+
+
 private
 val thisExtensions =
     "(this as ${ExtensionAware::class.java.name}).extensions"

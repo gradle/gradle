@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization;
+package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Conventions for configuring Software Types
+ *
+ * @since 8.10
  */
+@Incubating
+@ServiceScope(Scope.Build.class)
 public interface Conventions {
     /**
      * Adds a convention for the software type specified by the given name.
@@ -28,6 +35,8 @@ public interface Conventions {
      * @param name the name of the software type
      * @param publicType the public type of the software type
      * @param configureAction the action to configure the software type
+     *
+     * @since 8.10
      */
     <T> void add(String name, Class<T> publicType, Action<? super T> configureAction);
 }

@@ -64,6 +64,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
+    is Accessor.ForBuildConvention -> fragmentsForBuildConvention(accessor)
 }
 
 
@@ -838,6 +839,51 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             signature = JvmMethodSignature(
                 propertyName,
                 "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+            )
+        )
+    )
+}
+
+
+private
+fun fragmentsForBuildConvention(
+    accessor: Accessor.ForBuildConvention
+): Fragments {
+
+    val accessorSpec = accessor.spec
+    val className = internalNameForAccessorClassOf(accessorSpec)
+    val (accessibleReceiverType, name, modelType) = accessorSpec
+    val softwareTypeName = name.kotlinIdentifier
+    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
+
+    return className to sequenceOf(
+        AccessorFragment(
+            source = buildConventionAccessor(accessorSpec),
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    LDC(softwareTypeName)
+                    LDC(jvmPublicType)
+                    ALOAD(1)
+                    INVOKEINTERFACE(GradleTypeName.conventions, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    receiverType = receiverType,
+                    returnType = KotlinType.unit,
+                    name = softwareTypeName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
+                    ),
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                name.original,
+                "(Lorg/gradle/api/internal/initialization/Conventions;Lorg/gradle/api/Action;)V"
             )
         )
     )
