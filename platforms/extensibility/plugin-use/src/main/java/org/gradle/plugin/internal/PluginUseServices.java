@@ -39,6 +39,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -91,7 +92,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NonNullApi
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareTypeAnnotationHandler createSoftwareTypeAnnotationHandler() {
+        PropertyAnnotationHandler createSoftwareTypeAnnotationHandler() {
             return new SoftwareTypeAnnotationHandler();
         }
     }
