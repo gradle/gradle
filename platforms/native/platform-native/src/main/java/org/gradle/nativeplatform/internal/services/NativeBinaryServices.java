@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal.services;
 
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
@@ -57,10 +58,10 @@ import org.gradle.process.internal.ExecActionFactory;
 public class NativeBinaryServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(NativeBinaryRenderer.class);
-        registration.add(SharedLibraryBinaryRenderer.class);
-        registration.add(StaticLibraryBinaryRenderer.class);
-        registration.add(NativeExecutableBinaryRenderer.class);
+        registration.add(AbstractBinaryRenderer.class, NativeBinaryRenderer.class);
+        registration.add(AbstractBinaryRenderer.class, SharedLibraryBinaryRenderer.class);
+        registration.add(AbstractBinaryRenderer.class, StaticLibraryBinaryRenderer.class);
+        registration.add(AbstractBinaryRenderer.class, NativeExecutableBinaryRenderer.class);
         registration.add(NativePlatforms.class);
         registration.add(NativePlatformResolver.class);
         registration.add(DefaultTargetMachineFactory.class);

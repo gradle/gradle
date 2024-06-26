@@ -43,14 +43,9 @@ class ServiceScopeValidatorWorkarounds {
 
         "org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer",
 
-        "org.gradle.nativeplatform.internal.NativeBinaryRenderer",
-        "org.gradle.nativeplatform.internal.SharedLibraryBinaryRenderer",
-        "org.gradle.nativeplatform.internal.StaticLibraryBinaryRenderer",
-        "org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer",
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
-        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory",
-        "org.gradle.nativeplatform.test.internal.NativeTestSuiteBinaryRenderer"
+        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
     ));
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {

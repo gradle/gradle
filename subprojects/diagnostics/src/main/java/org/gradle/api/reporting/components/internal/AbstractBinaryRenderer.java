@@ -19,6 +19,8 @@ package org.gradle.api.reporting.components.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 // TODO - bust up this hierarchy and compose using interfaces instead
+@ServiceScope(Scope.Global.class)
 public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends ReportRenderer<BinarySpec, TextReportBuilder> {
     private final ModelSchemaStore schemaStore;
 
