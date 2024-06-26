@@ -40,6 +40,28 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28238")
+    def "signs with default signatory passed as Providers"() {
+        given:
+        buildFile << """
+            signing {
+                useInMemoryPgpKeys(project.providers.gradleProperty('secretKey'), project.providers.gradleProperty('password'))
+                sign(jar)
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars([
+            ORG_GRADLE_PROJECT_secretKey: secretKeyWithPassword,
+            ORG_GRADLE_PROJECT_password: password
+        ])
+        succeeds("signJar")
+
+        then:
+        executed(":signJar")
+        file("build", "libs", "sign-1.0.jar.asc").exists()
+    }
+
     def "signs with custom signatory"() {
         given:
         buildFile << """
@@ -90,6 +112,29 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         buildFile << """
             signing {
                 useInMemoryPgpKeys(project.property('keyId'), project.property('secretKey'), project.property('password'))
+                sign(jar)
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars([
+            ORG_GRADLE_PROJECT_keyId: keyId,
+            ORG_GRADLE_PROJECT_secretKey: secretSubkeyWithPassword,
+            ORG_GRADLE_PROJECT_password: subkeyPassword
+        ])
+        succeeds("signJar")
+
+        then:
+        executed(":signJar")
+        file("build", "libs", "sign-1.0.jar.asc").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28238")
+    def "supports signing subkeys passed as Provider"() {
+        given:
+        buildFile << """
+            signing {
+                useInMemoryPgpKeys(project.providers.gradleProperty('keyId'), project.providers.gradleProperty('secretKey'), project.providers.gradleProperty('password'))
                 sign(jar)
             }
         """

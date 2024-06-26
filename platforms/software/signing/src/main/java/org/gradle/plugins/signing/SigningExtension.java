@@ -31,6 +31,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMig
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -74,6 +76,8 @@ public abstract class SigningExtension {
      */
     private final Project project;
 
+    private final ProviderFactory providerFactory;
+
     /**
      * The configuration that signature artifacts will be placed into.
      *
@@ -98,6 +102,7 @@ public abstract class SigningExtension {
      */
     public SigningExtension(Project project) {
         this.project = project;
+        this.providerFactory = project.getProviders();
         this.configuration = getDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
@@ -257,7 +262,34 @@ public abstract class SigningExtension {
      */
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultSecretKey, @Nullable String defaultPassword) {
-        setSignatories(new InMemoryPgpSignatoryProvider(defaultSecretKey, defaultPassword));
+        useInMemoryPgpKeys(
+            providerFactory.provider(() -> defaultSecretKey),
+            providerFactory.provider(() -> defaultPassword)
+        );
+    }
+
+    /**
+     * Use the supplied ascii-armored in-memory PGP secret key and password
+     * instead of reading it from a keyring.
+     *
+     * <pre><code>
+     * signing {
+     *     def secretKey = providers.gradleProvider("mySigningKey")
+     *     def password = providers.gradleProvider("mySigningPassword")
+     *     useInMemoryPgpKeys(secretKey, password)
+     * }
+     * </code></pre>
+     *
+     * @since 8.8
+     */
+    @Incubating
+    @SuppressWarnings("unused")
+    public void useInMemoryPgpKeys(Provider<String> defaultSecretKey, Provider<String> defaultPassword) {
+        setSignatories(new InMemoryPgpSignatoryProvider(
+            providerFactory.provider(() -> ""),
+            defaultSecretKey,
+            defaultPassword)
+        );
     }
 
     /**
@@ -278,6 +310,32 @@ public abstract class SigningExtension {
      */
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
+        useInMemoryPgpKeys(
+            providerFactory.provider(() -> defaultKeyId),
+            providerFactory.provider(() -> defaultSecretKey),
+            providerFactory.provider(() -> defaultPassword)
+        );
+    }
+
+    /**
+     * Use the supplied ascii-armored in-memory PGP secret key and password
+     * instead of reading it from a keyring.
+     * In case a signing subkey is provided, keyId must be provided as well.
+     *
+     * <pre><code>
+     * signing {
+     *     def keyId = providers.gradleProvider("keyId")
+     *     def secretKey = providers.gradleProvider("mySigningKey")
+     *     def password = providers.gradleProvider("mySigningPassword")
+     *     useInMemoryPgpKeys(keyId, secretKey, password)
+     * }
+     * </code></pre>
+     *
+     * @since 8.8
+     */
+    @Incubating
+    @SuppressWarnings("unused")
+    public void useInMemoryPgpKeys(Provider<String> defaultKeyId, Provider<String> defaultSecretKey, Provider<String> defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
     }
 
