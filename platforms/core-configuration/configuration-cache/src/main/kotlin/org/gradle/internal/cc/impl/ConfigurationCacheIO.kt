@@ -19,6 +19,11 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.service
+import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -26,11 +31,6 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
-import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.base.serialize.service
-import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
@@ -201,7 +201,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
+        return withReadContextFor(stateFile.stateType, stateFile::inputStream) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
             }
@@ -213,7 +213,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream)) {
+        val (context, codecs) = writerContextFor(stateFile.stateType, stateFile::outputStream) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
         return context.useToRun {
@@ -245,8 +245,8 @@ class ConfigurationCacheIO internal constructor(
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
     internal
-    fun writerContextFor(outputStream: OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(outputStream).let { encoder ->
+    fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
+        KryoBackedEncoder(encryptionService.outputStream(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -277,10 +277,11 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun <R> withReadContextFor(
-        inputStream: InputStream,
+        stateType: StateType,
+        inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(inputStream).let { (context, codecs) ->
+        readerContextFor(encryptionService.inputStream(stateType, inputStream)).let { (context, codecs) ->
             context.use {
                 context.run {
                     initClassLoader(javaClass.classLoader)
