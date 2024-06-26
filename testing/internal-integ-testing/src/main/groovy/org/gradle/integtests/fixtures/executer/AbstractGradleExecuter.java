@@ -149,6 +149,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
     private String javaHome;
+    private Jvm jvm;
     private File buildScript;
     private File projectDir;
     private File settingsFile;
@@ -242,6 +243,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         dependencyList = false;
         executable = null;
         javaHome = null;
+        jvm = null;
         environmentVars.clear();
         stdinPipe = null;
         defaultCharacterEncoding = null;
@@ -333,6 +335,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (javaHome != null) {
             executer.withJavaHome(javaHome);
+        }
+        if (jvm != null) {
+            executer.withJvm(jvm);
         }
         for (File initScript : initScripts) {
             executer.usingInitScript(initScript);
@@ -627,7 +632,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected String getJavaHome() {
-        return javaHome == null ? Jvm.current().getJavaHome().getAbsolutePath() : javaHome;
+        if (javaHome != null) {
+            return javaHome;
+        }
+        if (jvm != null) {
+            return jvm.getJavaHome().getAbsolutePath();
+        }
+        return Jvm.current().getJavaHome().getAbsolutePath();
     }
 
     protected File getJavaHomeLocation() {
@@ -637,12 +648,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withJavaHome(String javaHome) {
         this.javaHome = javaHome;
+        this.jvm = null;
         return this;
     }
 
     @Override
-    public GradleExecuter withJavaHome(File javaHome) {
-        this.javaHome = javaHome == null ? null : javaHome.getAbsolutePath();
+    public GradleExecuter withJvm(Jvm jvm) {
+        if (jvm.getJavaVersion() == null) {
+            throw new IllegalArgumentException(
+                "The provided JVM does not have a version and was likely created with Jvm.forHome(File). " +
+                    "This method should only be used with probed JVMs. " +
+                    "Use withJavaHome(String) instead."
+            );
+        }
+
+        this.jvm = jvm;
+        this.javaHome = null;
         return this;
     }
 

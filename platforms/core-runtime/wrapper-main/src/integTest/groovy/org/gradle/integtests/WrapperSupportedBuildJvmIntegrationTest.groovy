@@ -31,7 +31,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         prepareWrapper()
-        wrapperExecuter.withJavaHome(jdk.javaHome)
+        wrapperExecuter.withJvm(jdk)
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()

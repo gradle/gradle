@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -510,11 +511,11 @@ Joe!""")
     }
 
     // bootclasspath has been removed in Java 9+
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(IntegTestPreconditions.BestJreAvailable)
     @Issue("https://github.com/gradle/gradle/issues/19817")
     def "shows deprecation if bootclasspath is provided as a path instead of a single file"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        def rtJar = new File(AvailableJavaHomes.bestJre, "lib/rt.jar")
+        def bootClasspath = TextUtil.escapeString(rtJar.absolutePath) + "${File.pathSeparator}someotherpath"
         buildFile << """
             plugins {
                 id 'java'
