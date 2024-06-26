@@ -17,7 +17,6 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
@@ -77,11 +76,11 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        Object details = buildOperation.getDetails();
-        if (details instanceof ExecuteTaskBuildOperationDetails) {
-            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
+//        Object details = buildOperation.getDetails();
+//        if (details instanceof ExecuteTaskBuildOperationDetails) {
+//            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
 //            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
-        }
+//        }
     }
 
     @Override
