@@ -22,7 +22,7 @@ import org.gradle.internal.problems.failure.FailurePrinterListener
 import org.gradle.internal.problems.failure.StackTraceRelevance
 
 
-data class DecoratedPropertyProblem(
+data class DecoratedReportProblem(
     val trace: PropertyTrace,
     val message: StructuredMessage,
     val failure: DecoratedFailure? = null,

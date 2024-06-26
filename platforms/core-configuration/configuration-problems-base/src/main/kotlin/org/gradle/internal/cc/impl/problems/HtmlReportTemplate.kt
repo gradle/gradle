@@ -20,13 +20,13 @@ import java.io.BufferedReader
 import java.net.URL
 
 
-internal
-object HtmlReportTemplate {
+class HtmlReportTemplate(private val reportHtmlFileName: String = "configuration-cache-report.html") {
 
-    const val reportHtmlFileName = "configuration-cache-report.html"
+    val htmlFileName: String
+        get() = reportHtmlFileName
 
     private
-    const val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
+    val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
 
     /**
      * Returns the header and footer of the html template as a pair.

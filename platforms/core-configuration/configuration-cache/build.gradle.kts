@@ -6,25 +6,6 @@ plugins {
 
 description = "Configuration cache implementation"
 
-val configurationCacheReportPath by configurations.creating {
-    isVisible = false
-    isCanBeConsumed = false
-    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
-}
-
-// You can have a faster feedback loop by running `configuration-cache-report` as an included build
-// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
-dependencies {
-    configurationCacheReportPath(libs.configurationCacheReport)
-}
-
-tasks.processResources {
-    from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
-        into("org/gradle/internal/cc/impl/problems")
-        exclude("META-INF/**")
-    }
-}
-
 // The integration tests in this project do not need to run in 'config cache' mode.
 tasks.configCacheIntegTest {
     enabled = false
@@ -93,7 +74,6 @@ dependencies {
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(projects.workers)
 
-    runtimeOnly(libs.groovyJson)
     runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)

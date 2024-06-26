@@ -19,14 +19,14 @@ package org.gradle.internal.cc.impl.problems
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.configuration.problems.DecoratedFailure
-import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
+import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import org.gradle.internal.configuration.problems.FailureDecorator
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -44,14 +44,14 @@ import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-
-val logger: Logger = Logging.getLogger("org.gradle.cc.reporting")
+val logger: Logger = getLogger(ConfigurationCacheReport::class.java)
 
 @ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
-    internalOptions: InternalOptions
+    internalOptions: InternalOptions,
+    reportFileName: String = "configuration-cache-report"
 ) : Closeable {
 
     companion object {
@@ -60,6 +60,8 @@ class ConfigurationCacheReport(
     }
 
     private
+    val isStacktraceHashes = internalOptions.getOption(stacktraceHashes).get()
+
     sealed class State {
 
         open fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State =
@@ -105,20 +107,27 @@ class ConfigurationCacheReport(
         }
 
         class Spooling(
-            val spoolFile: File,
+            spoolFileProvider: TemporaryFileProvider,
+            val reportFileName: String,
             val executor: ManagedExecutor,
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedPropertyProblem
+            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedReportProblem
         ) : State() {
+
+            private
+            val spoolFile = spoolFileProvider.createTemporaryFile(reportFileName, ".html")
+
+            private
+            val htmlReportTemplate = HtmlReportTemplate()
 
             private
             val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
 
             private
-            val writer = HtmlReportWriter(hashingStream.writer())
+            val writer = HtmlReportWriter(hashingStream.writer(), htmlReportTemplate)
 
             init {
                 executor.submit {
@@ -191,7 +200,7 @@ class ConfigurationCacheReport(
             private
             fun moveSpoolFileTo(outputDirectory: File): File {
                 val reportDir = outputDirectory.resolve(reportHash())
-                val reportFile = reportDir.resolve(HtmlReportTemplate.reportHtmlFileName)
+                val reportFile = reportDir.resolve("$reportFileName.html")
                 if (!reportFile.exists()) {
                     require(reportDir.mkdirs()) {
                         "Could not create configuration cache report directory '$reportDir'"
@@ -212,12 +221,10 @@ class ConfigurationCacheReport(
     }
 
     private
-    val isStacktraceHashes = internalOptions.getOption(stacktraceHashes).get()
-
-    private
     var state: State = State.Idle { kind, problem ->
         State.Spooling(
-            temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
+            temporaryFileProvider,
+            reportFileName,
             executorFactory.create("Configuration cache report writer", 1),
             CharBuf::class.java.classLoader,
             ::decorateProblem
@@ -231,9 +238,9 @@ class ConfigurationCacheReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedPropertyProblem {
+    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedReportProblem {
         val failure = problem.stackTracingFailure
-        return DecoratedPropertyProblem(
+        return DecoratedReportProblem(
             problem.trace,
             decorateMessage(problem, failure),
             decoratedFailureFor(failure, severity),
@@ -294,6 +301,7 @@ class ConfigurationCacheReport(
      * The file is laid out in such a way as to allow extracting the pure JSON model,
      * see [HtmlReportWriter].
      */
+
     fun writeReportFileTo(outputDirectory: File, details: ConfigurationCacheReportDetails): File? {
         var reportFile: File?
         modifyState {
