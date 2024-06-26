@@ -44,7 +44,7 @@ class CompileOptionsTest extends Specification {
         !compileOptions.verbose.get()
         !compileOptions.fork.get()
 
-        compileOptions.compilerArgs.empty
+        compileOptions.compilerArgs.get().empty
         compileOptions.encoding.getOrNull() == null
         compileOptions.bootstrapClasspath.isEmpty()
         compileOptions.extensionDirs.getOrNull() == null
@@ -80,7 +80,7 @@ class CompileOptionsTest extends Specification {
 
     def "define"() {
         compileOptions.debug.set(false)
-        compileOptions.fork = false
+        compileOptions.fork.set(false)
         compileOptions.define(debug: true)
 
         expect:

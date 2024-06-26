@@ -39,7 +39,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        DefaultJavaCompileSpec.setCompileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -84,7 +84,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "removes -source and -target option if --release is present"() {
         when:
-        spec.compileOptions.compilerArgs += ['--release', '7']
+        spec.compileOptions.compilerArgs.addAll(['--release', '7'])
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
@@ -94,7 +94,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "can use a GString for the value of the release flag"() {
         when:
-        spec.compileOptions.compilerArgs += ['--release', "${ -> 7}"]
+        spec.compileOptions.compilerArgs.addAll(['--release', "${ -> 7}"])
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
@@ -182,7 +182,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "generates -bootclasspath option"() {
         def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
-        DefaultJavaCompileSpec.setCompileOptions = compileOptions
+        spec.compileOptions = compileOptions
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions

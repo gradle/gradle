@@ -4,7 +4,7 @@ plugins {
 
 // tag::enabling-feature-preview[]
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += "--enable-preview"
+    options.compilerArgs.add("--enable-preview")
 }
 
 tasks.withType(Test).configureEach {

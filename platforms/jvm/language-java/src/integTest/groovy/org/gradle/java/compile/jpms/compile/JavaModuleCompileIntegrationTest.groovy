@@ -119,7 +119,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
 
         buildFile << """
             tasks.withType(JavaCompile) {
-                options.compilerArgs += ['--add-reads', 'consumer=ALL-UNNAMED']
+                options.compilerArgs.addAll(['--add-reads', 'consumer=ALL-UNNAMED'])
             }
         """
 

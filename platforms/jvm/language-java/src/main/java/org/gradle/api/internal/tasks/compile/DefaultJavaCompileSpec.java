@@ -60,6 +60,10 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         this.compileOptions = new MinimalJavaCompileOptions(compileOptions, sourcepath);
     }
 
+    public void setCompileOptions(CompileOptions compileOptions) {
+        this.compileOptions = new MinimalJavaCompileOptions(compileOptions, compileOptions.getSourcepath());
+    }
+
     @Override
     public List<File> getAnnotationProcessorPath() {
         return annotationProcessorPath;

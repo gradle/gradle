@@ -173,7 +173,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         }
         spec.setCompileClasspath(effectiveClasspath);
         configureCompatibilityOptions(spec);
-        spec.setCompileOptions(getOptions(), getOptions().getSourcepath());
+        spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
             ? ImmutableList.of()
