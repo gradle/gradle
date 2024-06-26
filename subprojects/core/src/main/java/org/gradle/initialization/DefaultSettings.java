@@ -31,7 +31,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.Conventions;
+import org.gradle.api.initialization.Conventions;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;

@@ -266,18 +266,18 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("(foo is configured)")
     }
 
-    def "can configure build-level conventions in a non-declarative settings file"() {
+    def "can configure build-level conventions in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
+        file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
             include("declarative")
             include("non-declarative")
         """
 
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("foo"))
 
-        file("non-declarative/build.gradle") << """
+        file("non-declarative/build.gradle${extension}") << """
             plugins { id("com.example.test-software-type-impl") }
         """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
 
@@ -292,6 +292,11 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         outputContains("""id = convention\nbar = bar""")
+
+        where:
+        type     | extension
+        "groovy" | ""
+        "kotlin" | ".kts"
     }
 
     def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
@@ -305,14 +310,14 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
         file("non-declarative/build.gradle${extension}") << """
             plugins { id("com.example.test-software-type-impl") }
-        """
+        """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("bar"))
 
         when:
         run(":non-declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        outputContains("""id = convention\nbar = convention""")
+        outputContains("""id = convention\nbar = bar""")
 
         when:
         run(":declarative:printTestSoftwareTypeExtensionConfiguration")

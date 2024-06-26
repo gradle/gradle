@@ -17,12 +17,10 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.Conventions;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
@@ -91,7 +89,4 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
         include(new String[] {projectPath});
     }
 
-    Conventions getConventions();
-
-    void conventions(Action<? super Conventions> action);
 }

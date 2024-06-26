@@ -51,6 +51,7 @@ data class ProjectSchema<out T>(
     val tasks: List<ProjectSchemaEntry<T>>,
     val containerElements: List<ProjectSchemaEntry<T>>,
     val configurations: List<ConfigurationEntry<String>>,
+    val buildConventions: List<ProjectSchemaEntry<T>>,
     val scriptTarget: Any? = null
 ) {
 
@@ -60,6 +61,7 @@ data class ProjectSchema<out T>(
         tasks.map { it.map(f) },
         containerElements.map { it.map(f) },
         configurations,
+        buildConventions.map { it.map(f) },
         scriptTarget
     )
 
@@ -69,6 +71,7 @@ data class ProjectSchema<out T>(
             || tasks.isNotEmpty()
             || containerElements.isNotEmpty()
             || configurations.isNotEmpty()
+            || buildConventions.isNotEmpty()
 }
 
 

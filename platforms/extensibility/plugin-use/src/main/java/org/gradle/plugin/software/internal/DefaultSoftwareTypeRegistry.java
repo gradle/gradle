@@ -17,12 +17,15 @@
 package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -84,6 +87,14 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
             .findFirst();
     }
 
+    @Override
+    public NamedDomainObjectCollectionSchema getSchema() {
+        return () -> Iterables.transform(
+            () -> getSoftwareTypeImplementations().entrySet().iterator(),
+            entry -> new SoftwareTypeSchema(entry.getKey(), entry.getValue().getModelPublicType())
+        );
+    }
+
     private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
         private final Class<? extends Plugin<Project>> pluginClass;
         private final Class<? extends Plugin<Settings>> registeringPluginClass;
@@ -127,6 +138,26 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
 
         private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
             return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
+        }
+    }
+
+    private static class SoftwareTypeSchema implements NamedDomainObjectCollectionSchema.NamedDomainObjectSchema {
+        private final String name;
+        private final Class<?> modelPublicType;
+
+        public SoftwareTypeSchema(String name, Class<?> modelPublicType) {
+            this.name = name;
+            this.modelPublicType = modelPublicType;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public TypeOf<?> getPublicType() {
+            return TypeOf.typeOf(modelPublicType);
         }
     }
 }

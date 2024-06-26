@@ -42,7 +42,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.ActionConventionHandler;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
-import org.gradle.api.internal.initialization.Conventions;
+import org.gradle.api.initialization.Conventions;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultConventions;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
