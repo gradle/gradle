@@ -20,8 +20,8 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.cc.impl.problems.CommonReportDetails;
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport;
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheReportDetails;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.configuration.problems.ProblemFactory;
 import org.gradle.internal.configuration.problems.StructuredMessage;
@@ -55,7 +55,7 @@ public class DefaultProblemsReportCreator implements ProblemReporter, ProblemEmi
     public void report(File reportDir, ProblemConsumer validationFailures) {
         StructuredMessage.Builder builder = new StructuredMessage.Builder();
         builder.text("text");
-        report.writeReportFileTo(reportDir, new ConfigurationCacheReportDetails("buildDisplayName", "cacheAction", builder.build(), "requested tasks", 1));
+        report.writeReportFileTo(reportDir, new CommonReportDetails("buildDisplayName", "cacheAction", builder.build(), "requested tasks", 1));
     }
 
     @Override

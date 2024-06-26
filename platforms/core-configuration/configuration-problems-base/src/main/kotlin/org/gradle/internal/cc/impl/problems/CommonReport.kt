@@ -74,7 +74,7 @@ class ConfigurationCacheReport(
          */
         open fun commitReportTo(
             outputDirectory: File,
-            details: ConfigurationCacheReportDetails
+            details: CommonReportDetails
         ): Pair<State, File?> =
             illegalState()
 
@@ -94,7 +94,7 @@ class ConfigurationCacheReport(
              */
             override fun commitReportTo(
                 outputDirectory: File,
-                details: ConfigurationCacheReportDetails
+                details: CommonReportDetails
             ): Pair<State, File?> =
                 this to null
 
@@ -149,7 +149,7 @@ class ConfigurationCacheReport(
 
             override fun commitReportTo(
                 outputDirectory: File,
-                details: ConfigurationCacheReportDetails
+                details: CommonReportDetails
             ): Pair<State, File?> {
 
                 val reportFile = try {
@@ -178,7 +178,7 @@ class ConfigurationCacheReport(
             }
 
             private
-            fun closeHtmlReport(details: ConfigurationCacheReportDetails) {
+            fun closeHtmlReport(details: CommonReportDetails) {
                 writer.endHtmlReport(details)
                 writer.close()
             }
@@ -301,7 +301,7 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
 
-    fun writeReportFileTo(outputDirectory: File, details: ConfigurationCacheReportDetails): File? {
+    fun writeReportFileTo(outputDirectory: File, details: CommonReportDetails): File? {
         var reportFile: File?
         modifyState {
             val (newState, outputFile) = commitReportTo(outputDirectory, details)

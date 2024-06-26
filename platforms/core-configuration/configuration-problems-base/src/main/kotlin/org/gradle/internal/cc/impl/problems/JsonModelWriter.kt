@@ -53,7 +53,7 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(details: ConfigurationCacheReportDetails) = with(details) {
+    fun endModel(details: CommonReportDetails) = with(details) {
         endArray()
 
         comma()
