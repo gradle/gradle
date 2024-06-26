@@ -32,7 +32,7 @@ interface ProblemFactory {
      *
      * Problem has no documentation, and a default location is inferred from the calling thread's state.
      */
-    fun problem(message: StructuredMessage, exception: Throwable? = null, documentationSection: DocumentationSection? = null): PropertyProblem
+    fun problem(message: StructuredMessage, exception: Throwable? = null, documentationSection: DocumentationSection? = null, getStackTrace: Boolean = true): PropertyProblem
 
     /**
      * Creates a problem with the given message.

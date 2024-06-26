@@ -24,12 +24,14 @@ import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.extensions.core.add
@@ -57,7 +59,6 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         registration.run {
             add(DefaultEncryptionService::class.java)
             add(ConfigurationCacheKey::class.java)
-            add(ConfigurationCacheReport::class.java)
             add(DeprecatedFeaturesListener::class.java)
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
@@ -69,6 +70,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
+            addProvider(ConfigurationCacheReportProvider)
         }
     }
 
@@ -163,5 +165,17 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         private
         fun hasIgnoredPaths(configurationCacheStartParameter: ConfigurationCacheStartParameter): Boolean =
             !configurationCacheStartParameter.ignoredFileSystemCheckInputs.isNullOrEmpty()
+    }
+
+    private
+    object ConfigurationCacheReportProvider : ServiceRegistrationProvider {
+        @Provides
+        fun createConfigurationCacheReport(
+            executorFactory: ExecutorFactory,
+            temporaryFileProvider: TemporaryFileProvider,
+            internalOptions: InternalOptions
+        ): ConfigurationCacheReport {
+            return ConfigurationCacheReport(executorFactory, temporaryFileProvider, internalOptions)
+        }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.catalog.parser
 
+
 import com.google.common.collect.Interners
 import groovy.transform.CompileStatic
 import org.gradle.api.InvalidUserDataException
@@ -30,9 +31,9 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -43,7 +44,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
     def supplier = Stub(Supplier)
     def problems = new DefaultProblems(
-        Stub(ProblemEmitter)
+        [Stub(ProblemEmitter)]
     )
 
     def createVersionCatalogBuilder() {

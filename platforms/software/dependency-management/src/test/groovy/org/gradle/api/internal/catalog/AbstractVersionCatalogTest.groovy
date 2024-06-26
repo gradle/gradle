@@ -32,7 +32,7 @@ class AbstractVersionCatalogTest extends Specification {
 
     def createVersionCatalogBuilder() {
         def supplier = Stub(Supplier)
-        def problems = new DefaultProblems(new NoOpProblemEmitter())
+        def problems = new DefaultProblems([new NoOpProblemEmitter()])
         new DefaultVersionCatalogBuilder(
             "libs",
             Interners.newStrongInterner(),
