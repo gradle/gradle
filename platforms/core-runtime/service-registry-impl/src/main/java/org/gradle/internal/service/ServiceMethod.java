@@ -19,7 +19,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-public interface ServiceMethod {
+interface ServiceMethod {
     Class<?> getOwner();
 
     String getName();

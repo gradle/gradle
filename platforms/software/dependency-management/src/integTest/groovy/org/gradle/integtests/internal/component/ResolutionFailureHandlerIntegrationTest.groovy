@@ -17,7 +17,6 @@
 package org.gradle.integtests.internal.component
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
@@ -63,10 +62,16 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
           - Value: 'round' selects variant: 'blueRoundElements'
           - Value: 'square' selects variant: 'blueSquareElements'
           - Value: 'triangle' selects variant: 'blueTriangleElements'""")
+
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
         assertSuggestsViewingDocs("Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+        }
     }
 
     def "demonstrate ambiguous graph variant without single disambiguating value selection failure for project"() {
@@ -96,12 +101,17 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
               - Unmatched attributes:
                   - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'square' but the consumer didn't ask for it""")
+
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "demonstrate ambiguous graph variant selection failure with single disambiguating value for externalDep"() {
         ambiguousGraphVariantForExternalDep.prepare()
 
@@ -109,7 +119,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(ambiguousGraphVariantForExternalDep)
 
         and: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'")
+        // This doesn't appear with CC: failure.assertHasDescription("Execution failed for task ':forceResolution'")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
@@ -123,6 +133,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+        }
     }
 
     def "demonstrate no matching graph variants selection failure for project"() {
@@ -145,9 +160,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-variants'
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "demonstrate no matching graph variants selection failure for externalDep"() {
         noMatchingGraphVariantsForExternalDep.prepare()
 
@@ -155,7 +174,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertResolutionFailsAsExpected(noMatchingGraphVariantsForExternalDep)
 
         and: "Has error output"
-        failure.assertHasDescription("Execution failed for task ':forceResolution'.")
+        // This doesn't appear with CC: failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
@@ -171,6 +190,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-variants'
+        }
     }
 
     def 'demonstrate incompatible requested configuration failure'() {
@@ -193,6 +217,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:configuration-not-compatible'
+        }
     }
 
     def "demonstrate no variants exist"() {
@@ -213,6 +242,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-variants'
+        }
     }
 
     def "demonstrate configuration not found selection failure"() {
@@ -230,8 +264,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
       > A dependency was declared on configuration 'absent' of 'project :' but no variant with that configuration name exists.""")
 
         and: "Helpful resolutions are provided"
+        failure.assertHasResolution("To determine which configurations are available in the target project :, run :outgoingVariants.")
         assertSuggestsReviewingAlgorithm()
-        // TODO: Nothing specific here
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:configuration-does-not-exist'
+        }
     }
     // endregion Stage 2 - VariantSelectionFailure
 
@@ -258,6 +297,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
+        }
     }
 
     def "demonstrate no matching artifact variants exception"() {
@@ -278,6 +322,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-artifact'
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'dependency-variant-resolution:no-compatible-artifact'
+        }
     }
 
     def "demonstrate ambiguous artifact transforms exception"() {
@@ -311,6 +363,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+        }
     }
 
     def "demonstrate ambiguous artifact variants exception"() {
@@ -329,6 +389,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+        }
     }
     // endregion Stage 4 - ArtifactSelectionFailure
 
@@ -357,6 +425,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains(basicOutput)
         outputContains(fullOutput)
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-variants-with-matching-capabilities'
+        }
     }
     // endregion dependencyInsight failures
 
@@ -456,6 +529,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // endregion error showcase
 
     // region setup
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     private void setupConfigurationNotFound() {
         buildKotlinFile << """
             configurations {

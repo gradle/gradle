@@ -18,6 +18,7 @@ package org.gradle.internal.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -52,6 +53,11 @@ public abstract class AmbiguousVariantSelectionException extends ArtifactSelecti
         @Override
         public String describeRequestTarget() {
             return "empty target";
+        }
+
+        @Override
+        public ResolutionFailureProblemId getProblemId() {
+            return ResolutionFailureProblemId.UNKNOWN_RESOLUTION_FAILURE;
         }
     };
 

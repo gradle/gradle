@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -39,7 +38,6 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * <p>
  * Only services that are annotated with {@link ServiceScope} are validated.
  */
-@NonNullApi
 class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
     private static final List<Class<? extends Annotation>> SCOPE_ANNOTATIONS = Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);

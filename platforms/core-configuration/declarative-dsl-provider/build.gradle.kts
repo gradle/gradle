@@ -34,7 +34,6 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.resources)
-    implementation(projects.modelCore)
     implementation(projects.serviceLookup)
 
     implementation(libs.guava)

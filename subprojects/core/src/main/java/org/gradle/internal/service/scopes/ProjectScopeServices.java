@@ -39,7 +39,6 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.AddSoftwareTypesAsExtensionsPluginTarget;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -236,12 +235,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new AddSoftwareTypesAsExtensionsPluginTarget(
-            project,
-            ruleBasedTarget,
-            pluginScheme.getInspectionScheme(),
-            softwareTypeRegistry
-        );
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,
@@ -249,7 +242,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
                 instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
                 pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
-            pluginTarget,
+            ruleBasedTarget,
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,

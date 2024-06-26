@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure.type;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
 
@@ -26,12 +27,13 @@ import org.gradle.internal.component.resolution.failure.interfaces.VariantSelect
  * An abstract {@link VariantSelectionByAttributesFailure} that represents the situation when a variant
  * was requested via variant-aware matching and that matching failed.
  */
-public abstract class AbstractVariantSelectionByAttributesFailure implements VariantSelectionByAttributesFailure {
+public abstract class AbstractVariantSelectionByAttributesFailure extends AbstractResolutionFailure implements VariantSelectionByAttributesFailure {
     private final ComponentIdentifier targetComponent;
     private final ImmutableAttributes requestedAttributes;
     private final ImmutableCapabilities requestedCapabilities;
 
-    public AbstractVariantSelectionByAttributesFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableCapabilities requestedCapabilities) {
+    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableCapabilities requestedCapabilities) {
+        super(problemId);
         this.targetComponent = targetComponent;
         this.requestedAttributes = requestedAttributes.asImmutable();
         this.requestedCapabilities = requestedCapabilities;
