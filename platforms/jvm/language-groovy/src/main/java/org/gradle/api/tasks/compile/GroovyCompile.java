@@ -239,7 +239,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         configureCompatibilityOptions(spec);
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProjectLayout().files() : compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(compileOptions, compileOptions.getSourcepath());
         spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
         spec.getCompileOptions().setSupportsCompilerApi(true);
         if (getOptions().getIncremental().getOrElse(false)) {

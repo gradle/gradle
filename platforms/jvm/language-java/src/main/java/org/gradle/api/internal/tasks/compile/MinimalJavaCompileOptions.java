@@ -50,10 +50,9 @@ public class MinimalJavaCompileOptions implements Serializable {
     private boolean supportsIncrementalCompilationAfterFailure;
     private File previousCompilationDataFile;
 
-    public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
-        FileCollection sourcepath = compileOptions.getSourcepath();
-        this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
-        this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
+    public MinimalJavaCompileOptions(final CompileOptions compileOptions, FileCollection sourcepath) {
+        this.sourcepath = ImmutableList.copyOf(sourcepath.getFiles());
+        this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs().get());
         this.encoding = compileOptions.getEncoding().getOrNull();
         this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs().getOrNull();

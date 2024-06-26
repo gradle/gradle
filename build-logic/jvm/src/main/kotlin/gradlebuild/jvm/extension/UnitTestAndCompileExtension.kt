@@ -17,6 +17,7 @@
 package gradlebuild.jvm.extension
 
 import org.gradle.api.Project
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.*
@@ -50,6 +51,15 @@ abstract class UnitTestAndCompileExtension(
 
     private
     fun enforceCompatibility(majorVersion: Int) {
+        // TODO: Remove after migration to lazy property
+        // Added for compatibility for migration
+        @Suppress("unused")
+        fun ListProperty<String>.remove(value: String) {
+            val list = get().toMutableList().apply {
+                remove(value)
+            }
+            set(list)
+        }
         tasks.withType<JavaCompile>().configureEach {
             options.release = null
             options.compilerArgs.remove("-parameters")
@@ -58,5 +68,6 @@ abstract class UnitTestAndCompileExtension(
         }
         // Apply ParameterNamesIndex since 6 doesn't support -parameters
         project.apply(plugin = "gradlebuild.api-parameter-names-index")
+
     }
 }

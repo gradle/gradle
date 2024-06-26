@@ -59,7 +59,8 @@ class CompileTransactionTest extends Specification {
         classBackupDir = new File(transactionDir, "backup-dir")
         spec = new DefaultJavaCompileSpec()
         spec.setTempDir(temporaryFolder)
-        spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
+        def options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        spec.setCompileOptions(options, options.sourcepath)
         spec.setDestinationDir(createNewDirectory(file("classes")))
         spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }

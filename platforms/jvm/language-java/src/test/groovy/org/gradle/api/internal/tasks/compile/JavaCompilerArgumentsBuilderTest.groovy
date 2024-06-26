@@ -39,7 +39,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        DefaultJavaCompileSpec.setCompileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -182,7 +182,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "generates -bootclasspath option"() {
         def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
-        spec.compileOptions = compileOptions
+        DefaultJavaCompileSpec.setCompileOptions = compileOptions
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions

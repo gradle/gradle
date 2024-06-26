@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -42,14 +42,12 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -65,16 +63,7 @@ public abstract class CompileOptions extends AbstractOptions {
 
     private DebugOptions debugOptions;
 
-    private boolean fork;
-
     private ForkOptions forkOptions;
-
-    private FileCollection bootstrapClasspath;
-
-    private List<String> compilerArgs = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> compilerArgumentProviders = new ArrayList<>();
-    private FileCollection sourcepath;
-
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
@@ -101,6 +90,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.getWarnings().convention(true);
         this.getDebug().convention(true);
         this.getIncremental().convention(true);
+        this.getFork().convention(false);
     }
 
     /**
@@ -258,20 +248,22 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     *
+     * @since 8.10
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFork() {
-        return fork;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
 
     /**
-     * Sets whether to run the compiler in its own process. Note that this does
-     * not necessarily mean that a new process will be created for each compile task.
-     * Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setFork(boolean fork) {
-        this.fork = fork;
+    @Incubating
+    @ReplacedBy("fork")
+    public Property<Boolean> getIsFork() {
+        return getFork();
     }
 
     /**
@@ -290,26 +282,14 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     * Returns the bootstrap classpath to be used for the compiler process. Defaults to empty.
      *
      * @since 4.3
      */
-    @Nullable
     @Optional
     @CompileClasspath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getBootstrapClasspath() {
-        return bootstrapClasspath;
-    }
-
-    /**
-     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
-     *
-     * @since 4.3
-     */
-    public void setBootstrapClasspath(@Nullable FileCollection bootstrapClasspath) {
-        this.bootstrapClasspath = bootstrapClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getBootstrapClasspath();
 
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
@@ -332,10 +312,8 @@ public abstract class CompileOptions extends AbstractOptions {
      * are ignored.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getCompilerArgs() {
-        return compilerArgs;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getCompilerArgs();
 
     /**
      * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
@@ -343,14 +321,16 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public List<String> getAllCompilerArgs() {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
-        for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
-            builder.addAll(compilerArgumentProvider.asArguments());
-        }
-        return builder.build();
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAllCompilerArgs() {
+        return getCompilerArgs().zip(getCompilerArgumentProviders(), (args, providerArgs) -> {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            builder.addAll(CollectionUtils.stringize(args));
+            for (CommandLineArgumentProvider compilerArgumentProvider : providerArgs) {
+                builder.addAll(compilerArgumentProvider.asArguments());
+            }
+            return builder.build();
+        });
     }
 
     /**
@@ -359,25 +339,15 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
-    public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
-        return compilerArgumentProviders;
-    }
-
-    /**
-     * Sets any additional arguments to be passed to the compiler.
-     * Defaults to the empty list.
-     */
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
-    }
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getCompilerArgumentProviders"))
+    public abstract ListProperty<CommandLineArgumentProvider> getCompilerArgumentProviders();
 
     /**
      * Convenience method to set {@link ForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
     public CompileOptions fork(Map<String, Object> forkArgs) {
-        fork = true;
+        getFork().set(true);
         forkOptions.define(forkArgs);
         return this;
     }
@@ -445,26 +415,13 @@ public abstract class CompileOptions extends AbstractOptions {
      * If you wish to use any source path, it must be explicitly set.
      *
      * @return the source path
-     * @see #setSourcepath(FileCollection)
      */
     @Optional
-    @Nullable
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @ToBeReplacedByLazyProperty
-    public FileCollection getSourcepath() {
-        return sourcepath;
-    }
-
-    /**
-     * Sets the source path to use for the compilation.
-     *
-     * @param sourcepath the source path
-     */
-    public void setSourcepath(@Nullable FileCollection sourcepath) {
-        this.sourcepath = sourcepath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getSourcepath();
 
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.

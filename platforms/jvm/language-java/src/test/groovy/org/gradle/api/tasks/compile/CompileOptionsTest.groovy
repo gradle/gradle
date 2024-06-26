@@ -42,11 +42,11 @@ class CompileOptionsTest extends Specification {
         !compileOptions.deprecation.get()
         !compileOptions.listFiles.get()
         !compileOptions.verbose.get()
-        !compileOptions.fork
+        !compileOptions.fork.get()
 
         compileOptions.compilerArgs.empty
         compileOptions.encoding.getOrNull() == null
-        compileOptions.bootstrapClasspath == null
+        compileOptions.bootstrapClasspath.isEmpty()
         compileOptions.extensionDirs.getOrNull() == null
 
         compileOptions.forkOptions != null
@@ -59,7 +59,7 @@ class CompileOptionsTest extends Specification {
 
         expect:
         compileOptions.fork([memoryMaximumSize: '1g'])
-        assertTrue(compileOptions.fork)
+        assertTrue(compileOptions.fork.get())
         assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
     }
 
@@ -85,14 +85,14 @@ class CompileOptionsTest extends Specification {
 
         expect:
         compileOptions.debug.get()
-        !compileOptions.fork
+        !compileOptions.fork.get()
     }
 
     def "converts GStrings to Strings when getting all compiler arguments"() {
         given:
-        compileOptions.compilerArgs << "Foo${23}"
+        compileOptions.compilerArgs.add("Foo${23}")
 
         expect:
-        compileOptions.allCompilerArgs.contains('Foo23')
+        compileOptions.allCompilerArgs.get().contains('Foo23')
     }
 }

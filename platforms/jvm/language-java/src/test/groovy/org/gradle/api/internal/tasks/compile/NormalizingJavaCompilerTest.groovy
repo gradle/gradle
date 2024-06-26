@@ -32,7 +32,7 @@ class NormalizingJavaCompilerTest extends Specification {
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
         def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         compileOptions.annotationProcessorPath.setFrom(TestFiles.fixed(new File("processor.jar")))
-        spec.compileOptions = compileOptions
+        DefaultJavaCompileSpec.setCompileOptions = compileOptions
     }
 
     def "replaces iterable sources with immutable set"() {
