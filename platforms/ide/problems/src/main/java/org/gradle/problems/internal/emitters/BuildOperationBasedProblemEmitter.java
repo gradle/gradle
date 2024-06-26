@@ -81,7 +81,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
             ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
-            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
+//            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
         }
     }
 
