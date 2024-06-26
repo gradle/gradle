@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Ordering
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -37,19 +36,6 @@ const val MAX_CONSOLE_PROBLEMS = 15
 
 private
 const val MAX_CAUSES = 5
-
-
-internal
-enum class ProblemSeverity {
-    Info,
-    Failure,
-    Warning,
-    /**
-     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
-     */
-    Suppressed
-}
-
 
 /**
  * This class is thread-safe.
