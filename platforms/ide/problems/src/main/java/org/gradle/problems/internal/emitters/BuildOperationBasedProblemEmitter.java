@@ -35,7 +35,6 @@ import org.gradle.internal.operations.OperationStartEvent;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Emits problems as build operation progress events.
@@ -78,13 +77,11 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        Optional.ofNullable(buildOperation.getDetails())
-            .map(
-                details -> details instanceof ExecuteTaskBuildOperationDetails ? (ExecuteTaskBuildOperationDetails) details : null
-            ).ifPresent(details -> {
-                String taskName = details.getTask().getIdentityPath().getPath();
-                taskNames.put(buildOperation.getId(), taskName);
-            });
+        Object details = buildOperation.getDetails();
+        if (details instanceof ExecuteTaskBuildOperationDetails) {
+            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
+            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
+        }
     }
 
     @Override
