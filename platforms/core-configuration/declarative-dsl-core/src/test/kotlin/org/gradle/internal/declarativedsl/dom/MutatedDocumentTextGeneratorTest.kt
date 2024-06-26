@@ -28,7 +28,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-@Suppress("LargeClass")
 object MutatedDocumentTextGeneratorTest {
     // This one does not include dot-access like z.f(...), TODO: add some once it is fixed for the DOM
     private

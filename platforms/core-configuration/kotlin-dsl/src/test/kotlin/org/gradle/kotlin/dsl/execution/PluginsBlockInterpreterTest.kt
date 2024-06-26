@@ -23,7 +23,6 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Test
 
 
-@Suppress("LargeClass")
 class PluginsBlockInterpreterTest {
 
     @Test

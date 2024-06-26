@@ -20,6 +20,9 @@ style:
     active: false
 
 complexity:
+  LargeClass:
+    excludes: &testFolders
+      - '**/test/**'
   TooManyFunctions:
     active: false
   LongParameterList:
@@ -27,6 +30,7 @@ complexity:
     constructorThreshold: 15              # default is 7
   LongMethod:
     threshold: 100                        # default is 60
+    excludes: *testFolders
   CyclomaticComplexMethod:
     threshold: 25                         # default is 15
   ComplexCondition:

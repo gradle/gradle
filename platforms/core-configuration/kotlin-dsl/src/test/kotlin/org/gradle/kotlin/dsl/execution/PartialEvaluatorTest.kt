@@ -34,7 +34,6 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 
-@Suppress("LargeClass")
 class PartialEvaluatorTest {
 
     @Test

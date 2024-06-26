@@ -245,7 +245,6 @@ abstract class AbstractBinaryCompatibilityTest {
         }
     }
 
-    @Suppress("LongMethod")
     private
     fun setupRunBinaryCompatibility(v1: File.() -> Unit, v2: File.() -> Unit): File {
         rootDir.withFile("version.txt", "1.0")

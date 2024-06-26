@@ -114,7 +114,6 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
     """
 
     @Test
-    @Suppress("LongMethod")
     fun `new top-level kotlin members`() {
 
         checkNotBinaryCompatibleKotlin(
