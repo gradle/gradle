@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 /**
  * A registry validating that all registered services are annotated with a corresponding {@link Scope}.
  */
-public class ScopedServiceRegistry extends DefaultServiceRegistry {
+class ScopedServiceRegistry extends DefaultServiceRegistry {
 
     public ScopedServiceRegistry(
         Class<? extends Scope> scope,
