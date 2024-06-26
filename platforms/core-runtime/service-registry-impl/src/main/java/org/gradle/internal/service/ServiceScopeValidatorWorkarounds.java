@@ -41,8 +41,6 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler",
         "org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler",
 
-        "org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer",
-
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
         "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
