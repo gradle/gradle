@@ -16,6 +16,6 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-public interface DaemonDocumentationIndex {
+public interface FileSystemWatchingDocumentationIndex {
     String getLinkToSection(String sectionId);
 }
