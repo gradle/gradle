@@ -37,9 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
-
 public interface GradleExecuter extends Stoppable {
+
     /**
      * Sets the working directory to use. Defaults to the test's temporary directory.
      */
@@ -387,9 +386,7 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
-    default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
-    }
+    GradleExecuter expectDocumentedDeprecationWarning(String warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during

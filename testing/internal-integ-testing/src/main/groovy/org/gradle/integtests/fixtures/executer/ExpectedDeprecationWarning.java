@@ -29,6 +29,9 @@ import java.util.regex.Pattern;
  */
 public abstract class ExpectedDeprecationWarning {
 
+    private static final Pattern DEPRECATION_WARNING_LOG_PREFIX_PATTERN =
+        Pattern.compile("^.* \\[WARN] \\[org\\.gradle\\.internal\\.featurelifecycle\\.LoggingDeprecatedFeatureHandler] ");
+
     private final int numLines;
 
     public ExpectedDeprecationWarning(int numLines) {
@@ -95,6 +98,11 @@ public abstract class ExpectedDeprecationWarning {
         String nextLines = numLines == 1
             ? lines.get(startIndex)
             : String.join("\n", lines.subList(startIndex, Math.min(startIndex + numLines, lines.size())));
+
+        // When info or debug logging is enabled, the line will be prefixed with the log level and timestamp.
+        // We need to strip this out to match the expected message.
+        nextLines = DEPRECATION_WARNING_LOG_PREFIX_PATTERN.matcher(nextLines).replaceAll("");
+
         return matchesNextLines(nextLines);
     }
 
