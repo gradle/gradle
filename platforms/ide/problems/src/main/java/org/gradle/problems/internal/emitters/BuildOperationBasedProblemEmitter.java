@@ -80,6 +80,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
+            @SuppressWarnings("unused")
             ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
 //            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
         }
