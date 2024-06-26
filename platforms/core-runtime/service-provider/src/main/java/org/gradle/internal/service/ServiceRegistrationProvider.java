@@ -25,7 +25,7 @@ package org.gradle.internal.service;
  * The service-declaring methods are
  * <ul>
  * <li> not static and annotated with {@link Provides @Provides}
- * <li> have a name that starts with {@code create}
+ * <li> have a name that starts with {@code create} or {@code decorate}
  * <li> have zero or more parameters declaring dependencies
  * <li> have a non-void return type
  * </ul>
@@ -36,15 +36,15 @@ package org.gradle.internal.service;
  * protected SomeService createSomeService(OtherService otherServiceDependency) { ... }</code></pre>
  *
  * <p>
- * Any other methods will not be considered service declarations.
+ * Any other methods will not be ignored.
  * <p>
  * Factories are declared similarly by having the method return {@code Factory<SomeService>}.
  * The factories are used by {@link ServiceRegistry#getFactory(Class)} and {@link ServiceRegistry#newInstance(Class)} methods.
  *
  * <h3>Registering dynamically</h3>
- * You can register services dynamically using a {@link ServiceRegistration}.
+ * You can register services dynamically by declaring a {@code configure} method with a {@link ServiceRegistration} parameter.
  * <p>
- * The methods for registration are:
+ * The recognized methods are:
  * <ul>
  * <li> not static and called {@code configure}
  * <li> have one of the parameters of type {@link ServiceRegistration}
@@ -103,6 +103,22 @@ package org.gradle.internal.service;
  * When the parameter is of type {@link ServiceRegistry}, it will receive an instance of registry that owns the service.
  * See {@code ServiceRegistry ownerServiceRegistry} in the example.
  * <p>
+ *
+ * <h3>Service lookup order</h3>
+ *
+ * <b>Own services</b> of a registry are services contributed by the service providers.
+ * <p>
+ * <b>All services</b> of a registry are its own services and <em>all services</em> of all its parents.
+ * <p>
+ * The lookup order for dependencies is the following:
+ * <ol>
+ * <li> Own services of the current registry
+ * <li> All services of the first parent
+ * <li> All services of the second parent
+ * <li> ...
+ * </ol>
+ *
+ * The <em>decorator</em> declarations skip the own services, and start the lookup in the parents.
  *
  * <h3>Service lifetime</h3>
  *

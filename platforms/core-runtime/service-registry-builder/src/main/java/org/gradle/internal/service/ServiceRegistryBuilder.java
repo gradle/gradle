@@ -24,6 +24,27 @@ import java.util.List;
 /**
  * A builder for a {@link ServiceRegistry}.
  *
+ * <h3>Service lookup order</h3>
+ *
+ * How the service registry is built affects the lookup results in that registry.
+ * <p>
+ * <b>Own services</b> of a registry are services contributed by the {@link #provider(ServiceRegistrationProvider) service providers}.
+ * <p>
+ * <b>All services</b> of a registry are its own services and <em>all services</em> of its {@link #parent(ServiceRegistry) parents}.
+ * <p>
+ * The lookup order is the following:
+ * <ol>
+ * <li> Own services of the current registry
+ * <li> All services of the first parent
+ * <li> All services of the second parent
+ * <li> ...
+ * </ol>
+ *
+ * The lookup result in the <em>own services</em> does not depend on the order in which service providers were added.
+ * <p>
+ * If any service type is registered more than once within <em>own services</em>,
+ * it will result in an ambiguity error <em>at the lookup time</em>.
+ *
  * @see ServiceRegistryBuilder#builder()
  */
 public class ServiceRegistryBuilder {
@@ -47,10 +68,7 @@ public class ServiceRegistryBuilder {
     /**
      * Sets the display name to be used by the service registry.
      * <p>
-     * The display name is used for debugging and in the errors messages.
-     * The errors are not user-facing and oriented at troubleshooting.
-     * For instance, errors when services fail validation at registration time,
-     * or when their dependencies are missing at instantiation time.
+     * The display name is used for debugging and internal purposes.
      */
     public ServiceRegistryBuilder displayName(String displayName) {
         this.displayName = displayName;
@@ -60,9 +78,7 @@ public class ServiceRegistryBuilder {
     /**
      * Adds a parent for the service registry.
      * <p>
-     * Parent registries are used to lookup services not found in the current registry.
-     * <p>
-     * There can be more than one parent.
+     * There can be more than one parent and the order of parents <b>affects</b> the {@link ServiceRegistryBuilder lookup results}.
      */
     public ServiceRegistryBuilder parent(ServiceRegistry parent) {
         this.parents.add(parent);
@@ -72,10 +88,11 @@ public class ServiceRegistryBuilder {
     /**
      * Adds a service provider for the service registry.
      * <p>
-     * Providers are examined for service declarations and service registration logic
-     * at the time of building the registry.
+     * There can be more than one provider and the order of service providers
+     * does not affect {@link ServiceRegistryBuilder lookup results}.
      * <p>
-     * There can be more than one service provider.
+     * Providers are examined for service declarations and service registration logic at the time of building the registry.
+     * This implies that the {@code configure} methods will be executed before the registry is built.
      *
      * @see ServiceRegistrationProvider
      */
@@ -87,10 +104,12 @@ public class ServiceRegistryBuilder {
     /**
      * Adds a service provider for the service registry in the form of a registration action.
      * <p>
-     * The registration action is executed at the time of building the registry.
+     * There can be more than one registration action and the order in which they register services
+     * does not affect {@link ServiceRegistryBuilder lookup results}.
      * <p>
-     * There can be more than one registration action.
+     * The registration action is executed at the time of building the registry.
      *
+     * @see #provider(ServiceRegistrationProvider)
      * @see ServiceRegistrationAction
      */
     public ServiceRegistryBuilder provider(final ServiceRegistrationAction register) {
@@ -108,6 +127,8 @@ public class ServiceRegistryBuilder {
      * <p>
      * However, this still allows to register services without the
      * {@link org.gradle.internal.service.scopes.ServiceScope @ServiceScope} annotation.
+     * <p>
+     * Only one scope can be specified. The last configured scope takes effect.
      *
      * @see #scopeStrictly(Class)
      */
@@ -123,6 +144,8 @@ public class ServiceRegistryBuilder {
      * <p>
      * All registered services require the {@link org.gradle.internal.service.scopes.ServiceScope @ServiceScope}
      * annotation to be present and contain the given scope.
+     * <p>
+     * Only one scope can be specified. The last configured scope takes effect.
      *
      * @see #scope(Class)
      */

@@ -23,17 +23,17 @@ import java.io.Closeable;
  * such as service instances and factories.
  * <p>
  * Members created by the registry are stopped and closed when this registry is {@link #close() closed}.
- * <p>
- * If a member implements {@link java.io.Closeable#close() Closeable} or
- * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
- * method is called to dispose of it.
- * <p>
- * Members are closed in reverse dependency order.
  */
 public interface CloseableServiceRegistry extends ServiceRegistry, Closeable {
 
     /**
      * Closes this registry by stopping and closing all members managed by it.
+     * <p>
+     * If a member implements {@link java.io.Closeable#close() Closeable} or
+     * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
+     * method is called to dispose of it.
+     * <p>
+     * Members are closed in reverse dependency order.
      *
      * @see CloseableServiceRegistry
      */
