@@ -113,8 +113,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
     private
     fun memberPropertiesOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
         .filter { property ->
-            (includeMemberFilter.shouldIncludeMember(property) ||
-                kClass.primaryConstructor?.parameters.orEmpty().any { it.name == property.name && it.type == property.returnType })
+            includeMemberFilter.shouldIncludeMember(property)
                 && property.visibility == KVisibility.PUBLIC
                 && propertyNamePredicate(property.name)
         }.map { property -> kPropertyInformation(property) }
