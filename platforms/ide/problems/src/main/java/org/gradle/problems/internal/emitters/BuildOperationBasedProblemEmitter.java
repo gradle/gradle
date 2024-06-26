@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.internal.DefaultProblemBuilder;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
@@ -45,6 +45,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     private final Map<OperationIdentifier, String> taskNames = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
+    @SuppressWarnings("unused")
     private final BuildOperationAncestryTracker ancestryTracker;
 
     public BuildOperationBasedProblemEmitter(
@@ -62,13 +63,14 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
     @Override
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
         // Conditionally, if we can find a task name for the operation, add a location to the problem
-        Problem enrichedProblem = ancestryTracker
-            .findClosestMatchingAncestor(id, taskNames::containsKey)
-            .map(taskNames::get)
-            .map(taskName -> new DefaultProblemBuilder(problem)
-                .taskPathLocation(taskName)
-                .build())
-            .orElse(problem);
+//        Problem enrichedProblem = ancestryTracker
+//            .findClosestMatchingAncestor(id, taskNames::containsKey)
+//            .map(taskNames::get)
+//            .map(taskName -> new DefaultProblemBuilder(problem)
+//                .taskPathLocation(taskName)
+//                .build())
+//            .orElse(problem);
+        Problem enrichedProblem = problem;
 
         // Emit the problem as a progress event
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(enrichedProblem));
@@ -76,11 +78,11 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-//        Object details = buildOperation.getDetails();
-//        if (details instanceof ExecuteTaskBuildOperationDetails) {
-//            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
-//            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
-//        }
+        Object details = buildOperation.getDetails();
+        if (details instanceof ExecuteTaskBuildOperationDetails) {
+            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
+            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
+        }
     }
 
     @Override
@@ -90,7 +92,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-//        taskNames.remove(buildOperation.getId());
+        taskNames.remove(buildOperation.getId());
     }
 
 }
