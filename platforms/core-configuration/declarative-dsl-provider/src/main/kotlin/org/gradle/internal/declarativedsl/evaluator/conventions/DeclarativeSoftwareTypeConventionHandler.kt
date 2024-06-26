@@ -74,8 +74,8 @@ class DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTyp
         when (result) {
             is Evaluated -> Unit
             is NotEvaluated -> {
-                // TODO: What kind of errors can actually come out of the conversion step?  Should we have a better exception type since we're
-                //  unlikely to have analysis errors?
+                // We shouldn't get any stage failures here, as we're only applying conventions that have already been analyzed as part of the
+                // settings script evaluation.  However, if we do for some reason, we'll throw an exception.
                 throw DeclarativeDslNotEvaluatedException("", result.stageFailures)
             }
         }
