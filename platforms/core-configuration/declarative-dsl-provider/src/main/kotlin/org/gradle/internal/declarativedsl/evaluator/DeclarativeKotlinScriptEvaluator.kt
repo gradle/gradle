@@ -26,6 +26,7 @@ import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedC
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
@@ -59,6 +60,7 @@ fun defaultDeclarativeScriptEvaluator(
     schemaBuilder,
     documentChecks = setOf(SettingsBlocksCheck),
     resolutionResultHandlers = setOf(
+        ConventionApplicationHandler.DO_NOTHING,
         ConventionDefinitionCollector(softwareTypeRegistryBasedConventionRegistrar(softwareTypeRegistry))
     )
 )

@@ -32,9 +32,9 @@ import java.io.Serializable
 class ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication, Serializable
 
 
-class ConventionApplicationHandler(
-    private val conventionResolutionResults: (resolutionResult: ResolutionResult) -> List<SoftwareTypeConventionResolutionResults>
-) : ResolutionResultHandler {
+interface ConventionApplicationHandler : ResolutionResultHandler {
+
+    fun getConventionResolutionResults(): List<SoftwareTypeConventionResolutionResults>
 
     override fun shouldHandleFeature(feature: InterpretationStepFeature.ResolutionResultPostprocessing) =
         // Use an is-check, as the implementation might be a proxy
@@ -42,7 +42,7 @@ class ConventionApplicationHandler(
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
-            val conventionResolutionResultsToApply = conventionResolutionResults(resolutionResult)
+            val conventionResolutionResultsToApply = getConventionResolutionResults()
             // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
             val conventionAssignments = applyAssignmentConventions(conventionResolutionResultsToApply)
             val conventionAdditions = applyAdditionConventions(conventionResolutionResultsToApply)
@@ -54,6 +54,18 @@ class ConventionApplicationHandler(
                 conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
                 conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
             )
+        }
+    }
+
+    companion object {
+        /**
+         * A handler that does not apply any conventions.  We use this during the main script processing step so that the interpretation
+         * step will positively handle the {@link ConventionApplication} feature.  However, most software type convention application is
+         * currently handled by the {@link DeclarativeSoftwareTypeConventionHandler} during application of the software type plugin.
+         */
+        val DO_NOTHING = object : ConventionApplicationHandler {
+            override fun getConventionResolutionResults(): List<SoftwareTypeConventionResolutionResults> = emptyList()
+            override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
         }
     }
 }

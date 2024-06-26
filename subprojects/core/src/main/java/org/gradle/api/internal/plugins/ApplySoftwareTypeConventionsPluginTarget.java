@@ -21,7 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
-import org.gradle.plugin.software.internal.ConventionHandler;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
 import javax.annotation.Nullable;
@@ -35,10 +35,10 @@ import java.util.List;
 public class ApplySoftwareTypeConventionsPluginTarget implements PluginTarget {
     private final ProjectInternal target;
     private final PluginTarget delegate;
-    private final List<ConventionHandler> handlers;
+    private final List<SoftwareTypeConventionHandler> handlers;
     private final SoftwareTypeRegistry softwareTypeRegistry;
 
-    public ApplySoftwareTypeConventionsPluginTarget(ProjectInternal target, PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, List<ConventionHandler> handlers) {
+    public ApplySoftwareTypeConventionsPluginTarget(ProjectInternal target, PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, List<SoftwareTypeConventionHandler> handlers) {
         this.target = target;
         this.delegate = delegate;
         this.softwareTypeRegistry = softwareTypeRegistry;
@@ -55,7 +55,7 @@ public class ApplySoftwareTypeConventionsPluginTarget implements PluginTarget {
         delegate.applyImperative(pluginId, plugin);
 
         softwareTypeRegistry.implementationFor(Cast.uncheckedCast(plugin.getClass())).ifPresent(softwareTypeImplementation -> {
-            for (ConventionHandler handler : handlers) {
+            for (SoftwareTypeConventionHandler handler : handlers) {
                 handler.apply(target, softwareTypeImplementation.getSoftwareType());
             }
         });

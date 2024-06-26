@@ -19,6 +19,6 @@ package org.gradle.plugin.software.internal;
 /**
  * Applies the conventions from a given software type to a target object.
  */
-public interface ConventionHandler {
+public interface SoftwareTypeConventionHandler {
     void apply(Object target, String softwareTypeName);
 }

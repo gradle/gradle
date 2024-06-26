@@ -37,14 +37,14 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
-import org.gradle.plugin.software.internal.ConventionHandler
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 /**
  * A {@link ConventionHandler} for applying declarative conventions.
  */
-class SoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) : ConventionHandler {
+class DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) : SoftwareTypeConventionHandler {
     private
     val step = projectInterpretationSequenceStep(softwareTypeRegistry)
     private
@@ -55,7 +55,11 @@ class SoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) 
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
             setOf(
-                ConventionApplicationHandler { listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls() }
+                object : ConventionApplicationHandler {
+                    override fun getConventionResolutionResults(): List<SoftwareTypeConventionResolutionResults> {
+                        return listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls()
+                    }
+                }
             )
         )
 

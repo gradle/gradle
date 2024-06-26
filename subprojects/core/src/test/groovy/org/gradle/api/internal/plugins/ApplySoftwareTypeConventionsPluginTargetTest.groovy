@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.plugin.software.internal.ConventionHandler
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import spock.lang.Specification
@@ -28,8 +28,8 @@ class ApplySoftwareTypeConventionsPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
     def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
     def softwareTypeImplementation = Mock(SoftwareTypeImplementation)
-    def handler1 = Mock(ConventionHandler)
-    def handler2 = Mock(ConventionHandler)
+    def handler1 = Mock(SoftwareTypeConventionHandler)
+    def handler2 = Mock(SoftwareTypeConventionHandler)
     def pluginTarget = new ApplySoftwareTypeConventionsPluginTarget(target, delegate, softwareTypeRegistry, [handler1, handler2])
 
     def "invokes handlers for software types when software type plugin is applied"() {

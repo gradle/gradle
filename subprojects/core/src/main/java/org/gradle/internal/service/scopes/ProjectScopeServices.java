@@ -39,11 +39,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-<<<<<<< HEAD
-=======
-import org.gradle.api.internal.plugins.AddSoftwareTypesAsExtensionsPluginTarget;
 import org.gradle.api.internal.plugins.ApplySoftwareTypeConventionsPluginTarget;
->>>>>>> 447482b8afd (Allow declarative conventions to be applied in non-declarative scripts)
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -106,7 +102,7 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.plugin.software.internal.ConventionHandler;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
@@ -234,8 +230,9 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         SoftwareTypeRegistry softwareTypeRegistry,
-        List<ConventionHandler> conventionHandlers
+        List<SoftwareTypeConventionHandler> softwareTypeConventionHandlers
     ) {
+
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
             new ImperativeOnlyPluginTarget<>(project),
@@ -246,7 +243,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             project,
             ruleBasedTarget,
             softwareTypeRegistry,
-            conventionHandlers
+            softwareTypeConventionHandlers
         );
         return instantiator.newInstance(
             DefaultPluginManager.class,
