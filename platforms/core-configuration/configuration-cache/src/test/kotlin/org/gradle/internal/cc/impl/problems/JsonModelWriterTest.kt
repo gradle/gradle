@@ -41,7 +41,7 @@ class JsonModelWriterTest {
                         StructuredMessage.build { reference("") }
                     )
                 )
-                endModel(ConfigurationCacheReportDetails("", "", StructuredMessage.forText(""), "", 0))
+                endModel(CommonReportDetails("", "", StructuredMessage.forText(""), "", 0))
             },
             hasEntry(
                 "diagnostics",

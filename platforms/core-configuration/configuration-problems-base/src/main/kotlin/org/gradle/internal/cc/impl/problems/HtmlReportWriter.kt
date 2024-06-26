@@ -43,7 +43,7 @@ class HtmlReportWriter(
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(details: ConfigurationCacheReportDetails) {
+    fun endHtmlReport(details: CommonReportDetails) {
         jsonModelWriter.endModel(details)
         endReportData()
         writer.append(htmlTemplate.second)
