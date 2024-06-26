@@ -92,7 +92,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     @Delegate
     final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, stdout, stderr)
 
-    // TODO: react to the isolatedProejcts prop coming from build settings
+    // TODO: react to the isolatedProjects prop coming from build settings
 
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
@@ -184,7 +184,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         }
     }
 
-    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(ToolingApiConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -199,7 +199,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
-            toolingApi.withConnection(cl)
+            return toolingApi.withConnection(cl)
         } catch (GradleConnectionException e) {
             caughtGradleConnectionException = e
             throw e
