@@ -57,8 +57,8 @@ interface EncryptionConfiguration {
  */
 internal
 interface EncryptionService : EncryptionConfiguration {
-    fun outputStream(stateType: StateType, output: OutputStream): OutputStream
-    fun inputStream(stateType: StateType, input: InputStream): InputStream
+    fun outputStream(output: OutputStream): OutputStream
+    fun inputStream(input: InputStream): InputStream
 }
 
 
@@ -119,18 +119,14 @@ class DefaultEncryptionService(
         } ?: Hashing.newHasher().hash()
     }
 
-    private
-    fun shouldEncryptStreams(stateType: StateType) =
-        isEncrypting && stateType.encryptable
-
-    override fun outputStream(stateType: StateType, output: OutputStream): OutputStream =
-        if (shouldEncryptStreams(stateType))
+    override fun outputStream(output: OutputStream): OutputStream =
+        if (isEncrypting)
             encryptionAlgorithm.encryptedStream(output, secretKey)
         else
             output
 
-    override fun inputStream(stateType: StateType, input: InputStream): InputStream =
-        if (shouldEncryptStreams(stateType))
+    override fun inputStream(input: InputStream): InputStream =
+        if (isEncrypting)
             encryptionAlgorithm.decryptedStream(input, secretKey)
         else
             input

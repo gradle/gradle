@@ -257,15 +257,19 @@ class ConfigurationCacheIO internal constructor(
 
     private
     fun createOutputStreamFor(stateType: StateType, outputStream: () -> OutputStream) =
-        safeWrap(outputStream) {
-            encryptionService.outputStream(stateType, it)
-        }
+        if (stateType.encryptable)
+            safeWrap(outputStream) {
+                encryptionService.outputStream(it)
+            }
+        else outputStream()
 
     private
     fun createInputStreamFor(stateType: StateType, inputStream: () -> InputStream) =
-        safeWrap(inputStream) {
-            encryptionService.inputStream(stateType, it)
-        }
+        if (stateType.encryptable)
+            safeWrap(inputStream) {
+                encryptionService.inputStream(it)
+            }
+        else inputStream()
 
     private
     fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
