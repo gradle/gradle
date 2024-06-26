@@ -27,6 +27,7 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.io.safeWrap
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
@@ -246,12 +247,24 @@ class ConfigurationCacheIO internal constructor(
      */
     internal
     fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(encryptionService.outputStream(stateType, outputStream)).let { encoder ->
+        KryoBackedEncoder(createOutputStreamFor(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
                 codecs
             ) to codecs
+        }
+
+    private
+    fun createOutputStreamFor(stateType: StateType, outputStream: () -> OutputStream) =
+        safeWrap(outputStream) {
+            encryptionService.outputStream(stateType, it)
+        }
+
+    private
+    fun createInputStreamFor(stateType: StateType, inputStream: () -> InputStream) =
+        safeWrap(inputStream) {
+            encryptionService.inputStream(stateType, it)
         }
 
     private
@@ -281,7 +294,9 @@ class ConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(encryptionService.inputStream(stateType, inputStream)).let { (context, codecs) ->
+        readerContextFor(
+            KryoBackedDecoder(createInputStreamFor(stateType, inputStream))
+        ).let { (context, codecs) ->
             context.use {
                 context.run {
                     initClassLoader(javaClass.classLoader)
@@ -293,11 +308,6 @@ class ConfigurationCacheIO internal constructor(
                 }
             }
         }
-
-    private
-    fun readerContextFor(
-        inputStream: InputStream,
-    ) = readerContextFor(KryoBackedDecoder(inputStream))
 
     internal
     fun readerContextFor(

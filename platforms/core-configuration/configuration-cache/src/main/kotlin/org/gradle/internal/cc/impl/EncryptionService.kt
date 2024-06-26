@@ -30,7 +30,6 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.gradle.util.internal.SupportedEncryptionAlgorithm
-import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -58,8 +57,8 @@ interface EncryptionConfiguration {
  */
 internal
 interface EncryptionService : EncryptionConfiguration {
-    fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream
-    fun inputStream(stateType: StateType, input: () -> InputStream): InputStream
+    fun outputStream(stateType: StateType, output: OutputStream): OutputStream
+    fun inputStream(stateType: StateType, input: InputStream): InputStream
 }
 
 
@@ -124,49 +123,17 @@ class DefaultEncryptionService(
     fun shouldEncryptStreams(stateType: StateType) =
         isEncrypting && stateType.encryptable
 
-    override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
+    override fun outputStream(stateType: StateType, output: OutputStream): OutputStream =
         if (shouldEncryptStreams(stateType))
-            safeWrap(output) {
-                encryptionAlgorithm.encryptedStream(it, secretKey)
-            }
+            encryptionAlgorithm.encryptedStream(output, secretKey)
         else
-            output.invoke()
+            output
 
-    override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
+    override fun inputStream(stateType: StateType, input: InputStream): InputStream =
         if (shouldEncryptStreams(stateType))
-            safeWrap(input) {
-                encryptionAlgorithm.decryptedStream(it, secretKey)
-            }
+            encryptionAlgorithm.decryptedStream(input, secretKey)
         else
-            input.invoke()
-
-    /**
-     * Wraps an inner closeable into an outer closeable, while ensuring that
-     * if the wrapper function fails, the inner closeable is closed before
-     * the exception is thrown.
-     *
-     * @param innerSupplier the supplier that produces the inner closeable that is to be safely wrapped
-     * @param unsafeWrapper a wrapping function that is potentially unsafe
-     * @return the result of the wrapper function
-     */
-    private
-    fun <C : Closeable, T : Closeable> safeWrap(innerSupplier: () -> C, unsafeWrapper: (C) -> T): T {
-        // fine if we fail here
-        val innerCloseable = innerSupplier()
-        val outerCloseable = try {
-            // but if we fail here, we need to ensure we close
-            // the inner closeable, or else it will leak
-            unsafeWrapper(innerCloseable)
-        } catch (e: Throwable) {
-            try {
-                innerCloseable.close()
-            } catch (closingException: Throwable) {
-                e.addSuppressed(closingException)
-            }
-            throw e
-        }
-        return outerCloseable
-    }
+            input
 
     private
     fun secretKeySource(kind: EncryptionKind): SecretKeySource =
