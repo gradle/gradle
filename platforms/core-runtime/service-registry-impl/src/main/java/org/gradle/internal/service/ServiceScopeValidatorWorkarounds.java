@@ -29,7 +29,6 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.internal.Factory",
         "org.gradle.internal.serialize.Serializer",
         "org.gradle.api.internal.classpath.DefaultModuleRegistry",
-        "org.gradle.tooling.internal.provider.runner.ToolingApiBuildEventListenerFactory",
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
