@@ -58,6 +58,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
+import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -248,7 +249,7 @@ class ConfigurationCacheIO internal constructor(
      */
     internal
     fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(createOutputStreamFor(stateType, outputStream)).let { encoder ->
+        KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -257,20 +258,17 @@ class ConfigurationCacheIO internal constructor(
         }
 
     private
-    fun createOutputStreamFor(stateType: StateType, outputStream: () -> OutputStream) =
-        if (stateType.encryptable)
-            safeWrap(outputStream) {
-                encryptionService.outputStream(it)
-            }
-        else outputStream()
+    fun outputStreamFor(stateType: StateType, outputStream: () -> OutputStream) =
+        maybeEncrypt(stateType, outputStream, encryptionService::outputStream)
 
     private
-    fun createInputStreamFor(stateType: StateType, inputStream: () -> InputStream) =
-        if (stateType.encryptable)
-            safeWrap(inputStream) {
-                encryptionService.inputStream(it)
-            }
-        else inputStream()
+    fun inputStreamFor(stateType: StateType, inputStream: () -> InputStream) =
+        maybeEncrypt(stateType, inputStream, encryptionService::inputStream)
+
+    private
+    fun <I : Closeable, O : I> maybeEncrypt(stateType: StateType, inner: () -> I, outer: (I) -> O): I =
+        if (stateType.encryptable) safeWrap(inner, outer)
+        else inner()
 
     private
     fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
@@ -299,11 +297,9 @@ class ConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(
-            KryoBackedDecoder(createInputStreamFor(stateType, inputStream))
-        ).let { (context, codecs) ->
-            context.use {
-                context.run {
+        readerContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
+            .let { (context, codecs) ->
+                context.useToRun {
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
@@ -312,7 +308,6 @@ class ConfigurationCacheIO internal constructor(
                     }
                 }
             }
-        }
 
     internal
     fun readerContextFor(
