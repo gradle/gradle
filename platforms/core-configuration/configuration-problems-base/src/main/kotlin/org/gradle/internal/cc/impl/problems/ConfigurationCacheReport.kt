@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.base.logger
@@ -39,8 +41,11 @@ import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
+
+val logger: Logger = Logging.getLogger("org.gradle.cc.reporting")
 
 @ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheReport(
@@ -289,7 +294,6 @@ class ConfigurationCacheReport(
      * The file is laid out in such a way as to allow extracting the pure JSON model,
      * see [HtmlReportWriter].
      */
-    internal
     fun writeReportFileTo(outputDirectory: File, details: ConfigurationCacheReportDetails): File? {
         var reportFile: File?
         modifyState {
@@ -300,6 +304,7 @@ class ConfigurationCacheReport(
         return reportFile
     }
 
+    @OptIn(ExperimentalContracts::class)
     private
     inline fun modifyState(f: State.() -> State) {
         contract {

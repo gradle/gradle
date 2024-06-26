@@ -84,7 +84,6 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.fastutil)
-    implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
@@ -94,6 +93,7 @@ dependencies {
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(projects.workers)
 
+    runtimeOnly(libs.groovyJson)
     runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)
