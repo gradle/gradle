@@ -163,8 +163,8 @@ class IsolatedProjectEvaluationListener(
         when (val isolatedProjectActions = project.peekSingletonProperty<IsolatedProjectActions>()) {
             null -> {
                 val actions = isolatedActions()
-                // preserve isolate semantics between `beforeProject` and `afterProject`
 
+                // preserve isolate semantics between `beforeProject` and `afterProject`
                 project.setSingletonProperty(actions)
                 executeAll(actions.allprojects, project)
                 executeAll(actions.beforeProject, project)

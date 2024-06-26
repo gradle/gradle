@@ -70,11 +70,13 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -82,6 +84,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 
@@ -94,12 +97,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+@SuppressWarnings("deprecation")
 public class LifecycleAwareProject extends GroovyObjectSupport implements ProjectInternal, DynamicObjectAware {
 
     private final ProjectInternal delegate;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final GradleInternal gradle;
+    private final ExtensibleDynamicObject extensibleDynamicObject;
 
     private boolean isAllprojectsActionExecuted = false;
 
@@ -113,6 +118,19 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
         this.isolatedProjectEvaluationListenerProvider = isolatedProjectEvaluationListenerProvider;
         this.crossProjectConfigurator = crossProjectConfigurator;
         this.gradle = gradle;
+        this.extensibleDynamicObject = createExtensibleDynamicObject();
+    }
+
+    private ExtensibleDynamicObject createExtensibleDynamicObject() {
+        ExtensibleDynamicObject delegateExtensibleDynamicObject = (ExtensibleDynamicObject) ((DynamicObjectAware) delegate).getAsDynamicObject();
+        ExtensibleDynamicObject extensibleDynamicObject = new ExtensibleDynamicObject(
+            this,
+            new BeanDynamicObject(this),
+            delegateExtensibleDynamicObject.getConvention()
+        );
+        extensibleDynamicObject.setParent(delegateExtensibleDynamicObject.getParent());
+        extensibleDynamicObject.addObject(delegateExtensibleDynamicObject, ExtensibleDynamicObject.Location.BeforeConvention);
+        return extensibleDynamicObject;
     }
 
     private void executeAllprojectsAction() {
@@ -156,14 +174,14 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     @Nullable
     public Object invokeMethod(String name, Object args) {
         executeAllprojectsAction();
-        return ((DefaultProject) delegate).invokeMethod(name, args);
+        return extensibleDynamicObject.invokeMethod(name, args);
     }
 
     @Override
     @Nullable
     public Object getProperty(String propertyName) {
         executeAllprojectsAction();
-        return ((DefaultProject) delegate).getProperty(propertyName);
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     @Nullable
@@ -338,27 +356,28 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     @Override
     public boolean hasProperty(String propertyName) {
         executeAllprojectsAction();
-        return delegate.hasProperty(propertyName);
+        return extensibleDynamicObject.hasProperty(propertyName);
     }
 
     @Override
     public Map<String, ?> getProperties() {
         executeAllprojectsAction();
-        return delegate.getProperties();
+        return extensibleDynamicObject.getProperties();
     }
 
     @Nullable
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
         executeAllprojectsAction();
-        return delegate.property(propertyName);
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     @Nullable
     @Override
     public Object findProperty(String propertyName) {
         executeAllprojectsAction();
-        return delegate.findProperty(propertyName);
+        DynamicInvokeResult result = extensibleDynamicObject.tryGetProperty(propertyName);
+        return result.isFound() ? result.getValue() : null;
     }
 
     @Override
@@ -622,7 +641,7 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     @Override
     public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
         executeAllprojectsAction();
-        delegate.setProperty(name, value);
+        extensibleDynamicObject.setProperty(name, value);
     }
 
     @Override
@@ -733,7 +752,7 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
 
     @Override
     public DynamicObject getInheritedScope() {
-        return delegate.getInheritedScope();
+        return extensibleDynamicObject.getInheritable();
     }
 
     @Override
@@ -1099,7 +1118,7 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     @Override
     public org.gradle.api.plugins.Convention getConvention() {
         executeAllprojectsAction();
-        return delegate.getConvention();
+        return extensibleDynamicObject.getConvention();
     }
 
     @Override
@@ -1164,6 +1183,6 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
 
     @Override
     public DynamicObject getAsDynamicObject() {
-        return ((DefaultProject)delegate).getAsDynamicObject();
+        return extensibleDynamicObject;
     }
 }
