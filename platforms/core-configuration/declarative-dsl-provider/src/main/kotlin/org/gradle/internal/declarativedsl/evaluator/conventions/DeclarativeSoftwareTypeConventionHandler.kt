@@ -36,6 +36,7 @@ import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
 import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -87,7 +88,7 @@ private
 class ApplyConventionsOnlyAnalysisStepRunner : AbstractAnalysisStepRunner() {
     override fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String): ParseAndResolveResult {
         // Create a synthetic top level receiver
-        val topLevelBlock = Block(emptyList(), emptySourceData())
+        val topLevelBlock = Block(emptyList(), SyntheticallyProduced)
         val languageTreeResult = LanguageTreeResult(emptyList(), topLevelBlock, emptyList(), emptyList())
         val topLevelReceiver = ObjectOrigin.TopLevelReceiver(evaluationSchema.analysisSchema.topLevelReceiverType, topLevelBlock)
 
@@ -116,20 +117,3 @@ fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = 
     emptyList(),
     emptyList()
 )
-
-
-private
-fun emptySourceData() = object : SourceData {
-    override val sourceIdentifier: SourceIdentifier
-        get() = SourceIdentifier("<none>")
-    override val indexRange: IntRange
-        get() = IntRange.EMPTY
-    override val lineRange: IntRange
-        get() = IntRange.EMPTY
-    override val startColumn: Int
-        get() = -1
-    override val endColumn: Int
-        get() = -1
-
-    override fun text(): String = "<none>"
-}
