@@ -465,7 +465,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         if (exception instanceof InotifyInstanceLimitTooLowException) {
             warningLogger.warn("{}. The inotify instance limit is too low. {}",
                 fileWatchingErrorMessage,
-                fileSystemWatchingDocumentationIndex.getLinkToSection("sec:inotify_watches_limit")
+                fileSystemWatchingDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
             );
         } else if (exception instanceof InotifyWatchesLimitTooLowException) {
             warningLogger.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
