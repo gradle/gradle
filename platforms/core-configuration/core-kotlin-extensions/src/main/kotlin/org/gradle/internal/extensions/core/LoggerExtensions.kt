@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.base
+package org.gradle.internal.extensions.core
 
 import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 
 
-/**
- * Configuration Cache logger.
- */
-val logger: Logger = Logging.getLogger("org.gradle.configurationcache")
+inline fun Logger.debug(msg: () -> String) {
+    if (isDebugEnabled) debug(msg())
+}

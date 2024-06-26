@@ -21,8 +21,10 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.extensions.core.getInternalFlag
+import org.gradle.internal.extensions.core.getInternalString
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -65,13 +67,22 @@ interface EncryptionService : EncryptionConfiguration {
 @ServiceScope(Scope.BuildTree::class)
 internal
 class DefaultEncryptionService(
-    private val startParameter: ConfigurationCacheStartParameter,
+    options: InternalOptions,
     private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
 ) : EncryptionService {
 
     private
+    val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
+
+    private
+    val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+
+    private
+    val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
+
+    private
     val secretKey: SecretKey? by lazy {
-        produceSecretKey(EncryptionKind.select(startParameter.encryptionRequested))
+        produceSecretKey(EncryptionKind.select(encryptionRequestedOption))
     }
 
     private
@@ -100,9 +111,9 @@ class DefaultEncryptionService(
     }
 
     override val encryptionAlgorithm: EncryptionAlgorithm by lazy {
-        SupportedEncryptionAlgorithm.getAll().find { it.transformation == startParameter.encryptionAlgorithm }
+        SupportedEncryptionAlgorithm.getAll().find { it.transformation == encryptionAlgorithmOption }
             ?: throw InvalidUserDataException(
-                "Unsupported encryption algorithm: ${startParameter.encryptionAlgorithm}. " +
+                "Unsupported encryption algorithm: ${encryptionAlgorithmOption}. " +
                     "Supported algorithms are: ${SupportedEncryptionAlgorithm.getAll().joinToString { it.transformation }}"
             )
     }
@@ -137,7 +148,7 @@ class DefaultEncryptionService(
             EncryptionKind.KEYSTORE ->
                 KeyStoreKeySource(
                     encryptionAlgorithm = encryptionAlgorithm.algorithm,
-                    customKeyStoreDir = startParameter.keystoreDir?.let { File(it) },
+                    customKeyStoreDir = keystoreDirOption?.let { File(it) },
                     keyAlias = "gradle-secret",
                     cacheBuilderFactory = cacheBuilderFactory
                 )
