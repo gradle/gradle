@@ -11,6 +11,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.files)
     api(projects.hashing)
+    api(projects.loggingApi)
 
     api(libs.kotlinStdlib)
 

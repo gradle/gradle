@@ -427,6 +427,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "encryption-services",
+    "path": "platforms/core-configuration/encryption-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "enterprise",
     "path": "platforms/enterprise/enterprise",
     "unitTests": true,
