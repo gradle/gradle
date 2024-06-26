@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
@@ -81,10 +82,8 @@ public class ResultAssertion {
 
     public void execute(String stdout, String stderr) {
 
-        expectedDeprecationWarnings.addAll(maybeExpectedDeprecationWarnings);
         validate(stdout, "Standard output");
         validate(stderr, "Standard error");
-        expectedDeprecationWarnings.removeAll(maybeExpectedDeprecationWarnings);
 
         if (!expectedDeprecationWarnings.isEmpty()) {
             throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
@@ -227,9 +226,10 @@ public class ResultAssertion {
      * @return {@code true} if a matching deprecation warning was removed; {@code false} otherwise
      */
     private boolean removeFirstExpectedDeprecationWarning(List<String> lines, int startIdx) {
-        Optional<ExpectedDeprecationWarning> matchedWarning = expectedDeprecationWarnings.stream()
-            .filter(warning -> warning.matchesNextLines(lines, startIdx))
-            .findFirst();
+        Optional<ExpectedDeprecationWarning> matchedWarning =
+            Stream.concat(expectedDeprecationWarnings.stream(), maybeExpectedDeprecationWarnings.stream())
+                .filter(warning -> warning.matchesNextLines(lines, startIdx))
+                .findFirst();
         if (matchedWarning.isPresent()) {
             lastMatchedDeprecationWarning = matchedWarning.get();
             expectedDeprecationWarnings.remove(lastMatchedDeprecationWarning);

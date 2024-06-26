@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r76
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
@@ -211,7 +212,6 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         when:
         withConnection { ProjectConnection connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
 
             testLauncher.forTasks("setupTest")
                         .withTestsFor(s -> s.forTaskPath(":test")
@@ -226,7 +226,6 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         when:
         withConnection { connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
             testLauncher.withTestsFor(s -> s.forTaskPath(":test").includeMethod('MyTest', 'pass')).forTasks('setupTest')
             testLauncher.run()
         }
@@ -235,7 +234,7 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         tasksExecutedInOrder(':test', ':setupTest')
     }
 
-    private def launchTestWithTestFilter(connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure testLauncherSpec) {
+    private def launchTestWithTestFilter(ToolingApiConnector connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure testLauncherSpec) {
         withConnection(connector, connectionConfiguration(testLauncherSpec))
     }
 
@@ -247,7 +246,6 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         {   ProjectConnection connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
             testLauncher.withTaskAndTestMethods(':test', 'MyTest', ['pass'])
-            collectOutputs(testLauncher)
             testLauncherSpec(testLauncher)
             testLauncher.run()
         }

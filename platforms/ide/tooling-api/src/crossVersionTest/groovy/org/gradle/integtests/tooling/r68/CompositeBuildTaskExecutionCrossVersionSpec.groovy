@@ -389,7 +389,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         when:
         withConnection { connection ->
             TestLauncher launcher = connection.newTestLauncher().withTests(descriptor)
-            collectOutputs(launcher)
             launcher.run()
         }
 
@@ -429,7 +428,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         when:
         withConnection { connection ->
             def testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
             testLauncher.withTaskAndTestClasses(":other-build:sub:test", ["MyIncludedTest"]).run()
         }
 
@@ -440,7 +438,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
     private void executeTaskViaTAPI(String... tasks) {
         withConnection { connection ->
             def build = connection.newBuild()
-            collectOutputs(build)
             build.forTasks(tasks).run()
         }
     }
@@ -451,7 +448,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             def launchables = findLaunchables(gradleProjects, taskName)
             assert launchables.size == 1
             def build = connection.newBuild()
-            collectOutputs(build)
             build.forLaunchables(launchables[0]).run()
         }
     }
@@ -472,7 +468,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             def tasks = buildInvocations.collect { it.tasks }.flatten().findAll { it.path.contains(taskName) }
             assert tasks.size == 1
             def build = connection.newBuild()
-            collectOutputs(build)
             build.forLaunchables(tasks[0]).run()
         }
     }

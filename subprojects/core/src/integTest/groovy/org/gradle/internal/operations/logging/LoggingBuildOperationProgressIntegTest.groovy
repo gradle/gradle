@@ -424,6 +424,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .flatten()
             .with { it as List<BuildOperationRecord.Progress> }
             .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
+            // Ignore deprecations, these are checked by the testing infrastructure elsewhere.
+            .findAll { it.details.get("category") != "org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler" }
 
         // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
         // when configuration cache is enabled also "Configuration cache entry reused."

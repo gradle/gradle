@@ -31,7 +31,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         when:
         def model = withConnection {
             def executer = action(new NoOpAction())
-            collectOutputs(executer)
             executer.run()
         }
 
@@ -73,7 +72,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         when:
         def model = withConnection {
             def executer = action(new FetchGradleBuildAction())
-            collectOutputs(executer)
             executer.run()
         }
 
@@ -117,7 +115,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         when:
         def model = withConnection {
             def executer = action(new FetchProjectAction())
-            collectOutputs(executer)
             executer.run()
         }
 

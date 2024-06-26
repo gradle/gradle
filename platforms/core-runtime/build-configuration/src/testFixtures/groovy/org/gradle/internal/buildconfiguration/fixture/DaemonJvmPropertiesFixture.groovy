@@ -52,6 +52,7 @@ trait DaemonJvmPropertiesFixture {
     void writeJvmCriteria(Jvm jvm) {
         def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm)
         writeJvmCriteria(jvm.javaVersion, otherMetadata.vendor.knownVendor.name())
+        executer.checkJavaVersionDeprecationUsing(jvm)
     }
 
     void writeJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {

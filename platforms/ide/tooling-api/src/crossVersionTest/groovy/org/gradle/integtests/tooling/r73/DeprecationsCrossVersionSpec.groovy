@@ -26,6 +26,11 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << """
             include("a")
         """
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -37,35 +42,25 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
-                    project.allprojects.each { p ->
-                        p.configurations.compileClasspath.files()
+                    project.subprojects.each { p ->
+                        p.configurations.compileClasspath.files
                     }
                     return ["result"]
                 }
             }
 
             project.services.get(ToolingModelBuilderRegistry.class).register(new MyModelBuilder())
-
-            allprojects {
-                apply plugin: 'java-library'
-            }
-            project(':a') {
-                dependencies {
-                    implementation rootProject
-                }
-            }
         """
 
         when:
         withConnection {
             def builder = it.model(List)
             builder.withArguments("--parallel")
-            collectOutputs(builder)
             return builder.get()
         }
 
         then:
-        expectDeprecation("Deprecated Gradle features were used in this build, making it incompatible with Gradle ${targetVersion.compareTo(GradleVersion.version("7.6.4")) > 0 ? "9.0" : "8.0" }.")
+        expectDocumentedDeprecationWarning("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         assertHasConfigureSuccessfulLogging()
     }
 }

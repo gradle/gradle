@@ -56,7 +56,6 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
         withConnection {
             def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run(handler)
             finished.await()
@@ -133,7 +132,6 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
         withConnection {
             def builder = it.action(new BlockingModelSendingBuildAction(server.uri("action")))
-            collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run(handler)
 
@@ -155,7 +153,6 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
         withConnection {
             def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run()
         }
@@ -172,7 +169,6 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection {
             def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
             builder.run()
         }
 
@@ -191,7 +187,6 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
         withConnection {
             def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run()
         }

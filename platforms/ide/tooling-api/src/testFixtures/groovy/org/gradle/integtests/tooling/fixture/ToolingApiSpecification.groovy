@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
@@ -42,6 +43,7 @@ import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import spock.lang.Retry
@@ -208,7 +210,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         reset()
         try {
-            toolingApi.withConnection(cl)
+            return toolingApi.withConnection(cl)
         } catch (GradleConnectionException e) {
             caughtGradleConnectionException = e
             throw e
@@ -371,14 +373,14 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     def validateOutput() {
         if (expectJavaVersionDeprecation) {
-            maybeExpectedDeprecations.add(
+            maybeExpectedDeprecations.add(normalizeDeprecationWarning(
                 "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
                     "This will fail with an error in Gradle 9.0. " +
                     "Use JVM 17 or greater to execute Gradle. " +
                     "Projects can continue to use older JVM versions via toolchains. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/${targetDist.version.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-            )
+            ))
         }
 
         ResultAssertion assertion = new ResultAssertion(
@@ -409,7 +411,16 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         RepoScriptBlockUtil.mavenCentralRepository()
     }
 
-    void expectDeprecation(String message) {
-        expectedDeprecations << message
+    void expectDocumentedDeprecationWarning(String message) {
+        expectedDeprecations << normalizeDeprecationWarning(message)
+    }
+
+    private String normalizeDeprecationWarning(String message) {
+        def nextMajorVersion = Integer.parseInt(targetDist.version.version.split("\\.")[0]) + 1
+
+        def normalizedLink = DocumentationUtils.normalizeDocumentationLink(message, targetDist.version)
+        def normalizedVersion = normalizedLink.replaceAll("This will fail with an error in Gradle [\\d]\\.0", "This will fail with an error in Gradle ${nextMajorVersion}.0")
+
+        return normalizedVersion
     }
 }
