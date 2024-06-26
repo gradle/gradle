@@ -17,7 +17,6 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
@@ -56,7 +55,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
         this.eventEmitter = eventEmitter;
         this.ancestryTracker = ancestryTracker;
 
-//        buildOperationListenerManager.addListener(this);
+        buildOperationListenerManager.addListener(this);
     }
 
     @SuppressWarnings("unused")
@@ -77,11 +76,11 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        Object details = buildOperation.getDetails();
-        if (details instanceof ExecuteTaskBuildOperationDetails) {
-            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
-            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
-        }
+//        Object details = buildOperation.getDetails();
+//        if (details instanceof ExecuteTaskBuildOperationDetails) {
+//            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
+//            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
+//        }
     }
 
     @Override
@@ -91,7 +90,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        taskNames.remove(buildOperation.getId());
+//        taskNames.remove(buildOperation.getId());
     }
 
 }
