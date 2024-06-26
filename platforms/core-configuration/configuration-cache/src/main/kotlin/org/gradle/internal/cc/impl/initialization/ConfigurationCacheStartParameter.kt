@@ -71,9 +71,6 @@ class ConfigurationCacheStartParameter(
     val configurationCacheLogLevel: LogLevel
         get() = modelParameters.configurationCacheLogLevel
 
-    val isQuiet: Boolean
-        get() = startParameter.isConfigurationCacheQuiet
-
     val isIgnoreInputsInTaskGraphSerialization: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization
 
