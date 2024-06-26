@@ -49,7 +49,7 @@ public class JvmInstallationMetadataComparator implements Comparator<JvmInstalla
     }
 
     private boolean isJdk(JvmInstallationMetadata metadata) {
-        return metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER);
+        return metadata.hasCapability(JavaInstallationCapability.JAVA_COMPILER);
     }
 
     private JvmVendor.KnownJvmVendor extractVendor(JvmInstallationMetadata metadata) {

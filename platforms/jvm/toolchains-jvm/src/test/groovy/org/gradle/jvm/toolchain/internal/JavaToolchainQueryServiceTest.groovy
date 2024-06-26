@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.GradleException
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
@@ -148,6 +149,49 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.isPresent()
         toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM
         toolchain.get().vendor == "IBM"
+    }
+
+    def "uses jdk if requested via capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.jdk"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.jdk")
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
+    }
+
+    def "fails when no jdk is present and requested capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+
+        queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        def e = thrown(NoToolchainAvailableException)
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=8, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
@@ -455,17 +499,48 @@ class JavaToolchainQueryServiceTest extends Specification {
             jvmName = "J9"
         }
 
-        JvmInstallationMetadata.from(
-            location.absoluteFile,
-            languageVersion.replace("zzz", "999"),
-            vendor,
-            "",
-            "",
-            jvmName,
-            "",
-            "",
-            ""
+        def additionalCapabilities = location.name.contains("jdk")
+            ? EnumSet.of(JavaInstallationCapability.JAVA_COMPILER, JavaInstallationCapability.JAVADOC_TOOL)
+            : Collections.<JavaInstallationCapability> emptySet()
+
+        new JvmMetadataWithAddedCapabilities(
+            JvmInstallationMetadata.from(
+                location.absoluteFile,
+                languageVersion.replace("zzz", "999"),
+                vendor,
+                "",
+                "",
+                jvmName,
+                "",
+                "",
+                ""
+            ),
+            additionalCapabilities
         )
+    }
+
+    private static class JvmMetadataWithAddedCapabilities implements JvmInstallationMetadata {
+        @Delegate
+        private final JvmInstallationMetadata metadata
+        private final Set<JavaInstallationCapability> additionalCapabilities
+
+        JvmMetadataWithAddedCapabilities(JvmInstallationMetadata metadata, Set<JavaInstallationCapability> additionalCapabilities) {
+            this.metadata = metadata
+            this.additionalCapabilities = additionalCapabilities
+        }
+
+        boolean hasCapability(JavaInstallationCapability capability) {
+            return this.additionalCapabilities.contains(capability) || metadata.hasCapability(capability)
+        }
+
+        boolean hasAllCapabilities(Set<JavaInstallationCapability> capabilities) {
+            for (JavaInstallationCapability capability : capabilities) {
+                if (!hasCapability(capability)) {
+                    return false
+                }
+            }
+            return true
+        }
     }
 
     private def createInstallationRegistry(
