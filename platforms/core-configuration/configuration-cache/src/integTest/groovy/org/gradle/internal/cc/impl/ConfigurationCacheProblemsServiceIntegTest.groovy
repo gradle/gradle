@@ -52,7 +52,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             fqid == REGISTRATION_UNSUPPORTED
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
-            definition.documentationLink != null
+            definition.documentationLink.url.endsWith("/userguide/configuration_cache.html#config_cache:requirements:build_listeners")
             locations.size() == 2
             locations[0].path == "build file 'build.gradle'"
             locations[0].line == 2
