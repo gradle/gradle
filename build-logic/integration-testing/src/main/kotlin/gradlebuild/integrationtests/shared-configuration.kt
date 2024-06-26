@@ -100,6 +100,7 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 }
 
 
+@Suppress("UnusedPrivateProperty")
 internal
 fun Project.addSourceSet(testType: TestType): SourceSet {
     val prefix = testType.prefix
