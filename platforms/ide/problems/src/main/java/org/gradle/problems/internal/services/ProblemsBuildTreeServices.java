@@ -31,6 +31,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.DefaultProblemsReportCreator;
+import org.gradle.problems.internal.NoOpProblemReportCreator;
+import org.gradle.problems.internal.ProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
 
 import java.util.Collection;
@@ -52,12 +54,15 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    DefaultProblemsReportCreator createProblemsReportCreator(
+    ProblemReportCreator createProblemsReportCreator(
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
         InternalOptions internalOptions,
         ProblemFactory problemFactory
     ) {
-        return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, problemFactory);
+        if (Boolean.parseBoolean(System.getProperty("org.gradle.internal.problems.report.enabled"))) {
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, problemFactory);
+        }
+        return new NoOpProblemReportCreator();
     }
 }

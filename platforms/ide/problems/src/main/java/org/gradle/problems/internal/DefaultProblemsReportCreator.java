@@ -18,7 +18,6 @@ package org.gradle.problems.internal;
 
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.CommonReportDetails;
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport;
@@ -26,12 +25,11 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.configuration.problems.ProblemFactory;
 import org.gradle.internal.configuration.problems.StructuredMessage;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.buildtree.ProblemReporter;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultProblemsReportCreator implements ProblemReporter, ProblemEmitter {
+public class DefaultProblemsReportCreator implements ProblemReportCreator {
 
     private final ConfigurationCacheReport report;
     private final ProblemFactory problemFactory;
