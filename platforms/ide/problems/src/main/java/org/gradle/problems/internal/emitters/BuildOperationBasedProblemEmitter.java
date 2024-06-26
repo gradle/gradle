@@ -41,11 +41,10 @@ import java.util.Map;
  * @since 8.6
  */
 @Incubating
+@SuppressWarnings("unused")
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildOperationListener {
-
     private final Map<OperationIdentifier, String> taskNames = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
-    @SuppressWarnings("unused")
     private final BuildOperationAncestryTracker ancestryTracker;
 
     public BuildOperationBasedProblemEmitter(
@@ -80,7 +79,6 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
-            @SuppressWarnings("unused")
             ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
 //            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
         }
@@ -93,7 +91,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        taskNames.remove(buildOperation.getId());
+//        taskNames.remove(buildOperation.getId());
     }
 
 }
