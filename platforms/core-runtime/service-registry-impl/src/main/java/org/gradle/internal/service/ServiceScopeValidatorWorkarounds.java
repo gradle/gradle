@@ -33,9 +33,6 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
-        "org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler",
-        "org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler",
-
         "org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler",
         "org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler",
         "org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler",

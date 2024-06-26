@@ -58,8 +58,10 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
@@ -80,6 +82,8 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
         registration.add(ImmutableModuleIdentifierFactory.class, DefaultImmutableModuleIdentifierFactory.class);
         registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
         registration.add(LocalVariantMetadataBuilder.class, DefaultLocalVariantMetadataBuilder.class);
+        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
+        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
     }
 
     @Provides
@@ -111,16 +115,6 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
     @Provides
     TypeAnnotationHandler createCacheableTransformAnnotationHandler() {
         return new CacheableTransformTypeAnnotationHandler();
-    }
-
-    @Provides
-    InputArtifactAnnotationHandler createInputArtifactAnnotationHandler() {
-        return new InputArtifactAnnotationHandler();
-    }
-
-    @Provides
-    InputArtifactDependenciesAnnotationHandler createInputArtifactDependenciesAnnotationHandler() {
-        return new InputArtifactDependenciesAnnotationHandler();
     }
 
     @Provides
