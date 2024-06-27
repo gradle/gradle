@@ -87,6 +87,8 @@ val propagatedEnvironmentVariables = listOf(
     // Simply putting PATH there isn't enough. Windows has case-insensitive env vars but something else fails if the Path variable is published as PATH for test tasks.
     OperatingSystem.current().pathVar,
     "PATHEXT",
+    // Used by KotlinMultiplatformPluginSmokeTest, see https://github.com/gradle/gradle-private/issues/4223
+    "CHROME_BIN"
 )
 
 
