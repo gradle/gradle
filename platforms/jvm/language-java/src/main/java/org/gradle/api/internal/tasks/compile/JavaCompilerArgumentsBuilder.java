@@ -210,10 +210,9 @@ public class JavaCompilerArgumentsBuilder {
             List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
             if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
                 args.add("-proc:none");
-            } else {
-                args.add("-processorpath");
-                args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
             }
+            args.add("-processorpath");
+            args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
             if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
                 args.add("-s");
                 args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
