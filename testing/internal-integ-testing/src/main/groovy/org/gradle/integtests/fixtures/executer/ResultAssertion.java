@@ -96,7 +96,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
         return text;
     }
 
-    public void validate(String output, String displayName) {
+    private void validate(String output, String displayName) {
         List<String> lines = getLines(output);
         int i = 0;
         boolean insideVariantDescriptionBlock = false;
