@@ -18,7 +18,6 @@ package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -32,7 +31,6 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
         BuildOperationProgressEventEmitter eventEmitter,
-        BuildOperationAncestryTracker ancestryTracker,
         BuildOperationListenerManager listenerManager,
         ProblemStream problemStream
     ) {
