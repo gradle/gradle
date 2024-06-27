@@ -51,6 +51,7 @@ public class ServiceRegistryBuilder {
 
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
     private final List<ServiceRegistrationProvider> providers = new ArrayList<ServiceRegistrationProvider>();
+    private final List<ServiceInstanceContainer<?>> instanceContainers = new ArrayList<ServiceInstanceContainer<?>>();
     private String displayName;
     private Class<? extends Scope> scope;
     private boolean strict;
@@ -97,6 +98,7 @@ public class ServiceRegistryBuilder {
      * @see ServiceRegistrationProvider
      */
     public ServiceRegistryBuilder provider(ServiceRegistrationProvider provider) {
+        addPendingInstances();
         this.providers.add(provider);
         return this;
     }
@@ -119,6 +121,11 @@ public class ServiceRegistryBuilder {
                 register.registerServices(registration);
             }
         });
+    }
+
+    public <T> ServiceRegistryBuilder service(T serviceInstance, Class<T> serviceType) {
+        instanceContainers.add(new ServiceInstanceContainer<T>(serviceType, serviceInstance));
+        return this;
     }
 
     /**
@@ -164,6 +171,8 @@ public class ServiceRegistryBuilder {
      * @see CloseableServiceRegistry
      */
     public CloseableServiceRegistry build() {
+        addPendingInstances();
+
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null
@@ -174,5 +183,35 @@ public class ServiceRegistryBuilder {
             registry.addProvider(provider);
         }
         return registry;
+    }
+
+    private void addPendingInstances() {
+        if (instanceContainers.isEmpty()) {
+            return;
+        }
+
+        final ArrayList<ServiceInstanceContainer<?>> instanceContainers = new ArrayList<ServiceInstanceContainer<?>>(this.instanceContainers);
+        this.instanceContainers.clear();
+
+        provider(new ServiceRegistrationAction() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public void registerServices(ServiceRegistration registration) {
+                for (ServiceInstanceContainer<?> container : instanceContainers) {
+                    registration.add((Class<? super Object>) container.type, container.instance);
+                }
+            }
+        });
+    }
+
+    private static final class ServiceInstanceContainer<T> {
+
+        private final Class<T> type;
+        private final T instance;
+
+        private ServiceInstanceContainer(Class<T> type, T instance) {
+            this.type = type;
+            this.instance = instance;
+        }
     }
 }
