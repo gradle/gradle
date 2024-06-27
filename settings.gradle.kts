@@ -135,6 +135,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
+        subproject("encryption-services")
         subproject("file-collections")
         subproject("flow-services")
         subproject("graph-serialization")

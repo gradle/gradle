@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.base
+package org.gradle.internal.extensions.core
 
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.buildoption.StringInternalOption
 
 
-/**
- * Configuration Cache logger.
- */
-val logger: Logger = Logging.getLogger("org.gradle.configurationcache")
+fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
+    getOption(InternalFlag(systemPropertyName, defaultValue)).get()
+
+
+fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?) =
+    getOption(StringInternalOption(systemPropertyName, defaultValue)).get()

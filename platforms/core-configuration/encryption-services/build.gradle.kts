@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.base
+plugins {
+    id("gradlebuild.distribution.implementation-kotlin")
+}
 
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+description = "Gradle encryption services"
 
+dependencies {
+    api(projects.baseServices)
+    api(projects.hashing)
+    api(projects.serviceProvider)
 
-/**
- * Configuration Cache logger.
- */
-val logger: Logger = Logging.getLogger("org.gradle.configurationcache")
+    api(libs.kotlinStdlib)
+
+    implementation(projects.buildOption)
+    implementation(projects.core)
+    implementation(projects.coreApi)
+    implementation(projects.coreKotlinExtensions)
+    implementation(projects.loggingApi)
+    implementation(projects.persistentCache)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.stdlibKotlinExtensions)
+}

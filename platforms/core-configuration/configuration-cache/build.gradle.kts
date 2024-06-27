@@ -61,6 +61,7 @@ dependencies {
     implementation(projects.coreKotlinExtensions)
     implementation(projects.coreSerializationCodecs)
     implementation(projects.dependencyManagementSerializationCodecs)
+    implementation(projects.encryptionServices)
     implementation(projects.enterpriseOperations)
     implementation(projects.execution)
     implementation(projects.fileCollections)

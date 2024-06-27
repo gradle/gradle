@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.base
-
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+package org.gradle.internal.encryption.impl
 
 
-/**
- * Configuration Cache logger.
- */
-val logger: Logger = Logging.getLogger("org.gradle.configurationcache")
+internal
+enum class EncryptionKind(val encrypted: Boolean) {
+    NONE(false),
+    ENV_VAR(true),
+    KEYSTORE(true);
+
+    companion object {
+        fun select(requested: Boolean): EncryptionKind {
+            val keyInEnvVar = System.getenv(EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY)
+            return when {
+                !requested -> NONE
+                !keyInEnvVar.isNullOrBlank() -> ENV_VAR
+                else -> KEYSTORE
+            }
+        }
+    }
+}
