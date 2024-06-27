@@ -20,15 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
-import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -41,56 +34,21 @@ import java.util.Map;
  */
 @Incubating
 @SuppressWarnings("unused")
-public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildOperationListener {
+public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     private final Map<OperationIdentifier, String> taskNames = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
-    private final BuildOperationAncestryTracker ancestryTracker;
 
     public BuildOperationBasedProblemEmitter(
-        BuildOperationProgressEventEmitter eventEmitter,
-        BuildOperationAncestryTracker ancestryTracker,
-        BuildOperationListenerManager buildOperationListenerManager
+        BuildOperationProgressEventEmitter eventEmitter
     ) {
         this.eventEmitter = eventEmitter;
-        this.ancestryTracker = ancestryTracker;
-
-//        buildOperationListenerManager.addListener(this);
     }
 
     @SuppressWarnings("unused")
     @Override
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
-        // Conditionally, if we can find a task name for the operation, add a location to the problem
-//        Problem enrichedProblem = ancestryTracker
-//            .findClosestMatchingAncestor(id, taskNames::containsKey)
-//            .map(taskNames::get)
-//            .map(taskName -> new DefaultProblemBuilder(problem)
-//                .taskPathLocation(taskName)
-//                .build())
-//            .orElse(problem);
-        Problem enrichedProblem = problem;
-
         // Emit the problem as a progress event
-        eventEmitter.emitNow(id, new DefaultProblemProgressDetails(enrichedProblem));
-    }
-
-    @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-//        Object details = buildOperation.getDetails();
-//        if (details instanceof ExecuteTaskBuildOperationDetails) {
-//            ExecuteTaskBuildOperationDetails taskDetails = (ExecuteTaskBuildOperationDetails) details;
-//            taskNames.put(buildOperation.getId(), taskDetails.getBuildPath());
-//        }
-    }
-
-    @Override
-    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-        // No-op: we don't care about progress events
-    }
-
-    @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-//        taskNames.remove(buildOperation.getId());
+        eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
 
 }
