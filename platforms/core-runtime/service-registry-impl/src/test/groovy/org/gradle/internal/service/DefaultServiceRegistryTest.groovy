@@ -27,6 +27,8 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides
+
 class DefaultServiceRegistryTest extends Specification {
     TestRegistry registry = new TestRegistry()
 
@@ -1544,7 +1546,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             void configure(ServiceRegistration registration) {
-                registration.add(TestService, AnotherTestService, TestMultiServiceImpl)
+                registration.add(TestMultiServiceImpl, provides(TestService, AnotherTestService))
             }
         })
 
@@ -1564,7 +1566,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             void configure(ServiceRegistration registration) {
-                registration.add(TestService, AnotherTestService, TestMultiServiceImpl)
+                registration.add(TestMultiServiceImpl, provides(TestService, AnotherTestService))
             }
         })
 
