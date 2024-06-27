@@ -284,7 +284,7 @@ fun configureTests() {
             server.set(uri("https://ge.gradle.org"))
         }
 
-        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
+        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {
@@ -340,6 +340,8 @@ fun removeTeamcityTempProperty() {
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
 fun Project.supportsPredictiveTestSelection() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
+
+fun Project.isNativeProject() = name.contains("native")
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
