@@ -43,8 +43,11 @@ import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.LoggingTracer
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.Tracer
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
@@ -73,7 +76,8 @@ class ConfigurationCacheIO internal constructor(
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter
-) {
+) : ConfigurationCacheUserTypesIO {
+
     private
     val codecs = codecs()
 
@@ -283,7 +287,13 @@ class ConfigurationCacheIO internal constructor(
         else -> null
     }
 
-    internal
+    override fun <T> writeWithUserTypes(encoder: Encoder, owner: IsolateOwner, writeOperation: suspend WriteContext.() -> T): T {
+        val (context, codecs) = writerContextFor(encoder)
+        context.push(owner, codecs.userTypesCodec())
+        return context.runWriteOperation(writeOperation)
+    }
+
+    private
     fun writerContextFor(encoder: Encoder): Pair<DefaultWriteContext, Codecs> =
         writeContextFor(
             encoder,
@@ -309,7 +319,13 @@ class ConfigurationCacheIO internal constructor(
                 }
             }
 
-    internal
+    override fun <T> readWithUserTypes(decoder: Decoder, owner: IsolateOwner, readOperation: suspend ReadContext.() -> T): T {
+        val (context, codecs) = readerContextFor(decoder)
+        context.push(owner, codecs.userTypesCodec())
+        return context.runReadOperation(readOperation)
+    }
+
+    private
     fun readerContextFor(
         decoder: Decoder,
     ) =

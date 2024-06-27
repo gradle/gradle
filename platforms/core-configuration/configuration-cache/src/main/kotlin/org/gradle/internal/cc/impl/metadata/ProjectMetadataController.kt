@@ -26,8 +26,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.ConfigurationCacheIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
+import org.gradle.internal.cc.impl.ConfigurationCacheUserTypesIO
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.models.ProjectStateStore
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -51,8 +51,6 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.runReadOperation
-import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.util.Path
 
@@ -63,7 +61,7 @@ import org.gradle.util.Path
 internal
 class ProjectMetadataController(
     private val host: HostServiceProvider,
-    private val cacheIO: ConfigurationCacheIO,
+    private val cacheIO: ConfigurationCacheUserTypesIO,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     store: ConfigurationCacheStateStore,
     calculatedValueContainerFactory: CalculatedValueContainerFactory
@@ -72,9 +70,7 @@ class ProjectMetadataController(
     override fun projectPathForKey(key: Path) = key
 
     override fun write(encoder: Encoder, value: LocalComponentGraphResolveState) {
-        val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        context.runWriteOperation {
+        cacheIO.writeWithUserTypes(encoder, IsolateOwners.OwnerHost(host)) {
             write(value.id)
             write(value.moduleVersionId)
             writeVariants(value.candidatesForGraphVariantSelection)
@@ -120,9 +116,7 @@ class ProjectMetadataController(
     }
 
     override fun read(decoder: Decoder): LocalComponentGraphResolveState {
-        val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        return context.runReadOperation {
+        return cacheIO.readWithUserTypes(decoder, IsolateOwners.OwnerHost(host)) {
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
 

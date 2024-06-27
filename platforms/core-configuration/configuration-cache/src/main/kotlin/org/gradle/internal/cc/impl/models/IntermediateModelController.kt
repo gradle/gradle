@@ -18,8 +18,8 @@ package org.gradle.internal.cc.impl.models
 
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.ConfigurationCacheIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
+import org.gradle.internal.cc.impl.ConfigurationCacheUserTypesIO
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -27,8 +27,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.runReadOperation
-import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
@@ -40,7 +38,7 @@ import org.gradle.util.Path
 internal
 class IntermediateModelController(
     private val host: HostServiceProvider,
-    private val cacheIO: ConfigurationCacheIO,
+    private val cacheIO: ConfigurationCacheUserTypesIO,
     store: ConfigurationCacheStateStore,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController
@@ -48,17 +46,13 @@ class IntermediateModelController(
     override fun projectPathForKey(key: ModelKey) = key.identityPath
 
     override fun write(encoder: Encoder, value: IntermediateModel) {
-        val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        context.runWriteOperation {
+        cacheIO.writeWithUserTypes(encoder, IsolateOwners.OwnerHost(host)) {
             write(value)
         }
     }
 
     override fun read(decoder: Decoder): IntermediateModel {
-        val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        return context.runReadOperation {
+        return cacheIO.readWithUserTypes(decoder, IsolateOwners.OwnerHost(host)) {
             readNonNull()
         }
     }
