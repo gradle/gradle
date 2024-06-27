@@ -54,7 +54,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
         this.eventEmitter = eventEmitter;
         this.ancestryTracker = ancestryTracker;
 
-        buildOperationListenerManager.addListener(this);
+//        buildOperationListenerManager.addListener(this);
     }
 
     @SuppressWarnings("unused")
