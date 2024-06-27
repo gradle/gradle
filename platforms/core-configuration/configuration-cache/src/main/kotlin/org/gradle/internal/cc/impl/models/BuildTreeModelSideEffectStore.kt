@@ -18,12 +18,12 @@ package org.gradle.internal.cc.impl.models
 
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.ConfigurationCacheIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
-import org.gradle.internal.cc.impl.DefaultConfigurationCache
 import org.gradle.internal.cc.impl.StateType
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -42,7 +42,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 internal
 class BuildTreeModelSideEffectStore(
-    private val host: DefaultConfigurationCache.Host,
+    private val host: HostServiceProvider,
     private val cacheIO: ConfigurationCacheIO,
     private val store: ConfigurationCacheStateStore,
 ) : Closeable {
