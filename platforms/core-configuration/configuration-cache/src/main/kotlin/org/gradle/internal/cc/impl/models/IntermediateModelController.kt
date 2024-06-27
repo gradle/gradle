@@ -16,19 +16,19 @@
 
 package org.gradle.internal.cc.impl.models
 
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.ConfigurationCacheIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
-import org.gradle.internal.cc.impl.DefaultConfigurationCache
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.runReadOperation
-import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
@@ -39,7 +39,7 @@ import org.gradle.util.Path
  */
 internal
 class IntermediateModelController(
-    private val host: DefaultConfigurationCache.Host,
+    private val host: HostServiceProvider,
     private val cacheIO: ConfigurationCacheIO,
     store: ConfigurationCacheStateStore,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,

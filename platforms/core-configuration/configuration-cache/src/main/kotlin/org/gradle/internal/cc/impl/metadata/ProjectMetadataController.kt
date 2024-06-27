@@ -24,10 +24,10 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.ConfigurationCacheIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
-import org.gradle.internal.cc.impl.DefaultConfigurationCache
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.models.ProjectStateStore
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -62,7 +62,7 @@ import org.gradle.util.Path
  */
 internal
 class ProjectMetadataController(
-    private val host: DefaultConfigurationCache.Host,
+    private val host: HostServiceProvider,
     private val cacheIO: ConfigurationCacheIO,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     store: ConfigurationCacheStateStore,
