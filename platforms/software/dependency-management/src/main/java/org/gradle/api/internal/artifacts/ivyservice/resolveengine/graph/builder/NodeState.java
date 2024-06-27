@@ -1176,7 +1176,8 @@ public class NodeState implements DependencyGraphNode {
                 for (CapabilityInternal capability : capabilities) {
                     // Only process non-default capabilities
                     // Or, for the default capability if we have seen that capability on a node for which it is not the default
-                    if (!capability.equals(component.getImplicitCapability()) || defaultCapabilityHasConflict) {
+                    // Or, the component has multiple selected variants, in which case two nodes in that component may conflict with each other
+                    if (!capability.equals(component.getImplicitCapability()) || defaultCapabilityHasConflict || component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
                         action.execute(capability);
                     }
                 }
