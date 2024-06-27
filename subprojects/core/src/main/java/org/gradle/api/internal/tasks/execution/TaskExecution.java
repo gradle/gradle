@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.problems.internal.ProblemsGlobals;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.StopActionException;
@@ -159,6 +160,7 @@ public class TaskExecution implements MutableUnitOfWork {
         TaskOutputsEnterpriseInternal outputs = (TaskOutputsEnterpriseInternal) task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
+            ProblemsGlobals.registerCurrentTaskForThread(task.getPath());
             WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
             boolean storeInCache = outputs.getStoreInCache();
             return new WorkOutput() {
@@ -178,6 +180,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 }
             };
         } finally {
+            ProblemsGlobals.clearCurrentTaskForThread();
             outputs.setPreviousOutputFiles(null);
         }
     }

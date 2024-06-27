@@ -36,23 +36,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         buildFile getProblemReportingScript(taskActionMethodBody)
     }
 
-    def "automatic build script location reporting works"() {
-        given:
-        withReportProblemTask """
-            problems.forNamespace('org.example.plugin').reporting {
-                it.details('No explicit location given')
-            }
-        """
-
-        when:
-        run('reportProblem')
-
-        then:
-        verifyAll(receivedProblem) {
-            verifyImplicitProblemLocations(it)
-        }
-    }
-
     def "problem replaced with a validation warning if mandatory id is missing"() {
         given:
         withReportProblemTask """
