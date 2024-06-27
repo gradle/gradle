@@ -28,6 +28,7 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     private transient Set<Configuration> configurations;
 
     @Override
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public ReportRenderer getRenderer() {
         return renderer;
     }
@@ -107,6 +109,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      * @return the configurations.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public Set<Configuration> getConfigurations() {
         return configurations;
     }
@@ -125,6 +128,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      *
      * @param configurationName name of the configuration to generate the report for
      */
+    @ToBeReplacedByLazyProperty
     @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
         this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));

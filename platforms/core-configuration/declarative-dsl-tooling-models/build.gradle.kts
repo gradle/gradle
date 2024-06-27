@@ -25,7 +25,7 @@ plugins {
 description = "Declarative DSL Tooling Models for IDEs"
 
 dependencies {
-    compileOnly(project(":tooling-api"))
+    compileOnly(projects.toolingApi)
 
     compileOnly(libs.kotlinStdlib) {
         because(

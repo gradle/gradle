@@ -164,6 +164,7 @@
          <trusted-key id="5CE325996A35213326AE2C68912D2C0ECCDA55C0" group="com.google.errorprone" name="error_prone_annotations"/>
          <trusted-key id="5DE533CB43DAF8BC3E372283E7AE839CD7C58886" group="org.eclipse.jetty"/>
          <trusted-key id="5F55943E13D49059D3F342777186B06E1ED139E7" group="org.apache.lucene"/>
+         <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="io.gitlab.arturbosch.detekt"/>
          <trusted-key id="600EA202B1EC682F4A788E5AAC7A514BC9F9BB70" group="io.opencensus"/>
          <trusted-key id="60200AC4AE761F1614D6C46766D68DAA073BE985">
             <trusting group="ch.qos.logback"/>
@@ -205,6 +206,7 @@
             <trusting group="org.codenarc"/>
             <trusting group="org.gmetrics"/>
          </trusted-key>
+         <trusted-key id="8569C95CADC508B09FE90F3002216ED811210DAA" group="io.github.detekt.sarif4k"/>
          <trusted-key id="8756C4F765C9AC3CB6B85D62379CE192D401AB61">
             <trusting group="com.diffplug.durian"/>
             <trusting group="com.github.javaparser"/>
@@ -218,6 +220,7 @@
          <trusted-key id="8A10792983023D5D14C93B488D7F1BEC1E2ECAE7" group="^com[.]fasterxml($|([.].*))" regex="true"/>
          <trusted-key id="8C03DA5873B13E40C8C0DCE46A7AE74683A8AE1A" group="net.sourceforge.htmlunit"/>
          <trusted-key id="8DA70C00DF7AF1B0D2F9DC74DDBCC1270A29D081" group="org.apache.ant"/>
+         <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
          <trusted-key id="9E84765A7AA3E3D3D5598A408E3F0DE7AE354651" group="^com[.]squareup($|([.].*))" regex="true"/>
@@ -614,15 +617,6 @@
             <pgp value="D5F46BC0B86AF5DC56DF58F05E975CB00C643DBF"/>
          </artifact>
       </component>
-      <component group="com.google.j2objc" name="j2objc-annotations" version="1.1">
-         <artifact name="j2objc-annotations-1.1.jar">
-            <pgp value="B801E2F8EF035068EC1139CC29579F18FA8FD93B"/>
-            <ignored-keys>
-               <ignored-key id="29579F18FA8FD93B" reason="Artifact has been overwritten on Maven Central"/>
-            </ignored-keys>
-            <sha256 value="2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6" origin="Verified by Bo"/>
-         </artifact>
-      </component>
       <component group="com.google.j2objc" name="j2objc-annotations" version="2.8">
          <artifact name="j2objc-annotations-2.8.jar">
             <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
@@ -854,6 +848,11 @@
             <pgp value="C328250FE23A2420814521EC0EB69F76FD171538"/>
          </artifact>
       </component>
+      <component group="io.github.davidburstrom.contester" name="contester-breakpoint" version="0.2.0">
+         <artifact name="contester-breakpoint-0.2.0.jar">
+            <pgp value="C0612048F3393B80B22639B4F067A2FD751AE3E4"/>
+         </artifact>
+      </component>
       <component group="io.github.detekt.sarif4k" name="sarif4k" version="0.0.1">
          <artifact name="sarif4k-0.0.1.jar">
             <pgp value="8569C95CADC508B09FE90F3002216ED811210DAA"/>
@@ -877,6 +876,11 @@
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.23">
          <artifact name="kotlin-logging-jvm-2.1.23.jar">
             <pgp value="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5"/>
+         </artifact>
+      </component>
+      <component group="io.gitlab.arturbosch.detekt" name="detekt-gradle-plugin" version="1.23.6">
+         <artifact name="detekt-gradle-plugin-1.23.6.jar">
+            <pgp value="5F6C2148AD4911FE308110E5F0D0AE433308B042"/>
          </artifact>
       </component>
       <component group="io.netty" name="netty-all" version="4.1.63.Final">
@@ -1020,9 +1024,9 @@
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="3.1.0">
-         <artifact name="gradle-errorprone-plugin-3.1.0.jar">
-            <sha256 value="10fb66b55747ced1db9c89c8c3d0adb5dbd3f8f12f2a183bee2b5ff818d1fd6c" origin="Verified" reason="Artifact is not signed"/>
+      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.0.1">
+         <artifact name="gradle-errorprone-plugin-4.0.1.jar">
+            <sha256 value="4caa671392fd3675171e93c663f2642452819c68d3ef90206d7949bd8fee7d9e" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
@@ -1563,6 +1567,11 @@
       <component group="org.simpleframework" name="simple" version="4.1.21">
          <artifact name="simple-4.1.21.jar">
             <sha256 value="8e6439fcc1f2fe87b5dfc20eb13289acba8047e9cfadf45ad3dc5c57a9bcd054" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.snakeyaml" name="snakeyaml-engine" version="2.6">
+         <artifact name="snakeyaml-engine-2.6.jar">
+            <pgp value="120D6F34E627ED3A772EBBFE55C7E5E701832382"/>
          </artifact>
       </component>
       <component group="org.spire-math" name="jawn-parser_2.12" version="0.10.4">

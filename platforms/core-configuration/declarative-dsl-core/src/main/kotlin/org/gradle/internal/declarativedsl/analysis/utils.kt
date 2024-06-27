@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
@@ -35,7 +36,7 @@ fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = 
  * Can't check for equality: TAPI proxies are not equal to the original implementations.
  * TODO: maybe "reify" the TAPI proxies to ensure equality?
  */
-private
+internal
 fun sameType(left: DataType, right: DataType) = when (left) {
     is DataClass -> right is DataClass && left.name.qualifiedName == right.name.qualifiedName
     is DataType.BooleanDataType -> right is DataType.BooleanDataType
@@ -70,5 +71,18 @@ fun AnalysisContext.checkAccessOnCurrentReceiver(
 ) {
     if (receiver !is ObjectOrigin.ImplicitThisReceiver || !receiver.isCurrentScopeReceiver) {
         errorCollector.collect(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
+    }
+}
+
+
+internal
+fun SchemaFunction.format(receiver: ObjectOrigin?, lowercase: Boolean = true): String {
+    val text = when (receiver) {
+        null -> "top level function ${this.simpleName}"
+        else -> "function ${this.simpleName} (having as receiver $receiver)"
+    }
+    return when {
+        !lowercase -> text.replaceFirstChar { it.uppercase() }
+        else -> text
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 
 import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
@@ -52,12 +53,14 @@ class MethodHandleInvocation implements Invocation {
     }
 
     @Override
+    @Nullable
     public Object getArgument(int pos) {
         return unwrap(unspreadArgs[pos + unspreadArgsOffset]);
     }
 
     @Override
-    public Object callOriginal() throws Throwable {
+    @Nullable
+    public Object callNext() throws Throwable {
         return original.invokeExact(originalArgs);
     }
 }

@@ -56,19 +56,19 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.serialize.graph.unsupported
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.event.AbstractBroadcastDispatch
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.flow.services.BuildWorkResultProvider
 import org.gradle.internal.scripts.GradleScript
-import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.logUnsupported
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.serialize.graph.unsupported
+import org.gradle.internal.service.ServiceLookup
 import java.io.FileDescriptor
 import java.io.RandomAccessFile
 import java.net.ServerSocket
@@ -145,7 +145,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<BuildService<*>>())
 
     // Gradle implementation types
-    bind(unsupported<DefaultServiceRegistry>())
+    bind(unsupported<ServiceLookup>())
 }
 
 

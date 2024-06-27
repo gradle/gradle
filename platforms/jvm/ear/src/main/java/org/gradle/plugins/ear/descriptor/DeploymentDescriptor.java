@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -33,6 +34,7 @@ public interface DeploymentDescriptor {
     /**
      * The name of the descriptor file, typically "application.xml"
      */
+    @ToBeReplacedByLazyProperty
     String getFileName();
 
     void setFileName(String fileName);
@@ -40,6 +42,7 @@ public interface DeploymentDescriptor {
     /**
      * The version of application.xml. Required. Valid versions are "1.3", "1.4", "5", "6", "7", "8", "9" and "10". Defaults to "6".
      */
+    @ToBeReplacedByLazyProperty
     String getVersion();
 
     void setVersion(String version);
@@ -47,6 +50,7 @@ public interface DeploymentDescriptor {
     /**
      * The application name. Optional. Only valid with version 6.
      */
+    @ToBeReplacedByLazyProperty
     String getApplicationName();
 
     void setApplicationName(String applicationName);
@@ -55,6 +59,7 @@ public interface DeploymentDescriptor {
      * Whether to initialize modules in the order they appear in the descriptor, with the exception of client modules.
      * Optional. Only valid with version 6.
      */
+    @ToBeReplacedByLazyProperty
     Boolean getInitializeInOrder();
 
     void setInitializeInOrder(Boolean initializeInOrder);
@@ -62,6 +67,7 @@ public interface DeploymentDescriptor {
     /**
      * The application description. Optional.
      */
+    @ToBeReplacedByLazyProperty
     String getDescription();
 
     void setDescription(String description);
@@ -69,6 +75,7 @@ public interface DeploymentDescriptor {
     /**
      * The application display name. Optional.
      */
+    @ToBeReplacedByLazyProperty
     String getDisplayName();
 
     void setDisplayName(String displayName);
@@ -78,6 +85,7 @@ public interface DeploymentDescriptor {
      * Typically, this should be set via {@link org.gradle.plugins.ear.EarPluginConvention#setLibDirName(String)} instead of this property
      * when using the <code>ear</code> plugin.
      */
+    @ToBeReplacedByLazyProperty
     String getLibraryDirectory();
 
     void setLibraryDirectory(String libraryDirectory);
@@ -86,6 +94,7 @@ public interface DeploymentDescriptor {
      * List of module descriptors. Must not be empty. Non-null and order-maintaining by default. Must maintain order if
      * initializeInOrder is <code>true</code>.
      */
+    @ToBeReplacedByLazyProperty
     Set<EarModule> getModules();
 
     void setModules(Set<EarModule> modules);
@@ -126,6 +135,7 @@ public interface DeploymentDescriptor {
     /**
      * List of security roles. Optional. Non-null and order-maintaining by default.
      */
+    @ToBeReplacedByLazyProperty
     Set<EarSecurityRole> getSecurityRoles();
 
     void setSecurityRoles(Set<EarSecurityRole> securityRoles);
@@ -160,6 +170,7 @@ public interface DeploymentDescriptor {
      * Mapping of module paths to module types. Non-null by default. For example, to specify that a module is a java
      * module, set <code>moduleTypeMappings["myJavaModule.jar"] = "java"</code>.
      */
+    @ToBeReplacedByLazyProperty
     Map<String, String> getModuleTypeMappings();
 
     void setModuleTypeMappings(Map<String, String> moduleTypeMappings);

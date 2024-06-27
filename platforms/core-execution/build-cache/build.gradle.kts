@@ -7,14 +7,14 @@ plugins {
 description = "Implementation of build cache controller and factories"
 
 dependencies {
-    api(project(":build-cache-base"))
-    api(project(":build-cache-packaging"))
-    api(project(":build-cache-spi"))
-    api(project(":build-operations"))
-    api(project(":enterprise-operations"))
-    api(project(":files"))
-    api(project(":hashing"))
-    api(project(":snapshots"))
+    api(projects.buildCacheBase)
+    api(projects.buildCachePackaging)
+    api(projects.buildCacheSpi)
+    api(projects.buildOperations)
+    api(projects.enterpriseOperations)
+    api(projects.files)
+    api(projects.hashing)
+    api(projects.snapshots)
 
     api(libs.jsr305)
 
@@ -23,21 +23,21 @@ dependencies {
     api(libs.guava)
     implementation(libs.slf4jApi)
 
-    jmhImplementation(project(":base-services"))
-    jmhImplementation(project(":native"))
-    jmhImplementation(platform(project(":distributions-dependencies")))
+    jmhImplementation(projects.baseServices)
+    jmhImplementation(projects.native)
+    jmhImplementation(platform(projects.distributionsDependencies))
     jmhImplementation(libs.aircompressor)
     jmhImplementation(libs.commonsCompress)
     jmhImplementation(libs.commonsIo)
     jmhImplementation(libs.jtar)
     jmhImplementation(libs.snappy)
 
-    testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":build-operations")))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.buildOperations))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.snapshots))
 
-    testFixturesImplementation(testFixtures(project(":hashing")))
+    testFixturesImplementation(testFixtures(projects.hashing))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

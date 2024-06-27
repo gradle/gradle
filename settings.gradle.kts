@@ -28,10 +28,9 @@ pluginManagement {
 
 plugins {
     id("gradlebuild.build-environment")
-    id("com.gradle.develocity").version("3.17.4") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("com.gradle.develocity").version("3.17.5") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
-//    id("net.ltgt.errorprone").version("3.1.0")
 }
 
 includeBuild("build-logic-commons")
@@ -93,6 +92,7 @@ val core = platform("core") {
         subproject("files")
         subproject("functional")
         subproject("gradle-cli-main")
+        subproject("gradle-cli")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
@@ -108,7 +108,10 @@ val core = platform("core") {
         subproject("native")
         subproject("process-services")
         subproject("serialization")
+        subproject("service-lookup")
         subproject("service-provider")
+        subproject("service-registry-builder")
+        subproject("service-registry-impl")
         subproject("time")
         subproject("tooling-api-provider")
         subproject("wrapper-main")
@@ -132,6 +135,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
+        subproject("encryption-services")
         subproject("file-collections")
         subproject("flow-services")
         subproject("graph-serialization")

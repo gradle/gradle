@@ -470,10 +470,10 @@ Shows a help message with the built-in CLI options.
 To show project-contextual options, including help on a specific task, see the `help` task.
 
 `-v`, `--version`::
-Prints Gradle, Groovy, Ant, JVM, and operating system version information and exit without executing any tasks.
+Prints Gradle, Groovy, Ant, Launcher & Daemon JVM, and operating system version information and exit without executing any tasks.
 
 `-V`, `--show-version`::
-Prints Gradle, Groovy, Ant, JVM, and operating system version information and continue execution of specified tasks.
+Prints Gradle, Groovy, Ant, Launcher & Daemon JVM, and operating system version information and continue execution of specified tasks.
 
 `-S`, `--full-stacktrace`::
 Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec:command_line_logging, logging options>>.

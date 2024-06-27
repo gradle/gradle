@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-@NonNullApi
+/**
+ * This package exists as a non-intermediate package only to contain the
+ * deprecated {@code AmbiguousVariantSelectionException} type.
+ * <p>
+ * This file should be deleted when that type is removed.
+ */
+@org.gradle.api.NonNullApi
 package org.gradle.internal.component;
-
-import org.gradle.api.NonNullApi;

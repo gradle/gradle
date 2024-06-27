@@ -9,9 +9,9 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.jsr305)
 
-    api(project(":cli"))
+    api(projects.cli)
     api(projects.stdlibJavaExtensions)
-    api(project(":messaging"))
+    api(projects.messaging)
 
-    implementation(project(":base-services"))
+    implementation(projects.baseServices)
 }

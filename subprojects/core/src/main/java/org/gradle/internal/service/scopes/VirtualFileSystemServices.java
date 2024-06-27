@@ -222,7 +222,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     root,
-                    sectionId -> documentationRegistry.getDocumentationRecommendationFor("details", "gradle_daemon", sectionId),
+                    sectionId -> documentationRegistry.getDocumentationRecommendationFor("details", "file_system_watching", sectionId),
                     fileWatchingFilter,
                     watchableFileSystemDetector,
                     fileChangeListeners

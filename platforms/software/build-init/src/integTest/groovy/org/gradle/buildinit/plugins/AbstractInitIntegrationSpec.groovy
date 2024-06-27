@@ -38,6 +38,7 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
             // This is here to prevent Gradle searching up to find the build's settings.gradle
         """
         initializeIntoTestDir()
+        executer.withRepositoryMirrors()
     }
 
     void initializeIntoTestDir() {

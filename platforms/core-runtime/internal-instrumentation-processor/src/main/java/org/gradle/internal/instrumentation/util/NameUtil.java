@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.util;
 
+import com.squareup.javapoet.ClassName;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.util.internal.TextUtil;
@@ -42,5 +43,15 @@ public class NameUtil {
             return setterName(callableInfo.getCallableName());
         }
         return callableInfo.getCallableName();
+    }
+
+    /**
+     * ClassName that correctly resolves name for classes that starts with $
+     */
+    public static ClassName getClassName(String fullClassName) {
+        String[] splitted = fullClassName.split("[.]");
+        String className = splitted[splitted.length - 1];
+        String packageName = fullClassName.replace("." + className, "");
+        return ClassName.get(packageName, className);
     }
 }

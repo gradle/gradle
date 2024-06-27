@@ -39,6 +39,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -177,6 +178,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -185,6 +187,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * The class path containing the PMD library to be used.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getPmdClasspath() {
         return pmdClasspath;
     }
@@ -204,6 +207,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * </pre>
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getRuleSets() {
         return ruleSets;
     }
@@ -223,6 +227,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * The target JDK to use with PMD.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public TargetJdk getTargetJdk() {
         return targetJdk;
     }
@@ -277,6 +282,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
+    @ToBeReplacedByLazyProperty
     public FileCollection getRuleSetFiles() {
         return ruleSetFiles;
     }
@@ -333,6 +339,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 2.1
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isConsoleOutput() {
         return consoleOutput;
     }
@@ -358,6 +365,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     @Nullable
     @Optional
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -393,6 +401,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 5.6
      */
     @LocalState
+    @ToBeReplacedByLazyProperty
     public File getIncrementalCacheFile() {
         return new File(getTemporaryDir(), "incremental.cache");
     }

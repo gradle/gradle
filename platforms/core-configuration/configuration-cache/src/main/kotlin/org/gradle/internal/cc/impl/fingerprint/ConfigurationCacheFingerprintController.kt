@@ -27,7 +27,7 @@ import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeT
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
-import org.gradle.internal.cc.impl.EncryptionService
+import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems

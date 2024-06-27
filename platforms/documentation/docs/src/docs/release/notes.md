@@ -14,7 +14,7 @@ Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announ
 
 ## Upgrade instructions
 
-Switch your build to use Gradle @version@ by updating your wrapper:
+Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
 `./gradlew wrapper --gradle-version=@version@`
 
@@ -52,6 +52,19 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+nothing that affects the build configuration has changed.
+
+#### Report improvements
+
+TBD:
+- Incompatible tasks tab
+- Copy experience
+- Invalidation reason
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

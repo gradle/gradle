@@ -17,10 +17,10 @@
 package org.gradle.internal.cc.impl.problems
 
 import groovy.json.JsonSlurper
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasEntry
 import org.junit.Test
@@ -41,7 +41,7 @@ class JsonModelWriterTest {
                         StructuredMessage.build { reference("") }
                     )
                 )
-                endModel("", "", "", 0)
+                endModel(ConfigurationCacheReportDetails("", "", StructuredMessage.forText(""), "", 0))
             },
             hasEntry(
                 "diagnostics",

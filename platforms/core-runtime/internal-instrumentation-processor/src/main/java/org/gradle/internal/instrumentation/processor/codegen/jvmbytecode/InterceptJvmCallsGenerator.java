@@ -38,6 +38,7 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
+import org.gradle.internal.instrumentation.util.NameUtil;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -91,8 +92,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
-
-        // Suppress some error prone warnings that are not important and would complicate the logic for code generation.
 
         return builder ->
             builder.addMethod(constructor)
@@ -151,13 +150,13 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Set<String> knownSimpleNames = new HashSet<>();
         return interceptionRequests.stream().map(it -> it.getImplementationInfo().getOwner()).distinct()
             .collect(Collectors.toMap(Function.identity(), implementationType -> {
-                ClassName implementationClassName = ClassName.bestGuess(implementationType.getClassName());
+                ClassName implementationClassName = NameUtil.getClassName(implementationType.getClassName());
                 String fieldTypeName = knownSimpleNames.add(implementationClassName.simpleName()) ?
                     implementationClassName.simpleName() :
-                    implementationClassName.canonicalName();
+                    implementationClassName.reflectionName();
                 String fullFieldName = camelToKebabCase(fieldTypeName).replace("-", "_").toUpperCase(Locale.US) + "_TYPE";
                 return FieldSpec.builder(String.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                    .initializer("$S", implementationClassName.canonicalName().replace(".", "/"))
+                    .initializer("$S", implementationClassName.reflectionName().replace(".", "/"))
                     .build();
             }, (u, v) -> u, LinkedHashMap::new));
     }

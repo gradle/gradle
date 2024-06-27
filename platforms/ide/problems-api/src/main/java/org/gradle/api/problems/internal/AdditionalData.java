@@ -25,9 +25,10 @@ import org.gradle.api.Incubating;
  * This is effectively a sealed interface that is used to restrict the types of additional data that can be attached to a problem.
  * The list interfaces supported by the problems API are:
  * <ul>
- *     <li>{@link GeneralData}</li>
+ *     <li>{@link org.gradle.api.problems.internal.GeneralData}</li>
  *     <li>{@link org.gradle.api.problems.internal.TypeValidationData}</li>
  *     <li>{@link org.gradle.api.problems.internal.DeprecationData}</li>
+ *     <li>{@link org.gradle.api.problems.internal.PropertyTraceData}</li>
  * </ul>
  *
  * @see InternalProblemSpec#additionalData(Class, Action)

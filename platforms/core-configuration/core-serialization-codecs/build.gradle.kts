@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.publish)
     implementation(projects.serialization)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)

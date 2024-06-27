@@ -135,8 +135,8 @@ To create a precompiled script plugin, you can:
 To apply a precompiled script plugin, you need to know its ID.
 The ID is derived from the plugin script's filename and its (optional) package declaration.
 
-For example, the script `src/main/\*/java-library.gradle(.kts)` has a plugin ID of `java-library` (assuming it has no package declaration).
-Likewise, `src/main/*/my/java-library.gradle(.kts)` has a plugin ID of `my.java-library` as long as it has a package declaration of `my`.
+For example, the script `src/main/\*/some-java-library.gradle(.kts)` has a plugin ID of `some-java-library` (assuming it has no package declaration).
+Likewise, `src/main/*/my/some-java-library.gradle(.kts)` has a plugin ID of `my.some-java-library` as long as it has a package declaration of `my`.
 
 Precompiled script plugin names have two important limitations:
 
@@ -287,6 +287,7 @@ include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",fi
 
 For more on publishing plugins, see <<publishing_gradle_plugins.adoc#plugin-publishing-plugin,Publishing Plugins>>.
 
+[[project_vs_settings_vs_init_plugins]]
 ==  Project vs Settings vs Init plugins
 
 In the example used through this section, the plugin accepts the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter.

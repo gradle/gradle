@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.internal.declarativedsl.analysis.interpretationCheck
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -116,7 +117,9 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
 
     init {
         check(functionalInterface.java.isInterface)
-        check(typeParameters.size <= 1) { "generic types with more than one type parameter are not supported" }
+        interpretationCheck(typeParameters.size <= 1) {
+            "${functionalInterface.simpleName} interpreted as a configure lambda, but generic types with more than one type parameter are not supported"
+        }
     }
 
     override fun getTypeConfiguredByLambda(type: KType): KType? =

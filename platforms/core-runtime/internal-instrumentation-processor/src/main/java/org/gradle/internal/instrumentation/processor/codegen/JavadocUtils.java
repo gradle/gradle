@@ -23,6 +23,7 @@ import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
+import org.gradle.internal.instrumentation.util.NameUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,7 +67,7 @@ public class JavadocUtils {
     public static CodeBlock interceptorImplementationLink(CallInterceptionRequest request) {
         CodeBlock.Builder result = CodeBlock.builder();
         List<ParameterInfo> params = request.getInterceptedCallable().getParameters();
-        result.add("{@link $T#$L(", ClassName.bestGuess(request.getImplementationInfo().getOwner().getClassName()), request.getImplementationInfo().getName());
+        result.add("{@link $T#$L(", NameUtil.getClassName(request.getImplementationInfo().getOwner().getClassName()), request.getImplementationInfo().getName());
         params.forEach(parameter -> {
             result.add("$L", parameterTypeForJavadoc(parameter, false));
             if (parameter != params.get(params.size() - 1)) {

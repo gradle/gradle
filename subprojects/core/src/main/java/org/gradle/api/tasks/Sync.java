@@ -26,6 +26,8 @@ import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -90,6 +92,7 @@ public abstract class Sync extends AbstractCopyTask {
     }
 
     @Override
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public DestinationRootCopySpec getRootSpec() {
         return (DestinationRootCopySpec) super.getRootSpec();
     }
@@ -100,6 +103,7 @@ public abstract class Sync extends AbstractCopyTask {
      * @return The destination dir.
      */
     @OutputDirectory
+    @ToBeReplacedByLazyProperty
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();
     }
@@ -121,6 +125,7 @@ public abstract class Sync extends AbstractCopyTask {
      * @see #getDestinationDir()
      */
     @Internal
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public PatternFilterable getPreserve() {
         return preserveInDestination;
     }

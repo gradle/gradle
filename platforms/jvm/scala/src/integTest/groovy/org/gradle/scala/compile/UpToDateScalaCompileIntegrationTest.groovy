@@ -75,20 +75,20 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
 
         buildScript(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
         when:
-        executer.withJavaHome(jdk8.javaHome)
+        executer.withJvm(jdk8)
         run 'compileScala'
 
         then:
         executedAndNotSkipped(':compileScala')
 
         when:
-        executer.withJavaHome(jdk8.javaHome)
+        executer.withJvm(jdk8)
         run 'compileScala'
         then:
         skipped ':compileScala'
 
         when:
-        executer.withJavaHome(jdk11.javaHome)
+        executer.withJvm(jdk11)
         run 'compileScala', '--info'
         then:
         executedAndNotSkipped(':compileScala')
@@ -175,7 +175,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()
 
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersionNumber in 8..17 })
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 8..17 })
 
         buildScript """
             apply plugin: 'scala'

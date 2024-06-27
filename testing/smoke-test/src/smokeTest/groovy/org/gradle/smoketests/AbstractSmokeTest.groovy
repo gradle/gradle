@@ -36,6 +36,7 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -121,7 +122,7 @@ abstract class AbstractSmokeTest extends Specification {
         static playframework = "0.13" // Can't upgrade to 0.14 as it breaks CC compat - see https://github.com/gradle/playframework/issues/184
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "3.1.0"
+        static errorProne = "4.0.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.9.4"
@@ -283,9 +284,16 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     private static List<String> repoMirrorParameters() {
-        return [
-            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
-        ]
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+            return [
+                '--init-script', mirrorInitScriptPath,
+                "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
+                "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+            ]
+        } else {
+            return []
+        }
     }
 
     private static List<String> toolchainParameters() {

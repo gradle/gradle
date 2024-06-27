@@ -59,8 +59,14 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public String getDisplayName() {
+        String prefix;
+        if (identityPath == Path.ROOT) {
+            prefix =  "root project";
+        } else {
+            prefix = "project";
+        }
         if (displayName == null) {
-            displayName = "project " + identityPath;
+            displayName = prefix + " " + identityPath;
         }
         return displayName;
     }

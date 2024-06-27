@@ -30,7 +30,7 @@ class Abc {
 }
 
 
-class C(var x: Int = 0) {
+class C(@get:Restricted var x: Int = 0) {
     @Builder
     fun d(newD: D): C {
         this.d = newD

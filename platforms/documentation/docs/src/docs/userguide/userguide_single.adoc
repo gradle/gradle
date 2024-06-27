@@ -101,20 +101,13 @@ include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
 
-== BEST PRACTICES
-
-include::organizing_gradle_projects.adoc[leveloffset=+2]
-include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
-
 == OTHER TOPICS
 
 include::directory_layout.adoc[leveloffset=+2]
 include::working_with_files.adoc[leveloffset=+2]
 include::logging.adoc[leveloffset=+2]
-include::potential_traps.adoc[leveloffset=+2]
 include::build_environment.adoc[leveloffset=+2]
 include::init_scripts.adoc[leveloffset=+2]
-include::custom_gradle_types.adoc[leveloffset=+2]
 include::build_services.adoc[leveloffset=+2]
 include::dataflow_actions.adoc[leveloffset=+2]
 include::test_kit.adoc[leveloffset=+2]
@@ -214,14 +207,6 @@ include::caching_java_projects.adoc[leveloffset=+2]
 include::caching_android_projects.adoc[leveloffset=+2]
 include::build_cache_debugging.adoc[leveloffset=+2]
 include::common_caching_problems.adoc[leveloffset=+2]
-
-[[part:gradle_on_ci]]
-== **GRADLE ON CI**
-
-include::jenkins.adoc[leveloffset=+2]
-include::teamcity.adoc[leveloffset=+2]
-include::github-actions.adoc[leveloffset=+2]
-include::travis-ci.adoc[leveloffset=+2]
 
 [[part:reference]]
 == **REFERENCE**

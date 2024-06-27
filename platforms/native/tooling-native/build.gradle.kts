@@ -12,22 +12,22 @@ errorprone {
 
 dependencies {
     api(projects.serviceProvider)
-    api(project(":core-api"))
-    api(project(":core"))
-    api(project(":ide")) {
+    api(projects.coreApi)
+    api(projects.core)
+    api(projects.ide) {
         because("To pick up various builders (which should live somewhere else)")
-        api(project(":tooling-api"))
+        api(projects.toolingApi)
     }
 
     implementation(projects.baseServices)
-    implementation(project(":file-collections"))
-    implementation(project(":language-native"))
-    implementation(project(":platform-native"))
-    implementation(project(":testing-native"))
+    implementation(projects.fileCollections)
+    implementation(projects.languageNative)
+    implementation(projects.platformNative)
+    implementation(projects.testingNative)
 
     implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(projects.platformNative))
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-native"))
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsNative)
 }

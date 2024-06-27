@@ -19,6 +19,8 @@ package org.gradle.internal.cc.impl
 import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.internal.encryption.impl.EncryptionKind
+import org.gradle.internal.encryption.impl.KeyStoreKeySource
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -26,9 +28,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.nio.charset.StandardCharsets
-
-import static org.gradle.internal.cc.impl.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
-
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
@@ -36,6 +35,7 @@ import java.security.KeyStore
 import java.util.stream.Stream
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.internal.encryption.impl.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -66,10 +66,10 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         where:
         encryptionTransformation | source
-        "AES/ECB/PKCS5PADDING"   | EncryptionKind.KEYSTORE
-        "AES/CBC/PKCS5PADDING"   | EncryptionKind.KEYSTORE
-        "AES/ECB/PKCS5PADDING"   | EncryptionKind.ENV_VAR
-        "AES/CBC/PKCS5PADDING"   | EncryptionKind.ENV_VAR
+        "AES/CTR/NoPadding"      | EncryptionKind.KEYSTORE
+        "AES/CTR/NoPadding"      | EncryptionKind.ENV_VAR
+        "AES/GCM/NoPadding"      | EncryptionKind.KEYSTORE
+        "AES/GCM/NoPadding"      | EncryptionKind.ENV_VAR
     }
 
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
@@ -143,10 +143,10 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         (findRequiredKeystoreFile(false) != null) == keystoreExpected
 
         where:
-        kind                    | enabled   | keystoreExpected
-        EncryptionKind.NONE     | false     | false
-        EncryptionKind.KEYSTORE | true      | true
-        EncryptionKind.ENV_VAR  | true      | false
+        kind                    | enabled | keystoreExpected
+        EncryptionKind.NONE     | false   | false
+        EncryptionKind.KEYSTORE | true    | true
+        EncryptionKind.ENV_VAR  | true    | false
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
@@ -250,7 +250,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         // since the key is not fully validated until needed, we only get an error when encrypting
-        failure.assertHasDescription("Error while encrypting")
+        failure.assertHasDescription("Invalid AES key length: 35 bytes")
         // exception error message varies across JCE implementations, but the exception class is predictable
         containsLine(result.error, matchesRegexp(".*java.security.InvalidKeyException.*"))
     }

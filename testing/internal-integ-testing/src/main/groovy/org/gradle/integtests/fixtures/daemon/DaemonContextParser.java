@@ -20,7 +20,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.util.GradleVersion;
@@ -70,7 +70,7 @@ public class DaemonContextParser {
             String pidStr = matcher.group(5);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(6));
-            DaemonParameters.Priority priority = matcher.group(7) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(7).substring(",priority=".length()));
+            DaemonPriority priority = matcher.group(7) == null ? DaemonPriority.NORMAL : DaemonPriority.valueOf(matcher.group(7).substring(",priority=".length()));
             boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(8));
             NativeServicesMode nativeServicesMode = matcher.group(9) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(9));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(10)));
@@ -93,7 +93,7 @@ public class DaemonContextParser {
             String pidStr = matcher.group(4);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(5));
-            DaemonParameters.Priority priority = matcher.group(6) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(6).substring(",priority=".length()));
+            DaemonPriority priority = matcher.group(6) == null ? DaemonPriority.NORMAL : DaemonPriority.valueOf(matcher.group(6).substring(",priority=".length()));
             boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(7));
             NativeServicesMode nativeServicesMode = matcher.group(8) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(8));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(9)));

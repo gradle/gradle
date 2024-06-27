@@ -22,7 +22,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.MutationGuards;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -51,7 +50,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
@@ -99,7 +98,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     @Override
     public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
         try {
-            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), spec.getProjectCacheDir(), this.internalServices)) {
+            try (CloseableServiceRegistry internalServices = WorkerProjectServices.create(this.internalServices, spec.getBaseDir(), spec.getProjectCacheDir())) {
                 RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
                 return worker.run(spec);
             }
@@ -165,7 +164,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
-        ClassPathRegistry createClassPathRegistry(DefaultModuleRegistry moduleRegistry) {
+        ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry) {
             return new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
         }
 
@@ -201,16 +200,21 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
     }
 
-    static class WorkerProjectServices extends DefaultServiceRegistry {
-        public WorkerProjectServices(File baseDir, File projectCacheDir, ServiceRegistry... parents) {
-            super("worker request services for " + baseDir.getAbsolutePath(), parents);
-            addProvider(new WorkerSharedProjectScopeServices(baseDir));
-            addProvider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir));
+    static class WorkerProjectServices implements ServiceRegistrationProvider {
+
+        public static CloseableServiceRegistry create(ServiceRegistry parent, File baseDir, File projectCacheDir) {
+            return ServiceRegistryBuilder.builder()
+                .displayName("worker request services for " + baseDir.getAbsolutePath())
+                .parent(parent)
+                .provider(new WorkerProjectServices())
+                .provider(new WorkerSharedProjectScopeServices(baseDir))
+                .provider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir))
+                .build();
         }
 
         @Provides
-        protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
-            return instantiatorFactory.decorateLenient(this);
+        protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory, ServiceRegistry workerProjectScopeServices) {
+            return instantiatorFactory.decorateLenient(workerProjectScopeServices);
         }
 
         @Provides

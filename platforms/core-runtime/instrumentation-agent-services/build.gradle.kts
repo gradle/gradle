@@ -29,5 +29,6 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
+    integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

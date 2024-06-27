@@ -63,6 +63,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
@@ -83,6 +84,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -97,36 +99,15 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
-import org.gradle.internal.execution.impl.DefaultExecutionEngine;
-import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
-import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.IdentifyStep;
-import org.gradle.internal.execution.steps.IdentityCacheStep;
-import org.gradle.internal.execution.steps.NeverUpToDateStep;
-import org.gradle.internal.execution.steps.NoInputChangesStep;
-import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
-import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
-import org.gradle.internal.execution.steps.TimeoutStep;
-import org.gradle.internal.execution.steps.ValidateStep;
-import org.gradle.internal.execution.timeout.TimeoutHandler;
-import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -134,9 +115,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -150,14 +129,11 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -166,8 +142,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-
-import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 /**
  * The set of dependency management services that are created per build in the tree.
@@ -208,6 +182,18 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
         return new DefaultDependencyManagementServices(parent);
+    }
+
+    @Provides
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
+        return new DependencyMetaDataProviderImpl();
+    }
+
+    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+        @Override
+        public Module getModule() {
+            return new AnonymousModule();
+        }
     }
 
     @Provides
@@ -368,20 +354,20 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     ResolvedVariantCache createResolvedVariantCache() {
-        ConcurrentHashMap<VariantResolveMetadata.Identifier, ResolvedVariant> map = new ConcurrentHashMap<>();
+        ConcurrentHashMap<ResolvedVariantCache.CacheKey, ResolvedVariant> map = new ConcurrentHashMap<>();
         return new ResolvedVariantCache() {
             @Override
-            public ResolvedVariant computeIfAbsent(VariantResolveMetadata.Identifier key, Function<? super VariantResolveMetadata.Identifier, ? extends ResolvedVariant> mappingFunction) {
+            public ResolvedVariant computeIfAbsent(ResolvedVariantCache.CacheKey key, Function<? super ResolvedVariantCache.CacheKey, ? extends ResolvedVariant> mappingFunction) {
                 return map.computeIfAbsent(key, mappingFunction);
             }
         };
     }
 
     @Provides
-    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
         InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
         ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
-        return new ResolutionFailureHandler(failureDescriberRegistry);
+        return new ResolutionFailureHandler(failureDescriberRegistry, problemsService);
     }
 
     @Provides
@@ -478,46 +464,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 
-    /**
-     * Execution engine for usage above Gradle scope
-     *
-     * Currently used for running artifact transforms in buildscript blocks, compiling Kotlin scripts etc.
-     */
     @Provides
-    ExecutionEngine createExecutionEngine(
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CurrentBuildOperationRef currentBuildOperationRef,
-        Deleter deleter,
-        FileSystemAccess fileSystemAccess,
-        ListenerManager listenerManager,
-        ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
-        OutputSnapshotter outputSnapshotter,
-        TimeoutHandler timeoutHandler,
-        ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-        VirtualFileSystem virtualFileSystem
-    ) {
-        OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-
-        // @formatter:off
-        return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner,
-            new IdentityCacheStep<>(buildOperationProgressEventEmitter,
-            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveNonIncrementalCachingStateStep<>(
-            new NeverUpToDateStep<>(
-            new NoInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
-            // TODO Use a shared execution pipeline
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new ExecuteStep<>(buildOperationRunner
-        ))))))))))))));
-        // @formatter:on
+    TransformExecutionListener createTransformExecutionListener(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(TransformExecutionListener.class);
     }
 }

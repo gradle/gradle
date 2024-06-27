@@ -193,7 +193,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
 Searched in the following locations:
   - Git repository at ${repo.url}
 Required by:
-    project :""")
+    root project :""")
 
         when:
         repoSettingsFile.replace("version = '1.1'", "version = '2.0'")
@@ -296,7 +296,7 @@ Required by:
 Searched in the following locations:
   - Git repository at ${repo.url}
 Required by:
-    project :""")
+    root project :""")
 
         when:
         repoSettingsFile.replace("version = '1.0'", "version = '1.1'")
@@ -355,7 +355,7 @@ Required by:
 Searched in the following locations:
   - Git repository at ${repo.url}
 Required by:
-    project :""")
+    root project :""")
 
         where:
         selector  | _
@@ -446,7 +446,7 @@ Required by:
 Searched in the following locations:
   - Git repository at ${repo.url}
 Required by:
-    project :""")
+    root project :""")
 
         when:
         repo.createBranch("release")

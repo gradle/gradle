@@ -53,7 +53,12 @@ class FunctionLambdaTypeDiscovery(
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
         kClass.memberFunctions
             .filter { memberFilter.shouldIncludeMember(it) }
-            .mapNotNullTo(mutableSetOf()) { fn -> fn.parameters.lastOrNull()?.let { configureLambdas.getTypeConfiguredByLambda(it.type)?.classifier as? KClass<*> } }
+            .flatMapTo(mutableSetOf()) { fn ->
+                fn.parameters.lastOrNull()?.let {
+                    val configuredType = configureLambdas.getTypeConfiguredByLambda(it.type)?.classifier as? KClass<*>
+                    configuredType?.let(::withAllPotentiallyDeclarativeSupertypes)
+                } ?: emptyList()
+            }
 }
 
 
@@ -67,5 +72,8 @@ class FunctionReturnTypeDiscovery(
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
         kClass.memberFunctions
             .filter { memberFilter.shouldIncludeMember(it) }
-            .mapNotNullTo(mutableSetOf()) { fn -> fn.parameters.lastOrNull()?.let { fn.returnType.classifier as? KClass<*> } }
+            .flatMapTo(mutableSetOf()) { fn ->
+                val returnType = fn.parameters.lastOrNull()?.let { fn.returnType.classifier as? KClass<*> }
+                returnType?.let(::withAllPotentiallyDeclarativeSupertypes) ?: emptyList()
+            }
 }

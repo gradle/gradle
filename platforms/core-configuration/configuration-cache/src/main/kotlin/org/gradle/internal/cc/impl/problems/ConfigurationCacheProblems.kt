@@ -20,10 +20,13 @@ import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
@@ -34,6 +37,8 @@ import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -70,8 +75,10 @@ class ConfigurationCacheProblems(
     val problemsService: InternalProblems,
 
     private
-    val failureFactory: FailureFactory
+    val problemFactory: ProblemFactory,
 
+    private
+    val failureFactory: FailureFactory
 ) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
@@ -99,10 +106,13 @@ class ConfigurationCacheProblems(
     var updatedProjects = 0
 
     private
-    var incompatibleTasks = newConcurrentHashSet<String>()
+    val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
+
+    private
+    lateinit var cacheActionDescription: StructuredMessage
 
     val shouldDiscardEntry: Boolean
         get() {
@@ -126,8 +136,9 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun action(action: ConfigurationCacheAction) {
+    fun action(action: ConfigurationCacheAction, actionDescription: StructuredMessage) {
         cacheAction = action
+        cacheActionDescription = actionDescription
     }
 
     fun failingBuildDueToSerializationError() {
@@ -140,8 +151,13 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
-    override fun forIncompatibleTask(path: String): ProblemsListener {
-        incompatibleTasks.add(path)
+    override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener {
+        val notSeenBefore = incompatibleTasks.add(trace)
+        if (notSeenBefore) {
+            // this method is invoked whenever a problem listener is needed in the context of an incompatible task,
+            // report the incompatible task itself the first time only
+            reportIncompatibleTask(trace, reason)
+        }
         return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
@@ -152,6 +168,21 @@ class ConfigurationCacheProblems(
                 onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
         }
+    }
+
+    private
+    fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
+
+        val problem = problemFactory
+            .problem {
+                message(trace.containingUserCodeMessage)
+                text(" is incompatible with the configuration cache. Reason: $reason.")
+            }
+            .mapLocation {
+                trace
+            }
+            .documentationSection(DocumentationSection.TaskOptOut).build()
+        onIncompatibleTask(problem)
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -167,18 +198,24 @@ class ConfigurationCacheProblems(
     }
 
     private
+    val configCacheValidation: ProblemGroup = DefaultProblemGroup("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation())
+
+    private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
-        val message = problem.message.toString()
+        val message = problem.message.render()
         internalReporter.create {
             id(
-                "configuration-cache-" + DeprecationMessageBuilder.createDefaultDeprecationId(message),
+                DeprecationMessageBuilder.createDefaultDeprecationId(message),
                 message,
-                GradleCoreProblemGroup.validation()
+                configCacheValidation
             )
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
+            additionalData(PropertyTraceDataSpec::class.java) {
+                trace(problem.trace.containingUserCode)
+            }
         }.also { internalReporter.report(it) }
     }
 
@@ -205,6 +242,10 @@ class ConfigurationCacheProblems(
         this == ProblemSeverity.Suppressed -> Severity.ADVICE
         isFailOnProblems -> Severity.ERROR
         else -> Severity.WARNING
+    }
+
+    fun onIncompatibleTask(problem: PropertyProblem) {
+        report.onIncompatibleTask(problem)
     }
 
     override fun getId(): String {
@@ -238,10 +279,8 @@ class ConfigurationCacheProblems(
         val summary = summarizer.get()
         val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
-        val cacheActionText = cacheAction.summaryText()
-        val requestedTasks = startParameter.requestedTasksOrDefault()
-        val buildDisplayName = buildName
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
+        val details = detailsFor(summary)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, details)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)
@@ -252,11 +291,18 @@ class ConfigurationCacheProblems(
             null -> {
                 val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
-                log(summary.textForConsole(cacheActionText, htmlReportFile))
+                log(summary.textForConsole(details.cacheAction, htmlReportFile))
             }
 
             else -> validationFailures.accept(failure)
         }
+    }
+
+    private
+    fun detailsFor(summary: Summary): ConfigurationCacheReportDetails {
+        val cacheActionText = cacheAction.summaryText()
+        val requestedTasks = startParameter.requestedTasksOrDefault()
+        return ConfigurationCacheReportDetails(buildName, cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
     }
 
     private
@@ -319,7 +365,7 @@ class ConfigurationCacheProblems(
 
     private
     fun incompatibleTasksSummary() = when {
-        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'$it'" }}."
+        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'${it.render()}'" }}."
         else -> "."
     }
 
