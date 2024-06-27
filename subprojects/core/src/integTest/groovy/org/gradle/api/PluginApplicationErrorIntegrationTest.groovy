@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
@@ -87,7 +86,6 @@ class BrokenPlugin {
         failure.assertHasCause("'BrokenPlugin' is neither a plugin or a rule source and cannot be applied.")
     }
 
-    @ToBeImplemented
     def "applying a project plugin to settings fails with user-friendly error"() {
         settingsFile << """
             plugins {
@@ -103,7 +101,6 @@ class BrokenPlugin {
         failure.assertHasCause("Cannot apply a Project plugin to a Settings instance")
     }
 
-    @ToBeImplemented
     def "applying a settings plugin to a project fails with user-friendly error"() {
         buildFile << """
             apply plugin: SomeSettingsPlugin
