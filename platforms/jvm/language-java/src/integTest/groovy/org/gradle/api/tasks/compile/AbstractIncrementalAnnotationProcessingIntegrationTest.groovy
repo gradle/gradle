@@ -96,7 +96,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
     def "explicit -processor option overrides automatic detection"() {
         buildFile << """
-            compileJava.options.compilerArgs << "-processor" << "unknown.Processor"
+            compileJava.options.compilerArgs.addAll(["-processor", "unknown.Processor"])
         """
         java "class A {}"
 

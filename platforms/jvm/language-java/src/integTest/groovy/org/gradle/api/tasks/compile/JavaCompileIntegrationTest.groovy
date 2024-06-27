@@ -118,7 +118,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             subprojects {
                 apply plugin: 'java'
                 tasks.withType(JavaCompile) {
-                    options.compilerArgs << '-Xlint:all' << '-Werror'
+                    options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
                 }
             }
             project(':b') {

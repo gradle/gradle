@@ -60,7 +60,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
             tasks {
                 compileJava {
-                    options.compilerArgs += ["-Xlint:all"]
+                    options.compilerArgs.addAll(["-Xlint:all"])
                 }
             }
         """
@@ -256,7 +256,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "the compiler flag -Werror correctly reports problems"() {
         given:
-        buildFile << "tasks.compileJava.options.compilerArgs += ['-Werror']"
+        buildFile << "tasks.compileJava.options.compilerArgs.addAll(['-Werror'])"
 
         def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
         possibleFileLocations.put(fooFileLocation.absolutePath, 3)
@@ -446,7 +446,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     def "invalid flags should be reported as problems"() {
         given:
         writeJavaCausingTwoCompilationWarnings("Foo")
-        buildFile << "tasks.compileJava.options.compilerArgs += ['-invalid-flag']"
+        buildFile << "tasks.compileJava.options.compilerArgs.addAll(['-invalid-flag'])"
 
         when:
         fails("compileJava")

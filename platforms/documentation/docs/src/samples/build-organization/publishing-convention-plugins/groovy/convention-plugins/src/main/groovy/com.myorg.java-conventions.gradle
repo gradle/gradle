@@ -26,5 +26,5 @@ checkstyle {
 
 // Enable deprecation messages when compiling Java code
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Xlint:deprecation"
+    options.compilerArgs.add("-Xlint:deprecation")
 }

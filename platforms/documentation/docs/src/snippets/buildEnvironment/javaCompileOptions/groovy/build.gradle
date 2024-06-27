@@ -3,5 +3,5 @@ plugins {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['-Xdoclint:none', '-Xlint:none', '-nowarn']
+    options.compilerArgs.addAll(['-Xdoclint:none', '-Xlint:none', '-nowarn'])
 }

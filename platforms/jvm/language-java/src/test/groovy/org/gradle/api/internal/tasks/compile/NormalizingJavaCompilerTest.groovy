@@ -114,8 +114,8 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     def "resolves any non-strings that make it into custom compiler args"() {
-        spec.compileOptions.compilerArgs << "a dreaded ${"GString"}"
-        spec.compileOptions.compilerArgs << 42
+        spec.compileOptions.compilerArgs.add("a dreaded ${"GString"}")
+        spec.compileOptions.compilerArgs.add(42)
         assert !spec.compileOptions.compilerArgs.any { it instanceof String }
 
         when:
