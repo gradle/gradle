@@ -264,12 +264,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
 
             @Override
-            public <T> void add(Class<? super T> serviceType1, Class<? super T> serviceType2, Class<T> implementationType) {
-                //noinspection RedundantTypeArguments
-                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, Arrays.<Class<?>>asList(serviceType1, serviceType2), implementationType));
-            }
-
-            @Override
             public void addProvider(ServiceRegistrationProvider provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
