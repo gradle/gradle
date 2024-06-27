@@ -18,6 +18,7 @@ dependencies {
     compileOnly(projects.core)
     compileOnly(projects.languageJvm)
     compileOnly(projects.languageJava)
+    compileOnly(projects.loggingApi)
     compileOnly(projects.platformJvm)
     compileOnly(projects.pluginDevelopment)
     compileOnly(projects.kotlinDsl)
@@ -25,14 +26,23 @@ dependencies {
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
 
-    implementation(libs.kotlinStdlib)
+    api(libs.kotlinStdlib)
+
+
     implementation(libs.futureKotlin("gradle-plugin"))
+    implementation(libs.futureKotlin("gradle-plugin-api"))
     implementation(libs.futureKotlin("sam-with-receiver"))
     implementation(libs.futureKotlin("assignment"))
+
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
 
     testImplementation(projects.logging)
     testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(libs.slf4jApi)
+    testImplementation(libs.kotlinReflect) {
+        because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
+    }
     testImplementation(libs.mockitoKotlin)
 }
 

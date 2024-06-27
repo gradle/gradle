@@ -9,42 +9,55 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
+    api(projects.buildProcessServices)
+    api(projects.baseServices)
+    api(projects.processServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.concurrent)
+    api(projects.hashing)
     api(projects.kotlinDslToolingModels)
-    api(libs.kotlinStdlib)
-    api(libs.kotlinReflect)
+    api(projects.loggingApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolingApi)
 
-    implementation(projects.io)
-    implementation(projects.baseServices)
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.kotlinStdlib)
+    api(libs.jsr305)
+    api(libs.inject)
+    api(libs.slf4jApi)
+
+    implementation(projects.buildOperations)
+    implementation(projects.buildOption)
+    implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
-    implementation(projects.functional)
-    implementation(projects.messaging)
-    implementation(projects.logging)
-    implementation(projects.processServices)
-    implementation(projects.persistentCache)
-    implementation(projects.coreApi)
-    implementation(projects.modelCore)
-    implementation(projects.core)
+    implementation(projects.execution)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.files)
-    implementation(projects.resources)
-    implementation(projects.toolingApi)
-    implementation(projects.execution)
+    implementation(projects.functional)
+    implementation(projects.io)
+    implementation(projects.logging)
+    implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.normalizationJava)
+    implementation(projects.persistentCache)
+    implementation(projects.resources)
+    implementation(projects.serviceLookup)
+    implementation(projects.serviceProvider)
+    implementation(projects.snapshots)
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
-    implementation(libs.groovy)
-    implementation(libs.groovyJson)
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.inject)
     implementation(libs.asm)
+    implementation(libs.groovyJson)
+    implementation(libs.kotlinReflect)
 
     implementation(libs.kotlinCompilerEmbeddable)
-    implementation(libs.futureKotlin("script-runtime"))
+    api(libs.futureKotlin("script-runtime"))
 
-    implementation(libs.futureKotlin("scripting-common")) {
+    api(libs.futureKotlin("scripting-common")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("scripting-jvm")) {
@@ -53,7 +66,7 @@ dependencies {
     implementation(libs.futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
+    api(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {

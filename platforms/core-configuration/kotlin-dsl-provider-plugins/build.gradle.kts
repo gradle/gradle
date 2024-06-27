@@ -5,31 +5,39 @@ plugins {
 description = "Kotlin DSL Provider Plugins"
 
 dependencies {
-    implementation(projects.kotlinDsl)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.kotlinDsl)
+    api(projects.logging)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(projects.baseServices)
-    implementation(projects.core)
-    implementation(projects.coreApi)
+    api(libs.inject)
+    api(libs.kotlinStdlib)
+
+    implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.fileCollections)
-    implementation(projects.languageJvm)
-    implementation(projects.logging)
+    implementation(projects.hashing)
+    implementation(projects.loggingApi)
     implementation(projects.pluginDevelopment)
     implementation(projects.pluginsJavaBase)
     implementation(projects.platformJvm)
     implementation(projects.resources)
+    implementation(projects.serviceLookup)
     implementation(projects.snapshots)
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
+    implementation(projects.toolchainsJvmShared)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
-
-    implementation(libs.groovy)
     implementation(libs.slf4jApi)
-    implementation(libs.inject)
+
+    runtimeOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(libs.mockitoKotlin2)
