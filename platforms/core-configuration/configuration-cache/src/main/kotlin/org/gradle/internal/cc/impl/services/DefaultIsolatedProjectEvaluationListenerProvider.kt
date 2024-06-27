@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.extensions.core.popSingletonProperty
 import org.gradle.internal.extensions.core.setSingletonProperty
 import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
 import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
@@ -119,9 +118,9 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
         )
 
     private
-    fun <T : Any> isolate(what: T, owner: IsolateOwner) =
+    fun isolate(actions: IsolatedProjectActions, owner: IsolateOwner) =
         IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf())
-            .serialize(what)
+            .serialize(actions)
 }
 
 
@@ -132,6 +131,20 @@ data class IsolatedProjectActions(
     val afterProject: IsolatedProjectActionList
 )
 
+private
+sealed class IsolatedProjectActionsState {
+    data class AllprojectsExecuted(
+        val beforeProject: IsolatedProjectActionList,
+        val afterProject: IsolatedProjectActionList
+    ) : IsolatedProjectActionsState()
+
+    data class BeforeProjectExecuted(
+        val afterProject: IsolatedProjectActionList
+    ) : IsolatedProjectActionsState()
+
+    object AfterProjectExecuted : IsolatedProjectActionsState()
+}
+
 
 private
 class Allprojects(
@@ -140,14 +153,15 @@ class Allprojects(
 ) : IsolatedAction<Project> {
 
     override fun execute(target: Project) {
-        // Check if allprojects already been applied
-        if (target.peekSingletonProperty<IsolatedProjectActions>() != null) return
+        // Execute only if project just loaded
+        if (target.peekSingletonProperty<IsolatedProjectActionsState>() != null) return
 
         val actions = IsolateOwners.OwnerGradle(gradle).let { owner ->
             IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
                 .deserialize(isolated)
         }
-        target.setSingletonProperty(actions)
+        val actionsState = IsolatedProjectActionsState.AllprojectsExecuted(actions.beforeProject, actions.beforeProject) as IsolatedProjectActionsState
+        target.setSingletonProperty(actionsState)
         actions.allprojects.forEach { it.execute(target) }
     }
 }
@@ -160,28 +174,33 @@ class IsolatedProjectEvaluationListener(
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) =
-        when (val isolatedProjectActions = project.peekSingletonProperty<IsolatedProjectActions>()) {
+        when (val actionsState = project.peekSingletonProperty<IsolatedProjectActionsState>()) {
             null -> {
                 val actions = isolatedActions()
 
                 // preserve isolate semantics between `beforeProject` and `afterProject`
-                project.setSingletonProperty(actions)
+                project.setSingletonProperty(IsolatedProjectActionsState.BeforeProjectExecuted(actions.afterProject) as IsolatedProjectActionsState)
                 executeAll(actions.allprojects, project)
                 executeAll(actions.beforeProject, project)
             }
 
             // Project was configured eagerly by `allprojects`
-            else -> {
-                executeAll(isolatedProjectActions.beforeProject, project)
+            is IsolatedProjectActionsState.AllprojectsExecuted -> {
+                executeAll(actionsState.beforeProject, project)
+                project.setSingletonProperty(IsolatedProjectActionsState.BeforeProjectExecuted(actionsState.afterProject) as IsolatedProjectActionsState)
             }
+
+            else -> throw IllegalStateException("Unexpected isolated actions state $actionsState")
         }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
-        val actions = project.popSingletonProperty<IsolatedProjectActions>()
-        require(actions != null) {
+        val actionsState = project.peekSingletonProperty<IsolatedProjectActionsState>()
+
+        require(actionsState is IsolatedProjectActionsState.BeforeProjectExecuted) {
             "afterEvaluate action cannot execute before beforeEvaluate"
         }
-        executeAll(actions.afterProject, project)
+        project.setSingletonProperty(IsolatedProjectActionsState.AfterProjectExecuted as IsolatedProjectActionsState)
+        executeAll(actionsState.afterProject, project)
     }
 
     private
