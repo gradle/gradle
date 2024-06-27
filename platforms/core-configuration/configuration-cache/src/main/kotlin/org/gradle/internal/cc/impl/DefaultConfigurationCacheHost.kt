@@ -24,7 +24,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
@@ -36,6 +35,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
+import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -47,7 +47,7 @@ import org.gradle.util.Path
 import java.io.File
 
 
-class ConfigurationCacheHost internal constructor(
+class DefaultConfigurationCacheHost internal constructor(
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
 ) : DefaultConfigurationCache.Host {
