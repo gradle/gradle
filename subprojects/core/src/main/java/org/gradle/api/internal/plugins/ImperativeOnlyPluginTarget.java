@@ -16,10 +16,15 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.apache.commons.lang3.reflect.TypeUtils;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -40,7 +45,20 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         // TODO validate that the plugin accepts this kind of argument
         Plugin<T> cast = uncheckedCast(plugin);
-        cast.apply(target);
+        try {
+            cast.apply(target);
+        } catch (ClassCastException e) {
+            Type pluginTargetType = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class).get(Plugin.class.getTypeParameters()[0]);
+            if (pluginTargetType instanceof Class<?>) {
+                Class<?> pluginTargetClass = (Class<?>) pluginTargetType;
+                if (target instanceof Settings && Project.class.equals(pluginTargetClass)) {
+                    throw new InvalidUserCodeException("Cannot apply a Project plugin to a Settings instance");
+                } else if (target instanceof Project && Settings.class.equals(pluginTargetClass)) {
+                    throw new InvalidUserCodeException("Cannot apply a Settings plugin to a Project instance");
+                }
+            }
+            throw e;
+        }
     }
 
     @Override

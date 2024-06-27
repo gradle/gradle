@@ -100,8 +100,7 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin 'org.gradle.base'")
-        // TODO: this error is cryptic
-        failure.assertHasCause("class org.gradle.initialization.DefaultSettings_Decorated cannot be cast to class org.gradle.api.Project")
+        failure.assertHasCause("Cannot apply a Project plugin to a Settings instance")
     }
 
     @ToBeImplemented
@@ -121,7 +120,6 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomeSettingsPlugin'")
-        // TODO: this error is cryptic
-        failure.assertHasCause("class org.gradle.api.internal.project.DefaultProject_Decorated cannot be cast to class org.gradle.api.initialization.Settings")
+        failure.assertHasCause("Cannot apply a Settings plugin to a Project instance")
     }
 }
