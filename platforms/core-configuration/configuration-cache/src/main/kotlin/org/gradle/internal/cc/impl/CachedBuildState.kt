@@ -86,13 +86,31 @@ sealed class BuildWithProjects(
  * A build in the tree with work scheduled.
  */
 internal
-class BuildWithWork(
+abstract class BuildWithWork(
     identityPath: Path,
     val build: ConfigurationCacheBuild,
     rootProjectName: String,
+    projects: List<CachedProjectState>
+) : BuildWithProjects(identityPath, rootProjectName, projects)
+
+
+internal
+class BuildWithWorkFullyLoaded(
+    identityPath: Path,
+    build: ConfigurationCacheBuild,
+    rootProjectName: String,
     projects: List<CachedProjectState>,
     val workGraph: ScheduledWork
-) : BuildWithProjects(identityPath, rootProjectName, projects)
+) : BuildWithWork(identityPath, build, rootProjectName, projects)
+
+
+internal
+class BuildWithWorkPartiallyLoaded(
+    identityPath: Path,
+    build: ConfigurationCacheBuild,
+    rootProjectName: String,
+    projects: List<CachedProjectState>
+) : BuildWithWork(identityPath, build, rootProjectName, projects)
 
 
 /**

@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -27,7 +28,6 @@ import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
@@ -166,15 +166,30 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
+    fun writeRootBuildWorkGraphTo(stateFile: ConfigurationCacheStateFile) =
+        writeConfigurationCacheState(stateFile) { cacheState ->
+            cacheState.run {
+                writeRootBuildWorkGraph(host.currentBuild)
+            }
+        }
+
+    internal
     fun readRootBuildStateFrom(
         stateFile: ConfigurationCacheStateFile,
-        loadAfterStore: Boolean,
-        graph: BuildTreeWorkGraph,
-        graphBuilder: BuildTreeWorkGraphBuilder?
-    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
+        loadAfterStore: Boolean
+    ): Pair<String, List<CachedBuildState>> {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, graphBuilder, loadAfterStore)
+                readRootBuildState(loadAfterStore)
+            }
+        }
+    }
+
+    internal
+    fun readRootBuildWorkGraphFrom(build: ConfigurationCacheBuild, stateFile: ConfigurationCacheStateFile): Pair<String, ScheduledWork> {
+        return readConfigurationCacheState(stateFile) { state ->
+            state.run {
+                readRootBuildWorkGraph(build)
             }
         }
     }
@@ -192,7 +207,7 @@ class ConfigurationCacheIO internal constructor(
     fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readBuildContent(includedBuild)
+                readBuildContent(includedBuild, true)
             }
         }
 
@@ -394,4 +409,5 @@ class ConfigurationCacheIO internal constructor(
     private
     inline fun <reified T> factory() =
         host.factory(T::class.java)
+
 }
