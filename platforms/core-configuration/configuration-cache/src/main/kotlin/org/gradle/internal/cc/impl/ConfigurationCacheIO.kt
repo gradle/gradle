@@ -67,7 +67,7 @@ import java.io.OutputStream
 @ServiceScope(Scope.Build::class)
 class ConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
-    private val host: DefaultConfigurationCache.Host,
+    private val host: ConfigurationCacheHost,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,

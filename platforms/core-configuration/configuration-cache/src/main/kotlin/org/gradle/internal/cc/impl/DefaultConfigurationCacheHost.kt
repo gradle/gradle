@@ -50,7 +50,7 @@ import java.io.File
 class DefaultConfigurationCacheHost internal constructor(
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-) : DefaultConfigurationCache.Host {
+) : ConfigurationCacheHost {
 
     override val currentBuild: VintageGradleBuild =
         DefaultVintageGradleBuild(gradle.owner)

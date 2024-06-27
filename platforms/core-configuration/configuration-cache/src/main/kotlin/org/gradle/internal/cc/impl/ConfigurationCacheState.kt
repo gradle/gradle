@@ -150,7 +150,7 @@ class ConfigurationCacheState(
     private val codecs: Codecs,
     private val stateFile: ConfigurationCacheStateFile,
     private val eventEmitter: BuildOperationProgressEventEmitter,
-    private val host: DefaultConfigurationCache.Host
+    private val host: ConfigurationCacheHost
 ) {
     /**
      * Writes the state for the whole build starting from the given root [build] and returns the set
