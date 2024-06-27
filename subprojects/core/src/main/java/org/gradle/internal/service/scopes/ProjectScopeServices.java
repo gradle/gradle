@@ -16,7 +16,9 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Plugin;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
@@ -39,7 +41,6 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.ApplySoftwareTypeConventionsPluginTarget;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -73,6 +74,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
@@ -102,9 +104,8 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
 import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -229,8 +230,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry,
-        List<SoftwareTypeConventionHandler> softwareTypeConventionHandlers
+        SoftwareTypeConventionApplicator softwareTypeConventionApplicator
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -239,12 +239,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new ApplySoftwareTypeConventionsPluginTarget(
-            project,
-            ruleBasedTarget,
-            softwareTypeRegistry,
-            softwareTypeConventionHandlers
-        );
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,
@@ -252,11 +246,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
                 instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
                 pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
-            pluginTarget,
+            ruleBasedTarget,
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,
-            domainObjectCollectionFactory
+            domainObjectCollectionFactory,
+            (Action<? super Plugin>) plugin -> softwareTypeConventionApplicator.applyConventionsTo(project, Cast.uncheckedNonnullCast(plugin.getClass()))
         );
     }
 
