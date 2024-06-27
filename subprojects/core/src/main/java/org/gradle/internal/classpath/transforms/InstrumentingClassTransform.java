@@ -45,7 +45,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -147,7 +147,8 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final List<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
 
-        final Map<Handle, BridgeMethod> bridgeMethods = new HashMap<>();
+        private final Map<Handle, BridgeMethod> bridgeMethods = new LinkedHashMap<>();
+        private int nextBridgeMethodIndex;
 
         private String className;
         private boolean hasGroovyCallSites;
@@ -207,6 +208,57 @@ public class InstrumentingClassTransform implements ClassTransform {
 
         private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
             return super.visitMethod(ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE, name, descriptor, null, NO_EXCEPTIONS);
+        }
+
+        /**
+         * Finds the {@link BridgeMethod} for the method handle. May return null if nothing intercepts the method.
+         * For each method at most one bridge method is produced, regardless the number of handles encountered
+         * (i.e. all method references to e.g. {@code ProcessBuilder::start} in the class are re-routed to a single bridge method).
+         *
+         * @param originalHandle the original method handle
+         * @return the bridge method that intercepts the original method or null if there is no interceptor
+         */
+        @Nullable
+        public BridgeMethod findBridgeMethodFor(Handle originalHandle) {
+            return bridgeMethods.computeIfAbsent(originalHandle, this::maybeBuildBridgeMethod);
+        }
+
+        @Nullable
+        private BridgeMethod maybeBuildBridgeMethod(Handle handle) {
+            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
+                BridgeMethodBuilder methodBuilder = interceptor.findBridgeMethodBuilder(className, handle.getTag(), handle.getOwner(), handle.getName(), handle.getDesc());
+                if (methodBuilder != null) {
+                    return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(handle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Builds a unique bridge method name for the given method handle based on the owner and the name of the original method.
+         * For example, a bridge method for {@code com.foo.Bar.baz(...)} will be named {@code gradle$intercept$$com$foo$Bar$$baz$<N>},
+         * where {@code <N>} is a number to make the resulting name unique. The number starts from 0 and increases each time this method is called.
+         * <p>
+         * Note that calling this method multiple times returns different names for the same bridge method.
+         * <p>
+         * Most of the name decorations are added only to make stack traces easier to understand.
+         *
+         * @param originalHandle the original method handle to build bridge method for
+         * @return the unique bridge method name.
+         */
+        private String makeBridgeMethodName(Handle originalHandle) {
+            // Index ensures that the generated name is unique for this class.
+            int index = nextBridgeMethodIndex++;
+            // com/foo/Bar -> com$foo$Bar
+            String mangledOwner = originalHandle.getOwner().replace("/", "$");
+            // Only <init> and <clinit> are allowed to have <> in the name.
+            // As we're intercepting these too, we strip prohibited symbols from the bridge method's name.
+            String safeName = originalHandle.getName().replace("<", "").replace(">", "");
+            return "gradle$intercept$$" + mangledOwner + "$$" + safeName + "$" + index;
+        }
+
+        private Handle makeBridgeMethodHandle(String name, String desc) {
+            return new Handle(H_INVOKESTATIC, className, name, desc, false);
         }
     }
 
@@ -299,36 +351,11 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
 
         private Handle maybeInstrumentHandle(Handle handle) {
-            BridgeMethod bridgeMethod = owner.bridgeMethods.computeIfAbsent(handle, this::maybeBuildBridgeMethod);
+            BridgeMethod bridgeMethod = owner.findBridgeMethodFor(handle);
             if (bridgeMethod != null) {
                 return bridgeMethod.bridgeMethodHandle;
             }
             return handle; // No instrumentation requested.
-        }
-
-        @Nullable
-        private BridgeMethod maybeBuildBridgeMethod(Handle handle) {
-            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
-                BridgeMethodBuilder methodBuilder = interceptor.findBridgeMethodBuilder(className, handle.getTag(), handle.getOwner(), handle.getName(), handle.getDesc());
-                if (methodBuilder != null) {
-                    return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(handle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
-                }
-            }
-            return null;
-        }
-
-        private String makeBridgeMethodName(Handle originalHandle) {
-            int index = owner.bridgeMethods.size();
-            // com/foo/Bar -> com$foo$Bar
-            String mangledOwner = originalHandle.getOwner().replace("/", "$");
-            // Only <init> and <clinit> are allowed to have <> in the name.
-            // As we're intercepting these too, we strip prohibited symbols from the bridge method's name.
-            String safeName = originalHandle.getName().replace("<", "").replace(">", "");
-            return "gradle$intercept$$" + mangledOwner + "$$" + safeName + "$" + index;
-        }
-
-        private Handle makeBridgeMethodHandle(String name, String desc) {
-            return new Handle(H_INVOKESTATIC, className, name, desc, false);
         }
     }
 }
