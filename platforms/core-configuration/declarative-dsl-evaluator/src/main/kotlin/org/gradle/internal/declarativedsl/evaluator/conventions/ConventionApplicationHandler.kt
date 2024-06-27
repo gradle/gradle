@@ -34,7 +34,7 @@ class ConventionApplication : InterpretationStepFeature.ResolutionResultPostproc
 
 interface ConventionApplicationHandler : ResolutionResultHandler {
 
-    fun getConventionResolutionResults(): List<SoftwareTypeConventionResolutionResults>
+    fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults>
 
     override fun shouldHandleFeature(feature: InterpretationStepFeature.ResolutionResultPostprocessing) =
         // Use an is-check, as the implementation might be a proxy
@@ -42,7 +42,7 @@ interface ConventionApplicationHandler : ResolutionResultHandler {
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
-            val conventionResolutionResultsToApply = getConventionResolutionResults()
+            val conventionResolutionResultsToApply = getConventionResolutionResults(resolutionResult)
             // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
             val conventionAssignments = applyAssignmentConventions(conventionResolutionResultsToApply)
             val conventionAdditions = applyAdditionConventions(conventionResolutionResultsToApply)
@@ -64,7 +64,7 @@ interface ConventionApplicationHandler : ResolutionResultHandler {
          * currently handled by the {@link DeclarativeSoftwareTypeConventionHandler} during application of the software type plugin.
          */
         val DO_NOTHING = object : ConventionApplicationHandler {
-            override fun getConventionResolutionResults(): List<SoftwareTypeConventionResolutionResults> = emptyList()
+            override fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults> = emptyList()
             override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
         }
     }
@@ -86,6 +86,10 @@ fun findUsedSoftwareTypeNames(resolutionResult: ResolutionResult): Set<String> {
 interface SoftwareTypeConventionRepository {
     fun findConventions(softwareTypeName: String): SoftwareTypeConventionResolutionResults?
 }
+
+fun conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository: SoftwareTypeConventionRepository, resolutionResult: ResolutionResult) =
+    findUsedSoftwareTypeNames(resolutionResult).mapNotNull(softwareTypeConventionRepository::findConventions)
+
 
 
 /**

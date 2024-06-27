@@ -34,8 +34,6 @@ import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
-import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
 import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler
@@ -55,13 +53,7 @@ class DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTyp
         val analysisStepRunner = ApplyConventionsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(
-                object : ConventionApplicationHandler {
-                    override fun getConventionResolutionResults(): List<SoftwareTypeConventionResolutionResults> {
-                        return listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls()
-                    }
-                }
-            )
+            setOf(SingleSoftwareTypeConventionApplicationHandler(conventionRepository, softwareTypeName))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)
@@ -117,3 +109,11 @@ fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = 
     emptyList(),
     emptyList()
 )
+
+
+private
+class SingleSoftwareTypeConventionApplicationHandler(val conventionRepository: SoftwareTypeConventionRepository, val softwareTypeName: String) : ConventionApplicationHandler {
+    override fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults> {
+        return listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls()
+    }
+}
