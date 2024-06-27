@@ -52,6 +52,7 @@ import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
+import org.gradle.internal.build.DefaultDeferredRootBuildGradle;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -106,6 +107,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
         registration.add(DefaultBuildLogicBuildQueue.class);
+        registration.add(DefaultDeferredRootBuildGradle.class);
         modelServices.applyServicesTo(registration);
     }
 
