@@ -17,9 +17,10 @@
 package org.gradle.internal.cc.impl
 
 import com.google.common.base.Preconditions
+import org.gradle.internal.extensions.stdlib.getValue
+import org.gradle.internal.extensions.stdlib.setValue
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import kotlin.reflect.KProperty
 
 
 /**
@@ -58,11 +59,3 @@ class InputTrackingState {
         --inputTrackingDisabledCounterForThread
     }
 }
-
-
-private
-operator fun <T> ThreadLocal<T>.getValue(thisRef: Any?, property: KProperty<*>) = get()
-
-
-private
-operator fun <T> ThreadLocal<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) = set(value)
