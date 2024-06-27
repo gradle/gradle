@@ -36,7 +36,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         BuildOperationListenerManager listenerManager,
         ProblemStream problemStream
     ) {
-        BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(eventEmitter);
+        BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(eventEmitter, listenerManager);
         return new DefaultProblems(emitter, problemStream, CurrentBuildOperationRef.instance());
     }
 }
