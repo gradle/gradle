@@ -32,7 +32,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
 
         when:
         inDirectory a
-        configurationCacheRun ':ok'
+        configurationCacheRun ':ok', '-s'
 
         then:
         configurationCache.assertStateStored()

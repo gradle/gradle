@@ -141,6 +141,7 @@ interface ConfigurationCacheStateFile {
     // Replace the contents of this state file, by moving the given file to the location of this state file
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
+    fun stateFileForWorkGraph(): ConfigurationCacheStateFile
 }
 
 
@@ -152,8 +153,7 @@ class ConfigurationCacheState(
     private val host: DefaultConfigurationCache.Host
 ) {
     /**
-     * Writes the state for the whole build starting from the given root [build] and returns the set
-     * of stored included build directories.
+     * Writes the state for the whole build starting from the given root [build].
      */
     suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
         writeBuildInvocationId()
@@ -162,11 +162,18 @@ class ConfigurationCacheState(
         }
     }
 
+    suspend fun DefaultWriteContext.writeRootBuildWorkGraph(build: VintageGradleBuild) {
+        writeBuildInvocationId()
+        withDebugFrame({ "Work Graph" }) {
+            writeWorkGraphOf(build.gradle, build.scheduledWork).also {
+                writeInt(0x1ecac8e)
+            }
+        }
+    }
+
     suspend fun DefaultReadContext.readRootBuildState(
-        graph: BuildTreeWorkGraph,
-        graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
-    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
+    ): Pair<String, List<CachedBuildState>> {
 
         val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
@@ -178,7 +185,17 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
+        return originBuildInvocationId to builds
+    }
+
+    suspend fun DefaultReadContext.readRootBuildWorkGraph(build: ConfigurationCacheBuild): Pair<String, ScheduledWork> {
+        setSingletonProperty<ProjectProvider>(build::getProject)
+        val originBuildInvocationId = readBuildInvocationId()
+        val workGraph = readWorkGraph(host.currentBuild.gradle)
+        require(readInt() == 0x1ecac8e) {
+            "corrupt state file"
+        }
+        return originBuildInvocationId to workGraph
     }
 
     private
@@ -229,26 +246,6 @@ class ConfigurationCacheState(
             BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildFile.absolutePath, childProjects)
         }
     }
-
-    private
-    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
-        return graph.scheduleWork { builder ->
-
-            graphBuilder?.invoke(builder, rootBuildState())
-
-            for (build in builds) {
-                if (build is BuildWithWork) {
-                    builder.withWorkGraph(build.build.state) {
-                        it.setScheduledWork(build.workGraph)
-                    }
-                }
-            }
-        }
-    }
-
-    private
-    fun rootBuildState() =
-        host.service<BuildState>()
 
     private
     suspend fun DefaultWriteContext.writeRootBuild(rootBuild: VintageGradleBuild) {
@@ -333,7 +330,7 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readBuildState(rootBuild: ConfigurationCacheBuild): CachedBuildState {
         return when (readEnum<BuildType>()) {
             BuildType.BuildWithNoWork -> readBuildWithNoWork(rootBuild)
-            BuildType.RootBuild -> readBuildContent(rootBuild)
+            BuildType.RootBuild -> readBuildContent(rootBuild, false)
             BuildType.IncludedBuild -> readIncludedBuild(rootBuild)
             BuildType.BuildSrcBuild -> readBuildSrcBuild(rootBuild)
         }
@@ -453,14 +450,17 @@ class ConfigurationCacheState(
                 writeProjects(gradle, projects)
                 writeRequiredBuildServicesOf(state, buildTreeState)
             }
-            withDebugFrame({ "Work Graph" }) {
-                writeWorkGraphOf(gradle, scheduledWork)
-            }
             withDebugFrame({ "Flow Scope" }) {
                 writeFlowScopeOf(gradle)
             }
             withDebugFrame({ "Cleanup registrations" }) {
                 writeBuildOutputCleanupRegistrations(gradle)
+            }
+            if (!gradle.isRootBuild) {
+                // for root builds, nodes are written in a separate state file
+                withDebugFrame({ "Work Graph" }) {
+                    writeWorkGraphOf(gradle, scheduledWork)
+                }
             }
         } else {
             writeBoolean(false)
@@ -468,7 +468,7 @@ class ConfigurationCacheState(
     }
 
     internal
-    suspend fun DefaultReadContext.readBuildContent(build: ConfigurationCacheBuild): CachedBuildState {
+    suspend fun DefaultReadContext.readBuildContent(build: ConfigurationCacheBuild, readNodes: Boolean): CachedBuildState {
         val gradle = build.gradle
         if (readBoolean()) {
             readGradleState(build)
@@ -481,10 +481,13 @@ class ConfigurationCacheState(
             applyProjectStates(projects, gradle)
             readRequiredBuildServicesOf(gradle)
 
-            val workGraph = readWorkGraph(gradle)
             readFlowScopeOf(gradle)
             readBuildOutputCleanupRegistrations(gradle)
-            return BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+            return if (readNodes) {
+                val workGraph = readWorkGraph(gradle)
+                BuildWithWorkFullyLoaded(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+            } else
+                BuildWithWorkPartiallyLoaded(build.state.identityPath, build, gradle.rootProject.name, projects)
         } else {
             return BuildWithNoProjects(build.state.identityPath)
         }

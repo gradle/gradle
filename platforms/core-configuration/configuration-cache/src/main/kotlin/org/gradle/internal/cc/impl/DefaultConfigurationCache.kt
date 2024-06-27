@@ -25,8 +25,10 @@ import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
@@ -149,6 +151,10 @@ class DefaultConfigurationCache internal constructor(
 
     override val isLoaded: Boolean
         get() = cacheAction == ConfigurationCacheAction.LOAD
+
+    private
+    fun rootBuildState(): BuildState =
+        host.service()
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
@@ -420,7 +426,10 @@ class DefaultConfigurationCache internal constructor(
     fun saveWorkGraph() {
         saveToCache(
             stateType = StateType.Work,
-        ) { stateFile -> writeConfigurationCacheState(stateFile) }
+        ) { stateFile ->
+            writeRootBuildState(stateFile)
+            writeWorkGraph(stateFile.stateFileForWorkGraph())
+        }
     }
 
     private
@@ -460,8 +469,28 @@ class DefaultConfigurationCache internal constructor(
     private
     fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
-            val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+            val (buildInvocationId, builds) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore)
+            val partiallyLoadedBuilds = builds.filterIsInstance<BuildWithWorkPartiallyLoaded>()
+            require(partiallyLoadedBuilds.size == 1)
+            val (buildInvocationId2, scheduledWork) = cacheIO.readRootBuildWorkGraphFrom(partiallyLoadedBuilds[0].build, stateFile.stateFileForWorkGraph())
+            require(buildInvocationId == buildInvocationId2)
+            val workGraph: BuildTreeWorkGraph.FinalizedGraph = calculateRootTaskGraph(builds, scheduledWork, graph, graphBuilder)
             LoadResult(stateFile.stateFile.file, buildInvocationId) to workGraph
+        }
+    }
+
+
+    private
+    fun calculateRootTaskGraph(builds: List<CachedBuildState>, scheduledWork: ScheduledWork?, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
+        return graph.scheduleWork { builder ->
+            for (build in builds) {
+                if (build is BuildWithWork) {
+                    builder.withWorkGraph(build.build.state) {
+                        it.setScheduledWork(if (build is BuildWithWorkFullyLoaded) build.workGraph else scheduledWork)
+                    }
+                }
+            }
+            graphBuilder?.invoke(builder, rootBuildState())
         }
     }
 
@@ -492,11 +521,18 @@ class DefaultConfigurationCache internal constructor(
         configurationTimeBarrier.cross()
     }
 
-    private
-    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
+    private fun writeWorkGraph(stateFile: ConfigurationCacheStateFile) {
+        //TODO-RC need to do this in background, and use separate locks for each project
+        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+            cacheIO.writeRootBuildWorkGraphTo(stateFile)
+        }
+    }
+
+    private fun writeRootBuildState(stateFile: ConfigurationCacheStateFile) {
         host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
             cacheIO.writeRootBuildStateTo(stateFile)
         }
+    }
 
     private
     fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {

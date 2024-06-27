@@ -145,8 +145,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun "build"
-        configurationCacheRun "build"
+        configurationCacheRun "build", "-s"
+        configurationCacheRun "build", "-s"
 
         then:
         configurationCache.assertStateLoaded()
@@ -332,7 +332,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def configurationCache = new ConfigurationCacheFixture(this)
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic", "-s"
 
         then:
         result.assertTasksExecutedAndNotSkipped(":init")

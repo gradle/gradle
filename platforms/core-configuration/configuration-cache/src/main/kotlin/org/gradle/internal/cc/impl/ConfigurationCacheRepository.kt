@@ -115,6 +115,13 @@ class ConfigurationCacheRepository(
                 includedBuildFileFor(file, build),
                 stateType
             )
+
+        //TODO-RC we need to support per-project state files
+        override fun stateFileForWorkGraph(): ConfigurationCacheStateFile =
+            ReadableConfigurationCacheStateFile(
+                workGraphFileFor(file),
+                stateType
+            )
     }
 
     private
@@ -148,6 +155,13 @@ class ConfigurationCacheRepository(
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
                 includedBuildFileFor(file, build),
+                stateType,
+                onFileAccess
+            )
+
+        override fun stateFileForWorkGraph(): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                workGraphFileFor(file),
                 stateType,
                 onFileAccess
             )
@@ -201,6 +215,12 @@ class ConfigurationCacheRepository(
     fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
         parentStateFile.run {
             resolveSibling("$name.${build.name}")
+        }
+
+    private
+    fun workGraphFileFor(parentStateFile: File) =
+        parentStateFile.run {
+            resolveSibling("$name.node")
         }
 
     private
