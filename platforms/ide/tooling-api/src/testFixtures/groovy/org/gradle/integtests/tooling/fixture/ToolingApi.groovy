@@ -205,15 +205,35 @@ class ToolingApi implements TestRule {
         assert throwableStack.endsWith(currentThreadStackStr)
     }
 
+    ToolingApiConnector connector() {
+        connector(testWorkDirProvider.testDirectory, true)
+    }
+
+    ToolingApiConnector connectorWithoutOutputRedirection() {
+        connector(testWorkDirProvider.testDirectory, false)
+    }
+
+    ToolingApiConnector connector(File projectDir) {
+        connector(projectDir, true)
+    }
+
     /**
      * Return a wrapper around a {@link GradleConnector} that delegates to the connector
-     * and also forwards all stdout and stderr to this test fixture.
+     * and captures stdout and stderr.
+     * <p>
+     * Optionally, stdout and stderr can be redirected to the system streams so they are visible
+     * in the console.
      */
-    ToolingApiConnector connector(File projectDir = testWorkDirProvider.testDirectory) {
+    ToolingApiConnector connector(File projectDir, boolean redirectOutput) {
         GradleConnector connector = rawConnector(projectDir)
 
-        OutputStream output = new TeeOutputStream(stdout, System.out)
-        OutputStream error = new TeeOutputStream(stderr, System.err)
+        OutputStream output = stdout
+        OutputStream error = stderr
+
+        if (redirectOutput) {
+            output = new TeeOutputStream(stdout, System.out)
+            error = new TeeOutputStream(stderr, System.err)
+        }
 
         return new ToolingApiConnector(connector, output, error)
     }

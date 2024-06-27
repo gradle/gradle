@@ -197,6 +197,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         toolingApi.connector()
     }
 
+    ToolingApiConnector connectorWithoutOutputRedirection() {
+        toolingApi.connectorWithoutOutputRedirection()
+    }
+
     def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(cl)
