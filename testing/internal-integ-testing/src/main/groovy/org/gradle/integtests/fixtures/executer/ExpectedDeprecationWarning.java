@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public abstract class ExpectedDeprecationWarning {
 
     private static final Pattern DEPRECATION_WARNING_LOG_PREFIX_PATTERN =
-        Pattern.compile("^.* \\[WARN] \\[org\\.gradle\\.internal\\.featurelifecycle\\.LoggingDeprecatedFeatureHandler] ");
+        Pattern.compile("^.* " + Pattern.quote("[WARN] [org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler] "));
 
     private final int numLines;
 
