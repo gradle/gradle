@@ -99,6 +99,7 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreKotlinExtensions)
     testFixturesImplementation(projects.fileTemp)
     testFixturesImplementation(projects.resources)
     testFixturesImplementation(projects.kotlinDslToolingBuilders)

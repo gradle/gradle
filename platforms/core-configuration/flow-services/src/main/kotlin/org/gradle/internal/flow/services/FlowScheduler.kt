@@ -19,6 +19,8 @@ package org.gradle.internal.flow.services
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowParameters
+import org.gradle.internal.extensions.core.add
+import org.gradle.internal.extensions.core.get
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -54,9 +56,9 @@ class FlowScheduler(
         return ServiceRegistryBuilder.builder()
             .displayName("flow services")
             .provider { registration ->
-                registration.add(ArchiveOperations::class.java, serviceRegistry.get(ArchiveOperations::class.java))
-                registration.add(ExecOperations::class.java, serviceRegistry.get(ExecOperations::class.java))
-                registration.add(FileSystemOperations::class.java, serviceRegistry.get(FileSystemOperations::class.java))
+                registration.add<ArchiveOperations>(serviceRegistry.get<ArchiveOperations>())
+                registration.add<ExecOperations>(serviceRegistry.get<ExecOperations>())
+                registration.add<FileSystemOperations>(serviceRegistry.get<FileSystemOperations>())
             }
             .build()
     }
