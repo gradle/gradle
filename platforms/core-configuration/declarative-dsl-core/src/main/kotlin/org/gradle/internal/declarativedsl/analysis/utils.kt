@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
@@ -70,5 +71,18 @@ fun AnalysisContext.checkAccessOnCurrentReceiver(
 ) {
     if (receiver !is ObjectOrigin.ImplicitThisReceiver || !receiver.isCurrentScopeReceiver) {
         errorCollector.collect(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
+    }
+}
+
+
+internal
+fun SchemaFunction.format(receiver: ObjectOrigin?, lowercase: Boolean = true): String {
+    val text = when (receiver) {
+        null -> "top level function ${this.simpleName}"
+        else -> "function ${this.simpleName} (having as receiver $receiver)"
+    }
+    return when {
+        !lowercase -> text.replaceFirstChar { it.uppercase() }
+        else -> text
     }
 }
