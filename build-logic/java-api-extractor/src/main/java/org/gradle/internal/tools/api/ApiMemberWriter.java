@@ -29,6 +29,12 @@ import org.objectweb.asm.ModuleVisitor;
 
 import java.util.Set;
 
+/**
+ * A writer for class API members. API members are delegated to an instance of this class.
+ *
+ * Implementation should determine how to further process those members (e.g. stripping out method bodies),
+ * and how to write a new "API class" with them.
+ */
 public interface ApiMemberWriter {
     ModuleVisitor writeModule(String name, int access, String version);
 

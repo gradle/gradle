@@ -34,7 +34,11 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         this.apiMemberAdapter = apiMemberAdapter;
     }
 
-    // This method is needed to avoid exposing ASM in the public API of this class
+    /**
+     * Creates a new instance of the ApiMemberWriterAdapter.
+     *
+     * This method is needed to avoid exposing ASM in the public API of this class.
+     */
     public static ApiMemberWriterAdapter adapter() {
         return JavaApiMemberWriter::new;
     }

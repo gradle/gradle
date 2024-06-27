@@ -40,7 +40,7 @@ import java.util.zip.ZipFile
  *
  * Keeps only the following:
  *
- * -  API stubs of public classes in the specified public API packages
+ * -  API stubs of public classes in the specified packages
  * - `META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule`
  * - `META-INF/services/org.codehaus.groovy.transform.ASTTransformation`
  * - `META-INF/\*.kotlin_module`
@@ -50,7 +50,7 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
 
     interface Parameters : TransformParameters {
         @get:Input
-        val publicApiPackages: SetProperty<String>
+        val packages: SetProperty<String>
     }
 
     @get:InputArtifact
@@ -59,7 +59,7 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
 
     override fun transform(outputs: TransformOutputs) {
         val apiClassExtractor = with(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())) {
-            val publicApiPackages = parameters.publicApiPackages.get()
+            val publicApiPackages = parameters.packages.get()
             if (publicApiPackages.isNotEmpty()) {
                 includePackagesMatching(publicApiPackages::contains)
             }
