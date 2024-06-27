@@ -1515,7 +1515,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             void configure(ServiceRegistration registration) {
-                registration.add(TestService, TestServiceImpl)
+                registration.add(TestServiceImpl, provides(TestService))
             }
         })
 
@@ -1530,7 +1530,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             void configure(ServiceRegistration registration) {
-                registration.add(TestService, TestServiceImpl)
+                registration.add(TestServiceImpl, provides(TestService))
             }
         })
 
