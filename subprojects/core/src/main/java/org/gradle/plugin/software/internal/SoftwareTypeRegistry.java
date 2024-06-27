@@ -22,7 +22,8 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Allows registration of software types implemented by plugins.
@@ -36,13 +37,13 @@ public interface SoftwareTypeRegistry {
     void register(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
-     * Returns a set of the software types available along with their model types and associated plugins.  Note that once
+     * Returns a map of available software types, along with their model types and associated plugins, keyed by software type name.  Note that once
      * method is called, calling {@link #register(Class, Class)} will result in an error.
      */
-    Set<SoftwareTypeImplementation<?>> getSoftwareTypeImplementations();
+    Map<String, SoftwareTypeImplementation<?>> getSoftwareTypeImplementations();
 
     /**
      * Returns whether a plugin is registered as providing a software type or not.
      */
-    boolean isRegistered(Class<? extends Plugin<Project>> pluginClass);
+    Optional<SoftwareTypeImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
 }

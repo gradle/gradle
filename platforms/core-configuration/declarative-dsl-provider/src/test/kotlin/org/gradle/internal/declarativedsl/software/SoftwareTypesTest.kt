@@ -43,7 +43,7 @@ class SoftwareTypesTest {
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                     override fun addConvention(rule: Convention<*>) {}
                     override fun getConventions(): List<Convention<*>> = emptyList()
-                })
+                }).associateBy { it.softwareType }
             )
         }
 
