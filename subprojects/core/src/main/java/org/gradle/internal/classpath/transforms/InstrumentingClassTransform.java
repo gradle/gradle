@@ -253,7 +253,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             String mangledOwner = originalHandle.getOwner().replace("/", "$");
             // Only <init> and <clinit> are allowed to have <> in the name.
             // As we're intercepting these too, we strip prohibited symbols from the bridge method's name.
-            String safeName = originalHandle.getName().replace("<", "").replace(">", "");
+            String safeName = originalHandle.getName().replace("<", "_").replace(">", "_");
             return "gradle$intercept$$" + mangledOwner + "$$" + safeName + "$" + index;
         }
 
