@@ -327,7 +327,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
 private
 class ClassChangeFixture(val initialClass: ClassFixture, val changedClass: ClassFixture) {
     private
-    val apiClassExtractor = ApiClassExtractor.withWriter(KotlinApiMemberWriter.adapter()).includeAllPackages()
+    val apiClassExtractor = ApiClassExtractor.withWriter(KotlinApiMemberWriter.adapter()).build()
 
     val initialApiClassBytes = extractApiBytes(initialClass.bytes)
     val changedApiClassBytes = extractApiBytes(changedClass.bytes)
