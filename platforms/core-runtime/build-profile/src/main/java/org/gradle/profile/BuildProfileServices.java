@@ -21,6 +21,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class BuildProfileServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -40,7 +42,7 @@ public class BuildProfileServices extends AbstractGradleModuleServices {
         registration.addProvider(new ServiceRegistrationProvider() {
             public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
                 if (startParameter.isProfile()) {
-                    serviceRegistration.add(ProfileService.class, ProfileEventAdapter.class);
+                    serviceRegistration.add(ProfileEventAdapter.class, provides(ProfileService.class));
                 }
             }
         });

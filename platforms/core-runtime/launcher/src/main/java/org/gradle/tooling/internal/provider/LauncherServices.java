@@ -84,13 +84,14 @@ import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExec
 
 import java.util.List;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class LauncherServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(BuildActionRunner.class, ExecuteBuildActionRunner.class);
+        registration.add(ExecuteBuildActionRunner.class, provides(BuildActionRunner.class));
         registration.addProvider(new ToolingGlobalScopeServices());
     }
 

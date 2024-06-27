@@ -20,9 +20,11 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinaryRenderer;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class NativeTestingServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(AbstractBinaryRenderer.class, NativeTestSuiteBinaryRenderer.class);
+        registration.add(NativeTestSuiteBinaryRenderer.class, provides(AbstractBinaryRenderer.class));
     }
 }

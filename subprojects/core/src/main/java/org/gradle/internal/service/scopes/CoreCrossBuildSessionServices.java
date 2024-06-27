@@ -55,9 +55,9 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
 
     @Provides
     void configure(ServiceRegistration registration) {
-        registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
+        registration.add(DefaultResourceLockCoordinationService.class, provides(ResourceLockCoordinationService.class));
         registration.add(DefaultWorkerLeaseService.class, provides(WorkerLeaseService.class, ProjectParallelExecutionController.class));
-        registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
+        registration.add(DefaultDynamicCallContextTracker.class, provides(DynamicCallContextTracker.class));
     }
 
     @Provides
