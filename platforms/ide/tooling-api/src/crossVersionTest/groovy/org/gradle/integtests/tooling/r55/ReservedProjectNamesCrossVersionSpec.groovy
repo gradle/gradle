@@ -137,10 +137,8 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
         ])
 
         when:
-        def eclipseModels = withConnection { con ->
-            def builder = con.action(new SupplyRuntimeAndLoadCompositeEclipseModels(workspace))
-            collectOutputs(builder)
-            builder.run()
+        def eclipseModels = withConnection { connection ->
+            connection.action(new SupplyRuntimeAndLoadCompositeEclipseModels(workspace)).run()
         }
 
         then:

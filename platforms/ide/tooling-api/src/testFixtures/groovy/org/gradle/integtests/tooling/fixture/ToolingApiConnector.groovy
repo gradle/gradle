@@ -30,11 +30,11 @@ class ToolingApiConnector {
         this.connector = connector
     }
 
-    def connect() {
+    ProjectConnection connect() {
         new ToolingApiConnection(connector.connect(), stdout, stderr) as ProjectConnection
     }
 
-    def searchUpwards(boolean searchUpwards) {
+    ToolingApiConnector searchUpwards(boolean searchUpwards) {
         connector.searchUpwards(searchUpwards)
         this
     }
@@ -43,7 +43,7 @@ class ToolingApiConnector {
         connector."$name"(*args)
     }
 
-    def propertyMissing(String name, value) {
+    void propertyMissing(String name, value) {
         connector."$name" = value
     }
 
@@ -51,9 +51,9 @@ class ToolingApiConnector {
         connector."$name"
     }
 
-    def forProjectDirectory(File projectDir) {
+    ToolingApiConnector forProjectDirectory(File projectDir) {
         connector.forProjectDirectory(projectDir)
-        connector
+        this
     }
 
     def disconnect() {

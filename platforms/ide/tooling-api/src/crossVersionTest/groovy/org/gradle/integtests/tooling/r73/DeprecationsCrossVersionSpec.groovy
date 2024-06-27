@@ -57,11 +57,10 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        withConnection {
-            def builder = it.model(List)
-            builder.withArguments("--parallel")
-            collectOutputs(builder)
-            return builder.get()
+        withConnection { connection ->
+            connection.model(List)
+                .withArguments("--parallel")
+                .get()
         }
 
         then:

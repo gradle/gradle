@@ -77,9 +77,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             .withCancellationToken(cancellationToken)
             .addProgressListener(events, OperationType.TASK, OperationType.TEST)
 
-        collectOutputs(testLauncher)
-
-        configurationClosure.call(testLauncher)
+        configurationClosure(testLauncher)
 
         events.clear()
         if (resultHandler == null) {
