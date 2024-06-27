@@ -190,7 +190,9 @@ public class DependencyGraphBuilder {
                 //     continue;
                 // }
 
-                if (!node.isSelected()) {
+                // TODO: Why is this not node.isSelected()?
+                // It seems that node.isSelected can return true while component.isSelected() returns false
+                if (!node.getComponent().isSelected()) {
                     node.cleanupConstraints();
                     continue;
                 }
@@ -324,6 +326,8 @@ public class DependencyGraphBuilder {
             // Ignore: All selectors failed, and will have failures recorded
             return;
         }
+
+        // TODO: We should check for conflicts before updating selection.
 
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {
