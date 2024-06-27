@@ -238,10 +238,11 @@ public class Install {
                 "Your Gradle distribution may have been tampered with.%n" +
                 "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n" +
                 "%n" +
-                " Distribution Url: %s%n" +
+                "Distribution Url: %s%n" +
                 "Download Location: %s%n" +
                 "Expected checksum: '%s'%n" +
-                "  Actual checksum: '%s'%n",
+                "Actual checksum: '%s'%n" +
+                "Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.",
             sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
         throw new RuntimeException(message);
     }
