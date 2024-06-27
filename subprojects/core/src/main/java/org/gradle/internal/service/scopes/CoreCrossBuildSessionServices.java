@@ -49,12 +49,14 @@ import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class CoreCrossBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
-        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
+        registration.add(DefaultWorkerLeaseService.class, provides(WorkerLeaseService.class, ProjectParallelExecutionController.class));
         registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
     }
 

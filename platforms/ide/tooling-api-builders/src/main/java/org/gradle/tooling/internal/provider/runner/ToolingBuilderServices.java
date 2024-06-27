@@ -21,10 +21,12 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.problems.buildtree.ProblemReporter;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(BuildEventListenerFactory.class, ProblemReporter.class, ToolingApiBuildEventListenerFactory.class);
+        registration.add(ToolingApiBuildEventListenerFactory.class, provides(BuildEventListenerFactory.class, ProblemReporter.class));
     }
 
     @Override

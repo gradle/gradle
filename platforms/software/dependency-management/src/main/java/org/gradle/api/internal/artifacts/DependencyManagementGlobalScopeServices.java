@@ -75,6 +75,8 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 class DependencyManagementGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(VersionParser.class);
@@ -82,8 +84,8 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
         registration.add(ImmutableModuleIdentifierFactory.class, DefaultImmutableModuleIdentifierFactory.class);
         registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
         registration.add(LocalVariantMetadataBuilder.class, DefaultLocalVariantMetadataBuilder.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
+        registration.add(InputArtifactAnnotationHandler.class, provides(PropertyAnnotationHandler.class, InjectAnnotationHandler.class));
+        registration.add(InputArtifactDependenciesAnnotationHandler.class, provides(PropertyAnnotationHandler.class, InjectAnnotationHandler.class));
     }
 
     @Provides

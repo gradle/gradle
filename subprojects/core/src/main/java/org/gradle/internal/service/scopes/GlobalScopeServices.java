@@ -116,6 +116,8 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
 import java.util.List;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
  * only needs these services if it is running in --no-daemon mode.
@@ -140,9 +142,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Override
     void configure(ServiceRegistration registration) {
         super.configure(registration);
-        registration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
+        registration.add(DefaultScriptFileResolverListeners.class, provides(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class));
         registration.add(BuildLayoutFactory.class);
-        registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
+        registration.add(DefaultWorkValidationWarningRecorder.class, provides(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class));
     }
 
     @Provides
