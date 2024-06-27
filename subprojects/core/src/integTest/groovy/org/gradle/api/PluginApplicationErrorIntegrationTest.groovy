@@ -122,4 +122,8 @@ class BrokenPlugin {
         failure.assertHasCause("Failed to apply plugin class 'SomeSettingsPlugin'")
         failure.assertHasCause("Cannot apply a Settings plugin to a Project instance")
     }
+
+    // TODO: test with pluginManager
+
+    // TODO: test with init
 }
