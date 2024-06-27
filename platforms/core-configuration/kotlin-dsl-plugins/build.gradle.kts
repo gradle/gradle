@@ -22,6 +22,8 @@ dependencies {
     compileOnly(projects.platformJvm)
     compileOnly(projects.pluginDevelopment)
     compileOnly(projects.kotlinDsl)
+    compileOnly(projects.serviceLookup)
+    compileOnly(projects.stdlibJavaExtensions)
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
@@ -34,8 +36,6 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver"))
     implementation(libs.futureKotlin("assignment"))
 
-    implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
 
     testImplementation(projects.logging)
     testImplementation(testFixtures(projects.kotlinDsl))

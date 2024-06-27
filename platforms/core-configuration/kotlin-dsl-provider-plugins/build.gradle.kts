@@ -37,7 +37,7 @@ dependencies {
     implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.slf4jApi)
 
-    runtimeOnly(libs.kotlinReflect)
+    compileOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(libs.mockitoKotlin2)
