@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -36,9 +36,7 @@ import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
@@ -93,11 +91,12 @@ public class ResolutionFailureHandler {
         this.problemsService = problemsService;
     }
 
-    // region Stage 1 - ComponentSelectionFailures
-    // TODO: Possibly route these failures through this handler to standardize description logic, supply consistent failure data to Problems API, and allow for possible custom descriptions
-    // endregion Stage 1 - ComponentSelectionFailures
+    // region Component Selection failures
+    // TODO: Route these failures through this handler in order to standardize their description logic, supply consistent failure reporting
+    //  via the Problems API, and allow for the possible custom descriptions in specific scenarios
+    // endregion Component Selection failures
 
-    // region Stage 2 - VariantSelectionFailures
+    // region Variant Selection failures
     public AbstractResolutionFailureException configurationNotCompatibleFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,
@@ -169,18 +168,18 @@ public class ResolutionFailureHandler {
         NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
         return describeFailure(schema, failure);
     }
-    // endregion Stage 2 - VariantSelectionFailures
+    // endregion Variant Selection failures
 
-    // region State 3 - GraphValidationFailures
+    // region Graph Validation failures
     public AbstractResolutionFailureException incompatibleMultipleNodesValidationFailure(AttributesSchemaInternal schema, ComponentGraphResolveMetadata selectedComponent, Set<VariantGraphResolveMetadata> incompatibleNodes) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeMetadatas(incompatibleNodes);
         IncompatibleMultipleNodesValidationFailure failure = new IncompatibleMultipleNodesValidationFailure(selectedComponent, incompatibleNodes, assessedCandidates);
         return describeFailure(schema, failure);
     }
-    // endregion State 3 - GraphValidationFailures
+    // endregion Graph Validation failures
 
-    // region State 4 - ArtifactSelectionFailures
+    // region Artifact Selection failures
     public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(AttributesSchemaInternal schema, ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
         AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, transformedVariants);
         return describeFailure(schema, failure);
@@ -208,7 +207,7 @@ public class ResolutionFailureHandler {
     private ComponentIdentifier getOrCreateVariantSetComponentIdentifier(ResolvedVariantSet resolvedVariantSet) {
         return resolvedVariantSet.getComponentIdentifier() != null ? resolvedVariantSet.getComponentIdentifier() : () -> resolvedVariantSet.asDescribable().getDisplayName();
     }
-    // endregion State 4 - ArtifactSelectionFailures
+    // endregion Artifact Selection failures
 
     private <FAILURE extends ResolutionFailure> AbstractResolutionFailureException describeFailure(FAILURE failure) {
         @SuppressWarnings("unchecked")

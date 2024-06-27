@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure.exception;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
@@ -29,7 +30,7 @@ import java.util.List;
 
 /**
  * Abstract base class for all {@link ResolutionFailure}s occurring during dependency resolution that can be handled
- * by the {@link org.gradle.internal.component.ResolutionFailureHandler ResolutionFailureHandler}.
+ * by the {@link ResolutionFailureHandler ResolutionFailureHandler}.
  * <p>
  * This exception type carries information about the failure, and implements {@link ResolutionProvider} to provide a
  * list of resolutions that may help the user to fix the problem.  This class is meant to be immutable.

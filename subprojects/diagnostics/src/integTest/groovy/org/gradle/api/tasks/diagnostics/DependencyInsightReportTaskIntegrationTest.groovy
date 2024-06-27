@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import org.gradle.util.GradleVersion
@@ -1608,6 +1609,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "CC component identifiers won't include root prefix in display name")
     def "deals with dependency cycle to root"() {
         given:
         createDirs("impl")
@@ -1642,7 +1644,7 @@ org:leaf2:1.0
 
         then:
         outputContains """
-project :
+root project :
   Variant runtimeClasspath:
     | Attribute Name                 | Provided     | Requested    |
     |--------------------------------|--------------|--------------|
@@ -1662,9 +1664,9 @@ project :
     | org.gradle.usage               | java-runtime | java-runtime |
     | org.gradle.jvm.environment     |              | standard-jvm |
 
-project :
+root project :
 \\--- project :impl
-     \\--- project : (*)
+     \\--- root project : (*)
 """
     }
 

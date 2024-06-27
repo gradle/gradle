@@ -106,7 +106,7 @@ task retrieve(type: Sync) {
 
         expect:
         fails 'retrieve'
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    project :")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
         failure.assertHasCause("A dependency was declared on configuration 'x86_windows' of 'test:target:1.0' but no variant with that configuration name exists.")
     }
 

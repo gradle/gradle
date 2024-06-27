@@ -27,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;

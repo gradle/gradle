@@ -104,7 +104,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
-         project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+         root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
@@ -184,7 +184,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
-         project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+         root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Dependency requires at least JVM runtime version $tooHighJava. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
@@ -259,7 +259,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':classpath'.
    > Could not resolve project :producer.
      Required by:
-         project :
+         root project :
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
@@ -331,7 +331,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
    > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
      Required by:
-         project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
+         root project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
       > Dependency requires at least JVM runtime version 17. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")

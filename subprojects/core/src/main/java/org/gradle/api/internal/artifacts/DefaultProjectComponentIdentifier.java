@@ -38,8 +38,14 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     @Override
     public String getDisplayName() {
+        String prefix;
+        if (identityPath == Path.ROOT) {
+            prefix =  "root project";
+        } else {
+            prefix = "project";
+        }
         if (displayName == null) {
-            displayName = "project " + identityPath.getPath();
+            displayName = prefix + " " + identityPath.getPath();
         }
         return displayName;
     }

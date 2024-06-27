@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.GraphSelectionCandidates;

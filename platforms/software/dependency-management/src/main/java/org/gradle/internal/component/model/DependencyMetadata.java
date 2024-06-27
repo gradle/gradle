@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

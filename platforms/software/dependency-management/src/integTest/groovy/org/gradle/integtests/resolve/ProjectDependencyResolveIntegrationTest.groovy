@@ -807,7 +807,7 @@ project(':b') {
 
         where:
         declaredDependency   | projectDescription  | expectedCommand
-        "project(':')"       | "project :"         | ":outgoingVariants"
+        "project(':')"       | "root project :"         | ":outgoingVariants"
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
     }
 }
