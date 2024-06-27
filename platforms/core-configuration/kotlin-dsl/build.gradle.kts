@@ -32,7 +32,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
 
-    implementation("org.gradle:api-extractor")
+    implementation("org.gradle:java-api-extractor")
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.groovy)

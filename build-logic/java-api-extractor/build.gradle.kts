@@ -1,8 +1,8 @@
 plugins {
-    id("gradlebuild.api-extractor")
+    id("gradlebuild.java-shared-runtime")
 }
 
-description = "Extract API classes from JVM classes."
+description = "Logic to extract API classes from JVM classes that is shared between build-logic and runtime."
 
 dependencies {
     // TODO These should not need version numbers specified here.

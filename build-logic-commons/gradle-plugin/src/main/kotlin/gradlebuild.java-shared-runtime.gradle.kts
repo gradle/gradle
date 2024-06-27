@@ -11,6 +11,8 @@ plugins {
     id("gradlebuild.reproducible-archives")
 }
 
+description = "A plugin that sets up a Java code that is shared between build-logic and runtime"
+
 java {
     configureJavaToolChain()
     sourceCompatibility = JavaVersion.VERSION_1_8
