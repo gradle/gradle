@@ -28,3 +28,12 @@ import org.gradle.internal.service.ServiceRegistration.Contracts.provides
 inline fun <reified ImplementationType, reified ServiceType> ServiceRegistration.add() where ImplementationType : ServiceType {
     add(ImplementationType::class.java, provides(ServiceType::class.java))
 }
+
+
+/**
+ * @param ServiceType The service to make visible.
+ * @see [ServiceRegistration.add]
+ */
+inline fun <reified ServiceType : Any> ServiceRegistration.add(instance: ServiceType) {
+    add(ServiceType::class.java, instance)
+}
