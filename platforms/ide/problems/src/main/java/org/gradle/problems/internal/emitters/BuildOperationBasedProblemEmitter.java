@@ -20,14 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -40,16 +34,12 @@ import java.util.Map;
  */
 @Incubating
 @SuppressWarnings("unused")
-public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildOperationListener {
+public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     private final Map<OperationIdentifier, String> taskNames = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
 
-    public BuildOperationBasedProblemEmitter(
-        BuildOperationProgressEventEmitter eventEmitter,
-        BuildOperationListenerManager listenerManager
-    ) {
+    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
         this.eventEmitter = eventEmitter;
-        listenerManager.addListener(this);
     }
 
     @SuppressWarnings("unused")
@@ -57,20 +47,5 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter, BuildO
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
         // Emit the problem as a progress event
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
-    }
-
-    @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        // TODO: no-op for perf testing reasons
-    }
-
-    @Override
-    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-        // TODO: no-op for perf testing reasons
-    }
-
-    @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        // TODO: no-op for perf testing reasons
     }
 }
