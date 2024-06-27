@@ -23,6 +23,46 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
 class GradleLifecycleAllprojectsIntegrationTest extends AbstractIntegrationSpec {
 
+    def 'lifecycle.allprojects is not executed again after project evaluation'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            gradle.lifecycle.allprojects { project ->
+                println "lifecycle.allprojects for \${project.name}"
+            }
+            include(":a")
+        """
+
+        file("a/build.gradle") << "println 'a'"
+
+        buildFile << """
+            println 'root'
+            allprojects { project ->
+                println "allprojects for \${project.name}"
+            }
+            afterEvaluate {
+                allprojects { project ->
+                    println "afterEvaluate allprojects for \${project.name}"
+                }
+            }
+        """
+
+        when:
+        run "help", "-q"
+
+        then:
+        outputContains """
+lifecycle.allprojects for root
+root
+allprojects for root
+lifecycle.allprojects for a
+allprojects for a
+afterEvaluate allprojects for root
+afterEvaluate allprojects for a
+a
+"""
+    }
+
     def 'lifecycle.allprojects is executed only once for a project'() {
         given:
         settingsFile << """
