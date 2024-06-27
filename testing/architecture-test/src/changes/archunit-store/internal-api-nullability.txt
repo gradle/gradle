@@ -2760,7 +2760,7 @@ Class <org.gradle.internal.state.ManagedFactoryRegistry> is not annotated (direc
 Class <org.gradle.internal.state.ModelObject> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ModelObject.java:0)
 Class <org.gradle.internal.state.OwnerAware> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OwnerAware.java:0)
 Class <org.gradle.internal.tools.api.ApiClassExtractionException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ApiClassExtractionException.java:0)
-Class <org.gradle.internal.tools.api.ApiClassExtractor$BuilderWithLanguage> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ApiClassExtractor.java:0)
+Class <org.gradle.internal.tools.api.ApiClassExtractor$Builder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ApiClassExtractor.java:0)
 Class <org.gradle.internal.tools.api.ApiClassExtractor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ApiClassExtractor.java:0)
 Class <org.gradle.internal.tools.api.ApiMemberWriter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ApiMemberWriter.java:0)
 Class <org.gradle.internal.tools.api.ApiMemberWriterAdapter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ApiMemberWriterAdapter.java:0)
