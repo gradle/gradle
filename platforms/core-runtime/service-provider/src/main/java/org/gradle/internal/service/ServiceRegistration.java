@@ -28,7 +28,9 @@ public interface ServiceRegistration {
     /**
      * Adds an implementation of one or more services to this registry.
      * <p>
-     * Use {@link ServiceRegistration.Contracts#provides(Class) provides} method to make declarations concise:
+     * The implementation class should have a single public constructor, and this constructor can take services to be injected as parameters.
+     * <p>
+     * Use {@link ServiceRegistration.Contracts#provides(Class, Class) provides} method to make declarations concise:
      *
      * <pre><code class="language-java">registration.add(MyImplementation.class, provides(ServiceOne.class, ServiceTwo.class));</code></pre>
      *
@@ -37,7 +39,6 @@ public interface ServiceRegistration {
      * @param <T> implementation type
      */
     <T> void add(Class<T> implementationType, ServiceContract<T> contract);
-
 
     /**
      * Adds a service to this registry. The given object is closed when the associated registry is closed.
@@ -64,8 +65,6 @@ public interface ServiceRegistration {
 
     /**
      * Adds two services to this registry that share the implementation.
-     * <p>
-     * The implementation class should have a single public constructor, and this constructor can take services to be injected as parameters.
      *
      * @param serviceType1 The first service to make visible.
      * @param serviceType2 The second service to make visible.
