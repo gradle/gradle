@@ -135,6 +135,7 @@ dependencies {
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.commonsLang3)
     implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
