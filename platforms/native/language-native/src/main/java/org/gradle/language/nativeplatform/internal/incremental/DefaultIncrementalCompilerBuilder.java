@@ -42,6 +42,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBuilder {
     private final BuildOperationRunner buildOperationRunner;
@@ -155,7 +156,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(includeDirectives, sourceIncludesParser, dependencyParser, fileSystemAccess);
             IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory, buildOperationRunner);
 
-            incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());
+            incrementalCompilation = incrementalCompileProcessor.processSourceFiles(new TreeSet<>(sourceFiles.getFiles()));
             DefaultHeaderDependenciesCollector headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
             return headerDependenciesCollector.collectExistingHeaderDependencies(taskPath, includeRoots, incrementalCompilation);
         }
