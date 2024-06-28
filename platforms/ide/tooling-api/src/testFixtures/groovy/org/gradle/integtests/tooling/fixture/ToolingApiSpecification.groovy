@@ -106,6 +106,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     private boolean stackTraceChecksOn = true
 
     private ExecutionResult result
+    private ExecutionFailure failure
 
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
@@ -188,21 +189,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
-        try {
-            toolingApi.withConnector(cl)
-        } catch (GradleConnectionException e) {
-            caughtGradleConnectionException = e
-            throw e
-        }
+        toolingApi.withConnector(cl)
     }
 
     def <T> T withConnection(ToolingApiConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        try {
-            return toolingApi.withConnection(connector, cl)
-        } catch (GradleConnectionException e) {
-            caughtGradleConnectionException = e
-            throw e
-        }
+        return toolingApi.withConnection(connector, cl)
     }
 
     ToolingApiConnector connector() {
@@ -213,12 +204,30 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         toolingApi.connectorWithoutOutputRedirection()
     }
 
-    def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        try {
-            return toolingApi.withConnection(cl)
-        } catch (GradleConnectionException e) {
-            caughtGradleConnectionException = e
-            throw e
+    /**
+     * Prefer {@link #succeeds(Closure)} and {@link #fails(Closure)} over this method, as they automatically verify build output.
+     */
+    <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        return toolingApi.withConnection(cl)
+    }
+
+    /**
+     * Open a new project connection and execute the given closure against it, closing the connection afterwards.
+     * Then, verify that the build succeeded and verify emitted deprecation warnings.
+     */
+    <T> T succeeds(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        runSuccessfully {
+            withConnection(cl)
+        }
+    }
+
+    /**
+     * Open a new project connection and execute the given closure against it, closing the connection afterwards.
+     * Then, verify that the build failed and verify emitted deprecation warnings.
+     */
+    void fails(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure cl) {
+        runUnsuccessfully {
+            withConnection(cl)
         }
     }
 
@@ -260,8 +269,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * reset this integration spec to prepare to run another action.
      *
      * TODO: We should migrate almost all of the methods in this class to use this method
-     *       and a similar method for failed executions. Tests should not use the raw
-     *       withConnection methods, as they do not reset the state of the spec.
+     *       and runUnsuccessfully() instead of the raw withConnection methods
      */
     private <T> T runSuccessfully(Supplier<T> action) {
         // While there are still other tests that do not reset the streams after execution
@@ -273,6 +281,24 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
             T value = action.get()
             this.result = assertSuccessful()
             return value
+        } finally {
+            reset()
+        }
+    }
+
+    // Same as above but for the failure case
+    private void runUnsuccessfully(Runnable action) {
+        // While there are still other tests that do not reset the streams after execution
+        // we will need to do this ourselves here.
+        stdout.reset()
+        stderr.reset()
+
+        try {
+            try {
+                action.run()
+            } finally {
+                this.failure = assertFailure()
+            }
         } finally {
             reset()
         }
@@ -370,6 +396,17 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         return result
     }
 
+    ExecutionFailure assertFailure() {
+        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+
+        // We get BUILD FAILED when we run tasks, and CONFIGURE FAILED when we fetch models without requesting tasks
+        String failureOutput = targetDist.selectOutputWithFailureLogging(failure.output, failure.error)
+        assert failureOutput.contains("BUILD FAILED") || failureOutput.contains("CONFIGURE FAILED")
+
+        validateOutput(failure)
+        return failure
+    }
+
     void assertHasBuildSuccessfulLogging() {
         assert stdout.toString().contains("BUILD SUCCESSFUL")
         validateOutput(getResult())
@@ -417,11 +454,16 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
             return result
         }
 
-        // TODO: Legacy path
+        // Legacy path. Tests should instead use methods that call runSuccessfully
         return OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString())
     }
 
     ExecutionFailure getFailure() {
+        if (failure != null) {
+            return failure
+        }
+
+        // Legacy path. Tests should instead use methods that call runUnsuccessfully
         return OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
     }
 
