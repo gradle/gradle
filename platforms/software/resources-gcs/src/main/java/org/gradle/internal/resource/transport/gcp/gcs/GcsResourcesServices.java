@@ -26,11 +26,13 @@ public class GcsResourcesServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(GlobalScopeServices.class);
+        registration.addProvider(new GlobalScopeServices());
     }
 
-    private interface GlobalScopeServices extends ServiceRegistrationProvider {
-        @Provides(ResourceConnectorFactory.class)
-        GcsConnectorFactory createGcsConnectorFactory();
+    private static class GlobalScopeServices implements ServiceRegistrationProvider {
+        @Provides
+        ResourceConnectorFactory createGcsConnectorFactory() {
+            return new GcsConnectorFactory();
+        }
     }
 }

@@ -54,10 +54,10 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeConventionApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
+import org.gradle.plugin.software.internal.DefaultSoftwareTypeConventionApplicator;
 import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
 import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
@@ -79,7 +79,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(GlobalScopeServices.class);
+        registration.addProvider(new GlobalScopeServices());
     }
 
     @Override
@@ -93,9 +93,11 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     }
 
     @NonNullApi
-    private interface GlobalScopeServices extends ServiceRegistrationProvider {
-        @Provides(PropertyAnnotationHandler.class)
-        SoftwareTypeAnnotationHandler createSoftwareTypeAnnotationHandler();
+    private static class GlobalScopeServices implements ServiceRegistrationProvider {
+        @Provides
+        PropertyAnnotationHandler createSoftwareTypeAnnotationHandler() {
+            return new SoftwareTypeAnnotationHandler();
+        }
     }
 
     private static class SettingsScopeServices implements ServiceRegistrationProvider {
