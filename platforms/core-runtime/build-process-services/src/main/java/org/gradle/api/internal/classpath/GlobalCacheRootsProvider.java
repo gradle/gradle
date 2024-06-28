@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.classpath;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * Represents a location for global Gradle caches.
  */
+@NonNullApi
 @ServiceScope(Scope.Global.class)
 public interface GlobalCacheRootsProvider {
 
