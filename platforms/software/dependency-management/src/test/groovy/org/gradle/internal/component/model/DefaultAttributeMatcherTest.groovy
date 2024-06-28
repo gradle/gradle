@@ -70,7 +70,7 @@ class DefaultAttributeMatcherTest extends Specification {
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
         def candidate3 = attributes(usage: "match", other: "no match")
-        def candidate4 = attributes()
+        def candidate4 = ImmutableAttributes.EMPTY
 
         def requested = attributes(usage: "match", other: "match")
 
@@ -288,9 +288,9 @@ class DefaultAttributeMatcherTest extends Specification {
         def usage = Attribute.of("usage", String)
         schema.attribute(usage)
 
-        def candidate1 = attributes()
+        def candidate1 = ImmutableAttributes.EMPTY
         def candidate2 = attributes(usage: "ignored")
-        def requested = attributes()
+        def requested = ImmutableAttributes.EMPTY
 
         expect:
         matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1, candidate2]
@@ -306,7 +306,7 @@ class DefaultAttributeMatcherTest extends Specification {
         given:
         def matcher = new DefaultAttributeMatcher(schema)
 
-        def candidate = attributes()
+        def candidate = ImmutableAttributes.EMPTY
         def requested = attributes(usage: "dont care", other: "dont care")
 
         expect:
