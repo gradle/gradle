@@ -23,7 +23,6 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.util.Queue
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
@@ -52,7 +51,7 @@ object ParallelOutputStream {
      * @see ByteBufferPool
      */
     fun of(
-        readyQ: Queue<ByteBuffer> = ConcurrentLinkedQueue(),
+        readyQ: Queue<ByteBuffer> = ArrayBlockingQueue(ByteBufferPool.maxChunks),
         outputStreamFactory: () -> OutputStream,
     ): OutputStream {
         val chunks = ByteBufferPool()
