@@ -93,9 +93,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
         PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
-        if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
+//        if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
             visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
-        }
+//        }
         if (variants != null) {
             for (ConfigurationVariantInternal variant : variants.withType(ConfigurationVariantInternal.class)) {
                 visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
