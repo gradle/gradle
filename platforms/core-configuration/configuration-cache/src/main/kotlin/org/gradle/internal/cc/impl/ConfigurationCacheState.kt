@@ -350,7 +350,7 @@ class ConfigurationCacheState(
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
                 stateFileFor(state.buildDefinition),
                 buildTreeState
             )
@@ -385,7 +385,7 @@ class ConfigurationCacheState(
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
                 stateFileFor(state.buildDefinition),
                 buildTreeState
             )
@@ -405,7 +405,7 @@ class ConfigurationCacheState(
     fun readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
         build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
-        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
+        return build.gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().readIncludedBuildStateFrom(
             stateFileFor((build.state as NestedBuildState).buildDefinition),
             build
         )
