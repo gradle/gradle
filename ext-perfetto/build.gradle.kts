@@ -1,13 +1,13 @@
 plugins {
     `java-library`
-    id("com.google.protobuf") version ("0.9.1")
+    id("com.google.protobuf") version ("0.9.4")
 }
 
 group = "perfetto"
 version = "0.1"
 
 dependencies {
-    api("com.google.protobuf:protobuf-java:3.21.12")
+    implementation("com.google.protobuf:protobuf-javalite:4.26.1")
 }
 
 repositories {
@@ -20,6 +20,14 @@ tasks.withType<JavaCompile>().configureEach {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.21.12"
+        artifact = "com.google.protobuf:protoc:4.26.1"
+    }
+
+    generateProtoTasks.all().configureEach {
+        builtins {
+            named("java") {
+                option("lite")
+            }
+        }
     }
 }
