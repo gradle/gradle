@@ -73,8 +73,5 @@ interface BuildTreeConfigurationCache {
     // This is a temporary property to allow migration from a root build scoped cache to a build tree scoped cache
     val isLoaded: Boolean
 
-    // This is a temporary method to allow migration from a root build scoped cache to a build tree scoped cache
-    fun attachRootBuild(host: ConfigurationCacheHost)
-
     class WorkGraphResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val wasLoadedFromCache: Boolean, val entryDiscarded: Boolean)
 }
