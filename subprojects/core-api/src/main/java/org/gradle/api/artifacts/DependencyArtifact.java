@@ -18,8 +18,9 @@ package org.gradle.api.artifacts;
 import javax.annotation.Nullable;
 
 /**
- * <p>An {@code Artifact} represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.</p>
- * An artifact is an (immutable) value object.
+ * Represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.
+ *
+ * @implSpec all implementations should be written as immutable value objects
  */
 public interface DependencyArtifact {
     String DEFAULT_TYPE = "jar";
