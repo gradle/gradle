@@ -24,6 +24,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         this.windowsKitWindowsSdkLocator = windowsKitWindowsSdkLocator;
     }
 
+    @Inject
     public DefaultWindowsSdkLocator(OperatingSystem operatingSystem, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
         this(new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry), new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo));
     }
