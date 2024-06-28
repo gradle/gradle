@@ -15,64 +15,84 @@
 [[declaring-repositories]]
 = 3. Declaring repositories
 
+You can add repositories for your dependencies by configuring the repositories block in your `build.gradle(.kts)` file:
+
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+    mavenCentral()  // <1>
+    maven {         // <2>
+        url = uri("https://company/com/maven2")
+    }
+    mavenLocal()    // <3>
+    flatDir {       // <4>
+        dirs("libs")
+    }
+}
+----
+<1> Public repository
+<2> Private/Custom repository
+<3> Local repository
+<4> File location
+
 Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
-Check out the <<#sec:repository-types,full reference on all types of repositories>> for more information.
 
 [[sec:declaring_public_repository]]
-== Declaring a publicly-available repository
+== Declaring a public repository
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
-Popular public repositories include <<#sub:maven_central,Maven Central>> and the <<#sub:maven_google,Google Android>> repository.
-Gradle provides built-in shorthand notations for these widely-used repositories.
+Popular public repositories include link:https://repo.maven.apache.org/maven2/[Maven Central] and the link:https://maven.google.com/[Google Android] repository.
 
-.Declaring a repository with the help of shorthand notations
-image::dependency-management-shortcut-repositories.png[]
+Gradle provides built-in shorthand notations for these widely-used repositories:
+
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+}
+----
 
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
-Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
-
-[[sub:maven_central]]
-=== Maven Central repository
-
-Maven Central is a popular repository hosting open source libraries for consumption by Java projects.
-
-To declare the link:https://repo.maven.apache.org/maven2/[Maven Central repository] for your build add this to your script:
-
-.Adding central Maven repository
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-central]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]
-====
-
-[[sub:maven_google]]
-=== Google Maven repository
-
-The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples, see the link:https://developer.android.com/studio/build/dependencies.html#google-maven[relevant Android documentation].
-
-To declare the link:https://maven.google.com/[Google Maven repository] add this to your build script:
-
-.Adding Google Maven repository
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-google]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-google]"]
-====
 
 [[sec:declaring_custom_repository]]
-== Declaring a custom repository
+== Declaring a private or custom repository
 
-Most enterprise projects set up a binary repository available only within an intranet.
-In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability.
-Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
+Most enterprise projects establish a binary repository accessible only within their intranet.
+In-house repositories allow teams to publish internal binaries, manage users and security, and ensure uptime and availability.
 
-Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
-Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`.
-For a full coverage see the <<#sec:repository-types,section on supported repository types>>.
+Specifying a custom URL is useful for declaring less popular but publicly-available repositories.
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API:
 
-You can also <<#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+    maven {
+        url = uri("https://maven-central.storage.apis.com")
+    }
+    ivy {
+        url = uri("https://github.com/ivy-rep/")
+    }
+}
+----
 
+[[sec:declaring_local_repository]]
 == Declaring a local repository
-TO DO
+
+Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
+Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
+
+To declare the local Maven cache as a repository add this to your build script:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
+====
 
 [[sec:repository-types]]
 == Understanding supported repository types
@@ -86,86 +106,51 @@ You may resolve dependencies from:
 ** <<#sub:flat_dir_resolver,local (flat) directories>>
 * with different connectivity
 ** <<#sec:authentication_schemes, authenticated repositories>>
-** a wide variety of <<#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage
-tion) based on the presence of artifacts.
+** a wide variety of <<#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage based on the presence of artifacts.
 
-[[sub:local-repos]]
-=== Local repositories
+[source,groovy]
+----
+repositories {
 
-The following sections describe repositories format, Maven or Ivy.
-These can be declared as local repositories, using a local filesystem path to access them.
+    // Ivy Repository with Custom Layout
+    ivy {
+        url 'https://your.ivy.repo/url'
+        layout 'pattern', {
+            ivy '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
+            artifact '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
+        }
+    }
 
-The difference with the flat directory repository is that they do respect a format and contain metadata.
+    // Authenticated HTTPS Maven Repository
+    maven {
+        url 'https://your.secure.repo/url'
+        credentials {
+            username = 'your-username'
+            password = 'your-password'
+        }
+    }
 
-When such a repository is configured, Gradle totally bypasses its <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>> for it as there can be no guarantee that content may not change between executions.
-Because of that limitation, they can have a performance impact.
+    // SFTP Repository
+    maven {
+        url 'sftp://your.sftp.repo/url'
+        credentials {
+            username = 'your-username'
+            password = 'your-password'
+        }
+    }
 
-They also make build reproducibility much harder to achieve and their use should be limited to tinkering or prototyping.
+    // AWS S3 Repository
+    maven {
+        url "s3://your-bucket/repository-path"
+        credentials(AwsCredentials) {
+            accessKey = 'your-access-key'
+            secretKey = 'your-secret-key'
+        }
+    }
 
-[[sec:maven_repo]]
-== Maven repositories
-
-Many organizations host dependencies in an in-house Maven repository only accessible within the company's network.
-Gradle can declare Maven repositories by URL.
-
-For adding a custom Maven repository you can do:
-
-.Adding custom Maven repository
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
-====
-
-[[sub:maven_local]]
-=== Local Maven repository
-
-Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
-Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
-
-NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
-A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
-
-WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
-
-To declare the local Maven cache as a repository add this to your build script:
-
-.Adding the local Maven cache as a repository
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
-====
-
-Gradle uses the same logic as Maven to identify the location of your local Maven cache.
-If a local repository location is defined in a `settings.xml`, this location will be used.
-The `settings.xml` in `<home directory of the current user>/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`.
-If no `settings.xml` is available, Gradle uses the default location `<home directory of the current user>/.m2/repository`.
-
-[[sec:case-for-maven-local]]
-== The case for mavenLocal()
-
-As a general advice, you should avoid adding `mavenLocal()` as a repository.
-There are different issues with using `mavenLocal()` that you should be aware of:
-
-* Maven uses it as a cache, not a repository, meaning it can contain partial modules.
-** For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found.
-* As a <<sub:local-repos,local repository>>, Gradle does not trust its content, because:
-** Origin of artifacts cannot be tracked, which is a correctness and security problem
-** Artifacts can be easily overwritten, which is a security, correctness and reproducibility problem
-* To mitigate the fact that metadata and/or artifacts can be changed, Gradle does not perform <<dependency_resolution.adoc#sec:dependency_cache,any caching>> for <<sub:local-repos,local repositories>>
-** As a consequence, your builds are slower
-** Given that order of repositories is important, adding `mavenLocal()` _first_ means that all your builds are going to be slower
-
-There are a few cases where you might have to use `mavenLocal()`:
-
-* For interoperability with Maven
-** For example, project A is built with Maven, project B is built with Gradle, and you need to share the artifacts during development
-** It is _always_ preferable to use an internal full featured repository instead
-** In case this is not possible, you should limit this to _local builds only_
-* For interoperability with Gradle itself
-** In a multi-repository world, you want to check that changes to project A work with project B
-** It is preferable to use <<composite_builds.adoc#composite_builds, composite builds>> for this use case
-** If for some reason neither composite builds nor full featured repository are possible, then `mavenLocal()` is a last resort option
-
-After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<#sec:repository-content-filtering,a repository filter>>.
-This will make sure it only provides what is expected and nothing else.
-
+    // Google Cloud Storage Repository
+    maven {
+        url "gcs://your-bucket/repository-path"
+    }
+}
+----

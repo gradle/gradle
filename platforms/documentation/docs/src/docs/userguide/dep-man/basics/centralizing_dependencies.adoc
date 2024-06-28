@@ -16,27 +16,123 @@
 = 4. Centralizing dependencies
 
 == Understanding dependency centralization
-Central dependencies can be managed in Gradle using various techniques such as a lockfile, version catalog, and convention plugins. Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
+Central dependencies can be managed in Gradle using various techniques such as a lockfile, version catalogs, and convention plugins.
+Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
 
 == Using Convention plugins
 
-3. **Convention Plugins**:
-- **Description**: Convention plugins define conventions and configurations that can be applied consistently across projects.
-- **Implementation**: Create a custom Gradle plugin that configures common dependencies, repositories, and other settings according to your organization's conventions. Apply this plugin in your projects to enforce these conventions.
-- **Benefits**: Promotes consistency, reduces boilerplate code, and makes it easier to onboard new team members.
+Using a version catalog in Gradle helps manage dependencies, plugins, and their versions centrally in a structured way. This makes it easier to maintain and update dependencies across multiple projects. Here’s how you can use a version catalog in Gradle:
 
 == Using a Version catalog
 
-2. **Version Catalog**:
-- **Description**: A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
-- **Implementation**: Use a custom plugin or script to define a version catalog containing versions of commonly used dependencies. Reference this catalog in your projects to ensure consistent version management.
-- **Benefits**: Simplifies dependency management by centralizing version definitions and promoting consistency across projects.
+A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
+Reference this catalog in your projects to ensure consistent version management.
+
+Here’s how you can use a version catalog:
+
+1. **Create a Version Catalog File**: Create a `libs.versions.toml` file in the `gradle` directory of your project. This file will define the versions of your dependencies and plugins.
++
+[source,toml]
+.gradle/libs.versions.toml
+----
+[versions]
+guava = "30.1.1-jre"
+commons-lang3 = "3.12.0"
+lombok = "1.18.20"
+mysql = "8.0.23"
+
+[libraries]
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+mysql = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version = "2.5.4" }
+----
++
+2. **Enable Version Catalog in `settings.gradle`**: In your `settings.gradle` file, enable the version catalog:
++
+[source,groovy]
+----
+dependencyResolutionManagement {
+   versionCatalogs {
+       libs {
+           from(files("gradle/libs.versions.toml"))
+       }
+   }
+}
+----
+3. **Use Version Catalog in `build.gradle`**: You can refer to the dependencies defined in the version catalog in your `build.gradle` file:
++
+[source,groovy]
+----
+plugins {
+   id 'java'
+   id 'org.springframework.boot' version libs.versions.spring.boot
+}
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+   implementation(libs.guava)
+   implementation(libs.commons.lang3)
+   compileOnly(libs.lombok)
+   runtimeOnly(libs.mysql)
+}
+----
 
 == Using Dependency locking
 
-1. **Lockfile**:
-- **Description**: A lockfile is a file that stores the exact versions of dependencies used in a project, preventing unexpected changes in dependencies when a project is built on different machines or at different times.
-- **Implementation**: Gradle does not natively support lockfiles like some other tools (e.g., npm with `package-lock.json`). However, you can achieve a similar result by generating a `dependencies.lock` file using a custom task or plugin that resolves and records the exact versions of dependencies.
-- **Benefits**: Ensures reproducible builds and avoids dependency version conflicts.
+A lockfile is a file that stores the exact versions of dependencies used in a project, preventing unexpected changes in dependencies when a project is built on different machines or at different times.
 
+Gradle does not natively support lockfiles like some other tools (e.g., npm with `package-lock.json`).
+However, you can achieve a similar result by generating a `dependencies.lock` file using a custom task or plugin that resolves and records the exact versions of dependencies.
 
+Here’s how you can use a lockfile:
+
+1. **Enable Dependency Locking**: In your `settings.gradle(.kts)` file, enable dependency locking for the configurations you want to lock:
++
+[source,groovy]
+----
+dependencyLocking {
+   lockAllConfigurations()
+}
+----
+2. **Generate the Lockfile**: Run the following command to resolve dependencies and generate the lockfile:
++
+[source,bash]
+----
+$ ./gradlew resolveAndLockAll
+----
++
+This will create a `gradle.lockfile` in the `gradle` directory of your project.
+This file contains the resolved versions of all dependencies.
+3. **Commit the Lockfile**: Add the generated `gradle.lockfile` to your version control system (e.g., Git):
++
+[source,bash]
+----
+git add gradle.lockfile
+git commit -m "Add dependency lockfile"
+----
+4. **Using the Lockfile**: When running your build, Gradle will use the versions specified in the lockfile to ensure consistent dependency resolution. You can simply run your build commands as usual:
++
+[source,bash]
+----
+$ ./gradlew build
+----
+5. **Updating Dependencies**: If you need to update your dependencies, unlock the configurations, update the dependencies in your `build.gradle` file, and regenerate the lockfile. To unlock configurations:
++
+[source,bash]
+----
+$ ./gradlew dependencies --write-locks
+----
++
+Then, update your dependencies and regenerate the lockfile:
++
+[source,bash]
+----
+$ ./gradlew resolveAndLockAll
+----

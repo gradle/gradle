@@ -16,16 +16,15 @@
 = 1. Declaring dependencies
 
 Declaring dependencies in Gradle involves specifying the external libraries, modules, or files that your project depends on.
-This is done within the `dependencies` block in your `build.gradle(.kts)` file.
 
 [[sub:producers-vs-consumers]]
 == Understanding consumers and producers
 
 In dependency management, it is essential to understand the distinction between _consumers_ and _producers_.
-Traditional build systems often blur the lines between _producers_ and _consumers_, leading to various issues.
 
 When you build a library, you are acting as a _producer_, creating artifacts that will be consumed by others, the _consumers_.
 
+When you consume that library, you are acting as a _consumer_.
 _Consumers_ can be broadly defined as:
 
 - Projects that depend on other projects.
@@ -33,12 +32,108 @@ _Consumers_ can be broadly defined as:
 
 The decisions we make in dependency management often depend on the type of project we are building, specifically, what kind of _consumer_ we are.
 
+image::declaring-dependencies-1.png[]
+
 == Adding a dependency
 
 To add a dependency in Gradle, you use the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`dependencies{}`] block in your build script.
 
 The `dependencies` block allows you to specify various types of dependencies such as external libraries, local JAR files, or other projects within a multi-project build.
-For example:
+
+Dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID, artifact ID, and version.
+
+[source,groovy]
+.build.gradle
+----
+dependencies {
+    // Configuration Name + Dependency Notation - GroupID : ArtifactID (Name) : Version
+    configuration '<group>:<name>:<version>'
+}
+----
+
+Note:
+
+1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
+2. Gradle offers several _configuration_ options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
+See <<dependency-configurations.adoc#dependency-configurations, Dependency Configurations>>.
+3. You can specify repositories where Gradle should look for dependencies in your build file.
+See <<declaring-repositories.adoc#declaring-repositories, Declaring Repositories>>.
+
+[[sec:dependency-types]]
+== Understanding types of dependencies
+
+There are two kinds of dependencies, module dependencies and file dependencies.
+
+[[sub:module_dependencies]]
+=== 1. Module dependencies
+
+Module dependencies are the most common dependencies.
+They refer to a module in a repository:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+dependencies {
+    runtimeOnly("org.springframework:spring-aop:2.5")
+    runtimeOnly("org.hibernate:hibernate:3.0.5")
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+dependencies {
+    runtimeOnly 'org.springframework:spring-core:2.5'
+    runtimeOnly 'org.hibernate:hibernate:3.0.5'
+}
+----
+=====
+
+[[sub:file_dependencies]]
+=== 2. File dependencies
+
+In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
+Instead, it is common practice to host these dependencies on a shared drive or to check them into version control alongside the project source code.
+
+These are known as file dependencies because they represent files without any <<dependency_management_terminology.adoc#sub:terminology_module_metadata,metadata>> (such as information about transitive dependencies, origin, or author) attached to them.
+
+image::dependency-management-file-dependencies.png[]
+
+To add files as dependencies for a configuration, you simply pass a <<working_with_files.adoc#sec:file_collections,file collection>> as a dependency:
+
+====
+include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+====
+
+== Looking at an example
+
+Let's imagine an example for a Java application which uses link:https://github.com/google/guava[Guava], a set of core Java libraries from Google:
+
+image::declaring-dependencies-2.png[]
+
+The Java app contains the following Java class:
+
+[source, java]
+.InitializeCollection.java
+----
+package com.myapp;
+
+import com.google.common.collect.ImmutableMap;  // Comes from guava library
+import java.util.Map;
+
+public class InitializeCollection {
+    public static void main(String[] args) {
+        Map items = ImmutableMap.of("coin", 3, "glass", 4, "pencil", 1);
+    }
+}
+----
+
+To add the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] library to your Gradle project as a dependency, you must add the following line to your build file:
 
 [.multi-language-sample]
 =====
@@ -61,146 +156,72 @@ dependencies {
 ----
 =====
 
-Dependencies are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID, artifact ID, and version.
-In the example:
+Where:
 
 * `implementation` is the configuration.
 * `com.google.guava:guava:30.1.1-jre` specifies the group, name, and version of the library:
 ** `com.google.guava` is the group ID.
-** `guava` is the artifact ID.
+** `guava` is the artifact ID (i.e., name).
 ** `30.1.1-jre` is the version.
 
-=== About configurations
-
-Gradle offers several configuration options for dependencies, such as:
-- `implementation`: Dependencies required to compile the main source set.
-- `testImplementation`: Dependencies required for testing.
-- `runtimeOnly`: Dependencies only required at runtime, not for compilation.
-
-You can learn more about configurations in <<dependency-configurations.adoc#dependency-configurations, Dependency Configurations>>.
-
-=== About dependency notation
-
-Dependency notations in Gradle follows a simple format: Group ID, Artifact ID, and Version are specified as a single string separated by colons (:).
-
-You can find public dependencies in:
-
-- https://mvnrepository.com/[Maven Central]: Primary repository for Java and JVM-related dependencies.
-- https://plugins.gradle.org/[Gradle Plugin Portal]: For Gradle plugins and related dependencies.
-
-Gradle automatically includes transitive dependencies, which are dependencies of your dependencies, simplifying dependency management.
-
-You can specify repositories where Gradle should look for dependencies, such as Maven Central or a local repository.
-You can learn more about repository declarations in <<declaring-repositories.adoc#declaring-repositories, Declaring Repositories>>.
-
-[[sec:dependency-types]]
-== Understanding types of dependencies
-
-There are two kinds of dependencies, module dependencies and file dependencies.
-
-[[sub:module_dependencies]]
-=== 1. Module dependencies
-
-Module dependencies are the most common dependencies.
-They refer to a module in a repository:
-
-====
-include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
-====
-
-[[sub:file_dependencies]]
-=== 2. File dependencies
-
-In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
-Instead, it is common practice to host these dependencies on a shared drive or to check them into version control alongside the project source code.
-These are known as file dependencies because they represent files without any <<dependency_management_terminology.adoc#sub:terminology_module_metadata,metadata>> (such as information about transitive dependencies, origin, or author) attached to them.
-
-image::dependency-management-file-dependencies.png[]
-
-To add files as dependencies for a configuration, you simply pass a <<working_with_files.adoc#sec:file_collections,file collection>> as a dependency:
-
-====
-include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
-====
+Take a quick look at the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava page in Maven Central] as a reference.
 
 [[sec:listing_dependencies]]
 == Listing project dependencies
 
 The `dependencies` task provides an overview of the dependencies of your project.
 It helps you understand what dependencies are being used, how they are resolved, and their relationships, including any transitive dependencies by rendering a dependency tree from the command line.
+
 This task can be particularly useful for debugging dependency issues, such as version conflicts or missing dependencies.
 
-This task generates a report that lists all the dependencies for all configurations of your project.
-The report includes:
+For example, let's say our `app` project contains the follow lines in its build script:
 
-- *Configuration Names*: The names of the configurations, such as `implementation`, `testImplementation`, etc.
-- *Dependencies*: The dependencies declared in each configuration.
-- *Transitive Dependencies*: Dependencies that are brought in by other dependencies.
+[source, kotlin]
+.app/build.gradle.kts
+----
+dependencies {
+    implementation("com.google.guava:guava:30.0-jre")
+    runtimeOnly("org.json:json:20220924")
+}
+----
 
-For example:
+Then, running the `dependencies` task on the `app` project yields the following:
 
 [source,text]
 ----
+$ ./gradlew app:dependencies
+
+> Task :app:dependencies
+
 ------------------------------------------------------------
-Root project 'example'
+Project ':app'
 ------------------------------------------------------------
 
-implementation - Implementation only dependencies for source set 'main'. (n)
-+--- org.apache.commons:commons-lang3:3.12.0
-+--- com.google.guava:guava:30.1.1-jre
-\--- project :another-project
+[...]
 
-testImplementation - Implementation only dependencies for source set 'test'. (n)
-+--- junit:junit:4.13.2
-\--- org.mockito:mockito-core:3.11.2
+implementation - Implementation only dependencies for source set 'main'.
+\--- com.google.guava:guava:30.0-jre
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- com.google.guava:guava:30.0-jre
+|    +--- com.google.guava:failureaccess:1.0.1
+|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- org.checkerframework:checker-qual:3.5.0
+|    +--- com.google.errorprone:error_prone_annotations:2.3.4
+|    \--- com.google.j2objc:j2objc-annotations:1.3
+\--- org.json:json:20220924
+
+runtimeOnly - Runtime only dependencies for source set 'main'.
+\--- org.json:json:20220924
+
+[...]
 ----
 
-[[sec:supported-metadata-formats]]
-== Understanding dependency metadata
+We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` has been added
+As for the `runtimeOnly` configuration, the `org.json:json:20220924`.
 
-Dependency metadata refers to the additional information associated with a dependency that provides context and details beyond the basic group, name, and version.
-This metadata is crucial for managing dependencies effectively and can include various attributes such as transitive dependencies, dependency constraints, and other relevant data.
+We also see a list of transitive dependencies for `com.google.guava:guava:30.0-jre` (which are the dependencies for the `guava` library), such as `com.google.guava:failureaccess:1.0.1` in the `runtimeClasspath` configuration.
 
-Gradle supports three different metadata formats:
-
-- A https://maven.apache.org/pom.html[*Maven POM*] file (`pom.xml`) is an XML representation of the project's dependencies, including transitive dependencies and version constraints.
-- A http://ant.apache.org/ivy/[*Apache Ivy Metadata*] file (`ivy.xml`) is an XML representation of the module's dependencies, configurations, and other metadata.
-- Gradle's native https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[*Module Metadata*] file, often with a `.module` extension, provides similar information but in JSON format, including variants and attribute compatibility.
-
-[source,json]
-.example-project-1.0.0.module
-----
-{
-  "formatVersion": "1.1",
-  "component": {
-    "group": "com.example",
-    "module": "example-project",
-    "version": "1.0.0"
-  },
-  "variants": [
-    {
-      "name": "runtime",
-      "attributes": {
-        "org.gradle.usage": "java-runtime"
-      },
-      "dependencies": [
-        {
-          "group": "com.google.guava",
-          "module": "guava",
-          "version": {
-            "requires": "30.1.1-jre"
-          }
-        }
-      ],
-      "files": [
-        {
-          "name": "example-project-1.0.0.jar",
-          "url": "https://example.com/repo/com/example/example-project/1.0.0/example-project-1.0.0.jar"
-        }
-      ]
-    }
-  ]
-}
-----
+[.text-right]
+**Next Step:** <<dependency_configurations.adoc#dependency-configurations,Learn about Dependency Configurations>> >>
