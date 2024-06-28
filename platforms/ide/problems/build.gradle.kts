@@ -29,8 +29,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(libs.jsr305)
-    implementation(projects.core)
-    implementation(projects.baseServices)
 
     integTestImplementation(testFixtures(projects.logging))
     integTestImplementation(projects.internalTesting)
