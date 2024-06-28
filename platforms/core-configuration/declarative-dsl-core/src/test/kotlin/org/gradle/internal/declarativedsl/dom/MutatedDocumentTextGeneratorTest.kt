@@ -23,7 +23,7 @@ import org.gradle.internal.declarativedsl.dom.writing.MutatedDocumentTextGenerat
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTag.BlockElement
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

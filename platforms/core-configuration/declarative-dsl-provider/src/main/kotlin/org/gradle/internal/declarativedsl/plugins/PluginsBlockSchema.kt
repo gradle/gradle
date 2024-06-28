@@ -52,7 +52,7 @@ class PluginsTopLevelReceiver {
 }
 
 
-class PluginsCollectingPluginsBlock() : PluginDependenciesSpec {
+class PluginsCollectingPluginsBlock : PluginDependenciesSpec {
     val specs: List<MutablePluginDependencySpec>
         get() = _specs
 

@@ -38,6 +38,7 @@ val logger = Logging.getLogger("gradlebuild.cleanup")
 /**
  * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
  */
+@Suppress("LoopWithTooManyJumpStatements")
 fun FileSystemOperations.removeOldVersionsFromDir(dir: Directory, shouldDelete: Spec<GradleVersion>, dirPrefix: String = "", dirSuffix: String = "") {
     if (dir.asFile.isDirectory) {
         for (cacheDir in dir.asFile.listFiles()) {
@@ -53,7 +54,7 @@ fun FileSystemOperations.removeOldVersionsFromDir(dir: Directory, shouldDelete: 
             val cacheVersion =
                 try {
                     GradleVersion.version(dirVersion)
-                } catch (e: IllegalArgumentException) {
+                } catch (_: IllegalArgumentException) {
                     // Ignore
                     continue
                 }

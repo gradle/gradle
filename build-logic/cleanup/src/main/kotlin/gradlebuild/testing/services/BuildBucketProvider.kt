@@ -117,7 +117,6 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class NoOpTestClassProvider : BuildBucketProvider {
-        override fun configureTest(testTask: Test, sourceSetName: String) {
-        }
+        override fun configureTest(testTask: Test, sourceSetName: String) = Unit
     }
 }

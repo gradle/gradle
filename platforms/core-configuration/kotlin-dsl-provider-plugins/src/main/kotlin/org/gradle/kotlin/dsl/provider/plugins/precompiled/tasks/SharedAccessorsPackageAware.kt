@@ -65,7 +65,7 @@ fun implicitImportsForPrecompiledScriptPlugins(
 
 private
 fun ClasspathFingerprinter.sharedAccessorsPackageFor(classPathFiles: FileCollection): String =
-    "$sharedAccessorsPackagePrefix${fingerprintHashFor(classPathFiles)}"
+    "$SHARED_ACCESSORS_PACKAGE_PREFIX${fingerprintHashFor(classPathFiles)}"
 
 
 private
@@ -74,4 +74,4 @@ fun ClasspathFingerprinter.fingerprintHashFor(classPathFiles: FileCollection) =
 
 
 private
-const val sharedAccessorsPackagePrefix = "gradle.kotlin.dsl.plugins._"
+const val SHARED_ACCESSORS_PACKAGE_PREFIX = "gradle.kotlin.dsl.plugins._"

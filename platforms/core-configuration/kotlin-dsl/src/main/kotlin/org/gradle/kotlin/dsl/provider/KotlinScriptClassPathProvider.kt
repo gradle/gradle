@@ -202,7 +202,7 @@ private
 fun toURI(url: URL): URI =
     try {
         url.toURI()
-    } catch (e: URISyntaxException) {
+    } catch (_: URISyntaxException) {
         URL(
             url.protocol,
             url.host,

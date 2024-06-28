@@ -21,11 +21,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
+import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationRunner
 
 
 class InitialTransformStepNodeCodec(
@@ -48,6 +48,15 @@ class InitialTransformStepNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformStepSpec = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
-        return transformStepNodeFactory.recreateInitial(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStepSpec.transformStep, artifacts, transformStepSpec.recreateDependencies(), buildOperationRunner, calculatedValueContainerFactory)
+        return transformStepNodeFactory.recreateInitial(
+            transformStepNodeId,
+            targetComponentVariant,
+            sourceAttributes,
+            transformStepSpec.transformStep,
+            artifacts,
+            transformStepSpec.recreateDependencies(),
+            buildOperationRunner,
+            calculatedValueContainerFactory
+        )
     }
 }

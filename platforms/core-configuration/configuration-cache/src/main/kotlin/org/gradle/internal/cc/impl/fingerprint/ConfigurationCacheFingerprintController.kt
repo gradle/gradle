@@ -72,6 +72,7 @@ import java.util.function.Supplier
  * Coordinates the writing and reading of the configuration cache fingerprint.
  */
 @ServiceScope(Scope.BuildTree::class)
+@Suppress("LongParameterList")
 internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
@@ -127,7 +128,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         abstract fun dispose(): WritingState
 
         private
-        fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
+        fun illegalStateFor(operation: String): Nothing = error(
             "'$operation' is illegal while in '${javaClass.simpleName}' state."
         )
     }

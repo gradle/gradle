@@ -30,7 +30,7 @@ abstract class CheckContributorsInReleaseNotes : AbstractCheckOrUpdateContributo
         val contributorsInPullRequestsButNotInReleaseNotes = contributorsFromPullRequests.minus(contributorsInReleaseNotes)
 
         if (contributorsInPullRequestsButNotInReleaseNotes.isNotEmpty()) {
-            throw IllegalStateException(
+            error(
                 """The contributors in the release notes $releaseNotes don't match the contributors in the PRs.
                 Release notes:  $contributorsInReleaseNotes
                 Pull requests:  $contributorsFromPullRequests
