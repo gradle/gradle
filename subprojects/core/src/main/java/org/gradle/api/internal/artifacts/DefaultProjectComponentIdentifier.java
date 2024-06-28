@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.util.Path;
 
+import java.util.Objects;
+
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifierInternal {
     private final BuildIdentifier buildIdentifier;
     private final Path projectPath;
@@ -39,7 +41,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     @Override
     public String getDisplayName() {
         String prefix;
-        if (identityPath == Path.ROOT) {
+        if (Objects.equals(identityPath, Path.ROOT)) {
             prefix =  "root project";
         } else {
             prefix = "project";
