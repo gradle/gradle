@@ -972,9 +972,19 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         private Object target;
 
         public FactoryMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
-            super(owner, singletonList(method.getServiceType()));
+            this(owner, serviceTypesOf(method), target, method);
+        }
+
+        private FactoryMethodService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes, Object target, ServiceMethod method) {
+            super(owner, serviceTypes);
+            validateImplementationForServiceTypes(serviceTypes, method.getServiceType());
             this.target = target;
             this.method = method;
+        }
+
+        private static List<? extends Type> serviceTypesOf(ServiceMethod method) {
+            Class<?>[] explicitServiceTypes = method.getMethod().getAnnotation(Provides.class).value();
+            return explicitServiceTypes.length == 0 ? singletonList(method.getServiceType()) : Arrays.asList(explicitServiceTypes);
         }
 
         @Override
@@ -1063,17 +1073,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
 
-            for (Type serviceType : serviceTypes) {
-                if (serviceType instanceof Class<?>) {
-                    Class<?> serviceClass = (Class<?>) serviceType;
-                    if (!serviceClass.isAssignableFrom(implementationType)) {
-                        throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
-                            implementationType.getSimpleName(), serviceClass.getSimpleName()));
-                    }
-                } else {
-                    throw new IllegalArgumentException(String.format("Service type %s is not supported by ConstructorService", serviceType));
-                }
-            }
+            validateImplementationForServiceTypes(serviceTypes, implementationType);
 
             Constructor<?> match = InjectUtil.selectConstructor(implementationType);
             if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
@@ -1110,6 +1110,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public String getDisplayName() {
             return format("Service", serviceTypes);
+        }
+    }
+
+    private static void validateImplementationForServiceTypes(List<? extends Type> serviceTypes, Type implementationType) {
+        Class<?> implementationClass = unwrap(implementationType);
+        for (Type serviceType : serviceTypes) {
+            Class<?> serviceClass = unwrap(serviceType);
+            if (!serviceClass.isAssignableFrom(implementationClass)) {
+                throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
+                    implementationClass.getSimpleName(), serviceClass.getSimpleName()));
+            }
         }
     }
 
