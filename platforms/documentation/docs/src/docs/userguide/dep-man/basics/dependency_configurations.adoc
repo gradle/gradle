@@ -40,171 +40,78 @@ Gradle represents the scope of a dependency with the help of a link:{groovyDslPa
 Every configuration can be identified by a unique name.
 
 Many Gradle plugins add pre-defined configurations to your project.
+
 The <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin>>, which is used for building Java projects and provides a way to compile, package, and test Java applications, adds many configurations.
 These configurations represent the various classpaths needed for source code compilation, executing tests, and more:
 
-[cols="1,~"]
+[cols="~,~,~"]
 |===
-|Configuration Name |Description
+|Configuration Name |Description |Used to:
 
 |`implementation`
 |Dependencies required for both compilation and runtime.
+|Declare Dependencies
 
 |`compileOnly`
 |Dependencies needed only for compilation, not included in runtime or publication.
+|Declare Dependencies
 
 |`runtimeOnly`
 |Dependencies needed only at runtime, not included in the compile classpath.
+|Declare Dependencies
 
 |`compileClasspath`
 |Combines `implementation` and `compileOnly` dependencies, used for compiling source code.
+|Resolve Dependencies
 
 |`runtimeClasspath`
 |Combines `implementation` and `runtimeOnly` dependencies, used for running the application.
+|Resolve Dependencies
 
 |`annotationProcessor`
-|Dependencies for annotation processors used during compilation.
+|Dependencies for annotation processors, used during compilation.
+|Resolve Dependencies
 
 |`testImplementation`
 |Dependencies required for compiling and running tests.
+|Declare Dependencies
 
 |`testCompileOnly`
 |Dependencies needed only for test compilation.
+|Declare Dependencies
 
 |`testRuntimeOnly`
 |Dependencies needed only for running tests.
+|Declare Dependencies
 
 |`testCompileClasspath`
 |Combines `testImplementation` and `testCompileOnly` dependencies, used for compiling test sources.
+|Resolve Dependencies
 
 |`testRuntimeClasspath`
 |Combines `testImplementation` and `testRuntimeOnly` dependencies, used for running tests.
+|Resolve Dependencies
+
+|`testAnnotationProcessor`
+|Dependencies for annotation processors used for compiling test sources.
+|Resolve Dependencies
+
 |===
 
-Let's first highlight their relationships (test configurations have been omitted):
+=== Declare Dependencies
 
-image::declaring-dependencies-4.png[]
-
-[[sec:resolvable-consumable-configs]]
-== Understanding resolvable and consumable configurations
-
-In the context of dependency resolution, it is useful to distinguish between a _consumer_ and a _producer_.
-Along these lines, configurations have at least 3 different roles:
-
-1. to declare dependencies
-2. as a _consumer_, to *resolve* a set of dependencies to files
-3. as a _producer_, to expose artifacts and their dependencies for *consumption* by other projects
-
-Gradle's configurations can be categorized as _resolvable_, _consumable_, or both, depending on their purpose in the build process:
-
-- *Resolvable Configurations*: Provide dependencies needed for task execution.
-- *Consumable Configurations*: Expose artifacts for other projects to consume.
-- *Dual-Purpose Configurations*: Can serve as both sources and sinks for dependencies.
-
-Let's now look at the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
-The `java-library` plugin extends the `java` plugin with additional features specifically for building Java libraries.
-It adds more configurations as well:
-
-[cols="6,1,1,1"]
-|===
-|Configuration |Declare Dependencies |Resolvable |Consumable
-
-|`api`
-| X
-|
-|
-
-|`implementation`
-| X
-|
-|
-
-|`compileOnly`
-| X
-|
-|
-
-|`compileOnlyApi`
-| X
-|
-|
-
-|`runtimeOnly`
-| X
-|
-|
-
-|`annotationProcessor`
-| X
-|
-|
-
-|`testImplementation`
-| X
-|
-|
-
-|`testCompileOnly`
-| X
-|
-|
-
-|`testRuntimeOnly`
-| X
-|
-|
-
-|`compileClasspath` (`implementation` + `compileOnly`)
-|
-| X
-|
-
-|`runtimeClasspath` (`implementation` + `runtimeOnly`)
-|
-| X
-|
-
-|`testCompileClasspath` (`testImplementation` + `testCompileOnly`)
-|
-| X
-|
-
-|`testRuntimeClasspath` (`testImplementation` + `testRuntimeOnly`)
-|
-| X
-|
-
-|`apiElements`
-|
-|
-| X
-
-|`runtimeElements`
-|
-|
-| X
-|===
-
-Let's review the relationships between these configurations:
-
-image::java-plugin-configurations.png[]
-
-Let's look into how these configurations are used in more details.
-
-[[sec:types-of-configs]]
-== Understanding types of configurations
-
-The *dependency declaration configurations* (`compileOnlyApi`, `api`, `compileOnly`, `implementation`, `runtimeOnly`) focus on declaring and managing dependencies based on their usage (compile time, runtime, API exposure):
+The *dependency declaration configurations* (`compileOnly`, `implementation`, `runtimeOnly`) focus on declaring and managing dependencies based on their usage (compile time, runtime, API exposure):
 
 [source,kotlin]
 ----
 dependencies {
-    api("org.apache.commons:commons-lang3:3.12.0")          // API dependency
     implementation("com.google.guava:guava:30.1.1-jre")     // Implementation dependency
     compileOnly("org.projectlombok:lombok:1.18.20")         // Compile-only dependency
     runtimeOnly("mysql:mysql-connector-java:8.0.23")        // Runtime-only dependency
 }
 ----
+
+=== Resolve Dependencies
 
 The *resolving configurations* (`runtimeClasspath`, `compileClasspath`) focus on resolving dependencies needed at different stages of the build process (compilation, runtime):
 
@@ -215,41 +122,17 @@ tasks.compileJava {
 }
 ----
 
-When a configuration is resolvable, Gradle can compute the dependency graph and retrieve the necessary artifacts.
+Gradle uses these dependencies to compute the dependency graph and retrieve the necessary artifacts during a build.
 For example, `compileClasspath` is used by the `compileJava` task to get the necessary dependencies for compiling the main source code.
 
-The *consuming configurations* (`apiElements`, `runtimeElements`) focus on exposing specific parts of the project (API, runtime) to consumers:
+=== Other Dependencies
 
-[source,kotlin]
-----
-configurations {
-    runtimeElements {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        }
-    }
-}
-----
+There are other types of configurations such as *consuming configurations* (`apiElements`, `runtimeElements`).
 
-Consumable configurations are used to expose a project's artifacts and dependencies to other projects.
-They define what other projects can consume from this project.
+Plugins, such as the `swift` plugin add configurations like `swiftModule`.
+While the `cpp` plugins, adds configurations such as `linkOnly`, `linkElements`, and `testHeaderSearchPaths`.
 
-These configurations are typically used when publishing a library or when another project needs to depend on this project's outputs.
-For example, `runtimeElements` exposes the runtime components of a library.
-It includes dependencies required to run the library but not to compile against it.
-
-[source,kotlin]
-----
-configurations {
-    runtimeElements {
-        canBeResolved = false
-        canBeConsumed = true
-    }
-}
-----
-
-The properties `canBeResolved` and `canBeConsumed` control how configurations can be used.
-These properties help manage whether a configuration is intended to be used for resolving dependencies (i.e., finding out what dependencies it includes) or for being consumed by other projects (i.e., providing dependencies to others).
+Finally, it is possible to create custom configurations.
 
 [[sec:view-configurations]]
 == Viewing configurations
@@ -257,119 +140,19 @@ These properties help manage whether a configuration is intended to be used for 
 The `dependencies` task provides an overview of the dependencies of your project.
 To focus on the information about one dependency configuration, provide the optional parameter `--configuration`.
 
-The following examples show dependencies in the `testRuntimeClasspath` dependency configuration of a Java project:
+The following example show dependencies in the `implementation` dependency configuration of a Java project:
 
 [source,text]
 ----
-$ ./gradlew -q app:dependencies --configuration testRuntimeClasspath
+$ ./gradlew -q app:dependencies --configuration implementation
 
 ------------------------------------------------------------
 Project ':app'
 ------------------------------------------------------------
 
-testRuntimeClasspath - Runtime classpath of source set 'test'.
-+--- com.google.guava:guava:30.0-jre
-|    +--- com.google.guava:failureaccess:1.0.1
-|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-|    +--- com.google.code.findbugs:jsr305:3.0.2
-|    +--- org.checkerframework:checker-qual:3.5.0
-|    +--- com.google.errorprone:error_prone_annotations:2.3.4
-|    \--- com.google.j2objc:j2objc-annotations:1.3
-\--- org.json:json:20220924
+implementation - Implementation only dependencies for source set 'main'.
+\--- com.google.guava:guava:30.0-jre
 ----
-
-[[sec:defining-custom-configurations]]
-== Creating custom configurations
-
-You can define configurations yourself, called _custom configurations_.
-A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
-
-Consider a project that uses the link:https://www.eclipse.org/jgit/[JGit library] to execute Source Control Management (SCM) operations for a release process.
-You can declare dependencies for external tooling with the help of a <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,custom dependency configuration>>.
-This avoids polluting other contexts, such as the compilation classpath for your production source code.
-
-The following example declares a custom dependency configuration named `scm` that contains the JGit dependency:
-
-====
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
-====
-
-Use the following command to view a dependency tree for the `scm` dependency configuration:
-
-----
-$ gradle -q dependencies --configuration scm
-include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
-----
-
-== Looking at an example
-
-To express that an application `app` _depends on_ library `lib`, _at least_ one configuration is required:
-
-====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=declare-configuration]"]
-====
-
-Notice that the code above doesn't specify the intended _consumer_ of this configuration or how it is meant to be _used_.
-
-Configurations can inherit dependencies from other configurations by extending from them.
-
-Let's say `lib` is a Java library that might expose different components, such as its API.
-Depending on the task we're performing (compiling against the API of `lib`, executing the application, compiling tests), we may need to change how we resolve the dependencies of `app`.
-
-To address this problem, you'll often find companion configurations that are designed to unambiguously declare the usage:
-
-====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=concrete-classpath]"]
-====
-
-At this point, we have three different configurations with distinct roles:
-
-1. `someConfiguration` declares the dependencies of the application. It is simply a collection of dependencies.
-2. `compileClasspath`  which is meant to be _resolved_. When resolved, it should contain the compile classpath of the application.
-3. `runtimeClasspath` which is meant to be _resolved_. When resolved, it should contain the runtime classpath of the application.
-
-This distinction is represented by the `canBeResolved` flag in the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] type.
-
-- **Resolvable Configuration (`canBeResolved=true`)**: A configuration that can be resolved allows Gradle to compute a dependency graph because it contains all necessary information for resolution.
-+
-When resolved, it produces a dependency graph, resolves the components, and eventually retrieves artifacts.
-- **Non-Resolvable Configuration (`canBeResolved=false`)**: A configuration that is not meant to be resolved.
-+
-It is only used to _declare dependencies_. Depending on the usage (compile classpath, runtime classpath), it can resolve to different graphs.
-+
-Attempting to resolve a configuration with `canBeResolved` set to `false` results in an error.
-
-To some extent, this is similar to an abstract class (`canBeResolved=false`) that is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved=true`).
-A resolvable configuration will extend at least one non-resolvable configuration (and may extend more than one).
-
-On the producer side, the library project, configurations represent what can be consumed.
-For example, a library may expose an API or a runtime, attaching artifacts to either one or both.
-Typically, to compile against `lib`, we need its API but not its runtime dependencies.
-Thus, the `lib` project will expose an `apiElements` configuration aimed at consumers seeking its API.
-Such a configuration is consumable but not meant to be resolved.
-
-This is expressed via the `canBeConsumed` flag of a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`]:
-
-====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=setup-configurations]"]
-====
-
-In short, a configuration's role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
-
-|===
-|Configuration role|Can be resolved?|Can be consumed?
-
-|Dependency Scope|false|false
-|Resolve for certain usage|true|false
-|Exposed to consumers|false|true
-|Legacy, don't use|true|true
-|===
-
-Both flags have a default value of `true`.
 
 [.text-right]
 **Next Step:** <<declaring_repositories.adoc#declaring-repositories,Learn about Declaring Repositories>> >>

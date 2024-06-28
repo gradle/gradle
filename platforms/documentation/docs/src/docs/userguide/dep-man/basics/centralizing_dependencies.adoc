@@ -16,17 +16,108 @@
 = 4. Centralizing dependencies
 
 == Understanding dependency centralization
-Central dependencies can be managed in Gradle using various techniques such as a lockfile, version catalogs, and convention plugins.
+
+Central dependencies can be managed in Gradle using various techniques such as platforms, version catalogs, and convention plugins.
 Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
 
-== Using Convention plugins
+== Using platforms
 
-Using a version catalog in Gradle helps manage dependencies, plugins, and their versions centrally in a structured way. This makes it easier to maintain and update dependencies across multiple projects. Here’s how you can use a version catalog in Gradle:
+A platform is a set of modules designed to be used together.
+When you define a platform in Gradle, you're essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
+
+[source,kotlin]
+.platform/build.gradle.kts
+----
+plugins {
+    `java-platform`
+}
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    constraints {
+        api("org.apache.commons:commons-lang3:3.12.0")
+        api("com.google.guava:guava:30.1.1-jre")
+        api("org.slf4j:slf4j-api:1.7.30")
+    }
+}
+
+// Publish my-platform to a repository
+----
+
+Then, you can use that platform in your project:
+
+[source,groovy]
+.app/build.gradle
+----
+dependencies {
+    implementation platform("com.example:my-platform:1.0.0")
+    implementation "com.example:moduleA"
+    implementation "com.example:moduleB"
+}
+----
+
+Here, `my-platform` defines versions for `moduleA` and `moduleB`, ensuring they are compatible.
+
+Maven's BOM (Bill of Materials) is a popular type of platform that Gradle supports.
+A BOM file lists dependencies with specific versions, allowing you to manage these versions in a centralized way.
+
+Here is a snapshot of the link:https://mvnrepository.com/artifact/io.spring.platform/platform-bom/Cairo-RELEASE[Spring IO Platform Bill of Materials] which is maintained and hosted by link:https://spring.io/[Spring]:
+
+[source,xml]
+.platform-bom-Cairo-RELEASE.pom
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.1.RELEASE</version>
+        <relativePath/>
+    </parent>
+    <groupId>io.spring.platform</groupId>
+    <artifactId>platform-bom</artifactId>
+    <version>Cairo-RELEASE</version>
+    <packaging>pom</packaging>
+    <name>Spring IO Platform bill of materials</name>
+    <description>Spring IO Platform bill of materials</description>
+    <url>https://platform.spring.io/platform/</url>
+    <properties>
+        <spring-security-jwt.version>1.0.9.RELEASE</spring-security-jwt.version>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <!--  Spring Security JWT  -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-jwt</artifactId>
+                <version>${spring-security-jwt.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+----
+
+To use the BOM, you can add it to the dependencies of your project:
+
+[source,groovy]
+.build.gradle.kts
+----
+dependencies {
+    implementation platform("io.spring.platform:platform-bom:Cairo-RELEASE")
+    implementation "org.springframework:spring-core"
+    implementation "org.springframework:spring-context"
+}
+----
+
+By including the `platform-bom`, you ensure that all Spring components use the versions defined in the BOM file.
 
 == Using a Version catalog
 
 A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
-Reference this catalog in your projects to ensure consistent version management.
+You can reference this catalog in your projects to ensure consistent version management.
 
 Here’s how you can use a version catalog:
 
@@ -84,55 +175,33 @@ dependencies {
 }
 ----
 
-== Using Dependency locking
+== Using Convention plugins
 
-A lockfile is a file that stores the exact versions of dependencies used in a project, preventing unexpected changes in dependencies when a project is built on different machines or at different times.
+Using convention plugins to centralize dependencies in Gradle helps you manage and organize your dependencies across multiple projects in a consistent manner.
+This approach allows you to define dependencies in one place and apply them to various projects, simplifying dependency management and ensuring consistency.
 
-Gradle does not natively support lockfiles like some other tools (e.g., npm with `package-lock.json`).
-However, you can achieve a similar result by generating a `dependencies.lock` file using a custom task or plugin that resolves and records the exact versions of dependencies.
-
-Here’s how you can use a lockfile:
-
-1. **Enable Dependency Locking**: In your `settings.gradle(.kts)` file, enable dependency locking for the configurations you want to lock:
-+
-[source,groovy]
+[source,kotlin]
+.buildSrc/src/main/kotlin/DependencyConventionPlugin.kt
 ----
-dependencyLocking {
-   lockAllConfigurations()
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class DependencyConventionPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.dependencies.apply {
+            add("implementation", "com.google.guava:guava:30.1.1-jre")
+            add("testImplementation", "org.junit.jupiter:junit-jupiter:5.7.0")
+        }
+    }
 }
 ----
-2. **Generate the Lockfile**: Run the following command to resolve dependencies and generate the lockfile:
-+
-[source,bash]
+
+Let's assume the convention plugin has the ID `dependency-convention-plugin`, then you can apply it in your projects that need the centralized dependencies:
+
+[source,kotlin]
+.app/build.gradle.kts
 ----
-$ ./gradlew resolveAndLockAll
-----
-+
-This will create a `gradle.lockfile` in the `gradle` directory of your project.
-This file contains the resolved versions of all dependencies.
-3. **Commit the Lockfile**: Add the generated `gradle.lockfile` to your version control system (e.g., Git):
-+
-[source,bash]
-----
-git add gradle.lockfile
-git commit -m "Add dependency lockfile"
-----
-4. **Using the Lockfile**: When running your build, Gradle will use the versions specified in the lockfile to ensure consistent dependency resolution. You can simply run your build commands as usual:
-+
-[source,bash]
-----
-$ ./gradlew build
-----
-5. **Updating Dependencies**: If you need to update your dependencies, unlock the configurations, update the dependencies in your `build.gradle` file, and regenerate the lockfile. To unlock configurations:
-+
-[source,bash]
-----
-$ ./gradlew dependencies --write-locks
-----
-+
-Then, update your dependencies and regenerate the lockfile:
-+
-[source,bash]
-----
-$ ./gradlew resolveAndLockAll
+plugins {
+    id("dependency-convention-plugin")
+}
 ----
