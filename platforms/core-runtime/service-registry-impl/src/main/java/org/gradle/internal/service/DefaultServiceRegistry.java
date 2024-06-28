@@ -192,6 +192,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         for (ServiceMethod method : methods.factories) {
             ownServices.add(new FactoryMethodService(this, target, method));
         }
+        for (ServiceMethod method : methods.providers) {
+            ownServices.add(new ProvidedByFactoryMethodService(this, target, method));
+        }
         for (ServiceMethod method : methods.configurers) {
             applyConfigureMethod(method, target);
         }
@@ -1121,6 +1124,59 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
                     implementationClass.getSimpleName(), serviceClass.getSimpleName()));
             }
+        }
+    }
+
+    private static class ProvidedByFactoryMethodService extends FactoryService {
+
+        private final ServiceMethod method;
+        private final ConstructorService constructorService;
+        private final FactoryMethodService factoryMethodService;
+
+        private ProvidedByFactoryMethodService(
+            DefaultServiceRegistry owner,
+            Object target,
+            ServiceMethod method
+        ) {
+            this(owner, singletonList(method.getServiceType()), method.getMethod().getParameterTypes()[0], target, method);
+        }
+
+        private ProvidedByFactoryMethodService(
+            DefaultServiceRegistry owner,
+            List<? extends Type> serviceTypes,
+            Class<?> implementationType,
+            Object target,
+            ServiceMethod method
+        ) {
+            super(owner, serviceTypes);
+            this.method = method;
+            constructorService = new ConstructorService(owner, serviceTypes, implementationType);
+            factoryMethodService = new FactoryMethodService(owner, target, method);
+        }
+
+        @Override
+        protected Object invokeMethod(Object[] params) {
+            Object implementationInstance = constructorService.invokeMethod(params);
+            return factoryMethodService.invokeMethod(new Object[]{implementationInstance});
+        }
+
+        @Override
+        protected Type[] getParameterTypes() {
+            return constructorService.getParameterTypes();
+        }
+
+        private String getMethodDisplayName() {
+            return String.format("%s.%s(%s)", format(method.getOwner()), method.getName(), format(method.getParameterTypes()[0]));
+        }
+
+        @Override
+        protected String getFactoryDisplayName() {
+            return String.format("%s via method %s", constructorService.getFactoryDisplayName(), getMethodDisplayName());
+        }
+
+        @Override
+        public String getDisplayName() {
+            return String.format("Service %s via method %s", format(method.getServiceType()), getMethodDisplayName());
         }
     }
 
