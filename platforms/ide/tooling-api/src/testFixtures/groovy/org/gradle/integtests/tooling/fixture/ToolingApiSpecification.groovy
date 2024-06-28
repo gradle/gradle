@@ -48,6 +48,8 @@ import org.junit.rules.RuleChain
 import spock.lang.Retry
 import spock.lang.Specification
 
+import java.util.function.Supplier
+
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
@@ -101,6 +103,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
     private List<String> expectedDeprecations = []
+    private boolean stackTraceChecksOn = true
 
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
@@ -192,7 +195,6 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def <T> T withConnection(ToolingApiConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        reset()
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -210,7 +212,6 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        reset()
         try {
             return toolingApi.withConnection(cl)
         } catch (GradleConnectionException e) {
@@ -219,21 +220,54 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         }
     }
 
+    def <T> T loadToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure cl = {}) {
+        runSuccessfully {
+            withConnection {
+                def builder = it.model(modelClass)
+                builder.tap(cl)
+                builder.get()
+            }
+        }
+    }
+
     ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
-        withConnection {
-            def model = it.model(modelType)
-            cl(model)
-            new ConfigurableOperation(model).buildModel()
+        runSuccessfully {
+            withConnection {
+                def model = it.model(modelType)
+                cl(model)
+                new ConfigurableOperation(model).buildModel()
+            }
         }
     }
 
     ConfigurableOperation withBuild(Closure cl = {}) {
-        withConnection {
-            def build = it.newBuild()
-            cl(build)
-            def out = new ConfigurableOperation(build)
-            build.run()
-            out
+        runSuccessfully {
+            withConnection {
+                def build = it.newBuild()
+                cl(build)
+                def out = new ConfigurableOperation(build)
+                build.run()
+                out
+            }
+        }
+    }
+
+    /**
+     * Runs some action that presumably executes a tooling API request. Afterwards,
+     * verify the request was successful by scanning the output streams. Finally,
+     * reset this integration spec to prepare to run another action.
+     *
+     * TODO: We should migrate almost all of the methods in this class to use this method
+     *       and a similar method for failed executions. Tests should not use the raw
+     *       withConnection methods, as they do not reset the state of the spec.
+     */
+    private <T> T runSuccessfully(Supplier<T> action) {
+        try {
+            T result = action.get()
+            assertSuccessful()
+            return result
+        } finally {
+            reset()
         }
     }
 
@@ -360,6 +394,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         stdout.reset()
         stderr.reset()
         expectedDeprecations.clear()
+        stackTraceChecksOn = true
     }
 
     def shouldCheckForDeprecationWarnings() {
@@ -380,20 +415,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         new ResultAssertion(
             0,
             expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
-            false,
+            !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
             true
         ).execute(result)
-    }
-
-    def <T> T loadToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure cl = {}) {
-        def result = withConnection {
-            def builder = it.model(modelClass)
-            builder.tap(cl)
-            builder.get()
-        }
-        assertSuccessful()
-        return result
     }
 
     protected GradleVersion getTargetVersion() {
@@ -402,6 +427,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
+    }
+
+    boolean withStackTraceChecksDisabled() {
+        stackTraceChecksOn = false
     }
 
     void expectDocumentedDeprecationWarning(String message) {
