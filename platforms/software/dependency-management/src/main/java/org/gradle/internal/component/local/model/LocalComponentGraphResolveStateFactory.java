@@ -211,7 +211,7 @@ public class LocalComponentGraphResolveStateFactory {
 
                 configurationsProvider.visitAll(configuration -> {
                     if (configuration.isCanBeConsumed()) {
-                    visitor.accept(createVariantMetadata(configuration));
+                        visitor.accept(createVariantMetadata(configuration));
                     }
                 });
             });
