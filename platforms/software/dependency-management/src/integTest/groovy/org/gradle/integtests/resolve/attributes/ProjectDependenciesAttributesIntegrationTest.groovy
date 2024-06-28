@@ -21,12 +21,15 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSpec {
 
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, 'conf')
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, 'res')
 
     def setup() {
         buildFile << """
             configurations {
-               conf
+                dependencyScope("conf")
+                resolvable("res") {
+                    extendsFrom(conf)
+                }
             }
         """
         settingsFile << """
@@ -96,7 +99,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         settingsFile << "include 'dep'"
         buildFile << """
             configurations {
-                conf {
+                res {
                     attributes {
                         attribute(Attribute.of('color', String), 'blue')
                     }
@@ -127,19 +130,74 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
 
     }
 
+    def "multiple nodes in a target component may be selected when only the producing component has attribute rules marking their attributes compatible"() {
+        settingsFile << """include 'producer'"""
+
+        file("producer/build.gradle") << """
+            class AllCompatibilityRule implements AttributeCompatibilityRule<Object> {
+                @Override
+                public void execute(CompatibilityCheckDetails<Object> details) {
+                    details.compatible()
+                }
+            }
+
+            dependencies {
+                attributesSchema {
+                    attribute(Attribute.of("color", String)) {
+                        compatibilityRules.add(AllCompatibilityRule)
+                    }
+                }
+            }
+
+            ${blueAndRedVariants()}
+
+            configurations {
+                blueVariant {
+                    outgoing {
+                        capability("org:special:1.0")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            dependencies {
+                conf(project(":producer"))
+                conf(project(":producer")) {
+                    capabilities {
+                        requireCapability("org:special:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(':producer', "test:producer:unspecified") {
+                    variant "redVariant", [color: 'red']
+                    noArtifacts()
+                }
+                project(':producer', "test:producer:unspecified") {
+                    variant "blueVariant", [color: 'blue']
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
     private static String blueAndRedVariants() {
         """
             configurations {
-                blueVariant {
-                    canBeResolved = false
-                    assert canBeConsumed
+                consumable("blueVariant") {
                     attributes {
                         attribute(Attribute.of('color', String), 'blue')
                     }
                 }
-                redVariant {
-                    canBeResolved = false
-                    assert canBeConsumed
+                consumable("redVariant") {
                     attributes {
                         attribute(Attribute.of('color', String), 'red')
                     }

@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +34,15 @@ public interface AttributeMatcher {
     /**
      * Determines whether the given candidate is compatible with the requested criteria.
      */
-    boolean isMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
+    boolean isMatching(ImmutableAttributes candidate, ImmutableAttributes requested);
+
+    /**
+     * Determines whether two attribute sets are mutually compatible.
+     *
+     * @return true if for each shared key in the provided attribute sets, the corresponding
+     * attribute value in each set is compatible. false otherwise.
+     */
+    boolean weaklyMatches(ImmutableAttributes first, ImmutableAttributes second);
 
     <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
 

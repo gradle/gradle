@@ -28,9 +28,9 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -145,26 +145,12 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         // Find any other candidate which does not match with the last candidate.
         for (int i = 0; i < matches.size() - 1; i++) {
             TransformedVariant current = matches.get(i);
-            if (candidatesDifferent(matcher, current, last)) {
+            if (!matcher.weaklyMatches(current.getAttributes(), last.getAttributes())) {
                 differentTransforms.add(current);
             }
         }
 
         return differentTransforms;
-    }
-
-    /**
-     * Determines whether two candidates differ based on their attributes.
-     *
-     * @return true if for each shared candidate key, according to the attribute schema, the corresponding attribute value
-     *      in each candidate is compatible. false otherwise.
-     */
-    private static boolean candidatesDifferent(AttributeMatcher matcher, TransformedVariant firstCandidate, TransformedVariant secondCandidate) {
-        // We check both directions to verify these candidates differ. If a.matches(b) but !b.matches(a), we still consider variants a and b to be matching.
-        // This is because attribute schema compatibility rules can be directional, where for two attribute values x and y, x may be compatible with y
-        // while y may not be compatible with x. We accept compatibility in either direction as sufficient for this method.
-        return !matcher.isMatching(firstCandidate.getAttributes(), secondCandidate.getAttributes()) &&
-            !matcher.isMatching(secondCandidate.getAttributes(), firstCandidate.getAttributes());
     }
 
     private static class TraceDiscardedVariants implements AttributeMatchingExplanationBuilder {

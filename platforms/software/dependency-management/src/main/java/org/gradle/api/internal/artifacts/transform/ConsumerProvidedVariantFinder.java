@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -262,7 +261,7 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Caches calls to {@link AttributeMatcher#isMatching(AttributeContainerInternal, AttributeContainerInternal)}
+     * Caches calls to {@link AttributeMatcher#isMatching(ImmutableAttributes, ImmutableAttributes)}
      */
     private static class CachingAttributeMatcher {
         private final AttributeMatcher matcher;
@@ -272,16 +271,16 @@ public class ConsumerProvidedVariantFinder {
             this.matcher = matcher;
         }
 
-        public boolean isMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+        public boolean isMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
             return cache.computeIfAbsent(new CacheKey(candidate, requested), key -> matcher.isMatching(key.candidate, key.requested));
         }
 
         private static class CacheKey {
-            private final AttributeContainerInternal candidate;
-            private final AttributeContainerInternal requested;
+            private final ImmutableAttributes candidate;
+            private final ImmutableAttributes requested;
             private final int hashCode;
 
-            public CacheKey(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+            public CacheKey(ImmutableAttributes candidate, ImmutableAttributes requested) {
                 this.candidate = candidate;
                 this.requested = requested;
                 this.hashCode = candidate.hashCode() ^ requested.hashCode();

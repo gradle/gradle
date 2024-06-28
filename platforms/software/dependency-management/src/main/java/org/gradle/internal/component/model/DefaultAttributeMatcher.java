@@ -62,17 +62,15 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
     }
 
     @Override
-    public boolean isMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+    public boolean isMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return true;
         }
 
-        ImmutableAttributes requestedAttributes = requested.asImmutable();
-        ImmutableAttributes candidateAttributes = candidate.asImmutable();
+        for (Attribute<?> attribute : requested.keySet()) {
+            AttributeValue<?> requestedValue = requested.findEntry(attribute);
+            AttributeValue<?> candidateValue = candidate.findEntry(attribute.getName());
 
-        for (Attribute<?> attribute : requestedAttributes.keySet()) {
-            AttributeValue<?> requestedValue = requestedAttributes.findEntry(attribute);
-            AttributeValue<?> candidateValue = candidateAttributes.findEntry(attribute.getName());
             if (candidateValue.isPresent()) {
                 Object coercedValue = candidateValue.coerce(attribute);
                 boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
@@ -81,6 +79,34 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
                 }
             }
         }
+        return true;
+    }
+
+    @Override
+    public boolean weaklyMatches(ImmutableAttributes first, ImmutableAttributes second) {
+        if (first.isEmpty() || second.isEmpty()) {
+            return true;
+        }
+
+        for (Attribute<?> attribute : first.keySet()) {
+            AttributeValue<?> firstAttributeValue = first.findEntry(attribute);
+            AttributeValue<?> secondAttributeValue = second.findEntry(attribute.getName());
+
+            if (secondAttributeValue.isPresent()) {
+                Object firstValue = firstAttributeValue.get();
+                Object secondValue = secondAttributeValue.coerce(attribute);
+
+                // Since attribute compatibility is directional, we check both directions.
+                // This is why we call this a weak match.
+                boolean match = schema.matchValue(attribute, firstValue, secondValue) ||
+                                schema.matchValue(attribute, secondValue, firstValue);
+
+                if (!match) {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
@@ -124,7 +150,8 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
         if (candidates.size() == 1) {
             T candidate = candidates.iterator().next();
-            if (isMatching((AttributeContainerInternal) candidate.getAttributes(), requested)) {
+            ImmutableAttributes candidateAttrs = ((AttributeContainerInternal) candidate.getAttributes()).asImmutable();
+            if (isMatching(candidateAttrs, requested.asImmutable())) {
                 explanationBuilder.singleMatch(candidate, candidates, requested);
                 return Collections.singletonList(candidate);
             }

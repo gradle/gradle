@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -110,7 +110,9 @@ class GradlePluginVariantsSupportTest extends Specification {
         schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
     }
 
-    private AttributeContainerInternal versionAttribute(String version) {
-        attributes.mutable().attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, version)) as AttributeContainerInternal
+    private ImmutableAttributes versionAttribute(String version) {
+        def attributes = attributes.mutable()
+        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, version))
+        attributes.asImmutable()
     }
 }
