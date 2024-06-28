@@ -286,6 +286,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             public void addProvider(ServiceRegistrationProvider provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
+
+            @Override
+            public void addProvider(Class<? extends ServiceRegistrationProvider> provider) {
+                DefaultServiceRegistry.this.addProvider(provider);
+            }
         };
     }
 
