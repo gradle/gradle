@@ -105,6 +105,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     private List<String> expectedDeprecations = []
     private boolean stackTraceChecksOn = true
 
+    private ExecutionResult result
+
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version
@@ -262,10 +264,15 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      *       withConnection methods, as they do not reset the state of the spec.
      */
     private <T> T runSuccessfully(Supplier<T> action) {
+        // While there are still other tests that do not reset the streams after execution
+        // we will need to do this ourselves here.
+        stdout.reset()
+        stderr.reset()
+
         try {
-            T result = action.get()
-            assertSuccessful()
-            return result
+            T value = action.get()
+            this.result = assertSuccessful()
+            return value
         } finally {
             reset()
         }
@@ -353,11 +360,14 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         rootProjectImplicitTasks
     }
 
-    void assertSuccessful() {
-        def allOutput = stdout.toString()
+    ExecutionResult assertSuccessful() {
+        def result = OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString())
+
         // We get BUILD SUCCESSFUL when we run tasks, and CONFIGURE SUCCESSFUL when we fetch models without requesting tasks
-        assert allOutput.contains("BUILD SUCCESSFUL") || allOutput.contains("CONFIGURE SUCCESSFUL")
-        validateOutput(getResult())
+        assert result.output.contains("BUILD SUCCESSFUL") || result.output.contains("CONFIGURE SUCCESSFUL")
+
+        validateOutput(result)
+        return result
     }
 
     void assertHasBuildSuccessfulLogging() {
@@ -403,6 +413,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     ExecutionResult getResult() {
+        if (result != null) {
+            return result
+        }
+
+        // TODO: Legacy path
         return OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString())
     }
 
