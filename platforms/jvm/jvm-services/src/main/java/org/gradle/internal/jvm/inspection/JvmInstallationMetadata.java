@@ -24,14 +24,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public interface JvmInstallationMetadata {
-
-    enum JavaInstallationCapability {
-        JAVA_COMPILER, J9_VIRTUAL_MACHINE
-    }
 
     static DefaultJvmInstallationMetadata from(
         File javaHome,
@@ -107,6 +103,8 @@ public interface JvmInstallationMetadata {
     String getDisplayName();
 
     boolean hasCapability(JavaInstallationCapability capability);
+
+    boolean hasAllCapabilities(Set<JavaInstallationCapability> capabilities);
 
     String getErrorMessage();
 
@@ -234,17 +232,28 @@ public interface JvmInstallationMetadata {
             return capabilities.get().contains(capability);
         }
 
+        @Override
+        public boolean hasAllCapabilities(Set<JavaInstallationCapability> capabilities) {
+            return this.capabilities.get().containsAll(capabilities);
+        }
+
         private Set<JavaInstallationCapability> gatherCapabilities() {
-            final Set<JavaInstallationCapability> capabilities = new HashSet<>(2);
-            final File javaCompiler = new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName("javac"));
-            if (javaCompiler.exists()) {
+            final Set<JavaInstallationCapability> capabilities = EnumSet.noneOf(JavaInstallationCapability.class);
+            if (getToolByExecutable("javac").exists()) {
                 capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
+            }
+            if (getToolByExecutable("javadoc").exists()) {
+                capabilities.add(JavaInstallationCapability.JAVADOC_TOOL);
             }
             boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             }
             return capabilities;
+        }
+
+        private File getToolByExecutable(String javac) {
+            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(javac));
         }
 
         @Override
@@ -348,6 +357,11 @@ public interface JvmInstallationMetadata {
 
         @Override
         public boolean hasCapability(JavaInstallationCapability capability) {
+            return false;
+        }
+
+        @Override
+        public boolean hasAllCapabilities(Set<JavaInstallationCapability> capabilities) {
             return false;
         }
 

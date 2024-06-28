@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.toolchain
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
@@ -35,7 +36,7 @@ import spock.lang.Specification
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.J9_VIRTUAL_MACHINE
 
 class DaemonJavaToolchainQueryServiceTest extends Specification {
 
@@ -229,7 +230,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
             getJavaVersion() >> languageVersion.replace("zzz", "999")
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
-            hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { JvmInstallationMetadata.JavaInstallationCapability capability ->
+            hasCapability(_ as JavaInstallationCapability) >> { JavaInstallationCapability capability ->
                 if (capability == J9_VIRTUAL_MACHINE) {
                     String name = location.name
                     return name.contains("j9")

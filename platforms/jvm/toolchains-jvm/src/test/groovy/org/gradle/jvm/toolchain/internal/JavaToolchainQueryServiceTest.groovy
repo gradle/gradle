@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
@@ -36,10 +37,13 @@ import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.nio.file.Path
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.J9_VIRTUAL_MACHINE
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -150,6 +154,49 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.isPresent()
         toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM
         toolchain.get().vendor == "IBM"
+    }
+
+    def "uses jdk if requested via capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.jdk"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.jdk")
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
+    }
+
+    def "fails when no jdk is present and requested capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+
+        queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        def e = thrown(NoToolchainAvailableException)
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=8, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
@@ -452,18 +499,93 @@ class JavaToolchainQueryServiceTest extends Specification {
             return JvmInstallationMetadata.failure(location, "errorMessage")
         }
 
-        Mock(JvmInstallationMetadata) {
-            getLanguageVersion() >> JavaVersion.toVersion(languageVersion)
-            getJavaHome() >> location.absoluteFile.toPath()
-            getJavaVersion() >> languageVersion.replace("zzz", "999")
-            isValidInstallation() >> true
-            getVendor() >> JvmVendor.fromString(vendor)
-            hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { JvmInstallationMetadata.JavaInstallationCapability capability ->
+        return new JvmInstallationMetadata() {
+            @Override
+            Path getJavaHome() {
+                return location.absoluteFile.toPath()
+            }
+
+            @Override
+            JavaVersion getLanguageVersion() {
+                return JavaVersion.toVersion(languageVersion)
+            }
+
+            @Override
+            JvmVendor getVendor() {
+                return JvmVendor.fromString(vendor)
+            }
+
+            @Override
+            String getJavaVersion() {
+                return languageVersion.replace("zzz", "999")
+            }
+
+            @Override
+            String getRuntimeName() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            String getRuntimeVersion() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            String getJvmName() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            String getJvmVersion() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            String getJvmVendor() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            String getArchitecture() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            String getDisplayName() {
+                throw new UnsupportedOperationException("Not yet implemented")
+            }
+
+            @Override
+            boolean hasCapability(JavaInstallationCapability capability) {
                 if (capability == J9_VIRTUAL_MACHINE) {
                     String name = location.name
                     return name.contains("j9")
                 }
+                if (capability == JAVA_COMPILER || capability == JAVADOC_TOOL) {
+                    String name = location.name
+                    return name.contains("jdk")
+                }
                 return false
+            }
+
+            @Override
+            boolean hasAllCapabilities(Set<JavaInstallationCapability> capabilities) {
+                return capabilities.every { hasCapability(it) }
+            }
+
+            @Override
+            String getErrorMessage() {
+                return null
+            }
+
+            @Override
+            Throwable getErrorCause() {
+                return null
+            }
+
+            @Override
+            boolean isValidInstallation() {
+                return true
             }
         }
     }

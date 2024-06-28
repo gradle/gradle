@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -71,7 +72,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
         }
 
         final boolean j9Requested = isJ9ExplicitlyRequested() || isJ9RequestedViaVendor();
-        final boolean isJ9Vm = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
+        final boolean isJ9Vm = metadata.hasCapability(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
         return j9Requested == isJ9Vm;
     }
 }

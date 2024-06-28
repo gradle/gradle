@@ -25,6 +25,7 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
@@ -227,7 +228,7 @@ class DefaultJdkCacheDirectoryTest extends Specification {
         metadata.getVendor() >> JvmVendor.KnownJvmVendor.IBM.asJvmVendor()
         metadata.getLanguageVersion() >> JavaVersion.VERSION_11
         metadata.getArchitecture() >> "arch"
-        metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) >> true
+        metadata.hasCapability(JavaInstallationCapability.J9_VIRTUAL_MACHINE) >> true
 
         def detector = Mock(JvmMetadataDetector)
         detector.getMetadata(_ as InstallationLocation) >> metadata

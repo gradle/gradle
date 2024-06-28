@@ -69,7 +69,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
 /**
@@ -148,13 +148,20 @@ public abstract class AvailableJavaHomes {
         return getAvailableJdks(element -> version.equals(element.getLanguageVersion()));
     }
 
+    public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJvmMetadatas().stream()
+            .filter(input -> input.hasCapability(JAVA_COMPILER))
+            .filter(filter::isSatisfiedBy)
+            .map(AvailableJavaHomes::jvmFromMetadata)
+            .collect(Collectors.toList());
+    }
+
     public static List<Jvm> getAvailableJvms() {
         return getAvailableJvmMetadatas().stream().map(AvailableJavaHomes::jvmFromMetadata).collect(Collectors.toList());
     }
 
-    public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
+    public static List<Jvm> getAvailableJvms(final Spec<? super JvmInstallationMetadata> filter) {
         return getAvailableJvmMetadatas().stream()
-            .filter(input -> input.hasCapability(JAVA_COMPILER))
             .filter(filter::isSatisfiedBy)
             .map(AvailableJavaHomes::jvmFromMetadata)
             .collect(Collectors.toList());
@@ -186,6 +193,11 @@ public abstract class AvailableJavaHomes {
     @Nullable
     private static Jvm getSupportedJdk(final Spec<? super JvmInstallationMetadata> filter) {
         return getAvailableJdk(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it));
+    }
+
+    @Nullable
+    private static Jvm getSupportedJvm(final Spec<? super JvmInstallationMetadata> filter) {
+        return Iterables.getFirst(getAvailableJvms(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it)), null);
     }
 
     private static boolean isSupportedVersion(JvmInstallationMetadata jvmInstallation) {
@@ -231,6 +243,14 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getDifferentVersion(JavaVersion excludeVersion) {
         return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && !element.getLanguageVersion().equals(excludeVersion));
+    }
+
+    /**
+     * Returns a JRE that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentVersionJreOnly() {
+        return getSupportedJvm(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && !element.hasCapability(JAVA_COMPILER));
     }
 
     /**

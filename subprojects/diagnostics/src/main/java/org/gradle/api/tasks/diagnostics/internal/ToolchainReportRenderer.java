@@ -23,7 +23,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.List;
 
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
