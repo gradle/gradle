@@ -29,6 +29,9 @@ class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecific
     def "building model evaluates all projects regardless of configuration on demand mode"() {
         given:
         file("settings.gradle") << "include 'api', 'impl', 'other'"
+        file("api/build.gradle").touch()
+        file("impl/build.gradle").touch()
+        file("other/build.gradle").touch()
         file("build.gradle") << """
             rootProject.description = 'Projects configured: '
             allprojects { afterEvaluate {
@@ -48,6 +51,7 @@ class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecific
         file("settings.gradle") << "include 'api', 'impl', 'other'"
 
         file("build.gradle") << "allprojects { task foo }"
+        file("api/build.gradle").touch()
         file("impl/build.gradle") << "task bar(dependsOn: ':api:foo')"
         file("other/build.gradle") << "assert false: 'should not be evaluated'"
 

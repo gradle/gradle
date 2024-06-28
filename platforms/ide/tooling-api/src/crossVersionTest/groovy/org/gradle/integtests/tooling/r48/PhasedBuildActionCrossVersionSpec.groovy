@@ -264,7 +264,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
+        fails { connection ->
             connection.action()
                 .projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
                 .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
@@ -282,7 +282,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         failure.assertHasDescription("Execution failed for task ':broken'.")
-        assertHasBuildFailedLogging()
     }
 
     def "build is interrupted immediately if action fails"() {
