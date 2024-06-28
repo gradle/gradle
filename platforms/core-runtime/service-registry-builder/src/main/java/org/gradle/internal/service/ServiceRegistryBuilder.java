@@ -51,6 +51,7 @@ public class ServiceRegistryBuilder {
 
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
     private final List<ServiceRegistrationProvider> providers = new ArrayList<ServiceRegistrationProvider>();
+    private final List<Class<? extends ServiceRegistrationProvider>> providerPrototypes = new ArrayList<Class<? extends ServiceRegistrationProvider>>();
     private String displayName;
     private Class<? extends Scope> scope;
     private boolean strict;
@@ -122,6 +123,25 @@ public class ServiceRegistryBuilder {
     }
 
     /**
+     * Adds an <b>interface</b>-based service provider for the service registry.
+     * <p>
+     * There can be more than one provider and the order of service providers
+     * does not affect {@link ServiceRegistryBuilder lookup results}.
+     * <p>
+     * Providers are examined for service declarations and service registration logic at the time of building the registry.
+     *
+     * @see ServiceRegistrationProvider
+     */
+    public ServiceRegistryBuilder provider(Class<? extends ServiceRegistrationProvider> provider) {
+        if (!provider.isInterface()) {
+            throw new IllegalArgumentException("Only interface-based providers are supported");
+        }
+
+        this.providerPrototypes.add(provider);
+        return this;
+    }
+
+    /**
      * Providing a scope makes the resulting {@link ServiceRegistry}
      * validate all registered services for being annotated with the given scope.
      * <p>
@@ -170,9 +190,14 @@ public class ServiceRegistryBuilder {
             ? new ScopedServiceRegistry(scope, strict, displayName, parents)
             : new DefaultServiceRegistry(displayName, parents);
 
+        for (Class<? extends ServiceRegistrationProvider> providerPrototype : providerPrototypes) {
+            registry.addProvider(providerPrototype);
+        }
+
         for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);
         }
+
         return registry;
     }
 }
