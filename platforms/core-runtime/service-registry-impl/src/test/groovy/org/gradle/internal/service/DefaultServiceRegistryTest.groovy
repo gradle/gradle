@@ -1611,6 +1611,101 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
     }
 
+    def "can inject implementation in providedBy methods"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService providedBy(TestServiceImpl service) { service }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestService
+
+        when:
+        registry.get(TestServiceImpl)
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
+    }
+
+    def "can inject implementation with dependency in providedBy methods"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService createTestService() { new TestServiceImpl() }
+
+            @Provides
+            ServiceWithDependency providedBy(ServiceWithDependency service) { service }
+        })
+
+        when:
+        def service1 = registry.get(ServiceWithDependency)
+        then:
+        service1 instanceof ServiceWithDependency
+    }
+
+    def "can inject overloads of providedBy methods"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService providedBy(TestServiceImpl service) { service }
+
+            @Provides
+            ServiceWithDependency providedBy(ServiceWithDependency service) { service }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestService
+
+        when:
+        def service2 = registry.get(ServiceWithDependency)
+        then:
+        service2 instanceof ServiceWithDependency
+    }
+
+    def "cannot inject implementation with a missing dependency in providedBy methods"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            ServiceWithDependency providedBy(ServiceWithDependency service) { service }
+        })
+
+        when:
+        registry.get(ServiceWithDependency)
+        then:
+        def e = thrown(ServiceCreationException)
+        e.message == "Cannot create service of type DefaultServiceRegistryTest\$ServiceWithDependency using DefaultServiceRegistryTest\$ServiceWithDependency constructor via method DefaultServiceRegistryTest\$.providedBy(DefaultServiceRegistryTest\$ServiceWithDependency) as required service of type DefaultServiceRegistryTest\$TestService for parameter #1 is not available."
+    }
+
+    def "cannot register providedBy method with zero parameters"() {
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService providedBy() { throw new IllegalStateException("BOOM") }
+        })
+
+        then:
+        def e = thrown(ServiceValidationException)
+        e.message == "Method org.gradle.internal.service.DefaultServiceRegistryTest\$43.providedBy() must have exactly one parameter for injecting service implementation"
+    }
+
+    def "cannot register providedBy method with more than one parameter"() {
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings("unused")
+            @Provides
+            ServiceWithDependency providedBy(ServiceWithDependency service, TestService dependency) { throw new IllegalStateException("BOOM") }
+        })
+
+        then:
+        def e = thrown(ServiceValidationException)
+        e.message == "Method org.gradle.internal.service.DefaultServiceRegistryTest\$44.providedBy(ServiceWithDependency, TestService) must have exactly one parameter for injecting service implementation"
+    }
+
     def MockServiceRegistry registry(ParentServices parentServices) {
         return new MockServiceRegistry(parentServices)
     }
