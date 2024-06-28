@@ -274,7 +274,7 @@ class ConfigurationCacheIO internal constructor(
 
             when (stateType) {
                 StateType.Work -> KryoBackedEncoder(
-                    ParallelOutputStream.of(::compressorStream),
+                    ParallelOutputStream.of(outputStreamFactory = ::compressorStream),
                     ParallelOutputStream.recommendedBufferSize
                 )
 

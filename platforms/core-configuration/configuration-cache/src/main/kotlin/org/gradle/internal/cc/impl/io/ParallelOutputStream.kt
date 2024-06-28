@@ -43,20 +43,22 @@ object ParallelOutputStream {
         get() = ByteBufferPool.chunkSize
 
     /**
-     * Returns an [OutputStream] that offloads writing to the stream returned by [createOutputStream]
+     * Returns an [OutputStream] that offloads writing to the stream returned by [outputStreamFactory]
      * to a separate thread. The returned stream can only be written to from a single thread at a time.
      *
-     * Note that [createOutputStream] will be called in the writing thread.
+     * Note that [outputStreamFactory] will be called in the writing thread.
      *
      * @see QueuedOutputStream
      * @see ByteBufferPool
      */
-    fun of(createOutputStream: () -> OutputStream): OutputStream {
+    fun of(
+        readyQ: Queue<ByteBuffer> = ConcurrentLinkedQueue(),
+        outputStreamFactory: () -> OutputStream,
+    ): OutputStream {
         val chunks = ByteBufferPool()
-        val readyQ = ConcurrentLinkedQueue<ByteBuffer>()
         val writer = thread(name = "CC writer", isDaemon = true, priority = Thread.NORM_PRIORITY) {
             try {
-                createOutputStream().use { outputStream ->
+                outputStreamFactory().use { outputStream ->
                     while (true) {
                         val chunk = readyQ.poll()
                         if (chunk == null) {
@@ -183,7 +185,6 @@ class QueuedOutputStream(
  * Manages a pool of chunks of fixed [size][ByteBufferPool.chunkSize] allocated on-demand
  * upto a [fixed maximum][ByteBufferPool.maxChunks].
  */
-private
 class ByteBufferPool {
 
     companion object {

@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-experimental-contracts")
+    id("gradlebuild.jmh")
 }
 
 description = "Configuration cache implementation"
@@ -102,6 +103,9 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
+
+    jmhImplementation(projects.beanSerializationServices)
+    jmhImplementation(libs.mockitoKotlin2)
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.toolingApi)
