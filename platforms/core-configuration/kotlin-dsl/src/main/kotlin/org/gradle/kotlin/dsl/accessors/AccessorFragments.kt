@@ -882,8 +882,8 @@ fun fragmentsForBuildConvention(
                 )
             },
             signature = JvmMethodSignature(
-                name.original,
-                "(Lorg/gradle/api/internal/initialization/Conventions;Lorg/gradle/api/Action;)V"
+                name.kotlinIdentifier,
+                "(Lorg/gradle/api/initialization/Conventions;Lorg/gradle/api/Action;)V"
             )
         )
     )

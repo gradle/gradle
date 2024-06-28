@@ -251,7 +251,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             userCodeApplicationContext,
             decorator,
             domainObjectCollectionFactory,
-            (Action<? super Plugin>) plugin -> softwareTypeConventionApplicator.applyConventionsTo(project, Cast.uncheckedNonnullCast(plugin.getClass()))
+            (Action<? super Plugin>) plugin -> softwareTypeConventionApplicator.applyConventionsTo(project, Cast.uncheckedCast(plugin))
         );
     }
 
