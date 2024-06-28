@@ -68,6 +68,13 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     String getName();
 
     /**
+     * Returns the publication name of this project.
+     * <p>
+     *     Defaults to the project name.
+     */
+    String getPublicationName();
+
+    /**
      * Returns an identifying path for this project in the build tree.
      */
     Path getIdentityPath();

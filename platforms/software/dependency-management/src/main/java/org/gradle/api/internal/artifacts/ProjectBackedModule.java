@@ -40,7 +40,7 @@ public class ProjectBackedModule implements Module {
 
     @Override
     public String getName() {
-        return project.getName();
+        return project.getOwner().getPublicationName();
     }
 
     @Override
