@@ -23,5 +23,5 @@ import org.gradle.api.Project;
  * Applies the conventions for a given software type to a target project.
  */
 public interface SoftwareTypeConventionApplicator {
-    void applyConventionsTo(Project project, Class<? extends Plugin<Project>> pluginClass);
+    void applyConventionsTo(Project project, Plugin<Project> plugin);
 }

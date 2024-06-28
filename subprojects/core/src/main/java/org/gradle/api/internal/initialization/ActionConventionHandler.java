@@ -16,35 +16,73 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Plugin;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.internal.Cast;
-import org.gradle.plugin.software.internal.ConventionHandler;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.reflect.DefaultTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
-public class ActionConventionHandler implements ConventionHandler {
-    private final SoftwareTypeRegistry softwareTypeRegistry;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
-    public ActionConventionHandler(SoftwareTypeRegistry softwareTypeRegistry) {
+public class ActionConventionHandler implements SoftwareTypeConventionHandler {
+    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final InspectionScheme inspectionScheme;
+
+    public ActionConventionHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme) {
         this.softwareTypeRegistry = softwareTypeRegistry;
+        this.inspectionScheme = inspectionScheme;
     }
 
     @Override
-    public void apply(Object target, String softwareTypeName) {
-        SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
-        softwareType.getConventions().stream()
-            .filter(convention -> convention instanceof ActionConvention)
-            .forEach(convention -> convention.apply(Cast.uncheckedCast(receiverFor(getSoftwareTypeModel(target, softwareType.getModelPublicType())))));
-    }
+    public void apply(Object target, String softwareTypeName, Plugin<?> plugin) {
+        SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
 
-    private static <T> T getSoftwareTypeModel(Object target, Class<T> extensionType) {
-        if (target instanceof ExtensionAware) {
-            return ((ExtensionAware) target).getExtensions().getByType(extensionType);
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
+        inspectionScheme.getPropertyWalker().visitProperties(
+            plugin,
+            typeValidationContext,
+            new PropertyVisitor() {
+                @Override
+                public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
+                    softwareTypeImplementation.getConventions().stream()
+                        .filter(convention -> convention instanceof ActionConvention)
+                        .map(convention -> (ActionConvention<?>) convention)
+                        .forEach(convention -> convention.apply(Cast.uncheckedCast(executeActionReceiver(softwareTypeImplementation.getModelPublicType(), value.call()))));
+                }
+            }
+        );
+
+        if (!typeValidationContext.getProblems().isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(typeValidationContext.getProblems().size() == 1
+                        ? "A problem was found with the %s plugin."
+                        : "Some problems were found with the %s plugin.",
+                    getPluginObjectDisplayName(plugin)),
+                typeValidationContext.getProblems().stream()
+                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(toImmutableList())
+            );
         }
-        throw new IllegalStateException("'%s' is not ExtensionAware" + target.getClass());
     }
 
-    private static <T> ActionConventionReceiver<T> receiverFor(T softwareTypeModel) {
-        return convention -> convention.execute(softwareTypeModel);
+    private static <T> ActionConventionReceiver<T> executeActionReceiver(Class<T> publicModelType, Object modelObject) {
+        return convention -> convention.execute(Cast.uncheckedNonnullCast(modelObject));
     }
+
+    private static String getPluginObjectDisplayName(Object parameterObject) {
+        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
+    }
+
 }

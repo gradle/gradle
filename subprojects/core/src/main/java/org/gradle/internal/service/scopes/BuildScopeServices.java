@@ -215,7 +215,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
-import org.gradle.plugin.software.internal.ConventionHandler;
+import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -793,7 +794,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ConventionHandler createActionConventionHandler(SoftwareTypeRegistry softwareTypeRegistry) {
-        return new ActionConventionHandler(softwareTypeRegistry);
+    protected SoftwareTypeConventionHandler createActionConventionHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme) {
+        return new ActionConventionHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme());
     }
 }
