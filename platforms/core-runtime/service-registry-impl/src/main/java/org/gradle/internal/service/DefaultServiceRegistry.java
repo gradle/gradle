@@ -1056,17 +1056,22 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             this(owner, Collections.<Class<?>>singletonList(serviceType), implementationType);
         }
 
-        private ConstructorService(DefaultServiceRegistry owner, List<Class<?>> serviceTypes, Class<?> implementationType) {
+        private ConstructorService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes, Class<?> implementationType) {
             super(owner, serviceTypes);
 
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
 
-            for (Class<?> serviceType : serviceTypes) {
-                if (!serviceType.isAssignableFrom(implementationType)) {
-                    throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
-                        implementationType.getSimpleName(), serviceType.getSimpleName()));
+            for (Type serviceType : serviceTypes) {
+                if (serviceType instanceof Class<?>) {
+                    Class<?> serviceClass = (Class<?>) serviceType;
+                    if (!serviceClass.isAssignableFrom(implementationType)) {
+                        throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
+                            implementationType.getSimpleName(), serviceClass.getSimpleName()));
+                    }
+                } else {
+                    throw new IllegalArgumentException(String.format("Service type %s is not supported by ConstructorService", serviceType));
                 }
             }
 
