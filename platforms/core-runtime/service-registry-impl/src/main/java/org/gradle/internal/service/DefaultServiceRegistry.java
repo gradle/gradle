@@ -197,6 +197,28 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
+    private void findProviderMethods(Class<? extends ServiceRegistrationProvider> type) {
+        RelevantMethods methods = RelevantMethods.getMethods(type);
+
+        if (!methods.decorators.isEmpty()) {
+            throw new IllegalArgumentException("Decorators are not allowed on interface-based service providers");
+        }
+        if (!methods.configurers.isEmpty()) {
+            throw new IllegalArgumentException("Configurers are not allowed on interface-based service providers");
+        }
+
+        for (ServiceMethod method : methods.factories) {
+            if (method.getParameterTypes().length > 0) {
+                throw new IllegalArgumentException("Factory methods with parameters are not allowed on interface-based service providers");
+            }
+            Type serviceType = method.getServiceType();
+            if (!(serviceType instanceof Class<?>)) {
+                throw new IllegalArgumentException("Factory method must have a return type represented by a class, got " + serviceType);
+            }
+            ownServices.add(new ConstructorService(this, serviceTypesOf(method), (Class<?>) serviceType));
+        }
+    }
+
     private void applyConfigureMethod(ServiceMethod method, Object target) {
         Object[] params = new Object[method.getParameterTypes().length];
         for (int i = 0; i < method.getParameterTypes().length; i++) {
@@ -287,6 +309,21 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
+        assertMutable();
+        findProviderMethods(provider);
+        return this;
+    }
+
+    /**
+     * Adds an interface-based service provider bean to this registry.
+     * <p>
+     * The interface can define factories without parameters.
+     */
+    public DefaultServiceRegistry addProvider(Class<? extends ServiceRegistrationProvider> provider) {
+        if (!provider.isInterface()) {
+            throw new IllegalArgumentException("Provides class must be an interface");
+        }
+
         assertMutable();
         findProviderMethods(provider);
         return this;
@@ -982,11 +1019,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             this.method = method;
         }
 
-        private static List<? extends Type> serviceTypesOf(ServiceMethod method) {
-            Class<?>[] explicitServiceTypes = method.getMethod().getAnnotation(Provides.class).value();
-            return explicitServiceTypes.length == 0 ? singletonList(method.getServiceType()) : Arrays.asList(explicitServiceTypes);
-        }
-
         @Override
         public String getDisplayName() {
             return "Service " + format(method.getServiceType()) + " at " + format(method.getOwner()) + "." + method.getName() + "()";
@@ -1311,6 +1343,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 service.requiredBy(serviceProvider);
             }
         }
+    }
+
+    private static List<? extends Type> serviceTypesOf(ServiceMethod method) {
+        Class<?>[] explicitServiceTypes = method.getMethod().getAnnotation(Provides.class).value();
+        return explicitServiceTypes.length == 0 ? singletonList(method.getServiceType()) : Arrays.asList(explicitServiceTypes);
     }
 
     private static boolean isAssignableFromAnyType(Class<?> targetType, List<Class<?>> candidateTypes) {
