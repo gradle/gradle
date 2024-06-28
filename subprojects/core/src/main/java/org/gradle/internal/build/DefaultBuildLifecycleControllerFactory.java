@@ -30,15 +30,19 @@ import org.gradle.internal.service.ServiceRegistry;
 import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
+
+    private final DeferredRootBuildGradle deferredRootBuildGradle;
     private final StateTransitionControllerFactory stateTransitionControllerFactory;
     private final BuildToolingModelControllerFactory buildToolingModelControllerFactory;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildLifecycleControllerFactory(
+        DeferredRootBuildGradle deferredRootBuildGradle,
         StateTransitionControllerFactory stateTransitionControllerFactory,
         BuildToolingModelControllerFactory buildToolingModelControllerFactory,
         ExceptionAnalyser exceptionAnalyser
     ) {
+        this.deferredRootBuildGradle = deferredRootBuildGradle;
         this.stateTransitionControllerFactory = stateTransitionControllerFactory;
         this.buildToolingModelControllerFactory = buildToolingModelControllerFactory;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -60,6 +64,10 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         }
 
         GradleInternal gradle = buildScopeServices.get(GradleInternal.class);
+        if (gradle.isRootBuild()) {
+            deferredRootBuildGradle.attach(gradle);
+        }
+
         ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
 
         BuildModelController buildModelController = buildScopeServices.get(BuildModelController.class);
