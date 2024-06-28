@@ -32,11 +32,6 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
-        "org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler",
-        "org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler",
-        "org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler",
-        "org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler",
-
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
         "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
