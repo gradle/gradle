@@ -24,8 +24,6 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.StateType
@@ -46,6 +44,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.ValueCalculator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.ownerService
@@ -61,7 +60,7 @@ import org.gradle.util.Path
  */
 internal
 class ProjectMetadataController(
-    private val host: HostServiceProvider,
+    private val isolateOwner: IsolateOwner,
     private val cacheIO: ConfigurationCacheOperationIO,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     store: ConfigurationCacheStateStore,
@@ -72,7 +71,7 @@ class ProjectMetadataController(
 
     override fun write(encoder: Encoder, value: LocalComponentGraphResolveState) {
         cacheIO.runWriteOperation(encoder) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.userTypesCodec()) {
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
                 write(value.id)
                 write(value.moduleVersionId)
                 writeVariants(value.candidatesForGraphVariantSelection)
@@ -120,7 +119,7 @@ class ProjectMetadataController(
 
     override fun read(decoder: Decoder): LocalComponentGraphResolveState {
         return cacheIO.runReadOperation(decoder) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.userTypesCodec()) {
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
                 val id = readNonNull<ComponentIdentifier>()
                 val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
 

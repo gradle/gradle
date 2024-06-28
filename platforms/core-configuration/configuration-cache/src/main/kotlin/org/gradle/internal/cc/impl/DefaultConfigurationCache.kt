@@ -55,6 +55,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
@@ -102,6 +103,9 @@ class DefaultConfigurationCache internal constructor(
     val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
 
     private
+    val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(host) }
+
+    private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     private
@@ -111,13 +115,16 @@ class DefaultConfigurationCache internal constructor(
     val store by storeDelegate
 
     private
-    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(host, cacheIO, store) }
+    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
     private
-    val lazyIntermediateModels = lazy { IntermediateModelController(host, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(isolateOwnerHost, cacheIO, store) }
 
     private
-    val lazyProjectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
+    val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+
+    private
+    val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
 
     private
     val buildTreeModelSideEffects
@@ -130,9 +137,6 @@ class DefaultConfigurationCache internal constructor(
     private
     val projectMetadata
         get() = lazyProjectMetadata.value
-
-    private
-    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
     private
     val gradlePropertiesController: GradlePropertiesController
@@ -524,7 +528,7 @@ class DefaultConfigurationCache internal constructor(
     ): DefaultWriteContext {
         val (context, codecs) = cacheIO.writerContextFor(stateType, outputStream, profile)
         return context.apply {
-            push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
+            push(isolateOwnerHost, codecs.fingerprintTypesCodec())
         }
     }
 
@@ -594,7 +598,7 @@ class DefaultConfigurationCache internal constructor(
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
         cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+            withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
