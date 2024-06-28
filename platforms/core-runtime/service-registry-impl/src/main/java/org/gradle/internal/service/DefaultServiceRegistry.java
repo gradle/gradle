@@ -966,7 +966,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static class FactoryMethodService extends FactoryService {
+
         private final ServiceMethod method;
+        @Nullable
         private Object target;
 
         public FactoryMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
@@ -996,6 +998,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         protected Object invokeMethod(Object[] params) {
+            if (target == null) {
+                throw new IllegalStateException("The target of the factory method has been discarded after the first service creation attempt");
+            }
+
             Object result;
             try {
                 result = method.invoke(target, params);
@@ -1006,6 +1012,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                     method.getName()),
                     e);
             }
+
             try {
                 if (result == null) {
                     throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s() as this method returned null.",
