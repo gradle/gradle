@@ -129,8 +129,8 @@ plugins {
 }
 
 configurations.runtimeClasspath {
-    // `beforeResolve` is called after the configuration is resolved for task dependencies,
-    // but before it is fully resolved during artifact resolution.
+    // `beforeResolve` is not called before the configuration is partially resolved for 
+    // build dependencies, but only before a full graph resolution.
     // Configurations should not be mutated in this hook
     incoming.beforeResolve {
         // Add a dependency on `com:foo` if not already present
