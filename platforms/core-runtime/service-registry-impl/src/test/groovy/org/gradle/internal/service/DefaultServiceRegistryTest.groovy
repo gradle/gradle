@@ -1539,6 +1539,42 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
     }
 
+    def "can lookup a multi-service by any service type declared via @Provides"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides([TestService, AnotherTestService])
+            TestMultiServiceImpl create() { new TestMultiServiceImpl() }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestService
+
+        when:
+        def service2 = registry.get(AnotherTestService)
+        then:
+        service2 instanceof AnotherTestService
+
+        when:
+        registry.get(TestMultiServiceImpl)
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
+    }
+
+    def "cannot declare explicit service type via @Provides that is not implemented by the return type"() {
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides([AnotherTestService])
+            TestServiceImpl create() { new TestServiceImpl() }
+        })
+
+        then:
+        def e = thrown(ServiceValidationException)
+        e.message == "Cannot register implementation 'TestServiceImpl' for service 'AnotherTestService', because it does not implement it"
+    }
+
     def "can lookup a multi-service by any declared service type added via registration"() {
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
