@@ -16,11 +16,302 @@
 
 package org.gradle.internal.cc.impl.inputs.undeclared
 
-
+import groovy.transform.CompileStatic
 import groovy.transform.MapConstructor
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class MethodReferenceInstrumentationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    @Override
+    def setup() {
+        testDirectory.file(file().path).text = file().expectedValue
+    }
+
+    def "reference #reference is instrumented in java"() {
+        given:
+        testDirectory.create {
+            createDir("buildSrc") {
+                file("src/main/java/MethodRefInputs.java") << """
+                import java.io.*;
+                import java.nio.file.*;
+                import java.util.*;
+                import java.util.function.*;
+
+                public class MethodRefInputs {
+                    @FunctionalInterface
+                    interface ThrowingFunction<T, R> {
+                        R apply(T value) throws Exception;
+                    }
+
+                    public static String readInputWithReference(String input) throws Exception {
+                        $referenceType ref = $reference;
+                        if (!(ref instanceof Serializable)) {
+                            throw new AssertionError("The lambda should be serializable!");
+                        }
+                        $consumerStatement
+                    }
+
+                    private static String readIS(InputStream in) throws Exception {
+                        return new BufferedReader(new InputStreamReader(in, "UTF-8")).readLine();
+                    }
+                }
+                """
+            }
+        }
+
+        buildFile """
+            tasks.register("echo") {
+                def value = MethodRefInputs.readInputWithReference(${input.expr})
+                doLast {
+                    println("value = \$value")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("echo", "-D${systemProperty().path}=${systemProperty().expectedValue}")
+
+        then:
+        outputContains("value = ${input.expectedValue}")
+
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': ${input.expectedInput}")
+        }
+
+        where:
+        input            | referenceType                               | reference                  | consumerStatement
+        file()           | "ThrowingFunction<String, FileInputStream>" | "FileInputStream::new"     | "try (InputStream in = ref.apply(input)) { return readIS(in); }"
+        systemProperty() | "Function<String, String>"                  | "System::getProperty"      | "return ref.apply(input);"
+        fileEntry()      | "Function<File, Boolean>"                   | "File::isFile"             | "return String.valueOf(ref.apply(new File(input)));"
+        fileEntry()      | "Supplier<Boolean>"                         | "new File(input)::isFile"  | "return String.valueOf(ref.get());"
+        file()           | "ThrowingFunction<Path, BufferedReader>"    | "Files::newBufferedReader" | "try (BufferedReader in = ref.apply(Paths.get(input))) { return in.readLine(); }"
+    }
+
+    def "reference #reference as #referenceType is instrumented in kotlin script"() {
+        given:
+        testDirectory.file(file().path).text = file().expectedValue
+
+        buildKotlinFile """
+            import java.io.*
+            import java.nio.*
+            import java.nio.charset.*
+            import java.nio.file.*
+            import java.util.function.Function
+            import java.util.function.BiFunction
+            import java.util.function.Supplier
+
+            // work around Kotlin's type inference issues when the target is a SAM type
+            fun makeRef(ref: $referenceType): $referenceType = ref
+
+            fun readInputWithReference(): String {
+                val input = ${input.expr}
+                val ref = makeRef($reference)
+                return $consumerExpression
+            }
+
+            tasks.register("echo") {
+                var value = readInputWithReference()
+                doLast {
+                    println("value = \$value")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("echo", "-D${systemProperty().path}=${systemProperty().expectedValue}")
+
+        then:
+        outputContains("value = ${input.expectedValue}")
+
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': ${input.expectedInput}")
+            ignoringUnexpectedInputs()  // Kotlin Plugin brings its inputs
+        }
+
+        where:
+        input            | referenceType                                  | reference                  | consumerExpression
+        file()           | "(String) -> FileInputStream"                  | "::FileInputStream"        | "ref(input).bufferedReader().use { it.readText() }"
+        file()           | "Function<String, FileInputStream>"            | "::FileInputStream"        | "ref.apply(input).bufferedReader().use { it.readText() }"
+        systemProperty() | "(String) -> String"                           | "System::getProperty"      | "ref(input)"
+        systemProperty() | "Function<String, String>"                     | "System::getProperty"      | "ref.apply(input)"
+        fileEntry()      | "(File) -> Boolean"                            | "File::isFile"             | "ref(File(input)).toString()"
+        fileEntry()      | "() -> Boolean"                                | "File(input)::isFile"      | "ref().toString()"
+        fileEntry()      | "Function<File, Boolean>"                      | "File::isFile"             | "ref.apply(File(input)).toString()"
+        fileEntry()      | "Supplier<Boolean>"                            | "File(input)::isFile"      | "ref.get().toString()"
+        file()           | "(java.nio.file.Path) -> BufferedReader"       | "Files::newBufferedReader" | "ref(Paths.get(input)).use { it.readText() }"
+        file()           | "Function<java.nio.file.Path, BufferedReader>" | "Files::newBufferedReader" | "ref.apply(Paths.get(input)).use { it.readText() }"
+        file()           | "() -> String"                                 | "File(input)::readText"    | "ref()"
+        file()           | "Supplier<String>"                             | "File(input)::readText"    | "ref.get()"
+        file()           | "(File) -> String"                             | "File::readText"           | "ref(File(input))"
+        file()           | "Function<File, String>"                       | "File::readText"           | "ref.apply(File(input))"
+        file()           | "(File, Charset) -> String"                    | "File::readText"           | "ref(File(input), Charset.defaultCharset())"
+        file()           | "BiFunction<File, Charset, String>"            | "File::readText"           | "ref.apply(File(input), Charset.defaultCharset())"
+    }
+
+    def "reference #reference as #referenceType is instrumented in kotlin indy code"() {
+        given:
+        testDirectory.file(file().path).text = file().expectedValue
+
+        testDirectory.create {
+            createDir("lib-kotlin") {
+                file("build.gradle.kts") << """
+                    import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+                    plugins {
+                        kotlin("jvm") version embeddedKotlinVersion
+                    }
+
+                    group = "org.example.support"
+
+                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+                    dependencies {
+                        implementation(kotlin("stdlib"))
+                    }
+
+                    tasks.withType<KotlinCompile>().configureEach {
+                        // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                        jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+                        compilerOptions {
+                            freeCompilerArgs.apply {
+                                add("-Xlambdas=indy")
+                                add("-Xsam-conversions=indy")
+                            }
+                        }
+                    }
+                """
+
+                file("settings.gradle.kts") << """ rootProject.name = "lib-kotlin" """
+
+                file("src/main/kotlin/ReadInput.kt") << """
+                    import java.io.*
+                    import java.nio.*
+                    import java.nio.charset.*
+                    import java.nio.file.*
+                    import java.util.function.Function
+                    import java.util.function.BiFunction
+                    import java.util.function.Supplier
+
+                    // work around Kotlin's type inference issues when the target is a SAM type
+                    fun makeRef(ref: $referenceType) = ref
+
+                    fun readInputWithReference(input: String): String {
+                        val ref = makeRef($reference)
+                        return $consumerExpression
+                    }
+                """
+            }
+
+            createDir("buildSrc") {
+                file("settings.gradle.kts") << """
+                    includeBuild("../lib-kotlin")
+                """
+
+                file("build.gradle.kts") << """
+                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+                    dependencies {
+                        implementation("org.example.support:lib-kotlin")
+                    }
+                """
+            }
+        }
+
+        buildKotlinFile """
+            tasks.register("echo") {
+                var value = readInputWithReference(${input.expr})
+                doLast {
+                    println("value = \$value")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("echo", "-D${systemProperty().path}=${systemProperty().expectedValue}")
+
+        then:
+        outputContains("value = ${input.expectedValue}")
+
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': ${input.expectedInput}")
+            ignoringUnexpectedInputs() // Kotlin Plugin brings its inputs
+        }
+
+        where:
+        input            | referenceType                                  | reference                  | consumerExpression
+        file()           | "(String) -> FileInputStream"                  | "::FileInputStream"        | "ref(input).bufferedReader().use { it.readText() }"
+        file()           | "Function<String, FileInputStream>"            | "::FileInputStream"        | "ref.apply(input).bufferedReader().use { it.readText() }"
+        systemProperty() | "(String) -> String"                           | "System::getProperty"      | "ref(input)"
+        systemProperty() | "Function<String, String>"                     | "System::getProperty"      | "ref.apply(input)"
+        fileEntry()      | "(File) -> Boolean"                            | "File::isFile"             | "ref(File(input)).toString()"
+        fileEntry()      | "() -> Boolean"                                | "File(input)::isFile"      | "ref().toString()"
+        fileEntry()      | "Function<File, Boolean>"                      | "File::isFile"             | "ref.apply(File(input)).toString()"
+        fileEntry()      | "Supplier<Boolean>"                            | "File(input)::isFile"      | "ref.get().toString()"
+        file()           | "(java.nio.file.Path) -> BufferedReader"       | "Files::newBufferedReader" | "ref(Paths.get(input)).use { it.readText() }"
+        file()           | "Function<java.nio.file.Path, BufferedReader>" | "Files::newBufferedReader" | "ref.apply(Paths.get(input)).use { it.readText() }"
+        file()           | "() -> String"                                 | "File(input)::readText"    | "ref()"
+        file()           | "Supplier<String>"                             | "File(input)::readText"    | "ref.get()"
+        file()           | "(File) -> String"                             | "File::readText"           | "ref(File(input))"
+        file()           | "Function<File, String>"                       | "File::readText"           | "ref.apply(File(input))"
+        file()           | "(File, Charset) -> String"                    | "File::readText"           | "ref(File(input), Charset.defaultCharset())"
+        file()           | "BiFunction<File, Charset, String>"            | "File::readText"           | "ref.apply(File(input), Charset.defaultCharset())"
+    }
+
+    def "reference #reference as #referenceType is instrumented in static groovy"() {
+        given:
+        buildFile """
+            import java.nio.file.*
+            import java.util.function.*
+
+            @${CompileStatic.name}
+            public String readInputWithReference() {
+                def input = ${input.expr}
+                $referenceType ref = $reference;
+                if (!(ref instanceof Serializable)) {
+                    throw new AssertionError("The lambda should be serializable!");
+                }
+                $consumerStatement
+            }
+
+            tasks.register("echo") {
+                def value = readInputWithReference()
+                doLast {
+                    println("value = \$value")
+                }
+            }
+        """
+
+        testDirectory.file(file().path).text = file().expectedValue
+
+        when:
+        configurationCacheRun("echo", "-D${systemProperty().path}=${systemProperty().expectedValue}")
+
+        then:
+        outputContains("value = ${input.expectedValue}")
+
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': ${input.expectedInput}")
+        }
+
+        where:
+        input            | referenceType                       | reference                  | consumerStatement
+        file()           | "Function<String, FileInputStream>" | "FileInputStream::new"     | "try (InputStream in = ref.apply(input)) { return in.text } "
+        file()           | "Closure"                           | "FileInputStream::new"     | "try (InputStream in = ref(input)) { return in.text } "
+        file()           | "Closure"                           | "FileInputStream.&new"     | "try (InputStream in = ref(input)) { return in.text } "
+        systemProperty() | "Function<String, String>"          | "System::getProperty"      | "return ref.apply(input)"
+        systemProperty() | "Closure"                           | "System::getProperty"      | "return ref(input)"
+        systemProperty() | "Closure"                           | "System.&getProperty"      | "return ref(input)"
+        fileEntry()      | "Function<File, Boolean>"           | "File::isFile"             | "return String.valueOf(ref.apply(new File(input)))"
+        fileEntry()      | "Closure"                           | "File::isFile"             | "return String.valueOf(ref(new File(input)))"
+        fileEntry()      | "Closure"                           | "File.&isFile"             | "return String.valueOf(ref(new File(input)))"
+        fileEntry()      | "Supplier<Boolean>"                 | "new File(input)::isFile"  | "return String.valueOf(ref.get())"
+        fileEntry()      | "Closure"                           | "new File(input)::isFile"  | "return String.valueOf(ref())"
+        fileEntry()      | "Closure"                           | "new File(input).&isFile"  | "return String.valueOf(ref())"
+        file()           | "Function<Path, BufferedReader>"    | "Files::newBufferedReader" | "try (BufferedReader in = ref.apply(Paths.get(input))) { return in.readLine() }"
+        file()           | "Closure"                           | "Files::newBufferedReader" | "try (BufferedReader in = ref(Paths.get(input))) { return in.readLine() }"
+        file()           | "Closure"                           | "Files.&newBufferedReader" | "try (BufferedReader in = ref(Paths.get(input))) { return in.readLine() }"
+    }
+
     def "reference #reference is instrumented in dynamic groovy"() {
         given:
         testDirectory.file(file().path).text = file().expectedValue
