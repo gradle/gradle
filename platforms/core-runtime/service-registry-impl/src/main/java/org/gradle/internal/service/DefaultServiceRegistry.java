@@ -966,13 +966,25 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static class FactoryMethodService extends FactoryService {
+
         private final ServiceMethod method;
+        @Nullable
         private Object target;
 
         public FactoryMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
-            super(owner, singletonList(method.getServiceType()));
+            this(owner, serviceTypesOf(method), target, method);
+        }
+
+        private FactoryMethodService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes, Object target, ServiceMethod method) {
+            super(owner, serviceTypes);
+            validateImplementationForServiceTypes(serviceTypes, method.getServiceType());
             this.target = target;
             this.method = method;
+        }
+
+        private static List<? extends Type> serviceTypesOf(ServiceMethod method) {
+            Class<?>[] explicitServiceTypes = method.getMethod().getAnnotation(Provides.class).value();
+            return explicitServiceTypes.length == 0 ? singletonList(method.getServiceType()) : Arrays.asList(explicitServiceTypes);
         }
 
         @Override
@@ -996,6 +1008,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         protected Object invokeMethod(Object[] params) {
+            if (target == null) {
+                throw new IllegalStateException("The target of the factory method has been discarded after the first service creation attempt");
+            }
+
             Object result;
             try {
                 result = method.invoke(target, params);
@@ -1006,6 +1022,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                     method.getName()),
                     e);
             }
+
             try {
                 if (result == null) {
                     throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s() as this method returned null.",
@@ -1049,19 +1066,14 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             this(owner, Collections.<Class<?>>singletonList(serviceType), implementationType);
         }
 
-        private ConstructorService(DefaultServiceRegistry owner, List<Class<?>> serviceTypes, Class<?> implementationType) {
+        private ConstructorService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes, Class<?> implementationType) {
             super(owner, serviceTypes);
 
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
 
-            for (Class<?> serviceType : serviceTypes) {
-                if (!serviceType.isAssignableFrom(implementationType)) {
-                    throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
-                        implementationType.getSimpleName(), serviceType.getSimpleName()));
-                }
-            }
+            validateImplementationForServiceTypes(serviceTypes, implementationType);
 
             Constructor<?> match = InjectUtil.selectConstructor(implementationType);
             if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
@@ -1098,6 +1110,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public String getDisplayName() {
             return format("Service", serviceTypes);
+        }
+    }
+
+    private static void validateImplementationForServiceTypes(List<? extends Type> serviceTypes, Type implementationType) {
+        Class<?> implementationClass = unwrap(implementationType);
+        for (Type serviceType : serviceTypes) {
+            Class<?> serviceClass = unwrap(serviceType);
+            if (!serviceClass.isAssignableFrom(implementationClass)) {
+                throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it",
+                    implementationClass.getSimpleName(), serviceClass.getSimpleName()));
+            }
         }
     }
 

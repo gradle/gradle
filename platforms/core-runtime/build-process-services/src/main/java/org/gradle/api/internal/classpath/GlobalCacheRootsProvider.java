@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service;
+package org.gradle.api.internal.classpath;
 
-import com.google.errorprone.annotations.Keep;
+import org.gradle.api.NonNullApi;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.io.File;
+import java.util.List;
 
 /**
- * Used to register service factory methods on a {@link ServiceRegistrationProvider}.
+ * Represents a location for global Gradle caches.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Keep
-public @interface Provides {
+@NonNullApi
+@ServiceScope(Scope.Global.class)
+public interface GlobalCacheRootsProvider {
 
     /**
-     * List of services to expose.
-     * <p>
-     * The return type of the method is used when this is empty.
+     * Returns the root directories of the global cache.
      */
-    Class<?>[] value() default {};
-
+    List<File> getGlobalCacheRoots();
 }
