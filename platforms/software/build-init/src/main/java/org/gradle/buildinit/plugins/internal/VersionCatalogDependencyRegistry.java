@@ -117,6 +117,9 @@ public class VersionCatalogDependencyRegistry {
     }
 
     private static String pluginIdToAlias(String pluginId) {
+        if ("org.jetbrains.kotlin.jvm".equals(pluginId)) {
+            return "kotlin-jvm";
+        }
         String[] pluginIdComponents = pluginId.split("\\.");
         return coordinatesToAlias(pluginIdComponents[pluginIdComponents.length - 1]);
     }
