@@ -18,16 +18,17 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.plugin.software.internal.Convention;
+import org.gradle.plugin.software.internal.Convention.Visitor;
 
-public class ActionConvention<T> implements Convention<ActionConventionReceiver<T>> {
-    private final Action<T> action;
+public class ActionConvention<T> implements Convention<Visitor<Action<? super T>>> {
+    private final Action<? super T> action;
 
-    public ActionConvention(Action<T> action) {
+    public ActionConvention(Action<? super T> action) {
         this.action = action;
     }
 
     @Override
-    public void apply(ActionConventionReceiver<T> receiver) {
-        receiver.receive(action);
+    public void visit(Visitor<Action<? super T>> visitor) {
+        visitor.apply(action);
     }
 }

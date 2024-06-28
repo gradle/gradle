@@ -20,8 +20,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 
-import java.util.List;
-
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
  */
@@ -36,5 +34,8 @@ public interface SoftwareTypeImplementation<T> {
 
     void addConvention(Convention<?> convention);
 
-    List<Convention<?>> getConventions();
+    /**
+     * Visits all conventions of the given type with the provided visitor.
+     */
+    <V extends Convention.Visitor<?>> void visitConventions(Class<? extends Convention<V>> type, V visitor);
 }
