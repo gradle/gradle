@@ -131,6 +131,7 @@ data class IsolatedProjectActions(
     val afterProject: IsolatedProjectActionList
 )
 
+
 private
 sealed class IsolatedProjectActionsState {
     data class AllprojectsExecuted(
@@ -143,6 +144,19 @@ sealed class IsolatedProjectActionsState {
     ) : IsolatedProjectActionsState()
 
     object AfterProjectExecuted : IsolatedProjectActionsState()
+
+    companion object {
+        fun allprojectsExecuted(
+            beforeProject: IsolatedProjectActionList,
+            afterProject: IsolatedProjectActionList
+        ): IsolatedProjectActionsState = AllprojectsExecuted(beforeProject, afterProject)
+
+        fun beforeProjectExecuted(
+            beforeProject: IsolatedProjectActionList,
+        ): IsolatedProjectActionsState = BeforeProjectExecuted(beforeProject)
+
+        fun afterProjectExecuted(): IsolatedProjectActionsState = AfterProjectExecuted
+    }
 }
 
 
@@ -156,13 +170,10 @@ class Allprojects(
         // Execute only if project just loaded
         if (target.peekSingletonProperty<IsolatedProjectActionsState>() != null) return
 
-        val actions = IsolateOwners.OwnerGradle(gradle).let { owner ->
-            IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
-                .deserialize(isolated)
-        }
-        val actionsState = IsolatedProjectActionsState.AllprojectsExecuted(actions.beforeProject, actions.beforeProject) as IsolatedProjectActionsState
-        target.setSingletonProperty(actionsState)
-        actions.allprojects.forEach { it.execute(target) }
+        val actions = isolatedActions(gradle, isolated)
+        val state = IsolatedProjectActionsState.allprojectsExecuted(actions.beforeProject, actions.afterProject)
+        target.setSingletonProperty(state)
+        executeAll(actions.allprojects, target)
     }
 }
 
@@ -174,23 +185,23 @@ class IsolatedProjectEvaluationListener(
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) =
-        when (val actionsState = project.peekSingletonProperty<IsolatedProjectActionsState>()) {
+        when (val state = project.peekSingletonProperty<IsolatedProjectActionsState>()) {
             null -> {
-                val actions = isolatedActions()
+                val actions = isolatedActions(gradle, isolated)
 
                 // preserve isolate semantics between `beforeProject` and `afterProject`
-                project.setSingletonProperty(IsolatedProjectActionsState.BeforeProjectExecuted(actions.afterProject) as IsolatedProjectActionsState)
+                project.setSingletonProperty(IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject))
                 executeAll(actions.allprojects, project)
                 executeAll(actions.beforeProject, project)
             }
 
             // Project was configured eagerly by `allprojects`
             is IsolatedProjectActionsState.AllprojectsExecuted -> {
-                executeAll(actionsState.beforeProject, project)
-                project.setSingletonProperty(IsolatedProjectActionsState.BeforeProjectExecuted(actionsState.afterProject) as IsolatedProjectActionsState)
+                project.setSingletonProperty(IsolatedProjectActionsState.beforeProjectExecuted(state.afterProject))
+                executeAll(state.beforeProject, project)
             }
 
-            else -> throw IllegalStateException("Unexpected isolated actions state $actionsState")
+            else -> throw IllegalStateException("Unexpected isolated actions state $state")
         }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
@@ -199,20 +210,25 @@ class IsolatedProjectEvaluationListener(
         require(actionsState is IsolatedProjectActionsState.BeforeProjectExecuted) {
             "afterEvaluate action cannot execute before beforeEvaluate"
         }
-        project.setSingletonProperty(IsolatedProjectActionsState.AfterProjectExecuted as IsolatedProjectActionsState)
+        project.setSingletonProperty(IsolatedProjectActionsState.afterProjectExecuted())
         executeAll(actionsState.afterProject, project)
     }
+}
 
-    private
-    fun executeAll(actions: IsolatedProjectActionList, project: Project) {
-        for (action in actions) {
-            action.execute(project)
-        }
-    }
 
-    private
-    fun isolatedActions() = IsolateOwners.OwnerGradle(gradle).let { owner ->
-        IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
-            .deserialize(isolated)
+private
+fun executeAll(actions: IsolatedProjectActionList, project: Project) {
+    for (action in actions) {
+        action.execute(project)
     }
+}
+
+
+private
+fun isolatedActions(
+    gradle: Gradle,
+    isolated: SerializedIsolatedActionGraph<IsolatedProjectActions>
+) = IsolateOwners.OwnerGradle(gradle).let { owner ->
+    IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
+        .deserialize(isolated)
 }
