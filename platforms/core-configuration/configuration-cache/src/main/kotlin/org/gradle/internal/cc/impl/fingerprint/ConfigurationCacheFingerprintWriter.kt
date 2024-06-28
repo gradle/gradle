@@ -891,4 +891,4 @@ fun jvmFingerprint() =
         System.getProperty("java.vm.name"),
         System.getProperty("java.vm.vendor"),
         System.getProperty("java.vm.version")
-    ).joinToString { "|" }
+    ).joinToString (separator = "|")
