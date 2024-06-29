@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
@@ -27,6 +28,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -49,6 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
 import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.findFirst;
 import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
@@ -890,12 +893,15 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static abstract class FactoryService extends SingletonService {
         private final ServiceAccessToken accessToken;
+        @Nullable
+        private final ServiceProvider[] paramServiceProviders;
         private Service[] paramServices;
         private Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken accessToken, List<? extends Type> serviceTypes) {
+        protected FactoryService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken accessToken, List<? extends Type> serviceTypes, @Nullable ServiceProvider[] paramServiceProviders) {
             super(owner, accessScope, serviceTypes);
             this.accessToken = accessToken;
+            this.paramServiceProviders = paramServiceProviders;
         }
 
         protected abstract Type[] getParameterTypes();
@@ -912,8 +918,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             paramServices = new Service[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 Type paramType = parameterTypes[i];
-                if (isEqualToAnyType(paramType, serviceTypes)) {
+                if (paramServiceProviders != null && paramServiceProviders[i] != null) {
+                    paramServices[i] = paramServiceProviders[i].getService(paramType, accessToken);
+                } else if (isEqualToAnyType(paramType, serviceTypes)) {
                     // A decorating factory
+                    if (decorates != null) {
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is a repeated decoration target",
+                            format("type", serviceTypes),
+                            getFactoryDisplayName(),
+                            format(paramType),
+                            i + 1));
+                    }
+
                     Service paramProvider = find(paramType, accessToken, owner.parentServices);
                     if (paramProvider == null) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
@@ -1002,7 +1018,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         private FactoryMethodService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, List<? extends Type> serviceTypes, Object target, ServiceMethod method) {
-            super(owner, accessScope, token, serviceTypes);
+            super(owner, accessScope, token, serviceTypes, findDirectParamServiceProviders(owner, accessScope, token, method.getMethod()));
             validateImplementationForServiceTypes(serviceTypes, method.getServiceType());
             this.target = target;
             this.method = method;
@@ -1093,7 +1109,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         private ConstructorService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, List<? extends Type> serviceTypes, Class<?> implementationType) {
-            super(owner, accessScope, token, serviceTypes);
+            super(owner, accessScope, token, serviceTypes, null);
 
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
@@ -1105,6 +1121,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
                 match.setAccessible(true);
             }
+
+            if (findDirectParamServiceProviders(owner, accessScope, token, match) != null) {
+                throw new ServiceValidationException("Cannot register a constructor with direct service provider injection for type " + format(match.getDeclaringClass()));
+            }
+
             this.constructor = match;
         }
 
@@ -1235,6 +1256,58 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         public String toString() {
             return parent.toString();
         }
+    }
+
+    @Nullable
+    private static ServiceProvider[] findDirectParamServiceProviders(
+        DefaultServiceRegistry owner,
+        ServiceAccessScope accessScope,
+        ServiceAccessToken accessToken,
+        Method method
+    ) {
+        return findDirectParamServiceProviders(owner, accessScope, accessToken, method.getParameterTypes(), method.getParameterAnnotations());
+    }
+
+    @Nullable
+    private static ServiceProvider[] findDirectParamServiceProviders(
+        DefaultServiceRegistry owner,
+        ServiceAccessScope accessScope,
+        ServiceAccessToken accessToken,
+        Constructor<?> constructor
+    ) {
+        return findDirectParamServiceProviders(owner, accessScope, accessToken, constructor.getParameterTypes(), constructor.getParameterAnnotations());
+    }
+
+    @Nullable
+    private static ServiceProvider[] findDirectParamServiceProviders(
+        DefaultServiceRegistry owner,
+        ServiceAccessScope accessScope,
+        ServiceAccessToken accessToken,
+        Class<?>[] parameterTypes,
+        Annotation[][] parameterAnnotations
+    ) {
+        // Boilerplate due to Java 6
+        ServiceProvider[] predefinedParamServices = null;
+        int parameterCount = parameterTypes.length;
+        for (int i = 0; i < parameterCount; i++) {
+            Annotation[] paramAnnotations = parameterAnnotations[i];
+            Annotation fromConstructor = findFirst(paramAnnotations, new Spec<Annotation>() {
+                @Override
+                public boolean isSatisfiedBy(Annotation element) {
+                    return FromConstructor.class.equals(element.annotationType());
+                }
+            });
+            if (fromConstructor != null) {
+                Class<?> paramType = parameterTypes[i];
+                ConstructorService constructorService = new ConstructorService(owner, accessScope, accessToken, paramType);
+                if (predefinedParamServices == null) {
+                    predefinedParamServices = new ServiceProvider[parameterCount];
+                }
+                predefinedParamServices[i] = constructorService;
+            }
+        }
+
+        return predefinedParamServices;
     }
 
     @Nullable
