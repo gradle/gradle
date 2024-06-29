@@ -24,6 +24,7 @@ import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 
+// TODO:declarative-services already declarative, can be minimal but requires private services
 public class ScopeIdsServices implements ServiceRegistrationProvider {
 
     @Provides

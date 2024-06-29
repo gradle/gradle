@@ -29,6 +29,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy;
 
+// TODO:declarative-services already declarative, can be minimal
 public class ComponentModelBaseServices extends AbstractGradleModuleServices {
 
     @Override

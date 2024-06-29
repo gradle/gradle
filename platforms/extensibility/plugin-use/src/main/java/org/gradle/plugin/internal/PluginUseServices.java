@@ -92,6 +92,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         registration.addProvider(new SettingsScopeServices());
     }
 
+    // TODO:declarative-services already declarative, can be minimal
     @NonNullApi
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
@@ -100,6 +101,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
     }
 
+    // TODO:declarative-services already declarative, can be minimal with @FromConstructor *and* transparent instantiator feature
     private static class SettingsScopeServices implements ServiceRegistrationProvider {
         @Provides
         protected PluginManagementSpec createPluginManagementSpec(
@@ -113,6 +115,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
     }
 
+    // TODO:declarative-services can be declarative, probably not gonna be minimal, uses aggregation
     private static class BuildScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);

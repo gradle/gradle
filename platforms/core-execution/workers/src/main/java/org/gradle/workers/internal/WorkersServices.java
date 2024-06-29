@@ -65,9 +65,11 @@ public class WorkersServices extends AbstractGradleModuleServices {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeServices());
+        // TODO:declarative-services registration can be moved to the provider class
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
+    // TODO:declarative-services already declarative, can be minimal with @FromConstructor
     private static class BuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
@@ -90,6 +92,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
     }
 
+    // TODO:declarative-services already declarative, can be simpler with @FromConstructor, needs private services to become minimal (WorkerDaemonStarter)
     private static class GradleUserHomeServices implements ServiceRegistrationProvider {
         @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
@@ -118,6 +121,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
     }
 
+    // TODO:declarative-services already declarative, can be simpler with @FromConstructor
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,

@@ -22,6 +22,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
+// TODO:declarative-services already declarative, can be minimal
 public class GcsResourcesServices extends AbstractGradleModuleServices {
 
     @Override

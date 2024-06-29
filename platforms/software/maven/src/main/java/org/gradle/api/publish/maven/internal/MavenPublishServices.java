@@ -33,6 +33,7 @@ import org.gradle.maven.MavenModule;
 import org.gradle.maven.MavenPomArtifact;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
+// TODO:declarative-services can be made declarative if the `configure` use case is solved
 public class MavenPublishServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
@@ -45,6 +46,7 @@ public class MavenPublishServices extends AbstractGradleModuleServices {
     }
 
     private static class ComponentRegistrationAction implements ServiceRegistrationProvider {
+        // TODO: why does this logic live in `configure`? Is this a new use case?
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)

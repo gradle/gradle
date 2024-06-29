@@ -107,6 +107,7 @@ import java.util.function.Predicate;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
+// TODO:declarative-services already declarative
 public class VirtualFileSystemServices extends AbstractGradleModuleServices {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
@@ -359,6 +360,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 DirectoryScanner.getDefaultExcludes()
             );
 
+            // TODO: a side effect is mixed in; is this another use case?
             listenerManager.addListener(buildSessionsScopedVirtualFileSystem);
             listenerManager.addListener((OutputChangeListener) buildSessionsScopedVirtualFileSystem::invalidate);
 

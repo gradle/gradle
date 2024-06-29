@@ -42,6 +42,7 @@ import java.util.Collections;
 
 import static java.util.Collections.emptyList;
 
+// TODO:declarative-services can be made declarative if the `configure` use case is solved
 public class JavaLanguageServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -78,6 +79,7 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
     }
 
     private static class JavaBuildScopeServices implements ServiceRegistrationProvider {
+        // TODO: why does this logic live in `configure`? Is this a new use case?
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
                 .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);

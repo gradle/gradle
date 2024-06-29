@@ -55,6 +55,7 @@ import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLo
 import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
+// TODO:declarative-services already declarative, can be minimal
 public class NativeBinaryServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
