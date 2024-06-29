@@ -1611,6 +1611,149 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
     }
 
+    def "can inject implementation via constructor"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService create(@FromConstructor TestServiceImpl service) { service }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestServiceImpl
+
+        when:
+        registry.get(TestServiceImpl)
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
+    }
+
+    def "can inject implementation with dependency via constructor"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService createTestService() { new TestServiceImpl() }
+
+            @Provides
+            ServiceWithDependency create(@FromConstructor ServiceWithDependency service) { service }
+        })
+
+        when:
+        def service1 = registry.get(ServiceWithDependency)
+        then:
+        service1 instanceof ServiceWithDependency
+    }
+
+    def "can inject overloads when implementations are injected via constructor"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService create(@FromConstructor TestServiceImpl service) { service }
+
+            @Provides
+            ServiceWithDependency create(@FromConstructor ServiceWithDependency service) { service }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestService
+
+        when:
+        def service2 = registry.get(ServiceWithDependency)
+        then:
+        service2 instanceof ServiceWithDependency
+    }
+
+    def "cannot inject implementation with a missing dependency via constructor"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            ServiceWithDependency create(@FromConstructor ServiceWithDependency service) { service }
+        })
+
+        when:
+        registry.get(ServiceWithDependency)
+        then:
+        def e = thrown(ServiceCreationException)
+        e.message.replaceAll("DefaultServiceRegistryTest\\\$", "") ==
+            "Cannot create service of type ServiceWithDependency using ServiceWithDependency constructor as required service of type TestService for parameter #1 is not available."
+    }
+
+    def "can inject dependencies when using injection via constructor"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService create(@FromConstructor StatefulTestServiceImpl service, Integer dependency) {
+                service.value = dependency
+                service
+            }
+        })
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof StatefulTestServiceImpl
+        service1.value == 12
+    }
+
+    def "can inject multiple implementation instances via constructor in the same factory method"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            ServiceWithDependency create(@FromConstructor TestServiceImpl service1, @FromConstructor TestServiceImpl service2) {
+                if (service1 == service2) {
+                    throw new IllegalStateException("BOOM")
+                }
+                new ServiceWithDependency(service2)
+            }
+        })
+
+        when:
+        def service = registry.get(ServiceWithDependency)
+        then:
+        service instanceof ServiceWithDependency
+    }
+
+    def "can inject independent implementation instances via constructor"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService create1(@FromConstructor TestServiceImpl service) { service }
+
+            @Provides
+            TestService create2(@FromConstructor TestServiceImpl service) { service }
+        })
+
+        when:
+        def services = registry.getAll(TestService)
+        then:
+        services.size() == 2
+        services[0] instanceof TestServiceImpl
+        services[1] instanceof TestServiceImpl
+        services[0] !== services[1]
+    }
+
+    def "cannot inject implementation via constructor in injected constructors"() {
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings('unused')
+            void configure(ServiceRegistration registration) {
+                registration.add(BrokenServiceWithDependencyWithConstructor)
+            }
+        })
+
+        then:
+        def e = thrown(ServiceLookupException)
+        e.message == "Could not configure services using .configure()."
+
+        def cause = e.cause
+        cause instanceof ServiceValidationException
+        cause.message == "Cannot register a constructor with direct service provider injection for type DefaultServiceRegistryTest\$BrokenServiceWithDependencyWithConstructor"
+    }
+
     def MockServiceRegistry registry(ParentServices parentServices) {
         return new MockServiceRegistry(parentServices)
     }
@@ -1790,7 +1933,14 @@ class DefaultServiceRegistryTest extends Specification {
     private interface AnotherTestService {
     }
 
+    private static class AnotherTestServiceImpl implements AnotherTestService {
+    }
+
     private static class TestMultiServiceImpl implements TestService, AnotherTestService {
+    }
+
+    private static class StatefulTestServiceImpl implements TestService {
+        int value = 0
     }
 
     private static class ServiceWithDependency {
@@ -2129,6 +2279,12 @@ class DefaultServiceRegistryTest extends Specification {
 
     static class RequiresService {
         RequiresService(Number value) {
+        }
+    }
+
+    static class BrokenServiceWithDependencyWithConstructor extends ServiceWithDependency {
+        BrokenServiceWithDependencyWithConstructor(@FromConstructor TestServiceImpl ts) {
+            super(ts)
         }
     }
 }
