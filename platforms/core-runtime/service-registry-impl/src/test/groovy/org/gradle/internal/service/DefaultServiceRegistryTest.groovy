@@ -2149,6 +2149,12 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    static class BrokenServiceWithDependencyWithConstructor extends ServiceWithDependency {
+        BrokenServiceWithDependencyWithConstructor(@FromConstructor TestServiceImpl ts) {
+            super(ts)
+        }
+    }
+
     private String withoutTestClassName(String s) {
         s.replaceAll(this.class.simpleName + "\\\$", "")
     }
