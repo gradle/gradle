@@ -2132,4 +2132,10 @@ class DefaultServiceRegistryTest extends Specification {
         RequiresService(Number value) {
         }
     }
+
+    static class BrokenServiceWithDependencyWithConstructor extends ServiceWithDependency {
+        BrokenServiceWithDependencyWithConstructor(@FromConstructor TestServiceImpl ts) {
+            super(ts)
+        }
+    }
 }
