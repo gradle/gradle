@@ -17,6 +17,8 @@ package org.gradle.cache.internal;
 
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +37,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the type of key to lock on
  */
+@ServiceScope(Scope.Global.class)
 public abstract class ProducerGuard<T> {
 
     /**

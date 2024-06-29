@@ -28,7 +28,6 @@ class ServiceScopeValidatorWorkarounds {
 
         "org.gradle.internal.Factory",
         "org.gradle.internal.serialize.Serializer",
-        "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
