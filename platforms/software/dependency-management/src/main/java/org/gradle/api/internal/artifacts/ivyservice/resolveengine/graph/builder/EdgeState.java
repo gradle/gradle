@@ -87,7 +87,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void computeSelector() {
-        this.selector = resolveState.getSelector(dependencyState, from.versionProvidedByAncestors(dependencyState));
+        this.selector = resolveState.computeSelectorFor(dependencyState, from.versionProvidedByAncestors(dependencyState));
     }
 
     @Override
@@ -374,6 +374,7 @@ class EdgeState implements DependencyGraphEdge {
         if (node == null) {
             return null;
         } else {
+            assert node.getComponent() == getSelectedComponent();
             return node.getNodeId();
         }
     }

@@ -42,8 +42,14 @@ import java.util.Set;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
+
+    /**
+     * Tracks capabilities for which nodes exist with that capability as non-default
+     */
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = new HashMap<>();
-    private final Deque<CapabilityConflict> conflicts = new ArrayDeque<>();
+
+    private final Deque<String> conflicts = new ArrayDeque<>();
+    private final Map<String, CapabilityConflict> capabilityIdToConflict = new HashMap<>();
 
     public DefaultCapabilitiesConflictHandler(List<Resolver> resolvers) {
         this.resolvers = resolvers;
@@ -51,27 +57,23 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     @Override
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
-        CapabilityInternal capability = (CapabilityInternal) candidate.getCapability();
-        String group = capability.getGroup();
-        String name = capability.getName();
-        final Set<NodeState> nodes = findNodesFor(capability);
+        CapabilityInternal capability = candidate.getCapability();
+
+        Set<NodeState> nodes = capabilityWithoutVersionToNodes.computeIfAbsent(capability.getCapabilityId(), k -> new LinkedHashSet<>());
         Collection<NodeState> implicitCapabilityProviders = candidate.getImplicitCapabilityProviders();
         nodes.addAll(implicitCapabilityProviders);
+
         NodeState node = candidate.getNode();
         if (nodes.add(node) && nodes.size() > 1) {
-            // The registered nodes may contain nodes which are no longer selected.
-            // We don't remove them from the list in the first place because it proved to be
-            // slower than filtering as needed.
+            // If the root node is in conflict, find its module ID
             ModuleIdentifier rootId = null;
-            final List<NodeState> candidatesForConflict = Lists.newArrayListWithCapacity(nodes.size());
             for (NodeState ns : nodes) {
-                if (ns.isSelected()) {
-                    candidatesForConflict.add(ns);
-                    if (ns.isRoot()) {
-                        rootId = ns.getComponent().getId().getModule();
-                    }
+                if (ns.isRoot()) {
+                    rootId = ns.getComponent().getId().getModule();
                 }
             }
+
+            Set<NodeState> candidatesForConflict = new LinkedHashSet<>(nodes);
             if (rootId != null && candidatesForConflict.size() > 1) {
                 // This is a special case for backwards compatibility: it is possible to have
                 // a cycle where the root component depends on a library which transitively
@@ -95,17 +97,17 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                         return true;
                     }
                 };
-                conflicts.add(new CapabilityConflict(group, name, candidatesForConflict));
+
+                String group = capability.getGroup();
+                String name = capability.getName();
+                if (capabilityIdToConflict.put(capability.getCapabilityId(), new CapabilityConflict(group, name, candidatesForConflict)) == null) {
+                    // No previous conflict, enqueue the capability for resolution
+                    conflicts.add(capability.getCapabilityId());
+                }
                 return conflict;
             }
         }
         return PotentialConflictFactory.noConflict();
-    }
-
-    private Set<NodeState> findNodesFor(CapabilityInternal capability) {
-        String capabilityId = capability.getCapabilityId();
-
-        return capabilityWithoutVersionToNodes.computeIfAbsent(capabilityId, k -> new LinkedHashSet<>());
     }
 
     @Override
@@ -115,25 +117,38 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
-        CapabilityConflict conflict = conflicts.poll();
+        String capabilityInConflict = conflicts.remove();
+        CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict).withSelectedNodes();
+        capabilityWithoutVersionToNodes.put(capabilityInConflict, conflict.nodes);
+        if (conflict.nodes.isEmpty()) {
+            return;
+        }
+
+        // TODO: What if, after we filter, we only have nodes with the default capability?
+        // We should treat this conflict as a version conflict.
+
         Details details = new Details(conflict);
         for (Resolver resolver : resolvers) {
             resolver.resolve(details);
             if (details.hasResult()) {
                 resolutionAction.execute(details);
-                ComponentSelectionDescriptorInternal conflictResolution = ComponentSelectionReasons.CONFLICT_RESOLUTION;
-                if (details.reason != null) {
-                    conflictResolution = conflictResolution.withDescription(details.reason);
+
+                if (conflict.nodes.size() > 1) {
+                    ComponentSelectionDescriptorInternal conflictResolution = ComponentSelectionReasons.CONFLICT_RESOLUTION;
+                    if (details.reason != null) {
+                        conflictResolution = conflictResolution.withDescription(details.reason);
+                    }
+                    details.getSelected().addCause(conflictResolution);
                 }
-                details.getSelected().addCause(conflictResolution);
+
                 return;
             }
         }
     }
 
     @Override
-    public boolean hasSeenCapability(Capability capability) {
-        return capabilityWithoutVersionToNodes.containsKey(((CapabilityInternal) capability).getCapabilityId());
+    public boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability) {
+        return capabilityWithoutVersionToNodes.containsKey(capability.getCapabilityId());
     }
 
     @Override
@@ -141,19 +156,25 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         if (conflicts.isEmpty()) {
             return false;
         }
-        return conflicts.stream().flatMap(capability -> capability.nodes.stream()).anyMatch(node -> node.getComponent().getId().equals(id));
+
+        // TODO: Should this look at implicit capabilities? Or just look at group:name
+        // Or, does this intend to see if a specific NODE is in conflict?
+
+        return capabilityIdToConflict.values().stream()
+            .flatMap(capability -> capability.nodes.stream())
+            .anyMatch(node -> node.getComponent().getId().equals(id));
     }
 
-    public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
+    public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {
         return new Candidate(node, capability, implicitCapabilityProviders);
     }
 
     private static class Candidate implements CapabilitiesConflictHandler.Candidate {
         private final NodeState node;
-        private final Capability capability;
+        private final CapabilityInternal capability;
         private final Collection<NodeState> implicitCapabilityProviders;
 
-        public Candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
+        public Candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {
             this.node = node;
             this.capability = capability;
             this.implicitCapabilityProviders = implicitCapabilityProviders;
@@ -165,7 +186,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         @Override
-        public Capability getCapability() {
+        public CapabilityInternal getCapability() {
             return capability;
         }
 
@@ -227,6 +248,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                             public void reject() {
                                 ComponentState component = node.getComponent();
                                 component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.nodes));
+
+                                // TODO: Determine if we really need to select this rejected node.
+                                // How do we prevent the node from selecting its own dependencies when it
+                                // gets added to the graph?
+                                // Conceptually, it seems odd for a module to select a node that does not belong in the graph
+                                // however, this seems to be required currently for the sake of reporting the conflict
+                                // final graph visiting.
                                 component.selectAndRestartModule();
                             }
 
@@ -271,10 +299,15 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private static class CapabilityConflict {
 
-        private final Collection<NodeState> nodes;
+        private final String group;
+        private final String name;
+
+        private final Set<NodeState> nodes;
         private final Set<Capability> descriptors;
 
-        private CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
+        private CapabilityConflict(String group, String name, Set<NodeState> nodes) {
+            this.group = group;
+            this.name = name;
             this.nodes = nodes;
             final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<>();
             for (final NodeState node : nodes) {
@@ -286,15 +319,23 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this.descriptors = builder.build();
         }
 
-    }
-
-    private static boolean sameComponentAppearsMultipleTimes(CapabilityConflict conflict) {
-        Set<ComponentState> components = new HashSet<>();
-        for (NodeState node : conflict.nodes) {
-            if (!components.add(node.getComponent())) {
-                return true;
+        /**
+         * Many things can happen in-between detection of a conflict and resolution of the conflict. By the time
+         * we resolve the conflict, some or all of the nodes that originally conflicted may no longer be present
+         * in the graph.
+         *
+         * @return a new conflict containing only nodes that are still present in the graph. This new conflict
+         * may contain no nodes.
+         */
+        public CapabilityConflict withSelectedNodes() {
+            Set<NodeState> selectedNodes = new LinkedHashSet<>();
+            for (NodeState node : nodes) {
+                if (node.isSelected()) {
+                    selectedNodes.add(node);
+                }
             }
+            return new CapabilityConflict(group, name, selectedNodes);
         }
-        return false;
+
     }
 }

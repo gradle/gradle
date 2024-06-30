@@ -24,7 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -48,6 +47,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -77,6 +77,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class DependencyGraphBuilder {
@@ -184,8 +185,24 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
+                // TODO: Figure out how rejected components are handled when they're added to the queue
+                // if (component.isRejected()) {
+                //     continue;
+                // }
+
+                // TODO: Why is this not node.isSelected()?
+                // It seems that node.isSelected can return true while component.isSelected() returns false
+                if (!node.getComponent().isSelected()) {
+                    node.cleanupConstraints();
+                    continue;
+                }
+
                 // Register capabilities for this node
-                registerCapabilities(resolveState, node);
+                if (registerCapabilities(resolveState, node)) {
+                    // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
+                    // There is no reason to continue processing this node otherwise.
+                    continue;
+                }
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
@@ -205,11 +222,13 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void registerCapabilities(final ResolveState resolveState, final NodeState node) {
+    private static boolean registerCapabilities(final ResolveState resolveState, final NodeState node) {
+        AtomicBoolean foundConflict = new AtomicBoolean(false);
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getConflictTracker().getCapabilitiesConflictHandler();
-        node.forEachCapability(capabilitiesConflictHandler, new Action<Capability>() {
+
+        node.forEachCapability(capabilitiesConflictHandler, new Action<CapabilityInternal>() {
             @Override
-            public void execute(Capability capability) {
+            public void execute(CapabilityInternal capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
                 // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
                 // then we try to find a module which provides the same capability. It that module has been found, then we register it.
@@ -236,6 +255,7 @@ public class DependencyGraphBuilder {
                 );
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());
+                    foundConflict.set(true);
                 }
             }
 
@@ -243,6 +263,7 @@ public class DependencyGraphBuilder {
                 return nodeState.getMetadata().getCapabilities().asSet().isEmpty();
             }
         });
+        return foundConflict.get();
     }
 
     private boolean resolveEdges(
@@ -277,7 +298,7 @@ public class DependencyGraphBuilder {
             SelectorState selector = dependency.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
-            if (selector.canResolve() && module.getSelectors().size() > 0) {
+            if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
@@ -305,6 +326,8 @@ public class DependencyGraphBuilder {
             // Ignore: All selectors failed, and will have failures recorded
             return;
         }
+
+        // TODO: We should check for conflicts before updating selection.
 
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {
@@ -359,13 +382,13 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter) {
+    private static void attachToTargetRevisionsSerially(List<EdgeState> edges, Spec<EdgeState> dependencyFilter) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
-        for (EdgeState dependency : dependencies) {
-            if (dependencyFilter.isSatisfiedBy(dependency)) {
-                dependency.attachToTargetConfigurations();
+        for (EdgeState edge : edges) {
+            if (dependencyFilter.isSatisfiedBy(edge)) {
+                edge.attachToTargetConfigurations();
             }
         }
     }

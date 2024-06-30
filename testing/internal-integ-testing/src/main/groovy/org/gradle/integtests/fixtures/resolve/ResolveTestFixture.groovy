@@ -503,6 +503,9 @@ $END_MARKER
             def group = parts[0]
             def module = parts[1]
             def version = parts[2]
+
+            // TODO: Do not ignore variant
+
             def actualMVI = "${group}:${module}:${version}"
             return node("module:${actualMVI},${group}:${module}", actualMVI, moduleVersionId)
         }
@@ -919,6 +922,7 @@ $END_MARKER
             this
         }
 
+        // TODO: This is suspicious.
         NodeBuilder maybeByConflictResolution() {
             ignoreReasonPrefixes.add("conflict resolution")
             this

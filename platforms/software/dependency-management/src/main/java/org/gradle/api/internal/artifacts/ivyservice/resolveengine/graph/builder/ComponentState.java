@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -273,6 +274,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return cachedReason;
         }
         ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
+        // TODO: Should we look at `selectors` instead of `module.getSelectors()`?
         for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
                 selectorState.addReasonsForSelector(reason);
@@ -286,6 +288,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     boolean hasStrongOpinion() {
+        // TODO: Should we look at `selectors` instead of `module.getSelectors()`?
         return StreamSupport.stream(module.getSelectors().spliterator(), false)
             .filter(s -> s.getFailure() == null)
             .anyMatch(SelectorState::hasStrongOpinion);
@@ -453,7 +456,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    Capability getImplicitCapability() {
+    CapabilityInternal getImplicitCapability() {
         return implicitCapability;
     }
 

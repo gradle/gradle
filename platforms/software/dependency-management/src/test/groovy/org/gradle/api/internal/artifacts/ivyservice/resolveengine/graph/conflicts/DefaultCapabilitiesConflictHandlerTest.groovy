@@ -106,6 +106,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         Mock(CapabilityInternal) {
             getGroup() >> group
             getName() >> name
+            getCapabilityId() >> "${group}:${name}"
         }
     }
 
