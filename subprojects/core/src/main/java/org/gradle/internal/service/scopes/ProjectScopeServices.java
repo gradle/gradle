@@ -124,6 +124,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         Factory<LoggingManagerInternal> loggingManagerInternalFactory
     ) {
         return ServiceRegistryBuilder.builder()
+            .scope(Scope.Project.class)
             .displayName("project services")
             .parent(parent)
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
