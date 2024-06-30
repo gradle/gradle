@@ -50,6 +50,7 @@ import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.extensions.core.add
 import org.gradle.internal.extensions.core.get
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -72,8 +73,8 @@ class DefaultBuildModelControllerServices(
 ) : BuildModelControllerServices {
     override fun servicesForBuild(buildDefinition: BuildDefinition, owner: BuildState, parentBuild: BuildState?): BuildModelControllerServices.Supplier {
         return BuildModelControllerServices.Supplier { registration, buildScopeServices ->
-            registration.add(BuildDefinition::class.java, buildDefinition)
-            registration.add(BuildState::class.java, owner)
+            registration.add<BuildDefinition>(buildDefinition)
+            registration.add<BuildState>(owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, buildScopeServices))
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())

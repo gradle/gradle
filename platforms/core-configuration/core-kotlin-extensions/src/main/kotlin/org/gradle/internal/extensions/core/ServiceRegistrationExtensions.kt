@@ -17,13 +17,23 @@
 package org.gradle.internal.extensions.core
 
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistration.Contracts.provides
+
+
+/**
+ * @param ImplementationType The implementation type of the service.
+ * @param ServiceType The service to make visible.
+ * @see [ServiceRegistration.add]
+ */
+inline fun <reified ImplementationType, reified ServiceType> ServiceRegistration.add() where ImplementationType : ServiceType {
+    add(ImplementationType::class.java, provides(ServiceType::class.java))
+}
 
 
 /**
  * @param ServiceType The service to make visible.
- * @param ImplementationType The implementation type of the service.
  * @see [ServiceRegistration.add]
  */
-inline fun <reified ServiceType, reified ImplementationType : ServiceType> ServiceRegistration.add() {
-    add(ServiceType::class.java, ImplementationType::class.java)
+inline fun <reified ServiceType : Any> ServiceRegistration.add(instance: ServiceType) {
+    add(ServiceType::class.java, instance)
 }

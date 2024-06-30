@@ -24,10 +24,12 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class BuildEventServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(BuildEventListenerRegistryInternal.class, DefaultBuildEventsListenerRegistry.class);
+        registration.add(DefaultBuildEventsListenerRegistry.class, provides(BuildEventListenerRegistryInternal.class));
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
             BuildOperationAncestryTracker createBuildOperationAncestryTracker(BuildOperationListenerManager listenerManager) {

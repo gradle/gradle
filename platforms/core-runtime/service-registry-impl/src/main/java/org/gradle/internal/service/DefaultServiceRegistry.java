@@ -239,6 +239,15 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private ServiceRegistration newRegistration() {
         return new ServiceRegistration() {
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            public <T> void add(Class<T> implementationType, ServiceContract<T> contract) {
+                List rawServices = contract.getProvidedServices(); // going through a raw type, because generics do not allow to do it without creating a copy
+                List<Class<?>> providedServices = Cast.uncheckedCast(rawServices);
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, providedServices, implementationType));
+            }
+
             @Override
             public <T> void add(Class<T> serviceType, T serviceInstance) {
                 DefaultServiceRegistry.this.add(serviceType, serviceInstance);
@@ -247,17 +256,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             @Override
             public void add(Class<?> serviceType) {
                 ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType));
-            }
-
-            @Override
-            public <T> void add(Class<? super T> serviceType, Class<T> implementationType) {
-                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType, implementationType));
-            }
-
-            @Override
-            public <T> void add(Class<? super T> serviceType1, Class<? super T> serviceType2, Class<T> implementationType) {
-                //noinspection RedundantTypeArguments
-                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, Arrays.<Class<?>>asList(serviceType1, serviceType2), implementationType));
             }
 
             @Override

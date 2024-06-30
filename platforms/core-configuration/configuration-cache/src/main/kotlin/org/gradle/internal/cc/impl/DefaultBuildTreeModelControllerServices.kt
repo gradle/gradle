@@ -48,6 +48,7 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
+import org.gradle.internal.extensions.core.add
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.service.Provides
@@ -156,14 +157,14 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
-            registration.add(BuildType::class.java, buildType)
+            registration.add<BuildType>(buildType)
             registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements)
         }
     }
 
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
         return BuildTreeModelControllerServices.Supplier { registration ->
-            registration.add(BuildType::class.java, BuildType.TASKS)
+            registration.add<BuildType>(BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
             val buildModelParameters =
                 BuildModelParameters(
@@ -186,9 +187,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private
     fun registerCommonBuildTreeServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
-        registration.add(BuildModelParameters::class.java, modelParameters)
-        registration.add(BuildFeatures::class.java, buildFeatures)
-        registration.add(BuildActionModelRequirements::class.java, requirements)
+        registration.add<BuildModelParameters>(modelParameters)
+        registration.add<BuildFeatures>(buildFeatures)
+        registration.add<BuildActionModelRequirements>(requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
         if (modelParameters.isConfigurationCache) {
@@ -209,7 +210,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageEnvironmentChangeTracker::class.java)
-            registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
+            registration.add<ProjectScopedScriptResolution>(ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
             registration.add(DefaultBuildTreeModelSideEffectExecutor::class.java)
         }

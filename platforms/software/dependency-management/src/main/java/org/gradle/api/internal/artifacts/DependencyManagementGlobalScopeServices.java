@@ -75,15 +75,17 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 class DependencyManagementGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(VersionParser.class);
-        registration.add(IvyContextManager.class, DefaultIvyContextManager.class);
-        registration.add(ImmutableModuleIdentifierFactory.class, DefaultImmutableModuleIdentifierFactory.class);
-        registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
-        registration.add(LocalVariantMetadataBuilder.class, DefaultLocalVariantMetadataBuilder.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
-        registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
+        registration.add(DefaultIvyContextManager.class, provides(IvyContextManager.class));
+        registration.add(DefaultImmutableModuleIdentifierFactory.class, provides(ImmutableModuleIdentifierFactory.class));
+        registration.add(DefaultExcludeRuleConverter.class, provides(ExcludeRuleConverter.class));
+        registration.add(DefaultLocalVariantMetadataBuilder.class, provides(LocalVariantMetadataBuilder.class));
+        registration.add(InputArtifactAnnotationHandler.class, provides(PropertyAnnotationHandler.class, InjectAnnotationHandler.class));
+        registration.add(InputArtifactDependenciesAnnotationHandler.class, provides(PropertyAnnotationHandler.class, InjectAnnotationHandler.class));
     }
 
     @Provides

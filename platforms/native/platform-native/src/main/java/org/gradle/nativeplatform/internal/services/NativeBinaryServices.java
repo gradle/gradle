@@ -55,13 +55,15 @@ import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLo
 import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class NativeBinaryServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(AbstractBinaryRenderer.class, NativeBinaryRenderer.class);
-        registration.add(AbstractBinaryRenderer.class, SharedLibraryBinaryRenderer.class);
-        registration.add(AbstractBinaryRenderer.class, StaticLibraryBinaryRenderer.class);
-        registration.add(AbstractBinaryRenderer.class, NativeExecutableBinaryRenderer.class);
+        registration.add(NativeBinaryRenderer.class, provides(AbstractBinaryRenderer.class));
+        registration.add(SharedLibraryBinaryRenderer.class, provides(AbstractBinaryRenderer.class));
+        registration.add(StaticLibraryBinaryRenderer.class, provides(AbstractBinaryRenderer.class));
+        registration.add(NativeExecutableBinaryRenderer.class, provides(AbstractBinaryRenderer.class));
         registration.add(NativePlatforms.class);
         registration.add(NativePlatformResolver.class);
         registration.add(DefaultTargetMachineFactory.class);

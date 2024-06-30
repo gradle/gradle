@@ -77,7 +77,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(TaskExecutionAccessCheckerProvider)
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
-            add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
+            add<DefaultIsolatedProjectEvaluationListenerProvider, IsolatedProjectEvaluationListenerProvider>()
         }
     }
 

@@ -64,6 +64,8 @@ import org.gradle.process.internal.ExecHandleFactory;
 
 import java.net.InetAddress;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 /**
  * Defines the basic global services of a given process. This includes the Gradle CLI, daemon and tooling API provider. These services
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
@@ -71,7 +73,7 @@ import java.net.InetAddress;
  */
 public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
+        serviceRegistration.add(DefaultFileLookup.class, provides(FileLookup.class));
         serviceRegistration.addProvider(new MessagingServices());
     }
 

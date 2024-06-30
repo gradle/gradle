@@ -30,7 +30,7 @@ class BeanSerializationServices : AbstractGradleModuleServices() {
     }
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
-        registration.add<BeanStateWriterLookup, DefaultBeanStateWriterLookup>()
-        registration.add<BeanStateReaderLookup, DefaultBeanStateReaderLookup>()
+        registration.add<DefaultBeanStateWriterLookup, BeanStateWriterLookup>()
+        registration.add<DefaultBeanStateReaderLookup, BeanStateReaderLookup>()
     }
 }

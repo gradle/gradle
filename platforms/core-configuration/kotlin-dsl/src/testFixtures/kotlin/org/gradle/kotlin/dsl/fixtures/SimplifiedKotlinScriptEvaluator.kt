@@ -28,6 +28,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.extensions.core.add
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
@@ -77,8 +78,8 @@ class SimplifiedKotlinDefaultServiceRegistry(
     private val baseTempDir: File,
 ) : DefaultServiceRegistry() {
     init {
-        register {
-            add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+        register { registration ->
+            registration.add<GradleUserHomeTemporaryFileProvider>(GradleUserHomeTemporaryFileProvider { baseTempDir })
         }
     }
 }

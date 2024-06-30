@@ -31,11 +31,13 @@ import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFact
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
+import static org.gradle.internal.service.ServiceRegistration.Contracts.provides;
+
 public class DaemonServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(UserInputReader.class, DefaultUserInputReader.class);
-        registration.add(ClassLoaderCache.class, ClassLoaderCache.class);
+        registration.add(DefaultUserInputReader.class, provides(UserInputReader.class));
+        registration.add(ClassLoaderCache.class, provides(ClassLoaderCache.class));
     }
 
     @Override
