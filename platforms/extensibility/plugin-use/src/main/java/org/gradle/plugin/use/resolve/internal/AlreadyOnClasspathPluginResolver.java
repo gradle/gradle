@@ -83,7 +83,15 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             );
         }
 
-        String existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
+        PluginVersionTracker.VersionDef existingVersionDef = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
+        if (existingVersionDef != null && existingVersionDef.isLocal()) {
+            PluginResolutionResult resolved = delegate.resolve(pluginRequest);
+            if (resolved.isFound() && resolved.getFound(pluginRequest).isLocal()) {
+                return resolved;
+            }
+        }
+
+        String existingVersion = existingVersionDef != null ? existingVersionDef.getVersion() : null;
         if (existingVersion == null) {
             throw new InvalidPluginRequestException(
                 pluginRequest,
