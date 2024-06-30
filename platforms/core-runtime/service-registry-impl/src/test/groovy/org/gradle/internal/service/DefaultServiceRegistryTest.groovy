@@ -309,7 +309,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry at DefaultServiceRegistryTest$.createServices()'
+        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry at DefaultServiceRegistryTest$<anonymous>.createServices()'
     }
 
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
