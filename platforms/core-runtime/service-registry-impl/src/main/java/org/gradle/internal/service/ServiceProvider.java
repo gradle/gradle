@@ -29,19 +29,19 @@ interface ServiceProvider extends Stoppable {
     /**
      * Locates a service instance of the given type. Returns null if this provider does not provide a service of this type.
      */
-    @Nullable Service getService(Type serviceType);
+    @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token);
 
     /**
      * Locates a factory for services of the given type. Returns null if this provider does not provide any services of this type.
      */
-    @Nullable Service getFactory(Class<?> type);
+    @Nullable Service getFactory(Class<?> type, @Nullable ServiceAccessToken token);
 
     /**
      * Collects all services of the given type.
      *
      * @return A visitor that should be used for all subsequent services.
      */
-    Visitor getAll(Class<?> serviceType, Visitor visitor);
+    Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor);
 
     interface Visitor {
         void visit(Service service);
