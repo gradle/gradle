@@ -52,6 +52,22 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="dependency-resolution"></a>
+### Dependency management improvements
+
+Gradle's [dependency management](userguide/core_dependency_management.html) infrastructure allows projects to depend on artifacts from external repositories, other projects from the same build, or projects from included builds.
+
+#### Root variant exposed by `ResolutionResult`
+
+The `ResolutionResult` API now exposes the root variant of the resolved graph in addition to its owning component. 
+The root variant is a synthetic variant representing the `Configuration` being resolved, and exposes the first-level dependencies of a resolution.
+Previously, the API only exposed the root component, which exposed the first-level dependencies as well dependencies from other selected variants in the root component. 
+
+This API allows dependency graphs to be traversed more precisely, at the variant-level instead of at the component level.
+When traversing at the variant level, it is possible to differentiate between the production code of a component and its test fixtures.
+
+TODO: Link to userguide on how to traverse a graph
+
 <a name="config-cache"></a>
 ### Configuration cache improvements
 

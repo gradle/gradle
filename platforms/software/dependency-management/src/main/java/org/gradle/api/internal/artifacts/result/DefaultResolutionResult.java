@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -56,6 +57,11 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
         return resolutionAccess.getPublicView().getRootComponent();
+    }
+
+    @Override
+    public Provider<ResolvedVariantResult> getRootVariant() {
+        return resolutionAccess.getPublicView().getRootVariant();
     }
 
     @Override

@@ -99,6 +99,7 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -119,11 +120,11 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
@@ -572,7 +573,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             List<ResolverProviderFactory> resolverFactories,
             ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
             ProjectDependencyResolver projectDependencyResolver,
-            DependencyLockingProvider dependencyLockingProvider
+            DependencyLockingProvider dependencyLockingProvider,
+            AttributeDesugaring attributeDesugaring
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 dependencyGraphResolver,
@@ -603,7 +605,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 dependencyLockingProvider
             );
 
-            return new ShortCircuitEmptyConfigurationResolver(defaultResolver);
+            return new ShortCircuitEmptyConfigurationResolver(
+                defaultResolver,
+                attributeDesugaring
+            );
         }
 
         @Provides
