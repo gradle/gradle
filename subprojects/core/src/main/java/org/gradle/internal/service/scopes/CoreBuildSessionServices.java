@@ -71,6 +71,7 @@ import org.gradle.process.internal.ExecFactory;
 import java.io.Closeable;
 import java.io.File;
 
+// TODO:declarative-services already declarative, needs private services
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
@@ -78,6 +79,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         registration.add(BuildLayoutValidator.class);
         registration.add(DefaultAsyncWorkTracker.class);
 
+        // TODO: why is this comment required? Does this not follow automatically from service dependencies?
         // Must be no higher than this scope as needs cache repository services.
         registration.addProvider(new ScopeIdsServices());
     }
@@ -185,6 +187,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector, statisticsCollector);
     }
 
+    // TODO: a simulation of private services
     // Wraps CrossBuildFileHashCache so that it doesn't conflict
     // with other services in different scopes
     static class CrossBuildFileHashCacheWrapper implements Closeable {

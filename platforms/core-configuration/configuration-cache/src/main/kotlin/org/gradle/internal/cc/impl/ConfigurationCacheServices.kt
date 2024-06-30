@@ -45,6 +45,7 @@ import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
 
 
+// TODO: this is a good example that can be fully converted to declarative (a
 class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildSessionServices(registration: ServiceRegistration) {

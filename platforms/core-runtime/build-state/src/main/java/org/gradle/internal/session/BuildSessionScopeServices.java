@@ -36,6 +36,7 @@ import java.util.List;
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
+// TODO:declarative-services uses inheritance to declare more services, declares instances as services, actually registers all BuildSession services from Gradle modules
 public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices implements ServiceRegistrationProvider {
 
     private final StartParameterInternal startParameter;

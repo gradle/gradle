@@ -75,6 +75,7 @@ import java.util.List;
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
+// TODO:declarative-services already declarative
 @SuppressWarnings("deprecation")
 public class GradleScopeServices implements ServiceRegistrationProvider {
 

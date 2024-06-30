@@ -172,6 +172,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
     }
 
+    // TODO: it should be okay to lookup DefaultModuleRegistry "as private"
     @Provides
     GlobalCache createGlobalCache(GlobalCacheRootsProvider globalCacheRootsProvider) {
         return globalCacheRootsProvider::getGlobalCacheRoots;
