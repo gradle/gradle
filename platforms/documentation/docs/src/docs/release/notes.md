@@ -1,23 +1,45 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features enhanced [error and warning reporting](#error-warning) to better handle variant ambiguity issues and missing variants during dependency resolution.
+This release improves [error and warning reporting](#error-warning) for variant issues during dependency resolution.
+It also exposes structural details of Java compilation errors for [IDE integrators](#ide-integration), making it easier to analyze and resolve issues.
 
-Additionally, this release includes improvements for [ide integrators](#ide-integration) and [other improvements](#other) to Build Init and TestNG support.
-
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
+Additionally, this release includes the ability to [display more detailed information about JVMs](#other) used by Gradle, as well as other minor improvements.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[/dev/mataha](https://github.com/mataha),
+[Alex-Vol-Amz](https://github.com/Alex-Vol-Amz),
+[Andrew Quinney](https://github.com/aquinney0),
+[Andrey Mischenko](https://github.com/gildor),
+[Björn Kautler](https://github.com/Vampire),
+[dancer13](https://github.com/dancer1325),
+[Danish Nawab](https://github.com/danishnawab),
+[Endeavour233](https://github.com/Endeavour233),
+[Gediminas Rimša](https://github.com/grimsa),
+[gotovsky](https://github.com/SergeyGotovskiy),
+[Jay Wei](https://github.com/JayWei1215),
+[Jeff](https://github.com/mathjeff),
+[Madalin Valceleanu](https://github.com/vmadalin),
+[markslater](https://github.com/markslater),
+[Mel Arthurs](https://github.com/arthursmel),
+[Michael](https://github.com/bean5),
+[Nils Brugger](https://github.com/nbrugger-tgm),
+[Ole Osterhagen](https://github.com/oleosterhagen),
+[Piotr Kubowicz](https://github.com/pkubowicz),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Sebastian Davids](https://github.com/sdavids),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Stefan Oehme](https://github.com/oehme),
+[Stefanos Koutsouflakis](https://github.com/stefanoskapa),
+[Taeik Lim](https://github.com/acktsap),
+[Tianyi Tao](https://github.com/tianyeeT),
+[Tim Nielens](https://github.com/tnielens),
+[наб](https://github.com/nabijaczleweli)
 
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
-Switch your build to use Gradle @version@ by updating your wrapper:
+Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
 `./gradlew wrapper --gradle-version=@version@`
 
@@ -31,10 +53,17 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ### Error and warning reporting improvements
 
 Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+This release makes it easier to deal with dependency management issues and configuration cache misses.
 
-#### Better message for common variant ambiguity issues
+#### Better messages for common dependency variant issues
 
-When Gradle attempts to resolve a dependency and finds multiple [variants](userguide/dependency_management_terminology.html#sub:terminology_variant) are available, all of which define attributes that would satisfy the resolution request, the resolution fails with a [variant ambiguity error](userguide/variant_model.html#sub:variant-ambiguity).
+Gradle provides a powerful dependency management engine that is [variant-aware](userguide/dependency_management_terminology.html#sub:terminology_variant).
+That means every dependency can have multiple variants (for example, for different Java versions) with separate transitive dependencies.
+This release significantly improves error reporting around dependency variants, continuing to address requests from a [highly voted issue](https://github.com/gradle/gradle/issues/12126).
+
+##### Variant ambiguity
+
+When Gradle attempts to resolve a dependency and finds multiple variants available, all of which define attributes that would satisfy the resolution request, the resolution fails with a [variant ambiguity error](userguide/variant_model.html#sub:variant-ambiguity).
 
 A common scenario is that all these variants contain only a single, unrequested attribute with distinct values.
 The addition of this attribute to the resolution request would resolve the ambiguity.
@@ -54,18 +83,19 @@ The new message explicitly suggests adding this missing attribute if such an att
             - Value: 'other' selects variant: 'additionalDocs'
 ```
 
-The message also adds a suggestion to run the [`dependencyInsight` task](userguide/command_line_interface.html#sec:listing_project_dependencies) to view the full list of variants and attributes, as these are now omitted to make the message more clear:
+The full list of variants and attributes is now omitted to make the message clearer.
+Instead, the message also adds a suggestion to run the [`dependencyInsight` task](userguide/viewing_debugging_dependencies.html#dependency_insights) to view the full list if needed:
 
 ```
 * Try:
-Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency. This report is described at https://docs.gradle.org/<VERSION>/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.
+Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency. This report is described at https://docs.gradle.org/@version@/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.
 ```
 
-#### Better message for resolution failures due to missing variants
+##### Missing variants
 
-If a dependency is requested that declares no variants, dependency resolution will fail.
-
-The new message makes this clear:
+If a dependency on a project that declares no variants is requested, dependency resolution will fail.
+This can happen when depending on a project that does not apply any JVM plugins.
+A new error message makes this clear:
 
 ```
 > No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
@@ -75,7 +105,7 @@ The new message makes this clear:
 Previously, the error message was misleading, as it mentioned that none of the variants had attributes:
 
 ```
-> No matching variant of project :subproject1 was found. The consumer was configured to find attribute 'attrA' with value 'value1' but:
+> No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
     - None of the variants have attributes.
 ```
 
@@ -83,7 +113,7 @@ While technically true, this did not emphasize the more important fact that no a
 
 #### Detailed information on file changes for configuration cache misses
 
-Starting with this release, when a configuration cache entry cannot be reused due to a change to some file, the console output provides additional information detailing the change:
+Starting with this release, when [the configuration cache](userguide/configuration_cache.html) cannot be reused, the console output provides more detailed information on file changes:
 
 ```
 > Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has been removed.
@@ -95,7 +125,8 @@ or
 > Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has been replaced by a directory.
 ```
 
-Before this release, the console output provided a generic message. The message was shown even if the file was not changed but was removed or replaced with a directory:
+Before this release, the console output provided a generic message.
+The message was shown even if the file content was not changed, but the file itself was removed or replaced with a directory:
 
 ```
 > Calculating task graph as configuration cache cannot be reused because file '.../some-file.txt' has changed.
@@ -107,42 +138,29 @@ Before this release, the console output provided a generic message. The message 
 Gradle is integrated into many IDEs using the [Tooling API](userguide/third_party_integration.html).
 The following improvements are for IDE integrators.
 
-#### Adoption of the Problems API with Java compilation
+#### Better compilation failure reporting for IDEs
 
-The Java compilation infrastructure has been updated to use the [Problems API](userguide/implementing_gradle_plugins.html#reporting_problems).
-This change will supply the Tooling API clients with structured, rich information about compilation issues. IDEs such as IntelliJ IDEA and Visual Studio Code can adopt this feature to provide an accurate visual representation of Java compilation problems without relying on parsing text printed by the compiler.
+Gradle now collects and manages problems through the [Problems API](userguide/implementing_gradle_plugins_binary.html#reporting_problems).
+This means [IDEs and other Tooling API clients](userguide/third_party_integration.html) can access precise and detailed information about any issues that arise during the build process.
+
+Several Gradle components leverage this new API, including deprecation, task validation, and the dependency version catalog.
+In this release, the Java compiler is also integrated into this infrastructure.
+
+This integration allows popular IDEs like IntelliJ IDEA and Visual Studio Code to provide a seamless and accurate visual representation of Java compilation issues, eliminating the need to parse text output from the compiler.
+[Eclipse Buildship](https://github.com/eclipse/buildship/pull/1306) will include this in its upcoming release.
 
 <a name="other"></a>
 ### Other improvements
 
-#### Changes to Build init behavior when Gradle build files are present
-
-The [build `init` plugin](userguide/build_init_plugin.html) will now ask the user to confirm before proceeding if there are any files in the project directory, including Gradle `settings.gradle(.kts)` and `build.gradle(.kts)` files.
-
-This change is intended to prevent accidental overwriting of existing files in the project directory.
-
-Build init now has a new `--overwrite` option, which allows users to bypass this confirmation message.
-This can be used if initialization is canceled or fails, and the user wants to re-run the init task without being prompted to confirm.
-
-If the user declines to overwrite files that exist, or if the `--no-overwrite` option is provided, initialization will fail with the message:
-
-```Aborting build initialization due to existing files in the project directory: <PATH>```
-
-The exception to this behavior is when Gradle detects an existing Maven build via the presence of a `pom.xml` file - these builds will be converted to Gradle builds without prompting.
-
-#### New TestNg options supported
-
-The [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html) class now supports configuring the following options:
-
-`suiteThreadPoolSize`
-
-More information about this option is available in the [TestNG documentation](https://testng.org/#_command_line_parameters).
-
 #### Daemon JVM information report
 
-It is now possible to view information about the JVM used for the [Daemon](userguide/gradle_daemon.html) from the [command line](userguide/command_line_interface.html).
+Before this release, running `gradle --version` displayed the JVM used to launch Gradle, but this JVM did not execute any build logic.
+Instead, Gradle started a [Daemon](userguide/gradle_daemon.html) that actually ran the build.
+Then, Gradle 8.8 introduced a feature that allowed users to configure the JVM used to run the Gradle Daemon.
 
-Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Daemon (which executes the build process) and the Launcher (which initiates the Gradle build process):
+In this release, users can view information about the JVM used for both the Daemon (which executes the build process) and the Launcher JVM (which initiates the Gradle build process) from the [command line](userguide/command_line_interface.html).
+
+Running `gradle --version` provides a short output that highlights the potentially different JVM versions used by the Launcher and the Daemon:
 
 ```
 [...]
@@ -152,7 +170,7 @@ Daemon JVM:    /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home (n
 
 This includes information about how Gradle chose the JVM, including the `org.gradle.java.home` [system property](userguide/build_environment.html) and the incubating [Daemon JVM criteria](userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
 
-More details can be seen by running `gradle buildEnvironment`:
+More details can be seen by running the `buildEnvironment` task:
 
 ```
 Daemon JVM: Eclipse Temurin JDK 11.0.23+9
@@ -163,16 +181,25 @@ Daemon JVM: Eclipse Temurin JDK 11.0.23+9
   | Is JDK:             true
 ```
 
-## Promoted features
+#### Build init does not override existing build files by default
 
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+The [build `init` plugin](userguide/build_init_plugin.html) will now ask the user to confirm before proceeding if there are any files in the project directory, including Gradle `settings.gradle(.kts)` and `build.gradle(.kts)` files.
 
-The following are the features that have been promoted in this Gradle release.
+This change is intended to prevent accidental overwriting of existing files in the project directory.
 
-<!--
-### Example promoted
--->
+Build init now has a new `--overwrite` option, which allows users to bypass this confirmation message.
+This can be used if initialization is canceled or fails, and the user wants to re-run the init task without being prompted to confirm.
+
+If the user declines to overwrite files that exist, or if the `--no-overwrite` option is provided, initialization will fail with the message:
+```Aborting build initialization due to existing files in the project directory: <PATH>```
+
+The exception to this behavior is when Gradle detects an existing Maven build via the presence of a `pom.xml` file - these builds will be converted to Gradle builds without prompting.
+
+#### Better control of parallelism in TestNG tests
+
+Test tasks using the TestNG framework now support configuring the `suiteThreadPoolSize` on the [TestNGOptions](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html).
+
+More information about this option is available in the [TestNG documentation](https://testng.org/#_command_line_parameters).
 
 ## Fixed issues
 

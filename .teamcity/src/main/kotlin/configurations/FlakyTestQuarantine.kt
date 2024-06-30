@@ -40,7 +40,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                 // Here we check the existence of `@Flaky` annotation to make sure nobody use that annotation in `distributions-integ-tests` subproject.
                 name = "MAKE_SURE_NO_@FLAKY_IN_DISTRIBUTIONS_INTEG_TESTS"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = "! grep 'org.gradle.test.fixtures.Flaky' -r subprojects/distributions-integ-tests/src"
+                scriptContent = "cd testing/distributions-integ-tests/src && ! grep 'org.gradle.test.fixtures.Flaky' -r ."
             }
         }
     }

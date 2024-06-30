@@ -237,7 +237,7 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/
 [[sec:differences_with_top_level_dependencies]]
 == Differences between the test suite `dependencies` and the top-level `dependencies` blocks
 
-See <<jvm_test_suite_plugin.adoc#sec:differences_with_top_level_dependencies,differences with custom `dependencies` blocks>>.
+See <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,differences with custom `dependencies` blocks>>.
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 

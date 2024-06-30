@@ -24,7 +24,7 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.WatchMode
-import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
+import org.gradle.internal.watch.registry.impl.FileSystemWatchingDocumentationIndex
 import org.gradle.internal.watch.vfs.FileChangeListeners
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
@@ -38,7 +38,7 @@ class WatchingVirtualFileSystemTest extends Specification {
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
+    def documentationIndex = Mock(FileSystemWatchingDocumentationIndex)
     def locationsUpdatedByCurrentBuild = Mock(FileWatchingFilter)
     def buildOperationRunner = new TestBuildOperationRunner()
     def watchableFileSystemDetector = Mock(WatchableFileSystemDetector)
@@ -46,7 +46,7 @@ class WatchingVirtualFileSystemTest extends Specification {
     def watchingVirtualFileSystem = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         nonEmptySnapshotHierarchy,
-        daemonDocumentationIndex,
+        documentationIndex,
         locationsUpdatedByCurrentBuild,
         watchableFileSystemDetector,
         fileChangeListeners
