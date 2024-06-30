@@ -17,9 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-
-import static org.hamcrest.CoreMatchers.containsString
 
 class TestNGParallelBySuitesIntegrationTest extends AbstractIntegrationSpec {
 
