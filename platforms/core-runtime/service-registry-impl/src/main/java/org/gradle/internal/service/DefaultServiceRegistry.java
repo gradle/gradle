@@ -131,7 +131,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
         this.thisAsServiceProvider = allServices;
 
-        findProviderMethods(this);
+        ServiceAccessToken token = ServiceAccess.createToken(getDisplayName());
+        findProviderMethods(this, token);
     }
 
     private static ServiceProvider setupParentServices(ServiceRegistry[] parents) {
@@ -180,31 +181,36 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         return getDisplayName();
     }
 
-    private void findProviderMethods(ServiceRegistrationProvider target) {
+    private void findProviderMethods(ServiceRegistrationProvider target, ServiceAccessToken token) {
         Class<? extends ServiceRegistrationProvider> type = target.getClass();
         RelevantMethods methods = RelevantMethods.getMethods(type);
         for (ServiceMethod method : methods.decorators) {
             if (parentServices == null) {
                 throw new ServiceLookupException(String.format("Cannot use decorator method %s.%s() when no parent registry is provided.", type.getSimpleName(), method.getName()));
             }
-            ownServices.add(new FactoryMethodService(this, target, method));
+            ownServices.add(new FactoryMethodService(this, determineAccessScope(method, token), token, target, method));
         }
         for (ServiceMethod method : methods.factories) {
-            ownServices.add(new FactoryMethodService(this, target, method));
+            ownServices.add(new FactoryMethodService(this, determineAccessScope(method, token), token, target, method));
         }
         for (ServiceMethod method : methods.configurers) {
-            applyConfigureMethod(method, target);
+            applyConfigureMethod(token, method, target);
         }
     }
 
-    private void applyConfigureMethod(ServiceMethod method, Object target) {
+    private static ServiceAccessScope determineAccessScope(ServiceMethod method, ServiceAccessToken token) {
+        PrivateService privateService = method.getMethod().getAnnotation(PrivateService.class);
+        return privateService != null ? ServiceAccess.getPrivateScope(token) : ServiceAccess.getPublicScope();
+    }
+
+    private void applyConfigureMethod(ServiceAccessToken token, ServiceMethod method, Object target) {
         Object[] params = new Object[method.getParameterTypes().length];
         for (int i = 0; i < method.getParameterTypes().length; i++) {
             Type paramType = method.getParameterTypes()[i];
             if (paramType.equals(ServiceRegistration.class)) {
-                params[i] = newRegistration();
+                params[i] = newRegistration(token);
             } else {
-                Service paramProvider = find(paramType, allServices);
+                Service paramProvider = find(paramType, token, allServices);
                 if (paramProvider == null) {
                     throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",
                         method.getOwner().getSimpleName(),
@@ -228,7 +234,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     public void register(ServiceRegistrationAction action) {
         assertMutable();
-        action.registerServices(newRegistration());
+        ServiceAccessToken token = ServiceAccess.createToken(format(action.getClass()));
+        action.registerServices(newRegistration(token));
     }
 
     private void assertMutable() {
@@ -237,31 +244,32 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    private ServiceRegistration newRegistration() {
+    private ServiceRegistration newRegistration(final ServiceAccessToken token) {
         return new ServiceRegistration() {
             @Override
             public <T> void add(Class<T> serviceType, T serviceInstance) {
-                DefaultServiceRegistry.this.add(serviceType, serviceInstance);
+                DefaultServiceRegistry.this.add(ServiceAccess.getPublicScope(), serviceType, serviceInstance);
             }
 
             @Override
             public void add(Class<?> serviceType) {
-                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType));
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, ServiceAccess.getPublicScope(), token, serviceType));
             }
 
             @Override
             public <T> void add(Class<? super T> serviceType, Class<T> implementationType) {
-                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType, implementationType));
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, ServiceAccess.getPublicScope(), token, serviceType, implementationType));
             }
 
             @Override
             public <T> void add(Class<? super T> serviceType1, Class<? super T> serviceType2, Class<T> implementationType) {
                 //noinspection RedundantTypeArguments
-                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, Arrays.<Class<?>>asList(serviceType1, serviceType2), implementationType));
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, ServiceAccess.getPublicScope(), token, Arrays.<Class<?>>asList(serviceType1, serviceType2), implementationType));
             }
 
             @Override
             public void addProvider(ServiceRegistrationProvider provider) {
+                // The access token is intentionally not forwarded here
                 DefaultServiceRegistry.this.addProvider(provider);
             }
         };
@@ -271,8 +279,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      * Adds a service instance to this registry with the given public type. The given object is closed when this registry is closed.
      */
     public <T> DefaultServiceRegistry add(Class<? extends T> serviceType, T serviceInstance) {
-        assertMutable();
-        ownServices.add(new FixedInstanceService(this, serviceType, serviceInstance));
+        add(ServiceAccess.getPublicScope(), serviceType, serviceInstance);
         return this;
     }
 
@@ -283,12 +290,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         return add(serviceInstance.getClass(), serviceInstance);
     }
 
+    private <T> void add(ServiceAccessScope accessScope, Class<? extends T> serviceType, T serviceInstance) {
+        assertMutable();
+        ownServices.add(new FixedInstanceService(this, accessScope, serviceType, serviceInstance));
+    }
+
     /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
         assertMutable();
-        findProviderMethods(provider);
+        ServiceAccessToken token = org.gradle.internal.service.ServiceAccess.createToken(format(provider.getClass()));
+        findProviderMethods(provider, token);
         return this;
     }
 
@@ -347,7 +360,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     @Nullable
     private Service getService(Type serviceType) {
         serviceRequested();
-        return find(serviceType, allServices);
+        return find(serviceType, null, allServices);
     }
 
     @Override
@@ -364,7 +377,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     @Nullable
     private Service getFactoryService(Class<?> serviceType) {
         serviceRequested();
-        return allServices.getFactory(serviceType);
+        return allServices.getFactory(serviceType, null);
     }
 
     @Override
@@ -372,7 +385,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         assertValidServiceType(serviceType);
         List<T> services = new ArrayList<T>();
         serviceRequested();
-        allServices.getAll(serviceType, new InstanceUnpackingVisitor<T>(serviceType, services));
+        allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<T>(serviceType, services));
         return services;
     }
 
@@ -421,22 +434,22 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<AnnotatedServiceLifecycleHandler>();
 
         public OwnServices() {
-            providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService()));
+            providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
         }
 
         @Override
-        public Service getFactory(Class<?> type) {
+        public Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
             List<ServiceProvider> serviceProviders = getProviders(Factory.class);
             if (serviceProviders.isEmpty()) {
                 return null;
             }
             if (serviceProviders.size() == 1) {
-                return serviceProviders.get(0).getFactory(type);
+                return serviceProviders.get(0).getFactory(type, token);
             }
 
             List<Service> services = new ArrayList<Service>(serviceProviders.size());
             for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getFactory(type);
+                Service service = serviceProvider.getFactory(type, token);
                 if (service != null) {
                     services.add(service);
                 }
@@ -463,18 +476,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type type) {
+        public Service getService(Type type, @Nullable ServiceAccessToken token) {
             List<ServiceProvider> serviceProviders = getProviders(unwrap(type));
             if (serviceProviders.isEmpty()) {
                 return null;
             }
             if (serviceProviders.size() == 1) {
-                return serviceProviders.get(0).getService(type);
+                return serviceProviders.get(0).getService(type, token);
             }
 
             List<Service> services = new ArrayList<Service>(serviceProviders.size());
             for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getService(type);
+                Service service = serviceProvider.getService(type, token);
                 if (service != null) {
                     services.add(service);
                 }
@@ -507,9 +520,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Visitor getAll(Class<?> serviceType, ServiceProvider.Visitor visitor) {
+        public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
             for (ServiceProvider serviceProvider : getProviders(serviceType)) {
-                visitor = serviceProvider.getAll(serviceType, visitor);
+                visitor = serviceProvider.getAll(serviceType, token, visitor);
             }
             return visitor;
         }
@@ -711,6 +724,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private static abstract class SingletonService extends ManagedObjectServiceProvider {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
+        protected final ServiceAccessScope accessScope;
         protected final List<? extends Type> serviceTypes;
         private final List<Class<?>> serviceTypesAsClasses;
 
@@ -721,13 +735,14 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         // The value of the field is computed lazily.
         Class<?> factoryElementType;
 
-        SingletonService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
+        SingletonService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, List<? extends Type> serviceTypes) {
             super(owner);
 
             if (serviceTypes.isEmpty()) {
                 throw new IllegalArgumentException("Expected at least one declared service type");
             }
 
+            this.accessScope = accessScope;
             this.serviceTypes = serviceTypes;
             serviceTypesAsClasses = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
                 @Override
@@ -786,7 +801,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType) {
+        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+            if (!accessScope.contains(token)) {
+                return null;
+            }
             if (!isSatisfiedByAny(serviceType, serviceTypes)) {
                 return null;
             }
@@ -794,7 +812,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Visitor getAll(Class<?> serviceType, ServiceProvider.Visitor visitor) {
+        public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
+            if (!accessScope.contains(token)) {
+                return visitor;
+            }
             if (isAssignableFromAnyType(serviceType, serviceTypesAsClasses)) {
                 visitor.visit(prepare());
             }
@@ -802,7 +823,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getFactory(Class<?> elementType) {
+        public Service getFactory(Class<?> elementType, @Nullable ServiceAccessToken token) {
+            if (!accessScope.contains(token)) {
+                return null;
+            }
             if (!isFactoryFor(elementType)) {
                 return null;
             }
@@ -865,11 +889,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static abstract class FactoryService extends SingletonService {
+        private final ServiceAccessToken accessToken;
         private Service[] paramServices;
         private Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes) {
-            super(owner, serviceTypes);
+        protected FactoryService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken accessToken, List<? extends Type> serviceTypes) {
+            super(owner, accessScope, serviceTypes);
+            this.accessToken = accessToken;
         }
 
         protected abstract Type[] getParameterTypes();
@@ -888,7 +914,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 Type paramType = parameterTypes[i];
                 if (isEqualToAnyType(paramType, serviceTypes)) {
                     // A decorating factory
-                    Service paramProvider = find(paramType, owner.parentServices);
+                    Service paramProvider = find(paramType, accessToken, owner.parentServices);
                     if (paramProvider == null) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
                             format("type", serviceTypes),
@@ -901,7 +927,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 } else {
                     Service paramProvider;
                     try {
-                        paramProvider = find(paramType, owner.allServices);
+                        paramProvider = find(paramType, accessToken, owner.allServices);
                     } catch (ServiceLookupException e) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as there is a problem with parameter #%s of type %s.",
                             format("type", serviceTypes),
@@ -945,8 +971,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Visitor getAll(Class<?> serviceType, final Visitor visitor) {
-            super.getAll(serviceType, visitor);
+        public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, final Visitor visitor) {
+            super.getAll(serviceType, token, visitor);
             if (decorates == null) {
                 return visitor;
             } else {
@@ -971,12 +997,12 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Nullable
         private Object target;
 
-        public FactoryMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
-            this(owner, serviceTypesOf(method), target, method);
+        public FactoryMethodService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, Object target, ServiceMethod method) {
+            this(owner, accessScope, token, serviceTypesOf(method), target, method);
         }
 
-        private FactoryMethodService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes, Object target, ServiceMethod method) {
-            super(owner, serviceTypes);
+        private FactoryMethodService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, List<? extends Type> serviceTypes, Object target, ServiceMethod method) {
+            super(owner, accessScope, token, serviceTypes);
             validateImplementationForServiceTypes(serviceTypes, method.getServiceType());
             this.target = target;
             this.method = method;
@@ -1039,8 +1065,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static class FixedInstanceService extends SingletonService {
-        public FixedInstanceService(DefaultServiceRegistry owner, Class<?> serviceType, Object serviceInstance) {
-            super(owner, singletonList(serviceType));
+        public FixedInstanceService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, Class<?> serviceType, Object serviceInstance) {
+            super(owner, accessScope, singletonList(serviceType));
             setInstance(serviceInstance);
         }
 
@@ -1058,16 +1084,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private static class ConstructorService extends FactoryService {
         private final Constructor<?> constructor;
 
-        private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType) {
-            this(owner, serviceType, serviceType);
+        private ConstructorService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, Class<?> serviceType) {
+            this(owner, accessScope, token, serviceType, serviceType);
         }
 
-        private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType, Class<?> implementationType) {
-            this(owner, Collections.<Class<?>>singletonList(serviceType), implementationType);
+        private ConstructorService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, Class<?> serviceType, Class<?> implementationType) {
+            this(owner, accessScope, token, Collections.<Class<?>>singletonList(serviceType), implementationType);
         }
 
-        private ConstructorService(DefaultServiceRegistry owner, List<? extends Type> serviceTypes, Class<?> implementationType) {
-            super(owner, serviceTypes);
+        private ConstructorService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, List<? extends Type> serviceTypes, Class<?> implementationType) {
+            super(owner, accessScope, token, serviceTypes);
 
             if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
@@ -1132,9 +1158,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType) {
+        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getService(serviceType);
+                Service service = serviceProvider.getService(serviceType, token);
                 if (service != null) {
                     return service;
                 }
@@ -1143,9 +1169,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getFactory(Class<?> type) {
+        public Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
             for (ServiceProvider serviceProvider : serviceProviders) {
-                Service factory = serviceProvider.getFactory(type);
+                Service factory = serviceProvider.getFactory(type, token);
                 if (factory != null) {
                     return factory;
                 }
@@ -1154,9 +1180,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Visitor getAll(Class<?> serviceType, Visitor visitor) {
+        public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
             for (ServiceProvider serviceProvider : serviceProviders) {
-                visitor = serviceProvider.getAll(serviceType, visitor);
+                visitor = serviceProvider.getAll(serviceType, token, visitor);
             }
             return visitor;
         }
@@ -1187,18 +1213,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getFactory(Class<?> serviceType) {
-            return parent.getFactory(serviceType);
+        public Service getFactory(Class<?> serviceType, @Nullable ServiceAccessToken token) {
+            return parent.getFactory(serviceType, token);
         }
 
         @Override
-        public Service getService(Type serviceType) {
-            return parent.getService(serviceType);
+        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+            return parent.getService(serviceType, token);
         }
 
         @Override
-        public Visitor getAll(Class<?> serviceType, Visitor visitor) {
-            return parent.getAll(serviceType, visitor);
+        public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
+            return parent.getAll(serviceType, token, visitor);
         }
 
         @Override
@@ -1212,71 +1238,71 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     @Nullable
-    private static Service find(Type serviceType, ServiceProvider serviceProvider) {
+    private static Service find(Type serviceType, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
         if (serviceType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) serviceType;
             Type rawType = parameterizedType.getRawType();
             if (rawType.equals(Factory.class)) {
                 final Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                return getFactoryService(typeArg, serviceProvider);
+                return getFactoryService(typeArg, token, serviceProvider);
             }
             if (rawType instanceof Class) {
                 if (((Class<?>) rawType).isAssignableFrom(List.class)) {
                     Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                    return getCollectionService(typeArg, serviceProvider);
+                    return getCollectionService(typeArg, token, serviceProvider);
                 }
                 assertValidServiceType((Class<?>) rawType);
-                return serviceProvider.getService(serviceType);
+                return serviceProvider.getService(serviceType, token);
             }
         }
         if (serviceType instanceof Class<?>) {
             assertValidServiceType((Class<?>) serviceType);
-            return serviceProvider.getService(serviceType);
+            return serviceProvider.getService(serviceType, token);
         }
 
         throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(serviceType)));
     }
 
     @Nullable
-    private static Service getFactoryService(Type type, ServiceProvider serviceProvider) {
+    private static Service getFactoryService(Type type, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
         if (type instanceof Class) {
-            return serviceProvider.getFactory((Class) type);
+            return serviceProvider.getFactory((Class) type, token);
         }
         if (type instanceof WildcardType) {
             final WildcardType wildcardType = (WildcardType) type;
             if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
                 if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                    return serviceProvider.getFactory((Class<?>) wildcardType.getLowerBounds()[0]);
+                    return serviceProvider.getFactory((Class<?>) wildcardType.getLowerBounds()[0], token);
                 }
             }
             if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
                 if (wildcardType.getUpperBounds()[0] instanceof Class) {
-                    return serviceProvider.getFactory((Class<?>) wildcardType.getUpperBounds()[0]);
+                    return serviceProvider.getFactory((Class<?>) wildcardType.getUpperBounds()[0], token);
                 }
             }
         }
         throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(type)));
     }
 
-    private static Service getCollectionService(Type elementType, ServiceProvider serviceProvider) {
+    private static Service getCollectionService(Type elementType, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
         if (elementType instanceof Class) {
             Class<?> elementClass = (Class<?>) elementType;
-            return getCollectionService(elementClass, serviceProvider);
+            return getCollectionService(elementClass, token, serviceProvider);
         }
         if (elementType instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) elementType;
             if (wildcardType.getUpperBounds()[0] instanceof Class && wildcardType.getLowerBounds().length == 0) {
                 Class<?> elementClass = (Class<?>) wildcardType.getUpperBounds()[0];
-                return getCollectionService(elementClass, serviceProvider);
+                return getCollectionService(elementClass, token, serviceProvider);
             }
         }
         throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(elementType)));
     }
 
-    private static Service getCollectionService(Class<?> elementClass, ServiceProvider serviceProvider) {
+    private static Service getCollectionService(Class<?> elementClass, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
         assertValidServiceType(elementClass);
         List<Service> providers = new ArrayList<Service>();
-        serviceProvider.getAll(elementClass, new CollectingVisitor(providers));
+        serviceProvider.getAll(elementClass, token, new CollectingVisitor(providers));
         List<Object> services = new ArrayList<Object>(providers.size());
         for (Service service : providers) {
             services.add(service.get());
@@ -1423,8 +1449,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private class ThisAsService implements ServiceProvider, Service {
+
+        private final ServiceAccessScope accessScope;
+
+        private ThisAsService(ServiceAccessScope accessScope) {
+            this.accessScope = accessScope;
+        }
+
         @Override
-        public Service getService(Type serviceType) {
+        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+            if (!accessScope.contains(token)) {
+                return null;
+            }
             if (serviceType.equals(ServiceRegistry.class)) {
                 return this;
             }
@@ -1432,12 +1468,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getFactory(Class<?> type) {
+        public Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
+            // Note: if any implementation is added, it must check the [accessScope] first
             return null;
         }
 
         @Override
-        public Visitor getAll(Class<?> serviceType, Visitor visitor) {
+        public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
+            if (!accessScope.contains(token)) {
+                return visitor;
+            }
             if (serviceType.equals(ServiceRegistry.class)) {
                 visitor.visit(this);
             }

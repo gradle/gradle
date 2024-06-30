@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
+import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
@@ -1684,7 +1685,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        Service getService(Type serviceType) {
+        Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             def object = parentServices.get((Class) serviceType)
             if (object == null) {
                 return null
@@ -1693,7 +1694,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        Service getFactory(Class<?> type) {
+        Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
             def factory = parentServices.getFactory(type)
             if (factory == null) {
                 return factory
@@ -1702,7 +1703,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        Visitor getAll(Class<?> serviceType, Visitor visitor) {
+        Visitor getAll(Class<?> serviceType, ServiceAccessToken token, Visitor visitor) {
             parentServices.getAll(serviceType).forEach {
                 visitor.visit(serviceFor(it))
             }
