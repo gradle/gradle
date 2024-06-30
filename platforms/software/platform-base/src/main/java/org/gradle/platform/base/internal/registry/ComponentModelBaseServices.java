@@ -16,8 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.Provides;
@@ -25,7 +23,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy;
 
@@ -33,40 +30,30 @@ public class ComponentModelBaseServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new GlobalScopeServices());
+        registration.addProvider(GlobalScopeServices.class);
     }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScopeServices());
+        registration.addProvider(BuildScopeServices.class);
     }
 
-    private static class BuildScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        ProjectModelResolver createProjectLocator(final ProjectRegistry<ProjectInternal> projectRegistry) {
-            return new DefaultProjectModelResolver(projectRegistry);
-        }
+    private interface BuildScopeServices extends ServiceRegistrationProvider {
+        @Provides(ProjectModelResolver.class)
+        DefaultProjectModelResolver createProjectLocator();
     }
 
-    private static class GlobalScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
-            return new ComponentTypeModelRuleExtractor(schemaStore);
-        }
+    private interface GlobalScopeServices extends ServiceRegistrationProvider {
+        @Provides(MethodModelRuleExtractor.class)
+        ComponentTypeModelRuleExtractor createComponentModelPluginInspector();
 
-        @Provides
-        MethodModelRuleExtractor createComponentBinariesPluginInspector() {
-            return new ComponentBinariesModelRuleExtractor();
-        }
+        @Provides(MethodModelRuleExtractor.class)
+        ComponentBinariesModelRuleExtractor createComponentBinariesPluginInspector();
 
-        @Provides
-        MethodModelRuleExtractor createBinaryTaskPluginInspector() {
-            return new BinaryTasksModelRuleExtractor();
-        }
+        @Provides(MethodModelRuleExtractor.class)
+        BinaryTasksModelRuleExtractor createBinaryTaskPluginInspector();
 
-        @Provides
-        ModelSchemaAspectExtractionStrategy createVariantAspectExtractionStrategy() {
-            return new VariantAspectExtractionStrategy();
-        }
+        @Provides(ModelSchemaAspectExtractionStrategy.class)
+        VariantAspectExtractionStrategy createVariantAspectExtractionStrategy();
     }
 }

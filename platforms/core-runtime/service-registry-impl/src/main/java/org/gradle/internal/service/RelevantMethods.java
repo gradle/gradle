@@ -62,7 +62,7 @@ class RelevantMethods {
         }
 
         public RelevantMethods build() {
-            for (Class<?> clazz = type; clazz != Object.class && clazz != DefaultServiceRegistry.class; clazz = clazz.getSuperclass()) {
+            for (Class<?> clazz = type; clazz != null && clazz != Object.class && clazz != DefaultServiceRegistry.class; clazz = clazz.getSuperclass()) {
                 for (Method method : clazz.getDeclaredMethods()) {
                     if (Modifier.isStatic(method.getModifiers())) {
                         continue;

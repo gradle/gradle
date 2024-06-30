@@ -1539,6 +1539,45 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
     }
 
+    def "can declare services via an interface"() {
+        given:
+        registry.addProvider(ServiceProviderAsInterface)
+
+        when:
+        def service1 = registry.get(TestService)
+        then:
+        service1 instanceof TestService
+
+        when:
+        def service2 = registry.get(ServiceWithDependency)
+        then:
+        service2 instanceof ServiceWithDependency
+
+        when:
+        registry.get(TestServiceImpl)
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
+    }
+
+    def "cannot declare services via an interface with decorators"() {
+        when:
+        registry.addProvider(BrokenServiceProviderAsInterface.WithDecorators)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Decorators are not allowed on interface-based service providers"
+    }
+
+    def "cannot declare services via an interface with factory-methods with dependencies"() {
+        when:
+        registry.addProvider(BrokenServiceProviderAsInterface.WithDependencies)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Factory methods with parameters are not allowed on interface-based service providers"
+    }
+
     def "can lookup a multi-service by any service type declared via @Provides"() {
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
@@ -2129,6 +2168,27 @@ class DefaultServiceRegistryTest extends Specification {
 
     static class RequiresService {
         RequiresService(Number value) {
+        }
+    }
+
+    interface ServiceProviderAsInterface extends ServiceRegistrationProvider {
+        @Provides(TestService)
+        TestServiceImpl createTestService()
+
+        @Provides
+        ServiceWithDependency createServiceWithDependency();
+    }
+
+    interface BrokenServiceProviderAsInterface {
+
+        interface WithDecorators extends ServiceRegistrationProvider {
+            @Provides
+            TestServiceImpl decorate(TestServiceImpl delegate)
+        }
+
+        interface WithDependencies extends ServiceRegistrationProvider {
+            @Provides
+            ServiceWithDependency create(TestService dependency)
         }
     }
 }
