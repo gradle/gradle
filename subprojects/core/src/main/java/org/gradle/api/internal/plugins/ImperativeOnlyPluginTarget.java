@@ -19,8 +19,6 @@ package org.gradle.api.internal.plugins;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.initialization.Settings;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 
 import javax.annotation.Nullable;
@@ -50,17 +48,26 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         try {
             cast.apply(target);
         } catch (ClassCastException e) {
-            Type pluginTargetType = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class).get(Plugin.class.getTypeParameters()[0]);
-            if (pluginTargetType instanceof Class<?>) {
-                Class<?> pluginTargetClass = (Class<?>) pluginTargetType;
-                if (target instanceof Settings && Project.class.equals(pluginTargetClass)) {
-                    throw new InvalidUserCodeException("Cannot apply a Project plugin to a Settings instance");
-                } else if (target instanceof Project && Settings.class.equals(pluginTargetClass)) {
-                    throw new InvalidUserCodeException("Cannot apply a Settings plugin to a Project instance");
-                }
-            }
+            maybeThrowOnTargetMismatch(plugin);
             throw e;
         }
+    }
+
+    private void maybeThrowOnTargetMismatch(Plugin<?> plugin) {
+        Type typeParameter = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class).get(Plugin.class.getTypeParameters()[0]);
+        if (!(typeParameter instanceof Class<?>)) {
+            return;
+        }
+
+        PluginTargetType actualTargetType = PluginTargetType.from((Class<?>) typeParameter);
+        if (actualTargetType == null || targetType.equals(actualTargetType)) {
+            return;
+        }
+
+        throw new InvalidUserCodeException(String.format(
+            "The plugin must be applied to %s, but was applied to %s",
+            actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
+        ));
     }
 
     @Override
