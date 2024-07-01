@@ -63,14 +63,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getSubProjects(relativeTo.getPath()).stream()
-            .map(this::asLifecycleAwareProject)
+            .map(project -> LifecycleAwareProject.from(project, isolatedProjectEvaluationListenerProvider))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getAllProjects(relativeTo.getPath()).stream()
-            .map(this::asLifecycleAwareProject)
+            .map(project -> LifecycleAwareProject.from(project, isolatedProjectEvaluationListenerProvider))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -93,11 +93,5 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     public DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject) {
         ProjectInternal parent = referrerProject.getParent();
         return parent != null ? parent.getInheritedScope() : null;
-    }
-
-    private ProjectInternal asLifecycleAwareProject(ProjectInternal project) {
-        return project instanceof LifecycleAwareProject
-            ? project
-            : new LifecycleAwareProject(project, isolatedProjectEvaluationListenerProvider);
     }
 }
