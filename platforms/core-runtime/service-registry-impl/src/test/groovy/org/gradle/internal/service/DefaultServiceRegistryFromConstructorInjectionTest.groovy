@@ -168,6 +168,54 @@ class DefaultServiceRegistryFromConstructorInjectionTest extends Specification {
             "Cannot register a constructor with direct service provider injection for type ServiceWithConstructorParameterUsingFromConstructor"
     }
 
+    def "from-constructor services are closed when used as services"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            CloseableService create(@FromConstructor CloseableService service) { service }
+
+            @Provides
+            Integer createInt(CloseableService s) { s.closed + 10 }
+        })
+
+        when:
+        def service = registry.get(CloseableService)
+        then:
+        service.closed == 0
+
+        when:
+        def dependant = registry.get(Integer)
+        then:
+        dependant == 10
+
+        when:
+        registry.close()
+        then:
+        service.closed == 1
+    }
+
+    def "from-constructor service is not closed if it is not exposed as a service"() {
+        given:
+        CloseableService capturedService = null
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            Integer create(@FromConstructor CloseableService service) {
+                capturedService = service
+                service.closed + 10
+            }
+        })
+
+        when:
+        def service = registry.get(Integer)
+        then:
+        service == 10
+
+        when:
+        registry.close()
+        then:
+        capturedService.closed == 0
+    }
+
     private interface TestService {
     }
 
@@ -194,6 +242,14 @@ class DefaultServiceRegistryFromConstructorInjectionTest extends Specification {
     private static class ServiceWithConstructorParameterUsingFromConstructor extends ServiceWithDependency {
         ServiceWithConstructorParameterUsingFromConstructor(@FromConstructor TestServiceImpl ts) {
             super(ts)
+        }
+    }
+
+    private static class CloseableService implements Closeable {
+        int closed = 0
+
+        void close() {
+            closed++
         }
     }
 
