@@ -20,7 +20,7 @@ import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
@@ -33,7 +33,6 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class ArtifactBackedResolvedVariantTest extends Specification {
-    def attributes = Mock(AttributeContainerInternal)
     def variantDisplayName = Describables.of("<variant>")
     def id = Mock(VariantResolveMetadata.Identifier)
     def queue = new TestBuildOperationExecutor.TestBuildOperationQueue()
@@ -77,7 +76,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER) // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
 
         then:
@@ -86,7 +85,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact2)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
@@ -99,7 +98,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
@@ -128,7 +127,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
 
         then:
@@ -142,7 +141,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact2)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
@@ -160,7 +159,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
@@ -210,7 +209,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(List<ResolvableArtifact> artifacts) {
-        return new ArtifactBackedResolvedVariant(id, variantDisplayName, attributes, ImmutableCapabilities.EMPTY, [], { artifacts as Set })
+        return new ArtifactBackedResolvedVariant(id, variantDisplayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, [], { artifacts as Set })
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable {}

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
@@ -43,7 +43,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifac
 public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final VariantResolveMetadata.Identifier identifier;
     private final DisplayName displayName;
-    private final AttributeContainerInternal attributes;
+    private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
     private final List<? extends ComponentArtifactMetadata> artifacts;
     private final ComponentArtifactResolver componentArtifactResolver;
@@ -51,7 +51,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     public ArtifactBackedResolvedVariant(
         @Nullable VariantResolveMetadata.Identifier identifier,
         DisplayName displayName,
-        AttributeContainerInternal attributes,
+        ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         List<? extends ComponentArtifactMetadata> artifacts,
         ComponentArtifactResolver componentArtifactResolver
@@ -102,7 +102,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     @Override
-    public AttributeContainerInternal getAttributes() {
+    public ImmutableAttributes getAttributes() {
         return attributes;
     }
 
