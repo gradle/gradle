@@ -106,7 +106,6 @@ class BrokenPlugin {
         verifyAll(receivedProblem(0)) {
             fqid == "plugin-application:target-type-mismatch"
             contextualLabel == "The plugin must be applied to a Project (or in a build script), but was applied to the Settings (or in a settings script)"
-
         }
     }
 
