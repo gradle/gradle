@@ -19,9 +19,7 @@ package org.gradle.internal.configuration.problems
 import org.gradle.api.internal.DocumentationRegistry
 
 
-fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection) =
-    configurationCacheLinkFor(section.anchor)
+fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection): String =
+    getDocumentationFor("configuration_cache", section.anchor)
 
 
-fun DocumentationRegistry.configurationCacheLinkFor(anchor: String): String =
-    getDocumentationFor("configuration_cache", anchor)
