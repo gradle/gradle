@@ -1,0 +1,60 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.plugins
+
+import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.project.ProjectInternal
+import spock.lang.Specification
+
+class ImperativeOnlyPluginTargetTest extends Specification {
+
+    def "mismatched plugin application target is detected"() {
+        def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal))
+
+        when:
+        pluginTarget.applyImperative("someId", new Plugin<Settings>() {
+            @Override
+            void apply(Settings target) {
+                throw new IllegalStateException("unreachable")
+            }
+        })
+
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "The plugin must be applied to the Settings (or in a settings script), but was applied to a Project (or in a build script)"
+    }
+
+    def "custom ClassCastExceptions are not replaced on apply"() {
+        def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal))
+
+        when:
+        pluginTarget.applyImperative("someId", new Plugin<Project>() {
+            @Override
+            void apply(Project target) {
+                throw new ClassCastException("custom error")
+            }
+        })
+
+        then:
+        def e = thrown(ClassCastException)
+        e.message == "custom error"
+    }
+
+}
