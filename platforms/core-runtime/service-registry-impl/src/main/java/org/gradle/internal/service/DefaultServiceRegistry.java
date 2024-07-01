@@ -534,6 +534,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             stoppable.stop();
         }
 
+        // TODO: we are currently not adding FromConstructor service providers here
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
@@ -990,6 +991,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             Object result = invokeMethod(params);
             // Can discard the state required to create instance
             paramServiceProviders = null;
+            // TODO: we should not discard param services if they are not managed elsewhere;
+            //       currently, they are not added to the ownServices
             paramServices = null;
             return result;
         }
@@ -1348,6 +1351,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             });
             if (fromConstructor != null) {
                 Class<?> paramType = parameterTypes[i];
+                // TODO: using a constructor service to create a parameter that is expected to be returned from the provider method
+                //       introduces an explicit pattern of "duplicate" services, which are currently both reported to annotation handlers
+                //       and also will be closed more than once
                 ConstructorService constructorService = new ConstructorService(owner, accessScope, accessToken, paramType);
                 if (predefinedParamServices == null) {
                     predefinedParamServices = new ServiceProvider[parameterCount];

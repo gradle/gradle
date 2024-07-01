@@ -216,6 +216,8 @@ class DefaultServiceRegistryFromConstructorInjectionTest extends Specification {
         capturedService.closed == 0
     }
 
+    // TODO: annotation handler tests
+
     private interface TestService {
     }
 
