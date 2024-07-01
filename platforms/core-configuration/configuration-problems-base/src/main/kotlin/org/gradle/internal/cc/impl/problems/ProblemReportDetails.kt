@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl.problems
 import org.gradle.internal.configuration.problems.StructuredMessage
 
 
-data class CommonReportDetails(
+data class ProblemReportDetails(
     val buildDisplayName: String?,
     val cacheAction: String,
     val cacheActionDescription: StructuredMessage,
