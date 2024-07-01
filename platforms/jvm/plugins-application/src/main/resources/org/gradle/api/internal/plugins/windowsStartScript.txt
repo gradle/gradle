@@ -24,7 +24,7 @@
 @rem ##########################################################################
 
 @rem Set local scope for the variables with windows NT shell
-if "%OS%"=="Windows_NT" setlocal
+if "%OS%"=="Windows_NT" setlocal DisableDelayedExpansion EnableExtensions
 
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.\
@@ -52,7 +52,7 @@ echo. 1>&2
 echo Please set the JAVA_HOME variable in your environment to match the 1>&2
 echo location of your Java installation. 1>&2
 
-goto fail
+(call) & goto :EOF
 
 :findJavaFromJavaHome
 set JAVA_HOME=%JAVA_HOME:"=%
@@ -66,30 +66,14 @@ echo. 1>&2
 echo Please set the JAVA_HOME variable in your environment to match the 1>&2
 echo location of your Java installation. 1>&2
 
-goto fail
+(call) & goto :EOF
 
 :execute
 @rem Setup the command line
-
 set CLASSPATH=$classpath
-<% if ( mainClassName.startsWith('--module ') ) { %>set MODULE_PATH=$modulePath<% } %>
-
+<% if ( mainClassName.startsWith('--module ') ) { %>set MODULE_PATH=$modulePath
+<% } %>
 @rem Execute ${applicationName}
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%"<% } %> -classpath "%CLASSPATH%" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "%MODULE_PATH%" <% } %>${mainClassName} %*
+(for /f delims^= %%c in (^""%ComSpec%"^") do (goto) 2>nul || call && title^ %%~c) & "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%" <% } %>-classpath "%CLASSPATH%" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "%MODULE_PATH%" <% } %>${mainClassName} %*
 
-:end
-@rem End local scope for the variables with windows NT shell
-if %ERRORLEVEL% equ 0 goto mainEnd
-
-:fail
-rem Set variable ${exitEnvironmentVar} if you need the _script_ return code instead of
-rem the _cmd.exe /c_ return code!
-set EXIT_CODE=%ERRORLEVEL%
-if %EXIT_CODE% equ 0 set EXIT_CODE=1
-if not ""=="%${exitEnvironmentVar}%" exit %EXIT_CODE%
-exit /b %EXIT_CODE%
-
-:mainEnd
-if "%OS%"=="Windows_NT" endlocal
-
-:omega
+:EOF

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 
 import javax.annotation.Nullable;
@@ -57,8 +58,15 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         return optsEnvironmentVar;
     }
 
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     @Override
     public String getExitEnvironmentVar() {
+        DeprecationLogger.deprecateMethod(JavaAppStartScriptGenerationDetails.class, "getExitEnvironmentVar()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "remove_exit_environment_var")
+            .nagUser();
+
         return exitEnvironmentVar;
     }
 

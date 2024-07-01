@@ -167,11 +167,17 @@ public abstract class CreateStartScripts extends ConventionTask {
     /**
      * The environment variable to use to control exit value (Windows only).
      */
+    @Deprecated
     @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
+    @Internal
     public String getExitEnvironmentVar() {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "getExitEnvironmentVar()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "remove_exit_environment_var")
+            .nagUser();
+
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
         }
@@ -316,7 +322,13 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
+    @Deprecated
     public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setExitEnvironmentVar()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "remove_exit_environment_var")
+            .nagUser();
+
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
@@ -383,7 +395,6 @@ public abstract class CreateStartScripts extends ConventionTask {
         generator.setMainClassName(fullMainArgument());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
-        generator.setExitEnvironmentVar(getExitEnvironmentVar());
         generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(mainModule.isPresent(), getClasspath())));
         generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(mainModule.isPresent(), getClasspath())));
         if (StringUtils.isEmpty(getExecutableDir())) {
