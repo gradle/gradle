@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 
 import javax.annotation.Nullable;
 
+@NonNullApi
 public enum PluginTargetType {
 
     PROJECT("a Project (or in a build script)"),
