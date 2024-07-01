@@ -113,8 +113,8 @@ class RelevantMethods {
 
         private static boolean isDecorating(Method method) {
             // Boilerplate due to Java 6 constraint
-            int parameterCount = method.getParameterCount();
             Class<?>[] parameterTypes = method.getParameterTypes();
+            int parameterCount = parameterTypes.length;
             Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 
             for (int i = 0; i < parameterCount; i++) {
