@@ -54,7 +54,12 @@ import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
@@ -79,6 +84,7 @@ class DefaultConfigurationCache internal constructor(
     private val buildStateRegistry: BuildStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
+    private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
     private val encryptionService: EncryptionService,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
@@ -522,10 +528,19 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private fun writeWorkGraph(stateFile: ConfigurationCacheStateFile) {
-        //TODO-RC need to do this in background, and use separate locks for each project
-        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-            cacheIO.writeRootBuildWorkGraphTo(stateFile)
+        //TODO-RC need to use separate operations, one for each project, each one for a different store file
+        val graphStoreOperation: RunnableBuildOperation = object : RunnableBuildOperation {
+            override fun description(): BuildOperationDescriptor.Builder =
+                BuildOperationDescriptor.displayName("Saving work nodes")
+
+            override fun run(context: BuildOperationContext) {
+                host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                    cacheIO.writeRootBuildWorkGraphTo(stateFile)
+                }
+            }
         }
+        val action : (BuildOperationQueue<RunnableBuildOperation>) -> Unit = { queue -> queue.add(graphStoreOperation) }
+        buildOperationExecutor.runAllWithAccessToProjectState(action)
     }
 
     private fun writeRootBuildState(stateFile: ConfigurationCacheStateFile) {
