@@ -87,6 +87,8 @@ class BrokenPlugin {
     }
 
     def "applying core project plugin to settings fails with a clear error"() {
+        enableProblemsApiCheck()
+
         settingsFile << """
             plugins {
                 id("base")
@@ -99,6 +101,13 @@ class BrokenPlugin {
         then:
         failure.assertHasCause("Failed to apply plugin 'org.gradle.base'")
         failure.assertHasCause("The plugin must be applied to a Project (or in a build script), but was applied to the Settings (or in a settings script)")
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == "plugin-application:target-type-mismatch"
+            contextualLabel == "The plugin must be applied to a Project (or in a build script), but was applied to the Settings (or in a settings script)"
+
+        }
     }
 
     def "applying custom #pluginTarget plugin in #targetFile fails with a clear error"() {
