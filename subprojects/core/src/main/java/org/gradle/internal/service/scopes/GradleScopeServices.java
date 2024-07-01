@@ -28,6 +28,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -182,9 +183,10 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator decorator,
-        DomainObjectCollectionFactory domainObjectCollectionFactory
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        InternalProblems problems
     ) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal);
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(gradleScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 

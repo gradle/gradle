@@ -17,9 +17,12 @@
 package org.gradle.api.internal.plugins;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.internal.deprecation.Documentation;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
@@ -30,10 +33,12 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
 
     private final PluginTargetType targetType;
     private final T target;
+    private final InternalProblems problems;
 
-    public ImperativeOnlyPluginTarget(PluginTargetType targetType, T target) {
+    public ImperativeOnlyPluginTarget(PluginTargetType targetType, T target, InternalProblems problems) {
         this.targetType = targetType;
         this.target = target;
+        this.problems = problems;
     }
 
     @Override
@@ -64,10 +69,19 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
             return;
         }
 
-        throw new InvalidUserCodeException(String.format(
-            "The plugin must be applied to %s, but was applied to %s",
-            actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
-        ));
+        throw problems.getInternalReporter()
+            .throwing(spec -> {
+                String message = String.format(
+                    "The plugin must be applied to %s, but was applied to %s",
+                    actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
+                );
+
+                spec.id("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication())
+                    .severity(Severity.ERROR)
+                    .withException(new IllegalArgumentException(message))
+                    .contextualLabel(message)
+                    .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString());
+            });
     }
 
     @Override
