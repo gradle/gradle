@@ -16,17 +16,31 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.InvalidUserCodeException
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.internal.operations.BuildOperationRef
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
 class ImperativeOnlyPluginTargetTest extends Specification {
 
+    def problemEmitter = Mock(ProblemEmitter)
+    def problems = new DefaultProblems(problemEmitter, CurrentBuildOperationRef.instance())
+
+    def setup() {
+        CurrentBuildOperationRef.instance().set(Mock(BuildOperationRef) {
+            getId() >> new OperationIdentifier(42)
+        })
+    }
+
     def "mismatched plugin application target is detected"() {
-        def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal))
+        def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal), problems)
 
         when:
         pluginTarget.applyImperative("someId", new Plugin<Settings>() {
@@ -37,12 +51,14 @@ class ImperativeOnlyPluginTargetTest extends Specification {
         })
 
         then:
-        def e = thrown(InvalidUserCodeException)
+        def e = thrown(IllegalArgumentException)
         e.message == "The plugin must be applied to the Settings (or in a settings script), but was applied to a Project (or in a build script)"
+
+        1 * problemEmitter.emit(_, _)
     }
 
     def "custom ClassCastExceptions are not replaced on apply"() {
-        def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal))
+        def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal), problems)
 
         when:
         pluginTarget.applyImperative("someId", new Plugin<Project>() {
@@ -55,6 +71,8 @@ class ImperativeOnlyPluginTargetTest extends Specification {
         then:
         def e = thrown(ClassCastException)
         e.message == "custom error"
+
+        0 * problemEmitter.emit(_, _)
     }
 
 }
