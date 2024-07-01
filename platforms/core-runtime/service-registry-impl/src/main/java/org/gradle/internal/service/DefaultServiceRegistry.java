@@ -925,13 +925,22 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 return;
             }
             paramServices = new Service[parameterTypes.length];
+            Service decorationTarget = null;
             for (int i = 0; i < parameterTypes.length; i++) {
+                Service paramProvider;
                 Type paramType = parameterTypes[i];
                 if (paramServiceProviders != null && paramServiceProviders[i] != null) {
-                    paramServices[i] = paramServiceProviders[i].getService(paramType, accessToken);
+                    paramProvider = paramServiceProviders[i].getService(paramType, accessToken);
+                    if (paramProvider == null) {
+                        throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available.",
+                            format("type", serviceTypes),
+                            getFactoryDisplayName(),
+                            format(paramType),
+                            i + 1));
+                    }
                 } else if (isEqualToAnyType(paramType, serviceTypes)) {
                     // A decorating factory
-                    if (decorates != null) {
+                    if (decorationTarget != null) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is a repeated decoration target",
                             format("type", serviceTypes),
                             getFactoryDisplayName(),
@@ -939,7 +948,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                             i + 1));
                     }
 
-                    Service paramProvider = find(paramType, accessToken, owner.parentServices);
+                    paramProvider = find(paramType, accessToken, owner.parentServices);
                     if (paramProvider == null) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
                             format("type", serviceTypes),
@@ -947,10 +956,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                             format(paramType),
                             i + 1));
                     }
-                    paramServices[i] = paramProvider;
-                    decorates = paramProvider;
+                    decorationTarget = paramProvider;
                 } else {
-                    Service paramProvider;
                     try {
                         paramProvider = find(paramType, accessToken, owner.allServices);
                     } catch (ServiceLookupException e) {
@@ -968,10 +975,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                             i + 1));
 
                     }
-                    paramServices[i] = paramProvider;
-                    paramProvider.requiredBy(this);
                 }
+
+                paramServices[i] = paramProvider;
+                paramProvider.requiredBy(this);
             }
+
+            decorates = decorationTarget;
         }
 
         @Override
