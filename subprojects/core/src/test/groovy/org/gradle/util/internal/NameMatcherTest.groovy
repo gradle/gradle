@@ -64,6 +64,12 @@ class NameMatcherTest extends Specification {
         matches("a9n", "abc9Name")
     }
 
+    def "does not select items when multiple camel case match with one containing word in between"() {
+        expect:
+        matcher.find("someNameWith", ["someNameWithExtra", "someNameRandomWithExtra", "other"]) == null
+            && matcher.matches == ["someNameWithExtra", "someNameRandomWithExtra"] as Set
+    }
+
     def "selects item with matching kebab case prefix"() {
         expect:
         matches("sN", "some-name")
@@ -159,6 +165,7 @@ class NameMatcherTest extends Specification {
     def "does not select items when multiple camel case matches"() {
         expect:
         matcher.find("sN", ["someName", "soNa", "other"]) == null
+        matcher.matches == ["someName", "soNa"] as Set
     }
 
     def "does not select items when multiple kebab case matches"() {
