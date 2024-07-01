@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
@@ -168,11 +167,9 @@ class DefaultBuildModelControllerServices(
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
-            gradle: GradleInternal,
             isolatedProjectEvaluationListenerProvider: IsolatedProjectEvaluationListenerProvider,
-            crossProjectConfigurator: CrossProjectConfigurator
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(gradle, projectRegistry, isolatedProjectEvaluationListenerProvider, crossProjectConfigurator)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, isolatedProjectEvaluationListenerProvider)
             return ProblemReportingCrossProjectModelAccess(
                 delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting, buildModelParameters
             )
@@ -199,12 +196,10 @@ class DefaultBuildModelControllerServices(
     class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
-            gradle: GradleInternal,
             projectRegistry: ProjectRegistry<ProjectInternal>,
             isolatedProjectEvaluationListenerProvider: IsolatedProjectEvaluationListenerProvider,
-            crossProjectConfigurator: CrossProjectConfigurator
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry, gradle, isolatedProjectEvaluationListenerProvider, crossProjectConfigurator)
+            return DefaultCrossProjectModelAccess(projectRegistry, isolatedProjectEvaluationListenerProvider)
         }
 
         @Provides

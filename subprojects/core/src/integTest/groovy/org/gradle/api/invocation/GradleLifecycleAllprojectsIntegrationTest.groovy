@@ -292,9 +292,9 @@ a
 
     private static String mutableStateAccessFor(String project) {
         return """
-println "Before mutable state access for $project"
-def value = project.foo
-println "After mutable state access for $project(foo = \$value)"
-"""
+            println "Before mutable state access for $project"
+            def value = project.foo
+            println "After mutable state access for $project(foo = \$value)"
+        """
     }
 }
