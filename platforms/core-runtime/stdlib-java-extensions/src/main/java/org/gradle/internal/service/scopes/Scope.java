@@ -42,8 +42,8 @@ package org.gradle.internal.service.scopes;
  *            Build
  *              │
  *            Gradle
- *              │
- *           Project
+ *         ┌────┴────┐
+ *      Project   Settings
  * </pre>
  *
  * Each scope roughly corresponds to the following user-facing concepts:
@@ -55,6 +55,7 @@ package org.gradle.internal.service.scopes;
  * <li>{@link BuildTree}         — composite build
  * <li>{@link Build}             — build in a composite build
  * <li>{@link Gradle}            — exists for historical reasons, almost empty
+ * <li>{@link Settings}          — settings script
  * <li>{@link Project}           — project in a build
  * </ul>
  *
@@ -180,6 +181,17 @@ public interface Scope {
      * {@link Build} and parent services are visible to {@link Gradle} services and descendant scopes, but not vice versa.
      */
     interface Gradle extends Build {}
+
+    /**
+     * The scope that owns {@code Settings} instance state.
+     * <p>
+     * The build state is managed by the {@code SettingsState} class.
+     * An instance is created for each build in the build definition,
+     * once per build execution and is discarded at the end of that execution.
+     * <p>
+     * {@link Gradle} and parent services are visible to {@link Settings} scope services, but not vice versa.
+     */
+    interface Settings extends Gradle {}
 
     /**
      * The scope of a single project within a {@link Build build}.

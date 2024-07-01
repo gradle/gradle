@@ -78,9 +78,10 @@ public interface GradleModuleServices extends ServiceRegistrationProvider {
     void registerBuildServices(ServiceRegistration registration);
 
     /**
-     * Called once per build invocation on a build, to register any {@link org.gradle.api.initialization.Settings} scoped services. These services are closed at the end of the build invocation.
+     * Called to register services in the {@link Scope.Settings Settings} scope.
      *
-     * <p>Global, user home, build session, build tree and build scoped services are visible to the settings scope services, but not vice versa.</p>
+     * @see Scope
+     * @see Scope.Settings
      */
     void registerSettingsServices(ServiceRegistration registration);
 
