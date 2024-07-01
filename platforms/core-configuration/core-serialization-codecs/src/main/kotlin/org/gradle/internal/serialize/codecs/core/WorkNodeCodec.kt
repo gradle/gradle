@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
@@ -52,7 +53,22 @@ class WorkNodeCodec(
     suspend fun WriteContext.writeWork(work: ScheduledWork) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
-            doWrite(work)
+            val scheduledNodes = work.scheduledNodes
+            val entryNodes = work.entryNodes
+            doWriteNodes(scheduledNodes)
+            val (scheduledNodeIds, scheduledEntryNodeIds) = identifyNodes(scheduledNodes, entryNodes)
+            writeEdgesAndOtherNodeMetadata(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds)
+        }
+    }
+
+    /**
+     * Writes only the scheduled nodes, remaining SchedyledWork data is written separately.
+     */
+    suspend fun WriteContext.writeNodes(projectPath: String, scheduledNodes: List<Node>) {
+        // Share bean instances across all nodes (except tasks, which have their own isolate)
+        withGradleIsolate(owner, internalTypesCodec) {
+            write(projectPath)
+            doWriteNodes(scheduledNodes)
         }
     }
 
@@ -61,43 +77,127 @@ class WorkNodeCodec(
             doRead()
         }
 
+    private fun WriteContext.writeEdgesAndOtherNodeMetadata(
+        scheduledEntryNodeIds: List<Int>,
+        scheduledNodes: ImmutableList<Node>,
+        scheduledNodeIds: Map<Node, Int>
+    ) {
+        writeScheduleEntryNodeIds(scheduledEntryNodeIds)
+        writeSuccessorReferencesAndGrouping(scheduledNodes, scheduledNodeIds)
+    }
+
+    /**
+     * Computes and stores successor references from the given nodes, while also storing group membership.
+     *
+     * @see [writeSuccessorReferencesOf]
+     */
     private
-    suspend fun WriteContext.doWrite(work: ScheduledWork) {
-        val nodes = work.scheduledNodes
-        val nodeCount = nodes.size
-        writeSmallInt(nodeCount)
-        val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
+    fun WriteContext.writeSuccessorReferencesAndGrouping(
+        scheduledNodes: List<Node>,
+        scheduledNodeIds: Map<Node, Int>
+    ) {
+        scheduledNodes.forEach { node ->
+            writeSuccessorReferencesOf(node, scheduledNodeIds)
+            writeNodeGroup(node.group, scheduledNodeIds)
+        }
+    }
+
+    /**
+    A large build may have many nodes but not so many entry nodes.
+    To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
+     */
+    private
+    fun WriteContext.writeScheduleEntryNodeIds(scheduledEntryNodeIds: List<Int>) {
+        writeCollection(scheduledEntryNodeIds) {
+            writeSmallInt(it)
+        }
+    }
+
+    /**
+     * Writes only the nodes (without the edges between nodes).
+     */
+    private
+    suspend fun WriteContext.doWriteNodes(scheduledNodes: List<Node>) {
+        writeSmallInt(scheduledNodes.size)
+        scheduledNodes.forEach { node ->
+            write(node)
+        }
+    }
+
+    /**
+     * Assigns ids for the given scheduled nodes, while also identifying entry nodes.
+     *
+     * @param scheduledNodes the list of nodes that are scheduled
+     * @param entryNodes a set containing those scheduled nodes that are entry nodes
+     * @return a pair **<a, b>** where
+     * **a** is a map of nodes and their generated ids and
+     * **b** is a set of the ids for scheduled nodes that are also entry nodes
+     */
+    private
+    fun identifyNodes(
+        scheduledNodes: List<Node>,
+        entryNodes: Set<Node>
+    ): Pair<Map<Node, Int>, List<Int>> {
+        val scheduledNodeIds = HashMap<Node, Int>(scheduledNodes.size)
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
         // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
         // Not restoring them as entry points doesn't affect the resulting execution plan.
         val scheduledEntryNodeIds = mutableListOf<Int>()
-        nodes.forEach { node ->
-            write(node)
+        scheduledNodes.forEach { node ->
             val nodeId = scheduledNodeIds.size
             scheduledNodeIds[node] = nodeId
-            if (node in work.entryNodes) {
+            if (node in entryNodes) {
                 scheduledEntryNodeIds.add(nodeId)
             }
             if (node is LocalTaskNode) {
                 scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
             }
         }
-        // A large build may have many nodes but not so many entry nodes.
-        // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
-        writeCollection(scheduledEntryNodeIds) {
-            writeSmallInt(it)
-        }
-        nodes.forEach { node ->
-            writeSuccessorReferencesOf(node, scheduledNodeIds)
-            writeNodeGroup(node.group, scheduledNodeIds)
-        }
+        return Pair(scheduledNodeIds, scheduledEntryNodeIds)
     }
 
     private
     suspend fun ReadContext.doRead(): ScheduledWork {
+        val (scheduledNodes, nodesById) = readScheduledNodes()
+        return readScheduledWork(nodesById, scheduledNodes)
+    }
+
+    private
+    fun ReadContext.readScheduledWork(
+        nodesById: HashMap<Int, Node>,
+        scheduledNodes: ArrayList<Node>
+    ): ScheduledWork {
+        val entryNodes = restoreEntryNodes(nodesById)
+        restoreSuccessorReferencesAndNodeGroups(scheduledNodes, nodesById)
+        return ScheduledWork(scheduledNodes, entryNodes.build())
+    }
+
+    private
+    fun ReadContext.restoreSuccessorReferencesAndNodeGroups(
+        scheduledNodes: ArrayList<Node>,
+        nodesById: HashMap<Int, Node>
+    ) {
+        scheduledNodes.forEach { node ->
+            readSuccessorReferencesOf(node, nodesById)
+            node.group = readNodeGroup(nodesById)
+        }
+    }
+
+    private
+    fun ReadContext.restoreEntryNodes(nodesById: HashMap<Int, Node>): ImmutableSet.Builder<Node> {
+        // Note that using the ImmutableSet retains the original ordering of entry nodes.
+        val entryNodes = ImmutableSet.builder<Node>()
+        readCollection {
+            entryNodes.add(nodesById.getValue(readSmallInt()))
+        }
+        return entryNodes
+    }
+
+    private
+    suspend fun ReadContext.readScheduledNodes(): Pair<ArrayList<Node>, HashMap<Int, Node>> {
         val nodeCount = readSmallInt()
-        val nodes = ArrayList<Node>(nodeCount)
+        val scheduledNodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
         for (i in 0 until nodeCount) {
             val node = readNode()
@@ -106,18 +206,9 @@ class WorkNodeCodec(
                 node.prepareNode.require()
                 nodesById[nodesById.size] = node.prepareNode
             }
-            nodes.add(node)
+            scheduledNodes.add(node)
         }
-        // Note that using the ImmutableSet retains the original ordering of entry nodes.
-        val entryNodes = ImmutableSet.builder<Node>()
-        readCollection {
-            entryNodes.add(nodesById.getValue(readSmallInt()))
-        }
-        nodes.forEach { node ->
-            readSuccessorReferencesOf(node, nodesById)
-            node.group = readNodeGroup(nodesById)
-        }
-        return ScheduledWork(nodes, entryNodes.build())
+        return Pair(scheduledNodes, nodesById)
     }
 
     private
@@ -191,6 +282,17 @@ class WorkNodeCodec(
         }
     }
 
+    /**
+     * Writes all successor references of the given node.
+     *
+     * Successor references include:
+     * - [Node.getDependencySuccessors]
+     * - [CalculateFinalDependencies.postExecutionNodes][DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies.getPostExecutionNodes]
+     * - [TaskNode.getShouldSuccessors]
+     * - [TaskNode.getMustSuccessors]
+     * - [TaskNode.getFinalizingSuccessors]
+     * - [TaskNode.getLifecycleSuccessors]
+     */
     private
     fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: Map<Node, Int>) {
         var successors = node.dependencySuccessors

@@ -165,9 +165,9 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeRootBuildWorkGraph(build: VintageGradleBuild) {
         writeBuildInvocationId()
         withDebugFrame({ "Work Graph" }) {
-            writeWorkGraphOf(build.gradle, build.scheduledWork).also {
-                writeInt(0x1ecac8e)
-            }
+            writeWorkGraphOf(build.gradle, build.scheduledWork)
+
+            writeInt(0x1ecac8e)
         }
     }
 
@@ -457,7 +457,8 @@ class ConfigurationCacheState(
                 writeBuildOutputCleanupRegistrations(gradle)
             }
             if (!gradle.isRootBuild) {
-                // for root builds, nodes are written in a separate state file
+                // for root builds only, nodes are written in separate state files (one per project)
+                // for non-root builds, we write the work graph along with the rest of the state
                 withDebugFrame({ "Work Graph" }) {
                     writeWorkGraphOf(gradle, scheduledWork)
                 }
