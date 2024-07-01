@@ -897,12 +897,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static abstract class FactoryService extends SingletonService {
         private final ServiceAccessToken accessToken;
-        @Nullable
-        private final ServiceProvider[] paramServiceProviders;
+        private ServiceProvider[] paramServiceProviders;
         private Service[] paramServices;
         private Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken accessToken, List<? extends Type> serviceTypes, @Nullable ServiceProvider[] paramServiceProviders) {
+        protected FactoryService(
+            DefaultServiceRegistry owner,
+            ServiceAccessScope accessScope,
+            ServiceAccessToken accessToken,
+            List<? extends Type> serviceTypes,
+            @Nullable ServiceProvider[] paramServiceProviders
+        ) {
             super(owner, accessScope, serviceTypes);
             this.accessToken = accessToken;
             this.paramServiceProviders = paramServiceProviders;
@@ -974,6 +979,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             Object[] params = assembleParameters();
             Object result = invokeMethod(params);
             // Can discard the state required to create instance
+            paramServiceProviders = null;
             paramServices = null;
             return result;
         }
