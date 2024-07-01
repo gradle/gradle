@@ -17,7 +17,6 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.internal.Cast;
 
 import java.util.List;
@@ -35,9 +34,9 @@ public class DefaultSoftwareTypeConventionApplicator implements SoftwareTypeConv
     }
 
     @Override
-    public void applyConventionsTo(Project project, Plugin<Project> plugin) {
+    public <T> void applyConventionsTo(T target, Plugin<? super T> plugin) {
         softwareTypeRegistry.implementationFor(Cast.uncheckedCast(plugin.getClass())).ifPresent(softwareTypeImplementation ->
-            conventionHandlers.forEach(handler -> handler.apply(project, softwareTypeImplementation.getSoftwareType(), plugin))
+            conventionHandlers.forEach(handler -> handler.apply(target, softwareTypeImplementation.getSoftwareType(), plugin))
         );
     }
 }
