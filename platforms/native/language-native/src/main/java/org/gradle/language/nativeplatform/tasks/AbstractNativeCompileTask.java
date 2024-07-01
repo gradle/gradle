@@ -72,22 +72,23 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection systemIncludes;
     private final ConfigurableFileCollection source;
-    private final Map<String, String> macros = new LinkedHashMap<String, String>();
+    private final Map<String, String> macros = new LinkedHashMap<>();
     private final ListProperty<String> compilerArgs;
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public AbstractNativeCompileTask() {
-        ObjectFactory objectFactory = getProject().getObjects();
-        this.includes = getProject().files();
-        this.systemIncludes = getProject().files();
+        this.includes = getObjects().fileCollection();
+        this.systemIncludes = getObjects().fileCollection();
         dependsOn(includes);
         dependsOn(systemIncludes);
 
-        this.source = getTaskFileVarFactory().newInputFileCollection(this);
-        this.objectFileDir = objectFactory.directoryProperty();
-        this.compilerArgs = getProject().getObjects().listProperty(String.class);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
+        this.source = getObjects().fileCollection();
+        this.source.finalizeValueOnRead();
+
+        this.objectFileDir = getObjects().directoryProperty();
+        this.compilerArgs = getObjects().listProperty(String.class);
+        this.targetPlatform = getObjects().property(NativePlatform.class);
+        this.toolChain = getObjects().property(NativeToolChain.class);
         this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
             @Override
             public Boolean transform(NativeToolChain nativeToolChain) {
@@ -98,6 +99,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Inject
     protected TaskFileVarFactory getTaskFileVarFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ObjectFactory getObjects() {
         throw new UnsupportedOperationException();
     }
 

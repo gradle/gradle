@@ -156,7 +156,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
 
     @Provides
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
-                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
+                                             FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
+        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }

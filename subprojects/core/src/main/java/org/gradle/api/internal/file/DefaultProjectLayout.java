@@ -19,7 +19,6 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -27,12 +26,9 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.MappingProvider;
-import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 
 import java.io.File;
 
@@ -41,16 +37,12 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final DirectoryProperty buildDir;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final Factory<PatternSet> patternSetFactory;
-    private final PropertyHost propertyHost;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
 
-    public DefaultProjectLayout(File projectDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
+    public DefaultProjectLayout(File projectDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
-        this.patternSetFactory = patternSetFactory;
-        this.propertyHost = propertyHost;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileFactory = fileFactory;
         this.projectDir = fileFactory.dir(projectDir);
@@ -65,11 +57,6 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public DirectoryProperty getBuildDirectory() {
         return buildDir;
-    }
-
-    @Override
-    public ConfigurableFileCollection newInputFileCollection(Task consumer) {
-        return new CachingTaskInputFileCollection(fileResolver, patternSetFactory, taskDependencyFactory, propertyHost);
     }
 
     @Override

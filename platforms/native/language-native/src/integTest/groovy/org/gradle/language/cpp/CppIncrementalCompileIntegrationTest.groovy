@@ -85,4 +85,36 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         sharedLibrary("build/lib/main/release/hello").assertExists()
     }
+
+    @ToBeFixedForConfigurationCache
+    def "recompile when only relative path of source file changes"() {
+        def compileTaskName = "compileReleaseCpp" // any compile task works
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        def fileToRelocate  = file("src/main/cpp/relocate.cpp")
+        fileToRelocate.createNewFile()
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        succeeds compileTaskName
+        result.assertTaskExecuted(":$compileTaskName")
+
+        and:
+        succeeds compileTaskName
+        result.assertTaskSkipped(":$compileTaskName")
+
+        expect:
+        fileToRelocate.moveToDirectory(file("src/main/cpp/subdir"))
+        succeeds compileTaskName
+        result.assertTaskNotSkipped(":$compileTaskName")
+    }
 }
