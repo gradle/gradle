@@ -23,7 +23,6 @@ import groovy.lang.Script;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.IsolatedAction;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
@@ -97,33 +96,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-@SuppressWarnings("deprecation")
 public class LifecycleAwareProject extends GroovyObjectSupport implements ProjectInternal, DynamicObjectAware {
 
     private final ProjectInternal delegate;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
-    private final CrossProjectConfigurator crossProjectConfigurator;
-    private final GradleInternal gradle;
     private final ExtensibleDynamicObject extensibleDynamicObject;
-
-    private boolean isAllprojectsActionExecuted = false;
 
     public LifecycleAwareProject(
         ProjectInternal delegate,
-        GradleInternal gradle,
-        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider,
-        CrossProjectConfigurator crossProjectConfigurator
+        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider
     ) {
         this.delegate = delegate;
         this.isolatedProjectEvaluationListenerProvider = isolatedProjectEvaluationListenerProvider;
-        this.crossProjectConfigurator = crossProjectConfigurator;
-        this.gradle = gradle;
         this.extensibleDynamicObject = createExtensibleDynamicObject();
     }
 
     private ExtensibleDynamicObject createExtensibleDynamicObject() {
         ExtensibleDynamicObject delegateExtensibleDynamicObject = (ExtensibleDynamicObject) ((DynamicObjectAware) delegate).getAsDynamicObject();
-        ExtensibleDynamicObject extensibleDynamicObject = new ExtensibleDynamicObject(
+        @SuppressWarnings("deprecation") ExtensibleDynamicObject extensibleDynamicObject = new ExtensibleDynamicObject(
             this,
             new BeanDynamicObject(this),
             delegateExtensibleDynamicObject.getConvention()
@@ -134,14 +124,7 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     }
 
     private void executeAllprojectsAction() {
-        if (isAllprojectsActionExecuted) {
-            return;
-        }
-        IsolatedAction<? super Project> allprojectsAction = isolatedProjectEvaluationListenerProvider.isolateAllprojectsActionFor(gradle);
-        if (allprojectsAction != null) {
-            crossProjectConfigurator.project(delegate, allprojectsAction::execute);
-        }
-        isAllprojectsActionExecuted = true;
+        isolatedProjectEvaluationListenerProvider.executeAllprojectsFor(delegate);
     }
 
     @Override

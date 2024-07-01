@@ -31,6 +31,7 @@ import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.core.peekSingletonProperty
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
+import java.util.concurrent.atomic.AtomicReference
 
 
 private
@@ -58,6 +59,9 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
     private
     var serializedIsolatedActions: SerializedIsolatedActionGraph<IsolatedProjectActions>? = null
 
+    private
+    var allprojectsAction: AtomicReference<Allprojects?> = AtomicReference(null)
+
     override fun beforeProject(action: IsolatedProjectAction) {
         // TODO:isolated encode Application instances as part of the Environment to avoid waste
         beforeProject.add(withUserCodeApplicationContext(action))
@@ -83,23 +87,30 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
         } ?: action
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
-        serializedIsolatedActions != null -> serializedIsolatedActions
-            ?.let { IsolatedProjectEvaluationListener(gradle, it) }
-            ?: isolateFor(gradle)
-
         beforeProject.isEmpty() && afterProject.isEmpty() && allprojects.isEmpty() -> null
-        else -> {
-            val isolated = isolateActions(gradle)
-            serializedIsolatedActions = isolated
-            IsolatedProjectEvaluationListener(gradle, isolated)
-        }
+        else -> IsolatedProjectEvaluationListener(gradle, getSerializedIsolatedActions(gradle))
+
     }
 
-    override fun isolateAllprojectsActionFor(gradle: Gradle): IsolatedAction<in Project>? = when {
-        allprojects.isEmpty() -> null
-        else -> {
-            val isolated = serializedIsolatedActions ?: isolateActions(gradle)
-            Allprojects(gradle, isolated)
+    override fun executeAllprojectsFor(project: Project) {
+        if (allprojects.isEmpty()) return
+
+        allprojectsAction.get()?.let {
+            it.execute(project)
+            return
+        }
+
+        // This method is declared thread-safe, but `serializedIsolatedActions` is not treated as a shared resource.
+        // Concurrent access to this method is only possible after all projects have been "loaded", which means
+        // `isolateFor(Gradle)` has been called. At this point, `serializedIsolatedActions` does not undergo
+        // any concurrent mutations.
+        // Only way, when `serializedIsolatedActions` can be mutated in this method is using `gradle.allprojects` API,
+        // which guarantees sequential execution. Thus, there is no concurrent modification of `serializedIsolatedActions`.
+        val newAllprojectAction = Allprojects(project.gradle, getSerializedIsolatedActions(project.gradle))
+        if (allprojectsAction.compareAndSet(null, newAllprojectAction)) {
+            newAllprojectAction.execute(project)
+        } else {
+            allprojectsAction.get()?.execute(project)
         }
     }
 
@@ -108,13 +119,20 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
         afterProject.clear()
         allprojects.clear()
         serializedIsolatedActions = null
+        allprojectsAction.set(null)
     }
 
     private
-    fun isolateActions(owner: Gradle): SerializedIsolatedActionGraph<IsolatedProjectActions> =
+    fun getSerializedIsolatedActions(gradle: Gradle): SerializedIsolatedActionGraph<IsolatedProjectActions> {
+        serializedIsolatedActions = serializedIsolatedActions ?: isolateActions(gradle)
+        return serializedIsolatedActions!!
+    }
+
+    private
+    fun isolateActions(gradle: Gradle): SerializedIsolatedActionGraph<IsolatedProjectActions> =
         isolate(
             IsolatedProjectActions(allprojects, beforeProject, afterProject),
-            IsolateOwners.OwnerGradle(owner)
+            IsolateOwners.OwnerGradle(gradle)
         )
 
     private
@@ -201,7 +219,7 @@ class IsolatedProjectEvaluationListener(
                 executeAll(state.beforeProject, project)
             }
 
-            else -> throw IllegalStateException("Unexpected isolated actions state $state")
+            else -> error("Unexpected isolated actions state $state")
         }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {

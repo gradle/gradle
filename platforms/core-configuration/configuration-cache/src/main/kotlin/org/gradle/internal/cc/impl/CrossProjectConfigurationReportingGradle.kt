@@ -60,7 +60,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
     private val referrerProject: ProjectInternal,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val projectConfigurator: CrossProjectConfigurator,
-    private val isolatedProjectEvaluationListenerProvider: IsolatedProjectEvaluationListenerProvider
 ) : GradleInternal {
 
     private
@@ -164,13 +163,11 @@ class CrossProjectConfigurationReportingGradle private constructor(
         fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
             val parentCrossProjectModelAccess = gradle.serviceOf<CrossProjectModelAccess>()
             val parentCrossProjectConfigurator = gradle.serviceOf<CrossProjectConfigurator>()
-            val parentIsolatedProjectEvaluationListenerProvider = gradle.serviceOf<IsolatedProjectEvaluationListenerProvider>()
             return CrossProjectConfigurationReportingGradle(
                 gradle,
                 referrerProject,
                 parentCrossProjectModelAccess,
                 parentCrossProjectConfigurator,
-                parentIsolatedProjectEvaluationListenerProvider
             )
         }
     }

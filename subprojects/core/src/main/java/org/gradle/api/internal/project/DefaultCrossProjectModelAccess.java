@@ -29,21 +29,15 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
-    private final GradleInternal gradle;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
-    private final CrossProjectConfigurator crossProjectConfigurator;
 
     public DefaultCrossProjectModelAccess(
         ProjectRegistry<ProjectInternal> projectRegistry,
-        GradleInternal gradle,
-        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider,
-        CrossProjectConfigurator crossProjectConfigurator
+        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider
     ) {
-        this.gradle = gradle;
         this.projectRegistry = projectRegistry;
         this.isolatedProjectEvaluationListenerProvider = isolatedProjectEvaluationListenerProvider;
-        this.crossProjectConfigurator = crossProjectConfigurator;
     }
 
     @Override
@@ -104,6 +98,6 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     private ProjectInternal asLifecycleAwareProject(ProjectInternal project) {
         return project instanceof LifecycleAwareProject
             ? project
-            : new LifecycleAwareProject(project, gradle, isolatedProjectEvaluationListenerProvider, crossProjectConfigurator);
+            : new LifecycleAwareProject(project, isolatedProjectEvaluationListenerProvider);
     }
 }

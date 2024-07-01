@@ -53,8 +53,11 @@ public interface IsolatedProjectEvaluationListenerProvider {
     @Nullable
     ProjectEvaluationListener isolateFor(Gradle owner);
 
-    @Nullable
-    IsolatedAction<? super Project> isolateAllprojectsActionFor(Gradle owner);
+    /**
+     * Eagerly executes the actions, previously registered via {@link #allprojects(IsolatedAction)} against the given project.
+     * Safe to be called concurrently.
+     */
+    void executeAllprojectsFor(Project project);
 
     /**
      * Discards any registered actions. This doesn't affect any {@link #isolateFor(Gradle) previously returned isolated listeners}.
