@@ -42,6 +42,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.internal.project.LifecycleAwareProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
@@ -114,11 +115,15 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
+                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
+
                 if (!rootProjectActions.isEmpty()) {
-                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    services.get(CrossProjectConfigurator.class).rootProject(
+                        LifecycleAwareProject.from(rootProject, isolatedProjectEvaluationListenerProvider),
+                        rootProjectActions
+                    );
                 }
 
-                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }

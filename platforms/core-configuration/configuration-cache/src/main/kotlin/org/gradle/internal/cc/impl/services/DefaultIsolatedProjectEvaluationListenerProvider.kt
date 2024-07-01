@@ -31,7 +31,6 @@ import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.core.peekSingletonProperty
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
-import java.util.concurrent.atomic.AtomicReference
 
 
 private
@@ -57,10 +56,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
     val allprojects = mutableListOf<IsolatedProjectAction>()
 
     private
-    var serializedIsolatedActions: SerializedIsolatedActionGraph<IsolatedProjectActions>? = null
-
-    private
-    var allprojectsAction: AtomicReference<Allprojects?> = AtomicReference(null)
+    var allprojectsAction: Allprojects? = null
 
     override fun beforeProject(action: IsolatedProjectAction) {
         // TODO:isolated encode Application instances as part of the Environment to avoid waste
@@ -88,44 +84,24 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
         beforeProject.isEmpty() && afterProject.isEmpty() && allprojects.isEmpty() -> null
-        else -> IsolatedProjectEvaluationListener(gradle, getSerializedIsolatedActions(gradle))
-
+        else -> {
+            val actions = isolateActions(gradle)
+            if (allprojects.isNotEmpty()) {
+                allprojectsAction = Allprojects(gradle, actions)
+            }
+            IsolatedProjectEvaluationListener(gradle, actions)
+        }
     }
 
     override fun executeAllprojectsFor(project: Project) {
-        if (allprojects.isEmpty()) return
-
-        allprojectsAction.get()?.let {
-            it.execute(project)
-            return
-        }
-
-        // This method is declared thread-safe, but `serializedIsolatedActions` is not treated as a shared resource.
-        // Concurrent access to this method is only possible after all projects have been "loaded", which means
-        // `isolateFor(Gradle)` has been called. At this point, `serializedIsolatedActions` does not undergo
-        // any concurrent mutations.
-        // Only way, when `serializedIsolatedActions` can be mutated in this method is using `gradle.allprojects` API,
-        // which guarantees sequential execution. Thus, there is no concurrent modification of `serializedIsolatedActions`.
-        val newAllprojectAction = Allprojects(project.gradle, getSerializedIsolatedActions(project.gradle))
-        if (allprojectsAction.compareAndSet(null, newAllprojectAction)) {
-            newAllprojectAction.execute(project)
-        } else {
-            allprojectsAction.get()?.execute(project)
-        }
+        allprojectsAction?.execute(project)
     }
 
     override fun clear() {
         beforeProject.clear()
         afterProject.clear()
         allprojects.clear()
-        serializedIsolatedActions = null
-        allprojectsAction.set(null)
-    }
-
-    private
-    fun getSerializedIsolatedActions(gradle: Gradle): SerializedIsolatedActionGraph<IsolatedProjectActions> {
-        serializedIsolatedActions = serializedIsolatedActions ?: isolateActions(gradle)
-        return serializedIsolatedActions!!
+        allprojectsAction = null
     }
 
     private
@@ -170,8 +146,8 @@ sealed class IsolatedProjectActionsState {
         ): IsolatedProjectActionsState = AllprojectsExecuted(beforeProject, afterProject)
 
         fun beforeProjectExecuted(
-            beforeProject: IsolatedProjectActionList,
-        ): IsolatedProjectActionsState = BeforeProjectExecuted(beforeProject)
+            afterProject: IsolatedProjectActionList,
+        ): IsolatedProjectActionsState = BeforeProjectExecuted(afterProject)
 
         fun afterProjectExecuted(): IsolatedProjectActionsState = AfterProjectExecuted
     }

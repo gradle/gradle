@@ -29,6 +29,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.CrossProjectConfigurator
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskState
@@ -42,10 +43,14 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.extensibility.DefaultConvention
+import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
+import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
+import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
@@ -462,8 +467,13 @@ class DefaultGradleSpec extends Specification {
     }
 
     private ProjectInternal project(String name) {
-        def project = Mock(ProjectInternal)
-        _ * project.name >> name
+        def project = Mock(DefaultProject) { p ->
+            _ * p.name >> name
+            _ * p.getAsDynamicObject() >> Mock(ExtensibleDynamicObject) { o ->
+                _ * o.getConvention() >> new DefaultConvention(Mock(InstanceGenerator))
+                _ * o.getParent() >> Mock(DynamicObject)
+            }
+        }
         return project
     }
 

@@ -98,6 +98,15 @@ import java.util.concurrent.Callable;
 
 public class LifecycleAwareProject extends GroovyObjectSupport implements ProjectInternal, DynamicObjectAware {
 
+    public static ProjectInternal from(
+        ProjectInternal project,
+        IsolatedProjectEvaluationListenerProvider listenerProvider
+    ) {
+        return project instanceof LifecycleAwareProject
+            ? project
+            : new LifecycleAwareProject(project, listenerProvider);
+    }
+
     private final ProjectInternal delegate;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private final ExtensibleDynamicObject extensibleDynamicObject;
