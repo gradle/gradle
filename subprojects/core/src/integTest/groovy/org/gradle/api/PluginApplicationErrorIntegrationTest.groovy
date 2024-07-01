@@ -86,7 +86,7 @@ class BrokenPlugin {
         failure.assertHasCause("'BrokenPlugin' is neither a plugin or a rule source and cannot be applied.")
     }
 
-    def "applying a project plugin to settings fails with user-friendly error"() {
+    def "applying core project plugin to settings fails with a clear error"() {
         settingsFile << """
             plugins {
                 id("base")
@@ -98,29 +98,69 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin 'org.gradle.base'")
-        failure.assertHasCause("Cannot apply a Project plugin to a Settings instance")
+        failure.assertHasCause("The plugin must be applied to a Project (or in a build script), but was applied to the Settings (or in a settings script)")
     }
 
-    def "applying a settings plugin to a project fails with user-friendly error"() {
-        buildFile << """
-            apply plugin: SomeSettingsPlugin
+    def "applying custom #pluginTarget plugin in #targetFile fails with a clear error"() {
+        given:
+        file("init.gradle") << ""
 
-            class SomeSettingsPlugin implements Plugin<Settings> {
-                void apply(Settings target) {
-                    throw new Exception("Unreachable boom")
+        file(targetFile) << """
+            apply plugin: SomePlugin
+
+            class SomePlugin implements Plugin<$pluginTarget> {
+                void apply($pluginTarget target) {
+                    throw new Exception("Unreachable")
                 }
             }
         """
 
         when:
-        fails()
+        fails("-I", "init.gradle")
 
         then:
-        failure.assertHasCause("Failed to apply plugin class 'SomeSettingsPlugin'")
-        failure.assertHasCause("Cannot apply a Settings plugin to a Project instance")
+        failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
+        failure.assertHasCause(errorMessage)
+
+        where:
+        pluginTarget | targetFile        | errorMessage
+        "Project"    | "settings.gradle" | "The plugin must be applied to a Project (or in a build script), but was applied to the Settings (or in a settings script)"
+        "Project"    | "init.gradle"     | "The plugin must be applied to a Project (or in a build script), but was applied to the Gradle (or in an init script)"
+        "Settings"   | "build.gradle"    | "The plugin must be applied to the Settings (or in a settings script), but was applied to a Project (or in a build script)"
+        "Settings"   | "init.gradle"     | "The plugin must be applied to the Settings (or in a settings script), but was applied to the Gradle (or in an init script)"
+        "Gradle"     | "build.gradle"    | "The plugin must be applied to the Gradle (or in an init script), but was applied to a Project (or in a build script)"
+        "Gradle"     | "settings.gradle" | "The plugin must be applied to the Gradle (or in an init script), but was applied to the Settings (or in a settings script)"
     }
 
-    // TODO: test with pluginManager
+    def "applying custom #pluginTarget plugin in #targetFile via plugin manager fails with a clear error"() {
+        given:
+        file("init.gradle") << ""
 
-    // TODO: test with init
+        file(targetFile) << """
+            class SomePlugin implements Plugin<$pluginTarget> {
+                void apply($pluginTarget target) {
+                    throw new Exception("Unreachable")
+                }
+            }
+
+            pluginManager.apply(SomePlugin)
+        """
+
+        when:
+        fails("-I", "init.gradle")
+
+        then:
+        failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
+        failure.assertHasCause(errorMessage)
+
+        where:
+        pluginTarget | targetFile        | errorMessage
+        "Project"    | "settings.gradle" | "The plugin must be applied to a Project (or in a build script), but was applied to the Settings (or in a settings script)"
+        "Project"    | "init.gradle"     | "The plugin must be applied to a Project (or in a build script), but was applied to the Gradle (or in an init script)"
+        "Settings"   | "build.gradle"    | "The plugin must be applied to the Settings (or in a settings script), but was applied to a Project (or in a build script)"
+        "Settings"   | "init.gradle"     | "The plugin must be applied to the Settings (or in a settings script), but was applied to the Gradle (or in an init script)"
+        "Gradle"     | "build.gradle"    | "The plugin must be applied to the Gradle (or in an init script), but was applied to a Project (or in a build script)"
+        "Gradle"     | "settings.gradle" | "The plugin must be applied to the Gradle (or in an init script), but was applied to the Settings (or in a settings script)"
+    }
+
 }
