@@ -147,7 +147,7 @@ public class NameMatcher {
                 builder.append(Pattern.quote(prefix));
             }
             builder.append(Pattern.quote(matcher.group()));
-            builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
+            builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
             pos = matcher.end();
         }
         builder.append(Pattern.quote(name.substring(pos)));
