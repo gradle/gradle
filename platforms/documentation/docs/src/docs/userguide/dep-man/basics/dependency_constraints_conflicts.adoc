@@ -16,22 +16,13 @@
 = 5. Dependency Constraints and Conflict Resolution
 
 [[sec:conflict-resolution]]
-== Understanding how Gradle handles conflicts
+== Understanding types of conflicts
 
 When doing dependency resolution, Gradle handles two types of conflicts:
 
-Version conflicts::
-That is when two or more dependencies require a given dependency but with different versions.
+1. *Version conflicts*: That is when two or more dependencies require a given dependency but with different versions.
+2. *Capability conflicts*: That is when the dependency graph contains multiple modules that provide the same implementation.
 
-Implementation conflicts::
-That is when the dependency graph contains multiple modules that provide the same implementation, or capability in Gradle terminology.
-
-The following sections will explain in detail how Gradle attempts to resolve these conflicts.
-
-The dependency resolution process is highly customizable to meet enterprise requirements.
-For more information, see the chapter on <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies>>.
-
-[[sec:version-conflict]]
 == Resolving version conflicts
 
 A version conflict occurs when two components:
@@ -41,180 +32,26 @@ A version conflict occurs when two components:
 ** Our project itself depends on `com.google.guava:guava:20.0`
 ** Our project also depends on `com.google.inject:guice:4.2.2` which itself depends on `com.google.guava:guava:25.1-android`
 
-[[sub:resolution-strategy]]
-=== Resolution strategy
-
-Given the conflict above, there exist multiple ways to handle it, either by selecting a version or failing the resolution.
-Different tools that handle dependency management have different ways of handling these type of conflicts.
-
---
-https://maven.apache.org/[Apache Maven] uses a nearest first strategy.
-
-Maven will take the _shortest_ path to a dependency and use that version.
-In case there are multiple paths of the same length, the first one wins.
-
-This means that in the example above, the version of `guava` will be `20.0` because the direct dependency is _closer_ than the `guice` dependency.
-
-The main drawback of this method is that it is ordering dependent.
-Keeping order in a very large graph can be a challenge.
-For example, what if the new version of a dependency ends up having its own dependency declarations in a different order than the previous version?
-
-With Maven, this could have unwanted impact on resolved versions.
---
-
-[NOTE]
-====
-https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
-It offers the possibility to customize dependency resolution, including conflict resolution.
-
-This flexibility comes with the price of making it hard to reason about.
-====
-
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
-Out of these versions, it will select the _highest_ one. More information on version ordering
-<<single_versions#version_ordering,here>>.
+Out of these versions, it will select the _highest_ one.
 
-As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
-
-* If no ranges are involved, then the highest version that is not rejected will be selected.
-** If a version declared as `strictly` is lower than that version, selection will fail.
-* If ranges are involved:
-** If there is a non range version that falls within the specified ranges or is higher than their upper bound, it will be selected.
-** If there are only ranges, the selection will depend on the intersection of ranges:
-*** If all the ranges intersect, then the highest _existing_ version of the intersection will be selected.
-*** If there is no clear intersection between all the ranges, the highest _existing_ version will be selected from the highest range. If there is no version available for the highest range, the resolution will fail.
-** If a version declared as `strictly` is lower than that version, selection will fail.
-
-Note that in the case where ranges come into play, Gradle requires metadata to determine which versions do exist for the considered range.
-This causes an intermediate lookup for metadata, as described in <<#sec:how-gradle-downloads-deps>>.
-
-[[sec:base-version-comparison]]
-=== Qualifiers
-There is a caveat to comparing versions when it comes to selecting the _highest_ one.
-All the rules of <<single_versions#version_ordering,version ordering>> still apply, but the conflict resolver
-has a bias towards versions without qualifiers.
-
-The "qualifier" of a version, if it exists, is the tail end of the version string, starting at the first non-dot separator
-found in it. The other (first) part of the version string is called the "base form" of the version. Here are some examples
-to illustrate:
-
-[cols="1,1,1"]
-|===
-|Original version | Base version | Qualifier
-
-|1.2.3
-|1.2.3
-|<none>
-
-|1.2-3
-|1.2
-|3
-
-|1_alpha
-|1
-|alpha
-
-|abc
-|abc
-|<none>
-
-|1.2b3
-|1.2
-|b3
-
-|abc.1+3
-|abc.1
-|3
-
-|b1-2-3.3
-|b
-|1-2-3.3
-|===
-
-As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
-
-When resolving the conflict between competing versions, the following logic applies:
-
-* first the versions with the highest base version are selected, the rest are discarded
-* if there are still multiple competing versions left, then one is picked with a preference for not having a qualifier or having release status.
-
-[[sec:implementation-conflict]]
-== Resolving implementation conflicts
-
+== Resolving capability conflicts
 
 Gradle uses variants and capabilities to identify what a module _provides_.
-
-This is a unique feature that deserves its <<variant_model.adoc#understanding-variant-selection,own chapter>> to understand what it means and enables.
-
 A conflict occurs the moment two modules either:
 
 * Attempt to select incompatible variants,
 * Declare the same capability
 
-Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
+Gradle will generally fail the build and report the conflict.
 
-== Dependency resolution management
+You can resolve conflicts manually by specifying which capability to use in the `resolutionStrategy` block:
 
-Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle offers a way to declare them in a central place for all projects.
-
-NOTE: Central declaration of repositories is an incubating feature.
-
-Repositories used by convention in every subproject can be declared in the `settings.gradle(.kts)` file:
-
-.Declaring a Maven repository in settings
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=declare_repositories_settings]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=declare_repositories_settings]"]
-====
-
-The `dependencyResolutionManagement` repositories block accepts the same notations as in a project. This includes Maven or Ivy repositories, with or without credentials, etc.
-
-By default, repositories declared by a project in `build.gradle(.kts)` will *override* whatever is declared in `settings.gradle(.kts)`:
-
-.Preferring project repositories
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_projects]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_projects]"]
-====
-
-There are three modes for dependency resolution management:
-
-[cols="1,1,1,1"]
-|===
-|Mode |Description |Default? |Use-Case
-
-|`PREFER_PROJECT`
-|Any repository declared on a project will cause the project to use the repositories declared by the project, ignoring those declared in settings.
-|Yes
-|Useful when teams need to use different repositories not common among subprojects.
-
-|`PREFER_SETTINGS`
-|Any repository declared directly in a project, either directly or via a plugin, will be ignored.
-|No
-|Useful for enforcing large teams to use approved repositories only, but will not fail the build when a project or plugin declares a repository.
-
-|`FAIL_ON_PROJECT_REPOS`
-|Any repository declared directly in a project, either directly or via a plugin, will trigger a build error.
-|No
-|Useful for enforcing large teams to use approved repositories only.
-|===
-
-You can change the behavior to prefer the repositories in the `settings.gradle(.kts)` file by using `repositoriesMode`:
-
-.Preferring settings repositories
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_settings]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_settings]"]
-====
-
-[[sub:fail_build_on_project_repositories]]
-
-Gradle will warn you if a project or a plugin declares a repository in a project.
-
-You can force Gradle to _fail the build_ if you want to enforce that *only* settings repositories are used:
-
-.Enforcing settings repositories
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=enforce_settings]"]
-====
+[source,kotlin]
+----
+configurations.all {
+    resolutionStrategy.capabilitiesResolution.withCapability("com.example.logging") {
+        selectHighestVersion()
+    }
+}
+----
