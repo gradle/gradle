@@ -336,23 +336,11 @@ Represents the classpath used to compile the test sources, which includes depend
 `testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
 Represents the classpath used to run the test sources, which includes dependencies from both `testRuntimeOnly` and `testImplementation` configurations. Used by task `test`.
 
-==== Consumable Configurations
-
-`apiElements` ::
-Represents the artifacts (JARs, WARs, etc. that contain the compiled code, resources, and other necessary files) produced by the project that expose its API to consumers. Used by task `jar`.
-
-`runtimeElements` ::
-Represents the artifacts (JARs, WARs, etc. that contain the compiled code, resources, and other necessary files) produced by the project that are intended to be consumed by other projects at runtime. Used by task `assemble`.
-
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
 
  * blue background — you can declare dependencies against the configuration.
  * green background — the configuration is for consumption by tasks, not for you to declare dependencies.
- * purple background — the configuration is for defining artifacts, not for you to declare dependencies.
  * grey background — a task.
-
-.Java plugin - _main_ source set configurations
-image::java-all-configurations.png[]
 
 .Java plugin - _main_ source set dependency configurations
 image::java-main-configurations.png[]
