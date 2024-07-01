@@ -16,9 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.Plugin;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
@@ -48,6 +46,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
+import org.gradle.api.internal.plugins.ConventionApplyingPluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -76,7 +75,6 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
@@ -243,6 +241,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
+        PluginTarget pluginTarget = new ConventionApplyingPluginTarget<>(project, ruleBasedTarget, softwareTypeConventionApplicator);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,
@@ -250,12 +249,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
                 instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
                 pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
-            ruleBasedTarget,
+            pluginTarget,
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,
-            domainObjectCollectionFactory,
-            (Action<? super Plugin>) plugin -> softwareTypeConventionApplicator.applyConventionsTo(project, Cast.uncheckedCast(plugin))
+            domainObjectCollectionFactory
         );
     }
 

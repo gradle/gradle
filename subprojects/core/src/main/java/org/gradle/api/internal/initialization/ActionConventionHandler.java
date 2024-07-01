@@ -48,7 +48,7 @@ public class ActionConventionHandler implements SoftwareTypeConventionHandler {
     }
 
     @Override
-    public void apply(Object target, String softwareTypeName, Plugin<?> plugin) {
+    public <T> void apply(T target, String softwareTypeName, Plugin<? super T> plugin) {
         SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
 
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);

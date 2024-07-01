@@ -22,5 +22,5 @@ import org.gradle.api.Plugin;
  * Applies the conventions from a given software type to a target object.
  */
 public interface SoftwareTypeConventionHandler {
-    void apply(Object target, String softwareTypeName, Plugin<?> plugin);
+    <T> void apply(T target, String softwareTypeName, Plugin<? super T> plugin);
 }

@@ -50,7 +50,7 @@ class DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTyp
     private
     val conventionRepository = softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry)
 
-    override fun apply(target: Any, softwareTypeName: String, plugin: Plugin<*>) {
+    override fun <T : Any> apply(target: T, softwareTypeName: String, plugin: Plugin<in T>) {
         val analysisStepRunner = ApplyConventionsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
