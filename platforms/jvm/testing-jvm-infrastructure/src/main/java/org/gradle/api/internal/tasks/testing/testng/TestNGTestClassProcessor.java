@@ -213,13 +213,13 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
     }
 
-    private void setSuiteThreadPoolSize(TestNG testNg, int suiteThreadPoolSize) {
+    private void setSuiteThreadPoolSize(TestNG testNg, Integer suiteThreadPoolSize) {
         if (suiteThreadPoolSize < 1) {
             throw new InvalidUserDataException("suiteThreadPoolSize must be greater than or equal to 1.");
         }
 
         try {
-            JavaMethod.of(TestNG.class, Object.class, "setSuiteThreadPoolSize", int.class).invoke(testNg, suiteThreadPoolSize);
+            JavaMethod.of(TestNG.class, Object.class, "setSuiteThreadPoolSize", Integer.class).invoke(testNg, suiteThreadPoolSize);
         } catch (NoSuchMethodException e) {
             if (suiteThreadPoolSize != 1) {
                 throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool size.");
