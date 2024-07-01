@@ -22,9 +22,6 @@ import java.net.URL
 
 class HtmlReportTemplate(private val reportHtmlFileName: String = "configuration-cache-report.html") {
 
-    val htmlFileName: String
-        get() = reportHtmlFileName
-
     private
     val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
 
