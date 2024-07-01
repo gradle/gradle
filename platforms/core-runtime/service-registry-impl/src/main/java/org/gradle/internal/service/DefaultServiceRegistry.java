@@ -302,7 +302,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
         assertMutable();
-        ServiceAccessToken token = org.gradle.internal.service.ServiceAccess.createToken(format(provider.getClass()));
+        ServiceAccessToken token = ServiceAccess.createToken(format(provider.getClass()));
         findProviderMethods(provider, token);
         return this;
     }
