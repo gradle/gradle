@@ -147,6 +147,8 @@ public class NameMatcher {
                 builder.append(Pattern.quote(prefix));
             }
             builder.append(Pattern.quote(matcher.group()));
+            // Using explicit character selection instead of properties to select lowercase characters
+            // due to a known issue in regex below Java 15.
             builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
             pos = matcher.end();
         }
