@@ -29,7 +29,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
     def "with and without plugin application (#scenario)"() {
         given:
-        def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
+        def jobArgs = ['--continue', '--no-scan', '-Dscan.capture-file-fingerprints'] + scenarioArgs
 
         runner.baseline {
             displayName(WITHOUT_PLUGIN_LABEL)
