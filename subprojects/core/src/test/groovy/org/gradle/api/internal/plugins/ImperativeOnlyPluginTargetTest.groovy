@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.plugins
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ProblemEmitter
-import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
@@ -31,13 +29,11 @@ import spock.lang.Specification
 class ImperativeOnlyPluginTargetTest extends Specification {
 
     def problemEmitter = Mock(ProblemEmitter)
-    def problems = new DefaultProblems(problemEmitter, CurrentBuildOperationRef.instance())
-
-    def setup() {
-        CurrentBuildOperationRef.instance().set(Mock(BuildOperationRef) {
-            getId() >> new OperationIdentifier(42)
-        })
+    def currentBuildOperationRef = Mock(CurrentBuildOperationRef) {
+        getId() >> new OperationIdentifier(42)
     }
+    def problems = new DefaultProblems(problemEmitter, currentBuildOperationRef)
+
 
     def "mismatched plugin application target is detected"() {
         def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal), problems)
