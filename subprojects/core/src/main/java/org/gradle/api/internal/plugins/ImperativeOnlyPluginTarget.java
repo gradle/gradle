@@ -30,9 +30,11 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implements PluginTarget {
 
+    private final PluginTargetType targetType;
     private final T target;
 
-    public ImperativeOnlyPluginTarget(T target) {
+    public ImperativeOnlyPluginTarget(PluginTargetType targetType, T target) {
+        this.targetType = targetType;
         this.target = target;
     }
 

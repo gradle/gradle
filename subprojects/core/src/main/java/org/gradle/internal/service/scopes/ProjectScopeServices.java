@@ -47,6 +47,7 @@ import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -236,7 +237,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
-            new ImperativeOnlyPluginTarget<>(project),
+            new ImperativeOnlyPluginTarget<>(PluginTargetType.PROJECT, project),
             modelRuleExtractor,
             modelRuleSourceDetector
         );
