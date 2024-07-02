@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.dom.data
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 
 
-interface NodeDataContainer<DNode, DElement : DNode, DProperty : DNode, DError : DNode> {
+interface NodeDataContainer<out DNode, out DElement : DNode, out DProperty : DNode, out DError : DNode> {
     fun data(node: DeclarativeDocument.DocumentNode): DNode = when (node) {
         is DeclarativeDocument.DocumentNode.ElementNode -> data(node)
         is DeclarativeDocument.DocumentNode.PropertyNode -> data(node)
@@ -34,7 +34,7 @@ interface NodeDataContainer<DNode, DElement : DNode, DProperty : DNode, DError :
 typealias NodeData<DNode> = NodeDataContainer<DNode, DNode, DNode, DNode>
 
 
-interface ValueDataContainer<DValue, DValueFactory : DValue, DLiteral : DValue> {
+interface ValueDataContainer<out DValue, out DValueFactory : DValue, out DLiteral : DValue> {
     fun data(value: DeclarativeDocument.ValueNode): DValue = when (value) {
         is DeclarativeDocument.ValueNode.ValueFactoryNode -> data(value)
         is DeclarativeDocument.ValueNode.LiteralValueNode -> data(value)

@@ -21,7 +21,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
-import org.gradle.internal.declarativedsl.common.withAllPotentiallyDeclarativeSupertypes
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
@@ -102,7 +101,7 @@ private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(kClass).flatMapTo(mutableSetOf(), ::withAllPotentiallyDeclarativeSupertypes)
+            allClassesReachableFromGetters(kClass)
         } else {
             emptyList()
         }

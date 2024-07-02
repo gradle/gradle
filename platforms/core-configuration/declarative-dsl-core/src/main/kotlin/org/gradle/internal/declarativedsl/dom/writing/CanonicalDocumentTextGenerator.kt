@@ -19,11 +19,13 @@ package org.gradle.internal.declarativedsl.dom.writing
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 
 
 class CanonicalDocumentTextGenerator {
-    fun generateText(document: DeclarativeDocument): String =
-        CanonicalCodeGenerator().generateCode(document.content.toList(), "    "::repeat, true)
+    fun generateText(
+        document: DeclarativeDocument
+    ): String = CanonicalCodeGenerator().generateCode(NewDocumentNodes(document.content.toList()), "    "::repeat, true)
 }
 
 
@@ -39,7 +41,7 @@ class CanonicalCodeGenerator {
     }
 
     fun generateCode(
-        nodes: List<DocumentNode>,
+        nodes: NewDocumentNodes,
         indentProvider: (Int) -> String,
         isTopLevel: Boolean,
     ) = buildString {
@@ -52,8 +54,9 @@ class CanonicalCodeGenerator {
                 }
 
                 is DocumentNode.ElementNode -> {
+                    val representation = nodes.representationFlags.data(node)
                     append("${indent()}${node.name}")
-                    if (node.elementValues.isNotEmpty() || node.content.isEmpty()) {
+                    if (node.elementValues.isNotEmpty() || node.content.isEmpty() && !representation.forceEmptyBlock) {
                         append("(${node.elementValues.joinToString { valueNodeString(it) }})")
                     }
                     if (node.content.isNotEmpty()) {
@@ -63,6 +66,10 @@ class CanonicalCodeGenerator {
                             appendLine()
                         }
                         append("${indent()}}")
+                    } else {
+                        if (representation.forceEmptyBlock) {
+                            append(" { }")
+                        }
                     }
                 }
 
@@ -70,10 +77,10 @@ class CanonicalCodeGenerator {
             }
         }
 
-        nodes.forEachIndexed { index, it ->
+        nodes.nodes.forEachIndexed { index, it ->
             if (index > 0) {
                 appendLine()
-                if (isTopLevel && (nodes[index - 1] is DocumentNode.ElementNode || it is DocumentNode.ElementNode)) {
+                if (isTopLevel && (nodes.nodes[index - 1] is DocumentNode.ElementNode || it is DocumentNode.ElementNode)) {
                     appendLine()
                 }
             }

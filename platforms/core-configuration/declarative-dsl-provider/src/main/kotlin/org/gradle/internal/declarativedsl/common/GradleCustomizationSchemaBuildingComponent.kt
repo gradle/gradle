@@ -33,6 +33,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
  * The features are:
  * * importing properties using the [org.gradle.api.provider.Property] API,
  * * importing types from functions that return or configure custom types.
+ * * for every type included in the schema, importing all supertypes that might potentially be declarative.
  *
  * If object conversion is supported by the schema, also brings the basic DCL conversion capabilities
  * for resolving properties and member functions, see [conversionSupport]
@@ -45,6 +46,8 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
     registerAnalysisSchemaComponent(MinimalSchemaBuildingComponent())
 
     registerAnalysisSchemaComponent(TypeDiscoveryFromRestrictedFunctions())
+
+    registerAnalysisSchemaComponent(SupertypeTypeDiscovery())
 
     ifConversionSupported {
         registerObjectConversionComponent(conversionSupport)

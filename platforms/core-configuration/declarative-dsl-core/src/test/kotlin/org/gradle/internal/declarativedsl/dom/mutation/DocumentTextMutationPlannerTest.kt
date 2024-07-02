@@ -32,6 +32,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.Document
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ValueFactoryNodeMutation.ValueNodeCallMutation
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutationFailureReason.TargetNotFoundOrSuperseded
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -194,8 +195,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node replacement`() {
         val mutations = listOf(
-            ReplaceNode(simpleDocument.elementNamed("f")) { nodeFromText("f0(1)") },
-            ReplaceNode(simpleDocument.elementNamed("g")) { nodeFromText("g0(2) { h0(3) }") }
+            ReplaceNode(simpleDocument.elementNamed("f")) { NewDocumentNodes(listOf(nodeFromText("f0(1)"))) },
+            ReplaceNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("g0(2) { h0(3) }"))) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -218,8 +219,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion before another node`() {
         val mutations = listOf(
-            InsertNodesBeforeNode(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode()"), nodeFromText("oneMore()")) },
-            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j")) { listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")) }
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))) },
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j")) { NewDocumentNodes(listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()"))) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -250,8 +251,8 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion after another node`() {
         val mutations = listOf(
-            InsertNodesAfterNode(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode()"), nodeFromText("oneMore()")) },
-            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j")) { listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()")) }
+            InsertNodesAfterNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))) },
+            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j")) { NewDocumentNodes(listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()"))) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -282,7 +283,9 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into the block start`() {
         val mutations = listOf(
-            AddChildrenToStartOfBlock(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")) }
+            AddChildrenToStartOfBlock(simpleDocument.elementNamed("g")) {
+                NewDocumentNodes(listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")))
+            }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -309,7 +312,7 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into the block end`() {
         val mutations = listOf(
-            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g")) { listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")) },
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -337,8 +340,12 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into an element that does not have content yet`() {
         val mutations = listOf(
-            AddChildrenToStartOfBlock(simpleDocument.elementNamed("f")) { listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")) },
-            AddChildrenToEndOfBlock(simpleDocument.elementNamed("l")) { listOf(nodeFromText("newNode3()"), nodeFromText("newNode4()")) },
+            AddChildrenToStartOfBlock(simpleDocument.elementNamed("f")) {
+                NewDocumentNodes(listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")))
+            },
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("l")) {
+                NewDocumentNodes(listOf(nodeFromText("newNode3()"), nodeFromText("newNode4()")))
+            },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -370,8 +377,8 @@ object DocumentTextMutationPlannerTest {
     fun `of two mutations replacing a single node the first is applied and the second is reported as superseded`() {
         val f = simpleDocument.elementNamed("f")
         val mutations = listOf(
-            ReplaceNode(f) { nodeFromText("newNode1()") },
-            ReplaceNode(f) { nodeFromText("newNode2()") },
+            ReplaceNode(f) { NewDocumentNodes(listOf(nodeFromText("newNode1()"))) },
+            ReplaceNode(f) { NewDocumentNodes(listOf(nodeFromText("newNode2()"))) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -398,10 +405,10 @@ object DocumentTextMutationPlannerTest {
         val f = simpleDocument.elementNamed("f")
         val mutations = listOf(
             // Also provide them mixed wrt start and end:
-            AddChildrenToEndOfBlock(f) { listOf(nodeFromText("newNode3()")) }, // expected to go before newNode4() and after newNode2()
-            AddChildrenToStartOfBlock(f) { listOf(nodeFromText("newNode1()")) },
-            AddChildrenToStartOfBlock(f) { listOf(nodeFromText("newNode2()")) }, // expected to go before newNode1()
-            AddChildrenToEndOfBlock(f) { listOf(nodeFromText("newNode4()")) },
+            AddChildrenToEndOfBlock(f) { NewDocumentNodes(listOf(nodeFromText("newNode3()"))) }, // expected to go before newNode4() and after newNode2()
+            AddChildrenToStartOfBlock(f) { NewDocumentNodes(listOf(nodeFromText("newNode1()"))) },
+            AddChildrenToStartOfBlock(f) { NewDocumentNodes(listOf(nodeFromText("newNode2()"))) }, // expected to go before newNode1()
+            AddChildrenToEndOfBlock(f) { NewDocumentNodes(listOf(nodeFromText("newNode4()"))) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -496,12 +503,12 @@ object DocumentTextMutationPlannerTest {
             // For an element with non-empty content:
             ElementNodeCallMutation(g, CallMutation.RenameCall { "gRenamed" }),
             ReplaceValue(g.elementValues[0]) { valueFromText("replaced()") },
-            ReplaceNode(g.elementNamed("h")) { nodeFromText("hReplaced()") },
+            ReplaceNode(g.elementNamed("h")) { NewDocumentNodes(listOf(nodeFromText("hReplaced()"))) },
             ReplaceValue(g.elementNamed("j").elementValues[0]) { valueFromText("alsoReplaced()") },
 
             // And also for an element with empty content:
             ElementNodeCallMutation(f, CallMutation.RenameCall { "fRenamed" }),
-            AddChildrenToEndOfBlock(f) { listOf(nodeFromText("added()")) },
+            AddChildrenToEndOfBlock(f) { NewDocumentNodes(listOf(nodeFromText("added()"))) },
             ReplaceValue(f.elementValues[0]) { valueFromText("replaced()") },
         )
 

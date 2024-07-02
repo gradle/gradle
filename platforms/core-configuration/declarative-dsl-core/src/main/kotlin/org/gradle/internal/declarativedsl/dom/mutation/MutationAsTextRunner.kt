@@ -51,8 +51,8 @@ class MutationAsTextRunner {
                     mutationArguments
                 )
 
-                if (plan.unsuccessfulModelMutations.isNotEmpty()) {
-                    add(ModelMutationStepResult.ModelMutationFailed(currentDocument, modelMutation, plan.unsuccessfulModelMutations.single { it.mutationRequest == modelMutation }.failureReasons))
+                if (plan.modelMutationIssues.isNotEmpty()) {
+                    add(ModelMutationStepResult.ModelMutationFailed(currentDocument, modelMutation, plan.modelMutationIssues))
                 } else {
                     val documentMutations = plan.documentMutations
                     val textMutation = documentToTextMutationPlanner.planDocumentMutations(currentDocument.document, documentMutations)
@@ -97,7 +97,7 @@ sealed interface ModelMutationStepResult {
     data class ModelMutationFailed(
         override val resolvedDocumentBeforeMutation: DocumentWithResolution,
         override val modelMutation: ModelMutationRequest,
-        val reasons: List<ModelMutationFailureReason>
+        val issues: List<ModelMutationIssue>
     ) : ModelMutationStepResult
 
     data class ModelMutationStepApplied(
