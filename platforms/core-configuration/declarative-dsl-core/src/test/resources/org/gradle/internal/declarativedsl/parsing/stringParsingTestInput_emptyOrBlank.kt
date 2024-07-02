@@ -1,0 +1,6 @@
+val a = ""
+val b = """"""
+val c = " "
+val d = """ """
+val e = "   "
+val f = """   """

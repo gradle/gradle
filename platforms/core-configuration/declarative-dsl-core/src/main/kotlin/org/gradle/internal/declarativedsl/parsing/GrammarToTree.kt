@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.KtNodeTypes.CLASS
 import org.jetbrains.kotlin.KtNodeTypes.CLASS_BODY
 import org.jetbrains.kotlin.KtNodeTypes.CLASS_INITIALIZER
 import org.jetbrains.kotlin.KtNodeTypes.DOT_QUALIFIED_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.ESCAPE_STRING_TEMPLATE_ENTRY
 import org.jetbrains.kotlin.KtNodeTypes.FUN
 import org.jetbrains.kotlin.KtNodeTypes.FUNCTION_LITERAL
 import org.jetbrains.kotlin.KtNodeTypes.IMPORT_ALIAS
@@ -47,6 +48,7 @@ import org.jetbrains.kotlin.KtNodeTypes.LABELED_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_ARGUMENT
 import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.LITERAL_STRING_TEMPLATE_ENTRY
+import org.jetbrains.kotlin.KtNodeTypes.LONG_STRING_TEMPLATE_ENTRY
 import org.jetbrains.kotlin.KtNodeTypes.MODIFIER_LIST
 import org.jetbrains.kotlin.KtNodeTypes.NULL
 import org.jetbrains.kotlin.KtNodeTypes.OPERATION_REFERENCE
@@ -55,6 +57,7 @@ import org.jetbrains.kotlin.KtNodeTypes.PARENTHESIZED
 import org.jetbrains.kotlin.KtNodeTypes.PREFIX_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.PROPERTY
 import org.jetbrains.kotlin.KtNodeTypes.REFERENCE_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.SHORT_STRING_TEMPLATE_ENTRY
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.THIS_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.TYPEALIAS
@@ -351,19 +354,36 @@ class GrammarToTree(
         }
 
     private
-    fun stringTemplate(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> {
-        val children = tree.children(node)
-        val sb = StringBuilder()
-        children.forEach {
-            when (val tokenType = it.tokenType) {
-                OPEN_QUOTE, CLOSING_QUOTE -> {}
-                LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
-                ERROR_ELEMENT -> tree.parsingError(node, it, "Unparsable string template: \"${node.asText}\"")
-                else -> tree.parsingError(it, "Parsing failure, unexpected tokenType in string template: $tokenType")
+    fun stringTemplate(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
+        elementOrFailure {
+            val children = tree.children(node)
+            val sb = StringBuilder()
+            for (it in children) {
+                when (val tokenType = it.tokenType) {
+                    OPEN_QUOTE, CLOSING_QUOTE -> {}
+
+                    LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
+
+                    ESCAPE_STRING_TEMPLATE_ENTRY -> sb.append(it.unescapedValue)
+
+                    LONG_STRING_TEMPLATE_ENTRY, SHORT_STRING_TEMPLATE_ENTRY -> {
+                        collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.StringTemplates))
+                        break
+                    }
+
+                    ERROR_ELEMENT -> {
+                        collectingFailure(tree.parsingError(node, it, "Unparsable string template: \"${node.asText}\""))
+                        break
+                    }
+
+                    else -> collectingFailure(tree.parsingError(it, "Parsing failure, unexpected tokenType in string template: $tokenType"))
+                }
+            }
+
+            elementIfNoFailures {
+                Element(Literal.StringLiteral(sb.toString(), tree.sourceData(node)))
             }
         }
-        return Element(Literal.StringLiteral(sb.toString(), tree.sourceData(node)))
-    }
 
     @Suppress("ReturnCount")
     private
