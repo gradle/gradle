@@ -15,7 +15,7 @@
 [[dependency_management_in_gradle]]
 = Dependency Management
 
-Software projects typically depend on other libraries to function. 
+Software projects typically depend on other libraries to function.
 These libraries can either be sourced from other projects in the same build or from external repositories.
 
 Gradle's dependency management infrastructure provides APIs to declare, resolve, and expose binaries required by and provided by a project.
@@ -55,7 +55,7 @@ You can add code to your Java project from an external library such as `com.goog
 
 == 2. Understanding Configurations
 
-A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+A developer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
 Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 == 3. Declaring Repositories
