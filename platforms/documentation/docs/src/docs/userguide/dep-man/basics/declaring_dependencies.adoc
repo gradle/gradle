@@ -47,7 +47,7 @@ Dependencies in Gradle are declared using a configuration name (e.g., `implement
 ----
 dependencies {
     // Configuration Name + Dependency Notation - GroupID : ArtifactID (Name) : Version
-    configuration '<group>:<name>:<version>'
+    configuration('<group>:<name>:<version>')
 }
 ----
 
@@ -76,8 +76,8 @@ They refer to a module in a repository:
 .build.gradle.kts
 ----
 dependencies {
-    runtimeOnly("org.springframework:spring-aop:2.5")
-    runtimeOnly("org.hibernate:hibernate:3.0.5")
+    implementation("org.springframework:spring-aop:2.5")
+    implementation("org.hibernate:hibernate:3.0.5")
 }
 ----
 =====
@@ -87,8 +87,8 @@ dependencies {
 .build.gradle
 ----
 dependencies {
-    runtimeOnly 'org.springframework:spring-core:2.5'
-    runtimeOnly 'org.hibernate:hibernate:3.0.5'
+    implementation('org.springframework:spring-core:2.5')
+    implementation('org.hibernate:hibernate:3.0.5')
 }
 ----
 =====
@@ -97,7 +97,7 @@ dependencies {
 === 2. File dependencies
 
 In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
-Instead, it is common practice to host these dependencies on a shared drive or to check them into version control alongside the project source code.
+Instead, you might host these dependencies on a shared drive or to check them into version control alongside the project source code.
 
 These are known as file dependencies because they represent files without any <<dependency_management_terminology.adoc#sub:terminology_module_metadata,metadata>> (such as information about transitive dependencies, origin, or author) attached to them.
 
@@ -151,7 +151,7 @@ dependencies {
 .build.gradle
 ----
 dependencies {
-    implementation 'com.google.guava:guava:30.1.1-jre'
+    implementation('com.google.guava:guava:30.1.1-jre')
 }
 ----
 =====
@@ -181,7 +181,7 @@ For example, let's say our `app` project contains the follow lines in its build 
 ----
 dependencies {
     implementation("com.google.guava:guava:30.0-jre")
-    runtimeOnly("org.json:json:20220924")
+    runtimeOnly("org.apache.commons:commons-lang3:3.14.0")
 }
 ----
 
@@ -210,16 +210,16 @@ runtimeClasspath - Runtime classpath of source set 'main'.
 |    +--- org.checkerframework:checker-qual:3.5.0
 |    +--- com.google.errorprone:error_prone_annotations:2.3.4
 |    \--- com.google.j2objc:j2objc-annotations:1.3
-\--- org.json:json:20220924
+\--- org.apache.commons:commons-lang3:3.14.0
 
 runtimeOnly - Runtime only dependencies for source set 'main'.
-\--- org.json:json:20220924
+\--- org.apache.commons:commons-lang3:3.14.0
 
 [...]
 ----
 
 We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` has been added
-As for the `runtimeOnly` configuration, the `org.json:json:20220924`.
+As for the `runtimeOnly` configuration, the `org.org.apache.commons:commons-lang3:3.14.0`.
 
 We also see a list of transitive dependencies for `com.google.guava:guava:30.0-jre` (which are the dependencies for the `guava` library), such as `com.google.guava:failureaccess:1.0.1` in the `runtimeClasspath` configuration.
 

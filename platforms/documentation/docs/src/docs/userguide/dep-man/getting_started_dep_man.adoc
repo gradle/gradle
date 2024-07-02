@@ -68,7 +68,7 @@ During a build, Gradle locates and downloads the dependencies, a process called 
 Centralizing dependencies in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
 Some concepts include:
 
-- A lockfile is a file that stores the exact versions of dependencies used in a project
+- A platform is a set of modules intended to be used together.
 - A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
 - A convention plugin defines conventions and configurations that can be applied consistently across projects.
 

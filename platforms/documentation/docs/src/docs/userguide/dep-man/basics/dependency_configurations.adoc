@@ -24,7 +24,7 @@ For example, some dependencies should be used for compiling source code whereas 
 ----
 dependencies {
     implementation("com.google.guava:guava:30.0-jre") // Needed to compile and run the app
-    runtimeOnly("org.json:json:20220924") // Only needed at runtime
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.13") // Only needed at runtime
 }
 ----
 

@@ -54,8 +54,8 @@ Then, you can use that platform in your project:
 ----
 dependencies {
     implementation platform("com.example:my-platform:1.0.0")
-    implementation "com.example:moduleA"
-    implementation "com.example:moduleB"
+    implementation("com.example:moduleA")
+    implementation("com.example:moduleB")
 }
 ----
 
@@ -107,8 +107,8 @@ To use the BOM, you can add it to the dependencies of your project:
 ----
 dependencies {
     implementation platform("io.spring.platform:platform-bom:Cairo-RELEASE")
-    implementation "org.springframework:spring-core"
-    implementation "org.springframework:spring-context"
+    implementation("org.springframework:spring-core")
+    implementation("org.springframework:spring-context")
 }
 ----
 
@@ -159,8 +159,8 @@ dependencyResolutionManagement {
 [source,groovy]
 ----
 plugins {
-   id 'java'
-   id 'org.springframework.boot' version libs.versions.spring.boot
+   id('java')
+   id('org.springframework.boot' version libs.versions.spring.boot)
 }
 
 repositories {
