@@ -75,6 +75,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1359,8 +1360,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
-            !stackTraceChecksOn, shouldCheckDeprecations, jdkWarningChecksOn
+            expectedGenericDeprecationWarnings,
+            expectedDeprecationWarnings,
+            Collections.emptyList(),
+            !stackTraceChecksOn,
+            shouldCheckDeprecations,
+            jdkWarningChecksOn
         );
     }
 
@@ -1392,7 +1397,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (gradleVersionOverride != null) {
             return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
         } else {
-            return DocumentationUtils.normalizeDocumentationLink(warning);
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersion);
         }
     }
 

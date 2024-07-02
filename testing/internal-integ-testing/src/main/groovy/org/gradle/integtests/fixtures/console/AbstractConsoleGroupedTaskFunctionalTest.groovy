@@ -48,6 +48,11 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
         return consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose || consoleType == ConsoleOutput.Auto && consoleAttachment.stderrAttached
     }
 
+    boolean shouldCheckDeprecations() {
+        // Deprecation checks are disabled when using styled text
+        return consoleType == ConsoleOutput.Plain || (consoleType == ConsoleOutput.Auto && consoleAttachment == ConsoleAttachment.NOT_ATTACHED)
+    }
+
     abstract ConsoleOutput getConsoleType()
 
     protected StyledOutput styled(Ansi.Color color, Ansi.Attribute attribute) {
