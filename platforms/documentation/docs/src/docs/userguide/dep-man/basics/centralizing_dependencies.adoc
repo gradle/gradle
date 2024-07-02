@@ -116,7 +116,7 @@ By including the `platform-bom`, you ensure that all Spring components use the v
 
 == Using a Version catalog
 
-A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
+A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
 You can reference this catalog in your projects to ensure consistent version management.
 
 Here’s how you can use a version catalog:
