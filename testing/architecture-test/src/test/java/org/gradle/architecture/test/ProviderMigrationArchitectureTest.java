@@ -38,11 +38,14 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -50,7 +53,8 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.ModelElement;
 
 import javax.inject.Inject;
-
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.tngtech.archunit.base.DescribedPredicate.and;
@@ -206,29 +210,29 @@ public class ProviderMigrationArchitectureTest {
         .andShould().notBeAnnotatedWith(NotToBeReplacedByLazyProperty.class));
 
     private static HaveLazyReturnType haveProviderReturnType() {
-        return new HaveLazyReturnType(Property.class, Provider.class);
+        return new HaveLazyReturnType(Arrays.asList(Property.class, MapProperty.class, ListProperty.class, SetProperty.class), Collections.singletonList(Provider.class));
     }
 
     private static HaveLazyReturnType haveFileCollectionReturnType() {
-        return new HaveLazyReturnType(ConfigurableFileCollection.class, FileCollection.class);
+        return new HaveLazyReturnType(Collections.singletonList(ConfigurableFileCollection.class), Collections.singletonList(FileCollection.class));
     }
 
     public static class HaveLazyReturnType extends ArchCondition<JavaMethod> {
-        private final Class<?> mutableType;
-        private final Class<?> immutableType;
+        private final List<Class<?>> mutableTypes;
+        private final List<Class<?>> immutableTypes;
 
-        public HaveLazyReturnType(Class<?> mutableType, Class<?> immutableType) {
-            super("have return type " + immutableType.getSimpleName());
-            this.mutableType = mutableType;
-            this.immutableType = immutableType;
+        public HaveLazyReturnType(List<Class<?>> mutableTypes, List<Class<?>> immutableTypes) {
+            super("have return type " + immutableTypes.get(0).getSimpleName());
+            this.mutableTypes = mutableTypes;
+            this.immutableTypes = immutableTypes;
         }
 
         @Override
         public void check(JavaMethod javaMethod, ConditionEvents events) {
             boolean hasSetter = hasSetter(javaMethod);
-            Class<?> expectedReturnType = hasSetter ? mutableType : immutableType;
-            boolean satisfied = javaMethod.getRawReturnType().isAssignableTo(expectedReturnType);
-            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type assignable to " + expectedReturnType.getName());
+            List<Class<?>> expectedReturnTypes = hasSetter ? mutableTypes : immutableTypes;
+            boolean satisfied = expectedReturnTypes.stream().anyMatch(expectedReturnType -> javaMethod.getRawReturnType().isAssignableTo(expectedReturnType));
+            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type assignable to " + expectedReturnTypes.get(0).getName());
             events.add(new SimpleConditionEvent(javaMethod, satisfied, message));
         }
 
