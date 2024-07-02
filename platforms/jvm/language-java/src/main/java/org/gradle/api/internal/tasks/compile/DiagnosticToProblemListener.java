@@ -52,7 +52,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final InternalProblemReporter problemReporter;
-    private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
 
     private int errorCount = 0;
@@ -60,13 +59,11 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
         this.problemReporter = problemReporter;
-        this.context = context;
         this.messageFormatter = messageFormatter;
     }
 
     public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
-        this.context = context;
         this.messageFormatter = diagnostic -> {
             try {
                 DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
@@ -159,24 +156,29 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
         spec.severity(mapKindToSeverity(diagnostic.getKind()));
+        addId(spec, diagnostic);
+        addContextualLabel(spec, diagnostic);
         addFormattedMessage(spec, diagnostic);
-        addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
+    }
+
+    private static void addId(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String idName = diagnostic.getCode().replace('.', '-');
+        spec.id(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+    }
+
+    private void addContextualLabel(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String message = diagnostic.getMessage(Locale.getDefault());
+        if (message != null) {
+            spec.contextualLabel(message);
+        }
     }
 
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String formatted = messageFormatter.apply(diagnostic);
         System.err.println(formatted);
         ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("formatted", formatted)); // TODO (donat) Introduce custom additional data type for compilation problems
-    }
-
-    private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String diagnosticMessage = diagnostic.getMessage(Locale.getDefault());
-        if (diagnosticMessage != null) {
-            spec.details(diagnosticMessage);
-        }
     }
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -239,23 +241,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         return fileObject.getName();
     }
 
-    private static String mapKindToId(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "java-compilation-error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "java-compilation-warning";
-            case NOTE:
-                return "java-compilation-note";
-            case OTHER:
-                return "java-compilation-problem";
-            default:
-                return "unknown-java-compilation-problem";
-        }
-    }
-
-    private static String mapKindToLabel(Diagnostic.Kind kind) {
+    private static String mapKindToDisplayName(Diagnostic.Kind kind) {
         switch (kind) {
             case ERROR:
                 return "Java compilation error";
@@ -267,7 +253,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             case OTHER:
                 return "Java compilation problem";
             default:
-                return "Unknown java compilation problem";
+                return "Unknown Java compilation problem";
         }
     }
 
