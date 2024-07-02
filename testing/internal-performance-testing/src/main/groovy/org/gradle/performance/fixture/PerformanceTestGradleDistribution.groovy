@@ -53,7 +53,7 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
     }
 
     GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext).withWarningMode(null)
+        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext)
     }
 
 }

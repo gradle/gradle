@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Preconditions;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
 public abstract class ExpectedDeprecationWarning {
 
     private static final Pattern DEPRECATION_WARNING_LOG_PREFIX_PATTERN =
-        Pattern.compile("^.* " + Pattern.quote("[WARN] [org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler] "));
+        Pattern.compile("^.* " + Pattern.quote("[WARN] [" + LoggingDeprecatedFeatureHandler.class.getName() + "] "));
 
     private final int numLines;
 
