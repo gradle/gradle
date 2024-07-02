@@ -15,6 +15,7 @@
  */
 package org.gradle.api.initialization;
 
+import org.gradle.api.Incubating;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
@@ -43,10 +44,38 @@ public interface ProjectDescriptor {
     /**
      * Sets the name of this project.
      *
+     * Updating the name of a project having a publicaiton name defined no longer updates the project artifactId.
+     *
      * @param name The new name for the project. Should not be null
      */
     @Restricted
     void setName(String name);
+
+    /**
+     * Returns a project publication name that will become the artifactId.
+     * <p>
+     * By default, the publication name is the project name.
+     * Projects now use the publication name as the default artifactId.
+     *
+     * TODO This should really be part of an abstraction around project identity for DM, which would be a Maven GAV for now.
+     * And something we can build on later.
+     *
+     * @return the project publication name, never {@code null}
+     *
+     * @since 8.10
+     */
+    @Incubating
+    String getPublicationName();
+
+    /**
+     * Sets a publication name for this project.
+     *
+     * @param publicationName the project alias
+     *
+     * @since 8.10
+     */
+    @Incubating
+    void setPublicationName(String publicationName);
 
     /**
      * Returns the project directory of this project.

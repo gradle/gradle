@@ -116,7 +116,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         ServiceRegistry buildServices = owner.getMutableModel().getServices();
         IProjectFactory projectFactory = buildServices.get(IProjectFactory.class);
         StateTransitionControllerFactory stateTransitionControllerFactory = buildServices.get(StateTransitionControllerFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), descriptor.getPublicationName(), projectIdentifier, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
         projectsByPath.put(identityPath, projectState);
         projectsById.put(projectIdentifier, projectState);
         projectRegistry.add(projectPath, projectState);
@@ -244,6 +244,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     private class ProjectStateImpl implements ProjectState, Closeable {
         private final Path projectPath;
         private final String projectName;
+        private final String publicationName;
         private final ProjectComponentIdentifier identifier;
         private final DefaultProjectDescriptor descriptor;
         private final IProjectFactory projectFactory;
@@ -261,6 +262,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             Path identityPath,
             Path projectPath,
             String projectName,
+            String publicationName,
             ProjectComponentIdentifier identifier,
             DefaultProjectDescriptor descriptor,
             IProjectFactory projectFactory,
@@ -271,6 +273,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             this.identityPath = identityPath;
             this.projectPath = projectPath;
             this.projectName = projectName;
+            this.publicationName = publicationName;
             this.identifier = identifier;
             this.descriptor = descriptor;
             this.projectFactory = projectFactory;
@@ -334,6 +337,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Override
         public String getName() {
             return projectName;
+        }
+
+        @Override
+        public String getPublicationName() {
+            return publicationName;
         }
 
         @Override
