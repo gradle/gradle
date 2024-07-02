@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
-
-import org.gradle.internal.configuration.problems.StructuredMessage
+package org.gradle.internal.configuration.problems
 
 
 data class ProblemReportDetails(

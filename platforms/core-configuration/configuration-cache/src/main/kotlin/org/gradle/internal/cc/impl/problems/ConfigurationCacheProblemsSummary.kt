@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Ordering
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.configuration.problems.ProblemSeverity
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.logging.ConsoleRenderer

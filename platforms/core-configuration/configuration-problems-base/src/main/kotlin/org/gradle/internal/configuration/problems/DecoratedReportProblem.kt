@@ -26,8 +26,168 @@ data class DecoratedReportProblem(
     val trace: PropertyTrace,
     val message: StructuredMessage,
     val failure: DecoratedFailure? = null,
-    val documentationSection: DocumentationSection? = null
-)
+    val documentationSection: DocumentationSection? = null,
+    val jsonWriter: JsonModelWriterCommon
+) {
+    fun writeJsonIntoWriter(kind: DiagnosticKind) =
+        with(jsonWriter) {
+            jsonObject {
+                property("trace") {
+                    jsonObjectList(trace.sequence.asIterable()) { trace ->
+                        writePropertyTrace(trace)
+                    }
+                }
+                comma()
+                property(keyFor(kind)) {
+                    writeStructuredMessage(message)
+                }
+                documentationSection?.let {
+                    comma()
+                    property("documentationLink", documentationLinkFor(it))
+                }
+                failure?.let { failure ->
+                    comma()
+                    writeError(failure)
+                }
+            }
+        }
+
+    private
+    fun writeStructuredMessage(message: StructuredMessage) =
+        with(jsonWriter) {
+            jsonObjectList(message.fragments) { fragment ->
+                writeFragment(fragment)
+            }
+        }
+
+
+    private
+    fun writeFragment(fragment: StructuredMessage.Fragment) {
+        with(jsonWriter) {
+            when (fragment) {
+                is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
+                is StructuredMessage.Fragment.Text -> property("text", fragment.text)
+            }
+        }
+    }
+
+    private
+    fun writeError(failure: DecoratedFailure) {
+        with(jsonWriter) {
+            val summary = failure.summary
+            val parts = failure.parts
+            property("error") {
+                jsonObject {
+                    if (summary != null) {
+                        property("summary") {
+                            writeStructuredMessage(summary)
+                        }
+                    }
+
+                    if (parts != null) {
+                        if (summary != null) comma()
+                        property("parts") {
+                            jsonObjectList(parts) { (isInternal, text) ->
+                                property(if (isInternal) "internalText" else "text", text)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    private
+    fun writePropertyTrace(trace: PropertyTrace) {
+        with(jsonWriter) {
+            when (trace) {
+                is PropertyTrace.Property -> {
+                    when (trace.kind) {
+                        PropertyKind.Field -> {
+                            property("kind", trace.kind.name)
+                            comma()
+                            property("name", trace.name)
+                            comma()
+                            property("declaringType", firstTypeFrom(trace.trace).name)
+                        }
+
+                        PropertyKind.PropertyUsage -> {
+                            property("kind", trace.kind.name)
+                            comma()
+                            property("name", trace.name)
+                            comma()
+                            property("from", projectPathFrom(trace.trace))
+                        }
+
+                        else -> {
+                            property("kind", trace.kind.name)
+                            comma()
+                            property("name", trace.name)
+                            comma()
+                            property("task", taskPathFrom(trace.trace))
+                        }
+                    }
+                }
+
+                is PropertyTrace.SystemProperty -> {
+                    property("kind", "SystemProperty")
+                    comma()
+                    property("name", trace.name)
+                }
+
+                is PropertyTrace.Task -> {
+                    property("kind", "Task")
+                    comma()
+                    property("path", trace.path)
+                    comma()
+                    property("type", trace.type.name)
+                }
+
+                is PropertyTrace.Bean -> {
+                    property("kind", "Bean")
+                    comma()
+                    property("type", trace.type.name)
+                }
+
+                is PropertyTrace.Project -> {
+                    property("kind", "Project")
+                    comma()
+                    property("path", trace.path)
+                }
+
+                is PropertyTrace.BuildLogic -> {
+                    property("kind", "BuildLogic")
+                    comma()
+                    property("location", trace.source.displayName)
+                }
+
+                is PropertyTrace.BuildLogicClass -> {
+                    property("kind", "BuildLogicClass")
+                    comma()
+                    property("type", trace.name)
+                }
+
+                PropertyTrace.Gradle -> {
+                    property("kind", "Gradle")
+                }
+
+                PropertyTrace.Unknown -> {
+                    property("kind", "Unknown")
+                }
+            }
+        }
+    }
+
+
+    private
+    fun keyFor(kind: DiagnosticKind) = when (kind) {
+        DiagnosticKind.PROBLEM -> "problem"
+        DiagnosticKind.INPUT -> "input"
+        DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
+    }
+
+}
 
 
 data class DecoratedFailure(

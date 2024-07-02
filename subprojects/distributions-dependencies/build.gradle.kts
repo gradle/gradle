@@ -191,6 +191,7 @@ dependencies {
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
+        api(libs.kotlinJson)           { version { strictly("1.6.3") }}
         api(libs.littleproxy)           { version { strictly("2.0.5") }}
         api(libs.maven3ResolverProvider){ version { strictly(mavenVersion) }}
         api(libs.mavenResolverApi)              { version { strictly(mavenResolverVersion) }}

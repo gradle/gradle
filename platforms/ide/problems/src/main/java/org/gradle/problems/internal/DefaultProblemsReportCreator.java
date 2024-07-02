@@ -19,10 +19,10 @@ package org.gradle.problems.internal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport;
-import org.gradle.internal.cc.impl.problems.ProblemReportDetails;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.configuration.problems.CommonReport;
 import org.gradle.internal.configuration.problems.ProblemFactory;
+import org.gradle.internal.configuration.problems.ProblemReportDetails;
 import org.gradle.internal.configuration.problems.StructuredMessage;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -31,7 +31,7 @@ import java.io.File;
 
 public class DefaultProblemsReportCreator implements ProblemReportCreator {
 
-    private final ConfigurationCacheReport report;
+    private final CommonReport report;
     private final ProblemFactory problemFactory;
 
     public DefaultProblemsReportCreator(
@@ -41,7 +41,7 @@ public class DefaultProblemsReportCreator implements ProblemReportCreator {
         ProblemFactory problemFactory
     ){
         this.problemFactory = problemFactory;
-        report = new ConfigurationCacheReport(executorFactory, temporaryFileProvider, internalOptions, "problem-report");
+        report = new CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem-report");
     }
 
     @Override

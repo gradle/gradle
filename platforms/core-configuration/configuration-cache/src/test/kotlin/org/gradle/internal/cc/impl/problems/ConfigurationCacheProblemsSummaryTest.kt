@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.problems
 
 import org.gradle.internal.Describables
 import org.gradle.internal.code.DefaultUserCodeSource
+import org.gradle.internal.configuration.problems.ProblemSeverity
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage

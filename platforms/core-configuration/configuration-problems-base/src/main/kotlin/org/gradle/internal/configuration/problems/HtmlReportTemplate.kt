@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.configuration.problems
 
 import java.io.BufferedReader
 import java.net.URL
@@ -41,7 +41,7 @@ class HtmlReportTemplate(private val reportHtmlFileName: String = "configuration
 
     private
     fun readHtmlTemplate() =
-        ConfigurationCacheReport::class.java
+        CommonReport::class.java
             .requireResource(reportHtmlFileName)
             .openStream()
             .bufferedReader()

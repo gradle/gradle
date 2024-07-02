@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.configuration.problems
 
-import org.apache.groovy.json.internal.CharBuf
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.configuration.problems.DecoratedFailure
-import org.gradle.internal.configuration.problems.DecoratedReportProblem
-import org.gradle.internal.configuration.problems.DocumentationSection
-import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configuration.problems.documentationLinkFor
-import org.gradle.internal.configuration.problems.firstTypeFrom
-import org.gradle.internal.configuration.problems.projectPathFrom
-import org.gradle.internal.configuration.problems.taskPathFrom
 import java.io.Writer
 
 
@@ -38,10 +26,7 @@ enum class DiagnosticKind {
 }
 
 
-class JsonModelWriter(val writer: Writer) {
-
-    private
-    val documentationRegistry = DocumentationRegistry()
+class JsonModelWriter(writer: Writer) : JsonModelWriterCommon(writer) {
 
     private
     var first = true
@@ -103,7 +88,6 @@ class JsonModelWriter(val writer: Writer) {
         }
     }
 
-    private
     fun writeError(failure: DecoratedFailure) {
         val summary = failure.summary
         val parts = failure.parts
@@ -126,6 +110,7 @@ class JsonModelWriter(val writer: Writer) {
             }
         }
     }
+
 
     private
     fun writeStructuredMessage(message: StructuredMessage) {
@@ -227,103 +212,4 @@ class JsonModelWriter(val writer: Writer) {
             }
         }
     }
-
-    private
-    inline fun <T> jsonObjectList(list: Iterable<T>, body: (T) -> Unit) {
-        jsonList(list) {
-            jsonObject {
-                body(it)
-            }
-        }
-    }
-
-    private
-    inline fun jsonObject(body: () -> Unit) {
-        beginObject()
-        body()
-        endObject()
-    }
-
-    private
-    fun beginObject() {
-        write('{')
-    }
-
-    private
-    fun endObject() {
-        write('}')
-    }
-
-    private
-    inline fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
-        beginArray()
-        var first = true
-        list.forEach {
-            if (first) first = false else comma()
-            body(it)
-        }
-        endArray()
-    }
-
-    private
-    fun beginArray() {
-        write('[')
-    }
-
-    private
-    fun endArray() {
-        write(']')
-    }
-
-    private
-    fun property(name: String, value: String) {
-        property(name) { jsonString(value) }
-    }
-
-    private
-    inline fun property(name: String, value: () -> Unit) {
-        propertyName(name)
-        value()
-    }
-
-    private
-    fun propertyName(name: String) {
-        simpleString(name)
-        write(':')
-    }
-
-    private
-    fun simpleString(name: String) {
-        write('"')
-        write(name)
-        write('"')
-    }
-
-    private
-    val buffer = CharBuf.create(255)
-
-    private
-    fun jsonString(value: String) {
-        if (value.isEmpty()) {
-            write("\"\"")
-        } else {
-            buffer.addJsonEscapedString(value)
-            write(buffer.toStringAndRecycle())
-        }
-    }
-
-    private
-    fun comma() {
-        write(',')
-    }
-
-    private
-    fun documentationLinkFor(section: DocumentationSection) =
-        documentationRegistry.documentationLinkFor(section)
-
-    private
-    fun write(csq: CharSequence) = writer.append(csq)
-
-    private
-    fun write(c: Char) = writer.append(c)
 }
