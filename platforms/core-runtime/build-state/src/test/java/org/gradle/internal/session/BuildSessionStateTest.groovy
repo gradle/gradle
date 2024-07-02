@@ -23,8 +23,9 @@ import org.gradle.initialization.BuildEventConsumer
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ScopedListenerManager
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import spock.lang.Specification
@@ -45,10 +46,11 @@ class BuildSessionStateTest extends Specification {
     BuildSessionState state
 
     def setup() {
-        _ * userHomeServiceRegistry.getServicesFor(_) >> new DefaultServiceRegistry()
-        def services = new DefaultServiceRegistry()
-        services.add(BuildSessionActionExecutor, actionExecutor)
-        services.add(listenerManager)
+        _ * userHomeServiceRegistry.getServicesFor(_) >> ServiceRegistryBuilder.builder().build()
+        def services = ServiceRegistryBuilder.builder()
+            .service(actionExecutor, BuildSessionActionExecutor)
+            .service(listenerManager, ScopedListenerManager)
+            .build()
         _ * crossBuildState.services >> services
         state = new BuildSessionState(userHomeServiceRegistry, crossBuildState, startParameter, buildRequestMetadata, classPath, cancellationToken, clientMetadata, eventConsumer)
     }
