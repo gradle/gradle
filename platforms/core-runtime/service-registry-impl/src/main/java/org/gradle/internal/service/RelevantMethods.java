@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.InternalTransformer;
+import org.gradle.util.internal.CollectionUtils;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -32,11 +35,18 @@ class RelevantMethods {
 
     final List<ServiceMethod> decorators;
     final List<ServiceMethod> factories;
+    final List<ServiceMethod> providers;
     final List<ServiceMethod> configurers;
 
-    private RelevantMethods(List<ServiceMethod> decorators, List<ServiceMethod> factories, List<ServiceMethod> configurers) {
+    private RelevantMethods(
+        List<ServiceMethod> decorators,
+        List<ServiceMethod> factories,
+        List<ServiceMethod> providers,
+        List<ServiceMethod> configurers
+    ) {
         this.decorators = decorators;
         this.factories = factories;
+        this.providers = providers;
         this.configurers = configurers;
     }
 
@@ -53,6 +63,7 @@ class RelevantMethods {
         private final Class<?> type;
         private final List<ServiceMethod> decorators = new ArrayList<ServiceMethod>();
         private final List<ServiceMethod> factories = new ArrayList<ServiceMethod>();
+        private final List<ServiceMethod> providers = new ArrayList<ServiceMethod>();
         private final List<ServiceMethod> configurers = new ArrayList<ServiceMethod>();
 
         private final Set<String> seen = new HashSet<String>();
@@ -70,7 +81,7 @@ class RelevantMethods {
                     addMethod(method);
                 }
             }
-            return new RelevantMethods(decorators, factories, configurers);
+            return new RelevantMethods(decorators, factories, providers, configurers);
         }
 
         private void addMethod(Method method) {
@@ -79,14 +90,24 @@ class RelevantMethods {
                     throw new ServiceValidationException(String.format("Method %s.%s() must return void.", type.getName(), method.getName()));
                 }
                 add(configurers, method);
-            } else if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
+            } else if (method.getName().startsWith("create") || method.getName().startsWith("decorate") || method.getName().startsWith("providedBy")) {
                 if (method.getAnnotation(Provides.class) == null) {
                     throw new ServiceValidationException(String.format("Method %s.%s() must be annotated with @Provides.", type.getName(), method.getName()));
                 }
                 if (method.getReturnType().equals(Void.TYPE)) {
                     throw new ServiceValidationException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
                 }
-                if (takesReturnTypeAsParameter(method)) {
+
+                if (method.getName().startsWith("providedBy")) {
+                    if (method.getParameterTypes().length != 1) {
+                        throw new ServiceValidationException(String.format(
+                            "Method %s.%s(%s) must have exactly one parameter for injecting service implementation",
+                            type.getName(), method.getName(), formatMethodParameters(method)
+                        ));
+                    }
+
+                    add(providers, method);
+                } else if (takesReturnTypeAsParameter(method)) {
                     add(decorators, method);
                 } else {
                     add(factories, method);
@@ -94,6 +115,15 @@ class RelevantMethods {
             } else if (method.getAnnotation(Provides.class) != null) {
                 throw new ServiceValidationException(String.format("Non-factory method %s.%s() must not be annotated with @Provides.", type.getName(), method.getName()));
             }
+        }
+
+        private static String formatMethodParameters(Method method) {
+            return CollectionUtils.join(", ", method.getParameterTypes(), new InternalTransformer<String, Class<?>>() {
+                @Override
+                public String transform(Class<?> aClass) {
+                    return aClass.getSimpleName();
+                }
+            });
         }
 
         public void add(List<ServiceMethod> builder, Method method) {
