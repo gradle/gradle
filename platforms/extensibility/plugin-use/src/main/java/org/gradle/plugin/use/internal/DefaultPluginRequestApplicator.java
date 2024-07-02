@@ -107,7 +107,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 pluginVersionTracker.setPluginVersionAt(
                     classLoaderScope,
                     resolved.getPluginId().getId(),
-                    pluginVersion
+                    pluginVersion,
+                    resolved.isLocal()
                 );
             }
         }

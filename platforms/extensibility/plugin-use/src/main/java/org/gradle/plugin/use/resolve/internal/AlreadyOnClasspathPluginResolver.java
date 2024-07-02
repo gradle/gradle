@@ -84,14 +84,23 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             );
         }
 
-        String existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
+        PluginVersionTracker.VersionDef existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
         if (existingVersion == null) {
             throw new InvalidPluginRequestException(
                 pluginRequest,
                 "The request for this plugin could not be satisfied because " +
                     "the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."
             );
-        } else if (!existingVersion.equals(version)) {
+        }
+
+        if (existingVersion.isLocal()) {
+            PluginResolutionResult resolved = delegate.resolve(pluginRequest);
+            if (resolved.isFound() && resolved.getFound(pluginRequest).isLocal()) {
+                return resolved;
+            }
+        }
+
+        if (!existingVersion.getVersion().equals(version)) {
             throw new InvalidPluginRequestException(
                 pluginRequest,
                 "The request for this plugin could not be satisfied because " +
@@ -99,7 +108,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             );
         }
 
-        return resolveAlreadyOnClasspath(pluginId, existingVersion);
+        return resolveAlreadyOnClasspath(pluginId, existingVersion.getVersion());
     }
 
     @Nullable
