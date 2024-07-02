@@ -1,0 +1,207 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[centralizing-dependencies]]
+= 4. Centralizing dependencies
+
+== Understanding dependency centralization
+
+Central dependencies can be managed in Gradle using various techniques such as platforms, version catalogs, and convention plugins.
+Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
+
+== Using platforms
+
+A platform is a set of modules designed to be used together.
+When you define a platform in Gradle, you're essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
+
+[source,kotlin]
+.platform/build.gradle.kts
+----
+plugins {
+    `java-platform`
+}
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    constraints {
+        api("org.apache.commons:commons-lang3:3.12.0")
+        api("com.google.guava:guava:30.1.1-jre")
+        api("org.slf4j:slf4j-api:1.7.30")
+    }
+}
+
+// Publish my-platform to a repository
+----
+
+Then, you can use that platform in your project:
+
+[source,groovy]
+.app/build.gradle
+----
+dependencies {
+    implementation platform("com.example:my-platform:1.0.0")
+    implementation("com.example:moduleA")
+    implementation("com.example:moduleB")
+}
+----
+
+Here, `my-platform` defines versions for `moduleA` and `moduleB`, ensuring they are compatible.
+
+Maven's BOM (Bill of Materials) is a popular type of platform that Gradle supports.
+A BOM file lists dependencies with specific versions, allowing you to manage these versions in a centralized way.
+
+Here is a snapshot of the link:https://mvnrepository.com/artifact/io.spring.platform/platform-bom/Cairo-RELEASE[Spring IO Platform Bill of Materials] which is maintained and hosted by link:https://spring.io/[Spring]:
+
+[source,xml]
+.platform-bom-Cairo-RELEASE.pom
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.1.RELEASE</version>
+        <relativePath/>
+    </parent>
+    <groupId>io.spring.platform</groupId>
+    <artifactId>platform-bom</artifactId>
+    <version>Cairo-RELEASE</version>
+    <packaging>pom</packaging>
+    <name>Spring IO Platform bill of materials</name>
+    <description>Spring IO Platform bill of materials</description>
+    <url>https://platform.spring.io/platform/</url>
+    <properties>
+        <spring-security-jwt.version>1.0.9.RELEASE</spring-security-jwt.version>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <!--  Spring Security JWT  -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-jwt</artifactId>
+                <version>${spring-security-jwt.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+----
+
+To use the BOM, you can add it to the dependencies of your project:
+
+[source,groovy]
+.build.gradle.kts
+----
+dependencies {
+    implementation platform("io.spring.platform:platform-bom:Cairo-RELEASE")
+    implementation("org.springframework:spring-core")
+    implementation("org.springframework:spring-context")
+}
+----
+
+By including the `platform-bom`, you ensure that all Spring components use the versions defined in the BOM file.
+
+== Using a Version catalog
+
+A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
+You can reference this catalog in your projects to ensure consistent version management.
+
+Here’s how you can use a version catalog:
+
+1. **Create a Version Catalog File**: Create a `libs.versions.toml` file in the `gradle` directory of your project. This file will define the versions of your dependencies and plugins.
++
+[source,toml]
+.gradle/libs.versions.toml
+----
+[versions]
+guava = "30.1.1-jre"
+commons-lang3 = "3.12.0"
+lombok = "1.18.20"
+mysql = "8.0.23"
+
+[libraries]
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+mysql = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version = "2.5.4" }
+----
++
+2. **Enable Version Catalog in `settings.gradle`**: In your `settings.gradle` file, enable the version catalog:
++
+[source,groovy]
+----
+dependencyResolutionManagement {
+   versionCatalogs {
+       libs {
+           from(files("gradle/libs.versions.toml"))
+       }
+   }
+}
+----
+3. **Use Version Catalog in `build.gradle`**: You can refer to the dependencies defined in the version catalog in your `build.gradle` file:
++
+[source,groovy]
+----
+plugins {
+   id('java')
+   id('org.springframework.boot' version libs.versions.spring.boot)
+}
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+   implementation(libs.guava)
+   implementation(libs.commons.lang3)
+   compileOnly(libs.lombok)
+   runtimeOnly(libs.mysql)
+}
+----
+
+== Using Convention plugins
+
+Using convention plugins to centralize dependencies in Gradle helps you manage and organize your dependencies across multiple projects in a consistent manner.
+This approach allows you to define dependencies in one place and apply them to various projects, simplifying dependency management and ensuring consistency.
+
+[source,kotlin]
+.buildSrc/src/main/kotlin/DependencyConventionPlugin.kt
+----
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class DependencyConventionPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.dependencies.apply {
+            add("implementation", "com.google.guava:guava:30.1.1-jre")
+            add("testImplementation", "org.junit.jupiter:junit-jupiter:5.7.0")
+        }
+    }
+}
+----
+
+Let's assume the convention plugin has the ID `dependency-convention-plugin`, then you can apply it in your projects that need the centralized dependencies:
+
+[source,kotlin]
+.app/build.gradle.kts
+----
+plugins {
+    id("dependency-convention-plugin")
+}
+----

@@ -1,0 +1,158 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-configurations]]
+= 2. Dependency Configurations
+
+Every dependency declared for a Gradle project applies to a specific scope.
+
+For example, some dependencies should be used for compiling source code whereas others only need to be available at runtime:
+
+[source, kotlin]
+.build.gradle.kts
+----
+dependencies {
+    implementation("com.google.guava:guava:30.0-jre") // Needed to compile and run the app
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.13") // Only needed at runtime
+}
+----
+
+Dependency configurations are a way to define different sets of dependencies for different purposes within a project.
+They determine how and when dependencies are used in various stages of the build process.
+
+Configurations are a fundamental part of dependency resolution in Gradle.
+
+[[sec:what-are-dependency-configurations]]
+== Understanding dependency configurations
+
+Gradle represents the scope of a dependency with the help of a link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration].
+Every configuration can be identified by a unique name.
+
+Many Gradle plugins add pre-defined configurations to your project.
+
+The <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin>>, which is used for building Java projects and provides a way to compile, package, and test Java applications, adds many configurations.
+These configurations represent the various classpaths needed for source code compilation, executing tests, and more:
+
+[cols="~,~,~"]
+|===
+|Configuration Name |Description |Used to:
+
+|`implementation`
+|Dependencies required for both compilation and runtime.
+|Declare Dependencies
+
+|`compileOnly`
+|Dependencies needed only for compilation, not included in runtime or publication.
+|Declare Dependencies
+
+|`runtimeOnly`
+|Dependencies needed only at runtime, not included in the compile classpath.
+|Declare Dependencies
+
+|`compileClasspath`
+|Combines `implementation` and `compileOnly` dependencies, used for compiling source code.
+|Resolve Dependencies
+
+|`runtimeClasspath`
+|Combines `implementation` and `runtimeOnly` dependencies, used for running the application.
+|Resolve Dependencies
+
+|`annotationProcessor`
+|Dependencies for annotation processors, used during compilation.
+|Resolve Dependencies
+
+|`testImplementation`
+|Dependencies required for compiling and running tests.
+|Declare Dependencies
+
+|`testCompileOnly`
+|Dependencies needed only for test compilation.
+|Declare Dependencies
+
+|`testRuntimeOnly`
+|Dependencies needed only for running tests.
+|Declare Dependencies
+
+|`testCompileClasspath`
+|Combines `testImplementation` and `testCompileOnly` dependencies, used for compiling test sources.
+|Resolve Dependencies
+
+|`testRuntimeClasspath`
+|Combines `testImplementation` and `testRuntimeOnly` dependencies, used for running tests.
+|Resolve Dependencies
+
+|`testAnnotationProcessor`
+|Dependencies for annotation processors used for compiling test sources.
+|Resolve Dependencies
+
+|===
+
+=== Declare Dependencies
+
+The *dependency declaration configurations* (`compileOnly`, `implementation`, `runtimeOnly`) focus on declaring and managing dependencies based on their usage (compile time, runtime, API exposure):
+
+[source,kotlin]
+----
+dependencies {
+    implementation("com.google.guava:guava:30.1.1-jre")     // Implementation dependency
+    compileOnly("org.projectlombok:lombok:1.18.20")         // Compile-only dependency
+    runtimeOnly("mysql:mysql-connector-java:8.0.23")        // Runtime-only dependency
+}
+----
+
+=== Resolve Dependencies
+
+The *resolving configurations* (`runtimeClasspath`, `compileClasspath`) focus on resolving dependencies needed at different stages of the build process (compilation, runtime):
+
+[source,kotlin]
+----
+tasks.compileJava {
+    classpath = configurations.compileClasspath
+}
+----
+
+Gradle uses these dependencies to compute the dependency graph and retrieve the necessary artifacts during a build.
+For example, `compileClasspath` is used by the `compileJava` task to get the necessary dependencies for compiling the main source code.
+
+=== Other Dependencies
+
+There are other types of configurations such as *consuming configurations* (`apiElements`, `runtimeElements`).
+
+Plugins, such as the `swift` plugin add configurations like `swiftModule`.
+While the `cpp` plugins, adds configurations such as `linkOnly`, `linkElements`, and `testHeaderSearchPaths`.
+
+Finally, it is possible to create custom configurations.
+
+[[sec:view-configurations]]
+== Viewing configurations
+
+The `dependencies` task provides an overview of the dependencies of your project.
+To focus on the information about one dependency configuration, provide the optional parameter `--configuration`.
+
+The following example show dependencies in the `implementation` dependency configuration of a Java project:
+
+[source,text]
+----
+$ ./gradlew -q app:dependencies --configuration implementation
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+implementation - Implementation only dependencies for source set 'main'.
+\--- com.google.guava:guava:30.0-jre
+----
+
+[.text-right]
+**Next Step:** <<declaring_repositories.adoc#declaring-repositories,Learn about Declaring Repositories>> >>
