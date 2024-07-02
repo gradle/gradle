@@ -328,6 +328,24 @@ Note that this is equivalent to adding `-agentlib:jdwp=transport=dt_socket,serve
 +
 _Default is `false`._
 
+`org.gradle.distributionsRepository.password=(username)`::
+Sets the password to be used for the Gradle distributions repository. The credentials are only used if the distributions
+repository is overridden via `org.gradle.distributionsRepository.url
++
+_Default is no credentials._
+
+`org.gradle.distributionsRepository.url=(URL)`::
+Overrides the default Gradle distribution repository URL. This repository is used for example when
+the IDE wants to download the source distribution of Gradle.
++
+_Default is `https://services.gradle.org/distributions` or `https://services.gradle.org/distributions-snapshots` depending on the version of Gradle._
+
+`org.gradle.distributionsRepository.user=(username)`::
+Sets the user to be used for the Gradle distributions repository. The credentials are only used if the distributions
+repository is overridden via `org.gradle.distributionsRepository.url
++
+_Default is no credentials._
+
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process.
 The value can be set to either a `jdk` or `jre` location; however, using a JDK is safer depending on what your build does.

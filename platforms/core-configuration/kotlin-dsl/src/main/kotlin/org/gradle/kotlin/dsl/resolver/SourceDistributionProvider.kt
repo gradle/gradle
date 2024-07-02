@@ -16,15 +16,19 @@
 
 package org.gradle.kotlin.dsl.resolver
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.kotlin.dsl.*
 import org.gradle.util.GradleVersion
 import java.io.File
@@ -34,6 +38,11 @@ interface SourceDistributionProvider {
     fun sourceDirs(): Collection<File>
 }
 
+internal data class SourceDistributionRepositoryConfig(
+    val repoName: String,
+    val url: String,
+    val credentials: PasswordCredentials?
+)
 
 class SourceDistributionResolver(private val project: Project) : SourceDistributionProvider {
 
@@ -42,6 +51,48 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         const val ZIP_TYPE = "zip"
         const val UNZIPPED_DISTRIBUTION_TYPE = "unzipped-distribution"
         const val SOURCE_DIRECTORY = "src-directory"
+
+        @VisibleForTesting
+        internal const val SERVICES_BASE_URL = "https://services.gradle.org"
+
+        @VisibleForTesting
+        internal const val RELEASES_REPOSITORY_NAME = "distributions"
+
+        @VisibleForTesting
+        internal const val SNAPSHOTS_REPOSITORY_NAME = "distributions-snapshots"
+
+        @VisibleForTesting
+        internal const val DISTRIBUTIONS_REPO_URL_OVERRIDE_KEY = "org.gradle.distributionsRepository.url"
+
+        @VisibleForTesting
+        internal const val DISTRIBUTIONS_REPO_USER_OVERRIDE_KEY = "org.gradle.distributionsRepository.user"
+
+        @VisibleForTesting
+        internal const val DISTRIBUTIONS_REPO_PASSWORD_OVERRIDE_KEY = "org.gradle.distributionsRepository.password"
+
+        @VisibleForTesting
+        internal fun distributionRepositoryConfig(gradleVersion: String, providers: ProviderFactory): SourceDistributionRepositoryConfig {
+            val repoName = repositoryNameFor(gradleVersion)
+
+            val customUrl = providers.gradleProperty(DISTRIBUTIONS_REPO_URL_OVERRIDE_KEY).orNull
+                ?: return SourceDistributionRepositoryConfig(repoName, "${SERVICES_BASE_URL}/$repoName", null)
+
+            val user = providers.gradleProperty(DISTRIBUTIONS_REPO_USER_OVERRIDE_KEY).orNull
+            val password = providers.gradleProperty(DISTRIBUTIONS_REPO_PASSWORD_OVERRIDE_KEY).orNull
+
+            return SourceDistributionRepositoryConfig(repoName, customUrl, if (user != null || password != null) {
+                DefaultPasswordCredentials(user, password)
+            } else {
+                null
+            })
+        }
+
+        private
+        fun isSnapshot(gradleVersion: String) = gradleVersion.contains('+')
+
+        private
+        fun repositoryNameFor(gradleVersion: String) =
+            if (isSnapshot(gradleVersion)) SNAPSHOTS_REPOSITORY_NAME else RELEASES_REPOSITORY_NAME
     }
 
     override fun sourceDirs(): Collection<File> =
@@ -93,9 +144,15 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun createSourceRepository() = ivy {
-        val repoName = repositoryNameFor(gradleVersion)
-        name = "Gradle $repoName"
-        setUrl("https://services.gradle.org/$repoName")
+        val repoConfig = distributionRepositoryConfig(gradleVersion, project.providers)
+        name = "Gradle ${repoConfig.repoName}"
+        setUrl(repoConfig.url)
+        repoConfig.credentials?.let { usernamePassword ->
+            credentials {
+                username = usernamePassword.username
+                password = usernamePassword.password
+            }
+        }
         metadataSources {
             artifact()
         }
@@ -108,15 +165,8 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     }
 
     private
-    fun repositoryNameFor(gradleVersion: String) =
-        if (isSnapshot(gradleVersion)) "distributions-snapshots" else "distributions"
-
-    private
     fun dependencyVersion(gradleVersion: String) =
         if (isSnapshot(gradleVersion)) toVersionRange(gradleVersion) else gradleVersion
-
-    private
-    fun isSnapshot(gradleVersion: String) = gradleVersion.contains('+')
 
     private
     fun toVersionRange(gradleVersion: String) =
