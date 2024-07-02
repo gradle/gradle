@@ -55,7 +55,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return relativeTo.getChildProjectsUnchecked().entrySet().stream().collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> access(referrer, (ProjectInternal) entry.getValue())
+                entry -> LifecycleAwareProject.from((ProjectInternal) entry.getValue(), isolatedProjectEvaluationListenerProvider)
             )
         );
     }

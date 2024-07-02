@@ -152,12 +152,13 @@ lifecycle.beforeProject for a
         outputContains expectedOutput
 
         where:
-        api              | invocation                 | expectedOutput
-        "allprojects"    | "allprojects"              | allprojectsExpectedOutput
-        "subprojects"    | "subprojects"              | subprojectsExpectedOutput
-        "project"        | "project(':a')"            | projectExpectedOutput
-        "getAllprojects" | "getAllprojects().forEach" | getAllprojectsExpectedOutput
-        "getSubprojects" | "getSubprojects().forEach" | getSubprojectsExpectedOutput
+        api                | invocation                            | expectedOutput
+        "allprojects"      | "allprojects"                         | allprojectsExpectedOutput
+        "subprojects"      | "subprojects"                         | subprojectsExpectedOutput
+        "project"          | "project(':a')"                       | projectExpectedOutput
+        "getAllprojects"   | "getAllprojects().forEach"            | allprojectsExpectedOutput
+        "getSubprojects"   | "getSubprojects().forEach"            | subprojectsExpectedOutput
+        "getChildProjects" | "getChildProjects().values().forEach" | subprojectsExpectedOutput
     }
 
     private static def allprojectsExpectedOutput = """
@@ -171,15 +172,6 @@ foo = bar for b
 """
     private static def projectExpectedOutput = """
 foo = bar for a
-"""
-    private static def getAllprojectsExpectedOutput = """
-foo = bar for root
-foo = bar for a
-foo = bar for b
-"""
-    private static def getSubprojectsExpectedOutput = """
-foo = bar for a
-foo = bar for b
 """
 
     def 'lifecycle.allprojects is executed eagerly only if a mutable state of a project touched by using project.#api'() {
@@ -218,11 +210,12 @@ foo = bar for b
         outputContains expectedOutput
 
         where:
-        api              | invocation                 | expectedOutput
-        "allprojects"    | "allprojects"              | mutableStateAccessProjectAllprojectsExpectedOutput
-        "subprojects"    | "subprojects"              | mutableStateAccessProjectSubprojectsExpectedOutput
-        "getAllprojects" | "getAllprojects().forEach" | mutableStateAccessProjectAllprojectsExpectedOutput
-        "getSubprojects" | "getSubprojects().forEach" | mutableStateAccessProjectSubprojectsExpectedOutput
+        api                | invocation                            | expectedOutput
+        "allprojects"      | "allprojects"                         | mutableStateAccessProjectAllprojectsExpectedOutput
+        "subprojects"      | "subprojects"                         | mutableStateAccessProjectSubprojectsExpectedOutput
+        "getAllprojects"   | "getAllprojects().forEach"            | mutableStateAccessProjectAllprojectsExpectedOutput
+        "getSubprojects"   | "getSubprojects().forEach"            | mutableStateAccessProjectSubprojectsExpectedOutput
+        "getChildProjects" | "getChildProjects().values().forEach" | mutableStateAccessProjectSubprojectsExpectedOutput
     }
 
     private static def mutableStateAccessProjectAllprojectsExpectedOutput = """
