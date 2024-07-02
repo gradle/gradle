@@ -289,51 +289,58 @@ Tasks such as `compileJava` and `test` then use one or more of those configurati
 [[tab:configurations]]
 === Dependency configurations
 
+[NOTE]
+====
 For information on the `default` and `archives` configurations, please consult the
 <<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
 
 For information on the `api` or `compileOnlyApi` configurations, please consult the
 <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
 <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
+====
+
+==== Dependency Declaration Configurations
 
 `implementation`::
-Implementation only dependencies.
+Represents dependencies that are required both at compile time and runtime for the main source set of a project (i.e., implementation only dependencies).
 
 `compileOnly`::
-Compile time only dependencies, not used at runtime.
-
-`compileClasspath` extends `compileOnly, implementation`::
-Compile classpath, used when compiling source. Used by task `compileJava`.
-
-`annotationProcessor`::
-Annotation processors used during compilation.
+Represents dependencies that are required only at compile time and are not included in the runtime classpath (i.e., compile time only dependencies, not used at runtime).
 
 `runtimeOnly`::
-Runtime only dependencies.
-
-`runtimeClasspath` extends `runtimeOnly, implementation`::
-Runtime classpath contains elements of the implementation, as well as runtime only elements.
+Represents dependencies that are required only at runtime and are not included in the compile classpath (i.e., dependencies required only at runtime).
 
 `testImplementation` extends `implementation`::
-Implementation only dependencies for tests.
+Represents dependencies that are required both at compile time and runtime for the test source set of a project (i.e., implementation only dependencies for tests).
 
 `testCompileOnly`::
-Additional dependencies only for compiling tests, not used at runtime.
-
-`testCompileClasspath` extends `testCompileOnly, testImplementation`::
-Test compile classpath, used when compiling test sources. Used by task `compileTestJava`.
+Represents dependencies that are required only at compile time for the test source set of a project and are not included in the runtime classpath (i.e., additional dependencies only for compiling tests, not used at runtime).
 
 `testRuntimeOnly` extends `runtimeOnly`::
-Runtime only dependencies for running tests.
+Represents dependencies that are required only at runtime for the test source set of a project (i.e., runtime only dependencies for running tests).
+
+`annotationProcessor`::
+Represents annotation processors used during the compilation of a project's source code (i.e., annotation processors used during compilation).
+
+==== Resolvable Configurations
+
+`compileClasspath` extends `compileOnly, implementation`::
+Represents the classpath used when compiling the main sources, which includes dependencies from both `compileOnly` and `implementation` configurations. Used by task `compileJava`.
+
+`runtimeClasspath` extends `runtimeOnly, implementation`::
+Represents the classpath used to run the main sources, which includes dependencies from both `runtimeOnly` and `implementation` configurations. Used by task `run`.
+
+`testCompileClasspath` extends `testCompileOnly, testImplementation`::
+Represents the classpath used to compile the test sources, which includes dependencies from both `testCompileOnly` and `testImplementation` configurations. Used by task `compileTestJava`.
 
 `testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
-Runtime classpath for running tests. Used by task `test`.
+Represents the classpath used to run the test sources, which includes dependencies from both `testRuntimeOnly` and `testImplementation` configurations. Used by task `test`.
 
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
 
- * Green background — you can declare dependencies against the configuration.
- * Blue-gray background — the configuration is for consumption by tasks, not for you to declare dependencies.
- * Light blue background with monospace text — a task.
+ * blue background — you can declare dependencies against the configuration.
+ * green background — the configuration is for consumption by tasks, not for you to declare dependencies.
+ * grey background — a task.
 
 .Java plugin - _main_ source set dependency configurations
 image::java-main-configurations.png[]
