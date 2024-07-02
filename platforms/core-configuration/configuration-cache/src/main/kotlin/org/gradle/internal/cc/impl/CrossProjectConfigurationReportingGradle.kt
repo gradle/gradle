@@ -48,7 +48,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects

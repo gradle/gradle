@@ -119,7 +119,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(
-                        LifecycleAwareProject.from(rootProject, isolatedProjectEvaluationListenerProvider),
+                        LifecycleAwareProject.from(rootProject, (EagerLifecycleExecutor) isolatedProjectEvaluationListenerProvider),
                         rootProjectActions
                     );
                 }

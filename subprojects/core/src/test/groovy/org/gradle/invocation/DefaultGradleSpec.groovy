@@ -92,7 +92,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
-        _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(IsolatedProjectEvaluationListenerProvider)
+        _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -482,4 +482,6 @@ class DefaultGradleSpec extends Specification {
             super(Scope.Build)
         }
     }
+
+    static interface TestIsolatedProjectEvaluationListenerProvider extends IsolatedProjectEvaluationListenerProvider, EagerLifecycleExecutor {}
 }

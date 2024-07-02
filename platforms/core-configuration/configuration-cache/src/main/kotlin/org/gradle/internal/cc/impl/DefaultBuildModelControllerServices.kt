@@ -61,7 +61,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
-import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
+import org.gradle.invocation.EagerLifecycleExecutor
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -167,9 +167,9 @@ class DefaultBuildModelControllerServices(
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
-            isolatedProjectEvaluationListenerProvider: IsolatedProjectEvaluationListenerProvider,
+            eagerLifecycleExecutor: EagerLifecycleExecutor
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, isolatedProjectEvaluationListenerProvider)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, eagerLifecycleExecutor)
             return ProblemReportingCrossProjectModelAccess(
                 delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting, buildModelParameters
             )
@@ -197,9 +197,9 @@ class DefaultBuildModelControllerServices(
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
-            isolatedProjectEvaluationListenerProvider: IsolatedProjectEvaluationListenerProvider,
+            eagerLifecycleExecutor: EagerLifecycleExecutor,
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry, isolatedProjectEvaluationListenerProvider)
+            return DefaultCrossProjectModelAccess(projectRegistry, eagerLifecycleExecutor)
         }
 
         @Provides
