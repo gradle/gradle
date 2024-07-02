@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProjectInTree
 
-class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
 
     def "invalidates cached state when plugin in buildSrc changes"() {
         given:
@@ -35,7 +35,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -45,14 +45,11 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -69,7 +66,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
             class Thing { }
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -80,10 +77,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         and:
         fixture.assertStateRecreated {
             taskInputChanged(":buildSrc:compileGroovy")
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
     }
 
@@ -107,7 +101,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -117,14 +111,11 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":plugins")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -141,7 +132,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
             class Thing { }
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -152,10 +143,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         and:
         fixture.assertStateRecreated {
             taskInputChanged(":plugins:compileGroovy")
-            projectConfigured(":plugins")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
     }
 
@@ -182,7 +170,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -192,14 +180,11 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":plugins")
-            projectsConfigured(":", ":libs:b")
-            buildModelCreated()
-            modelsCreated(":libs", ":libs:a")
+            projectConfigured = 5
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -215,7 +200,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
             // some change
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -224,12 +209,9 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         model3[1].message == "It works from project :libs:a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("libs/build.gradle")
-            projectConfigured(":plugins")
-            projectsConfigured(":libs:a", ":libs:b") // TODO - should not be configured, but this currently happens to calculate the dependency substitutions
-            modelsCreated(":libs")
-            modelsReused(":", ":plugins", ":libs:a", ":libs:b")
+            projectConfigured = 5
         }
     }
 }

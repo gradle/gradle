@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForTargetProject
 import org.gradle.internal.cc.impl.actions.FetchPartialCustomModelForEachProject
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
-class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
         """
+
+        createDirs("a", "b") // avoid missing subproject directories warning
     }
 
     def "caches execution of phased BuildAction that queries custom tooling model"() {
@@ -43,7 +45,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -58,17 +60,13 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":")
-            modelsCreated(":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -90,7 +88,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             // some change
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -104,11 +102,9 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            modelsReused(":a", ":b", ":buildSrc")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
     }
@@ -128,7 +124,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             // Empty list means "run tasks defined by build logic or default tasks"
             forTasks([])
@@ -146,17 +142,13 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":")
-            modelsCreated(":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks([])
         }
@@ -192,7 +184,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks(["thing"])
         }
@@ -209,18 +201,14 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":")
-            modelsCreated(":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks(["thing"])
         }
@@ -256,14 +244,12 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc")
-            buildModelCreated()
-            modelsCreated(SomeToolingModel, ":", ":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
@@ -274,14 +260,12 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models2 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc")
-            buildModelCreated()
-            modelsCreated(SomeToolingModel, ":", ":a")
+            projectConfigured = 4
         }
         outputContains("creating model for project ':a'")
         outputContains("creating model for root project 'root'")
@@ -292,7 +276,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models3 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -305,7 +289,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def models4 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:

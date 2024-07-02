@@ -86,6 +86,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val isolatedProjects = startParameter.isolatedProjects.get()
+        val configurationCache = isolatedProjects || startParameter.configurationCache.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
@@ -96,7 +97,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             BuildModelParameters(
                 parallelProjectExecution,
                 isolatedProjects,
-                isolatedProjects,
+                configurationCache,
                 isolatedProjects,
                 true,
                 isolatedProjects,
@@ -106,7 +107,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 configurationCacheLogLevel
             )
         } else {
-            val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {

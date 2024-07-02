@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.internal.cc.impl.actions.FailingBuildAction
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForTargetProject
 import org.gradle.internal.cc.impl.actions.FetchModelsMultipleTimesForEachProject
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
-class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
         """
+        createDirs("a", "b", "c")
     }
 
     def "caches execution of BuildAction that queries custom tooling model"() {
@@ -45,7 +46,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -55,16 +56,13 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -81,7 +79,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             myExtension.message = 'this is the root project'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -90,16 +88,14 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            modelsReused(":a", ":b", ":buildSrc")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -115,7 +111,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             myExtension.message = 'this is project a'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -124,12 +120,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "this is project a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("a/build.gradle")
-            projectConfigured(":buildSrc")
-            projectConfigured(":")
-            modelsCreated(":a")
-            modelsReused(":", ":b", ":buildSrc")
+            projectConfigured = 4
         }
         outputContains("creating model for project ':a'")
     }
@@ -149,7 +142,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -159,14 +152,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -182,7 +172,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             println("some new stuff")
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -193,14 +183,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         and:
         fixture.assertStateRecreated {
             fileChanged("settings.gradle")
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -231,7 +218,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
+        withConfigurationCache("-Pshared-input=12", "-Da-input=14")
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -241,14 +228,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectsConfigured(":", ":c")
-            buildModelCreated()
-            modelsCreated(":a", ":b")
+            projectConfigured = 5
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
+        withConfigurationCache("-Pshared-input=12", "-Da-input=14")
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -260,7 +244,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        withConfigurationCache("-Pshared-input=2", "-Da-input=14")
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -269,17 +253,14 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :b"
 
         and:
-        // TODO - should not invalidate all cached state
+        // TODO:isolated - should not invalidate all cached state
         fixture.assertStateRecreated {
             gradlePropertyChanged()
-            buildModelQueries = 1 // TODO:configuration-cache ???
-            projectConfigured(":buildSrc")
-            projectsConfigured(":", ":a", ":b", ":c")
-            modelsCreated(":a", ":b")
+            projectConfigured = 5
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        withConfigurationCache("-Pshared-input=2", "-Da-input=14")
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -291,7 +272,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        withConfigurationCache("-Pshared-input=2", "-Da-input=2")
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -300,16 +281,13 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             systemPropertyChanged("a-input")
-            projectConfigured(":buildSrc")
-            projectsConfigured(":")
-            modelsCreated(":a")
-            modelsReused(":", ":b", ":c", ":buildSrc")
+            projectConfigured = 5
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        withConfigurationCache("-Pshared-input=2", "-Da-input=2")
         def model6 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -321,7 +299,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2", "-Db-input=new")
+        withConfigurationCache("-Pshared-input=2", "-Da-input=2", "-Db-input=new")
         def model7 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -330,12 +308,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model7[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             systemPropertyChanged("b-input")
-            projectConfigured(":buildSrc")
-            projectsConfigured(":")
-            modelsCreated(":b")
-            modelsReused(":", ":a", ":c", ":buildSrc")
+            projectConfigured = 5
         }
     }
 
@@ -354,7 +329,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -364,16 +339,13 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -390,7 +362,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             myExtension.message = 'this is the root project'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -399,16 +371,14 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            modelsReused(":a", ":b", ":buildSrc")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -435,7 +405,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -443,16 +413,13 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -467,23 +434,21 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             println("changed")
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
         model3.empty
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            modelsReused(":a", ":b", ":buildSrc")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -501,14 +466,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            buildModelCreated()
-            modelsCreated(":")
+            projectConfigured = 2
         }
         outputContains("creating model for root project 'root'")
 
@@ -518,14 +481,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            buildModelCreated()
-            modelsCreated(":")
+            projectConfigured = 2
         }
         outputContains("creating model for root project 'root'")
 
@@ -535,7 +496,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -547,7 +508,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -572,14 +533,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
-            buildModelCreated()
-            modelsCreated(":", SomeToolingModel)
+            projectConfigured = 3
         }
         outputContains("creating model for root project 'root'")
 
@@ -588,14 +547,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":", ":a")
-            buildModelCreated()
-            modelsCreated(":a", SomeToolingModel)
+            projectConfigured = 3
         }
         outputContains("creating model for project ':a'")
 
@@ -604,7 +561,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -615,7 +572,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -627,7 +584,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
     def "does not cache execution of BuildAction when it fails"() {
         when:
-        withIsolatedProjects()
+        withConfigurationCache()
         runBuildActionFails(new FailingBuildAction())
 
         then:

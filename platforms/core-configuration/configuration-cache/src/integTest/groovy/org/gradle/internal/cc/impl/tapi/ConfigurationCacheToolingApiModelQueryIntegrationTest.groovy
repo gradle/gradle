@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
-class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
         """
+        createDirs("a", "b") // avoid missing subproject directories warning
     }
 
     def "caches creation of custom tooling model"() {
@@ -40,7 +42,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = fetchModel()
 
         then:
@@ -48,13 +50,12 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = fetchModel()
 
         then:
@@ -69,23 +70,21 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
             myExtension.message = 'this is the root project'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = fetchModel()
 
         then:
         model3.message == "this is the root project"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            modelsReused(":buildSrc")
+            projectConfigured = 4
         }
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = fetchModel()
 
         then:
@@ -114,19 +113,18 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
-            modelsCreated(":")
+            projectConfigured = 4
         }
         outputContains("Configuration of dummyTask")
         outputContains("Execution of dummyTask")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -146,56 +144,49 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         fetchModel(SomeToolingModel, "help")
 
         then:
         notExecuted("help")
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
-            modelsCreated(":")
+            projectConfigured = 2
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
         executed(":dummyTask")
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
-            modelsCreated(":")
+            projectConfigured = 2
         }
     }
 
     def "can ignore problems and cache custom model"() {
         given:
-        settingsFile << """
-            include('a')
-            include('b')
-        """
         withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
-            allprojects {
-                plugins.apply('java-library')
-            }
             plugins.apply(my.MyPlugin)
+            gradle.buildFinished {
+                println("build finished")
+            }
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withConfigurationCacheLenient()
         def model = fetchModel()
 
         then:
         model.message == "It works from project :"
         fixture.assertStateStoredWithProblems {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
+            projectConfigured = 2
+            problem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withConfigurationCacheLenient()
         def model2 = fetchModel()
 
         then:
@@ -215,7 +206,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = fetchModel(GradleBuild)
 
         then:
@@ -227,12 +218,12 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and:
         fixture.assertStateStored {
-            buildModelCreated()
+            projectConfigured = 0
         }
         outputContains("configuring build")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = fetchModel(GradleBuild)
 
         then:
@@ -256,7 +247,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model = fetchModel()
 
         then:
@@ -264,14 +255,13 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
+            projectConfigured = 2
         }
         outputContains("configuring build")
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model2 = fetchModel()
 
         then:
@@ -283,7 +273,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputDoesNotContain("creating model")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model3 = fetchModel(GradleProject)
 
         then:
@@ -291,14 +281,13 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and:
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            modelsCreated(":", 2) // Requested `GradleProject` and intermediate `IsolatedGradleProject`
+            projectConfigured = 2
         }
         outputContains("configuring build")
         outputDoesNotContain("creating model")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model4 = fetchModel(GradleProject)
 
         then:
@@ -310,7 +299,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputDoesNotContain("creating model")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def model5 = fetchModel()
 
         then:
@@ -353,14 +342,12 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":", ":a", ":b")
-            buildModelCreated()
-            modelsCreated(":a", ":b")
+            projectConfigured = 4
         }
 
         when:
@@ -369,19 +356,17 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         and:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("buildSrc/build.gradle")
-            projectsConfigured(":buildSrc")
-            modelsCreated()
-            modelsReused(":a", ":b", ":")
+            projectConfigured = 4
         }
 
         and:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:

@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.cc.impl.actions.FetchAllIdeaProjects
-import org.gradle.internal.cc.impl.actions.FetchIdeaProjectForTarget
-import org.gradle.plugins.ide.internal.tooling.idea.IsolatedIdeaModuleInternal
-import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
-import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
 import static org.gradle.internal.cc.impl.fixtures.ToolingApiIdeaModelChecker.checkIdeaProject
 
-class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
-
-    private def pluginApplyingModel = PluginApplyingBuilder.MODEL_NAME
+class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
 
     def "can fetch IdeaProject model"() {
         settingsFile << """
@@ -40,19 +33,19 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 1
         }
 
         then:
         ideaModel.name == "root"
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         fetchModel(IdeaProject)
 
         then:
@@ -65,19 +58,19 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def ideaModel = fetchModel(BasicIdeaProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", models(BasicIdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 1
         }
 
         then:
         ideaModel.name == "root"
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         fetchModel(BasicIdeaProject)
 
         then:
@@ -91,7 +84,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             include(":lib1:lib11")
         """
 
-        when: "fetching without Isolated Projects"
+        when:
+        // no configuration cache
         def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
@@ -99,36 +93,16 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.modules.size() == 3
         originalIdeaModel.modules.every { it.children.isEmpty() } // IdeaModules are always flattened
 
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        when:
+        withConfigurationCache()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertStateStored {
-            // IdeaProject, plugin application "model", intermediate IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            // plugin application "model", intermediate IsolatedGradleProject, IsolatedIdeaModule
-            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1:lib11", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 3
         }
 
         checkIdeaProject(ideaModel, originalIdeaModel)
-    }
-
-    def "fetching IdeaProject model for non-root project fails"() {
-        settingsFile << """
-            rootProject.name = "root"
-            include("a")
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        runBuildActionFails(new FetchIdeaProjectForTarget(":a"))
-
-        then:
-        fixture.assertNoConfigurationCache()
-
-        failureDescriptionContains("org.gradle.tooling.model.idea.IdeaProject can only be requested on the root project, got project ':a'")
     }
 
     def "can fetch IdeaProject model for java projects"() {
@@ -145,7 +119,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             java.sourceCompatibility = JavaVersion.VERSION_1_8
         """
 
-        when: "fetching without Isolated Projects"
+        when:
+        // no configuration cache
         def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
@@ -154,14 +129,13 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_8
         originalIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_9
 
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        when:
+        withConfigurationCache()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 2
         }
 
         checkIdeaProject(ideaModel, originalIdeaModel)
@@ -195,7 +169,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             idea.module.targetBytecodeVersion = JavaVersion.VERSION_21
         """
 
-        when: "fetching without Isolated Projects"
+        when:
+        // no configuration cache
         def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
@@ -207,15 +182,13 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.modules[1].javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
         originalIdeaModel.modules[2].javaLanguageSettings == null
 
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        when:
+        withConfigurationCache()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib2", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 3
         }
 
         checkIdeaProject(ideaModel, originalIdeaModel)
@@ -252,14 +225,12 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":a", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":b", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 3
         }
 
         checkIdeaProject(ideaModel, originalIdeaModel)
@@ -278,15 +249,13 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalUpdatedModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_11
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def updatedModel = fetchModel(IdeaProject)
 
         then:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("a/build.gradle")
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":a", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsReused(":b")
+            projectConfigured = 3
         }
 
         and:
@@ -318,7 +287,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             }
         """
 
-        when: "fetching without Isolated Projects"
+        when:
+        // no configuration cache
         def originalIdeaModel = fetchModel(BasicIdeaProject)
 
         then:
@@ -329,15 +299,13 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             apiDep.targetModuleName == "api"
         }
 
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        when:
+        withConfigurationCache()
         def ideaModel = fetchModel(BasicIdeaProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", models(BasicIdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":api", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":impl", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            projectConfigured = 3
         }
 
         checkIdeaProject(ideaModel, originalIdeaModel)
@@ -397,7 +365,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             }
         }
 
-        when: "fetching without Isolated Projects"
+        when:
+        // no configuration cache
         def originalResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -416,21 +385,13 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalResult.getIdeaProject('buildD').modules.name == ['buildD', 'buildD-b1', 'buildD-buildC']
 
 
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        when:
+        withConfigurationCache()
         def result = runBuildAction(new FetchAllIdeaProjects())
 
         then:
         fixture.assertStateStored {
-            buildModelCreated()
-            modelsCreated(
-                [":", ":buildB", ":buildC", ":buildD"],
-                models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal)
-            )
-            modelsCreated(
-                [":buildB:b1", ":buildB:b2", ":buildD:b1", ":buildD:buildC"],
-                models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal)
-            )
+            projectConfigured = 8
         }
 
         checkModel(result, originalResult, [
@@ -438,8 +399,8 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         ])
 
 
-        when: "fetching again with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        when:
+        withConfigurationCache()
         def anotherResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -449,19 +410,17 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             [{ it.allIdeaProjects }, { a, e -> checkIdeaProject(a, e) }]
         ])
 
-        when: "fetching after change with Isolated Projects"
+        when:
         file("buildC/build.gradle") << """
             println("changed root in buildC")
         """
-        executer.withArguments(ENABLE_CLI)
+        withConfigurationCache()
         def afterChangeResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("buildC/build.gradle")
-            projectsConfigured(":buildB", ":buildB:b1", ":buildB:b2", ":buildC", ":buildD", ":buildD:b1", ":buildD:buildC")
-            modelsCreated(":buildC", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsReused(":", ":buildB", ":buildD")
+            projectConfigured = 8
         }
         outputContains("changed root in buildC")
 
@@ -470,7 +429,6 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         ])
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/27363")
     def "can fetch IdeaProject model for Scala projects"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -483,30 +441,24 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             }
         """
 
-        when: "fetching without Isolated Projects"
+        when:
+        // no configuration cache
         def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
         originalIdeaModel.modules.name == ["root", "lib1"]
 
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails(IdeaProject)
+        when:
+        withConfigurationCache()
+        def ideaModel = fetchModel(IdeaProject)
 
         then:
-        fixture.assertStateStoredAndDiscarded {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            // TODO:isolated there should be no violation
-            problem("Plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin': Project ':lib1' cannot access 'Project.tasks' functionality on another project ':'")
+        fixture.assertStateStored {
+            projectConfigured = 2
         }
 
-        // TODO:isolated check the model matches the vintage model
-//        checkIdeaProject(ideaModel, originalIdeaModel)
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
-    private static List<String> models(Object... models) {
-        models.collect { it instanceof String ? it : (it as Class<?>).getName() }
-    }
 }

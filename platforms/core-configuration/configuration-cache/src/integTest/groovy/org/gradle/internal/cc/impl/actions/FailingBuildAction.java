@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated;
+package org.gradle.internal.cc.impl.actions;
 
-import org.gradle.internal.cc.impl.fixtures.CustomModel;
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 
-class ModelStreamingBuildAction implements BuildAction<CustomModel> {
+public class FailingBuildAction implements BuildAction<SomeToolingModel> {
     @Override
-    public CustomModel execute(BuildController controller) {
-        EclipseProject eclipseProject = controller.getModel(EclipseProject.class);
-        GradleProject gradleProject = controller.getModel(GradleProject.class);
-
-        // Intentionally sending models in an order different from requesting models
-        controller.send(gradleProject);
-        controller.send(eclipseProject);
-
-        return new CustomModel(42);
+    public SomeToolingModel execute(BuildController controller) {
+        controller.getBuildModel();
+        throw new RuntimeException("Build action expectedly failed");
     }
 }
