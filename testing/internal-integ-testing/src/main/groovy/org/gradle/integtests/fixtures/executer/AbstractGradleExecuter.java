@@ -221,6 +221,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         this.daemonBaseDir = buildContext.getDaemonBaseDir();
         this.daemonCrashLogsBeforeTest = ImmutableSet.copyOf(DaemonLogsAnalyzer.findCrashLogs(daemonBaseDir));
+
+        if (gradleVersion.compareTo(GradleVersion.version("4.5.0")) < 0) {
+            warningMode = null;
+        }
     }
 
     protected Logger getLogger() {

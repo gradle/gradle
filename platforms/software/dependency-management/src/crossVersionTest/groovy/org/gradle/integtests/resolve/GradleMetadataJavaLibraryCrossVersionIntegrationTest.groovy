@@ -32,7 +32,7 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
         settingsFile << """
             rootProject.name = 'test'
 
-            def currentVersion = GradleVersion.current().version
+            def currentVersion = org.gradle.util.GradleVersion.current().version
             def nextMajorVersion = Integer.parseInt(currentVersion.substring(0, currentVersion.indexOf("."))) + 1
             if (nextMajorVersion == 6) {
                 enableFeaturePreview('GRADLE_METADATA')

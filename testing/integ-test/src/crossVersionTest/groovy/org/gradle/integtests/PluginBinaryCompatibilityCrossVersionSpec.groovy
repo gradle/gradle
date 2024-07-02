@@ -25,7 +25,7 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
     def "plugin implemented in Groovy can use types converted from Groovy to Java"() {
         given:
         def apiDepConf = "implementation"
-        if (previous.version < GradleVersion.version("7.0-rc-1")) {
+        if (previous.version < GradleVersion.version("6.0")) {
             apiDepConf = "compile"
         }
         def groovyDepConf

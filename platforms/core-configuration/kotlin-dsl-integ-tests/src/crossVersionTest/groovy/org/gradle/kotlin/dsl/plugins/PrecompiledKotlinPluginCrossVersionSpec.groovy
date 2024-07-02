@@ -134,6 +134,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         version(distribution)
             .inDirectory(file("plugin"))
             .withTasks("publish")
+            .noDeprecationChecks()
             .run()
     }
 
