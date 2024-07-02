@@ -43,7 +43,6 @@ data class DecoratedReportProblem(
                 }
 
                 parts?.let {
-
                     summary?.let { comma() }
                     property("parts") {
                         jsonObjectList(parts) { (isInternal, text) ->

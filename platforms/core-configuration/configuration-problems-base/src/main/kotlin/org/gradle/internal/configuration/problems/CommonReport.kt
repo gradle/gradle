@@ -69,7 +69,7 @@ class CommonReport(
          */
         open fun commitReportTo(
             outputDirectory: File,
-            details: ProblemReportDetails
+            details: JsonSource
         ): Pair<State, File?> =
             illegalState()
 
@@ -89,7 +89,7 @@ class CommonReport(
              */
             override fun commitReportTo(
                 outputDirectory: File,
-                details: ProblemReportDetails
+                details: JsonSource
             ): Pair<State, File?> =
                 this to null
 
@@ -107,7 +107,7 @@ class CommonReport(
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             private val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem, ProblemSeverity, String) -> DecoratedReportProblem,
+            val decorate: (PropertyProblem, ProblemSeverity, String) -> JsonSource,
             val writer: HtmlReportWriter,
             private val hashingStream: HashingOutputStream,
             private val spoolFile: File
@@ -123,7 +123,8 @@ class CommonReport(
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
                     val severity = problemSeverity(kind)
-                    decorate(problem, severity, keyFor(kind)).writeToJson(writer.jsonModelWriter)
+                    decorate(problem, severity, keyFor(kind))
+                        .writeToJson(writer.jsonModelWriter)
                 }
                 return this
             }
@@ -146,7 +147,7 @@ class CommonReport(
 
             override fun commitReportTo(
                 outputDirectory: File,
-                details: ProblemReportDetails
+                details: JsonSource
             ): Pair<State, File?> {
 
                 val reportFile = try {
@@ -175,7 +176,7 @@ class CommonReport(
             }
 
             private
-            fun closeHtmlReport(details: ProblemReportDetails) {
+            fun closeHtmlReport(details: JsonSource) {
                 writer.endHtmlReport(details)
                 writer.close()
             }
@@ -247,7 +248,7 @@ class CommonReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity, kind: String): DecoratedReportProblem {
+    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity, kind: String): JsonSource {
         val failure = problem.stackTracingFailure
         return DecoratedReportProblem(
             problem.trace,
