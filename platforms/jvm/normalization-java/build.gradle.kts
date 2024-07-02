@@ -19,10 +19,9 @@ dependencies {
     api(projects.snapshots)
 
     api(libs.jsr305)
-    api(libs.asm)
     api(libs.guava)
+    api("org.gradle:java-api-extractor")
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.functional)
 
     implementation(libs.slf4jApi)
