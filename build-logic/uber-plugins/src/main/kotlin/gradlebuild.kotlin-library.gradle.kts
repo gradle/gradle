@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-    id("gradlebuild.java-library")
+    id("gradlebuild.jvm-library")
     id("gradlebuild.detekt")
 }
 

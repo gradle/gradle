@@ -1,5 +1,3 @@
-import com.autonomousapps.DependencyAnalysisSubExtension
-
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -18,34 +16,7 @@ import com.autonomousapps.DependencyAnalysisSubExtension
 
 plugins {
     `java-library`
-    id("gradlebuild.dependency-modules")
-    id("gradlebuild.repositories")
-    id("gradlebuild.minify")
-    id("gradlebuild.reproducible-archives")
-    id("gradlebuild.unittest-and-compile")
+    id("gradlebuild.jvm-library")
     id("gradlebuild.test-fixtures")
-    id("gradlebuild.distribution-testing")
-    id("gradlebuild.incubation-report")
-    id("gradlebuild.strict-compile")
-    id("gradlebuild.code-quality")
     id("gradlebuild.arch-test")
-    id("gradlebuild.integration-tests")
-    id("gradlebuild.cross-version-tests")
-    id("gradlebuild.ci-lifecycle")
-    id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
-    id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
-}
-
-// Handle dependencyAnalysis configuration for projects
-val unmigratedProjects: String by project
-
-val unmigratedProjectsList = unmigratedProjects.split(",").map { it.trim() }
-
-if (!unmigratedProjectsList.contains(project.name)) {
-    val dependencyAnalysis = project.extensions.getByType<DependencyAnalysisSubExtension>()
-    dependencyAnalysis.issues {
-        onAny {
-            severity("fail")
-        }
-    }
 }
