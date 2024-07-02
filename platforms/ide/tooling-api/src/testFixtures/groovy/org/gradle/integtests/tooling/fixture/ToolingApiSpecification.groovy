@@ -452,7 +452,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     private boolean expectJavaVersionDeprecation = true
-    private boolean noJavaVersionDeprecationExpectation() {
+    boolean noJavaVersionDeprecationExpectation() {
         expectJavaVersionDeprecation = false
     }
 
