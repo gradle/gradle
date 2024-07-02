@@ -43,6 +43,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
+import org.gradle.invocation.EagerLifecycleExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
 
@@ -79,7 +80,11 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(TaskExecutionAccessCheckerProvider)
             add(DefaultConfigurationCacheHost::class.java)
             add(DefaultConfigurationCacheIO::class.java)
-            add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
+            add(
+                IsolatedProjectEvaluationListenerProvider::class.java,
+                EagerLifecycleExecutor::class.java,
+                DefaultIsolatedProjectEvaluationListenerProvider::class.java
+            )
         }
     }
 

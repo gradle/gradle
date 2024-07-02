@@ -30,6 +30,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.core.peekSingletonProperty
+import org.gradle.invocation.EagerLifecycleExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
@@ -44,7 +45,7 @@ typealias IsolatedProjectActionList = Collection<IsolatedProjectAction>
 internal
 class DefaultIsolatedProjectEvaluationListenerProvider(
     private val userCodeApplicationContext: UserCodeApplicationContext
-) : IsolatedProjectEvaluationListenerProvider {
+) : IsolatedProjectEvaluationListenerProvider, EagerLifecycleExecutor {
 
     private
     val beforeProject = mutableListOf<IsolatedProjectAction>()
@@ -89,6 +90,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
             if (allprojects.isNotEmpty()) {
                 allprojectsAction = Allprojects(gradle, actions)
             }
+            clearCallbacks()
             IsolatedProjectEvaluationListener(gradle, actions)
         }
     }
@@ -98,10 +100,15 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
     }
 
     override fun clear() {
+        clearCallbacks()
+        allprojectsAction = null
+    }
+
+    private
+    fun clearCallbacks() {
         beforeProject.clear()
         afterProject.clear()
         allprojects.clear()
-        allprojectsAction = null
     }
 
     private

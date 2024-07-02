@@ -77,7 +77,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider;
+import org.gradle.invocation.EagerLifecycleExecutor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -100,23 +100,23 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
 
     public static ProjectInternal from(
         ProjectInternal project,
-        IsolatedProjectEvaluationListenerProvider listenerProvider
+        EagerLifecycleExecutor eagerLifecycleExecutor
     ) {
         return project instanceof LifecycleAwareProject
             ? project
-            : new LifecycleAwareProject(project, listenerProvider);
+            : new LifecycleAwareProject(project, eagerLifecycleExecutor);
     }
 
     private final ProjectInternal delegate;
-    private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+    private final EagerLifecycleExecutor eagerLifecycleExecutor;
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
     public LifecycleAwareProject(
         ProjectInternal delegate,
-        IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider
+        EagerLifecycleExecutor eagerLifecycleExecutor
     ) {
         this.delegate = delegate;
-        this.isolatedProjectEvaluationListenerProvider = isolatedProjectEvaluationListenerProvider;
+        this.eagerLifecycleExecutor = eagerLifecycleExecutor;
         this.extensibleDynamicObject = createExtensibleDynamicObject();
     }
 
@@ -133,7 +133,7 @@ public class LifecycleAwareProject extends GroovyObjectSupport implements Projec
     }
 
     private void executeAllprojectsAction() {
-        isolatedProjectEvaluationListenerProvider.executeAllprojectsFor(delegate);
+        eagerLifecycleExecutor.executeAllprojectsFor(delegate);
     }
 
     @Override
