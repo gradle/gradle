@@ -270,7 +270,7 @@ String value = getSomeProperty().get()
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Consequences
 
