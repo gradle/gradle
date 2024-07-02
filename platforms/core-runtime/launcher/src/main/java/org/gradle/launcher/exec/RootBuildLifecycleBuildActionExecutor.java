@@ -25,8 +25,10 @@ import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.SupportedJavaVersions;
 
 public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExecutor {
+
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
 
@@ -39,7 +41,7 @@ public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExe
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
 
-        if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+        if (!JavaVersion.current().isCompatibleWith(SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION)) {
             DeprecationLogger.deprecateAction("Executing Gradle on JVM versions 16 and lower")
                 .withContext("Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.")
                 .willBecomeAnErrorInGradle9()

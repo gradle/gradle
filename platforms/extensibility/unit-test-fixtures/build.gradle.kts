@@ -54,5 +54,5 @@ dependencies {
     integTestRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeClasspath(projects.distributionsCore)
+    integTestDistributionRuntimeClasspath(projects.distributionsFull)
 }
