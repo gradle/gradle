@@ -16,11 +16,13 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.GradleVersion
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
+@TargetVersions("4.10+") // JavaPluginExtension did not exist before 4.10
 class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "plugin implemented in Groovy can use types converted from Groovy to Java"() {
         given:
@@ -28,16 +30,11 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
         if (previous.version < GradleVersion.version("6.0")) {
             apiDepConf = "compile"
         }
-        def groovyDepConf
-        if (previous.version < GradleVersion.version("1.4-rc-1")) {
-            groovyDepConf = "groovy"
-        } else {
-            groovyDepConf = apiDepConf
-        }
+
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                ${groovyDepConf} localGroovy()
+                ${apiDepConf} localGroovy()
                 ${apiDepConf} gradleApi()
             }
         """
