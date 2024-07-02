@@ -52,16 +52,9 @@ plugins {
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
 }
 
-// Handle dependencyAnalysis configuration for projects
-val unmigratedProjects: String by project
-
-val unmigratedProjectsList = unmigratedProjects.split(",").map { it.trim() }
-
-if (!unmigratedProjectsList.contains(project.name)) {
-    val dependencyAnalysis = project.extensions.getByType<DependencyAnalysisSubExtension>()
-    dependencyAnalysis.issues {
-        onAny {
-            severity("fail")
-        }
+val dependencyAnalysis = project.extensions.getByType<DependencyAnalysisSubExtension>()
+dependencyAnalysis.issues {
+    onAny {
+        severity("fail")
     }
 }
