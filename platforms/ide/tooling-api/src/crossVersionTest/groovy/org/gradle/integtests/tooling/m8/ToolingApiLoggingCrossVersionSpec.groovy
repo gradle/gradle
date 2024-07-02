@@ -130,8 +130,8 @@ project.logger.debug("debug logging");
         out.count("lifecycle logging \u03b1\u03b2") == 1
         out.count("warn logging") == 1
         out.count("quiet logging") == 1
-        out.count("info") == 0
-        out.count("debug") == 0
+        out.count("info logging") == 0
+        out.count("debug logging") == 0
 
         err.count("warn") == 0
         err.count("quiet") == 0

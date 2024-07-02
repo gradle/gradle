@@ -96,4 +96,23 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
+
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
+    def "running a build with Java versions older than 17 is deprecated"() {
+        given:
+        executer.noJavaVersionDeprecationChecks()
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        succeeds("help")
+    }
+
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    def "can run on Java 17 and greater without warning"() {
+        given:
+        executer.noJavaVersionDeprecationChecks()
+
+        expect:
+        succeeds("help")
+    }
 }
