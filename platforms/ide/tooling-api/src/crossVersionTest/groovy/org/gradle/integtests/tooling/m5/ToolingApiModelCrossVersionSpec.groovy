@@ -40,7 +40,7 @@ System.err.println 'this is stderr'
         file('build.gradle') << 'broken'
 
         when:
-        withConnection {
+        fails {
             it.model(GradleProject.class).get()
         }
 
@@ -51,6 +51,5 @@ System.err.println 'this is stderr'
 
         and:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        assertHasConfigureFailedLogging()
     }
 }

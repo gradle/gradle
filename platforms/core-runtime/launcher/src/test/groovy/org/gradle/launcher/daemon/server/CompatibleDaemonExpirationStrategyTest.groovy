@@ -20,7 +20,7 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonInfo
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
 class CompatibleDaemonExpirationStrategyTest extends DaemonExpirationStrategyTest {

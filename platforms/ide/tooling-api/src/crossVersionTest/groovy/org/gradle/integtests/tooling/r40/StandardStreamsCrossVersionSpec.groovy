@@ -37,7 +37,7 @@ task log {
 
         when:
         def output = new TestOutputStream()
-        withConnection { ProjectConnection connection ->
+        withConnection(connectorWithoutOutputRedirection()) { ProjectConnection connection ->
             def build = connection.newBuild()
             build.standardOutput = output
             build.colorOutput = true

@@ -19,7 +19,8 @@ package org.gradle.internal.component.resolution.failure.exception;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
@@ -28,21 +29,22 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Abstract base class for all attribute matching selection failures occurring at any stage of dependency resolution.
- *
+ * Abstract base class for all {@link ResolutionFailure}s occurring during dependency resolution that can be handled
+ * by the {@link ResolutionFailureHandler ResolutionFailureHandler}.
+ * <p>
  * This exception type carries information about the failure, and implements {@link ResolutionProvider} to provide a
  * list of resolutions that may help the user to fix the problem.  This class is meant to be immutable.
  *
  * @implNote This class should not be subclassed beyond the existing
- * {@link ConfigurationSelectionException}, {@link ArtifactVariantSelectionException}, and
- * {@link VariantSelectionException} subtypes.  All subtypes should remain immutable.
+ * {@link VariantSelectionByNameException}, {@link ArtifactSelectionException}, {@link GraphValidationException} and
+ * {@link VariantSelectionByAttributesException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider {
     private static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
     private final ImmutableList<String> resolutions;
-    private final ResolutionFailure failure;
+    protected final ResolutionFailure failure;
 
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions) {
         this(message, failure, resolutions, null);
@@ -53,12 +55,10 @@ public abstract class AbstractResolutionFailureException extends StyledException
         this.failure = failure;
         this.resolutions = ImmutableList.copyOf(resolutions);
 
-        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), failure.getClass().getName());
+        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
     }
 
-    public ResolutionFailure getFailure() {
-        return failure;
-    }
+    public abstract ResolutionFailure getFailure();
 
     @Override
     public ImmutableList<String> getResolutions() {

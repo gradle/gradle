@@ -22,11 +22,14 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
+import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.analysis.format
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.AmbiguousName
@@ -66,8 +69,8 @@ class DocumentWithResolution(
 fun documentWithResolution(
     schema: AnalysisSchema,
     languageTreeResult: LanguageTreeResult,
-    operationGenerationId: OperationGenerationId,
-    analysisStatementFilter: AnalysisStatementFilter,
+    operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
+    analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
     strictReceiverChecks: Boolean = true
 ): DocumentWithResolution {
     val document = languageTreeResult.toDocument()
@@ -162,7 +165,7 @@ class DocumentResolver(
             when (val semantics = function.semantics) {
                 is FunctionSemantics.AccessAndConfigure -> {
                     val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
-                    ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved(configuredType)
+                    ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved(configuredType, function as SchemaMemberFunction)
                 }
 
                 is FunctionSemantics.NewObjectFunctionSemantics -> {
@@ -173,7 +176,7 @@ class DocumentResolver(
                     )
                 }
 
-                else -> error("unexpected semantics of element function")
+                else -> error("unexpected semantics of element ${function.format(functionOrigin)}: ${semantics::class.simpleName}")
             }
         }
 

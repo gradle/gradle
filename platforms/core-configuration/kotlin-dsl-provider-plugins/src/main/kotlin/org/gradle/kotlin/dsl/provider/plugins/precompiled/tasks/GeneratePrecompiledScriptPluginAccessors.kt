@@ -94,7 +94,7 @@ import javax.inject.Inject
 
 
 internal
-const val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
+const val STRICT_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
 
 
 @CacheableTask
@@ -287,7 +287,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun validationErrorFor(pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
+            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. " +
+                "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
         }
         // TODO:kotlin-dsl validate apply false
         return null
@@ -476,6 +477,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
         }.toTypedArray()
+        @Suppress("SpreadOperator")
         return configurations.detachedConfiguration(*dependencies)
     }
 

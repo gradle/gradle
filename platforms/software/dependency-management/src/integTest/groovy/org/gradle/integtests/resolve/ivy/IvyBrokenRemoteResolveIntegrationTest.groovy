@@ -55,7 +55,7 @@ task showMissing { doLast { println configurations.missing.files } }
 Searched in the following locations:
   - ${module.ivy.uri}
 Required by:
-    project :""")
+    root project :""")
 
         when:
         module.ivy.expectGetMissing()
@@ -68,7 +68,7 @@ Required by:
 Searched in the following locations:
   - ${module.ivy.uri}
 Required by:
-    project :""")
+    root project :""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -122,12 +122,12 @@ task showMissing { doLast { println configurations.missing.files } }
 Searched in the following locations:
   - ${moduleA.ivy.uri}
 Required by:
-    project :""")
+    root project :""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
 Required by:
-    project :""")
+    root project :""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -206,13 +206,13 @@ task showMissing { doLast { println configurations.compile.files } }
 Searched in the following locations:
   - ${moduleA.ivy.uri}
 Required by:
-    project : > group:projectC:0.99
-    project : > project :child1 > group:projectD:1.0GA""")
+    root project : > group:projectC:0.99
+    root project : > project :child1 > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
 Required by:
-    project : > project :child1 > group:projectD:1.0GA""")
+    root project : > project :child1 > group:projectD:1.0GA""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

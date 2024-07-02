@@ -18,6 +18,7 @@ package org.gradle.caching.local;
 
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 
@@ -35,6 +36,7 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
      * Returns the directory to use to store the build cache.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     public Object getDirectory() {
         return directory;
     }

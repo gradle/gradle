@@ -48,19 +48,18 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.agents.AgentInitializer;
-import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.instrumentation.agent.AgentInitializer;
+import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Time;
-import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -126,6 +125,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+/**
+ * Runs Gradle within the current process.
+ * <p>
+ * There is some initialization happening in {@link InProcessGradleExecutorInitialization}, so that the global services
+ * are correctly in place.
+ */
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
@@ -258,7 +263,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
             builder.environment(invocation.environmentVars);
 
-            builder.getMainClass().set(Main.class.getName());
+            builder.getMainClass().set("org.gradle.launcher.Main");
             builder.args(invocation.args);
             builder.setStandardInput(connectStdIn());
 

@@ -21,6 +21,8 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -62,6 +64,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @return The files. Never returns null.
      */
     @Destroys
+    @ToBeReplacedByLazyProperty
     public FileCollection getTargetFiles() {
         return paths;
     }
@@ -72,6 +75,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @return The files. Never returns null.
      */
     @Internal
+    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()", willBeDeprecated = true)
     public Set<Object> getDelete() {
         return paths.getFrom();
     }
@@ -101,6 +105,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @return true if symlinks will be followed.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFollowSymlinks() {
         return followSymlinks;
     }

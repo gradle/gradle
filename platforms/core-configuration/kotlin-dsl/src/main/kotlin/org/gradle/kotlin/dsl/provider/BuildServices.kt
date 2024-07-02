@@ -84,6 +84,7 @@ object BuildServices : ServiceRegistrationProvider {
         ClassPathModeExceptionCollector()
 
     @Provides
+    @Suppress("LongParameterList")
     fun createKotlinScriptEvaluator(
         classPathProvider: KotlinScriptClassPathProvider,
         classloadingCache: KotlinScriptClassloadingCache,

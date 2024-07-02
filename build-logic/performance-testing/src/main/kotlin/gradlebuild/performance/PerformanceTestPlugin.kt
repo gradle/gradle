@@ -499,7 +499,7 @@ class PerformanceTestExtension(
                         if (allTestsWereSkipped(file)) {
                             exclude()
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         exclude()
                     }
                 }

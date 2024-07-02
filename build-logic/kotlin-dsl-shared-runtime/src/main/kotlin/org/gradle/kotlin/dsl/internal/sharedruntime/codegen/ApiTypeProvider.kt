@@ -138,9 +138,10 @@ class ApiTypeProvider internal constructor(
     }
 
     private
-    fun <T> open(action: () -> T): T =
-        if (closed) throw IllegalStateException("ApiTypeProvider closed!")
-        else action()
+    fun <T> open(action: () -> T): T {
+        check(!closed) { "ApiTypeProvider closed!" }
+        return action()
+    }
 
     internal
     class Context(
@@ -227,6 +228,7 @@ class ApiType internal constructor(
             candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
         }
 
+        @Suppress("LoopWithTooManyJumpStatements")
         while (superTypeStack.isNotEmpty()) {
             val superTypeName = superTypeStack.pop()
 

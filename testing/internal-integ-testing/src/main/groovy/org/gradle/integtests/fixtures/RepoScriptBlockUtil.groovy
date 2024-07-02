@@ -28,6 +28,10 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
+    static boolean isMirrorEnabled() {
+        return !Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
+    }
+
     static String repositoryDefinition(GradleDsl dsl = GROOVY, String type, String name, String url) {
         if (dsl == KOTLIN) {
             """
@@ -164,6 +168,7 @@ class RepoScriptBlockUtil {
         return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
+            import org.gradle.util.GradleVersion
 
             apply plugin: MirrorPlugin
 
@@ -184,7 +189,7 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void applyToAllProjects(Gradle gradle, Closure projectClosure) {
-                    if (gradle.gradleVersion >= "8.8") {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("8.8")) {
                         gradle.lifecycle.beforeProject(projectClosure)
                     } else {
                         gradle.allprojects(projectClosure)
@@ -193,7 +198,7 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void maybeConfigurePluginManagement(Gradle gradle) {
-                    if (gradle.gradleVersion >= "4.4") {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
                         gradle.settingsEvaluated { Settings settings ->
                             withMirrors(settings.pluginManagement.repositories)
                         }

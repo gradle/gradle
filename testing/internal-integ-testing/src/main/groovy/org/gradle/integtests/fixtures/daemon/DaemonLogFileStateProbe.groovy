@@ -18,12 +18,12 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.launcher.daemon.server.api.DaemonState
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Stopped
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonState.Stopped
 
 class DaemonLogFileStateProbe implements DaemonStateProbe {
     private final DaemonContext context
@@ -47,12 +47,12 @@ class DaemonLogFileStateProbe implements DaemonStateProbe {
         return context
     }
 
-    State getCurrentState() {
+    DaemonState getCurrentState() {
         getStates().last()
     }
 
-    List<State> getStates() {
-        def states = new LinkedList<State>()
+    List<DaemonState> getStates() {
+        def states = new LinkedList<DaemonState>()
         states << Idle
         log.lines().withCloseable { stream ->
             stream.forEach {

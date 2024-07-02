@@ -27,6 +27,7 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.nativeintegration.console.ConsoleDetector
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
@@ -34,7 +35,7 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class NativeServicesTest extends Specification {
-    NativeServices services
+    ServiceRegistry services
 
     def setup() {
         services = NativeServices.getInstance()

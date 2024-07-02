@@ -65,7 +65,7 @@ object JavaSourceQueries {
                     is JApiField -> isSinceJavaFieldVisitorFor(member, version)
                     is JApiConstructor -> isSinceJavaConstructorVisitorFor(declaringClassSimpleName, version)
                     is JApiMethod -> isSinceJavaMethodVisitorFor(declaringClassSimpleName, member, version)
-                    else -> throw IllegalStateException("Unsupported japicmp member type ${member::class}")
+                    else -> error("Unsupported japicmp member type ${member::class}")
                 }
             )
         }

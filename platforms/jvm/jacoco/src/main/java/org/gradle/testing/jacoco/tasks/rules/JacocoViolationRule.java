@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -35,6 +36,7 @@ public interface JacocoViolationRule extends Serializable {
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean isEnabled();
 
     /**
@@ -50,6 +52,7 @@ public interface JacocoViolationRule extends Serializable {
      * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     String getElement();
 
     /**
@@ -64,6 +67,7 @@ public interface JacocoViolationRule extends Serializable {
      * If left empty, all elements will be included. Defaults to [*].
      */
     @Input
+    @ToBeReplacedByLazyProperty
     List<String> getIncludes();
 
     /**
@@ -78,12 +82,14 @@ public interface JacocoViolationRule extends Serializable {
      * If left empty, no elements will be excluded. Defaults to an empty list.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     List<String> getExcludes();
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     List<JacocoLimit> getLimits();
 
     /**

@@ -85,7 +85,7 @@ class ComponentMetadataHandlerExtensionsTest {
 
 
 class SomeRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) { }
+    override fun execute(context: ComponentMetadataContext) = Unit
 }
 
 

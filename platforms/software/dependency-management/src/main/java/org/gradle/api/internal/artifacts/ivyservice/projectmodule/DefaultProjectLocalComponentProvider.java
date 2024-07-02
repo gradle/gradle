@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -49,7 +50,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     }
 
     private LocalComponentGraphResolveState getLocalComponentState(ProjectState projectState, ProjectInternal project) {
-        Module module = project.getDependencyMetaDataProvider().getModule();
+        Module module = project.getServices().get(DependencyMetaDataProvider.class).getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
         AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();

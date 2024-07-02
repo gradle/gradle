@@ -32,7 +32,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.buildDefinition = buildDefinition;
         this.owner = owner;
 
-        BuildScopeServices buildScopeServices = getBuildServices();
+        CloseableServiceRegistry buildScopeServices = getBuildServices();
         try {
             ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
             BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor();

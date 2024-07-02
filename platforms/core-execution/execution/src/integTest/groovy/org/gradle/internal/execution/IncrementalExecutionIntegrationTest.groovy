@@ -588,6 +588,32 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         cachedResult == "cached"
     }
 
+    def "reports max three file changes"() {
+        given:
+        def files = [
+            "file1": file("parent1/outFile"),
+            "file2": file("parent2/outFile"),
+            "file3": file("parent3/outFile"),
+            "file4": file("parent4/outFile")
+        ]
+        def unitOfWork = builder.withOutputFiles(files).withWork { ->
+            UnitOfWork.WorkResult.DID_WORK
+        }.build()
+        execute(unitOfWork)
+
+        when:
+        files.each {
+            it.value.createFile()
+        }
+        def result = execute(unitOfWork)
+
+        then:
+        def executionReasons = files.take(3).collect {
+            "Output property '${it.key}' file ${it.value.absolutePath} has been added.".toString()
+        } + ["and more..."]
+        result.executionReasons == executionReasons
+    }
+
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
         filesRemoved('Input', removedFiles)
     }

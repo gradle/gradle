@@ -47,7 +47,7 @@ import java.util.concurrent.Callable
 
 // Android Studio Jellyfish 2023.3.1
 private
-const val defaultAndroidStudioVersion = "2023.3.1.18"
+const val DEFAULT_ANDROID_STUDIO_VERSION = "2023.3.1.18"
 
 
 class AndroidStudioProvisioningPlugin : Plugin<Project> {
@@ -56,7 +56,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
             val androidStudioProvisioningExtension = extensions
                 .create("androidStudioProvisioning", AndroidStudioProvisioningExtension::class)
                 .apply {
-                    androidStudioVersion.convention(defaultAndroidStudioVersion)
+                    androidStudioVersion.convention(DEFAULT_ANDROID_STUDIO_VERSION)
                 }
 
             repositories {
@@ -80,7 +80,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
                     BuildEnvironment.isMacOsX && BuildEnvironment.isIntel -> "mac.zip"
                     BuildEnvironment.isMacOsX && !BuildEnvironment.isIntel -> "mac_arm.zip"
                     BuildEnvironment.isLinux -> "linux.tar.gz"
-                    else -> throw IllegalStateException("Unsupported OS: ${OperatingSystem.current()}")
+                    else -> error("Unsupported OS: ${OperatingSystem.current()}")
                 }
                 val androidStudioDependencyProvider =
                     androidStudioProvisioningExtension.androidStudioVersion.map { "android-studio:android-studio:$it@$extension" }
@@ -101,6 +101,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
                     eachFile {
                         // Remove top folder when unzipping, that way we get rid of Android Studio.app folder that can cause issues on Mac
                         // where MacOS would kill the Android Studio process right after start, issue: https://github.com/gradle/gradle-profiler/issues/469
+                        @Suppress("SpreadOperator")
                         relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
                     }
                 }

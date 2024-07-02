@@ -22,6 +22,7 @@ package org.gradle.internal.service;
 public interface ServiceRegistration {
     /**
      * Adds a service to this registry. The given object is closed when the associated registry is closed.
+     *
      * @param serviceType The type to make this service visible as.
      * @param serviceInstance The service implementation.
      */
@@ -40,7 +41,18 @@ public interface ServiceRegistration {
      * @param serviceType The service to make visible.
      * @param implementationType The implementation type of the service.
      */
-    void add(Class<?> serviceType, Class<?> implementationType);
+    <T> void add(Class<? super T> serviceType, Class<T> implementationType);
+
+    /**
+     * Adds two services to this registry that share the implementation.
+     * <p>
+     * The implementation class should have a single public constructor, and this constructor can take services to be injected as parameters.
+     *
+     * @param serviceType1 The first service to make visible.
+     * @param serviceType2 The second service to make visible.
+     * @param implementationType The implementation type of the service.
+     */
+    <T> void add(Class<? super T> serviceType1, Class<? super T> serviceType2, Class<T> implementationType);
 
     /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods. See {@link DefaultServiceRegistry} for details.

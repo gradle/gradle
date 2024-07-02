@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.service.scopes.SettingsScopeServices;
+import org.gradle.internal.service.CloseableServiceRegistry;
 
 import java.io.Closeable;
 
@@ -26,9 +26,9 @@ import java.io.Closeable;
  */
 public class SettingsState implements Closeable {
     private final SettingsInternal settings;
-    private final SettingsScopeServices services;
+    private final CloseableServiceRegistry services;
 
-    public SettingsState(SettingsInternal settings, SettingsScopeServices services) {
+    public SettingsState(SettingsInternal settings, CloseableServiceRegistry services) {
         this.settings = settings;
         this.services = services;
     }

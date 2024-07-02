@@ -44,9 +44,11 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             }
 
             task resolveDependencyArtifacts {
+                def gradleApi = configurations.gradleApi
+                def testKit = configurations.testKit
                 doLast {
-                    def resolvedGradleApiArtifacts = configurations.gradleApi.resolve()
-                    def resolvedTestKitArtifacts = configurations.testKit.resolve()
+                    def resolvedGradleApiArtifacts = gradleApi.files
+                    def resolvedTestKitArtifacts = testKit.files
                     def gradleApiJar = resolvedTestKitArtifacts.find { it.name.startsWith('gradle-api-') }
                     assert gradleApiJar != null
                     assert resolvedGradleApiArtifacts.contains(gradleApiJar)
@@ -72,14 +74,10 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
                 testKit gradleTestKit()
             }
 
-            task resolveDependencyArtifacts {
-                doLast {
-                    copy {
-                        into '$outputDirPath'
-                        from configurations.gradleApi.resolve().find { it.name.startsWith('gradle-api-') }
-                        from configurations.testKit.resolve().find { it.name.startsWith('gradle-test-kit-') }
-                    }
-                }
+            task resolveDependencyArtifacts(type: Copy) {
+                from(configurations.gradleApi.filter { it.name.startsWith('gradle-api-') })
+                from(configurations.testKit.filter { it.name.startsWith('gradle-test-kit-') })
+                into '$outputDirPath'
             }
         """
 

@@ -28,6 +28,6 @@ public class GradleMain {
             System.exit(1);
         }
 
-        ProcessBootstrap.run("org.gradle.launcher.Main", args);
+        ProcessBootstrap.run(GradleMain.class.getName(), "gradle-gradle-cli", "org.gradle.launcher.Main", args);
     }
 }

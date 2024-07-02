@@ -17,6 +17,7 @@
 package gradlebuild.binarycompatibility
 
 import gradlebuild.binarycompatibility.filters.AnonymousClassesFilter
+import gradlebuild.binarycompatibility.filters.BridgeForBytecodeUpgradeAdapterClassFilter
 import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
@@ -50,6 +51,7 @@ class BinaryCompatibilityHelper {
         japicmpTask.tap {
             addExcludeFilter(AnonymousClassesFilter)
             addExcludeFilter(KotlinInternalFilter)
+            addExcludeFilter(BridgeForBytecodeUpgradeAdapterClassFilter)
 
             def acceptedChangesMap = acceptedViolations.toAcceptedChangesMap()
 

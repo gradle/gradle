@@ -28,6 +28,8 @@ object DataTypeInternal {
     data object DefaultIntDataType : DataType.IntDataType {
         override val constantType: Class<Int> = Int::class.java
         override fun toString(): String = "Int"
+
+        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultIntDataType
     }
@@ -37,6 +39,8 @@ object DataTypeInternal {
     data object DefaultLongDataType : DataType.LongDataType {
         override val constantType: Class<Long> = Long::class.java
         override fun toString(): String = "Long"
+
+        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultLongDataType
     }
@@ -46,6 +50,8 @@ object DataTypeInternal {
     data object DefaultStringDataType : DataType.StringDataType {
         override val constantType: Class<String> = String::class.java
         override fun toString(): String = "String"
+
+        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultStringDataType
     }
@@ -55,6 +61,8 @@ object DataTypeInternal {
     data object DefaultBooleanDataType : DataType.BooleanDataType {
         override val constantType: Class<Boolean> = Boolean::class.java
         override fun toString(): String = "Boolean"
+
+        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultBooleanDataType
     }
@@ -63,6 +71,8 @@ object DataTypeInternal {
     @SerialName("null")
     data object DefaultNullType : DataType.NullType {
         override fun toString(): String = "Null"
+
+        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultNullType
     }
@@ -71,6 +81,8 @@ object DataTypeInternal {
     @SerialName("unit")
     data object DefaultUnitType : DataType.UnitType {
         override fun toString(): String = "Unit"
+
+        @Suppress("unused")
         private
         fun readResolve(): Any = DefaultUnitType
     }

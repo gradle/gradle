@@ -20,8 +20,8 @@ import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowParameters
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.process.ExecOperations
@@ -50,11 +50,14 @@ class FlowScheduler(
     }
 
     private
-    fun injectableServicesOf(serviceRegistry: ServiceRegistry): DefaultServiceRegistry {
-        return DefaultServiceRegistry().apply {
-            add(serviceRegistry.get(ArchiveOperations::class.java))
-            add(serviceRegistry.get(ExecOperations::class.java))
-            add(serviceRegistry.get(FileSystemOperations::class.java))
-        }
+    fun injectableServicesOf(serviceRegistry: ServiceRegistry): ServiceRegistry {
+        return ServiceRegistryBuilder.builder()
+            .displayName("flow services")
+            .provider { registration ->
+                registration.add(ArchiveOperations::class.java, serviceRegistry.get(ArchiveOperations::class.java))
+                registration.add(ExecOperations::class.java, serviceRegistry.get(ExecOperations::class.java))
+                registration.add(FileSystemOperations::class.java, serviceRegistry.get(FileSystemOperations::class.java))
+            }
+            .build()
     }
 }

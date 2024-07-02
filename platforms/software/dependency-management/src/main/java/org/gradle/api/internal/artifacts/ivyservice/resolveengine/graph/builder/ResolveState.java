@@ -43,7 +43,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -134,20 +133,20 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         this.variantSelector = variantSelector;
 
-        int graphSize = estimateGraphSize(root);
+        LocalComponentGraphResolveState rootComponentState = root.getRootComponent();
+        VariantGraphResolveState rootVariant = root.getRootVariant();
+        ModuleVersionIdentifier rootModuleVersionId = root.getModuleVersionIdentifier();
+        ComponentIdentifier rootComponentId = root.getComponentIdentifier();
+
+        int graphSize = estimateGraphSize(rootVariant);
         this.modules = new LinkedHashMap<>(graphSize);
         this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
         this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
         this.queue = new ArrayDeque<>(graphSize);
 
-        LocalComponentGraphResolveState rootComponentState = root.getRootComponent();
-        ComponentGraphResolveMetadata rootComponentMetadata = rootComponentState.getMetadata();
-        ModuleVersionIdentifier moduleVersionId = rootComponentMetadata.getModuleVersionId();
-        ComponentIdentifier componentId = rootComponentMetadata.getId();
-
         // Create root component and module
-        ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
-        ComponentState rootComponent = rootModule.getVersion(moduleVersionId, componentId);
+        ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule(), true);
+        ComponentState rootComponent = rootModule.getVersion(rootModuleVersionId, rootComponentId);
         rootComponent.setRoot();
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
@@ -157,10 +156,9 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         rootModule.setSelectorStateResolver(selectorStateResolver);
 
         // Create root node
-        VariantGraphResolveState rootVariant = root.getRootVariant();
         this.root = new RootNode(idGenerator.nextGraphNodeId(), rootComponent, this, syntheticDependencies, rootVariant);
         rootComponent.addNode(this.root);
-        ComponentVariantNodeIdentifier rootNodeId = new ComponentVariantNodeIdentifier(componentId, rootVariant.getName());
+        ComponentVariantNodeIdentifier rootNodeId = new ComponentVariantNodeIdentifier(rootComponentId, rootVariant.getName());
         nodes.put(rootNodeId, this.root);
     }
 
@@ -359,8 +357,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
      * the graph is, the higher the risk of internal resizes exists, so we try to estimate
      * the size of the graph to avoid maps resizing.
      */
-    private static int estimateGraphSize(RootComponentMetadataBuilder.RootComponentState rootComponentState) {
-        int numDependencies = rootComponentState.getRootVariant().getMetadata().getDependencies().size();
+    private static int estimateGraphSize(VariantGraphResolveState rootVariant) {
+        int numDependencies = rootVariant.getMetadata().getDependencies().size();
 
         // TODO #24641: Why are the numbers and operations here the way they are?
         //  Are they up-to-date? We should be able to test if these values are still optimal.

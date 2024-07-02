@@ -102,9 +102,7 @@ object KotlinMetadataQueries {
     val CtMember.jvmSignature: String
         get() = when (this) {
             is CtField -> "$name:$signature"
-            is CtConstructor ->
-                if (parameterTypes.isEmpty()) "$name$signature"
-                else "<init>$signature"
+            is CtConstructor -> "<init>$signature"
             is CtMethod -> "$name$signature"
             else -> throw IllegalArgumentException("Unsupported javassist member type '${this::class}'")
         }

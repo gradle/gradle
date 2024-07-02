@@ -15,9 +15,12 @@
  */
 package org.gradle.api.java.archives;
 
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+
 /**
  * Details of a value being merged from two different manifests.
  */
+@NotToBeMigratedToLazy
 public interface ManifestMergeDetails {
     /**
      * Returns the section this merge details belongs to.

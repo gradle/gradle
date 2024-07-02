@@ -16,8 +16,9 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.objectweb.asm.Type;
 
 public enum GradleLazyType {
     CONFIGURABLE_FILE_COLLECTION("org.gradle.api.file.ConfigurableFileCollection"),
@@ -28,56 +29,54 @@ public enum GradleLazyType {
     SET_PROPERTY("org.gradle.api.provider.SetProperty"),
     MAP_PROPERTY("org.gradle.api.provider.MapProperty"),
     PROPERTY("org.gradle.api.provider.Property"),
-    UNSUPPORTED((Type) null) {
+    PROVIDER("org.gradle.api.provider.Provider"),
+    UNSUPPORTED((ClassName) null) {
         @Override
-        public Type asType() {
+        public ClassName asClassName() {
             throw new UnsupportedOperationException("Unsupported type");
         }
     };
 
     @SuppressWarnings("ImmutableEnumChecker")
-    private final Type type;
+    private final ClassName className;
 
     GradleLazyType(String name) {
-        this(Type.getType("L" + name.replace('.', '/') + ";"));
+        this(ClassName.bestGuess(name));
     }
 
-    GradleLazyType(Type type) {
-        this.type = type;
+    GradleLazyType(ClassName className) {
+        this.className = className;
     }
 
-    public Type asType() {
-        return type;
+    public ClassName asClassName() {
+        return className;
     }
 
-    public TypeName asTypeName() {
-        return TypeUtils.typeName(type);
-    }
-
-    public static boolean isAnyOf(Type type) {
-        for (GradleLazyType gradleType : values()) {
-            if (gradleType.type != null && gradleType.type.equals(type)) {
-                return true;
-            }
+    public boolean isEqualToRawTypeOf(TypeName typeName) {
+        if (typeName instanceof ParameterizedTypeName) {
+            typeName = ((ParameterizedTypeName) typeName).rawType;
         }
-        return false;
+        return className.equals(typeName);
     }
 
-    public static GradleLazyType from(Type type) {
-        for (GradleLazyType gradleType : values()) {
-            if (gradleType.type != null && gradleType.type.equals(type)) {
-                return gradleType;
-            }
+    public static GradleLazyType from(TypeName typeName) {
+        String binaryName;
+        if (typeName instanceof ClassName) {
+            binaryName = ((ClassName) typeName).reflectionName();
+        } else if (typeName instanceof ParameterizedTypeName) {
+            binaryName = ((ParameterizedTypeName) typeName).rawType.reflectionName();
+        } else {
+            throw new UnsupportedOperationException("Cannot get binary name from TypeName: " + typeName.getClass());
         }
-        throw new UnsupportedOperationException("Unknown lazy type: " + type.getClassName());
+        return from(binaryName);
     }
 
     public static GradleLazyType from(String name) {
         for (GradleLazyType gradleType : values()) {
-            if (gradleType.type != null && gradleType.type.getClassName().equals(name)) {
+            if (gradleType.className != null && gradleType.className.reflectionName().equals(name)) {
                 return gradleType;
             }
         }
-        throw new UnsupportedOperationException("Unknown lazy type: " + name);
+        throw new UnsupportedOperationException("Unknown Gradle lazy type: " + name);
     }
 }

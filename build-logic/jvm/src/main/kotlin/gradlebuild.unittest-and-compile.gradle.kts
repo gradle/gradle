@@ -79,7 +79,7 @@ fun configureSourcesVariant() {
         withSourcesJar()
     }
 
-    @Suppress("unused_variable")
+    @Suppress("UnusedPrivateProperty")
     val transitiveSourcesElements by configurations.creating {
         isCanBeResolved = false
         isCanBeConsumed = true

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class BaseForkOptions extends AbstractOptions {
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getMemoryInitialSize() {
         return memoryInitialSize;
     }
@@ -60,6 +62,7 @@ public class BaseForkOptions extends AbstractOptions {
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getMemoryMaximumSize() {
         return memoryMaximumSize;
     }
@@ -79,6 +82,7 @@ public class BaseForkOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getJvmArgs() {
         return jvmArgs;
     }

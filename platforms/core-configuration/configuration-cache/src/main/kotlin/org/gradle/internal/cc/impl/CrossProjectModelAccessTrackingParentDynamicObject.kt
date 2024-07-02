@@ -109,6 +109,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         maybeReportProjectIsolationViolation(memberKind, memberName)
     }
 
+    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     private
     fun maybeReportProjectIsolationViolation(memberKind: MemberKind, memberName: String?) {
         if (dynamicCallProblemReporting.unreportedProblemInCurrentCall(PROBLEM_KEY)) {

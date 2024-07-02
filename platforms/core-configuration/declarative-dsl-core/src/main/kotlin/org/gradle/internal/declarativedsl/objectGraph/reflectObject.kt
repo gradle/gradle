@@ -153,7 +153,6 @@ fun reflectDefaultValue(
         is DataClass -> reflectData(OperationId(-1L, DefaultOperationGenerationId.preExisting), type, objectOrigin, context)
         is DataType.NullType -> error("Null type can't appear in property types")
         is DataType.UnitType -> error("Unit can't appear in property types")
-        else -> { error("Unhandled data type: ${type.javaClass.simpleName}") }
     }
 }
 

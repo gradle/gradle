@@ -57,8 +57,8 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
 
     def "cannot capture user input if standard input was not provided"() {
         when:
-        withConnection { ProjectConnection connection ->
-            runBuildWithoutStandardInput(connection)
+        withConnection { connection ->
+            basicBuildConfiguration(connection).run()
         }
 
         then:
@@ -67,15 +67,13 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection) {
-        def build = basicBuildConfiguration(connection)
-
         def stdin = new PipedInputStream()
         def stdinWriter = new PipedOutputStream(stdin)
-
-        build.standardInput = stdin
-
         def resultHandler = new TestResultHandler()
-        build.run(resultHandler)
+
+        basicBuildConfiguration(connection)
+            .setStandardInput(stdin)
+            .run(resultHandler)
 
         poll(60) {
             assert getOutput().contains(PROMPT)
@@ -88,16 +86,8 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
         resultHandler.assertNoFailure()
     }
 
-    private void runBuildWithoutStandardInput(ProjectConnection connection) {
-        def build = basicBuildConfiguration(connection)
-        build.run()
-    }
-
-    private BuildLauncher basicBuildConfiguration(ProjectConnection connection) {
-        def build = connection.newBuild()
-        collectOutputs(build)
-        build.forTasks(DUMMY_TASK_NAME)
-        build
+    private static BuildLauncher basicBuildConfiguration(ProjectConnection connection) {
+        connection.newBuild().forTasks(DUMMY_TASK_NAME)
     }
 
     private String getOutput() {

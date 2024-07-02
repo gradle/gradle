@@ -26,7 +26,7 @@ import org.gradle.plugin.software.internal.ConventionReceiver
 /**
  * A convention that applies a property assignment operation (e.g. foo = "bar").
  */
-class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord) :
+class AssignmentRecordConvention(val assignmentRecord: AssignmentRecord) :
     Convention<AssignmentRecordConventionReceiver> {
     override fun apply(receiver: AssignmentRecordConventionReceiver) {
         receiver.receive(assignmentRecord)
@@ -37,7 +37,7 @@ class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord)
 /**
  * A convention that applies a data addition operation (e.g. addFoo("bar")).
  */
-class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecord) :
+class AdditionRecordConvention(val dataAdditionRecord: DataAdditionRecord) :
     Convention<AdditionRecordConventionReceiver> {
     override fun apply(receiver: AdditionRecordConventionReceiver) {
         receiver.receive(dataAdditionRecord)
@@ -48,7 +48,7 @@ class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecor
 /**
  * A convention that applies a nested object access operation (e.g. foo { }).
  */
-class NestedObjectAccessConvention(private val nestedObjectAccessRecord: NestedObjectAccessRecord) :
+class NestedObjectAccessConvention(val nestedObjectAccessRecord: NestedObjectAccessRecord) :
     Convention<NestedObjectAccessRecordConventionReceiver> {
     override fun apply(receiver: NestedObjectAccessRecordConventionReceiver) {
         receiver.receive(nestedObjectAccessRecord)

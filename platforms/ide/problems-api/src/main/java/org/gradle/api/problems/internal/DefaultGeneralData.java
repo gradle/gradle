@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -34,11 +35,10 @@ public class DefaultGeneralData implements GeneralData, Serializable {
         return map;
     }
 
-    public static AdditionalDataBuilder<GeneralData> builder() {
-        return new DefaultGeneralDataBuilder();
-    }
-
-    public static AdditionalDataBuilder<GeneralData> builder(GeneralData from) {
+    public static AdditionalDataBuilder<GeneralData> builder(@Nullable GeneralData from) {
+        if(from == null) {
+            return new DefaultGeneralDataBuilder();
+        }
         return new DefaultGeneralDataBuilder(from);
     }
 

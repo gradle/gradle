@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
 import org.gradle.internal.operations.BuildOperationListener
@@ -27,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventListenerAdapter
 import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.Clock
+import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

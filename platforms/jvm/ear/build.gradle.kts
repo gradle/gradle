@@ -16,37 +16,39 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    api(project(":base-services"))
-    api(project(":core-api"))
-    api(project(":language-jvm"))
-    api(project(":model-core"))
-    api(project(":platform-jvm"))
+    api(projects.baseServices)
+    api(projects.coreApi)
+    api(projects.languageJvm)
+    api(projects.modelCore)
+    api(projects.platformJvm)
 
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":language-java"))
-    implementation(project(":logging"))
-    implementation(project(":platform-base"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
+    implementation(projects.internalInstrumentationApi)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.core)
+    implementation(projects.dependencyManagement)
+    implementation(projects.execution)
+    implementation(projects.fileCollections)
+    implementation(projects.languageJava)
+    implementation(projects.logging)
+    implementation(projects.platformBase)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
 
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.commonsLang)
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(project(":native"))
-    testImplementation(project(":war"))
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(projects.native)
+    testImplementation(projects.war)
     testImplementation(libs.ant)
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {

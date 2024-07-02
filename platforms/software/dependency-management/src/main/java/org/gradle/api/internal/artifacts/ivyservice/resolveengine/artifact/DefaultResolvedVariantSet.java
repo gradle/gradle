@@ -40,6 +40,11 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     }
 
     @Override
+    public ComponentIdentifier getComponentIdentifier() {
+        return componentIdentifier;
+    }
+
+    @Override
     public ImmutableAttributes getOverriddenAttributes() {
         return selectionAttributes;
     }

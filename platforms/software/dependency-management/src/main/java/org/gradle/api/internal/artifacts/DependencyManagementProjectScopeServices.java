@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -85,5 +87,24 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
                 objectFactory,
                 projectDependencyFactory,
                 attributesFactory);
+    }
+
+    @Provides
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider(ProjectInternal project) {
+        return new ProjectBackedModuleMetaDataProvider(project);
+    }
+
+    private static class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
+
+        private final ProjectInternal project;
+
+        public ProjectBackedModuleMetaDataProvider(ProjectInternal project) {
+            this.project = project;
+        }
+
+        @Override
+        public Module getModule() {
+            return new ProjectBackedModule(project);
+        }
     }
 }

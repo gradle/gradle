@@ -17,6 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.GlobalCacheRootsProvider;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
@@ -165,14 +167,14 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         );
     }
 
-    @Provides
+    @Provides({ModuleRegistry.class, GlobalCacheRootsProvider.class})
     DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
         return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
     }
 
     @Provides
-    GlobalCache createGlobalCache(DefaultModuleRegistry moduleRegistry) {
-        return moduleRegistry::getGlobalCacheRoots;
+    GlobalCache createGlobalCache(GlobalCacheRootsProvider globalCacheRootsProvider) {
+        return globalCacheRootsProvider::getGlobalCacheRoots;
     }
 
     @Provides

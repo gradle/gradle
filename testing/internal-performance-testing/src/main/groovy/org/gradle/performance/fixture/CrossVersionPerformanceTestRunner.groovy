@@ -205,7 +205,12 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 distribution(new PerformanceTestGradleDistribution(dist, workingDir))
                 tasksToRun(this.tasksToRun as String[])
                 cleanTasks(this.cleanTasks as String[])
-                args((this.args + ['--stacktrace', '-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]) as String[])
+
+                if (RepoScriptBlockUtil.isMirrorEnabled()) {
+                    args((this.args + ['--stacktrace', '-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]) as String[])
+                } else {
+                    args((this.args + ['--stacktrace']) as String[])
+                }
                 jvmArgs(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)

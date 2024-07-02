@@ -14,36 +14,37 @@ errorprone {
 
 dependencies {
     api(projects.serviceProvider)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":file-collections"))
-    api(project(":hashing"))
-    api(project(":logging"))
-    api(project(":logging-api"))
-    api(project(":model-core"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
+    api(projects.hashing)
+    api(projects.logging)
+    api(projects.loggingApi)
+    api(projects.modelCore)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":base-services-groovy")) {
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.baseServicesGroovy) {
         because("Required for Specs")
     }
-    implementation(project(":functional"))
+    implementation(projects.functional)
 
     implementation(libs.commonsLang)
     implementation(libs.gson)
     implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 integTest.usesJavadocCodeSnippets = true

@@ -29,10 +29,8 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         setupBuild()
 
         when:
-        def model = withConnection {
-            def executer = action(new NoOpAction())
-            collectOutputs(executer)
-            executer.run()
+        def model = withConnection { connection ->
+            connection.action(new NoOpAction()).run()
         }
 
         then:
@@ -49,13 +47,12 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         when:
         def projectsLoadedModel = null
         def buildFinishedModel = null
-        withConnection {
-            def builder = action()
-            builder.projectsLoaded(new NoOpAction()) { projectsLoadedModel = it }
-            builder.buildFinished(new NoOpAction()) { buildFinishedModel = it }
-            def executer = builder.build()
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new NoOpAction()) { projectsLoadedModel = it }
+                .buildFinished(new NoOpAction()) { buildFinishedModel = it }
+                .build()
+                .run()
         }
 
         then:
@@ -71,10 +68,8 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         setupBuild()
 
         when:
-        def model = withConnection {
-            def executer = action(new FetchGradleBuildAction())
-            collectOutputs(executer)
-            executer.run()
+        def model = withConnection { connection ->
+            connection.action(new FetchGradleBuildAction()).run()
         }
 
         then:
@@ -92,13 +87,12 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         when:
         def projectsLoadedModel = null
         def buildFinishedModel = null
-        withConnection {
-            def builder = action()
-            builder.projectsLoaded(new FetchGradleBuildAction()) { projectsLoadedModel = it }
-            builder.buildFinished(new FetchGradleBuildAction()) { buildFinishedModel = it }
-            def executer = builder.build()
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new FetchGradleBuildAction()) { projectsLoadedModel = it }
+                .buildFinished(new FetchGradleBuildAction()) { buildFinishedModel = it }
+                .build()
+                .run()
         }
 
         then:
@@ -115,10 +109,8 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         setupBuild()
 
         when:
-        def model = withConnection {
-            def executer = action(new FetchProjectAction())
-            collectOutputs(executer)
-            executer.run()
+        def model = withConnection { connection ->
+            connection.action(new FetchProjectAction()).run()
         }
 
         then:
@@ -136,13 +128,12 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         when:
         def projectsLoadedModel = null
         def buildFinishedModel = null
-        withConnection {
-            def builder = action()
-            builder.projectsLoaded(new FetchProjectAction()) { projectsLoadedModel = it }
-            builder.buildFinished(new FetchProjectAction()) { buildFinishedModel = it }
-            def executer = builder.build()
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new FetchProjectAction()) { projectsLoadedModel = it }
+                .buildFinished(new FetchProjectAction()) { buildFinishedModel = it }
+                .build()
+                .run()
         }
 
         then:

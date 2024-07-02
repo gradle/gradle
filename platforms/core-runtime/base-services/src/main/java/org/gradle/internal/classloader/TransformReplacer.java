@@ -19,7 +19,6 @@ package org.gradle.internal.classloader;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;

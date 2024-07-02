@@ -33,7 +33,7 @@ dependencies {
     implementation(projects.files)
     implementation(projects.functional)
     implementation(projects.hashing)
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.persistentCache)
     implementation(projects.snapshots)
 

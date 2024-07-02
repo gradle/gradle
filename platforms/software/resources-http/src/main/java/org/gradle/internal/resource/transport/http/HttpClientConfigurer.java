@@ -59,7 +59,6 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
-import org.gradle.api.specs.Spec;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
@@ -243,12 +242,7 @@ public class HttpClientConfigurer {
     }
 
     private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
-        return CollectionUtils.any(authentications, new Spec<Authentication>() {
-            @Override
-            public boolean isSatisfiedBy(Authentication element) {
-                return element instanceof BasicAuthentication || element instanceof HttpHeaderAuthentication;
-            }
-        });
+        return CollectionUtils.any(authentications, element -> element instanceof BasicAuthentication || element instanceof HttpHeaderAuthentication);
     }
 
     public void configureUserAgent(HttpClientBuilder builder) {

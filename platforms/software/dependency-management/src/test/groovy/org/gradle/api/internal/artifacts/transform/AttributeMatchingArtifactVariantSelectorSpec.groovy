@@ -23,11 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
 
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -60,7 +61,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry)
+    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems))
 
     def 'direct match on variant means no finder interaction'() {
         given:
@@ -88,7 +89,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactVariantSelectionException
+        result.failure instanceof ArtifactSelectionException
 
         1 * variantSet.getSchema() >> attributesSchema
         1 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
@@ -149,7 +150,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactVariantSelectionException
+        result.failure instanceof ArtifactSelectionException
 
         1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants

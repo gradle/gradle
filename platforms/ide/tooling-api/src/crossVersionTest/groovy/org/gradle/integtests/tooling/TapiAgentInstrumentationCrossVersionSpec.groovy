@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 
 @TargetGradleVersion("current")
 class TapiAgentInstrumentationCrossVersionSpec extends ToolingApiSpecification {
-    private String buildOutput
 
     def setup() {
         // TODO(mlopatkin) Figure a way to have agent-based instrumentation in the embedded TAPI mode.
@@ -63,10 +62,8 @@ class TapiAgentInstrumentationCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void runDumpTaskWithTapi() {
-        withConnection {
-            buildOutput = withBuild {
-                it.forTasks("hello")
-            }.stdout.toString()
+        withBuild {
+            it.forTasks("hello")
         }
     }
 
@@ -79,7 +76,7 @@ class TapiAgentInstrumentationCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void agentStatusWas(boolean applied) {
-        assert buildOutput.contains("agent applied = $applied")
+        assert result.output.contains("agent applied = $applied")
     }
 
     private void withAgentEnabledInProperties() {
@@ -96,7 +93,7 @@ class TapiAgentInstrumentationCrossVersionSpec extends ToolingApiSpecification {
 
     private void withDumpAgentStatusTask() {
         buildFile  """
-            import org.gradle.internal.agents.AgentStatus
+            import org.gradle.internal.instrumentation.agent.AgentStatus
 
             tasks.register('hello') {
                 doLast {

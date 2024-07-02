@@ -122,7 +122,7 @@ abstract class AbstractSmokeTest extends Specification {
         static playframework = "0.13" // Can't upgrade to 0.14 as it breaks CC compat - see https://github.com/gradle/playframework/issues/184
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "3.1.0"
+        static errorProne = "4.0.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.9.4"
@@ -284,12 +284,16 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     private static List<String> repoMirrorParameters() {
-        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
-        return [
-            '--init-script', mirrorInitScriptPath,
-            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
-            "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
-        ]
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+            return [
+                '--init-script', mirrorInitScriptPath,
+                "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
+                "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+            ]
+        } else {
+            return []
+        }
     }
 
     private static List<String> toolchainParameters() {

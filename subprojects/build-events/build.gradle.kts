@@ -6,30 +6,29 @@ description = "Implementation of build event services and build event types (wor
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(project(":build-operations"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":messaging"))
-    api(project(":tooling-api"))
+    api(projects.buildOperations)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.messaging)
+    api(projects.toolingApi)
 
-    implementation(project(":model-core"))
-    implementation(project(":base-services"))
+    implementation(projects.modelCore)
 
     api(libs.jsr305)
     implementation(libs.guava)
 
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":model-core"))
+    testImplementation(projects.internalTesting)
+    testImplementation(projects.modelCore)
 
-    integTestImplementation(project(":logging")) {
+    integTestImplementation(projects.logging) {
         because("This isn't declared as part of integtesting's API, but should be as logging's classes are in fact visible on the API")
     }
-    integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(projects.buildOption)
+    integTestImplementation(projects.enterpriseOperations)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))  {
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)  {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")
     }
 }

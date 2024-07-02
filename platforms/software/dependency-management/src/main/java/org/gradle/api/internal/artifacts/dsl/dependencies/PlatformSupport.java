@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAtt
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -57,7 +57,7 @@ public class PlatformSupport {
 
     public void configureSchema(AttributesSchemaInternal attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
-        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
+        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
     }
 
     private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {

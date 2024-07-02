@@ -23,16 +23,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProblemsListener
-import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessListenerRegistry
-import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
-import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
-import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
@@ -45,15 +35,21 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProblemsListener
+import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessListenerRegistry
+import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
+import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
+import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
+import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
-import org.gradle.internal.serialize.graph.BeanStateReaderLookup
-import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -194,8 +190,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
-        registration.add(BeanStateWriterLookup::class.java, DefaultBeanStateWriterLookup::class.java)
-        registration.add(BeanStateReaderLookup::class.java, DefaultBeanStateReaderLookup::class.java)
         registration.add(JavaSerializationEncodingLookup::class.java)
         if (modelParameters.isConfigurationCache) {
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)

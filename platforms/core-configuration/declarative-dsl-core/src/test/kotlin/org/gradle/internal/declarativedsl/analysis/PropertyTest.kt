@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
+import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -97,9 +97,11 @@ object PropertyTest {
 
     private
     fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
-        override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
-            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
+        override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
+            val returnType = type.toDataTypeRef()!!
+            return listOf(CollectedPropertyInformation(name, type, returnType, DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
                 .filter { propertyNamePredicate(it.name) }
+        }
     }
 
     private

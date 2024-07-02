@@ -16,13 +16,8 @@
 
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.util.Path;
 
@@ -31,17 +26,6 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
 
     public DefaultComponentIdentifierFactory(BuildState currentBuild) {
         this.currentBuild = currentBuild;
-    }
-
-    @Override
-    public ComponentIdentifier createComponentIdentifier(Module module) {
-        ProjectComponentIdentifier projectId = module.getProjectId();
-
-        if (projectId != null) {
-            return projectId;
-        }
-
-        return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(module.getGroup(), module.getName()), module.getVersion());
     }
 
     @Override

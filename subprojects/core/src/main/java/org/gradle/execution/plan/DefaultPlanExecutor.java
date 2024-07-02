@@ -31,11 +31,11 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerLimits;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;

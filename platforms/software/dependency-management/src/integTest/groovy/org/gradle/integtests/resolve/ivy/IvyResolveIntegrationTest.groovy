@@ -391,9 +391,7 @@ dependencies {
         }
     }
 
-    // TODO: This is not desired behavior. We should deprecate and forbid this.
-    def "can consume non-consumable project configuration when substituted as a transitive dependency"() {
-
+    def "consuming non-consumable project configuration when substituted as a transitive dependency is deprecated"() {
         file("included/settings.gradle") << """
             rootProject.name = "transitive"
         """
@@ -443,6 +441,7 @@ dependencies {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Consuming non-consumable variants from from an ivy component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#consuming_non_consumable_variants_from_ivy_component")
         succeeds("resolve")
     }
 }

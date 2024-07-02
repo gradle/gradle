@@ -8,7 +8,7 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":dependency-modules"))
+    implementation(projects.dependencyModules)
 
     implementation("org.eclipse.jgit:org.eclipse.jgit")
     implementation("org.jsoup:jsoup")

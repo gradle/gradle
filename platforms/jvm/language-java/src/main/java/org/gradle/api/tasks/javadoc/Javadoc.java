@@ -46,6 +46,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -220,6 +221,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -241,6 +243,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -266,6 +269,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public String getMaxMemory() {
         return maxMemory;
     }
@@ -287,6 +291,7 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getTitle() {
         return title;
     }
@@ -304,6 +309,7 @@ public abstract class Javadoc extends SourceTask {
      * @see #setVerbose(boolean)
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean isVerbose() {
         return options.isVerbose();
     }
@@ -326,6 +332,7 @@ public abstract class Javadoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -383,6 +390,7 @@ public abstract class Javadoc extends SourceTask {
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -392,6 +400,7 @@ public abstract class Javadoc extends SourceTask {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getOptionsFile() {
         return new File(getTemporaryDir(), "javadoc.options");
     }
@@ -406,6 +415,7 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExecutable() {
         return executable;
     }

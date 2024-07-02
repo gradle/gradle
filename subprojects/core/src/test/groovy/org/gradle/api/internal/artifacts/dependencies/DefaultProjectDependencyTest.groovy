@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
@@ -108,7 +108,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
-    void "doesn't allow selection of configuration is not consumable"() {
+    void "doesn't allow selection of configuration that is not consumable"() {
         def context = Mock(TaskDependencyResolveContext)
 
         project.configurations.create('conf') {
@@ -120,8 +120,8 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         projectDependency.buildDependencies.visitDependencies(context)
 
         then:
-        def e = thrown(ConfigurationSelectionException)
-        e.message == "Selected configuration 'conf' on 'root project 'test-project'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        def e = thrown(VariantSelectionByNameException)
+        e.message == "Selected configuration 'conf' on root project : but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 
     void "does not build project dependencies if configured so"() {

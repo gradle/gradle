@@ -61,6 +61,7 @@ import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
+import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -68,7 +69,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.process.internal.ExecFactory;
 
-import java.io.Closeable;
 import java.io.File;
 
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
@@ -169,34 +169,19 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
-        return new CrossBuildFileHashCacheWrapper(crossBuildCache);
+    @PrivateService
+    CrossBuildFileHashCache createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
     }
 
     @Provides
     ChecksumService createChecksumService(
         StringInterner stringInterner,
         FileSystem fileSystem,
-        CrossBuildFileHashCacheWrapper crossBuildCache,
+        CrossBuildFileHashCache crossBuildCache,
         BuildSessionScopeFileTimeStampInspector inspector,
         FileHasherStatistics.Collector statisticsCollector
     ) {
-        return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector, statisticsCollector);
-    }
-
-    // Wraps CrossBuildFileHashCache so that it doesn't conflict
-    // with other services in different scopes
-    static class CrossBuildFileHashCacheWrapper implements Closeable {
-        private final CrossBuildFileHashCache delegate;
-
-        private CrossBuildFileHashCacheWrapper(CrossBuildFileHashCache delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void close() {
-            delegate.close();
-        }
+        return new DefaultChecksumService(stringInterner, crossBuildCache, fileSystem, inspector, statisticsCollector);
     }
 }

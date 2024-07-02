@@ -18,24 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -58,15 +53,9 @@ import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildIdentifier thisBuild;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate) {
         this.delegate = delegate;
-        this.componentIdentifierFactory = componentIdentifierFactory;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.thisBuild = thisBuild;
     }
 
     @Override
@@ -115,11 +104,13 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         );
     }
 
-    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
-        Module module = resolveContext.getModule();
-        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
+    private static VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
+        RootComponentMetadataBuilder.RootComponentState root = resolveContext.toRootComponent();
+        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
+            root.getModuleVersionIdentifier(),
+            root.getComponentIdentifier(),
+            resolveContext.getAttributes().asImmutable()
+        );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 

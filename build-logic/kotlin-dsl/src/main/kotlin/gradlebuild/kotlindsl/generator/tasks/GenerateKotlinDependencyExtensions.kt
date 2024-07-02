@@ -34,6 +34,7 @@ abstract class GenerateKotlinDependencyExtensions : CodeGenerationTask() {
     @get:Input
     abstract val kotlinDslPluginsVersion: Property<String>
 
+    @Suppress("LongMethod")
     override fun File.writeFiles() {
 
         val kotlinDslPluginsVersion = kotlinDslPluginsVersion.get()

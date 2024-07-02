@@ -109,6 +109,7 @@ fun printResolvedAssignments(result: ResolutionResult) {
 }
 
 
+@Suppress("NestedBlockDepth")
 fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
     val visitedIdentity = mutableSetOf<OperationId>()
 

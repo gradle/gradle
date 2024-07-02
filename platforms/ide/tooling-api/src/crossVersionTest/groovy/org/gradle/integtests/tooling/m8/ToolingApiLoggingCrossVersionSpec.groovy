@@ -107,11 +107,11 @@ project.logger.debug("debug logging");
         def commandLineResult = runUsingCommandLine()
 
         and:
-        def op = withBuild()
+        withBuild()
 
         then:
-        def out = op.result.output
-        def err = op.result.error
+        def out = result.output
+        def err = result.error
         def commandLineOutput = removeStartupWarnings(commandLineResult.output)
         normaliseOutput(out) == normaliseOutput(commandLineOutput)
         err == commandLineResult.error

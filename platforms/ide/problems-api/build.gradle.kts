@@ -30,20 +30,20 @@ description = """A problems description API
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(projects.javaLanguageExtensions)
-    api(project(":base-services"))
-    api(project(":build-operations"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.buildOperations)
 
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
 
-    testImplementation(project(":logging"))
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(testFixtures(project(":logging")))
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    testImplementation(projects.logging)
+    integTestImplementation(projects.internalTesting)
+    integTestImplementation(testFixtures(projects.logging))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    testFixturesImplementation(project(":enterprise-operations"))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.internalIntegTesting)
 }

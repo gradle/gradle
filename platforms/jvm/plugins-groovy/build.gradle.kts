@@ -9,38 +9,39 @@ dependencies {
     api(libs.groovy)
     api(libs.inject)
 
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":language-java"))
-    api(project(":model-core"))
-    api(project(":build-process-services"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.languageJava)
+    api(projects.modelCore)
+    api(projects.buildProcessServices)
 
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":file-collections"))
-    implementation(project(":language-groovy"))
-    implementation(project(":language-jvm"))
-    implementation(project(":logging"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":reporting"))
-    implementation(project(":toolchains-jvm"))
-    implementation(project(":toolchains-jvm-shared"))
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.fileCollections)
+    implementation(projects.languageGroovy)
+    implementation(projects.languageJvm)
+    implementation(projects.logging)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.reporting)
+    implementation(projects.toolchainsJvm)
+    implementation(projects.toolchainsJvmShared)
 
     implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":language-groovy")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.languageGroovy))
 
-    testRuntimeOnly(project(":distributions-jvm"))
+    testRuntimeOnly(projects.distributionsJvm)
 
-    integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(projects.pluginsJavaBase))
 
-    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("The full distribution is required to run the GroovyToJavaConversionIntegrationTest")
     }
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 integTest.usesJavadocCodeSnippets.set(true)

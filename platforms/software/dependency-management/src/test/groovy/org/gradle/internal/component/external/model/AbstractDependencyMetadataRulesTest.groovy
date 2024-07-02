@@ -30,7 +30,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
@@ -289,7 +290,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems)))
 
         return consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0].metadata
     }

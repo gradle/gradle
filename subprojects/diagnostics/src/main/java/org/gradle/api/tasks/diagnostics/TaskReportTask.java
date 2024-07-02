@@ -35,6 +35,7 @@ import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Try;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -65,6 +66,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     private transient TaskReportRenderer renderer;
 
     @Override
+    @ToBeReplacedByLazyProperty
     public ReportRenderer getRenderer() {
         if (renderer == null) {
             renderer = new TaskReportRenderer();
@@ -88,6 +90,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution time
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isDetail() {
         return detail;
     }
@@ -110,6 +113,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
      * @since 5.1
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public String getDisplayGroup() {
         return group;
     }
@@ -138,6 +142,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
      */
     @Incubating
     @Console
+    @ToBeReplacedByLazyProperty
     public List<String> getDisplayGroups() {
         return groups == null ? new ArrayList<>() : groups;
     }

@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
@@ -22,13 +24,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.ResultAssertion
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.LongRunningOperation
-import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
@@ -52,7 +51,7 @@ class ToolingApi implements TestRule {
     private boolean useSeparateDaemonBaseDir
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
-    private DefaultServiceRegistry isolatedToolingClient
+    private ServiceRegistry isolatedToolingClient
     private context = new IntegrationTestBuildContext()
 
     private final List<Closure> connectorConfigurers = []
@@ -103,7 +102,18 @@ class ToolingApi implements TestRule {
 
     void requireIsolatedToolingApi() {
         requireIsolatedDaemons()
-        isolatedToolingClient = new ConnectorServices.ConnectorServiceRegistry()
+        isolatedToolingClient = createClientConnectorServiceRegistry()
+    }
+
+    private static ServiceRegistry createClientConnectorServiceRegistry() {
+        // This fixture can be loaded with a classloader of TAPI jar from previous Gradle releases
+        def currentVersion = GradleVersion.current().baseVersion
+        if (currentVersion <= GradleVersion.version("8.9")) {
+            // In 8.9 and before, ConnectorServiceRegistry directly implemented a ServiceRegistry
+            return new ConnectorServices.ConnectorServiceRegistry()
+        } else {
+            return ConnectorServices.ConnectorServiceRegistry.create()
+        }
     }
 
     void close() {
@@ -139,40 +149,18 @@ class ToolingApi implements TestRule {
         connectorConfigurers << cl
     }
 
-    def <T> T withConnection(@DelegatesTo(ProjectConnection) Closure<T> cl) {
+    <T> T withConnection(@DelegatesTo(value = ProjectConnection, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         def connector = connector()
         withConnection(connector, cl)
     }
 
-    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
-        return withConnectionRaw(connector, cl)
-    }
-
-    def <T> T loadToolingLeanModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
-        withConnection {
-            def builder = it.model(modelClass)
-            builder.tap(configurator)
-            collectOutputs(builder)
-            builder.get()
+    <T> T withConnection(ToolingApiConnector connector, @DelegatesTo(value = ProjectConnection, strategy = Closure.DELEGATE_FIRST) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        try (def connection = connector.connect()) {
+            return connection.with(cl)
+        } catch (Throwable t) {
+            validate(t)
+            throw t
         }
-    }
-
-    def <T> T loadValidatedToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
-        def result = loadToolingLeanModel(modelClass, configurator)
-        validateOutput()
-        result
-    }
-
-    void collectOutputs(LongRunningOperation op) {
-        op.setStandardOutput(new TeeOutputStream(stdout, System.out))
-        op.setStandardError(new TeeOutputStream(stderr, System.err))
-    }
-
-    def validateOutput() {
-        def assertion = new ResultAssertion(0, [], false, true, true)
-        assertion.validate(stdout.toString(), "stdout")
-        assertion.validate(stderr.toString(), "stderr")
-        true
     }
 
     private validate(Throwable throwable) {
@@ -182,7 +170,7 @@ class ToolingApi implements TestRule {
 
         // Verify that the exception carries the calling thread's stack information
         def currentThreadStack = Thread.currentThread().stackTrace as List
-        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw')) {
+        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnection')) {
             currentThreadStack.remove(0)
         }
         assert currentThreadStack.size() > 1
@@ -194,16 +182,48 @@ class ToolingApi implements TestRule {
         assert throwableStack.endsWith(currentThreadStackStr)
     }
 
-    private <T> T withConnectionRaw(connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
-        try (def connection = connector.connect()) {
-            return connection.with(cl)
-        } catch (Throwable t) {
-            validate(t)
-            throw t
-        }
+    ToolingApiConnector connector() {
+        connector(testWorkDirProvider.testDirectory, true)
     }
 
-    ToolingApiConnector connector(projectDir = testWorkDirProvider.testDirectory) {
+    ToolingApiConnector connectorWithoutOutputRedirection() {
+        connector(testWorkDirProvider.testDirectory, false)
+    }
+
+    ToolingApiConnector connector(File projectDir) {
+        connector(projectDir, true)
+    }
+
+    /**
+     * Return a wrapper around a {@link GradleConnector} that delegates to the connector
+     * and captures stdout and stderr.
+     * <p>
+     * Optionally, stdout and stderr can be redirected to the system streams so they are visible
+     * in the console.
+     */
+    ToolingApiConnector connector(File projectDir, boolean redirectOutput) {
+        GradleConnector connector = rawConnector(projectDir)
+
+        OutputStream output = stdout
+        OutputStream error = stderr
+
+        if (redirectOutput) {
+            output = new TeeOutputStream(stdout, System.out)
+            error = new TeeOutputStream(stderr, System.err)
+        }
+
+        return new ToolingApiConnector(connector, output, error)
+    }
+
+    /**
+     * Get a {@link GradleConnector} that is not wrapped to forward stdout and stderr.
+     * <p>
+     * In general, prefer {@link #connector(File)}. This method should be used when
+     * interfacing with production code that is not {@link ToolingApiConnector}-aware.
+     *
+     * TODO: Can we get rid of this and have ToolingApiConnector implement GradleConnector?
+     */
+    GradleConnector rawConnector(File projectDir = testWorkDirProvider.testDirectory) {
         DefaultGradleConnector connector = createConnector()
 
         connector.forProjectDirectory(projectDir)
@@ -251,7 +271,7 @@ class ToolingApi implements TestRule {
             connector.with(it)
         }
 
-        return new ToolingApiConnector(connector, stdout, stderr)
+        return connector
     }
 
     private createConnector() {

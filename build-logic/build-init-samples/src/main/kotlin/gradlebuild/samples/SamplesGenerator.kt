@@ -62,7 +62,12 @@ object SamplesGenerator {
     }
 
     private
-    fun generateSingleProjectReadme(specificContentId: String, templateFolder: Directory, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateSingleProjectReadme(
+        specificContentId: String,
+        templateFolder: Directory,
+        settings: InitSettings, comments: Map<String, List<String>>,
+        descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry
+    ) {
         generateReadmeFragment(templateFolder, "common-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         generateReadmeFragment(templateFolder, "$specificContentId-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         if (descriptor.language === Language.JAVA && descriptor.componentType === ComponentType.LIBRARY) {
@@ -74,7 +79,13 @@ object SamplesGenerator {
     }
 
     private
-    fun generateMultiProjectReadme(specificContentId: String, templateFolder: Directory, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateMultiProjectReadme(
+        specificContentId: String,
+        templateFolder: Directory,
+        settings: InitSettings,
+        comments: Map<String, List<String>>,
+        descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry
+    ) {
         generateReadmeFragment(templateFolder, "multi-common-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         generateReadmeFragment(templateFolder, "$specificContentId-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         generateReadmeFragment(templateFolder, "common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)

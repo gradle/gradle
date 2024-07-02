@@ -234,7 +234,7 @@ suspend fun <T> T.withTaskOf(
             if (task.isCompatibleWithConfigurationCache) {
                 action()
             } else {
-                forIncompatibleType(task.identityPath.path, action)
+                forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get(), action)
             }
         }
     }
@@ -307,7 +307,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
                     writeBoolean(false)
                 }
 
-                else -> throw IllegalStateException()
+                else -> error("Unexpected registered property: ${this.javaClass.name}")
             }
         }
     }

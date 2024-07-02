@@ -16,8 +16,7 @@
 
 package org.gradle.internal.file.nio;
 
-import org.gradle.internal.file.FileModeAccessor;
-import org.gradle.internal.file.FileModeMutator;
+import org.gradle.internal.file.FilePermissionHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +28,7 @@ import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertT
 import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToPermissionsSet;
 
 @SuppressWarnings("Since15")
-public class PosixJdk7FilePermissionHandler implements FileModeAccessor, FileModeMutator {
+public class PosixJdk7FilePermissionHandler implements FilePermissionHandler {
 
     @Override
     public int getUnixMode(File file) throws IOException {

@@ -26,7 +26,7 @@ import java.io.File;
  * in some form.
  */
 
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class})
 public interface ProblemReporter {
     interface ProblemConsumer {
         void accept(Throwable throwable);

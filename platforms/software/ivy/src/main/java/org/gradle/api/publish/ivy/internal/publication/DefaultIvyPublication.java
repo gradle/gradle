@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -73,6 +72,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class DefaultIvyPublication implements IvyPublicationInternal {
+
+    public static final String DEFAULT_STATUS = "integration";
 
     private final String name;
     private final IvyPublicationCoordinates publicationCoordinates;
@@ -136,7 +137,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
 
         this.descriptor = objectFactory.newInstance(DefaultIvyModuleDescriptorSpec.class, objectFactory, publicationCoordinates);
-        this.descriptor.setStatus(Module.DEFAULT_STATUS);
+        this.descriptor.setStatus(DEFAULT_STATUS);
         this.descriptor.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.descriptor.getGlobalExcludes().set(getComponent().map(ivyComponentParser::parseGlobalExcludes));
         this.descriptor.getConfigurations().set(this.configurations);

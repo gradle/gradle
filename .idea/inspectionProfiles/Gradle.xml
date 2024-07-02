@@ -65,6 +65,26 @@
         <constraint name="ITEM" within="" contains="" />
         <constraint name="TARGET" within="" contains="" />
       </replaceConfiguration>
+      <searchConfiguration name="Method is annotated with @Provides but uses wrong naming" description="A service-providing method is annotated with `@Provides`, but its name does not start with 'create' or 'decorate', or is not 'configure'" suppressId="annotated_not_service_providing" problemDescriptor="Method is annotated with @Provides, but its name does not start with 'create' or 'decorate'" text="class $Class$ implements $Base$ {&#10;    @$Annotation$&#10;    @Modifier(&quot;Instance&quot;) $ReturnType$ $Method$ ($ParameterType$ $Parameter$);&#10;}" recursive="true" caseInsensitive="false" type="JAVA" pattern_context="member">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="Class" within="" contains="" />
+        <constraint name="ReturnType" within="" contains="" />
+        <constraint name="Method" regexp="create.*|decorate.*|configure" target="true" negateName="true" within="" contains="" />
+        <constraint name="ParameterType" within="" contains="" />
+        <constraint name="Parameter" minCount="0" maxCount="2147483647" within="" contains="" />
+        <constraint name="Base" regexp="ServiceRegistrationProvider" withinHierarchy="true" within="" contains="" />
+        <constraint name="Annotation" regexp="Provides" maxCount="2147483647" within="" contains="" />
+      </searchConfiguration>
+      <searchConfiguration name="Service providing method is not annotated with @Provides" suppressId="not_annotated_with_provides" problemDescriptor="Method #ref is not annotated with @Provides" text="class $Class$ implements $Base$ {&#10;    @$Annotation$&#10;    @Modifier(&quot;Instance&quot;) $ReturnType$ $Method$ ($ParameterType$ $Parameter$);&#10;}" recursive="true" caseInsensitive="false" type="JAVA" pattern_context="member">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="Class" within="" contains="" />
+        <constraint name="ReturnType" within="" contains="" />
+        <constraint name="Method" regexp="(create|decorate).*" target="true" within="" contains="" />
+        <constraint name="ParameterType" within="" contains="" />
+        <constraint name="Parameter" minCount="0" maxCount="2147483647" within="" contains="" />
+        <constraint name="Annotation" regexp="Provides" minCount="0" maxCount="0" within="" contains="" />
+        <constraint name="Base" regexp="ServiceRegistrationProvider" withinHierarchy="true" within="" contains="" />
+      </searchConfiguration>
       <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" description="Many no-argument Guava Collection factory methods are marked in their javadoc &quot;Should be treated as deprecated&quot;.  These should not be used." suppressId="guava-collection-factory" problemDescriptor="Treat some Guava Collection factory methods as Deprecated" text="com.google.common.collect.Lists.newArrayList()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.ArrayList&lt;&gt;()">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>

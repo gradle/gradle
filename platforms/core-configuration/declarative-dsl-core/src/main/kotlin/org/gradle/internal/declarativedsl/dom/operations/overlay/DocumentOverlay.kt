@@ -40,7 +40,7 @@ import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrig
 import org.gradle.internal.declarativedsl.dom.operations.overlay.OverlayNodeOrigin.OverlayValueOrigin
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.SourceData
 
 
 object DocumentOverlay {
@@ -54,46 +54,47 @@ object DocumentOverlay {
     fun overlayResolvedDocuments(
         underlay: DocumentWithResolution,
         overlay: DocumentWithResolution
-    ): DocumentOverlayResult =
-        overlayResolvedDocuments(underlay.document, underlay.resolutionContainer, overlay.document, overlay.resolutionContainer)
-
-    /**
-     * @see [overlayResolvedDocuments]
-     */
-    fun overlayResolvedDocuments(
-        underlayDocument: DeclarativeDocument,
-        underlayDocumentResolution: DocumentResolutionContainer,
-        overlayDocument: DeclarativeDocument,
-        overlayDocumentResolution: DocumentResolutionContainer
     ): DocumentOverlayResult {
-        val context = documentOverlayContextByResolutionResults(underlayDocumentResolution, overlayDocumentResolution)
-        val resultContent = context.mergeRecursively(underlayDocument.content, overlayDocument.content)
+        val context = documentOverlayContextByResolutionResults(underlay.resolutionContainer, overlay.resolutionContainer)
+        val resultContent = context.mergeRecursively(underlay.document.content, overlay.document.content)
         val resultDocument = object : DeclarativeDocument {
-            override val content: Collection<DeclarativeDocument.DocumentNode>
+            override val content: List<DeclarativeDocument.DocumentNode>
                 get() = resultContent
-            override val sourceIdentifier: SourceIdentifier
-                get() = overlayDocument.sourceIdentifier
+            override val sourceData: SourceData
+                get() = overlay.document.sourceData
         }
         val overlayOriginContainer = context.overlayOriginContainer
-        val overlayResolutionContainer = OverlayResolutionContainer(overlayOriginContainer, underlayDocumentResolution, overlayDocumentResolution)
-
-        return DocumentOverlayResult(resultDocument, overlayOriginContainer, overlayResolutionContainer)
+        val overlayResolutionContainer = OverlayResolutionContainer(overlayOriginContainer, underlay.resolutionContainer, overlay.resolutionContainer)
+        return DocumentOverlayResult(
+            underlay,
+            overlay,
+            DocumentWithResolution(resultDocument, overlayResolutionContainer),
+            overlayOriginContainer,
+        )
     }
 }
 
 
 /**
  * Represents the results of overlaying declarative documents.
+ * * [inputUnderlay] and [inputOverlay] are the inputs to the overlay operation, presented here for the purpose of tracking
  * * [document] is the resulting document content;
  * * [overlayNodeOriginContainer] tells where a node comes from – overlay, underlay, or combined.
  * * [overlayResolutionContainer] can be used to query [DocumentResolution] for the [document].
  *   Note: the original [DocumentResolutionContainer]s cannot be reused for this purpose.
  */
 data class DocumentOverlayResult(
-    val document: DeclarativeDocument,
+    val inputUnderlay: DocumentWithResolution,
+    val inputOverlay: DocumentWithResolution,
+    val result: DocumentWithResolution,
     val overlayNodeOriginContainer: OverlayOriginContainer,
+) {
+    val document: DeclarativeDocument
+        get() = result.document
+
     val overlayResolutionContainer: DocumentResolutionContainer
-)
+        get() = result.resolutionContainer
+}
 
 
 interface OverlayOriginContainer :
@@ -129,7 +130,7 @@ class DocumentOverlayContext(
     fun mergeRecursively(
         underlay: Collection<DeclarativeDocument.DocumentNode>,
         overlay: Collection<DeclarativeDocument.DocumentNode>
-    ): Collection<DeclarativeDocument.DocumentNode> {
+    ): List<DeclarativeDocument.DocumentNode> {
         val underlayNodesByMergeKey: MutableMap<MergeKey, List<DeclarativeDocument.DocumentNode>> =
             underlay.groupBy(underlayKeyMapper::mapNodeToMergeKey).toMutableMap()
 

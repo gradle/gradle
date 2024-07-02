@@ -22,9 +22,9 @@ import org.gradle.initialization.EnvironmentChangeTracker
 internal
 class VintageEnvironmentChangeTracker : EnvironmentChangeTracker {
 
-    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {}
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) = Unit
 
-    override fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) {}
+    override fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) = Unit
 
-    override fun systemPropertyOverridden(key: Any) {}
+    override fun systemPropertyOverridden(key: Any) = Unit
 }

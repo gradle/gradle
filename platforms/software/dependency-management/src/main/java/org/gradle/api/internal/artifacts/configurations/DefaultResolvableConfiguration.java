@@ -23,7 +23,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -52,8 +51,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        DependencyMetaDataProvider metaDataProvider,
-        ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -79,8 +76,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,

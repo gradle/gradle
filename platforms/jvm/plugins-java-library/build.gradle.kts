@@ -21,32 +21,32 @@ plugins {
 description = "Contains the java-library plugin, and its supporting classes.  This plugin is used to build java libraries."
 
 dependencies {
-    api(project(":core-api"))
+    api(projects.coreApi)
 
     api(libs.inject)
 
-    implementation(project(":base-services"))
-    implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-distribution"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-jvm-test-suite"))
+    implementation(projects.baseServices)
+    implementation(projects.languageJava)
+    implementation(projects.languageJvm)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsDistribution)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJvmTestSuite)
 
-    runtimeOnly(project(":core"))
-    runtimeOnly(project(":platform-base"))
+    runtimeOnly(projects.core)
+    runtimeOnly(projects.platformBase)
 
-    testImplementation(project(":plugins-java-base"))
+    testImplementation(projects.pluginsJavaBase)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    integTestImplementation(testFixtures(project(":resources-http")))
+    integTestImplementation(testFixtures(projects.resourcesHttp))
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 dependencyAnalysis {

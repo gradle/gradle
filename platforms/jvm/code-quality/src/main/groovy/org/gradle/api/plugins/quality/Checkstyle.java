@@ -39,6 +39,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
@@ -74,6 +75,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * The Checkstyle configuration file to use.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getConfigFile() {
         return getConfig() == null ? null : getConfig().asFile();
     }
@@ -180,6 +182,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * executed.</p>
      */
     @Override
+    @ToBeReplacedByLazyProperty
     @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
@@ -189,6 +192,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * The class path containing the Checkstyle library to be used.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getCheckstyleClasspath() {
         return checkstyleClasspath;
     }
@@ -204,6 +208,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * The class path containing the compiled classes for the source files to be analyzed.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -240,6 +245,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public Map<String, Object> getConfigProperties() {
         return configProperties;
     }
@@ -283,6 +289,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public int getMaxErrors() {
         return maxErrors;
     }
@@ -305,6 +312,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public int getMaxWarnings() {
         return maxWarnings;
     }
@@ -325,6 +333,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @return true if violations should be displayed on console
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isShowViolations() {
         return showViolations;
     }
@@ -357,6 +366,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @return true if failures should be ignored
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean isIgnoreFailures() {
         return getIgnoreFailures();
     }

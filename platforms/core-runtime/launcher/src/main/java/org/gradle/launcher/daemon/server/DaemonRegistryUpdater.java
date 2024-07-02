@@ -29,7 +29,7 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 import java.util.Date;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
+import static org.gradle.launcher.daemon.server.api.DaemonState.*;
 
 class DaemonRegistryUpdater implements Stoppable {
 

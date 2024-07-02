@@ -17,7 +17,6 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.specs.Spec;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.util.internal.CollectionUtils;
@@ -56,12 +55,7 @@ public class DefaultPlatformResolvers implements PlatformResolvers {
         final String target = platformRequirement.getPlatformName();
 
         NamedDomainObjectSet<T> allWithType = platforms.withType(type);
-        T matching = CollectionUtils.findFirst(allWithType, new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return element.getName().equals(target);
-            }
-        });
+        T matching = CollectionUtils.findFirst(allWithType, element -> element.getName().equals(target));
 
         if (matching == null) {
             throw new InvalidUserDataException(String.format("Invalid %s: %s", type.getSimpleName(), target));

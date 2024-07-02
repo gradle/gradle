@@ -59,7 +59,7 @@ public class InterceptGroovyCallsResourceGenerator implements InstrumentationRes
 
             @Override
             public String getName() {
-                return "META-INF/services/" + FILTERABLE_CALL_INTERCEPTOR.canonicalName();
+                return "META-INF/services/" + FILTERABLE_CALL_INTERCEPTOR.reflectionName();
             }
 
             @Override

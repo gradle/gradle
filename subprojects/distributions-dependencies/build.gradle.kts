@@ -15,7 +15,7 @@ plugins {
 
 description = "Provides a platform dependency to align all distribution versions"
 
-val antVersion = "1.10.13"
+val antVersion = "1.10.14"
 // Don't forget to bump versions in
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.

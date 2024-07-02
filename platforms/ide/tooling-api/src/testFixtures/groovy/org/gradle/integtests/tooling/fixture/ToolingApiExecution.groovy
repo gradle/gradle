@@ -25,8 +25,9 @@ import org.spockframework.runtime.extension.IMethodInvocation
 class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     private static final GradleVersion INSTALLATION_GRADLE_VERSION
+    private static final GradleVersionSpec GRADLE_VERSION_SPEC = new GradleVersionSpec()
 
-    static  {
+    static {
         // If we are testing a non-current tooling API version, we will have loaded the class using its classloader and thus
         // GradleVersion.current() will report that version. In order to set up the testing infrastructure, we need to
         // know the version of Gradle being built
@@ -88,6 +89,7 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
             // So, for windows we'll only run tests against target gradle that supports ttl
             return false
         }
+
         ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
         Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
         if (!toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)) {
@@ -95,25 +97,25 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
         }
         TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
         Spec<GradleVersion> gradleVersionSpec = toVersionSpec(gradleVersionAnnotation)
-        if (!gradleVersionSpec.isSatisfiedBy(this.gradleVersion)) {
-            return false
-        }
-
-        return true
+        return gradleVersionSpec.isSatisfiedBy(this.gradleVersion)
     }
 
     private static Spec<GradleVersion> toVersionSpec(annotation) {
         if (annotation == null) {
             return Specs.SATISFIES_ALL
         }
-        if (annotation.value() == "current") {
-            return GradleVersionSpec.toSpec("=${INSTALLATION_GRADLE_VERSION.baseVersion.version}")
+        return GRADLE_VERSION_SPEC.toSpec(constraintFor(annotation))
+    }
+
+    private static String constraintFor(annotation) {
+        if(annotation.value() == "current"){
+            return "=${INSTALLATION_GRADLE_VERSION.baseVersion.version}"
         }
-        return GradleVersionSpec.toSpec(annotation.value())
+        return annotation.value()
     }
 
     @Override
     protected void before(IMethodInvocation invocation) {
-        ((ToolingApiSpecification)invocation.getInstance()).setTargetDist(gradle)
+        ((ToolingApiSpecification) invocation.getInstance()).setTargetDist(gradle)
     }
 }

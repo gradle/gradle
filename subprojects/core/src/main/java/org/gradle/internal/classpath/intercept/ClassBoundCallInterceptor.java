@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import javax.annotation.Nullable;
+
 /**
  * A special case of the CallInterceptor for static methods and static properties.
  * It only intercepts the calls where the receiver is the class of interest.
@@ -33,9 +35,10 @@ public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor 
     }
 
     @Override
+    @Nullable
     public final Object intercept(Invocation invocation, String consumer) throws Throwable {
         if (!expectedReceiver.equals(invocation.getReceiver())) {
-            return invocation.callOriginal();
+            return invocation.callNext();
         }
         return interceptSafe(invocation, consumer);
     }
@@ -49,5 +52,6 @@ public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor 
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
+    @Nullable
     protected abstract Object interceptSafe(Invocation invocation, String consumer) throws Throwable;
 }

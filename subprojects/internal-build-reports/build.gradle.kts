@@ -5,5 +5,5 @@ plugins {
 description = "The project to aggregate incubation reports from all subprojects"
 
 dependencies {
-    reports(platform(project(":distributions-full")))
+    reports(platform(projects.distributionsFull))
 }

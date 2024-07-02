@@ -89,6 +89,6 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("""Cannot resolve test:test:1.2 from Git repository at ${repo.url} in offline mode.
 Required by:
-    project :""")
+    root project :""")
     }
 }

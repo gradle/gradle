@@ -19,7 +19,7 @@ import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonState.*
 
 class DaemonStateCoordinatorTest extends ConcurrentSpec {
     final Runnable onStartCommand = Mock(Runnable)

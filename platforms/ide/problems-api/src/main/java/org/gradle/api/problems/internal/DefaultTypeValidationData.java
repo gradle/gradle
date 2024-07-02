@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DefaultTypeValidationData implements TypeValidationData, Serializable {
@@ -52,11 +53,10 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         return typeName;
     }
 
-    public static DefaultTypeValidationDataBuilder builder() {
-        return new DefaultTypeValidationDataBuilder();
-    }
-
-    public static AdditionalDataBuilder<TypeValidationData> builder(TypeValidationData from) {
+    public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {
+        if(from == null) {
+            return new DefaultTypeValidationDataBuilder();
+        }
         return new DefaultTypeValidationDataBuilder(from);
     }
 

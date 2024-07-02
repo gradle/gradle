@@ -49,20 +49,20 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     @Requires(UnitTestPreconditions.NotWindows)
     @Issue("https://github.com/gradle/gradle/issues/16816")
     def "can successful start after a running daemon's JDK has been removed"() {
-        def installedJdk = Jvm.current().javaHome
+        def installedJdk = Jvm.current()
         def jdkToRemove = file("removed-jdk")
         jdkToRemove.mkdir()
-        new TestFile(installedJdk).copyTo(jdkToRemove)
+        new TestFile(installedJdk.javaHome).copyTo(jdkToRemove)
 
         // start one JVM with jdk to remove
-        executer.withJavaHome(jdkToRemove)
+        executer.withJavaHome(jdkToRemove.absolutePath)
         succeeds("help")
 
         when:
         // remove the JDK
         jdkToRemove.deleteDir()
         // don't ask for the removed JDK now
-        executer.withJavaHome(installedJdk)
+        executer.withJvm(installedJdk)
         then:
         // try to start another build
         succeeds("help")
@@ -74,7 +74,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     )
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
-        executer.withJavaHome(jdk.javaHome)
+        executer.withJvm(jdk)
 
         expect:
         fails("help")

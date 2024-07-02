@@ -76,7 +76,7 @@ class KotlinBuildScriptModelRepositoryTest {
 
             override fun fetch(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel {
                 pendingRequest.trySendBlocking(request).getOrThrow()
-                return nextResponse.poll(defaultTestTimeoutMillis, TimeUnit.MILLISECONDS)!!
+                return nextResponse.poll(DEFAULT_TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)!!
             }
         }
 
@@ -170,7 +170,7 @@ class KotlinBuildScriptModelRepositoryTest {
 
 
 internal
-fun runBlockingWithTimeout(timeMillis: Long = defaultTestTimeoutMillis, block: suspend CoroutineScope.() -> Unit) {
+fun runBlockingWithTimeout(timeMillis: Long = DEFAULT_TEST_TIMEOUT_MILLIS, block: suspend CoroutineScope.() -> Unit) {
     runBlocking {
         withTimeout(timeMillis, block)
     }
@@ -178,4 +178,4 @@ fun runBlockingWithTimeout(timeMillis: Long = defaultTestTimeoutMillis, block: s
 
 
 internal
-const val defaultTestTimeoutMillis = 5000L
+const val DEFAULT_TEST_TIMEOUT_MILLIS = 5000L

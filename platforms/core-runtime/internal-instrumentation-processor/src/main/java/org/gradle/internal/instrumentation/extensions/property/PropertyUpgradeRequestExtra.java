@@ -16,46 +16,51 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
+
+import javax.lang.model.element.ExecutableElement;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
     private final String propertyName;
     private final String methodName;
-    private final boolean isFluentSetter;
+    private final TypeName returnType;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final String methodDescriptor;
-    private final GradleLazyType propertyType;
+    private final TypeName newPropertyType;
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
+    private final ExecutableElement bridgedMethod;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
         String methodName,
         String methodDescriptor,
-        boolean isFluentSetter,
+        TypeName returnType,
         String implementationClassName,
         String interceptedPropertyName,
         String interceptedPropertyAccessorName,
-        GradleLazyType propertyType,
+        TypeName newPropertyType,
         DeprecationSpec deprecationSpec,
-        BinaryCompatibility binaryCompatibility
+        BinaryCompatibility binaryCompatibility,
+        ExecutableElement bridgedMethod
     ) {
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.propertyType = propertyType;
-        this.isFluentSetter = isFluentSetter;
+        this.returnType = returnType;
+        this.newPropertyType = newPropertyType;
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyName = interceptedPropertyName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.deprecationSpec = deprecationSpec;
         this.binaryCompatibility = binaryCompatibility;
+        this.bridgedMethod = bridgedMethod;
     }
 
     public String getPropertyName() {
@@ -70,8 +75,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return methodDescriptor;
     }
 
-    public GradleLazyType getPropertyType() {
-        return propertyType;
+    public TypeName getNewPropertyType() {
+        return newPropertyType;
     }
 
     public String getImplementationClassName() {
@@ -87,8 +92,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return interceptedPropertyAccessorName;
     }
 
-    public boolean isFluentSetter() {
-        return isFluentSetter;
+    public TypeName getReturnType() {
+        return returnType;
     }
 
     public DeprecationSpec getDeprecationSpec() {
@@ -97,5 +102,9 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     public BinaryCompatibility getBinaryCompatibility() {
         return binaryCompatibility;
+    }
+
+    public ExecutableElement getBridgedMethod() {
+        return bridgedMethod;
     }
 }

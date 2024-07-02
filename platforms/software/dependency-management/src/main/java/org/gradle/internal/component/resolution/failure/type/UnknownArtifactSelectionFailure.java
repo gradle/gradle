@@ -16,14 +16,19 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
+
 /**
- * A {@link ResolutionFailure} that represents the an unknown, catch-all failure that occurred during variant selection.
+ * An {@link ArtifactSelectionFailure} that represents an unknown, catch-all failure that occurred during artifact selection.
  */
-public final class UnknownArtifactSelectionFailure extends AbstractVariantSelectionFailure {
+public final class UnknownArtifactSelectionFailure extends AbstractArtifactSelectionFailure {
     private final Exception cause;
 
-    public UnknownArtifactSelectionFailure(String requestedName, Exception cause) {
-        super(requestedName);
+    public UnknownArtifactSelectionFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, Exception cause) {
+        super(ResolutionFailureProblemId.UNKNOWN_ARTIFACT_SELECTION_FAILURE, targetComponent, targetVariant, requestedAttributes);
         this.cause = cause;
     }
 

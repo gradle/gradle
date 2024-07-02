@@ -32,21 +32,21 @@ import java.io.Serializable
 class ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication, Serializable
 
 
-class ConventionApplicationHandler(private val softwareTypeConventionRepository: SoftwareTypeConventionRepository) : ResolutionResultHandler {
+interface ConventionApplicationHandler : ResolutionResultHandler {
+
+    fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults>
+
     override fun shouldHandleFeature(feature: InterpretationStepFeature.ResolutionResultPostprocessing) =
         // Use an is-check, as the implementation might be a proxy
         feature is InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        // Find all the software types that are referenced in the build file
-        val referencedSoftwareTypes = findUsedSoftwareTypeNames(resolutionResult)
-            .mapNotNull(softwareTypeConventionRepository::findConventions)
-
         with(ConventionTransformer(resolutionResult.topLevelReceiver)) {
+            val conventionResolutionResultsToApply = getConventionResolutionResults(resolutionResult)
             // For the referenced software types, add their conventions as operations mapped onto the top-level receiver
-            val conventionAssignments = applyAssignmentConventions(referencedSoftwareTypes)
-            val conventionAdditions = applyAdditionConventions(referencedSoftwareTypes)
-            val conventionNestedObjectAccess = applyNestedObjectAccessConvention(referencedSoftwareTypes)
+            val conventionAssignments = applyAssignmentConventions(conventionResolutionResultsToApply)
+            val conventionAdditions = applyAdditionConventions(conventionResolutionResultsToApply)
+            val conventionNestedObjectAccess = applyNestedObjectAccessConvention(conventionResolutionResultsToApply)
 
             // Return a resolution result with the convention operations added
             return resolutionResult.copy(
@@ -54,6 +54,18 @@ class ConventionApplicationHandler(private val softwareTypeConventionRepository:
                 conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
                 conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
             )
+        }
+    }
+
+    companion object {
+        /**
+         * A handler that does not apply any conventions.  We use this during the main script processing step so that the interpretation
+         * step will positively handle the {@link ConventionApplication} feature.  However, most software type convention application is
+         * currently handled by the {@link DeclarativeSoftwareTypeConventionHandler} during application of the software type plugin.
+         */
+        val DO_NOTHING = object : ConventionApplicationHandler {
+            override fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults> = emptyList()
+            override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
         }
     }
 }
@@ -75,6 +87,10 @@ interface SoftwareTypeConventionRepository {
     fun findConventions(softwareTypeName: String): SoftwareTypeConventionResolutionResults?
 }
 
+fun conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository: SoftwareTypeConventionRepository, resolutionResult: ResolutionResult) =
+    findUsedSoftwareTypeNames(resolutionResult).mapNotNull(softwareTypeConventionRepository::findConventions)
+
+
 
 /**
  * Transformation logic for the kinds of resolution results that appear in conventions.
@@ -88,10 +104,10 @@ class ConventionTransformer(
     fun transfer(origin: ObjectOrigin) = replaceReceivers(origin, ::isConventionsCall, targetBaseReceiver)
 
     fun applyAssignmentConventions(
-        referencedSoftwareTypes: List<SoftwareTypeConventionResolutionResults>
+        conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>
     ): List<AssignmentRecord> =
-        referencedSoftwareTypes.flatMap { softwareType ->
-            softwareType.assignments.map { assignmentRecord ->
+        conventionResolutionResults.flatMap { convention ->
+            convention.assignments.map { assignmentRecord ->
                 assignmentRecord.copy(
                     lhs = assignmentRecord.lhs.copy(receiverObject = transfer(assignmentRecord.lhs.receiverObject)),
                     rhs = transfer(assignmentRecord.rhs)
@@ -100,19 +116,19 @@ class ConventionTransformer(
         }
 
     fun applyAdditionConventions(
-        referencedSoftwareTypes: List<SoftwareTypeConventionResolutionResults>,
+        conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>,
     ): List<DataAdditionRecord> =
-        referencedSoftwareTypes.flatMap { softwareType ->
-            softwareType.additions.map { additionRecord ->
+        conventionResolutionResults.flatMap { convention ->
+            convention.additions.map { additionRecord ->
                 DataAdditionRecord(transfer(additionRecord.container), transfer(additionRecord.dataObject))
             }
         }
 
     fun applyNestedObjectAccessConvention(
-        referencedSoftwareTypes: List<SoftwareTypeConventionResolutionResults>
+        conventionResolutionResults: List<SoftwareTypeConventionResolutionResults>
     ): List<NestedObjectAccessRecord> =
-        referencedSoftwareTypes.flatMap { softwareType ->
-            softwareType.nestedObjectAccess.map { accessRecord ->
+        conventionResolutionResults.flatMap { convention ->
+            convention.nestedObjectAccess.map { accessRecord ->
                 NestedObjectAccessRecord(
                     container = transfer(accessRecord.container),
                     // Expect that the type remains the same: the only thing that will be mapped to a different type is the `conventions { ... }`

@@ -72,7 +72,7 @@ internal
 fun Decoder.readDefaultClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = DefaultClassPath.builderWithExactSize(size)
-    for (i in 0 until size) {
+    repeat(size) {
         builder.add(readFile())
     }
     return builder.build()
@@ -83,7 +83,7 @@ internal
 fun Decoder.readTransformedClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = TransformedClassPath.builderWithExactSize(size)
-    for (i in 0 until size) {
+    repeat(size) {
         builder.add(readFile(), readFile())
     }
     return builder.build()

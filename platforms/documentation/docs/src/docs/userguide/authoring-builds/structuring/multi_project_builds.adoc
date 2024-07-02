@@ -234,15 +234,6 @@ This can lead to phantom build directories, especially when using `allprojects{}
 To avoid this, you can use:
 
 ```
-include(':subs:web:my-web-module')
-project(':subs:web:my-web-module').projectDir = "subs/web/my-web-module"
-```
-
-So that you only end up with a single subproject named `:subs:web:my-web-module`.
-
-Or you can use:
-
-```
 include(':my-web-module')
 project(':my-web-module').projectDir = "subs/web/my-web-module"
 ```

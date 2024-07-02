@@ -43,6 +43,7 @@ fun configureTestFixturesForCrossVersionTests() {
         }
     }
 }
+val releasedVersions = moduleIdentity.releasedVersions.orNull
 
 fun createQuickFeedbackTasks() {
     val testType = TestType.CROSSVERSION
@@ -53,6 +54,7 @@ fun createQuickFeedbackTasks() {
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
             this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
+            this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
 
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
             // discard existing options configuration and add a deprecation warning.  Just set the existing options.
@@ -82,6 +84,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
+            this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions.lowestTestedVersion.version
             this.useJUnitPlatform {
                 includeEngines("cross-version-test-engine")
             }

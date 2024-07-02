@@ -231,6 +231,7 @@ interface GroovyBuilderScope : GroovyObject {
     /**
      * Invokes with Groovy semantics and no arguments.
      */
+    @Suppress("SpreadOperator")
     operator fun String.invoke(): Any? =
         invoke(*emptyArray<Any>())
 
@@ -318,7 +319,7 @@ class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBui
         groovyMetaClass.getProperty(delegate, propertyName)
 
     override fun setMetaClass(metaClass: MetaClass?) =
-        throw IllegalStateException()
+        error("Setting meta class not supported")
 
     override fun getMetaClass(): MetaClass =
         groovyMetaClass

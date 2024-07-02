@@ -28,6 +28,7 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -50,6 +52,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     private transient Set<Configuration> configurations;
 
     @Override
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public ReportRenderer getRenderer() {
         return renderer;
     }
@@ -60,7 +63,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     public void setRenderer(DependencyReportRenderer renderer) {
         this.renderer = renderer;
     }
-
 
     /**
      * Report model.
@@ -97,7 +99,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     }
 
     private Set<Configuration> getReportConfigurations() {
-        return configurations != null ? configurations : getNonDeprecatedTaskConfigurations();
+        return configurations != null ? configurations : getConfigurationsWithDependencies();
     }
 
     /**
@@ -107,6 +109,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      * @return the configurations.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public Set<Configuration> getConfigurations() {
         return configurations;
     }
@@ -125,14 +128,15 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      *
      * @param configurationName name of the configuration to generate the report for
      */
+    @ToBeReplacedByLazyProperty
     @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
         this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
     }
 
-    private Set<Configuration> getNonDeprecatedTaskConfigurations() {
+    private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
-        for (Configuration configuration : getTaskConfigurations()) {
+        for (Configuration configuration : Objects.requireNonNull(getTaskConfigurations())) {
             if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
@@ -141,5 +145,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     }
 
     @Internal
-    public abstract ConfigurationContainer getTaskConfigurations();
+    public ConfigurationContainer getTaskConfigurations() {
+        return getProject().getConfigurations();
+    }
 }

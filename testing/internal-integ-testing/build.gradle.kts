@@ -15,32 +15,33 @@ sourceSets {
 }
 
 dependencies {
-    api(project(":base-services")) {
+    api(projects.baseServices) {
         because("Part of the public API, used by spock AST transformer")
     }
-    api(project(":build-cache-base"))
-    api(project(":build-operations"))
-    api(project(":concurrent"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":hashing"))
-    api(project(":internal-testing")) {
+    api(projects.buildCacheBase)
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.hashing)
+    api(projects.internalTesting) {
         because("Part of the public API")
     }
-    api(project(":java-language-extensions"))
-    api(project(":jvm-services")) {
+    api(projects.stdlibJavaExtensions)
+    api(projects.jvmServices) {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
-    api(project(":launcher"))
-    api(project(":logging"))
-    api(project(":logging-api"))
-    api(project(":native"))
-    api(project(":persistent-cache"))
-    api(project(":problems-api"))
-    api(project(":process-services"))
+    api(projects.logging)
+    api(projects.loggingApi)
+    api(projects.native)
+    api(projects.persistentCache)
+    api(projects.problemsApi)
+    api(projects.processServices)
+    api(projects.daemonProtocol)
+    api(projects.serviceLookup)
 
-    api(testFixtures(project(":core"))) {
+    api(testFixtures(projects.core)) {
         because("HttpServer leaks PortAllocator to spock AST transformer")
     }
 
@@ -78,30 +79,34 @@ dependencies {
         because("Part of the public API")
     }
 
-    implementation(projects.serviceProvider)
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-cache"))
-    implementation(project(":build-events"))
-    implementation(project(":build-option"))
-    implementation(project(":build-state"))
-    implementation(project(":cli"))
-    implementation(project(":daemon-protocol"))
-    implementation(project(":daemon-services"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":enterprise-logging"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
+    implementation(projects.baseServicesGroovy)
+    implementation(projects.buildCache)
+    implementation(projects.buildEvents)
+    implementation(projects.buildOption)
+    implementation(projects.buildState)
+    implementation(projects.cli)
+    implementation(projects.daemonServices)
+    implementation(projects.enterpriseOperations)
+    implementation(projects.enterpriseLogging)
+    implementation(projects.files)
+    implementation(projects.fileCollections)
+    implementation(projects.fileTemp)
+    implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":serialization"))
-    implementation(project(":time"))
+    implementation(projects.messaging)
+    implementation(projects.modelCore)
+    implementation(projects.platformJvm)
+    implementation(projects.serialization)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
+    implementation(projects.time)
     implementation(projects.toolchainsJvmShared)
-    implementation(project(":build-process-services"))
+    implementation(projects.buildProcessServices)
+    implementation(projects.gradleCli)
+    implementation(projects.launcher)
+    implementation(projects.clientServices)
 
-    implementation(testFixtures(project(":build-operations")))
+    implementation(testFixtures(projects.buildOperations))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
@@ -134,7 +139,7 @@ dependencies {
     implementation(libs.sshdSftp)
     implementation(platform(libs.sshdSftp))
 
-    compileOnly(project(":configuration-cache")) {
+    compileOnly(projects.configurationCache) {
         because("""Fixes:
             compiler message file broken: key=compiler.misc.msg.bug arguments=11.0.21, {1}, {2}, {3}, {4}, {5}, {6}, {7}
             java.lang.AssertionError: typeSig ERROR""")
@@ -153,11 +158,11 @@ dependencies {
         because("For ApiMavenResolver. To resolve http:// URLs")
     }
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {

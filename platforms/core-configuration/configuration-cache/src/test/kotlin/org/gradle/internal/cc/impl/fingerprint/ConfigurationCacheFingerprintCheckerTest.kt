@@ -265,7 +265,7 @@ class ConfigurationCacheFingerprintCheckerTest {
     fun invalidationReasonForInitScriptsChange(
         from: Iterable<Pair<File, HashCode>>,
         to: List<Pair<File, HashCode>>
-    ): InvalidationReason? = to.toMap().let { toMap ->
+    ): String? = to.toMap().let { toMap ->
         checkFingerprintGiven(
             mock {
                 on { allInitScripts } doReturn toMap.keys.toList()
@@ -286,7 +286,7 @@ class ConfigurationCacheFingerprintCheckerTest {
     fun checkFingerprintGiven(
         host: ConfigurationCacheFingerprintChecker.Host,
         fingerprint: ConfigurationCacheFingerprint
-    ): InvalidationReason? {
+    ): String? {
 
         val readContext = recordWritingOf {
             write(fingerprint)
@@ -300,7 +300,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         }
         return when (checkedFingerprint) {
             is CheckedFingerprint.Valid -> null
-            is CheckedFingerprint.EntryInvalid -> checkedFingerprint.reason
+            is CheckedFingerprint.EntryInvalid -> checkedFingerprint.reason.toString()
             else -> throw IllegalArgumentException()
         }
     }
@@ -371,6 +371,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onError(error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
+        override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
+            undefined()
+
         override fun push(codec: Codec<Any?>): Unit =
             undefined()
 
@@ -381,9 +384,6 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun pop(): Unit =
-            undefined()
-
-        override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) =
             undefined()
 
         override fun writeNullableString(value: CharSequence?): Unit =
@@ -502,7 +502,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun pop(): Unit =
             undefined()
 
-        override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) =
+        override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
             undefined()
 
         override fun readInt(): Int =

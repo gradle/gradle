@@ -140,10 +140,10 @@ task verify {
         for(component in result.resolvedComponents) {
             def artifacts = component.getArtifacts($requestedArtifact)
             artifacts.each { a ->
-                assert a.id.componentIdentifier.displayName == "${id.displayName}" 
-                assert a.id.componentIdentifier.group == "${id.group}" 
-                assert a.id.componentIdentifier.module == "${id.module}" 
-                assert a.id.componentIdentifier.version == "${id.version}" 
+                assert a.id.componentIdentifier.displayName == "${id.displayName}"
+                assert a.id.componentIdentifier.group == "${id.group}"
+                assert a.id.componentIdentifier.module == "${id.module}"
+                assert a.id.componentIdentifier.version == "${id.version}"
             }
             def resolvedArtifacts = artifacts.findAll { it instanceof ResolvedArtifactResult }
             assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
@@ -205,7 +205,7 @@ task verify {
 
         // Check generic component result
         def componentResult = result.components.iterator().next()
-        assert componentResult.id.displayName == 'project :'
+        assert componentResult.id.displayName == "root project :"
         assert componentResult instanceof $expectedComponentResult.name
 """
 

@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.util.GradleVersion
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
 
@@ -35,7 +36,8 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         def requestedScripts = spec.scripts.values() + spec.appliedScripts.some
 
         when:
-        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+        maybeExpectAccessorsDeprecation()
+        def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, false, true, requestedScripts)
         }
 
@@ -61,7 +63,9 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         """
 
         when:
-        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+        maybeExpectAccessorsDeprecation()
+        withStackTraceChecksDisabled() // This test prints a huge stack trace
+        def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, true, true, requestedScripts)
         }
 
@@ -80,5 +84,11 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
             spec.scripts.a,
             "Unresolved reference: script_body_compilation_error"
         )
+    }
+
+    void maybeExpectAccessorsDeprecation() {
+        if (targetVersion >= GradleVersion.version("7.6") && targetVersion < GradleVersion.version("8.0")) {
+            expectDocumentedDeprecationWarning("Non-strict accessors generation for Kotlin DSL precompiled script plugins has been deprecated. This will change in Gradle X. Strict accessor generation will become the default. To opt in to the strict behavior, set the 'org.gradle.kotlin.dsl.precompiled.accessors.strict' system property to `true`. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors")
+        }
     }
 }

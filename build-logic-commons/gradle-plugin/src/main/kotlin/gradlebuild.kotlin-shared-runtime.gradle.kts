@@ -8,7 +8,7 @@ plugins {
     id("gradlebuild.reproducible-archives")
     id("gradlebuild.repositories")
     id("gradlebuild.code-quality")
-    id("gradlebuild.ktlint")
+    id("gradlebuild.detekt")
     id("gradlebuild.test-retry")
     id("gradlebuild.ci-reporting")
 }
@@ -24,4 +24,9 @@ kotlin {
         allWarningsAsErrors = true
         jvmTarget.set(JvmTarget.JVM_1_8)
     }
+}
+
+detekt {
+    // overwrite the config file's location
+    config.convention(project.isolated.rootProject.projectDirectory.file("../gradle/detekt.yml"))
 }

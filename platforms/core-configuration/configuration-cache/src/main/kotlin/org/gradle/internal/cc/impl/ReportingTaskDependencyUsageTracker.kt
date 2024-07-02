@@ -45,6 +45,7 @@ class ReportingTaskDependencyUsageTracker(
         }
     }
 
+    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     private
     fun reportProjectIsolationProblemOnApiUsage() {
         val problem = problemFactory.problem {

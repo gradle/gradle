@@ -25,6 +25,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Transient;
@@ -84,6 +85,7 @@ public abstract class ConventionReportTask extends ConventionTask {
     @Nullable
     @Optional
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getOutputFile() {
         return outputFile;
     }
@@ -105,6 +107,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      */
     @Internal
     // TODO:LPTR Have the paths of the projects serve as @Input maybe?
+    @ToBeReplacedByLazyProperty
     public Set<Project> getProjects() {
         return requireNonNull(projects.get());
     }

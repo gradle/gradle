@@ -257,8 +257,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         collectDescriptorsFromBuild()
         and:
         buildFile.text = simpleJavaProject()
+
         when:
-        launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
+        launchFailingTests(testDescriptors("example.MyTest", null, ":secondTest"))
+
         then:
         assertTaskNotExecuted(":secondTest")
         assertTaskNotExecuted(":test")
@@ -268,7 +270,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         and:
         failure.assertHasDescription("Requested test task with path ':secondTest' cannot be found.")
-        assertHasBuildFailedLogging()
     }
 
     def "fails with meaningful error when passing invalid arguments"() {
@@ -286,17 +287,18 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "fails with BuildException when build fails"() {
         given:
         buildFile << "some invalid build code"
+
         when:
-        launchTests { TestLauncher launcher ->
+        launchFailingTests { TestLauncher launcher ->
             launcher.withJvmTestClasses("example.MyTest")
         }
+
         then:
         def e = thrown(BuildException)
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        assertHasBuildFailedLogging()
     }
 
     def "throws BuildCancelledException when build canceled before request started"() {

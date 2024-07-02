@@ -22,7 +22,6 @@ import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.project.IsolatedProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -45,7 +44,6 @@ import org.gradle.api.file.SyncSpec
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
@@ -66,6 +64,7 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -73,18 +72,18 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
-import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
-import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
-import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.DIRECT
-import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.SUBPROJECT
-import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
-import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
+import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
+import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.DIRECT
+import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.SUBPROJECT
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
@@ -174,6 +173,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
     }
 
+    @Suppress("LargeClass")
     private
     class ProblemReportingProject(
         val delegate: ProjectInternal,
@@ -222,6 +222,7 @@ class ProblemReportingCrossProjectModelAccess(
             )
         }
 
+        @Suppress("SpreadOperator")
         override fun invokeMethod(name: String, args: Any): Any? {
             // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
             val varargs: Array<Any?> = args.uncheckedCast()
@@ -233,6 +234,7 @@ class ProblemReportingCrossProjectModelAccess(
 
             onProjectsCoupled()
 
+            @Suppress("SpreadOperator")
             return withDelegateDynamicCallReportingConfigurationOrder(
                 name,
                 action = { tryInvokeMethod(name, *varargs) },
@@ -888,10 +890,6 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        override fun getDependencyMetaDataProvider(): DependencyMetaDataProvider {
-            shouldNotBeUsed()
-        }
-
         override fun getFileOperations(): FileOperations {
             shouldNotBeUsed()
         }
@@ -1135,6 +1133,7 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
+        @Suppress("ThrowingExceptionsWithoutMessageOrCause")
         private
         fun reportCrossProjectAccessProblem(
             accessRef: String,

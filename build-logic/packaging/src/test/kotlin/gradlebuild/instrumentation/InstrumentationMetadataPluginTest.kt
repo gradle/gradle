@@ -64,8 +64,12 @@ class InstrumentationMetadataPluginTest {
 
         // Then
         val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
-        upgradedProperties.assertHasContentEqualTo("[{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"maxErrors\"},{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"minErrors\"}," +
-            "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"enabled\"},{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"dependencies\"}]")
+        upgradedProperties.assertHasContentEqualTo(
+            "[{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"maxErrors\"}," +
+            "{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"minErrors\"}," +
+            "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"enabled\"}," +
+            "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"dependencies\"}]"
+        )
     }
 
     @Test
@@ -126,16 +130,6 @@ class InstrumentationMetadataPluginTest {
     fun File.assertDoesNotExist() {
         assert(!this.exists()) {
             "Expected ${this.name} to not exist, but it did"
-        }
-    }
-
-    private
-    fun File.assertIsNotEmpty() {
-        assert(this.exists()) {
-            "Expected ${this.name} to exist, but it didn't"
-        }
-        assert(this.length() != 0L) {
-            "Expected ${this.name} to not be empty but was"
         }
     }
 

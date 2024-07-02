@@ -8,19 +8,19 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
 
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(project(":files")) {
+    implementation(projects.files) {
         because("We need org.gradle.internal.file.PathTraversalChecker")
     }
 
-    testImplementation(project(":base-services"))
-    testImplementation(project(":core-api"))
-    testImplementation(project(":native"))
+    testImplementation(projects.baseServices)
+    testImplementation(projects.coreApi)
+    testImplementation(projects.native)
     testImplementation(libs.commonsCompress)
 
-    integTestImplementation(project(":dependency-management"))
-    integTestImplementation(project(":logging"))
+    integTestImplementation(projects.dependencyManagement)
+    integTestImplementation(projects.logging)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

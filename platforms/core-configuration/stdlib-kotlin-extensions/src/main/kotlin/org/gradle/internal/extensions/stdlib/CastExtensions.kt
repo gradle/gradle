@@ -19,5 +19,5 @@ package org.gradle.internal.extensions.stdlib
 import org.gradle.internal.Cast
 
 
-fun <T> Any.uncheckedCast(): T =
+fun <T : Any> Any.uncheckedCast(): T =
     Cast.uncheckedNonnullCast(this)

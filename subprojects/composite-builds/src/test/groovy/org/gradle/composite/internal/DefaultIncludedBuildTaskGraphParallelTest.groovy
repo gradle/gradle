@@ -58,7 +58,6 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationRunner
@@ -68,6 +67,7 @@ import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import org.gradle.util.TestUtil

@@ -18,6 +18,7 @@ package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.Set;
@@ -43,6 +44,7 @@ public interface CallInterceptor {
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
+    @Nullable
     Object intercept(Invocation invocation, String consumer) throws Throwable;
 
     MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags);

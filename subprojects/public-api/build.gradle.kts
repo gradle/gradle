@@ -23,7 +23,7 @@ group = "org.gradle.experimental"
 description = "Public API for Gradle"
 
 dependencies {
-    distribution(project(":distributions-full"))
+    distribution(projects.distributionsFull)
 
     // Groovy is part of our API
     externalApi(libs.groovy)

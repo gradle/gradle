@@ -54,8 +54,10 @@ import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -63,10 +65,14 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class ProjectExecutionServices extends DefaultServiceRegistry {
+public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
-    public ProjectExecutionServices(ProjectInternal project) {
-        super("Configured project services for '" + project.getPath() + "'", project.getServices());
+    public static CloseableServiceRegistry create(ProjectInternal project) {
+        return ServiceRegistryBuilder.builder()
+            .displayName("project execution services for '" + project.getPath() + "'")
+            .parent(project.getServices())
+            .provider(new ProjectExecutionServices())
+            .build();
     }
 
     @Provides

@@ -291,6 +291,6 @@ fun <T : Task> mockTaskProviderFor(task: T): TaskProvider<T> = mock {
 
 
 internal
-inline fun <reified T> assertInferredTypeOf(@Suppress("unused_parameter") value: T, expectedType: TypeOf<T>) {
+inline fun <reified T> assertInferredTypeOf(@Suppress("UNUSED_PARAMETER") value: T, expectedType: TypeOf<T>) {
     assertThat(typeOf<T>(), equalTo(expectedType))
 }

@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
 public interface ComponentIdentifierFactory {
-    ComponentIdentifier createComponentIdentifier(Module module);
 
     ProjectComponentSelector createProjectComponentSelector(String projectPath);
 }

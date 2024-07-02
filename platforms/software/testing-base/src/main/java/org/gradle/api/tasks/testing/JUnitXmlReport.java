@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.Input;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * The JUnit XML files, commonly used to communicate results to CI servers.
@@ -32,6 +33,7 @@ public interface JUnitXmlReport extends DirectoryReport {
      * Should the output be associated with individual test cases instead of at the suite level.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean isOutputPerTestCase();
 
     /**

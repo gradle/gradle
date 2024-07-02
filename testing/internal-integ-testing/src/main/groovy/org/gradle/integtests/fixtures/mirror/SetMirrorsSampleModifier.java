@@ -27,6 +27,7 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.isMirrorEnabled;
 
 public class SetMirrorsSampleModifier implements SampleModifier {
 
@@ -34,7 +35,7 @@ public class SetMirrorsSampleModifier implements SampleModifier {
 
     @Override
     public Sample modify(Sample sample) {
-        if (sample.getId().contains("usePluginsInInitScripts")) {
+        if (sample.getId().contains("usePluginsInInitScripts") || !isMirrorEnabled()) {
             // usePluginsInInitScripts asserts using https://repo.gradle.org/gradle/repo
             return sample;
         }

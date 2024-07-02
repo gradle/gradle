@@ -27,6 +27,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.launcher.daemon.server.api.DaemonState;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
@@ -53,7 +54,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final Condition condition = lock.newCondition();
     private final long cancelTimeoutMs;
 
-    private State state = State.Idle;
+    private DaemonState state = DaemonState.Idle;
     private final Timer idleTimer;
     private String currentCommandExecution;
     private Object result;
@@ -79,7 +80,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         updateCancellationToken();
     }
 
-    private void setState(State state) {
+    private void setState(DaemonState state) {
         this.state = state;
         condition.signalAll();
     }
@@ -130,9 +131,9 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void requestStop(String reason) {
         lock.lock();
         try {
-            if (state != State.StopRequested && state != State.Stopped && state != State.ForceStopped) {
+            if (state != DaemonState.StopRequested && state != DaemonState.Stopped && state != DaemonState.ForceStopped) {
                 LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
-                if (state == State.Busy) {
+                if (state == DaemonState.Busy) {
                     LOGGER.debug("Stop as soon as idle requested. The daemon is busy");
                     beginStopping();
                 } else {
@@ -169,7 +170,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 case Idle:
                     LOGGER.debug("Marking daemon stopped due to {}. The daemon is not running a build", reason);
                     stopReason = reason;
-                    setState(State.Stopped);
+                    setState(DaemonState.Stopped);
                     break;
                 case Busy:
                 case Canceled:
@@ -177,7 +178,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 case StopRequested:
                     LOGGER.debug("Marking daemon stopped due to {}. The daemon is running a build", reason);
                     stopReason = reason;
-                    setState(State.ForceStopped);
+                    setState(DaemonState.ForceStopped);
                     break;
                 case Stopped:
                 case ForceStopped:
@@ -197,7 +198,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             case Busy:
             case Canceled:
             case Broken:
-                setState(State.StopRequested);
+                setState(DaemonState.StopRequested);
                 break;
             case StopRequested:
             case Stopped:
@@ -222,9 +223,9 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void requestCancel() {
         lock.lock();
         try {
-            if (state == State.Busy) {
-                setState(State.Canceled);
-            } else if (state == State.StopRequested) {
+            if (state == DaemonState.Busy) {
+                setState(DaemonState.Canceled);
+            } else if (state == DaemonState.StopRequested) {
                 requestForcefulStop("the build was canceled after a stop was requested");
             }
         } finally {
@@ -332,7 +333,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private void waitForCommandCompletion() {
         lock.lock();
         try {
-            while ((state == State.Busy || state == State.Canceled || state == State.StopRequested) && result == null) {
+            while ((state == DaemonState.Busy || state == DaemonState.Canceled || state == DaemonState.StopRequested) && result == null) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
@@ -400,7 +401,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
             LOGGER.debug("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
             try {
-                setState(State.Busy);
+                setState(DaemonState.Busy);
                 onStartCommand.run();
                 currentCommandExecution = commandDisplayName;
                 result = null;
@@ -408,7 +409,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 updateCancellationToken();
                 condition.signalAll();
             } catch (Throwable throwable) {
-                setState(State.Broken);
+                setState(DaemonState.Broken);
                 throw UncheckedException.throwAsUncheckedException(throwable);
             }
         } finally {
@@ -430,14 +431,14 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 case Canceled:
                     try {
                         onFinishCommand.run();
-                        setState(State.Idle);
+                        setState(DaemonState.Idle);
                     } catch (Throwable throwable) {
-                        setState(State.Broken);
+                        setState(DaemonState.Broken);
                         throw UncheckedException.throwAsUncheckedException(throwable);
                     }
                     break;
                 case StopRequested:
-                    setState(State.Idle);
+                    setState(DaemonState.Idle);
                     stopNow("command completed and stop requested");
                     break;
                 case Stopped:
@@ -466,7 +467,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     public long getIdleMillis() {
-        if (state == State.Idle) {
+        if (state == DaemonState.Idle) {
             return idleTimer.getElapsedMillis();
         } else {
             return 0L;
@@ -474,11 +475,11 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     boolean isWillRefuseNewCommands() {
-        return !(state == State.Idle || state == State.Busy);
+        return !(state == DaemonState.Idle || state == DaemonState.Busy);
     }
 
     @Override
-    public State getState() {
+    public DaemonState getState() {
         return state;
     }
 }

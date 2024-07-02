@@ -55,10 +55,12 @@ public class DependencyMetadataRules {
     private final List<VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<>();
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DependencyMetadataRules(Instantiator instantiator,
-                                   NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-                                   NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
-                                   ImmutableAttributesFactory attributesFactory) {
+    public DependencyMetadataRules(
+        Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
+        ImmutableAttributesFactory attributesFactory
+    ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;

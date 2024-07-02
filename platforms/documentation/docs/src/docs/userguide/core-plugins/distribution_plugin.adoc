@@ -98,6 +98,18 @@ In the example above, the content of the `src/readme` directory will be included
 
 The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
 
+.Adding Files and Directories
+====
+include::sample[dir="snippets/base/distributionPlugin/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
+include::sample[dir="snippets/base/distributionPlugin/groovy",files="build.gradle[tags=configure-distribution]"]
+====
+
+In the example above, <<working_with_files.adoc#sec:copying_files, CopySpec>> defines the contents, ensuring the `bin/config` directory is automatically created if it doesn't already exist, and the contents of the `config` directory are copied into it. The same process applies to the `lib/samples` directory.
+
+Gradle provides a robust set of APIs to simplify handling files, managing file dependencies, generating reports, and more. <<working_with_files.adoc#sec:copying_files, CopySpec>> is simply one example.
+
+File operations are covered in <<working_with_files.adoc#working_with_files, Working With Files>>.
+
 [[sec:publishing_distributions]]
 == Publishing
 

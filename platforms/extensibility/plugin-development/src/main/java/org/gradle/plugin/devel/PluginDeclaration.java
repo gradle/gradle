@@ -19,6 +19,8 @@ package org.gradle.plugin.devel;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Describes a Gradle plugin under development.
@@ -38,10 +40,12 @@ public abstract class PluginDeclaration implements Named {
     }
 
     @Override
+    @NotToBeReplacedByLazyProperty(because = "Final property from Named interface")
     public String getName() {
         return name;
     }
 
+    @ToBeReplacedByLazyProperty
     public String getId() {
         return id;
     }
@@ -50,6 +54,7 @@ public abstract class PluginDeclaration implements Named {
         this.id = id;
     }
 
+    @ToBeReplacedByLazyProperty
     public String getImplementationClass() {
         return implementationClass;
     }
@@ -66,6 +71,7 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 4.10
      */
+    @ToBeReplacedByLazyProperty
     public String getDisplayName() {
         return displayName;
     }
@@ -90,6 +96,7 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 4.10
      */
+    @ToBeReplacedByLazyProperty
     public String getDescription() {
         return description;
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.work
 
-import org.gradle.internal.concurrent.DefaultWorkerLimits
+
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockContainer
 import org.gradle.internal.resources.TestTrackedResourceLock

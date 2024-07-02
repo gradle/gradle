@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.configurationcache
 
 import groovy.json.JsonSlurper
 import groovy.transform.PackageScope
+import groovy.transform.ToString
 import junit.framework.AssertionFailedError
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
@@ -35,7 +36,9 @@ import javax.annotation.Nullable
 import java.nio.file.Paths
 import java.util.regex.Pattern
 
+import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.endsWith
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.notNullValue
@@ -173,8 +176,9 @@ final class ConfigurationCacheProblemsFixture {
         } else {
             assertNoProblemsSummary(result.output)
         }
-        // TODO:bamboo avoid reading jsModel twice when asserting on problems AND inputs
-        assertInputs(result.output, rootDir, spec.inputs)
+        // TODO:bamboo avoid reading jsModel more than once when asserting on problems AND inputs AND incompatible tasks
+        assertInputs(result.output, rootDir, spec)
+        assertIncompatibleTasks(result.output, rootDir, spec)
     }
 
     HasConfigurationCacheProblemsSpec newProblemsSpec(
@@ -274,47 +278,67 @@ final class ConfigurationCacheProblemsFixture {
     private static void assertInputs(
         String output,
         File rootDir,
-        InputsSpec spec
+        HasConfigurationCacheProblemsSpec spec
     ) {
-        if (spec == InputsSpec.IGNORING) {
+        assertItems('input', output, rootDir, spec.inputs)
+    }
+
+    private static void assertIncompatibleTasks(
+        String output,
+        File rootDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assertItems('incompatibleTask', output, rootDir, spec.incompatibleTasks)
+    }
+
+    private static void assertItems(
+        String kind,
+        String output,
+        File rootDir,
+        ItemSpec spec
+    ) {
+        if (spec == ItemSpec.IGNORING) {
             return
         }
 
-        List<Matcher<String>> expectedInputs = spec instanceof InputsSpec.ExpectingSome
-            ? spec.inputs.collect()
+        List<Matcher<String>> expectedItems = spec instanceof ItemSpec.ExpectingSome
+            ? spec.itemMatchers.collect()
             : []
 
         def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (reportDir == null) {
             assertThat(
-                "Expecting inputs but no report was found",
-                expectedInputs,
+                "Expecting '$kind' items but no report was found",
+                expectedItems,
                 equalTo([])
             )
             return
         }
 
         Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
-        List<Map<String, Object>> inputs = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it['input'] != null }
-        List<String> unexpectedInputs = inputs.collect { formatInputForAssert(it) }.reverse()
-        for (int i in expectedInputs.indices.reverse()) {
-            def expectedInput = expectedInputs[i]
-            for (int j in unexpectedInputs.indices) {
-                if (expectedInput.matches(unexpectedInputs[j])) {
-                    expectedInputs.removeAt(i)
-                    unexpectedInputs.removeAt(j)
+        List<Map<String, Object>> items = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it[kind] != null }
+        List<String> unexpectedItems = items.collect { formatItemForAssert(it, kind) }.reverse()
+        for (int i in expectedItems.indices.reverse()) {
+            def expectedItem = expectedItems[i]
+            for (int j in unexpectedItems.indices) {
+                if (expectedItem.matches(unexpectedItems[j])) {
+                    expectedItems.removeAt(i)
+                    unexpectedItems.removeAt(j)
                     break
                 }
             }
         }
-        if (!(spec instanceof InputsSpec.IgnoreUnexpected)) {
-            assert unexpectedInputs.isEmpty() : "Unexpected inputs $unexpectedInputs found in the report, expecting $expectedInputs"
+        if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
+            assert unexpectedItems.isEmpty() : "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
         }
-        assert expectedInputs.isEmpty() : "Expecting $expectedInputs in the report, found $unexpectedInputs"
+        assert expectedItems.isEmpty() : "Expecting $expectedItems in the report, found $unexpectedItems"
     }
 
-    static String formatInputForAssert(Map<String, Object> input) {
-        "${formatTrace(input['trace'][0])}: ${formatStructuredMessage(input['input'])}"
+    static String formatItemForAssert(Map<String, Object> item, String kind) {
+        def trace = formatTrace(item['trace'][0])
+        List<Map<String, Object>> itemFragments = item[kind]
+        def message = formatStructuredMessage(itemFragments)
+        "${trace}: ${message}"
     }
 
     static String formatStructuredMessage(List<Map<String, Object>> fragments) {
@@ -325,12 +349,14 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     static String formatTrace(Map<String, Object> trace) {
-        switch (trace['kind']) {
+        def kind = trace['kind']
+        switch (kind) {
             case "Task": return trace['path']
             case "Bean": return trace['type']
             case "Field": return trace['name']
             case "InputProperty": return trace['name']
             case "OutputProperty": return trace['name']
+            // Build file 'build.gradle'
             case "BuildLogic": return trace['location'].toString().capitalize()
             case "BuildLogicClass": return trace['type']
             default: return "Gradle runtime"
@@ -414,7 +440,7 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     protected static int numberOfProblemsWithStacktraceIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>).count { it['error']?.getAt('parts') != null }
+        return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
     }
 
     private static ProblemsSummary extractSummary(String text) {
@@ -465,6 +491,7 @@ ${text}
         return new ProblemsSummary(totalProblems, problems.size(), problems)
     }
 
+    @ToString(includeNames=true)
     private static class ProblemsSummary {
         final int totalProblems
         final int uniqueProblems
@@ -489,83 +516,92 @@ final class HasConfigurationCacheErrorSpec extends HasConfigurationCacheProblems
     }
 }
 
-abstract class InputsSpec {
+abstract class ItemSpec {
 
-    abstract InputsSpec expect(Matcher<String> input)
+    abstract ItemSpec expect(Matcher<String> itemMatcher)
 
-    abstract InputsSpec expectNone()
+    ItemSpec expectPrefix(String prefix) {
+        return expect(startsWith(prefix))
+    }
 
-    abstract InputsSpec ignoreUnexpected()
+    abstract ItemSpec expectNone()
 
-    static final InputsSpec IGNORING = new InputsSpec() {
+    abstract ItemSpec ignoreUnexpected()
+
+    static final ItemSpec IGNORING = new ItemSpec() {
 
         @Override
-        InputsSpec expect(Matcher<String> input) {
-            new ExpectingSome().expect(input)
+        ItemSpec expect(Matcher<String> itemMatcher) {
+            new ExpectingSome().expect(itemMatcher)
         }
 
         @Override
-        InputsSpec expectNone() {
+        ItemSpec expectNone() {
             EXPECTING_NONE
         }
 
         @Override
-        InputsSpec ignoreUnexpected() {
+        ItemSpec ignoreUnexpected() {
             new IgnoreUnexpected([])
         }
     }
 
-    static final InputsSpec EXPECTING_NONE = new InputsSpec() {
+    static final ItemSpec EXPECTING_NONE = new ItemSpec() {
 
         @Override
-        InputsSpec expect(Matcher<String> input) {
-            throw new IllegalStateException("Already expecting no inputs, cannot expect $input")
+        ItemSpec expect(Matcher<String> itemMatcher) {
+            throw new IllegalStateException("Already expecting no items, cannot expect $itemMatcher")
         }
 
         @Override
-        InputsSpec expectNone() {
+        ItemSpec expectNone() {
             this
         }
 
         @Override
-        InputsSpec ignoreUnexpected() {
-            throw new IllegalStateException("Already expecting no inputs, cannot ignore unexpected.")
+        ItemSpec ignoreUnexpected() {
+            throw new IllegalStateException("Already expecting no items, cannot ignore unexpected.")
         }
     }
 
-    static class ExpectingSome extends InputsSpec {
+    static class ExpectingSome extends ItemSpec {
 
-        final List<Matcher<String>> inputs
 
-        ExpectingSome(List<Matcher<String>> inputs = []) {
-            this.inputs = inputs
+        @Override
+        String toString() {
+            return itemMatchers.join(", ")
+        }
+        final List<Matcher<String>> itemMatchers
+
+        ExpectingSome(List<Matcher<String>> itemMatchers = []) {
+            this.itemMatchers = itemMatchers
         }
 
         @Override
-        InputsSpec expect(Matcher<String> input) {
-            inputs.add(input)
+        ItemSpec expect(Matcher<String> itemMatcher) {
+            itemMatchers.add(itemMatcher)
             this
         }
 
         @Override
-        InputsSpec expectNone() {
-            throw new IllegalStateException("Already expecting $inputs, cannot expect none")
+        ItemSpec expectNone() {
+            throw new IllegalStateException("Already expecting $itemMatchers, cannot expect none")
         }
 
         @Override
-        InputsSpec ignoreUnexpected() {
-            return new IgnoreUnexpected(inputs)
+        ItemSpec ignoreUnexpected() {
+            return new IgnoreUnexpected(itemMatchers)
         }
     }
 
     static class IgnoreUnexpected extends ExpectingSome {
 
-        IgnoreUnexpected(List<Matcher<String>> inputs) {
-            super(inputs)
+        IgnoreUnexpected(List<Matcher<String>> itemMatchers) {
+            super(itemMatchers)
         }
 
         @Override
-        InputsSpec ignoreUnexpected() {
+        ItemSpec ignoreUnexpected() {
             this
         }
     }
@@ -577,7 +613,10 @@ class HasConfigurationCacheProblemsSpec {
     final List<Matcher<String>> uniqueProblems = []
 
     @PackageScope
-    InputsSpec inputs = InputsSpec.IGNORING
+    ItemSpec inputs = ItemSpec.IGNORING
+
+    @PackageScope
+    ItemSpec incompatibleTasks = ItemSpec.IGNORING
 
     @Nullable
     @PackageScope
@@ -641,7 +680,7 @@ class HasConfigurationCacheProblemsSpec {
     }
 
     HasConfigurationCacheProblemsSpec withInput(String prefix) {
-        inputs = inputs.expect(startsWith(prefix))
+        inputs = inputs.expectPrefix(prefix)
         return this
     }
 
@@ -652,6 +691,16 @@ class HasConfigurationCacheProblemsSpec {
 
     HasConfigurationCacheProblemsSpec ignoringUnexpectedInputs() {
         inputs = inputs.ignoreUnexpected()
+        return this
+    }
+
+    HasConfigurationCacheProblemsSpec withIncompatibleTask(String task, String reason) {
+        incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("${task}: task '${task}' of type "), endsWith(reason)))
+        return this
+    }
+
+    HasConfigurationCacheProblemsSpec ignoringUnexpectedIncompatibleTasks() {
+        incompatibleTasks = incompatibleTasks.ignoreUnexpected()
         return this
     }
 }

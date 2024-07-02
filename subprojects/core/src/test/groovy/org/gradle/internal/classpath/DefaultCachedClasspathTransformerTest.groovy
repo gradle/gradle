@@ -25,7 +25,6 @@ import org.gradle.cache.GlobalCacheLocations
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
-import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.transforms.ClassTransform
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent
@@ -38,6 +37,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.serialize.ClassLoaderObjectInputStream
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot

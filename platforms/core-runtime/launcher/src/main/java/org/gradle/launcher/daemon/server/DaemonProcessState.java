@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;

@@ -19,12 +19,11 @@ package org.gradle.integtests.fixtures.daemon
 import org.gradle.internal.time.Time
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.server.api.DaemonState
 import org.gradle.util.GradleVersion
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
 
 class TestableDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
@@ -36,7 +35,7 @@ class TestableDaemon extends AbstractDaemonFixture {
         this.registryProbe = new DaemonRegistryStateProbe(registry, context)
     }
 
-    protected void waitForState(State state) {
+    protected void waitForState(DaemonState state) {
         def timer = Time.startCountdownTimer(STATE_CHANGE_TIMEOUT)
         def lastRegistryState = registryProbe.currentState
         def lastLogState = logFileProbe.currentState
@@ -49,7 +48,7 @@ class TestableDaemon extends AbstractDaemonFixture {
             return
         }
         // TODO remove debug log
-        if (lastRegistryState == State.Stopped && lastLogState == State.Idle) {
+        if (lastRegistryState == DaemonState.Stopped && lastLogState == DaemonState.Idle) {
             println("The daemon probably disappeared before it could've printed the stop message. Daemon log content:")
             println(logFile.text)
         }
@@ -59,7 +58,7 @@ Current registry state is ${lastRegistryState} and current log state is ${lastLo
     }
 
     @Override
-    protected void assertHasState(State state) {
+    protected void assertHasState(DaemonState state) {
         assert logFileProbe.currentState == state
         assert registryProbe.currentState == state
     }

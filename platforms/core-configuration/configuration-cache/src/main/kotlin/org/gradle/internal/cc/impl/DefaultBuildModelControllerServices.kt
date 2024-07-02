@@ -33,9 +33,6 @@ import org.gradle.configuration.project.DelayedConfigurationActions
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
-import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
-import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
@@ -47,6 +44,9 @@ import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
+import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.ListenerManager
@@ -58,7 +58,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
-import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
@@ -71,10 +71,10 @@ class DefaultBuildModelControllerServices(
     private val buildModelParameters: BuildModelParameters,
 ) : BuildModelControllerServices {
     override fun servicesForBuild(buildDefinition: BuildDefinition, owner: BuildState, parentBuild: BuildState?): BuildModelControllerServices.Supplier {
-        return BuildModelControllerServices.Supplier { registration, services ->
+        return BuildModelControllerServices.Supplier { registration, buildScopeServices ->
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
-            registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
+            registration.addProvider(ServicesProvider(buildDefinition, parentBuild, buildScopeServices))
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ConfigurationCacheEnvironment::class.java)
@@ -99,7 +99,7 @@ class DefaultBuildModelControllerServices(
     class ServicesProvider(
         private val buildDefinition: BuildDefinition,
         private val parentBuild: BuildState?,
-        private val buildScopeServices: BuildScopeServices
+        private val buildScopeServices: ServiceRegistry
     ) : ServiceRegistrationProvider {
         @Provides
         fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {

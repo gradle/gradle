@@ -45,7 +45,7 @@ import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -64,7 +64,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         super(buildTree, buildDefinition, null);
         this.listenerManager = listenerManager;
 
-        BuildScopeServices buildScopeServices = getBuildServices();
+        CloseableServiceRegistry buildScopeServices = getBuildServices();
         try {
             BuildLifecycleController buildLifecycleController = getBuildController();
             ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);

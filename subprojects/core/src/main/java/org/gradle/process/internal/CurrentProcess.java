@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.agents.AgentUtils;
+import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 

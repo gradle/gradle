@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
@@ -106,6 +107,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * @return The Maven POM.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public MavenPom getPom() {
         return pom.get();
     }
@@ -120,6 +122,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * @return The file the POM will be written to
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getDestination() {
         return destination == null ? null : getFileResolver().resolve(destination);
     }

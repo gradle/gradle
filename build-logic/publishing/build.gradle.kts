@@ -8,7 +8,7 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":integration-testing"))
+    implementation(projects.integrationTesting)
 
     implementation("com.gradle.publish:plugin-publish-plugin")
 }

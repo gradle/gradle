@@ -17,8 +17,7 @@
 package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -34,7 +33,6 @@ import java.util.List;
  * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
  */
 public class CompositeStoppable implements Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
     public static final Stoppable NO_OP_STOPPABLE = new Stoppable() {
         @Override
         public void stop() {
@@ -109,25 +107,28 @@ public class CompositeStoppable implements Stoppable {
 
     @Override
     public synchronized void stop() {
-        Throwable failure = null;
+        List<Throwable> failures = null;
         try {
             for (Stoppable element : elements) {
                 try {
                     element.stop();
                 } catch (Throwable throwable) {
-                    if (failure == null) {
-                        failure = throwable;
-                    } else if (!Thread.currentThread().isInterrupted()) {
-                        LOGGER.error(String.format("Could not stop %s.", element), throwable);
+                    if (failures == null) {
+                        failures = new ArrayList<Throwable>();
                     }
+                    failures.add(throwable);
                 }
             }
         } finally {
             elements.clear();
         }
 
-        if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
+        if (failures != null) {
+            if (failures.size() == 1) {
+                throw UncheckedException.throwAsUncheckedException(failures.get(0));
+            } else {
+                throw new DefaultMultiCauseException("Could not stop all services.", failures);
+            }
         }
     }
 }

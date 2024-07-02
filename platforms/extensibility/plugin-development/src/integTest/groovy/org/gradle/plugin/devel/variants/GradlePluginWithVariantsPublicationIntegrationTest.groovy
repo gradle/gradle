@@ -19,7 +19,7 @@ package org.gradle.plugin.devel.variants
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
@@ -207,9 +207,9 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
-         project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+         root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Plugin com.example:producer:1.0 requires at least Gradle 1000.0. This build uses Gradle $currentGradle.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Upgrade to at least Gradle 1000.0. See the instructions at https://docs.gradle.org/$currentGradle/userguide/upgrading_version_8.html#sub:updating-gradle.")
         failure.assertHasResolution("Downgrade plugin com.example:producer:1.0 to an older version compatible with Gradle $currentGradle.")
     }
@@ -413,7 +413,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         The only attribute distinguishing these variants is 'color'. Add this attribute to the consumer's configuration to resolve the ambiguity:
           - Value: 'green' selects variant: 'alternateRuntimeElements'
           - Value: 'blue' selects variant: 'runtimeElements'""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.name)
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.name)
     }
 
 

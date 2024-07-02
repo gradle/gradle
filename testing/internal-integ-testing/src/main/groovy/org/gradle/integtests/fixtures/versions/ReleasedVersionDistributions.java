@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.versions;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.Factory;
@@ -96,30 +95,15 @@ public class ReleasedVersionDistributions {
 
     public List<GradleDistribution> getSupported() {
         final GradleVersion firstSupported = GradleVersion.version("1.0");
-        return CollectionUtils.filter(getAll(), new Spec<GradleDistribution>() {
-            @Override
-            public boolean isSatisfiedBy(GradleDistribution element) {
-                return element.getVersion().compareTo(firstSupported) >= 0;
-            }
-        });
+        return CollectionUtils.filter(getAll(), element -> element.getVersion().compareTo(firstSupported) >= 0);
     }
 
     public GradleDistribution getDistribution(final GradleVersion gradleVersion) {
-        return findFirst(getAll(), new Spec<GradleDistribution>() {
-            @Override
-            public boolean isSatisfiedBy(GradleDistribution element) {
-                return element.getVersion().equals(gradleVersion);
-            }
-        });
+        return findFirst(getAll(), element -> element.getVersion().equals(gradleVersion));
     }
 
     public GradleDistribution getDistribution(final String gradleVersion) {
-        return findFirst(getAll(), new Spec<GradleDistribution>() {
-            @Override
-            public boolean isSatisfiedBy(GradleDistribution element) {
-                return element.getVersion().getVersion().equals(gradleVersion);
-            }
-        });
+        return findFirst(getAll(), element -> element.getVersion().getVersion().equals(gradleVersion));
     }
 
     public GradleDistribution getPrevious(final GradleVersion gradleVersion) {

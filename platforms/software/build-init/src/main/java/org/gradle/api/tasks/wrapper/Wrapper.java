@@ -33,6 +33,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
@@ -190,6 +191,7 @@ public abstract class Wrapper extends DefaultTask {
      * Returns the file to write the wrapper script to.
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getScriptFile() {
         return getServices().get(FileOperations.class).file(scriptFile);
     }
@@ -214,6 +216,7 @@ public abstract class Wrapper extends DefaultTask {
      * Returns the file to write the wrapper batch script to.
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getBatchScript() {
         return WrapperGenerator.getBatchScript(getScriptFile());
     }
@@ -222,6 +225,7 @@ public abstract class Wrapper extends DefaultTask {
      * Returns the file to write the wrapper jar file to.
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getJarFile() {
         return getServices().get(FileOperations.class).file(jarFile);
     }
@@ -246,6 +250,7 @@ public abstract class Wrapper extends DefaultTask {
      * Returns the file to write the wrapper properties to.
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getPropertiesFile() {
         return WrapperGenerator.getPropertiesFile(getJarFile());
     }
@@ -257,6 +262,7 @@ public abstract class Wrapper extends DefaultTask {
      * @see #setDistributionPath(String)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDistributionPath() {
         return distributionPath;
     }
@@ -292,6 +298,7 @@ public abstract class Wrapper extends DefaultTask {
      * @see #setGradleVersion(String)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getGradleVersion() {
         return gradleVersionResolver.getGradleVersion().getVersion();
     }
@@ -316,6 +323,7 @@ public abstract class Wrapper extends DefaultTask {
      * @see #setDistributionType(DistributionType)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public DistributionType getDistributionType() {
         return distributionType;
     }
@@ -334,6 +342,7 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The list of available gradle distribution types.
      */
+    @ToBeReplacedByLazyProperty(comment = "Not supported yet", issue = "https://github.com/gradle/gradle/issues/29341")
     @OptionValues("distribution-type")
     public List<DistributionType> getAvailableDistributionTypes() {
         return Arrays.asList(DistributionType.values());
@@ -352,6 +361,7 @@ public abstract class Wrapper extends DefaultTask {
      * don't need to provide a download server then.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDistributionUrl() {
         if (distributionUrl != null) {
             return distributionUrl;
@@ -394,6 +404,7 @@ public abstract class Wrapper extends DefaultTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDistributionSha256Sum() {
         return distributionSha256Sum;
     }
@@ -419,6 +430,7 @@ public abstract class Wrapper extends DefaultTask {
      * the gradle user home dir.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public PathBase getDistributionBase() {
         return distributionBase;
     }
@@ -436,6 +448,7 @@ public abstract class Wrapper extends DefaultTask {
      * relative to the archive base directory.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getArchivePath() {
         return archivePath;
     }
@@ -453,6 +466,7 @@ public abstract class Wrapper extends DefaultTask {
      * gradle user home dir.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public PathBase getArchiveBase() {
         return archiveBase;
     }

@@ -73,7 +73,7 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantResolveMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 
     /**
      * Returns the exclusions to apply to this configuration:
@@ -85,8 +85,6 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     boolean isTransitive();
 
     boolean isVisible();
-
-    boolean isCanBeConsumed();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

@@ -8,7 +8,7 @@ description = "Tools for creating secure hashes for files and other content"
 gradlebuildJava.usedInWorkers() // org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
 
     implementation(libs.guava)
     api(libs.jsr305)

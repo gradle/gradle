@@ -118,7 +118,7 @@ public class JavaCompilerArgumentsBuilder {
             }
 
             if ("--release".equals(arg) && spec.getRelease() != null) {
-                throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.");
+                throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.");
             }
         }
     }

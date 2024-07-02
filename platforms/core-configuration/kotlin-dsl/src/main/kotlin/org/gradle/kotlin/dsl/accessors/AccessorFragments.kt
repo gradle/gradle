@@ -67,6 +67,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 }
 
 
+@Suppress("LongMethod")
 private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
@@ -309,7 +310,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    (1..7).forEach { ALOAD(it) }
+                    for (i in 1..7) { ALOAD(i) }
+                    @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
                         "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
@@ -913,6 +915,7 @@ inline fun <reified T> classOf(): KmType =
     classOf(T::class.java)
 
 
+@Suppress("FunctionParameterNaming")
 private
 fun classOf(`class`: Class<*>) =
     classOf(`class`.internalName)

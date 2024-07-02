@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFinishEvent
@@ -388,9 +387,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         when:
         withConnection { connection ->
-            TestLauncher launcher = connection.newTestLauncher().withTests(descriptor)
-            collectOutputs(launcher)
-            launcher.run()
+            connection.newTestLauncher().withTests(descriptor).run()
         }
 
         then:
@@ -428,9 +425,9 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         when:
         withConnection { connection ->
-            def testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
-            testLauncher.withTaskAndTestClasses(":other-build:sub:test", ["MyIncludedTest"]).run()
+            connection.newTestLauncher()
+                .withTaskAndTestClasses(":other-build:sub:test", ["MyIncludedTest"])
+                .run()
         }
 
         then:
@@ -439,9 +436,9 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
     private void executeTaskViaTAPI(String... tasks) {
         withConnection { connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.forTasks(tasks).run()
+            connection.newBuild()
+                .forTasks(tasks)
+                .run()
         }
     }
 
@@ -450,9 +447,10 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             def gradleProjects = connection.action(new LoadCompositeModel(GradleProject)).run()
             def launchables = findLaunchables(gradleProjects, taskName)
             assert launchables.size == 1
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.forLaunchables(launchables[0]).run()
+
+            connection.newBuild()
+                .forLaunchables(launchables[0])
+                .run()
         }
     }
 
@@ -471,9 +469,10 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             Collection<BuildInvocations> buildInvocations = connection.action(new LoadCompositeModel(BuildInvocations)).run()
             def tasks = buildInvocations.collect { it.tasks }.flatten().findAll { it.path.contains(taskName) }
             assert tasks.size == 1
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.forLaunchables(tasks[0]).run()
+
+            connection.newBuild()
+                .forLaunchables(tasks[0])
+                .run()
         }
     }
 

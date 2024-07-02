@@ -31,6 +31,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
@@ -270,6 +271,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isPreserveFileTimestamps() {
         return archivePreserveFileTimestamps.get();
     }
@@ -299,6 +301,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isReproducibleFileOrder() {
         return archiveReproducibleFileOrder.get();
     }

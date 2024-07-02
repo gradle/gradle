@@ -131,6 +131,7 @@ object ResolutionTracerTest {
 
     class TopLevelReceiver {
         @Adding
+        @Suppress("FunctionOnlyReturningConstant")
         fun f(@Suppress("UNUSED_PARAMETER") x: Int) = 0
 
         @get:Restricted

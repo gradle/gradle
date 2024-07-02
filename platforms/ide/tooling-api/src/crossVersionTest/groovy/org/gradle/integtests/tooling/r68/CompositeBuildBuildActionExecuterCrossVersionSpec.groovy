@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 @TargetGradleVersion('>=6.8')
@@ -40,11 +39,10 @@ class CompositeBuildBuildActionExecuterCrossVersionSpec extends ToolingApiSpecif
         """
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            def buildAction = connection.action(new LoadCompositeModel(GradleProject))
-            collectOutputs(buildAction)
-            buildAction.forTasks([':other-build:sub:doSomething'])
-            buildAction.run()
+        toolingApi.withConnection { connection ->
+            connection.action(new LoadCompositeModel(GradleProject))
+                .forTasks([':other-build:sub:doSomething'])
+                .run()
         }
 
         then:

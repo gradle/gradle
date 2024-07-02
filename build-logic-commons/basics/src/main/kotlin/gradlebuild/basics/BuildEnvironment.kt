@@ -38,7 +38,7 @@ fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.ex
     val parent = dir("..")
     when {
         parent.file("version.txt").asFile.exists() -> parent
-        this == parent -> throw IllegalStateException("Cannot find 'version.txt' file in root of repository")
+        this == parent -> error("Cannot find 'version.txt' file in root of repository")
         else -> parent.parentOrRoot()
     }
 }

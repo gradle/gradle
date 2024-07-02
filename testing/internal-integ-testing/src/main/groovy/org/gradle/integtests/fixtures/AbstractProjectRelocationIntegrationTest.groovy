@@ -24,13 +24,13 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
 
     def "project is relocatable"() {
         def originalDir = file("original-dir")
-        def originalJavaHome = Jvm.current().javaHome
+        def originalJvm = Jvm.current()
         originalDir.file("settings.gradle") << localCacheConfiguration()
         setupProjectIn(originalDir)
 
         def relocatedDir = file("relocated-dir")
         def relocatedJavaHome = file("relocated-java-home")
-        relocatedJavaHome.copyFrom(originalJavaHome)
+        relocatedJavaHome.copyFrom(originalJvm.javaHome)
         relocatedDir.file("settings.gradle") << localCacheConfiguration()
         setupProjectIn(relocatedDir)
 
@@ -39,7 +39,7 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
 
         when: "task is built in the original location"
         inDirectory(originalDir)
-        executer.withJavaHome(originalJavaHome)
+        executer.withJvm(originalJvm)
         withBuildCache().run taskName
         def originalResults = extractResultsFrom(originalDir)
         then: "it is executed and cached"
@@ -54,7 +54,7 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
         when: "it is executed in the new location"
         prepareForRelocation(relocatedDir)
         inDirectory(relocatedDir)
-        executer.withJavaHome(relocatedJavaHome)
+        executer.withJavaHome(relocatedJavaHome.absolutePath)
         withBuildCache().run taskName
         then: "it is loaded from cache"
         result.assertTaskSkipped taskName

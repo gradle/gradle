@@ -24,7 +24,7 @@ class GradleBuildUnitTestConfigurationCacheSmokeTest extends AbstractGradleBuild
         given:
         def supportedTasks = [
             ":tooling-api:publishLocalPublicationToLocalRepository",
-            ":java-language-extensions:test", "--tests=org.gradle.api.JavaVersionSpec"
+            ":stdlib-java-extensions:test", "--tests=org.gradle.api.JavaVersionSpec"
         ]
 
         when:

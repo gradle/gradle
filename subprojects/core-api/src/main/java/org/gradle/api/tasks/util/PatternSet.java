@@ -26,6 +26,7 @@ import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.IntersectionPatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.util.internal.CollectionUtils;
@@ -38,6 +39,7 @@ import java.util.Set;
 /**
  * Standalone implementation of {@link PatternFilterable}.
  */
+@NotToBeMigratedToLazy
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();

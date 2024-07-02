@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.server.health.gc;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.time.Time;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -50,12 +49,8 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
     }
 
     private void pollForValues() {
-        GarbageCollectorMXBean garbageCollectorMXBean = CollectionUtils.findFirst(ManagementFactory.getGarbageCollectorMXBeans(), new Spec<GarbageCollectorMXBean>() {
-            @Override
-            public boolean isSatisfiedBy(GarbageCollectorMXBean element) {
-                return element.getName().equals(gcStrategy.getGarbageCollectorName());
-            }
-        });
+        GarbageCollectorMXBean garbageCollectorMXBean = CollectionUtils.findFirst(ManagementFactory.getGarbageCollectorMXBeans(),
+            gcBean -> gcBean.getName().equals(gcStrategy.getGarbageCollectorName()));
         ScheduledFuture<?> ignored = pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(Time.clock(), garbageCollectorMXBean, gcStrategy.getHeapPoolName(), heapEvents, gcStrategy.getNonHeapPoolName(), nonHeapEvents), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 

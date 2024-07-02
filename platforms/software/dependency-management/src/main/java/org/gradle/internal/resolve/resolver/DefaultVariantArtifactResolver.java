@@ -33,7 +33,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.component.model.VariantWithOverloadAttributes;
 
 import javax.annotation.Nullable;
 
@@ -67,19 +66,19 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     }
 
     @Override
-    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant) {
-        return toResolvedVariant(component, variant, variant.getIdentifier(), variant.getArtifacts());
+    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant) {
+        return toResolvedVariant(component, artifactVariant, artifactVariant.getIdentifier(), artifactVariant.getArtifacts());
     }
 
     @Override
-    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant, ExcludeSpec exclusions) {
-        ImmutableList<? extends ComponentArtifactMetadata> sourceArtifacts = variant.getArtifacts();
+    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant, ExcludeSpec exclusions) {
+        ImmutableList<? extends ComponentArtifactMetadata> sourceArtifacts = artifactVariant.getArtifacts();
         ImmutableList<ComponentArtifactMetadata> overrideArtifacts = maybeExcludeArtifacts(component, sourceArtifacts, exclusions);
         if (overrideArtifacts != null) {
             // If we override artifacts, this is an adhoc variant, therefore it has no identifier.
-            return toResolvedVariant(component, variant, null, overrideArtifacts);
+            return toResolvedVariant(component, artifactVariant, null, overrideArtifacts);
         } else {
-            return toResolvedVariant(component, variant, variant.getIdentifier(), sourceArtifacts);
+            return toResolvedVariant(component, artifactVariant, artifactVariant.getIdentifier(), sourceArtifacts);
         }
     }
 
@@ -107,15 +106,15 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
     private ResolvedVariant toResolvedVariant(
         ComponentArtifactResolveMetadata component,
-        VariantResolveMetadata variant,
+        VariantResolveMetadata artifactVariant,
         @Nullable VariantResolveMetadata.Identifier identifier,
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant.getAttributes(), artifacts);
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
 
-        if (identifier == null || !variant.isEligibleForCaching()) {
-            DisplayName displayName = variant.asDescribable();
-            ImmutableCapabilities capabilities = withImplicitCapability(variant.getCapabilities(), component);
+        if (identifier == null || !artifactVariant.isEligibleForCaching()) {
+            DisplayName displayName = artifactVariant.asDescribable();
+            ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
             return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, artifacts, new DefaultComponentArtifactResolver(component, artifactResolver));
         } else {
             // This is a bit of a hack because we allow the artifactType registry to be different in every resolution scope.
@@ -124,8 +123,8 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             // It might be better to tighten this up by either requiring a single artifactType registry for the entire build or eliminating this feature
             // entirely.
             return resolvedVariantCache.computeIfAbsent(new VariantWithOverloadAttributes(identifier, attributes), id -> {
-                DisplayName displayName = variant.asDescribable();
-                ImmutableCapabilities capabilities = withImplicitCapability(variant.getCapabilities(), component);
+                DisplayName displayName = artifactVariant.asDescribable();
+                ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
                 return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, artifacts, new DefaultComponentArtifactResolver(component, artifactResolver));
             });
         }
@@ -140,6 +139,9 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         }
     }
 
+    /**
+     * Identifier for adhoc variants with a single artifact
+     */
     private static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
         private final ComponentArtifactIdentifier artifactIdentifier;
 
@@ -162,6 +164,45 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             }
             SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
             return artifactIdentifier.equals(other.artifactIdentifier);
+        }
+    }
+
+    /**
+     * A cache key for the resolved variant cache that includes the attributes of the variant.
+     * The attributes are necessary here, as the artifact type registry in each consuming
+     * project may be different, resulting in a different computed attributes set for any
+     * given producer variant.
+     */
+    public static class VariantWithOverloadAttributes implements ResolvedVariantCache.CacheKey {
+        private final VariantResolveMetadata.Identifier variantIdentifier;
+        private final ImmutableAttributes targetVariant;
+        private final int hashCode;
+
+        public VariantWithOverloadAttributes(VariantResolveMetadata.Identifier variantIdentifier, ImmutableAttributes targetVariant) {
+            this.variantIdentifier = variantIdentifier;
+            this.targetVariant = targetVariant;
+            this.hashCode = computeHashCode();
+        }
+
+        private int computeHashCode() {
+            return variantIdentifier.hashCode() ^ targetVariant.hashCode();
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            VariantWithOverloadAttributes other = (VariantWithOverloadAttributes) obj;
+            return variantIdentifier.equals(other.variantIdentifier) && targetVariant.equals(other.targetVariant);
         }
     }
 }

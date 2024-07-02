@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

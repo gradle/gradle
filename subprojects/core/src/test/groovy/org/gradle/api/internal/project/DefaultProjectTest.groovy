@@ -38,9 +38,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.artifacts.Module
-import org.gradle.api.internal.artifacts.ProjectBackedModule
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
@@ -142,7 +139,6 @@ class DefaultProjectTest extends Specification {
     DependencyFactory dependencyFactoryMock = Stub(DependencyFactory)
     ComponentMetadataHandler moduleHandlerMock = Stub(ComponentMetadataHandler)
     ScriptHandlerInternal scriptHandlerMock = Mock(ScriptHandlerInternal)
-    DependencyMetaDataProvider dependencyMetaDataProviderMock = Stub(DependencyMetaDataProvider)
     GradleInternal build = Stub(GradleInternal)
     ConfigurationTargetIdentifier configurationTargetIdentifier = Stub(ConfigurationTargetIdentifier)
     FileOperations fileOperationsMock = Stub(FileOperations)
@@ -206,7 +202,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
-        serviceRegistryMock.get(DependencyMetaDataProvider) >> dependencyMetaDataProviderMock
         serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
         serviceRegistryMock.get(CollectionCallbackActionDecorator) >> Stub(CollectionCallbackActionDecorator)
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
@@ -749,7 +744,6 @@ def scriptMethod(Closure closure) {
 
     def properties() {
         given:
-        dependencyMetaDataProviderMock.getModule() >> Stub(Module)
         serviceRegistryMock.get(ServiceRegistryFactory) >> Stub(ServiceRegistryFactory)
 
         when:
@@ -908,14 +902,6 @@ def scriptMethod(Closure closure) {
         then:
         def e = thrown(GroovyRuntimeException)
         e.message == "Cannot set the value of read-only property 'name' for root project 'root' of type ${Project.name}."
-    }
-
-    def getModule() {
-        when:
-        Module moduleDummyResolve = new ProjectBackedModule(project)
-        dependencyMetaDataProviderMock.module >> moduleDummyResolve
-        then:
-        project.dependencyMetaDataProvider.module == moduleDummyResolve
     }
 
     def convertsAbsolutePathToAbsolutePath() {

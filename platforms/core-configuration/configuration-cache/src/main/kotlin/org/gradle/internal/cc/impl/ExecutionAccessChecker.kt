@@ -41,5 +41,5 @@ class ConfigurationTimeBarrierBasedExecutionAccessChecker(
 internal
 class DefaultExecutionAccessChecker : ExecutionAccessChecker {
 
-    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {}
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) = Unit
 }

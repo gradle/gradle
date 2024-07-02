@@ -31,7 +31,7 @@ val JApiCompatibility.jApiClass: JApiClass
         is JApiClass -> this
         is JApiField -> this.getjApiClass()
         is JApiBehavior -> this.getjApiClass()
-        else -> throw IllegalStateException("Unsupported japicmp member type '${this::class}'")
+        else -> error("Unsupported japicmp member type '${this::class}'")
     }
 
 

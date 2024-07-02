@@ -34,6 +34,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
@@ -150,6 +151,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getOptsEnvironmentVar() {
         if (GUtil.isTrue(optsEnvironmentVar)) {
             return optsEnvironmentVar;
@@ -168,6 +170,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExitEnvironmentVar() {
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
@@ -184,6 +187,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getUnixScript() {
         return new File(getOutputDir(), getApplicationName());
     }
@@ -192,6 +196,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getWindowsScript() {
         return new File(getOutputDir(), getApplicationName() + ".bat");
     }
@@ -201,6 +206,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      */
     @OutputDirectory
     @Nullable
+    @ToBeReplacedByLazyProperty
     public File getOutputDir() {
         return outputDir;
     }
@@ -214,6 +220,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * @since 4.5
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExecutableDir() {
         return executableDir;
     }
@@ -282,6 +289,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public Iterable<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
     }
@@ -295,6 +303,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      */
     @Nullable
     @Input
+    @ToBeReplacedByLazyProperty
     public String getApplicationName() {
         return applicationName;
     }
@@ -317,6 +326,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nullable
     @Classpath
     @Optional
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -341,6 +351,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
     @Internal
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public ScriptGenerator getUnixStartScriptGenerator() {
         return unixStartScriptGenerator;
     }
@@ -355,6 +366,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
     @Internal
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public ScriptGenerator getWindowsStartScriptGenerator() {
         return windowsStartScriptGenerator;
     }
@@ -399,6 +411,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     protected Iterable<String> getRelativeClasspath() {
         //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
         //serializing Iterators directly

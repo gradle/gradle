@@ -138,6 +138,7 @@ import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.state.ManagedFactoryRegistry
 
 
+@Suppress("LongParameterList")
 internal
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,

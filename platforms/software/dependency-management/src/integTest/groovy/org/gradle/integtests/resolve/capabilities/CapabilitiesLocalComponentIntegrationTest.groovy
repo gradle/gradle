@@ -75,7 +75,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds 'dependencyInsight', '--configuration', 'compileClasspath', '--dependency', ':'
 
         then:
-        outputContains("Could not resolve project :.")
+        outputContains("Could not resolve root project :.")
     }
 
     def "can lazily define and request capability"() {
@@ -185,4 +185,3 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds("resolve")
     }
 }
-

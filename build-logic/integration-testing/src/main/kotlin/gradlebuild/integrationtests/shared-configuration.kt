@@ -87,6 +87,7 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
+            "${prefix}TestImplementation"(project)
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
@@ -99,15 +100,13 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 }
 
 
+@Suppress("UnusedPrivateProperty")
 internal
 fun Project.addSourceSet(testType: TestType): SourceSet {
     val prefix = testType.prefix
     val sourceSets = the<SourceSetContainer>()
     val main by sourceSets.getting
-    return sourceSets.create("${prefix}Test") {
-        compileClasspath += main.output
-        runtimeClasspath += main.output
-    }
+    return sourceSets.create("${prefix}Test")
 }
 
 

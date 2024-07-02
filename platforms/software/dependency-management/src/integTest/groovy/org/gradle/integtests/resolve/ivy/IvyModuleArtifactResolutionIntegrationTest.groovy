@@ -85,7 +85,7 @@ repositories {
 
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
-               .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (project :)."))
+               .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (root project :)."))
                .expectNoMetadataFiles()
                .createVerifyTaskForProjectComponentIdentifier()
 

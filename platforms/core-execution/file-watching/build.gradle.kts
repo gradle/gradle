@@ -5,34 +5,34 @@ plugins {
 description = "File system watchers for keeping the VFS up-to-date"
 
 dependencies {
-    api(project(":snapshots"))
-    api(project(":build-operations"))
-    api(project(":files"))
-    api(projects.javaLanguageExtensions)
+    api(projects.snapshots)
+    api(projects.buildOperations)
+    api(projects.files)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.jsr305)
     api(libs.nativePlatform)
     api(libs.nativePlatformFileEvents)
     api(libs.slf4jApi)
-    implementation(project(":functional"))
+    implementation(projects.functional)
 
     implementation(libs.guava)
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":persistent-cache"))
-    testImplementation(project(":build-option"))
-    testImplementation(project(":enterprise-operations"))
-    testImplementation(testFixtures(project(":build-operations")))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":file-collections")))
-    testImplementation(testFixtures(project(":tooling-api")))
-    testImplementation(testFixtures(project(":launcher")))
-    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(projects.processServices)
+    testImplementation(projects.resources)
+    testImplementation(projects.persistentCache)
+    testImplementation(projects.buildOption)
+    testImplementation(projects.enterpriseOperations)
+    testImplementation(testFixtures(projects.buildOperations))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.fileCollections))
+    testImplementation(testFixtures(projects.toolingApi))
+    testImplementation(testFixtures(projects.launcher))
+    testImplementation(testFixtures(projects.snapshots))
 
     testImplementation(libs.commonsIo)
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
 }

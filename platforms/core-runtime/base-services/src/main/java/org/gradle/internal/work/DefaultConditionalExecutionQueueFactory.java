@@ -17,7 +17,6 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.WorkerLimits;
 
 public class DefaultConditionalExecutionQueueFactory implements ConditionalExecutionQueueFactory {
     private final WorkerLimits workerLimits;

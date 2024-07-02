@@ -39,6 +39,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -138,6 +139,7 @@ public abstract class Groovydoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -148,6 +150,7 @@ public abstract class Groovydoc extends SourceTask {
      * @return The directory to generate the documentation into
      */
     @OutputDirectory
+    @ToBeReplacedByLazyProperty
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -165,6 +168,7 @@ public abstract class Groovydoc extends SourceTask {
      * @return The classpath containing the Groovy library to be used
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
@@ -182,6 +186,7 @@ public abstract class Groovydoc extends SourceTask {
      * @return The classpath used to locate classes referenced by the documented sources
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -194,6 +199,7 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public AntGroovydoc getAntGroovydoc() {
         if (antGroovydoc == null) {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
@@ -211,6 +217,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to create class and package usage pages.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isUse() {
         return use;
     }
@@ -226,6 +233,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoTimestamp() {
         return noTimestamp;
     }
@@ -241,6 +249,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoVersionStamp() {
         return noVersionStamp;
     }
@@ -258,6 +267,7 @@ public abstract class Groovydoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -277,6 +287,7 @@ public abstract class Groovydoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDocTitle() {
         return docTitle;
     }
@@ -296,6 +307,7 @@ public abstract class Groovydoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getHeader() {
         return header;
     }
@@ -315,6 +327,7 @@ public abstract class Groovydoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getFooter() {
         return footer;
     }
@@ -396,6 +409,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the links to groovydoc/javadoc output at the given URL.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<Link> getLinks() {
         return Collections.unmodifiableSet(links);
     }

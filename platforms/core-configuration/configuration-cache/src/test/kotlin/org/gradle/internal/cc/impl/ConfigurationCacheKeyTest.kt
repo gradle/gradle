@@ -24,6 +24,7 @@ import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

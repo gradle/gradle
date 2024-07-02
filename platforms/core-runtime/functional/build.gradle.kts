@@ -8,6 +8,6 @@ description = "Tools to work with functional code, including data structures"
 dependencies {
     api(libs.jsr305)
 
-    implementation(projects.javaLanguageExtensions)
+    implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
 }

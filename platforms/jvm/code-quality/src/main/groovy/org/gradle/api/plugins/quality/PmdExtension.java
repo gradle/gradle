@@ -22,6 +22,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -65,6 +66,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
      */
+    @ToBeReplacedByLazyProperty
     public List<String> getRuleSets() {
         return ruleSets.get();
     }
@@ -96,6 +98,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
     /**
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
+    @ToBeReplacedByLazyProperty
     public TargetJdk getTargetJdk() {
         return targetJdk;
     }
@@ -159,6 +162,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -185,6 +189,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
      * </pre>
      */
+    @ToBeReplacedByLazyProperty
     public FileCollection getRuleSetFiles() {
         return ruleSetFiles;
     }
@@ -217,6 +222,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
+    @ToBeReplacedByLazyProperty
     public boolean isConsoleOutput() {
         return consoleOutput;
     }

@@ -38,6 +38,7 @@ object JavaRecordCodec : EncodingProducer, Decoding {
         // need to check by name because it's only present in Java 14+
         JavaRecordEncoding.takeIf { type.superclass?.canonicalName == "java.lang.Record" }
 
+    @Suppress("SpreadOperator")
     override suspend fun ReadContext.decode(): Any? {
         val clazz = readClass()
         val fields = clazz.relevantFields

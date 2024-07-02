@@ -27,7 +27,7 @@ sealed interface DataStatement : LanguageTreeElement, BlockElement
 
 data class ErroneousStatement(val failingResult: FailingResult) : BlockElement {
     override val sourceData: SourceData
-        get() = error("Use failing result for source data")
+        get() = error("use failing result for source data")
 }
 
 

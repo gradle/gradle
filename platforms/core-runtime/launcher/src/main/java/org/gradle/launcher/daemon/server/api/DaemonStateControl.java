@@ -40,7 +40,7 @@ public interface DaemonStateControl {
      *
      * @return The current state of the daemon
      */
-    State getState();
+    DaemonState getState();
 
     /**
      * Requests that a running build be canceled.  Note that this method does NOT block until the operation has been cancelled.
@@ -74,6 +74,4 @@ public interface DaemonStateControl {
      * The caller should note that the command may still be running at the time the method returns but should consider the command as abandoned.
      */
     void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException, DaemonStoppedException;
-
-    enum State {Idle, Busy, Canceled, StopRequested, Stopped, ForceStopped, Broken}
 }

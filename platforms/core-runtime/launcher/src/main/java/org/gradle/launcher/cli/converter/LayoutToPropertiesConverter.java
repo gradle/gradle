@@ -18,7 +18,6 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -28,11 +27,11 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
-import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
+import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -110,12 +109,8 @@ public class LayoutToPropertiesConverter {
         Properties properties = readProperties(propertiesFile);
         for (final Object key : properties.keySet()) {
             String keyAsString = key.toString();
-            BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
-                @Override
-                public boolean isSatisfiedBy(BuildOption<?> option) {
-                    return keyAsString.equals(option.getProperty()) || keyAsString.equals(option.getDeprecatedProperty());
-                }
-            });
+            BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions,
+                option -> keyAsString.equals(option.getProperty()) || keyAsString.equals(option.getDeprecatedProperty()));
 
             if (validOption != null) {
                 result.put(key.toString(), properties.get(key).toString());

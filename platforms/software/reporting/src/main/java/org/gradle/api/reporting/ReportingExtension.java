@@ -22,6 +22,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -71,6 +72,7 @@ public abstract class ReportingExtension {
      *
      * @return The base directory for all reports
      */
+    @ToBeReplacedByLazyProperty
     public File getBaseDir() {
         return baseDirectory.getAsFile().get();
     }
@@ -124,6 +126,7 @@ public abstract class ReportingExtension {
         return this.project.getServices().get(FileLookup.class).getFileResolver(getBaseDir()).resolve(path);
     }
 
+    @ToBeReplacedByLazyProperty
     // TODO this doesn't belong here, that java plugin should add an extension to this guy with this
     public String getApiDocTitle() {
         Object version = project.getVersion();

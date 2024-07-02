@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r51
 
-import org.gradle.api.Action
+
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ScriptPluginIdentifier
@@ -453,14 +452,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
     }
 
-    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION), Action<BuildLauncher> config = {}) {
-        withConnection {
-            def launcher = newBuild()
+    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION)) {
+        withConnection { connection ->
+            connection.newBuild()
                 .forTasks(task)
                 .addProgressListener(events, operationTypes)
-            collectOutputs(launcher)
-            config.execute(launcher)
-            launcher.run()
+                .run()
         }
     }
 

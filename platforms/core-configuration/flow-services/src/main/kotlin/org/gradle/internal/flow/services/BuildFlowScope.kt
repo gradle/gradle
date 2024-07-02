@@ -57,9 +57,9 @@ open class BuildFlowScope @Inject internal constructor(
         }
 
         protected
-        fun illegalState(): Nothing = throw IllegalStateException("This operation is not supported while in the ${javaClass.simpleName} state.")
+        fun illegalState(): Nothing = error("This operation is not supported while in the ${javaClass.simpleName} state.")
 
-        class Initial() : State() {
+        class Initial : State() {
 
             private
             val actions = mutableListOf<RegisteredFlowAction>()

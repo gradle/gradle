@@ -22,7 +22,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.DefaultLease;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -34,8 +33,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockContainer;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.TaskExecutionLockRegistry;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.Path;
@@ -55,7 +52,6 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 
-@ServiceScope(Scope.CrossBuildSession.class)
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectParallelExecutionController, Stoppable {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);

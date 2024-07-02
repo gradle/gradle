@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 
@@ -50,6 +51,7 @@ public class DebugOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDebugLevel() {
         return debugLevel;
     }

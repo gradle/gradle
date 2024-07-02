@@ -212,7 +212,6 @@ Method <org.gradle.api.publish.ivy.IvyPublication.getRevision()> does not have r
 Method <org.gradle.api.publish.maven.MavenArtifact.getClassifier()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenArtifact.java:0)
 Method <org.gradle.api.publish.maven.MavenArtifact.getExtension()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenArtifact.java:0)
 Method <org.gradle.api.publish.maven.MavenPom.getPackaging()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPom.java:0)
-Method <org.gradle.api.publish.maven.MavenPom.issueManagement(org.gradle.api.Action)> does not have raw return type assignable to org.gradle.api.provider.Provider in (MavenPom.java:0)
 Method <org.gradle.api.publish.maven.MavenPublication.getArtifactId()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPublication.java:0)
 Method <org.gradle.api.publish.maven.MavenPublication.getArtifacts()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPublication.java:0)
 Method <org.gradle.api.publish.maven.MavenPublication.getGroupId()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPublication.java:0)

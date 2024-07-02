@@ -5,22 +5,23 @@ plugins {
 description = "Provides high-level insights into a Gradle build (--profile)"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.time)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":enterprise-logging"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.enterpriseLogging)
 
-    implementation(project(":logging"))
-    implementation(project(":logging-api"))
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
 
-    testImplementation(project(":internal-testing"))
+    testImplementation(projects.internalTesting)
 
     integTestImplementation(libs.jsoup)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

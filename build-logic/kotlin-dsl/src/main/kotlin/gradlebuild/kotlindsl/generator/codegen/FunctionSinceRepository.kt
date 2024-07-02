@@ -55,8 +55,7 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
 
         val javaFunction = parsedJavaFunctionOf(functionSignature)
 
-        val matchingType = builder.sources
-            .flatMap { it.classes }
+        val matchingType = builder.allSourceClasses
             .singleOrNull { javaFunction.typeName == it.binaryName }
             ?: throw IllegalArgumentException("Class for function '$functionSignature' not found in since repository! See FunctionSinceRepository.kt")
 
@@ -67,6 +66,12 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
 
         return matchingFunction.since ?: matchingType.since
     }
+
+    private
+    val JavaProjectBuilder.allSourceClasses
+        get() = sources.asSequence()
+            .flatMap { it.classes }
+            .flatMap { sequenceOf(it) + it.nestedClasses }
 
     private
     fun parsedJavaFunctionOf(functionSignature: String): JavaFunction<JavaClass> =

@@ -15,15 +15,19 @@
  */
 package org.gradle.plugins.signing.type;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 /**
  * Provider of {@link SignatureType}.
  */
 public interface SignatureTypeProvider {
 
+    @ToBeReplacedByLazyProperty
     SignatureType getDefaultType();
 
     void setDefaultType(String extension);
 
+    @ToBeReplacedByLazyProperty
     SignatureType getTypeForExtension(String extension);
 
     boolean hasTypeForExtension(String extension);

@@ -33,6 +33,7 @@ object KotlinDslAssignment {
             .nagUser()
     }
 
+    @Suppress("FunctionOnlyReturningConstant")
     fun isAssignmentOverloadEnabled(): Boolean {
         return true
     }

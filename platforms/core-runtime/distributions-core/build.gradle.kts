@@ -5,41 +5,41 @@ plugins {
 description = "The collector project for the 'core' portion of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(project(":plugin-use")) {
+    pluginsRuntimeOnly(projects.pluginUse) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    pluginsRuntimeOnly(project(":dependency-management")) {
+    pluginsRuntimeOnly(projects.dependencyManagement) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    pluginsRuntimeOnly(project(":workers")) {
+    pluginsRuntimeOnly(projects.workers) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    pluginsRuntimeOnly(project(":composite-builds")) {
+    pluginsRuntimeOnly(projects.compositeBuilds) {
         because("We always need a BuildStateRegistry service implementation for certain code in ':core' to work.")
     }
-    pluginsRuntimeOnly(project(":tooling-api-builders")) {
+    pluginsRuntimeOnly(projects.toolingApiBuilders) {
         because("We always need a BuildEventListenerFactory service implementation for ':launcher' to create global services.")
     }
-    pluginsRuntimeOnly(project(":version-control")) {
+    pluginsRuntimeOnly(projects.versionControl) {
         because("We always need a VcsMappingsStore service implementation to create 'ConfigurationContainer' in ':dependency-management'.")
     }
-    pluginsRuntimeOnly(project(":configuration-cache")) {
+    pluginsRuntimeOnly(projects.configurationCache) {
         because("We always need a BuildLogicTransformStrategy service implementation.")
     }
-    pluginsRuntimeOnly(project(":testing-junit-platform")) {
+    pluginsRuntimeOnly(projects.testingJunitPlatform) {
         because("All test workers have JUnit platform on their classpath (see ForkingTestClassProcessor.getTestWorkerImplementationClasspath).")
     }
-    pluginsRuntimeOnly(project(":kotlin-dsl-provider-plugins")) {
+    pluginsRuntimeOnly(projects.kotlinDslProviderPlugins) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
     }
-    pluginsRuntimeOnly(project(":instrumentation-declarations")) {
+    pluginsRuntimeOnly(projects.instrumentationDeclarations) {
         because("Property upgrades for core plugins reference types on plugin classpath and that is why interceptors need to be loaded from plugins' classpath.")
     }
-    pluginsRuntimeOnly(project(":unit-test-fixtures")) {
+    pluginsRuntimeOnly(projects.unitTestFixtures) {
         because("This is required for gradleApi()")
     }
 }

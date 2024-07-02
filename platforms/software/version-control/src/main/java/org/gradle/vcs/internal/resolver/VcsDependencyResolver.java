@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.specs.Spec;
 import org.gradle.initialization.definition.DefaultInjectedPluginDependency;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
@@ -111,13 +110,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(buildDefinition);
 
                 Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
-                Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {
-                    @Override
-                    public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
-                        ModuleVersionIdentifier possibleMatch = entry.left;
-                        return depSelector.getGroup().equals(possibleMatch.getGroup())
-                            && depSelector.getModule().equals(possibleMatch.getName());
-                    }
+                Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, e -> {
+                    ModuleVersionIdentifier possibleMatch = e.left;
+                    return depSelector.getGroup().equals(possibleMatch.getGroup())
+                        && depSelector.getModule().equals(possibleMatch.getName());
                 });
                 if (entry == null) {
                     result.failed(new ModuleVersionResolveException(depSelector, () -> spec.getDisplayName() + " did not contain a project publishing the specified dependency."));

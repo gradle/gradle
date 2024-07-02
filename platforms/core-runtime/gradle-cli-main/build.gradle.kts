@@ -20,7 +20,7 @@ plugins {
     id("gradlebuild.start-scripts")
 }
 
-description = "Java 6-compatible entry point of the `gradle` command. Boostraps the Gradle client implementation in :launcher."
+description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
 gradlebuildJava.usedForStartup()
 
@@ -29,13 +29,14 @@ app {
 }
 
 dependencies {
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":build-process-services"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.buildProcessServices)
 
-    manifestClasspath(projects.javaLanguageExtensions)
-    manifestClasspath(project(":build-process-services"))
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":concurrent"))
+    manifestClasspath(projects.stdlibJavaExtensions)
+    manifestClasspath(projects.buildProcessServices)
+    manifestClasspath(projects.baseServices)
+    manifestClasspath(projects.concurrent)
+    manifestClasspath(projects.serviceLookup)
 
-    agentsClasspath(project(":instrumentation-agent"))
+    agentsClasspath(projects.instrumentationAgent)
 }

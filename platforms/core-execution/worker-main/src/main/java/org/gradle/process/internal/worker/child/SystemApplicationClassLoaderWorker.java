@@ -32,10 +32,12 @@ import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
@@ -84,7 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerConfig config = new WorkerConfigSerializer().read(new InputStreamBackedDecoder(configInputStream));
 
         // Read logging config and setup logging
-        LoggingServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
+        ServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(config.getLogLevel());
 
         // When not explicitly set, use the value from system properties
@@ -95,12 +97,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Configure services
         File gradleUserHomeDir = new File(config.getGradleUserHomeDirPath());
         NativeServices.initializeOnWorker(gradleUserHomeDir, nativeServicesMode);
-        DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
-        basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
-        basicWorkerServices.addProvider(new MessagingServices());
-        final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
-        WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener();
-        workerServices.add(WorkerLogEventListener.class, workerLogEventListener);
+        ServiceRegistry basicWorkerServices = createBasicWorkerServices(NativeServices.getInstance(), loggingServiceRegistry);
+        ServiceRegistry workerServices = WorkerServices.create(basicWorkerServices, gradleUserHomeDir);
+        WorkerLogEventListener workerLogEventListener = workerServices.get(WorkerLogEventListener.class);
 
         File workingDirectory = workerServices.get(WorkerDirectoryProvider.class).getWorkingDirectory();
         File errorLog = getLastResortErrorLogFile(workingDirectory);
@@ -168,10 +167,10 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         loggingManager.addOutputEventListener(workerLogEventListener);
     }
 
-    private void configureWorkerJvmMemoryInfoEvents(WorkerServices services, ObjectConnection connection) {
+    private void configureWorkerJvmMemoryInfoEvents(ServiceRegistry workerServices, ObjectConnection connection) {
         connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
         final WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol = connection.addOutgoing(WorkerJvmMemoryInfoProtocol.class);
-        services.get(MemoryManager.class).addListener(new JvmMemoryStatusListener() {
+        workerServices.get(MemoryManager.class).addListener(new JvmMemoryStatusListener() {
             @Override
             public void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
                 workerJvmMemoryInfoProtocol.sendJvmMemoryStatus(jvmMemoryStatus);
@@ -179,26 +178,51 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         });
     }
 
-    LoggingManagerInternal createLoggingManager(LoggingServiceRegistry loggingServiceRegistry) {
+    LoggingManagerInternal createLoggingManager(ServiceRegistry loggingServiceRegistry) {
         LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;
     }
 
-    private static class WorkerServices extends DefaultServiceRegistry {
-        public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
-            super(parent);
-            addProvider(new ServiceRegistrationProvider() {
-                @Provides
-                GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
-                    return new GradleUserHomeDirProvider() {
-                        @Override
-                        public File getGradleUserHomeDirectory() {
-                            return gradleUserHomeDir;
-                        }
-                    };
+    private static ServiceRegistry createBasicWorkerServices(ServiceRegistry nativeServices, ServiceRegistry loggingServiceRegistry) {
+        return ServiceRegistryBuilder.builder()
+            .displayName("basic worker services")
+            .parent(nativeServices)
+            .parent(loggingServiceRegistry)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                void configure(ServiceRegistration registration) {
+                    registration.add(ExecutorFactory.class, new DefaultExecutorFactory());
                 }
-            });
+            })
+            .provider(new MessagingServices())
+            .build();
+    }
+
+    private static class WorkerServices implements ServiceRegistrationProvider {
+
+        public static CloseableServiceRegistry create(ServiceRegistry parent, File gradleUserHomeDir) {
+            return ServiceRegistryBuilder.builder()
+                .displayName("worker services")
+                .parent(parent)
+                .provider(new WorkerServices(gradleUserHomeDir))
+                .build();
+        }
+
+        private final File gradleUserHomeDir;
+
+        public WorkerServices(File gradleUserHomeDir) {
+            this.gradleUserHomeDir = gradleUserHomeDir;
+        }
+
+        @Provides
+        GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
+            return new GradleUserHomeDirProvider() {
+                @Override
+                public File getGradleUserHomeDirectory() {
+                    return gradleUserHomeDir;
+                }
+            };
         }
 
         @Provides
@@ -225,15 +249,20 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
+
+        @Provides
+        WorkerLogEventListener createWorkerLogEventListener() {
+            return new WorkerLogEventListener();
+        }
     }
 
     private static class ContextImpl implements WorkerProcessContext {
         private final long workerId;
         private final String displayName;
         private final ObjectConnection serverConnection;
-        private final WorkerServices workerServices;
+        private final ServiceRegistry workerServices;
 
-        public ContextImpl(long workerId, String displayName, ObjectConnection serverConnection, WorkerServices workerServices) {
+        public ContextImpl(long workerId, String displayName, ObjectConnection serverConnection, ServiceRegistry workerServices) {
             this.workerId = workerId;
             this.displayName = displayName;
             this.serverConnection = serverConnection;

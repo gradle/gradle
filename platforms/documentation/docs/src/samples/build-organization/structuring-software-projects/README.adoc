@@ -1,4 +1,4 @@
-NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ's Gradle import] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
 
 This sample shows how to structure a software product that consists of multiple components as a set of connected Gradle builds.
 As such, it shows how Gradle is used to model a project's architecture and reflect that in the physical structure of the files that make up the software.

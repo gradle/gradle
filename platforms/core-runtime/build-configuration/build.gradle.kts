@@ -8,22 +8,23 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":jvm-services"))
-    api(project(":toolchains-jvm-shared"))
-    api(project(":java-language-extensions"))
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.jvmServices)
+    api(projects.toolchainsJvmShared)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
+    implementation(projects.baseServices)
+    implementation(projects.logging)
+    implementation(projects.daemonProtocol)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.internalIntegTesting)
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

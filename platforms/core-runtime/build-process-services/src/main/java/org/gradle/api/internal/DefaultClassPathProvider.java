@@ -27,10 +27,6 @@ public class DefaultClassPathProvider implements ClassPathProvider {
 
     @Override
     public ClassPath findClassPath(String name) {
-        if (name.equals("GRADLE_RUNTIME")) {
-            // Use everything reachable from the daemon implementation
-            return moduleRegistry.getModule("gradle-daemon-server").getAllRequiredModulesClasspath();
-        }
         if (name.equals("GRADLE_INSTALLATION_BEACON")) {
             return moduleRegistry.getModule("gradle-installation-beacon").getImplementationClasspath();
         }
@@ -58,7 +54,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core-api").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-java-language-extensions").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-stdlib-java-extensions").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("javax.inject").getClasspath());

@@ -19,18 +19,20 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
-import org.gradle.internal.cc.impl.cacheentry.EntryDetails
-import org.gradle.internal.cc.impl.cacheentry.ModelKey
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.cc.impl.serialize.Codecs
-import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
-import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.cc.impl.cacheentry.EntryDetails
+import org.gradle.internal.cc.impl.cacheentry.ModelKey
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.io.safeWrap
+import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
+import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
+import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
@@ -56,6 +58,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
+import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -201,7 +204,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
+        return withReadContextFor(stateFile.stateType, stateFile::inputStream) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
             }
@@ -213,7 +216,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream)) {
+        val (context, codecs) = writerContextFor(stateFile.stateType, stateFile::outputStream) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
         return context.useToRun {
@@ -245,14 +248,27 @@ class ConfigurationCacheIO internal constructor(
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
     internal
-    fun writerContextFor(outputStream: OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(outputStream).let { encoder ->
+    fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
+        KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
                 codecs
             ) to codecs
         }
+
+    private
+    fun outputStreamFor(stateType: StateType, outputStream: () -> OutputStream) =
+        maybeEncrypt(stateType, outputStream, encryptionService::outputStream)
+
+    private
+    fun inputStreamFor(stateType: StateType, inputStream: () -> InputStream) =
+        maybeEncrypt(stateType, inputStream, encryptionService::inputStream)
+
+    private
+    fun <I : Closeable, O : I> maybeEncrypt(stateType: StateType, inner: () -> I, outer: (I) -> O): I =
+        if (stateType.encryptable) safeWrap(inner, outer)
+        else inner()
 
     private
     fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
@@ -277,12 +293,13 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun <R> withReadContextFor(
-        inputStream: InputStream,
+        stateType: StateType,
+        inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(inputStream).let { (context, codecs) ->
-            context.use {
-                context.run {
+        readerContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
+            .let { (context, codecs) ->
+                context.useToRun {
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
@@ -291,12 +308,6 @@ class ConfigurationCacheIO internal constructor(
                     }
                 }
             }
-        }
-
-    private
-    fun readerContextFor(
-        inputStream: InputStream,
-    ) = readerContextFor(KryoBackedDecoder(inputStream))
 
     internal
     fun readerContextFor(

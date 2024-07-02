@@ -1,4 +1,4 @@
-NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
 
 This sample shows how credentials can be used when publishing artifacts to a Maven repository using link:{userManualPath}/build_environment.html#sec:project_properties[project properties].
 This approach allows you to keep sensitive configuration out of your project's source code and inject it only when needed.

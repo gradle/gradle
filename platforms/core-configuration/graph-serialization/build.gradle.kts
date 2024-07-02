@@ -24,7 +24,7 @@ description = "Efficient and extensible serialization for object graphs, with th
 
 dependencies {
     api(projects.configurationProblemsBase)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
     api(projects.serialization)
 

@@ -1,4 +1,4 @@
-NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
 
 This sample shows how to aggregate test results across multiple Java subprojects.  The link:{userManualPath}/test_report_aggregation_plugin.html[test-report-aggregation plugin] provides this ability when applied to the distribution project, such as an Android application or WAR subproject.
 

@@ -42,7 +42,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         registry.register(SoftwareTypeImpl, RegisteringPlugin)
 
         and:
-        def implementations = registry.softwareTypeImplementations
+        def implementations = registry.softwareTypeImplementations.values()
 
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -51,7 +51,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         1 * propertyMetadata.getPropertyType() >> SoftwareType.class
         (1..2) * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        2 * softwareType.name() >> "test"
+        _ * softwareType.name() >> "test"
         (1..2) * softwareType.modelPublicType() >> modelPublicType
         1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
         1 * modelTypeMetadata.getPropertiesMetadata() >> []
@@ -99,7 +99,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         1 * propertyMetadata.getPropertyType() >> SoftwareType.class
         1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        2 * softwareType.name() >> "test"
+        _ * softwareType.name() >> "test"
         2 * softwareType.modelPublicType() >> TestModel
         1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
         1 * modelTypeMetadata.getPropertiesMetadata() >> []
@@ -133,7 +133,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         1 * duplicatePropertyMetadata.getPropertyType() >> SoftwareType.class
         1 * duplicatePropertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * duplicatePropertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        4 * softwareType.name() >> "test"
+        _ * softwareType.name() >> "test"
         2 * softwareType.modelPublicType() >> TestModel
         2 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
         1 * modelTypeMetadata.getPropertiesMetadata() >> []

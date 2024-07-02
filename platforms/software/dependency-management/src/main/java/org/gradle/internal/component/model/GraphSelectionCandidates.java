@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.internal.component.ResolutionFailureHandler;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,13 +33,13 @@ public interface GraphSelectionCandidates {
      * Returns the variant to use when attribute-based variant selection is not enabled.
      */
     @Nullable
-    default VariantGraphResolveState getLegacyVariant(ResolutionFailureHandler failureHandler) {
-        return getVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION, failureHandler);
+    default VariantGraphResolveState getLegacyVariant() {
+        return getVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
     }
 
     /**
      * Returns the variant that is identified by the given configuration name.
      */
     @Nullable
-    VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler);
+    VariantGraphResolveState getVariantByConfigurationName(String name);
 }

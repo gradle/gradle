@@ -44,6 +44,7 @@ import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.DefaultProblemGroup;
 import org.gradle.api.problems.internal.DefaultProblemId;
+import org.gradle.api.problems.internal.DefaultPropertyTraceData;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
@@ -55,6 +56,7 @@ import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
+import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
@@ -92,7 +94,6 @@ public class ValidationProblemSerialization {
 
         return gsonBuilder;
     }
-
 
 
     public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
@@ -597,6 +598,19 @@ public class ValidationProblemSerialization {
     }
 
     private static class AdditionalDataAdapter extends TypeAdapter<AdditionalData> {
+        public static final String PROPERTY_TRACE_DATA = "propertyTraceData";
+        public static final String PROPERTY_TRACE = "propertyTrace";
+        public static final String ADDITIONAL_DATA_TYPE = "type";
+        public static final String DEPRECATION_DATA = "deprecationData";
+        public static final String TYPE_VALIDATION_DATA = "typeValidationData";
+        public static final String GENERAL_DATA = "generalData";
+        public static final String FEATURE_USAGE = "featureUsage";
+        public static final String PLUGIN_ID = "pluginId";
+        public static final String PROPERTY_NAME = "propertyName";
+        public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
+        public static final String TYPE_NAME = "typeName";
+        public static final String GENERAL_DATA_DATA = "data";
+
         @Override
         public void write(JsonWriter out, AdditionalData value) throws IOException {
             if (value == null) {
@@ -605,68 +619,81 @@ public class ValidationProblemSerialization {
             }
             out.beginObject();
             if (value instanceof DeprecationData) {
-                out.name("type").value("deprecationData");
-                out.name("featureUsage").value(((DeprecationData) value).getType().name());
+                out.name(ADDITIONAL_DATA_TYPE).value(DEPRECATION_DATA);
+                out.name(FEATURE_USAGE).value(((DeprecationData) value).getType().name());
             } else if (value instanceof TypeValidationData) {
-                out.name("type").value("typeValidationData");
-                out.name("pluginId").value(((TypeValidationData) value).getPluginId());
-                out.name("propertyName").value(((TypeValidationData) value).getPropertyName());
-                out.name("parentPropertyName").value(((TypeValidationData) value).getParentPropertyName());
-                out.name("typeName").value(((TypeValidationData) value).getTypeName());
+                out.name(ADDITIONAL_DATA_TYPE).value(TYPE_VALIDATION_DATA);
+                TypeValidationData typeValidationData = (TypeValidationData) value;
+                out.name(PLUGIN_ID).value(typeValidationData.getPluginId());
+                out.name(PROPERTY_NAME).value(typeValidationData.getPropertyName());
+                out.name(PARENT_PROPERTY_NAME).value(typeValidationData.getParentPropertyName());
+                out.name(TYPE_NAME).value(typeValidationData.getTypeName());
             } else if (value instanceof GeneralData) {
-                out.name("type").value("generalData");
-                out.name("data");
+                out.name(ADDITIONAL_DATA_TYPE).value(GENERAL_DATA);
+                out.name(GENERAL_DATA_DATA);
                 out.beginObject();
                 Map<String, String> map = ((GeneralData) value).getAsMap();
                 for (String key : map.keySet()) {
                     out.name(key).value(map.get(key));
                 }
                 out.endObject();
+            } else if (value instanceof PropertyTraceData) {
+                out.name(ADDITIONAL_DATA_TYPE).value(PROPERTY_TRACE_DATA);
+                out.name(PROPERTY_TRACE).value(((PropertyTraceData) value).getTrace());
             }
             out.endObject();
         }
 
         @Override
         public AdditionalData read(JsonReader in) throws IOException {
-            if (in.hasNext()) {
-                in.beginObject();
-                try {
-                    String type = null;
-                    String featureUsage = null;
-                    String pluginId = null;
-                    String propertyName = null;
-                    String parentPropertyName = null;
-                    String typeName = null;
-                    String name;
-                    Map<String, String> generalData = null;
-                    while (in.hasNext()) {
-                        name = in.nextName();
-                        switch (name) {
-                            case "type": {
-                                type = in.nextString();
-                                break;
-                            }
-                            case "featureUsage": {
-                                featureUsage = in.nextString();
-                                break;
-                            }
-                            case "pluginId": {
-                                pluginId = in.nextString();
-                                break;
-                            }
-                            case "propertyName": {
-                                propertyName = in.nextString();
-                                break;
-                            }
-                            case "parentPropertyName": {
-                                parentPropertyName = in.nextString();
-                                break;
-                            }
-                            case "typeName": {
-                                typeName = in.nextString();
-                                break;
-                            }
-                            case "data": {
+            if (!in.hasNext()) {
+                return null;
+            }
+            in.beginObject();
+            try {
+                String type = null;
+                String featureUsage = null;
+                String pluginId = null;
+                String propertyName = null;
+                String parentPropertyName = null;
+                String typeName = null;
+                String name;
+                Map<String, String> generalData = null;
+                String propertyTrace = null;
+
+                while (in.hasNext()) {
+                    name = in.nextName();
+                    switch (name) {
+                        case ADDITIONAL_DATA_TYPE: {
+                            type = in.nextString();
+                            break;
+                        }
+                        case FEATURE_USAGE: {
+                            featureUsage = in.nextString();
+                            break;
+                        }
+                        case PLUGIN_ID: {
+                            pluginId = in.nextString();
+                            break;
+                        }
+                        case PROPERTY_NAME: {
+                            propertyName = in.nextString();
+                            break;
+                        }
+                        case PARENT_PROPERTY_NAME: {
+                            parentPropertyName = in.nextString();
+                            break;
+                        }
+                        case TYPE_NAME: {
+                            typeName = in.nextString();
+                            break;
+                        }
+                        case PROPERTY_TRACE: {
+                            propertyTrace = in.nextString();
+                            break;
+                        }
+                        case GENERAL_DATA_DATA: {
+                            try {
                                 in.beginObject();
                                 generalData = new HashMap<>();
                                 while (in.hasNext()) {
@@ -674,36 +701,42 @@ public class ValidationProblemSerialization {
                                     String value = in.nextString();
                                     generalData.put(key, value);
                                 }
+                            } finally {
                                 in.endObject();
-                                break;
                             }
-                            default:
-                                in.skipValue();
+                            break;
                         }
-                    }
-                    if (type == null) {
-                        throw new JsonParseException("type must not be null");
-                    }
-                    switch (type) {
-                        case "deprecationData":
-                            return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
-                        case "typeValidationData":
-                            return new DefaultTypeValidationData(
-                                pluginId,
-                                propertyName,
-                                parentPropertyName,
-                                typeName
-                            );
-                        case "generalData":
-                            return new DefaultGeneralData(generalData);
                         default:
-                            throw new JsonParseException("Unknown type: " + type);
+                            in.skipValue();
                     }
-                } finally {
-                    in.endObject();
                 }
+                if (type == null) {
+                    throw new JsonParseException("type must not be null");
+                }
+                return createAdditionalData(type, featureUsage, pluginId, propertyName, parentPropertyName, typeName, generalData, propertyTrace);
+            } finally {
+                in.endObject();
             }
-            return null;
+        }
+
+        private static @Nonnull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+            switch (type) {
+                case DEPRECATION_DATA:
+                    return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
+                case TYPE_VALIDATION_DATA:
+                    return new DefaultTypeValidationData(
+                        pluginId,
+                        propertyName,
+                        parentPropertyName,
+                        typeName
+                    );
+                case GENERAL_DATA:
+                    return new DefaultGeneralData(generalData);
+                case PROPERTY_TRACE_DATA:
+                    return new DefaultPropertyTraceData(propertyTrace);
+                default:
+                    throw new JsonParseException("Unknown type: " + type);
+            }
         }
     }
 }

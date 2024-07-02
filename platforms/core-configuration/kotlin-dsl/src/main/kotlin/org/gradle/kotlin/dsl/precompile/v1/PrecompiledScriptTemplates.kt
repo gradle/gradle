@@ -159,7 +159,7 @@ open class PrecompiledProjectScript(
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) {
-        throw IllegalStateException("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
+        error("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
     }
 
     /**

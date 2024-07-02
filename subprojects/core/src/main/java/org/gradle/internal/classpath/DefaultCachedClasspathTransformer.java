@@ -23,7 +23,6 @@ import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
@@ -39,6 +38,7 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 

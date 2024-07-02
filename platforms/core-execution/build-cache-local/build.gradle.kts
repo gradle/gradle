@@ -7,22 +7,22 @@ plugins {
 description = "Local build cache implementation"
 
 dependencies {
-    api(projects.javaLanguageExtensions)
-    api(project(":build-cache"))
-    api(project(":build-cache-spi"))
-    api(project(":files"))
-    api(project(":functional"))
-    api(project(":hashing"))
-    api(project(":persistent-cache"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.buildCache)
+    api(projects.buildCacheSpi)
+    api(projects.files)
+    api(projects.functional)
+    api(projects.hashing)
+    api(projects.persistentCache)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)
 
-    testImplementation(project(":model-core"))
-    testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(projects.modelCore)
+    testImplementation(projects.fileCollections)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.snapshots))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

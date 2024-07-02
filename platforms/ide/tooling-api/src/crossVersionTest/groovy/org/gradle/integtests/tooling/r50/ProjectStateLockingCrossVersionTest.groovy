@@ -30,11 +30,10 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
         }
 
         when:
-        withConnection {
-            def executer = action(new FetchIdeaProject())
-            executer.withArguments("--warning-mode", "all")
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action(new FetchIdeaProject())
+                .withArguments("--warning-mode", "all")
+                .run()
         }
 
         then:
@@ -52,11 +51,10 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
         }
 
         when:
-        withConnection {
-            def executer = action(new FetchEclipseProject())
-            executer.withArguments("--warning-mode", "all")
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action(new FetchEclipseProject())
+                .withArguments("--warning-mode", "all")
+                .run()
         }
 
         then:

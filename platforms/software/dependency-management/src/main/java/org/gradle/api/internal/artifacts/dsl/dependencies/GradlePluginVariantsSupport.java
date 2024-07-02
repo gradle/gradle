@@ -23,7 +23,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.util.GradleVersion;
 
 public class GradlePluginVariantsSupport {
@@ -33,8 +33,8 @@ public class GradlePluginVariantsSupport {
         strategy.getCompatibilityRules().add(TargetGradleVersionCompatibilityRule.class);
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
 
-        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
-        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
+        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
+        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
     }
 
     public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {

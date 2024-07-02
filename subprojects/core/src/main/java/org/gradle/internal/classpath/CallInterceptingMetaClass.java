@@ -24,18 +24,18 @@ import groovy.lang.MetaMethod;
 import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.codehaus.groovy.reflection.CachedClass;
 import groovy.lang.Tuple;
+import org.codehaus.groovy.reflection.CachedClass;
 import org.codehaus.groovy.reflection.ClassInfo;
 import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.classpath.intercept.InvocationImpl;
 import org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor;
 import org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor;
 import org.gradle.internal.metaobject.InstrumentedMetaClass;
@@ -83,6 +83,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
+    @Nullable
     public Object getProperty(Class sender, Object object, String name, boolean useSuper, boolean fromInsideClass) {
         if (useSuper || fromInsideClass) {
             return adaptee.getProperty(sender, object, name, useSuper, fromInsideClass);
@@ -92,6 +93,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
+    @Nullable
     public Object getProperty(Object object, String property) {
         return invokeIntercepted(object, GET_PROPERTY, property, NO_ARG, () -> adaptee.getProperty(object, property));
     }
@@ -165,6 +167,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
+    @Nullable
     public Object invokeMethod(Object object, String methodName, @Nullable Object arguments) {
         Object[] argsForInterceptor = arguments == null ? MetaClassHelper.EMPTY_ARRAY :
             arguments instanceof Tuple ? ((Tuple<?>) arguments).toArray() :
@@ -175,11 +178,13 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
+    @Nullable
     public Object invokeMethod(Object object, String methodName, Object[] arguments) {
         return invokeIntercepted(object, INVOKE_METHOD, methodName, arguments, () -> adaptee.invokeMethod(object, methodName, arguments));
     }
 
     @Override
+    @Nullable
     public Object invokeMethod(Class sender, Object object, String methodName, Object[] originalArguments, boolean isCallToSuper, boolean fromInsideClass) {
         if (isCallToSuper || fromInsideClass) {
             // Calls to super are not supported by the call interception mechanisms as of now
@@ -189,6 +194,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
+    @Nullable
     public MetaMethod pickMethod(String methodName, Class[] arguments) {
         String matchedCaller = callsTracker.findCallerForCurrentCallIfNotIntercepted(methodName, INVOKE_METHOD);
         MetaMethod original = adaptee.pickMethod(methodName, arguments);
@@ -214,6 +220,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         return original;
     }
 
+    @Nullable
     private Object invokeIntercepted(Object receiver, InstrumentedGroovyCallsTracker.CallKind kind, String name, Object[] arguments, Callable<Object> invokeOriginal) {
         String matchedCaller = callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind);
         if (matchedCaller != null) {
@@ -297,6 +304,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
     //endregion
 
+    @Nullable
     private static Object invokeWithInterceptor(InstrumentedGroovyCallsTracker callsTracker, CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
         final InvokedFlag invokedOriginal = new InvokedFlag();
 
@@ -319,19 +327,10 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     private static Invocation callOriginalReportingInvocation(Object receiver, Object[] arguments, Callable<Object> doCallOriginal, Runnable reportCallOriginal) {
-        @NonNullApi
-        class InvocationImpl extends AbstractInvocation<Object> {
-            public InvocationImpl(Object receiver, Object[] args) {
-                super(receiver, args);
-            }
-
-            @Override
-            public Object callOriginal() throws Exception {
-                reportCallOriginal.run();
-                return doCallOriginal.call();
-            }
-        }
-        return new InvocationImpl(receiver, arguments);
+        return new InvocationImpl<>(receiver, arguments, () -> {
+            reportCallOriginal.run();
+            return doCallOriginal.call();
+        });
     }
 
     @NonNullApi
@@ -403,6 +402,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
 
         @Override
+        @Nullable
         public Object getProperty(Object object) {
             if (getterInterceptor != null) {
                 return invokeWithInterceptor(callsTracker, getterInterceptor, name, GET_PROPERTY, object, NO_ARG, consumerClass, () -> {
@@ -468,6 +468,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
 
         @Override
+        @Nullable
         public Object invoke(Object object, Object[] arguments) {
             return invokeWithInterceptor(callsTracker, callInterceptor, name, INVOKE_METHOD, object, arguments, consumerClass, () -> {
                 if (original != null) {

@@ -28,7 +28,7 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
     @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
-        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
+        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJvm(jdk)
 
         then:
         def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()

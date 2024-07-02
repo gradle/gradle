@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -77,6 +78,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -92,6 +94,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether to turn on verbose output. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isVerbose() {
         return verbose;
     }
@@ -107,6 +110,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isListFiles() {
         return listFiles;
     }
@@ -122,6 +126,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells the source encoding. Defaults to {@code UTF-8}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getEncoding() {
         return encoding;
     }
@@ -137,6 +142,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFork() {
         return fork;
     }
@@ -189,6 +195,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
+    @ToBeReplacedByLazyProperty
     public File getConfigurationScript() {
         return configurationScript;
     }
@@ -215,6 +222,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * No annotation processing will be performed regardless, on Java or Groovy source.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isJavaAnnotationProcessing() {
         return javaAnnotationProcessing;
     }
@@ -234,6 +242,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * @since 6.1
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isParameters() {
         return parameters;
     }
@@ -280,6 +289,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      *     <dd>Enable or disable all optimizations. Note that some optimizations might be mutually exclusive.
      * </dl>
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
@@ -309,6 +319,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     // TOOD:LPTR Should be just a relative path
     public File getStubDir() {
         return stubDir;
@@ -327,6 +338,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getFileExtensions() {
         return fileExtensions;
     }
@@ -345,6 +357,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Defaults to {@code false}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isKeepStubs() {
         return keepStubs;
     }

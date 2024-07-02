@@ -32,10 +32,10 @@ public interface VariantArtifactResolver {
     /**
      * Resolves the given variant metadata to its artifacts.
      */
-    ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant);
+    ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant);
 
     /**
      * Applies the provided exclusions and resolves the given variant metadata to its artifacts.
      */
-    ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata variant, ExcludeSpec exclusions);
+    ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant, ExcludeSpec exclusions);
 }

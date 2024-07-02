@@ -31,13 +31,12 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
-import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -54,7 +53,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
     ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
 
-    def metadataBuilder = new DefaultLocalConfigurationMetadataBuilder(
+    def metadataBuilder = new DefaultLocalVariantMetadataBuilder(
         new TestDependencyMetadataFactory(),
         new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
     )
@@ -85,7 +84,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         consumable("conf", [parent])
 
         expect:
-        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf", Stub(ResolutionFailureHandler))
+        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
     }
 
     def "configuration has no dependencies or artifacts when none have been added"() {
@@ -94,7 +93,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         consumable("conf", [parent])
 
         when:
-        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf", Stub(ResolutionFailureHandler))
+        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         then:
         confState.metadata.dependencies.empty
@@ -115,7 +114,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         addArtifact(conf, artifact, file)
 
         when:
-        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf", Stub(ResolutionFailureHandler))
+        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         then:
         confState.resolveArtifacts().artifacts.size() == 1
@@ -148,8 +147,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         addArtifact(child1, artifact3, file3)
 
         when:
-        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child1", Stub(ResolutionFailureHandler))
-        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child2", Stub(ResolutionFailureHandler))
+        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child1")
+        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child2")
 
         then:
         conf1State.resolveArtifacts().artifacts.size() == 3
@@ -169,8 +168,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         conf2.artifacts.add(publishArtifact)
 
         when:
-        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1", Stub(ResolutionFailureHandler))
-        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2", Stub(ResolutionFailureHandler))
+        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1")
+        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
         conf1State.resolveArtifacts().artifacts.size() == 1
@@ -188,7 +187,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         addArtifact(conf, artifact, file)
 
         when:
-        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf", Stub(ResolutionFailureHandler))
+        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         then:
         confState.resolveArtifacts().artifacts.first().file == file
@@ -207,8 +206,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         addArtifact(conf2, artifact2, file2)
 
         when:
-        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1", Stub(ResolutionFailureHandler))
-        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2", Stub(ResolutionFailureHandler))
+        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1")
+        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
         def conf1Artifacts = conf1State.prepareForArtifactResolution().artifactVariants as List
@@ -244,8 +243,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         variant2.artifacts.add(Stub(PublishArtifact))
 
         when:
-        def config1 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1", Stub(ResolutionFailureHandler))
-        def config2 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2", Stub(ResolutionFailureHandler))
+        def config1 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1")
+        def config2 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
         config1.prepareForArtifactResolution().artifactVariants*.name as List == ["conf1", "conf1-variant1"]
@@ -277,8 +276,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         conf3.getDependencies().add(files3)
 
         expect:
-        state.getConfiguration('child1').metadata.files*.source == [files1, files2, files3]
-        state.getConfiguration('child2').metadata.files*.source == [files1]
+        state.getConfigurationLegacy("child1").metadata.files*.source == [files1, files2, files3]
+        state.getConfigurationLegacy("child2").metadata.files*.source == [files1]
     }
 
     def "dependency is attached to configuration and its children"() {
@@ -290,30 +289,30 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         def conf1 = dependencyScope("conf1")
         def conf2 = dependencyScope("conf2")
         def conf3 = dependencyScope("conf3", [conf1, conf2])
-        resolvable("child1", [conf3])
-        resolvable("child2", [conf1])
-        resolvable("other")
+        consumable("child1", [conf3])
+        consumable("child2", [conf1])
+        consumable("other")
 
         conf1.getDependencies().add(dependency1)
         conf2.getDependencies().add(dependency2)
         conf3.getDependencies().add(dependency3)
 
         then:
-        state.getConfiguration("child1").metadata.dependencies*.source == [dependency1, dependency2, dependency3]
-        state.getConfiguration("child2").metadata.dependencies*.source == [dependency1]
-        state.getConfiguration("other").metadata.dependencies.isEmpty()
+        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child1").metadata.dependencies*.source == [dependency1, dependency2, dependency3]
+        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child2").metadata.dependencies*.source == [dependency1]
+        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("other").metadata.dependencies.isEmpty()
     }
 
     def "builds and caches exclude rules for a configuration"() {
         given:
         def conf = dependencyScope("conf")
-        def child = resolvable("child", [conf])
+        def child = consumable("child", [conf])
 
         conf.exclude([group: "group1", module: "module1"])
         child.exclude([group: "group2", module: "module2"])
 
         expect:
-        def config = state.getConfiguration("child").metadata
+        def config = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child").metadata
         def excludes = config.excludes
         config.excludes*.moduleId.group == ["group2", "group1"]
         config.excludes*.moduleId.name == ["module2", "module1"]

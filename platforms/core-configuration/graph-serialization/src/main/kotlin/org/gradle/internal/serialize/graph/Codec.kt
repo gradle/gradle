@@ -160,7 +160,7 @@ interface MutableIsolateContext : IsolateContext {
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 
-    suspend fun forIncompatibleType(path: String, action: suspend () -> Unit)
+    suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit)
 }
 
 

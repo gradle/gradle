@@ -32,6 +32,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
@@ -302,22 +303,22 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    OutputFilePropertyAnnotationHandler createOutputFilePropertyAnnotationHandler() {
+    AbstractOutputPropertyAnnotationHandler createOutputFilePropertyAnnotationHandler() {
         return new OutputFilePropertyAnnotationHandler();
     }
 
     @Provides
-    OutputFilesPropertyAnnotationHandler createOutputFilesPropertyAnnotationHandler() {
+    AbstractOutputPropertyAnnotationHandler createOutputFilesPropertyAnnotationHandler() {
         return new OutputFilesPropertyAnnotationHandler();
     }
 
     @Provides
-    OutputDirectoryPropertyAnnotationHandler createOutputDirectoryPropertyAnnotationHandler() {
+    AbstractOutputPropertyAnnotationHandler createOutputDirectoryPropertyAnnotationHandler() {
         return new OutputDirectoryPropertyAnnotationHandler();
     }
 
     @Provides
-    OutputDirectoriesPropertyAnnotationHandler createOutputDirectoriesPropertyAnnotationHandler() {
+    AbstractOutputPropertyAnnotationHandler createOutputDirectoriesPropertyAnnotationHandler() {
         return new OutputDirectoriesPropertyAnnotationHandler();
     }
 

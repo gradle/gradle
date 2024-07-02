@@ -45,12 +45,12 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
         distro
     }
 
-    String runWithInstallation(TestFile gradleHome) {
+    void runWithInstallation(TestFile gradleHome) {
         toolingApi.requireIsolatedDaemons()
         toolingApi.withConnector { GradleConnector it ->
             it.useInstallation(new File(gradleHome.absolutePath))
         }
-        withBuild { it.forTasks("echo") }.standardOutput
+        withBuild { it.forTasks("echo") }
     }
 
     def "init scripts from client distribution are used, not from the test"() {
@@ -66,18 +66,18 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
         """
 
         when:
-        def distro1Output = runWithInstallation(distro1)
+        runWithInstallation(distro1)
 
         then:
-        distro1Output.contains "from distro 1"
-        distro1Output.contains "runtime gradle home: ${distro1.absolutePath}"
+        result.output.contains "from distro 1"
+        result.output.contains "runtime gradle home: ${distro1.absolutePath}"
 
         when:
-        def distro2Output = runWithInstallation(distro2)
+        runWithInstallation(distro2)
 
         then:
-        distro2Output.contains "from distro 2"
-        distro2Output.contains "runtime gradle home: ${distro1.absolutePath}"
+        result.output.contains "from distro 2"
+        result.output.contains "runtime gradle home: ${distro1.absolutePath}"
     }
 }
 

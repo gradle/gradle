@@ -100,5 +100,5 @@ class BinaryCompatibilityRepository internal constructor(
     private
     val JApiClass.bytecodeSourceFilename: String
         get() = newClass.orNull()?.classFile?.getAttribute("SourceFile")?.let { it as? SourceFileAttribute }?.fileName
-            ?: throw java.lang.IllegalStateException("Bytecode for $fullyQualifiedName is missing the 'SourceFile' attribute")
+            ?: error("Bytecode for $fullyQualifiedName is missing the 'SourceFile' attribute")
 }

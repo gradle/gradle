@@ -21,8 +21,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Function;
 
-import static org.gradle.internal.component.model.VariantResolveMetadata.Identifier;
-
 /**
  * Cache for ResolvedVariant instances.
  *
@@ -37,5 +35,10 @@ public interface ResolvedVariantCache {
      * @param mappingFunction function to create a {@link ResolvedVariant}
      * @return the resolved variant created by the function or a cached instance, if available
      */
-    ResolvedVariant computeIfAbsent(Identifier key, Function<? super Identifier, ? extends ResolvedVariant> mappingFunction);
+    ResolvedVariant computeIfAbsent(CacheKey key, Function<? super CacheKey, ? extends ResolvedVariant> mappingFunction);
+
+    /**
+     * An identifier of a variant in this cache.
+     */
+    interface CacheKey {}
 }

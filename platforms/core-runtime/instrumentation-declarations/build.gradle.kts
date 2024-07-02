@@ -7,22 +7,22 @@ description = "Contains declarations for instrumentation of plugins. Adds interc
 dependencies {
     // All dependencies should be compileOnly, since this project is added also to worker classpath, so we don't pollute it.
     // If we need some dependency also at runtime we need to build a separate classpath and add it to :launcher project or :distributions-core project directly.
-    compileOnly(project(":core"))
-    compileOnly(projects.javaLanguageExtensions)
-    compileOnly(project(":base-services"))
-    compileOnly(project(":core-api"))
-    compileOnly(project(":model-core"))
-    compileOnly(project(":reporting"))
+    compileOnly(projects.core)
+    compileOnly(projects.stdlibJavaExtensions)
+    compileOnly(projects.baseServices)
+    compileOnly(projects.coreApi)
+    compileOnly(projects.modelCore)
+    compileOnly(projects.reporting)
     compileOnly(libs.groovy)
-    compileOnly(project(":code-quality"))
+    compileOnly(projects.codeQuality)
 
     // Instrumentation dependencies
-    compileOnly(project(":internal-instrumentation-api"))
+    compileOnly(projects.internalInstrumentationApi)
     compileOnly(libs.asm)
     compileOnly(libs.asmUtil)
     compileOnly(libs.asmTree)
-    annotationProcessor(project(":internal-instrumentation-processor"))
-    annotationProcessor(platform(project(":distributions-dependencies")))
+    annotationProcessor(projects.internalInstrumentationProcessor)
+    annotationProcessor(platform(projects.distributionsDependencies))
 }
 
 tasks.named<JavaCompile>("compileJava") {

@@ -231,12 +231,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("""Unable to find a matching variant of project :child:
+  - No variants exist.""")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("""Unable to find a matching variant of project :child:
+  - No variants exist.""")
 
         where:
         fluid << [true, false]

@@ -40,6 +40,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
@@ -79,6 +80,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isTrace() {
         return trace;
     }
@@ -91,6 +93,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isTraceLexer() {
         return traceLexer;
     }
@@ -103,6 +106,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isTraceParser() {
         return traceParser;
     }
@@ -115,6 +119,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isTraceTreeWalker() {
         return traceTreeWalker;
     }
@@ -127,6 +132,7 @@ public abstract class AntlrTask extends SourceTask {
      * The maximum heap size for the forked antlr process (ex: '1g').
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -148,6 +154,7 @@ public abstract class AntlrTask extends SourceTask {
      * @return The antlr command-line arguments
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getArguments() {
         return arguments;
     }
@@ -158,6 +165,7 @@ public abstract class AntlrTask extends SourceTask {
      * @return The output directory.
      */
     @OutputDirectory
+    @ToBeReplacedByLazyProperty
     public File getOutputDirectory() {
         return outputDirectory;
     }
@@ -177,6 +185,7 @@ public abstract class AntlrTask extends SourceTask {
      * @return The Ant task implementation classpath.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getAntlrClasspath() {
         return antlrClasspath;
     }
@@ -294,6 +303,7 @@ public abstract class AntlrTask extends SourceTask {
      */
     @Override
     @Internal("tracked via stableSources")
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }

@@ -19,33 +19,35 @@ repositories {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":file-collections"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
+    implementation(projects.internalInstrumentationApi)
+    implementation(projects.fileCollections)
+    implementation(projects.logging)
+    implementation(projects.modelCore)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.jatl)
 
     implementationResources("jquery:jquery.min:3.5.1@js")
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":base-services-groovy"))
+    testImplementation(projects.processServices)
+    testImplementation(projects.baseServicesGroovy)
     testImplementation(libs.jsoup)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
     }
 }

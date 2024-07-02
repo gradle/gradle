@@ -23,9 +23,10 @@ description = "Configuration Cache services supporting bean serialization"
 
 dependencies {
     api(projects.graphSerialization)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.persistentCache)
+    api(projects.serviceProvider)
 
     api(libs.kotlinStdlib)
 
@@ -33,6 +34,8 @@ dependencies {
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
     implementation(projects.coreApi)
+    implementation(projects.coreKotlinExtensions)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.groovy)

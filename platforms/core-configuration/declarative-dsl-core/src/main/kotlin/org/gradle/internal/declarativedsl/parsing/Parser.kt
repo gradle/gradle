@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.parsing
 
+import org.gradle.internal.declarativedsl.analysis.interpretationFailure
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderFactoryImpl
 import org.jetbrains.kotlin.lexer.KotlinLexer
@@ -84,7 +85,7 @@ fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Triple<S
         } // TODO: ugly, brittle hack...
     }
 
-    if (packageStatements.size > 2) error("Multiple package statements")
+    if (packageStatements.size > 2) interpretationFailure("Multiple package statements in $code")
 
     fun addNewlineIfNotBlank(it: String) = when {
         it.isNotBlank() -> it + "\n"

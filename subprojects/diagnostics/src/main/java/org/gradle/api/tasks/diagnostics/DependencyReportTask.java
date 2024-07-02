@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -23,10 +22,4 @@ import org.gradle.work.DisableCachingByDefault;
  * execute the {@code dependencies} task from the command-line.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public abstract class DependencyReportTask extends AbstractDependencyReportTask {
-
-    @Override
-    public ConfigurationContainer getTaskConfigurations() {
-        return getProject().getConfigurations();
-    }
-}
+public abstract class DependencyReportTask extends AbstractDependencyReportTask {}

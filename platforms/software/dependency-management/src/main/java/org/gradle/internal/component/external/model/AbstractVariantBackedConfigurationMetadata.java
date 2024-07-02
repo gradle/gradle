@@ -110,13 +110,8 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public Set<? extends VariantResolveMetadata> getVariants() {
+    public Set<? extends VariantResolveMetadata> getArtifactVariants() {
         return ImmutableSet.of(variant);
-    }
-
-    @Override
-    public boolean isCanBeConsumed() {
-        return true;
     }
 
     @Override

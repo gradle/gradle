@@ -16,6 +16,7 @@
 package org.gradle.api.initialization;
 
 import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -29,6 +30,7 @@ import java.util.Set;
  * Settings#include(String...)}. You can access the descriptors using one of
  * the lookup methods on the {@link Settings} object.</p>
  */
+@NotToBeMigratedToLazy
 public interface ProjectDescriptor {
     /**
      * Returns the name of this project.

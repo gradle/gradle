@@ -17,8 +17,8 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":cleanup"))
-    implementation(project(":dependency-modules"))
+    implementation(projects.cleanup)
+    implementation(projects.dependencyModules)
 
     testImplementation("junit:junit")
 }

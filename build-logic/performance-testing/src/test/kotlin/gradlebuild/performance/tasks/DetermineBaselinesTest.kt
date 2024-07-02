@@ -37,10 +37,6 @@ class DetermineBaselinesTest {
     val project = ProjectBuilder.builder().build()
 
     private
-    val buildEnvironmentExtension = project.extensions.create("buildEnvironment", BuildEnvironmentExtension::class.java)
-
-
-    private
     val defaultPerformanceBaselines = "7.5-commit-123456"
 
     @Before
@@ -59,7 +55,7 @@ class DetermineBaselinesTest {
 
     @Test
     fun `keeps flakiness-detection-commit as it is in coordinator build`() {
-        verifyBaselineDetermination("any", true, flakinessDetectionCommitBaseline, flakinessDetectionCommitBaseline)
+        verifyBaselineDetermination("any", true, FLAKINESS_DETECTION_COMMIT_BASELINE, FLAKINESS_DETECTION_COMMIT_BASELINE)
     }
 
     @Test
@@ -70,7 +66,7 @@ class DetermineBaselinesTest {
         mockGitOperation(listOf("git", "rev-parse", "--short", "current"), "current")
 
         // then
-        verifyBaselineDetermination("any", false, flakinessDetectionCommitBaseline, "5.0-commit-current")
+        verifyBaselineDetermination("any", false, FLAKINESS_DETECTION_COMMIT_BASELINE, "5.0-commit-current")
     }
 
     @Test
@@ -127,11 +123,6 @@ class DetermineBaselinesTest {
     private
     fun mockGitOperation(args: List<String>, expectedOutput: String) =
         every { project.execAndGetStdout(*(args.toTypedArray())) } returns expectedOutput
-
-    private
-    fun setCurrentBranch(branch: String) {
-        buildEnvironmentExtension.gitBranch = branch
-    }
 
     private
     fun verifyBaselineDetermination(currentBranch: String, isCoordinatorBuild: Boolean, configuredBaseline: String?, determinedBaseline: String) {

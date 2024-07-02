@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.GradleException
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -138,19 +137,6 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         then:
         IOException ioe = thrown()
         ioe.message == "Could not dispatch a message to the daemon."
-    }
-
-    @TargetGradleVersion(">=2.6 <2.10")
-    def "retries on clock shift issue for <2.10 if exception is provided through build error output"() {
-        given:
-        iteration++
-
-        when:
-        throwWhen(new UnexpectedBuildFailure("Gradle execution failed",
-            new IllegalArgumentException("Unable to calculate percentage: 19 of -233. All inputs must be >= 0")), iteration == 1)
-
-        then:
-        true
     }
 
     private static void throwWhen(Throwable throwable, boolean condition) {

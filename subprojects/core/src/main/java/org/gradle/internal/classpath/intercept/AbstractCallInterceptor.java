@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.GradleException;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -51,6 +52,7 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
         return decorated.asCollector(Object[].class, original.type().parameterCount()).asType(original.type());
     }
 
+    @Nullable
     private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
         boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
         return intercept(new MethodHandleInvocation(original, args, isSpread), consumer);

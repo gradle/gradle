@@ -8,7 +8,7 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Express
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.ExpressionResolutionProgress.UnresolvedReceiver
 
 
-class AssignmentResolver() {
+class AssignmentResolver {
     private
     val assignmentByNode = mutableMapOf<ResolutionNode.Property, GenerationResolutionNode>()
 
@@ -39,6 +39,7 @@ class AssignmentResolver() {
         ) : AssignmentAdditionResult
     }
 
+    @Suppress("NestedBlockDepth")
     fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin, assignmentMethod: AssignmentMethod, generationId: OperationGenerationId): AssignmentAdditionResult =
         when (val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)) {
             is UnresolvedReceiver -> {
@@ -67,7 +68,7 @@ class AssignmentResolver() {
                         } else {
                             // We should never come across a situation where an assignment already exists that is in a higher generation,
                             // but if we do, just pull the emergency stop handle as this is indicative of a bug rather than a user error.
-                            error("Unexpected assignment in higher generation")
+                            error("unexpected assignment in higher generation")
                         }
                     }
 
@@ -128,6 +129,7 @@ class AssignmentResolver() {
         data class UnresolvedReceiver(val accessOrigin: ObjectOrigin) : ExpressionResolutionProgress
     }
 
+    @Suppress("NestedBlockDepth")
     fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> resolveToObjectOrPropertyReference(objectOrigin.delegate)

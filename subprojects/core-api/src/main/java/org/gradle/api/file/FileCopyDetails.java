@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
@@ -31,8 +32,9 @@ import org.gradle.internal.HasInternalProtocol;
  * </p>
  *
  */
-@HasInternalProtocol
 @NonExtensible
+@HasInternalProtocol
+@NotToBeMigratedToLazy
 public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Describable {
     /**
      * Excludes this file from the copy.

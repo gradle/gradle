@@ -74,7 +74,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     }
 
     @Internal
-    public Transformer<String, File> getTransformer() {
+    public Transformer<@org.jetbrains.annotations.NotNull String, File> getTransformer() {
         return RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
     }
 

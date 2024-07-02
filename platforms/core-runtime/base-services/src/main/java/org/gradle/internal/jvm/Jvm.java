@@ -19,6 +19,7 @@ package org.gradle.internal.jvm;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
+@NonNullApi
 public class Jvm implements JavaInfo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
@@ -84,11 +86,11 @@ public class Jvm implements JavaInfo {
     /**
      * Constructs JVM details from the given values
      */
-    Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, Integer javaVersionMajor) {
+    Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
         this(os, suppliedJavaBase, implementationJavaVersion, javaVersionMajor, true);
     }
 
-    private Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, Integer javaVersionMajor, boolean userSupplied) {
+    private Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor, boolean userSupplied) {
         this.os = os;
         this.javaBase = suppliedJavaBase;
         this.implementationJavaVersion = implementationJavaVersion;
@@ -107,7 +109,7 @@ public class Jvm implements JavaInfo {
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
     public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
-        if (javaHome == null || !javaHome.isDirectory()) {
+        if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
         Jvm jvm = create(javaHome, null, null);
@@ -258,6 +260,9 @@ public class Jvm implements JavaInfo {
      */
     @Nullable
     public JavaVersion getJavaVersion() {
+        if (javaVersionMajor == null) {
+            return null;
+        }
         return JavaVersion.toVersion(javaVersionMajor);
     }
 

@@ -72,10 +72,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
-        file("foo").createDir()
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention) + """
-            include("foo")
-        """
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
@@ -285,22 +282,36 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("""id = test\nbar = convention""")
     }
 
-    @NotYetImplemented
-    def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file"() {
+    def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
+            include("non-declarative")
+            include("declarative")
+        """
 
-        file("build.gradle.kts") << """
+        file("non-declarative/build.gradle${extension}") << """
             plugins { id("com.example.test-software-type-impl") }
-        """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType()
+        """
+        file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("bar"))
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
+        run(":non-declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
         outputContains("""id = convention\nbar = convention""")
+
+        when:
+        run(":declarative:printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""id = bar\nbar = convention""")
+
+        where:
+        type     | extension
+        "groovy" | ""
+        "kotlin" | ".kts"
     }
 
     @NotYetImplemented

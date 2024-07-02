@@ -100,5 +100,5 @@ class ExtraPropertiesExtensionsTest {
     }
 
     private
-    fun use(@Suppress("unused_parameter") property: Int?) = Unit
+    fun use(@Suppress("UNUSED_PARAMETER") property: Int?) = Unit
 }

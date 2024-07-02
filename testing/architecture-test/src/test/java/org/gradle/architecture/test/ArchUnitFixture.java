@@ -77,6 +77,7 @@ public interface ArchUnitFixture {
         "org.gradle.internal.cc..",
         "org.gradle.configurationcache..",
         "org.gradle.internal.configuration.problems..",
+        "org.gradle.internal.encryption..",
         "org.gradle.internal.extensions.core..",
         "org.gradle.internal.extensions.stdlib..",
         "org.gradle.internal.flow.services..",

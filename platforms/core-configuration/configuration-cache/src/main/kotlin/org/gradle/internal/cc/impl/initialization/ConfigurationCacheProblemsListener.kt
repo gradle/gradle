@@ -135,16 +135,19 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun locationForTask(location: PropertyTrace, task: TaskInternal) =
-        if (location is PropertyTrace.BuildLogic) {
-            location
-        } else {
-            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+        when (location) {
+            is PropertyTrace.BuildLogic -> location
+            is PropertyTrace.Task -> location
+            else -> locationForTask(task)
         }
+
+    private
+    fun locationForTask(task: TaskInternal) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     private
     fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
         task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleTask(task.identityPath.path)
+        else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
     }
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {

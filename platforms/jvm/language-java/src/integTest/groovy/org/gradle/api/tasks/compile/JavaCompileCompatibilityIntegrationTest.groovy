@@ -167,7 +167,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "source and target compatibility override toolchain (source #source, target #target)"() {
-        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        def jdk11 = AvailableJavaHomes.getJdk11()
 
         buildFile << """
             apply plugin: 'java'
@@ -259,7 +259,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "source compatibility lower than compiler version does not allow accessing newer Java language features"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -285,7 +285,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "source compatibility matching the compiler version allows accessing Java language features"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -310,7 +310,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "release flag lower than compiler version does not allow accessing newer Java language features"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -336,7 +336,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "release flag matching the compiler version allows accessing corresponding Java language features"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -375,8 +375,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "source compatibility lower than compiler version allows accessing newer JDK APIs"() {
-        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
-        def jdk17 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk11 = AvailableJavaHomes.getJdk11()
+        def jdk17 = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -437,7 +437,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "release flag lower than compiler version does not allow accessing newer JDK APIs"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -464,7 +464,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "release flag matching the compiler version allows accessing corresponding JDK APIs"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -489,7 +489,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "earlier toolchain does not allow accessing later JDK APIs in source"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        def jdk = AvailableJavaHomes.getJdk11()
 
         buildFile << """
             apply plugin: "java"
@@ -500,7 +500,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
 
-            compileJava.doFirst {
+            compileJava.doFirst { compileJava ->
                 logger.lifecycle("Source is set to '\${compileJava.sourceCompatibility}'")
                 logger.lifecycle("Release is set to '\${compileJava.options.release.getOrNull()}'")
             }
@@ -523,7 +523,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "toolchain allows accessing corresponding JDK APIs in source"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+        def jdk = AvailableJavaHomes.getJdk17()
 
         buildFile << """
             apply plugin: "java"
@@ -534,7 +534,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
 
-            compileJava.doFirst {
+            compileJava.doFirst { compileJava ->
                 logger.lifecycle("Source is set to '\${compileJava.sourceCompatibility}'")
                 logger.lifecycle("Release is set to '\${compileJava.options.release.getOrNull()}'")
             }

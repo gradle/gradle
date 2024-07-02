@@ -50,7 +50,7 @@ operator fun ExtensionContainer.get(name: String): Any =
 inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     getByName(name).let {
         it as? T
-            ?: throw IllegalStateException(
+            ?: error(
                 "Element '$name' of type '${it::class.java.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'."
             )
     }

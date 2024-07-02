@@ -47,7 +47,7 @@ fun KotlinClassMetadata.hasKotlinFlags(memberType: MemberType, jvmSignature: Str
         is KotlinClassMetadata.MultiFileClassFacade -> false
         is KotlinClassMetadata.SyntheticClass -> false
         is KotlinClassMetadata.Unknown -> false
-        else -> throw IllegalStateException("Unsupported Kotlin metadata type '${this::class}'")
+        else -> error("Unsupported Kotlin metadata type '${this::class}'")
     }
 
 

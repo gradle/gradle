@@ -305,7 +305,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setPriority(DaemonParameters.Priority.valueOf(value.toUpperCase(Locale.ROOT)));
+                settings.setPriority(DaemonPriority.valueOf(value.toUpperCase(Locale.ROOT)));
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }

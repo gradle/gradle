@@ -60,7 +60,7 @@ fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
  * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
  */
-@Suppress("nothing_to_inline")
+@Suppress("nothing_to_inline", "SpreadOperator")
 inline fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }

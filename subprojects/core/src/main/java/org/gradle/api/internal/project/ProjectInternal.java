@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
@@ -234,8 +233,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * See: https://github.com/gradle/gradle/issues/16946
      */
     Property<Object> getInternalStatus();
-
-    DependencyMetaDataProvider getDependencyMetaDataProvider();
 
     /**
      * When we get the {@link ConfigurationContainer} from internal locations, we'll override

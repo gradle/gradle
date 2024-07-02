@@ -32,18 +32,18 @@ import kotlin.concurrent.withLock
 
 
 private
-const val maxConsoleProblems = 15
+const val MAX_CONSOLE_PROBLEMS = 15
 
 
 private
-const val maxCauses = 5
+const val MAX_CAUSES = 5
 
 
 internal
 enum class ProblemSeverity {
     Info,
     Failure,
-
+    Warning,
     /**
      * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
      */
@@ -80,7 +80,7 @@ class ConfigurationCacheProblemsSummary(
     var uniqueProblems = ObjectOpenHashSet<UniquePropertyProblem>()
 
     private
-    var causes = ArrayList<Throwable>(maxCauses)
+    var causes = ArrayList<Throwable>(MAX_CAUSES)
 
     private
     val lock = ReentrantLock()
@@ -97,12 +97,16 @@ class ConfigurationCacheProblemsSummary(
         )
     }
 
+    /**
+     * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of problems was reached.
+     */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
             problemCount += 1
             when (severity) {
                 ProblemSeverity.Failure -> failureCount += 1
                 ProblemSeverity.Suppressed -> suppressedCount += 1
+                ProblemSeverity.Warning -> {}
                 ProblemSeverity.Info -> {}
             }
             if (overflowed) {
@@ -113,7 +117,7 @@ class ConfigurationCacheProblemsSummary(
                 return false
             }
             val uniqueProblem = UniquePropertyProblem.of(problem)
-            if (uniqueProblems.add(uniqueProblem) && causes.size < maxCauses) {
+            if (uniqueProblems.add(uniqueProblem) && causes.size < MAX_CAUSES) {
                 problem.exception?.let {
                     causes.add(it)
                 }
@@ -165,7 +169,7 @@ class Summary(
             appendLine()
             appendSummaryHeader(cacheActionText, problemCount)
             appendLine()
-            Ordering.from(consoleComparator()).leastOf(uniqueProblems, maxConsoleProblems).forEach { problem ->
+            Ordering.from(consoleComparator()).leastOf(uniqueProblems, MAX_CONSOLE_PROBLEMS).forEach { problem ->
                 append("- ")
                 append(problem.userCodeLocation.capitalized())
                 append(": ")
@@ -174,8 +178,8 @@ class Summary(
                     appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
                 }
             }
-            if (uniqueProblemCount > maxConsoleProblems) {
-                appendLine("plus ${uniqueProblemCount - maxConsoleProblems} more problems. Please see the report for details.")
+            if (uniqueProblemCount > MAX_CONSOLE_PROBLEMS) {
+                appendLine("plus ${uniqueProblemCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
             }
             htmlReportFile?.let {
                 appendLine()
@@ -233,7 +237,7 @@ data class UniquePropertyProblem(
         fun of(problem: PropertyProblem) = problem.run {
             UniquePropertyProblem(
                 trace.containingUserCode,
-                message.toString(),
+                message.render(),
                 documentationSection?.anchor
             )
         }

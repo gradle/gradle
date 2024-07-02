@@ -22,10 +22,10 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.server.api.DaemonState
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Stopped
+import static org.gradle.launcher.daemon.server.api.DaemonState.Stopped
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
     private final DaemonRegistry registry
@@ -52,7 +52,7 @@ class DaemonRegistryStateProbe implements DaemonStateProbe {
     }
 
     @Override
-    State getCurrentState() {
+    DaemonState getCurrentState() {
         def daemonInfo = registry.all.find { it.context.pid == context.pid }
         if (daemonInfo == null) {
             return Stopped

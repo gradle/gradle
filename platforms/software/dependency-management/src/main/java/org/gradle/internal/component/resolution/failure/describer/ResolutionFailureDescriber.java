@@ -18,7 +18,7 @@ package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.Optional;
 

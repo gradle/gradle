@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
@@ -68,7 +67,8 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         );
         this.idGenerator = idGenerator;
         this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().stream()
-            .flatMap(variant -> variant.getVariants().stream())
+            .map(ConfigurationMetadata.class::cast)
+            .flatMap(variant -> variant.getArtifactVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),
                 Describables.of(variant.getName()),
@@ -101,23 +101,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         return new ExternalGraphSelectionCandidates(this);
     }
 
-    @Override
-    public Set<String> getConfigurationNames() {
-        return getMetadata().getConfigurationNames();
-    }
-
-    @Nullable
-    @Override
-    public ConfigurationGraphResolveState getConfiguration(String configurationName) {
-        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
-        if (configuration == null) {
-            return null;
-        } else {
-            return resolveStateFor(configuration);
-        }
-    }
-
-    private DefaultConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
+    protected ConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
         return variants.computeIfAbsent(configuration, c -> newVariantState(configuration));
     }
 
@@ -183,28 +167,26 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
     }
 
     private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
-        private final ComponentArtifactResolveMetadata artifactMetadata;
-        private final ConfigurationMetadata graphSelectedConfiguration;
-        private final Set<? extends VariantResolveMetadata> variants;
+        private final ComponentArtifactResolveMetadata component;
+        private final ConfigurationMetadata configuration;
 
-        public DefaultConfigurationArtifactResolveState(ComponentArtifactResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration) {
-            this.artifactMetadata = artifactMetadata;
-            this.graphSelectedConfiguration = graphSelectedConfiguration;
-            this.variants = graphSelectedConfiguration.getVariants();
+        public DefaultConfigurationArtifactResolveState(ComponentArtifactResolveMetadata component, ConfigurationMetadata configuration) {
+            this.component = component;
+            this.configuration = configuration;
         }
 
         @Override
         public ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts) {
             ImmutableList.Builder<ComponentArtifactMetadata> artifacts = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
-                artifacts.add(graphSelectedConfiguration.artifact(dependencyArtifact));
+                artifacts.add(configuration.artifact(dependencyArtifact));
             }
-            return variantResolver.resolveAdhocVariant(artifactMetadata, artifacts.build());
+            return variantResolver.resolveAdhocVariant(component, artifacts.build());
         }
 
         @Override
         public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-            return variants;
+            return configuration.getArtifactVariants();
         }
     }
 
@@ -257,13 +239,14 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
 
         @Nullable
         @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler) {
-            ConfigurationGraphResolveState conf = component.getConfiguration(name);
-            if (conf == null) {
+        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+            // TODO: Deprecate this method for non-ivy components.
+            ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) component.getMetadata().getConfiguration(name);
+            if (configuration == null) {
                 return null;
             }
-            assert conf.getMetadata().isCanBeConsumed() : "External components' configurations are always consumable";
-            return conf.asVariant();
+
+            return component.resolveStateFor(configuration).asVariant();
         }
     }
 }

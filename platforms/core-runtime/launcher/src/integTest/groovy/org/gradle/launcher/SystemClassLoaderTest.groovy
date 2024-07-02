@@ -17,7 +17,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.agents.AgentUtils
+import org.gradle.internal.instrumentation.agent.AgentUtils
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 

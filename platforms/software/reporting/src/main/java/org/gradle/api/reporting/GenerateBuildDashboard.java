@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
@@ -68,6 +69,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<ReportState> getInputReports() {
         Set<ReportState> inputs = new LinkedHashSet<ReportState>();
         for (Report report : getEnabledInputReports()) {

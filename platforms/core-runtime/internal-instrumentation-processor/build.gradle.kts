@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":internal-instrumentation-api"))
+    api(projects.internalInstrumentationApi)
 
     api(libs.asm)
     api(libs.javaPoet)
@@ -29,16 +29,20 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
 
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":base-services"))
-    implementation(project(":base-asm"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.baseServices)
+    implementation(projects.baseAsm)
 
     testCompileOnly(libs.jetbrainsAnnotations)
 
     testImplementation(libs.compileTesting)
-    testImplementation(project(":core"))
+    testImplementation(projects.core)
+    testImplementation(testFixtures(projects.core))
     // TODO remove this
     testImplementation(libs.jetbrainsAnnotations)
+    testRuntimeOnly(projects.distributionsCore) {
+        because("Because we use TestUtil")
+    }
 }
 
 tasks.named<Test>("test").configure {

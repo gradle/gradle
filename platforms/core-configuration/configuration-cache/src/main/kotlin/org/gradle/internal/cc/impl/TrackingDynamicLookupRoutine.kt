@@ -56,6 +56,7 @@ class TrackingDynamicLookupRoutine(
             DeprecationLogger.whileDisabled(Factory<Map<String, *>> { receiver.properties })
         }
 
+    @Suppress("SpreadOperator")
     override fun invokeMethod(receiver: DynamicObject, name: String, args: Array<Any>): Any? =
         withDynamicCall(receiver) {
             receiver.invokeMethod(name, *args)

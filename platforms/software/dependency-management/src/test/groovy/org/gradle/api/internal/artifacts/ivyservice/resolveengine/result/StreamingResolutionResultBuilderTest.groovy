@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -275,7 +275,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         def node = Stub(RootGraphNode)
         _ * node.owner >> component
-        _ * node.metadata >> Mock(LocalConfigurationGraphResolveMetadata) {
+        _ * node.metadata >> Mock(LocalVariantGraphResolveMetadata) {
             getAttributes() >> AttributeTestUtil.attributes(["org.foo": "v1", "org.bar": 2, "org.baz": true])
         }
         return node

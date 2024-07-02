@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations;
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 
 public interface RootGraphNode extends DependencyGraphNode {
     @Override
-    LocalConfigurationGraphResolveMetadata getMetadata();
+    LocalVariantGraphResolveMetadata getMetadata();
 
     ResolveOptimizations getResolveOptimizations();
 }

@@ -17,22 +17,18 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.internal.os.OperatingSystem
-
 import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.support.userHome
-
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
 import java.io.StringWriter
-
 import java.text.SimpleDateFormat
-
-import java.util.*
-
+import java.util.Calendar
+import java.util.Date
+import java.util.GregorianCalendar
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 

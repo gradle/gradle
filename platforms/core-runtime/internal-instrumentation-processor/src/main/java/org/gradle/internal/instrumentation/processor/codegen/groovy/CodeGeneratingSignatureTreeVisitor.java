@@ -19,8 +19,8 @@ package org.gradle.internal.instrumentation.processor.codegen.groovy;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
-import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.objectweb.asm.Type;
 
@@ -31,7 +31,6 @@ import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
@@ -85,8 +84,9 @@ class CodeGeneratingSignatureTreeVisitor {
     }
 
     private CodeBlock prepareInvocationArgs(CallInterceptionRequest request) {
-        boolean hasKotlinDefaultMask = request.getInterceptedCallable().getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK);
-        boolean hasCallerClassName = hasCallerClassName(request.getInterceptedCallable());
+        boolean hasKotlinDefaultMask = request.getInterceptedCallable().hasKotlinDefaultMaskParam();
+        CallableInfo callableInfo = request.getInterceptedCallable();
+        boolean hasCallerClassName = callableInfo.hasCallerClassNameParam();
         Stream<CodeBlock> maybeZeroForKotlinDefault = hasKotlinDefaultMask ? Stream.of(CodeBlock.of("0")) : Stream.empty();
         Stream<CodeBlock> maybeCallerClassName = hasCallerClassName ? Stream.of(CodeBlock.of("consumer")) : Stream.empty();
         return Stream.of(

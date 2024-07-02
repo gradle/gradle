@@ -38,7 +38,7 @@ class ConfigurationCacheAwareBuildModelController(
 
     override fun getConfiguredModel(): GradleInternal {
         return if (maybeLoadFromCache()) {
-            throw IllegalStateException("Cannot query configured model when model has been loaded from configuration cache.")
+            error("Cannot query configured model when model has been loaded from configuration cache.")
         } else {
             delegate.configuredModel
         }

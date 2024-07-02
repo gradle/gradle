@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
@@ -97,6 +98,7 @@ public abstract class JacocoTaskExtension {
      * Whether or not the task should generate execution data. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isEnabled() {
         return enabled;
     }
@@ -111,6 +113,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getDestinationFile() {
         return destinationFile.getOrNull();
     }
@@ -135,6 +138,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getIncludes() {
         return includes;
     }
@@ -149,6 +153,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getExcludes() {
         return excludes;
     }
@@ -163,6 +168,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getExcludeClassLoaders() {
         return excludeClassLoaders;
     }
@@ -177,6 +183,7 @@ public abstract class JacocoTaskExtension {
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isIncludeNoLocationClasses() {
         return includeNoLocationClasses;
     }
@@ -191,6 +198,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getSessionId() {
         return sessionId;
     }
@@ -203,6 +211,7 @@ public abstract class JacocoTaskExtension {
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isDumpOnExit() {
         return dumpOnExit;
     }
@@ -215,6 +224,7 @@ public abstract class JacocoTaskExtension {
      * The type of output to generate. Defaults to {@link Output#FILE}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public Output getOutput() {
         return output;
     }
@@ -229,6 +239,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getAddress() {
         return address;
     }
@@ -241,6 +252,7 @@ public abstract class JacocoTaskExtension {
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public int getPort() {
         return port;
     }
@@ -257,6 +269,7 @@ public abstract class JacocoTaskExtension {
     @Nullable
     @Optional
     @LocalState
+    @ToBeReplacedByLazyProperty
     public File getClassDumpDir() {
         return classDumpDir;
     }
@@ -276,6 +289,7 @@ public abstract class JacocoTaskExtension {
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isJmx() {
         return jmx;
     }
@@ -292,6 +306,7 @@ public abstract class JacocoTaskExtension {
      * @since 4.6
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getAgentClasspath() {
         return agent.getAgentConf();
     }
@@ -302,6 +317,7 @@ public abstract class JacocoTaskExtension {
      * @return state of extension in a JVM argument
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getAsJvmArg() {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());

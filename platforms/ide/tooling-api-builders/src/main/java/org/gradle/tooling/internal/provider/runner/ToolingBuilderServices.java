@@ -16,13 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.problems.buildtree.ProblemReporter;
 
 public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(ToolingApiBuildEventListenerFactory.class);
+        registration.add(BuildEventListenerFactory.class, ProblemReporter.class, ToolingApiBuildEventListenerFactory.class);
     }
 
     @Override

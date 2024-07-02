@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
@@ -28,6 +29,7 @@ public interface SignatureSpec {
      *
      * @return the signatory, or {@code null} if none specified.
      */
+    @ToBeReplacedByLazyProperty
     Signatory getSignatory();
 
     /**
@@ -42,6 +44,7 @@ public interface SignatureSpec {
      *
      * @return the signature type, or {@code null} if none specified.
      */
+    @ToBeReplacedByLazyProperty
     SignatureType getSignatureType();
 
     /**
@@ -59,6 +62,7 @@ public interface SignatureSpec {
      *
      * @return Whether or not it is required that this signature be generated.
      */
+    @ToBeReplacedByLazyProperty
     boolean isRequired();
 
     /**

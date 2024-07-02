@@ -27,11 +27,11 @@ various implementations of WorkerTestClassProcessorFactory.
 """
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.time)
-    api(project(":base-services"))
-    api(project(":messaging"))
-    api(project(":testing-base-infrastructure"))
+    api(projects.baseServices)
+    api(projects.messaging)
+    api(projects.testingBaseInfrastructure)
 
     api(libs.jsr305)
     api(libs.junit)
@@ -51,8 +51,8 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.messaging))
     testImplementation(libs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }
@@ -67,7 +67,7 @@ dependencies {
         because("Used by TestNG")
     }
 
-    testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.testng)
     testFixturesImplementation(libs.bsh)

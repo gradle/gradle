@@ -25,7 +25,7 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
 
     def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
         when:
-        startBuild(null, "US-ASCII")
+        startBuild("US-ASCII")
         waitForBuildToWait()
 
         then:
@@ -41,7 +41,7 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
         idle()
 
         when:
-        startBuild(null, "UTF-8")
+        startBuild("UTF-8")
         waitForLifecycleLogToContain(1, "1 incompatible")
         waitForBuildToWait()
 

@@ -26,7 +26,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -161,7 +162,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems)))
 
         def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]
         variant.metadata.dependencies

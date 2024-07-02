@@ -49,7 +49,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         fails("test")
-        result.assertHasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
+        result.assertHasErrorOutput("A dependency was declared on configuration '$configuration' of 'project :producer' but no variant with that configuration name exists.")
 
         where:
         plugin       | configuration
