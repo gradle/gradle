@@ -126,7 +126,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
             listOf(extraParameters) +
             buildScanTags.map { buildScanTag(it) } +
             functionalTestParameters(os, arch)
-        ).joinToString(separator = " ")
+        ).joinToString(separator = " ") + if (isRetry) " -PretryBuild" else ""
 
     steps {
         gradleWrapper(this@gradleRunnerStep) {

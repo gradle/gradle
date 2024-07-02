@@ -51,6 +51,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
+import gradlebuild.basics.BuildParams.RETRY_BUILD
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
@@ -118,6 +119,7 @@ object BuildParams {
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val RERUN_ALL_TESTS = "rerunAllTests"
+    const val RETRY_BUILD = "retryBuild"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
@@ -242,6 +244,10 @@ val Project.buildServerUrl: Provider<String>
 
 val Project.buildMilestoneNumber: Provider<String>
     get() = gradleProperty(BUILD_MILESTONE_NUMBER)
+
+
+val Project.isRetryBuild: Boolean
+    get() = gradleProperty(RETRY_BUILD).isPresent
 
 
 val Project.buildTimestamp: Provider<String>
