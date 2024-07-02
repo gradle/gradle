@@ -24,6 +24,7 @@ public abstract class FileTextValueSource extends FileContentValueSource<String>
 
     @Override
     protected String obtainFrom(File file) {
-        return readFile(file);
+        String charset = getParameters().getCharset().getOrNull();
+        return charset != null ? readFile(file, charset) : readFile(file);
     }
 }
