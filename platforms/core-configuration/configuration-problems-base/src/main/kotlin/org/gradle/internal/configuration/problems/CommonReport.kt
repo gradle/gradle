@@ -107,7 +107,7 @@ class CommonReport(
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             private val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedReportProblem,
+            val decorate: (PropertyProblem, ProblemSeverity, String) -> DecoratedReportProblem,
             val writer: HtmlReportWriter,
             private val hashingStream: HashingOutputStream,
             private val spoolFile: File
@@ -123,10 +123,18 @@ class CommonReport(
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
                     val severity = problemSeverity(kind)
-                    decorate(problem, severity).writeJsonIntoWriter(kind)
+                    decorate(problem, severity, keyFor(kind)).writeToJson(writer.jsonModelWriter)
                 }
                 return this
             }
+
+            private
+            fun keyFor(kind: DiagnosticKind) = when (kind) {
+                DiagnosticKind.PROBLEM -> "problem"
+                DiagnosticKind.INPUT -> "input"
+                DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
+            }
+
 
             private fun problemSeverity(kind: DiagnosticKind): ProblemSeverity {
                 return when (kind) {
@@ -239,14 +247,14 @@ class CommonReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedReportProblem {
+    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity, kind: String): DecoratedReportProblem {
         val failure = problem.stackTracingFailure
         return DecoratedReportProblem(
             problem.trace,
             decorateMessage(problem, failure),
             decoratedFailureFor(failure, severity),
             problem.documentationSection,
-            jsonWriter
+            kind
         )
     }
 

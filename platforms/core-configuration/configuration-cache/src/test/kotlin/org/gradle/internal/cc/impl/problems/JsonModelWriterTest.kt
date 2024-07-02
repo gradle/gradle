@@ -17,9 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import groovy.json.JsonSlurper
-import org.apache.groovy.json.internal.CharBuf
 import org.gradle.internal.configuration.problems.DecoratedReportProblem
-import org.gradle.internal.configuration.problems.DiagnosticKind
 import org.gradle.internal.configuration.problems.JsonModelWriter
 import org.gradle.internal.configuration.problems.ProblemReportDetails
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -38,14 +36,13 @@ class JsonModelWriterTest {
         assertThat(
             jsonModelFor {
                 beginModel()
-                writeDiagnostic(
-                    DiagnosticKind.INPUT,
-                    DecoratedReportProblem(
-                        PropertyTrace.Unknown,
-                        StructuredMessage.build { reference("") },
-                        jsonWriter = JsonModelWriter(CharBuf.create(500))
-                    )
-                )
+                DecoratedReportProblem(
+                    PropertyTrace.Unknown,
+                    StructuredMessage.build { reference("") },
+                    null,
+                    null,
+                    "input"
+                ).writeToJson(this)
                 endModel(ProblemReportDetails("", "", StructuredMessage.forText(""), "", 0))
             },
             hasEntry(

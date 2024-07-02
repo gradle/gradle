@@ -119,7 +119,6 @@ open class JsonModelWriterCommon(val writer: Writer) {
     private
     val buffer = CharBuf.create(255)
 
-    protected
     fun write(csq: CharSequence) = writer.append(csq)
 
     private

@@ -16,34 +16,6 @@
 
 package org.gradle.internal.configuration.problems
 
-import java.io.Writer
-
-
-enum class DiagnosticKind {
-    PROBLEM,
-    INPUT,
-    INCOMPATIBLE_TASK
-}
-
-
-class JsonModelWriter(writer: Writer) : JsonModelWriterCommon(writer) {
-
-    private
-    var first = true
-
-    fun beginModel() {
-        beginObject()
-
-        propertyName("diagnostics")
-        beginArray()
-    }
-
-    fun endModel(details: JsonSource) {
-        endArray()
-
-        comma()
-        details.writeToJson(this)
-
-        endObject()
-    }
+interface JsonSource{
+    fun writeToJson(jsonWriter: JsonModelWriterCommon)
 }

@@ -66,10 +66,6 @@ class HtmlReportWriter(
         }
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedReportProblem) {
-        jsonModelWriter.writeDiagnostic(kind, details)
-    }
-
     fun close() {
         writer.close()
     }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.api.internal.DocumentationRegistry
+
 
 data class ProblemReportDetails(
     val buildDisplayName: String?,
@@ -23,4 +25,29 @@ data class ProblemReportDetails(
     val cacheActionDescription: StructuredMessage,
     val requestedTasks: String?,
     val totalProblemCount: Int
-)
+) : JsonSource {
+    override fun writeToJson(jsonWriter: JsonModelWriterCommon) {
+        with(jsonWriter) {
+            property("totalProblemCount") {
+                write(totalProblemCount.toString())
+            }
+            buildDisplayName?.let {
+                comma()
+                property("buildName", it)
+            }
+            requestedTasks?.let {
+                comma()
+                property("requestedTasks", it)
+            }
+            comma()
+            property("cacheAction", cacheAction)
+            comma()
+            property("cacheActionDescription") {
+                writeStructuredMessage(cacheActionDescription)
+            }
+            comma()
+            property("documentationLink", DocumentationRegistry().getDocumentationFor("configuration_cache"))
+        }
+    }
+}
+
