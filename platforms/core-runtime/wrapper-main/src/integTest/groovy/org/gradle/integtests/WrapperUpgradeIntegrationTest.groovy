@@ -38,8 +38,7 @@ class WrapperUpgradeIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.withTasks("wrapper", "--gradle-version", badVersion).runWithFailure()
 
         and:
-        failure.assertHasDescription("Invalid version specified for argument '--gradle-version'")
-        failure.assertHasCause("'$badVersion' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')")
+        failure.assertHasCause("Invalid version specified for argument '--gradle-version': '$badVersion'. Valid examples: 1.0, 1.0-rc-1, latest, nightly.")
         failure.assertHasResolution("Specify a valid Gradle release listed on https://gradle.org/releases/.")
         failure.assertHasResolution("Use one of the following dynamic version specifications: 'latest', 'release-candidate', 'release-nightly', 'nightly'.")
 

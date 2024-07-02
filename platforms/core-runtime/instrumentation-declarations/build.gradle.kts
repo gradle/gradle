@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Contains declarations for instrumentation of plugins. Adds interceptors, bytecode upgrades etc."
@@ -14,18 +15,7 @@ dependencies {
     compileOnly(projects.modelCore)
     compileOnly(projects.reporting)
     compileOnly(libs.groovy)
+    // We keep code-quality here, since we would need to separate Groovy and Java sourceset to keep incremental compilation
     compileOnly(projects.codeQuality)
-
-    // Instrumentation dependencies
-    compileOnly(projects.internalInstrumentationApi)
-    compileOnly(libs.asm)
-    compileOnly(libs.asmUtil)
-    compileOnly(libs.asmTree)
-    annotationProcessor(projects.internalInstrumentationProcessor)
-    annotationProcessor(platform(projects.distributionsDependencies))
 }
 
-tasks.named<JavaCompile>("compileJava") {
-    // Without this, javac will complain about unclaimed org.gradle.api.NonNullApi annotation
-    options.compilerArgs.add("-Xlint:-processing")
-}

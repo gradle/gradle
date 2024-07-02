@@ -37,7 +37,6 @@ Method <org.gradle.api.tasks.testing.Test.getBootstrapClasspath()> does not have
 Method <org.gradle.api.tasks.testing.Test.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getTestClassesDirs()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:0)
 Method <org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.getXcodeProjectLocations()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (GenerateXcodeWorkspaceFileTask.java:0)
-Method <org.gradle.jvm.application.tasks.CreateStartScripts.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (CreateStartScripts.java:0)
 Method <org.gradle.language.scala.tasks.AbstractScalaCompile.getSource()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (AbstractScalaCompile.java:0)
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getLibs()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (InstallExecutable.java:0)
 Method <org.gradle.testing.jacoco.tasks.JacocoBase.getJacocoClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (JacocoBase.java:0)

@@ -59,7 +59,7 @@ public @interface ReplacesEagerProperty {
     /**
      * Deprecation configuration for the replaced accessors
      */
-    ReplacedDeprecation deprecation() default @ReplacedDeprecation();
+    ReplacedDeprecation deprecation() default @ReplacedDeprecation(enabled = false);
 
     /**
      * A custom interception adapter for a property that is used for bytecode upgrade.
