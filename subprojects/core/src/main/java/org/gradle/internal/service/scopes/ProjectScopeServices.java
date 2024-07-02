@@ -104,8 +104,8 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
 import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -124,6 +124,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         Factory<LoggingManagerInternal> loggingManagerInternalFactory
     ) {
         return ServiceRegistryBuilder.builder()
+            .scope(Scope.Project.class)
             .displayName("project services")
             .parent(parent)
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
