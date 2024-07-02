@@ -30,10 +30,15 @@ import java.util.Set;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current project.
- *
+ * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a component that exist
+ * outside of the current project.
  * <p>
- * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
+ * Modules can supply {@link ModuleDependency#getArtifacts() multiple artifacts} in addition to the
+ * {@link #addArtifact(DependencyArtifact) implicit default artifact}.  Non-default artifacts
+ * available in a module can be selected by a consumer by specifying a classifier or extension
+ * when declaring a dependency on that module.
+ * <p>
+ * For examples on configuring exclude rules for modules please refer to {@link #exclude(java.util.Map)}.
  */
 public interface ModuleDependency extends Dependency, HasConfigurableAttributes<ModuleDependency> {
     /**
@@ -81,6 +86,14 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
 
     /**
      * Returns the artifacts belonging to this dependency.
+     * <p>
+     * There will typically be a single artifact for a dependency, but this is not always true.  Modules can use
+     * custom classifiers or extensions to distinguish multiple artifacts that they contain.
+     * <p>
+     * In general, projects publishing using Gradle should favor supplying multiple artifacts by supplying
+     * multiple variants, each containing a different artifact, that are selectable through variant-aware
+     * dependency resolution.  This mechanism where a module contains multiple artifacts is primarily
+     * intended to support dependencies on non-Gradle-published components.
      *
      * @see #addArtifact(DependencyArtifact)
      */
