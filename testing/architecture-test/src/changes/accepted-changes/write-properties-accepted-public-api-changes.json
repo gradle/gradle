@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt.setProperties(org.gradle.api.tasks.WriteProperties,kotlin.Pair[])",
+            "acceptation": "It's a source compatibility change, see org.gradle.kotlin.dsl.WritePropertiesExtensions",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}
