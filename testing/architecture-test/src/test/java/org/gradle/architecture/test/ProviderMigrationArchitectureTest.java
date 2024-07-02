@@ -41,8 +41,9 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -50,7 +51,6 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.ModelElement;
 
 import javax.inject.Inject;
-
 import java.util.List;
 
 import static com.tngtech.archunit.base.DescribedPredicate.and;
@@ -103,11 +103,12 @@ public class ProviderMigrationArchitectureTest {
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
     private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
         .and(declaredIn(assignableTo(Task.class)))
         .and(are(getters))
         .and(not(annotatedWith(Inject.class)))
+        .and(not(annotatedWith(OptionValues.class)))
         .and(not(declaredIn(Task.class)))
         .and(not(declaredIn(DefaultTask.class)))
         .and(not(declaredIn(org.gradle.api.internal.AbstractTask.class)))
@@ -153,6 +154,7 @@ public class ProviderMigrationArchitectureTest {
         // We won't upgrade deprecated methods and classes
         .and(not(annotatedWith(Deprecated.class)))
         .and(not(declaredIn(annotatedWith(Deprecated.class))))
+        .and(not(annotatedWith(OptionValues.class)))
         // Skip types that are not to be migrated
         .and(not(declaredIn(annotatedWith(NotToBeMigratedToLazy.class))))
         // Skip Nested properties that are not Iterables

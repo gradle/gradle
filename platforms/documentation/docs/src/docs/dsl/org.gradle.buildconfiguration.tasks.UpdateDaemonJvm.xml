@@ -28,6 +28,10 @@
                 <td>jvmVersion</td>
                 <td><literal>defaults to current JVM version</literal></td>
             </tr>
+            <tr>
+                <td>jvmVendor</td>
+                <td><literal>defaults to allowing any JVM vendor</literal></td>
+            </tr>
         </table>
     </section>
     <section>

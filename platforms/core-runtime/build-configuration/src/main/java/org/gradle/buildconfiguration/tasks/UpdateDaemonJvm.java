@@ -26,12 +26,17 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Generates or updates the Gradle Daemon JVM criteria.
@@ -56,10 +61,17 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @TaskAction
     void generate() {
         IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
+
+        final String jvmVendor;
+        if (getJvmVendor().isPresent()) {
+            jvmVendor = getJvmVendor().get();
+        } else {
+            jvmVendor = null; // any vendor is acceptable
+        }
         UpdateDaemonJvmModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
             getJvmVersion().get(),
-            null,
+            jvmVendor,
             null
         );
     }
@@ -85,4 +97,29 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
     @Incubating
     public abstract Property<JavaVersion> getJvmVersion();
+
+    /**
+     * The vendor of Java required to run the Gradle Daemon.
+     * <p>
+     * When unset, any vendor is acceptable.
+     * </p>
+     *
+     * @since 8.10
+     */
+    @Input
+    @Optional
+    @Incubating
+    @Option(option = "jvm-vendor", description = "The vendor of the JVM required to run the Gradle Daemon.")
+    public abstract Property<String> getJvmVendor();
+
+    /**
+     * Returns the supported JVM vendors.
+     *
+     * @return supported JVM vendors
+     * @since 8.10
+     */
+    @OptionValues("jvm-vendor")
+    public List<String> getAvailableVendors() {
+        return Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e!=JvmVendor.KnownJvmVendor.UNKNOWN).map(Enum::name).collect(Collectors.toList());
+    }
 }
