@@ -177,11 +177,16 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
-        List<DiscoverySelector> classSelectors = testClasses.stream()
-            .map(DiscoverySelectors::selectClass)
-            .collect(Collectors.toList());
+        List<DiscoverySelector> discoverySelectors = null;
+        if (spec.getSelectorPatterns().isEmpty()) {
+            discoverySelectors =testClasses.stream()
+                .map(DiscoverySelectors::selectClass)
+                .collect(Collectors.toList());
+        } else {
+            discoverySelectors = JUnitPlatformSelectorParser.parse(spec.getSelectorPatterns());
+        }
 
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
+        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(discoverySelectors);
 
         addTestNameFilters(requestBuilder);
         addEnginesFilter(requestBuilder);
