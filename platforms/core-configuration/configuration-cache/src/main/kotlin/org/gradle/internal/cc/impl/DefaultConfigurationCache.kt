@@ -26,13 +26,11 @@ import org.gradle.configurationcache.StoreResult
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
 import org.gradle.initialization.GradlePropertiesController
-import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
@@ -49,7 +47,6 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -90,17 +87,6 @@ class DefaultConfigurationCache internal constructor(
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor
 ) : BuildTreeConfigurationCache, Stoppable {
 
-    interface Host : HostServiceProvider {
-
-        val currentBuild: VintageGradleBuild
-
-        fun createBuild(settingsFile: File?): ConfigurationCacheBuild
-
-        fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
-
-        fun <T> factory(serviceType: Class<T>): Factory<T>
-    }
-
     private
     lateinit var cacheAction: ConfigurationCacheAction
 
@@ -109,7 +95,7 @@ class DefaultConfigurationCache internal constructor(
     var cacheEntryRequiresCommit = false
 
     private
-    lateinit var host: Host
+    lateinit var host: ConfigurationCacheHost
 
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
@@ -142,7 +128,7 @@ class DefaultConfigurationCache internal constructor(
         get() = lazyProjectMetadata.value
 
     private
-    val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
+    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
     private
     val gradlePropertiesController: GradlePropertiesController
@@ -159,7 +145,7 @@ class DefaultConfigurationCache internal constructor(
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
 
-    override fun attachRootBuild(host: Host) {
+    override fun attachRootBuild(host: ConfigurationCacheHost) {
         this.host = host
     }
 

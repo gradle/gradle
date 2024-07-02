@@ -16,17 +16,12 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.Factory
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import java.io.File
 
-interface ConfigurationCacheHost : HostServiceProvider {
+internal
+interface ConfigurationCacheIncludedBuildIO {
 
-    val currentBuild: VintageGradleBuild
+    fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState)
 
-    fun createBuild(settingsFile: File?): ConfigurationCacheBuild
+    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild): CachedBuildState
 
-    fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
-
-    fun <T> factory(serviceType: Class<T>): Factory<T>
 }
