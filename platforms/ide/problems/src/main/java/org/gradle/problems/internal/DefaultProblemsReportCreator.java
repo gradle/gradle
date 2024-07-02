@@ -16,31 +16,44 @@
 
 package org.gradle.problems.internal;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.configuration.problems.BuildNameHandler;
 import org.gradle.internal.configuration.problems.CommonReport;
 import org.gradle.internal.configuration.problems.ProblemFactory;
 import org.gradle.internal.configuration.problems.ProblemReportDetails;
 import org.gradle.internal.configuration.problems.StructuredMessage;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
 
-public class DefaultProblemsReportCreator implements ProblemReportCreator {
+public class DefaultProblemsReportCreator implements ProblemReportCreator, AutoCloseable {
 
     private final CommonReport report;
     private final ProblemFactory problemFactory;
+    private final List<String> taskNames;
+    private final ListenerManager listenerManager;
+    private int problemCount = 0;
 
+    private final BuildNameHandler buildNameHandler = new BuildNameHandler();
     public DefaultProblemsReportCreator(
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
         InternalOptions internalOptions,
-        ProblemFactory problemFactory
-    ){
+        ProblemFactory problemFactory,
+        StartParameterInternal startParameter,
+        ListenerManager listenerManager
+    ) {
         this.problemFactory = problemFactory;
+        this.taskNames = startParameter.getTaskNames();
+        this.listenerManager = listenerManager;
+        listenerManager.addListener(buildNameHandler);
         report = new CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem-report");
     }
 
@@ -53,15 +66,21 @@ public class DefaultProblemsReportCreator implements ProblemReportCreator {
     public void report(File reportDir, ProblemConsumer validationFailures) {
         StructuredMessage.Builder builder = new StructuredMessage.Builder();
         builder.text("text");
-        report.writeReportFileTo(reportDir, new ProblemReportDetails("buildDisplayName", "cacheAction", builder.build(), "requested tasks", 1));
+        report.writeReportFileTo(reportDir, new ProblemReportDetails(buildNameHandler.getBuildName(), "cacheAction", builder.build(), String.join(" ", taskNames), problemCount));
     }
 
     @Override
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
+        problemCount++;
         StructuredMessage.Builder builder = new StructuredMessage.Builder();
         String displayName = problem.getDefinition().getId().getDisplayName();
         builder.text(displayName == null ? "<no display name>" : displayName);
 
         report.onProblem(problemFactory.problem(builder.build(), problem.getException(), null, false));
+    }
+
+    @Override
+    public void close() throws Exception {
+        listenerManager.removeListener(buildNameHandler);
     }
 }
