@@ -21,7 +21,6 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -99,7 +98,6 @@ class ConfigurationCacheFingerprintWriter(
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
-    ProjectComponentObservationListener,
     CoupledProjectsListener,
     ToolingModelProjectDependencyListener,
     FileResourceListener,
@@ -537,7 +535,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+    fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
         if (consumingProjectPath != null) {
             onProjectDependency(consumingProjectPath, targetProjectPath)
         }
