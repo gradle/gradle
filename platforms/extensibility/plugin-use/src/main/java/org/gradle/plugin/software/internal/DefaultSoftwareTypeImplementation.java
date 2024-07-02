@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.software.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
@@ -35,7 +34,7 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
 
-    private final List<Convention<?>> conventionRules = new ArrayList<>();
+    private final List<Convention<?>> conventions = new ArrayList<>();
 
     public DefaultSoftwareTypeImplementation(String softwareType,
                                              Class<? extends T> modelPublicType,
@@ -68,13 +67,16 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     }
 
     @Override
-    public void addConvention(Convention<?> rule) {
-        conventionRules.add(rule);
+    public void addConvention(Convention<?> convention) {
+        conventions.add(convention);
     }
 
     @Override
-    public List<Convention<?>> getConventions() {
-        return ImmutableList.copyOf(conventionRules);
+    public <V extends Convention.Visitor<?>> void visitConventions(Class<? extends Convention<V>> type, V visitor) {
+        conventions.stream()
+            .filter(type::isInstance)
+            .map(type::cast)
+            .forEach(convention -> convention.visit(visitor));
     }
 
     @Override

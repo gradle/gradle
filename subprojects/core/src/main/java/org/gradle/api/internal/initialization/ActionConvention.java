@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+package org.gradle.api.internal.initialization;
 
-/**
- * Marker interface for objects that can receive conventions of a certain type and apply them appropriately.
- *
- * @since 8.9
- */
-public interface ConventionReceiver {
+import org.gradle.api.Action;
+import org.gradle.plugin.software.internal.Convention;
+import org.gradle.plugin.software.internal.Convention.Visitor;
+
+public class ActionConvention<T> implements Convention<Visitor<Action<? super T>>> {
+    private final Action<? super T> action;
+
+    public ActionConvention(Action<? super T> action) {
+        this.action = action;
+    }
+
+    @Override
+    public void visit(Visitor<Action<? super T>> visitor) {
+        visitor.apply(action);
+    }
 }

@@ -16,10 +16,14 @@
 
 package org.gradle.internal.declarativedsl.conventions
 
+import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
+import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionRegistrar
 import org.gradle.internal.declarativedsl.evaluator.conventions.SoftwareTypeConventionRepository
 import org.gradle.internal.declarativedsl.evaluator.conventions.SoftwareTypeConventionResolutionResults
 import org.gradle.plugin.software.internal.Convention
+import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
@@ -27,21 +31,24 @@ internal
 fun softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry: SoftwareTypeRegistry): SoftwareTypeConventionRepository = object : SoftwareTypeConventionRepository {
     override fun findConventions(softwareTypeName: String): SoftwareTypeConventionResolutionResults? =
         softwareTypeRegistry.softwareTypeImplementations[softwareTypeName]?.let { softwareType ->
-            conventionResolutionResultsFrom(softwareTypeName, softwareType.conventions)
+            conventionResolutionResultsFrom(softwareTypeName, softwareType)
         }
 }
 
 
 private
-fun conventionResolutionResultsFrom(softwareTypeName: String, conventions: List<Convention<*>>): SoftwareTypeConventionResolutionResults {
+fun conventionResolutionResultsFrom(softwareTypeName: String, softwareType: SoftwareTypeImplementation<*>): SoftwareTypeConventionResolutionResults {
     val assignments = buildList {
-        conventions.filterIsInstance<AssignmentRecordConvention>().forEach { it.apply(::add) }
+        softwareType.visitConventions(AssignmentRecordConvention::class.java,
+            Convention.Visitor<AssignmentRecord> { record -> add(record) })
     }
     val additions = buildList {
-        conventions.filterIsInstance<AdditionRecordConvention>().forEach { it.apply(::add) }
+        softwareType.visitConventions(AdditionRecordConvention::class.java,
+            Convention.Visitor<DataAdditionRecord> { record -> add(record) })
     }
     val nestedObjectAccess = buildList {
-        conventions.filterIsInstance<NestedObjectAccessConvention>().forEach { it.apply(::add) }
+        softwareType.visitConventions(NestedObjectAccessConvention::class.java,
+            Convention.Visitor<NestedObjectAccessRecord> { record -> add(record) })
     }
     return SoftwareTypeConventionResolutionResults(softwareTypeName, assignments, additions, nestedObjectAccess)
 }

@@ -23,6 +23,10 @@ package org.gradle.plugin.software.internal;
  *
  * @since 8.9
  */
-public interface Convention<T extends ConventionReceiver> {
-    void apply(T receiver);
+public interface Convention<T extends Convention.Visitor<?>> {
+    void visit(T visitor);
+
+    interface Visitor<U> {
+        void apply(U convention);
+    }
 }

@@ -17,11 +17,10 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 
 /**
  * Applies the conventions for a given software type to a target project.
  */
 public interface SoftwareTypeConventionApplicator {
-    void applyConventionsTo(Project project, Class<? extends Plugin<Project>> pluginClass);
+    <T> void applyConventionsTo(T target, Plugin<? super T> plugin);
 }
