@@ -28,6 +28,7 @@ import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
@@ -81,15 +82,22 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
-        if (problemStream != null) {
-            addLocationsFromProblemStream(this.locations, exceptionForProblemInstantiation);
-        }
+        locations.addAll(createLocationsFromProblemStream(problemStream, exceptionForProblemInstantiation));
+        locations.addAll(createLocationsFromCurrentTaskPath(ProblemsGlobals.getCurrentTaskForThread()));
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
         return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations.build(), details, exceptionForProblemInstantiation, additionalData);
     }
 
-    private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, RuntimeException exceptionForProblemInstantiation) {
+    private static Collection<? extends ProblemLocation> createLocationsFromProblemStream(
+        @Nullable ProblemStream problemStream,
+        RuntimeException exceptionForProblemInstantiation
+    ) {
+        List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+        if (problemStream == null) {
+            return locations;
+        }
+
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
@@ -98,6 +106,17 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (problemDiagnostics.getSource() != null && problemDiagnostics.getSource().getPluginId() != null) {
             locations.add(getDefaultPluginIdLocation(problemDiagnostics));
         }
+
+        return locations;
+    }
+
+    private static Collection<? extends ProblemLocation> createLocationsFromCurrentTaskPath(@Nullable String currentTaskPath) {
+        List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+        if (currentTaskPath == null) {
+            return locations;
+        }
+        locations.add(new DefaultTaskPathLocation(currentTaskPath));
+        return locations;
     }
 
     private static DefaultPluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
@@ -117,11 +136,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.id, Severity.WARNING, null);
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
-        ImmutableList.Builder<ProblemLocation> problemLocations = ImmutableList.builder();
-        addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
+
+        ImmutableList.Builder<ProblemLocation> locations = ImmutableList.builder();
+        locations.addAll(createLocationsFromProblemStream(problemStream, exceptionForProblemInstantiation));
+        locations.addAll(createLocationsFromCurrentTaskPath(ProblemsGlobals.getCurrentTaskForThread()));
+
         return new DefaultProblem(problemDefinition, contextualLabel,
             ImmutableList.<String>of(),
-            problemLocations.build(),
+            locations.build(),
             null,
             exceptionForProblemInstantiation,
             null);

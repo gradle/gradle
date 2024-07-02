@@ -30,10 +30,12 @@ import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemDefinition
 import org.gradle.api.problems.internal.ProblemLocation
+import org.gradle.api.problems.internal.TaskPathLocation
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
  */
+
 @CompileStatic
 class ReceivedProblem implements Problem {
     private final long operationId
@@ -49,7 +51,7 @@ class ReceivedProblem implements Problem {
         this.operationId = operationId
         this.definition = new ReceivedProblemDefinition(problemDetails['definition'] as Map<String, Object>)
         this.contextualLabel = problemDetails['contextualLabel'] as String
-        this.details =  problemDetails['details'] as String
+        this.details = problemDetails['details'] as String
         this.solutions = problemDetails['solutions'] as List<String>
         this.locations = fromList(problemDetails['locations'] as List<Object>)
         this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
@@ -65,6 +67,8 @@ class ReceivedProblem implements Problem {
                 result += new ReceivedLineInFileLocation(location as Map<String, Object>)
             } else if (location['offset'] != null) {
                 result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
+            } else if (location['buildTreePath'] != null) {
+                result += new ReceivedTaskPathLocation(location as Map<String, Object>)
             } else {
                 result += new ReceivedFileLocation(location as Map<String, Object>)
             }
@@ -99,12 +103,12 @@ class ReceivedProblem implements Problem {
 
     @Override
     String getContextualLabel() {
-       contextualLabel
+        contextualLabel
     }
 
     @Override
     String getDetails() {
-       details
+        details
     }
 
     @Override
@@ -121,13 +125,13 @@ class ReceivedProblem implements Problem {
         def location = locations.find {
             locationType.isInstance(it)
         }
-        assert location != null : "Expected a location of type $locationType, but found none."
+        assert location != null: "Expected a location of type $locationType, but found none."
         return locationType.cast(location)
     }
 
     @Override
     ReceivedAdditionalData getAdditionalData() {
-       additionalData
+        additionalData
     }
 
     @Override
@@ -148,7 +152,7 @@ class ReceivedProblem implements Problem {
         ReceivedProblemDefinition(Map<String, Object> definition) {
             id = new ReceivedProblemId(definition['id'] as Map<String, Object>)
             severity = Severity.valueOf(definition['severity'] as String)
-            documentationLink = definition['documentationLink'] ==  null ? null : new ReceivedDocumentationLink(definition['documentationLink'] as Map<String, Object>)
+            documentationLink = definition['documentationLink'] == null ? null : new ReceivedDocumentationLink(definition['documentationLink'] as Map<String, Object>)
         }
 
         @Override
@@ -196,7 +200,7 @@ class ReceivedProblem implements Problem {
 
         @Override
         String getName() {
-           name
+            name
         }
 
         @Override
@@ -348,6 +352,19 @@ class ReceivedProblem implements Problem {
         @Override
         String getPluginId() {
             pluginId
+        }
+    }
+
+    static class ReceivedTaskPathLocation implements TaskPathLocation {
+        private final String buildTreePath
+
+        ReceivedTaskPathLocation(Map<String, Object> location) {
+            this.buildTreePath = location['buildTreePath'] as String
+        }
+
+        @Override
+        String getBuildTreePath() {
+            buildTreePath
         }
     }
 

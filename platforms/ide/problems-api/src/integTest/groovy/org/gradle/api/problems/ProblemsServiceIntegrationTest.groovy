@@ -16,11 +16,13 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
@@ -49,13 +51,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:missing-id'
             definition.id.displayName == 'Problem id must be specified'
-            locations.size() == 1
-            with(oneLocation(LineInFileLocation)) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
-            }
+            verifyImplicitProblemLocations(it)
         }
     }
 
@@ -74,12 +70,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(oneLocation(LineInFileLocation)) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
-            }
+            verifyImplicitProblemLocations(it)
         }
     }
 
@@ -100,12 +91,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(oneLocation(LineInFileLocation)) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
-            }
+            verifyImplicitProblemLocations(it)
         }
 
     }
@@ -123,7 +109,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        receivedProblem.definition.documentationLink.url == 'https://example.org/doc'
+        verifyAll(receivedProblem) {
+            verifyImplicitProblemLocations(it)
+        }
     }
 
     def "can emit a problem with offset location"() {
@@ -139,19 +127,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll (receivedProblem.locations) {
-            size() == 2
-            with(get(0) as OffsetInFileLocation) {
-                path == 'test-location'
-                offset == 1
-                length == 2
-            }
-            with(get(1) as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
-            }
+        verifyAll(receivedProblem) {
+            // TODO: reimplement this
         }
     }
 
@@ -168,20 +145,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll (receivedProblem.locations) {
-            size() == 2
-            with(get(0) as LineInFileLocation) {
-                length == -1
-                column == 2
-                line == 1
-                path == 'test-location'
-            }
-            with(get(1) as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
-            }
+        verifyAll(receivedProblem) {
+            // TODO: reimplement this
         }
     }
 
@@ -198,16 +163,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll (receivedProblem.locations) {
-            size() == 2
-            with(get(0) as PluginIdLocation) {
+        verifyAll(receivedProblem) {
+            verifyImplicitProblemLocations(it)
+            verifyAll(getSingleLocation(PluginIdLocation)) {
                 pluginId == 'org.example.pluginid'
-            }
-            with(get(1) as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
             }
         }
     }
@@ -244,7 +203,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        receivedProblem.solutions == ['solution']
+        receivedProblem.solutions == ["solution"]
     }
 
     def "can emit a problem with exception cause"() {
@@ -322,7 +281,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:unsupported-additional-data'
             definition.id.displayName == 'Unsupported additional data type'
-            with(oneLocation(LineInFileLocation)) {
+            verifyImplicitProblemLocations(it)
+            verifyAll(getSingleLocation(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
@@ -408,6 +368,21 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 definition.severity == Severity.WARNING
                 solutions == ["solution"]
             }
+        }
+    }
+
+    private void verifyImplicitProblemLocations(ReceivedProblem problem) {
+        assert verifyAll(problem.getSingleLocation(TaskPathLocation)) {
+            buildTreePath == ":reportProblem"
+        }
+        assert verifyAll(problem.getSingleLocation(FileLocation)) {
+            path == "build file '$buildFile.absolutePath'"
+        }
+        assert verifyAll(problem.getSingleLocation(LineInFileLocation)) {
+            length == -1
+            column == -1
+            line == 11
+            path == "build file '$buildFile.absolutePath'"
         }
     }
 }

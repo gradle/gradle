@@ -29,10 +29,10 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
 
     @Provides
     InternalProblems createProblemsService(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        BuildOperationProgressEventEmitter eventEmitter,
         ProblemStream problemStream
     ) {
-        BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
+        BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(eventEmitter);
         return new DefaultProblems(emitter, problemStream, CurrentBuildOperationRef.instance());
     }
 }

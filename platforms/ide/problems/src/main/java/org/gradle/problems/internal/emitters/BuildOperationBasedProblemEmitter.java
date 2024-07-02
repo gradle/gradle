@@ -23,22 +23,29 @@ import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Emits problems as build operation progress events.
  *
  * @since 8.6
  */
 @Incubating
+@SuppressWarnings("unused")
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
-
+    private final Map<OperationIdentifier, String> taskNames = new HashMap<>();
     private final BuildOperationProgressEventEmitter eventEmitter;
 
     public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
         this.eventEmitter = eventEmitter;
     }
 
+    @SuppressWarnings("unused")
     @Override
-    public void emit(Problem problem, OperationIdentifier id) {
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+        // Emit the problem as a progress event
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
 }

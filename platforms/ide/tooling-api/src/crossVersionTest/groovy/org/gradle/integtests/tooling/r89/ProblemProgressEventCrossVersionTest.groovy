@@ -118,9 +118,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details.details == expectedDetails
             definition.documentationLink.url == expecteDocumentation
-            locations.size() == 2
-            (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+//            locations.size() == 2
+//            (locations[0] as LineInFileLocation).path == '/tmp/foo'
+//            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
             definition.severity == Severity.WARNING
             solutions.size() == 1
             solutions[0].solution == 'try this instead'

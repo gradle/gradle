@@ -899,8 +899,8 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
      * The validation should only verify the contextual attributes of the received problem, as the problem definition is checked at the end of each test (see {@see KnownProblemIds}).
      */
     ReceivedProblem receivedProblem(int index) {
-        assert index >= 0: "Index must be non-negative"
-        assert index < getReceivedProblems().size(): "Only ${getReceivedProblems().size()} problems received"
+        assert index >= 0, "Index must be non-negative"
+        assert index < getReceivedProblems().size(), "Only ${getReceivedProblems().size()} problems received"
         def problems = getReceivedProblems()
         def result = problems[index]
         assert result != null: "Problem already validated"
