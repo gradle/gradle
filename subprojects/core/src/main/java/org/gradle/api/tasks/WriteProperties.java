@@ -18,17 +18,16 @@ package org.gradle.api.tasks;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.DeferredUtil;
@@ -44,8 +43,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 
 /**
  * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
@@ -66,10 +63,8 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
  */
 @CacheableTask
 public abstract class WriteProperties extends DefaultTask {
-    private final MapProperty<String, String> propertiesProp;
 
     public WriteProperties() {
-        propertiesProp = getObjectFactory().mapProperty(String.class, String.class);
         getEncoding().convention("ISO_8859_1");
         getLineSeparator().convention("\n");
     }
@@ -80,39 +75,8 @@ public abstract class WriteProperties extends DefaultTask {
      * @since 8.10
      */
     @Input
-    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getProperties"))
-    public MapProperty<String, String> getProperties() {
-        // NOTE: this can't be abstract because the setter is not abstract
-        // See org.gradle.internal.instantiation.generator.AbstractClassGenerator#claimPropertyImplementation
-        return propertiesProp;
-    }
-
-    /**
-     * Sets all properties to be written to the properties file replacing any existing properties.
-     *
-     * @see #properties(Map)
-     * @see #property(String, Object)
-     */
-    public void setProperties(Map<String, Object> properties) {
-        this.getProperties().empty();
-        properties(properties);
-    }
-
-    /**
-     * Sets all properties to be written to the properties file replacing any existing properties.
-     *
-     * @see #properties(Map)
-     * @see #property(String, Object)
-     * @since 8.10
-     */
-    @Incubating
-    public void setProperties(MapProperty<String, Object> properties) {
-        getProperties().set(
-            properties.map(originalMap ->
-                originalMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())))
-            )
-        );
-    }
+    @ReplacesEagerProperty(adapter = PropertiesAdapter.class)
+    public abstract MapProperty<String, Object> getProperties();
 
     /**
      * Adds a property to be written to the properties file.
@@ -132,16 +96,16 @@ public abstract class WriteProperties extends DefaultTask {
         checkForNullValue(name, value);
         if (DeferredUtil.isDeferred(value)) {
             if (value instanceof Provider) {
-                getProperties().put(name, ((Provider<?>) value).map(String::valueOf));
+                getProperties().put(name, value);
             } else {
                 getProperties().put(name, getProviderFactory().provider(() -> {
                     Object futureValue = DeferredUtil.unpack(value);
                     checkForNullValue(name, futureValue);
-                    return String.valueOf(futureValue);
+                    return futureValue;
                 }));
             }
         } else {
-            getProperties().put(name, String.valueOf(value));
+            getProperties().put(name, value);
         }
     }
 
@@ -155,7 +119,9 @@ public abstract class WriteProperties extends DefaultTask {
      * @see #property(String, Object)
      * @since 3.4
      */
+    @Deprecated
     public void properties(Map<String, Object> properties) {
+        ProviderApiDeprecationLogger.logDeprecation(WriteProperties.class, "properties(Map<String, Object>)", "properties");
         for (Map.Entry<String, Object> e : properties.entrySet()) {
             property(e.getKey(), e.getValue());
         }
@@ -247,7 +213,9 @@ public abstract class WriteProperties extends DefaultTask {
         OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         try {
             Properties propertiesToWrite = new Properties();
-            propertiesToWrite.putAll(getProperties().get());
+            for (Map.Entry<String, Object> entry : getProperties().get().entrySet()) {
+                propertiesToWrite.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
             PropertiesUtils.store(propertiesToWrite, out, getComment().getOrNull(), charset, getLineSeparator().get());
         } finally {
             IoActions.closeQuietly(out);
@@ -257,10 +225,29 @@ public abstract class WriteProperties extends DefaultTask {
     @Inject
     public abstract ProviderFactory getProviderFactory();
 
-    @Inject
-    public abstract ObjectFactory getObjectFactory();
-
     private static void checkForNullValue(String key, Object value) {
         Preconditions.checkNotNull(value, "Property '%s' is not allowed to have a null value.", key);
+    }
+
+    static class PropertiesAdapter {
+        @BytecodeUpgrade
+        static Map<String, String> getProperties(WriteProperties task) {
+            return task
+                .getProperties()
+                .get().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
+        }
+
+        /**
+         * Sets all properties to be written to the properties file replacing any existing properties.
+         *
+         * @see #properties(Map)
+         * @see #property(String, Object)
+         */
+        @BytecodeUpgrade
+        static void setProperties(WriteProperties task, Map<String, Object> properties) {
+            task.getProperties().empty();
+            task.properties(properties);
+        }
     }
 }
