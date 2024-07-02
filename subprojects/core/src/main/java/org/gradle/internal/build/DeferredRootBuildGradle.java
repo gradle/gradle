@@ -20,11 +20,23 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * Access to the root build's {@link GradleInternal} instance
+ * that becomes available as soon as the root build state is created.
+ */
 @ServiceScope(Scope.BuildTree.class)
 public interface DeferredRootBuildGradle {
 
+    /**
+     * Attaches the root build's {@link GradleInternal} instance.
+     * <p>
+     * Can be called only once.
+     */
     void attach(GradleInternal rootBuildGradle);
 
+    /**
+     * Returns the root build's {@link GradleInternal} instance.
+     */
     GradleInternal getGradle();
 
 }
