@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -34,6 +35,7 @@ import java.nio.channels.SocketChannel
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @Requires(IntegTestPreconditions.CanKillProcess)
+@LocalOnly
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
     @Rule TestServer server = new TestServer()
