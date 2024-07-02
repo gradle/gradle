@@ -75,7 +75,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -199,6 +198,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
     private boolean checkDeprecations = true;
+    private boolean maybeCheckJavaVersionDeprecation = true;
     private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
@@ -268,6 +268,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        maybeCheckJavaVersionDeprecation = true;
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
@@ -421,6 +422,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
+        }
+
+        if (!maybeCheckJavaVersionDeprecation) {
+            executer.noJavaVersionDeprecationChecks();
         }
 
         if (durationMeasurement != null) {
@@ -1363,10 +1368,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             shouldCheckDeprecations = false;
         }
 
+        List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
+        if (maybeCheckJavaVersionDeprecation) {
+            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
+                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Use JVM 17 or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
+            )));
+        }
+
         return new ResultAssertion(
             expectedGenericDeprecationWarnings,
             expectedDeprecationWarnings,
-            Collections.emptyList(),
+            maybeExpectedDeprecationWarnings,
             !stackTraceChecksOn,
             shouldCheckDeprecations,
             jdkWarningChecksOn
@@ -1408,6 +1425,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter noJavaVersionDeprecationChecks() {
+        maybeCheckJavaVersionDeprecation = false;
         return this;
     }
 

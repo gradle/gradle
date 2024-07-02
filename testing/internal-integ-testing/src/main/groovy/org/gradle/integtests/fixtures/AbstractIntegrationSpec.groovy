@@ -128,6 +128,9 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
+
+        // TODO: Problems API checks should be integrated into the executor, not the integration spec.
+        // See how this is done in SmokeTestGradleRunner
         if (enableProblemsApiCheck) {
             collectedProblems.each {
                 KnownProblemIds.assertIsKnown(it)
@@ -946,6 +949,13 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
+            }.findAll {
+                // Filter out all java version deprecation problems
+                // TODO: The current problems reporting infrastructure is not connected to the GradleExecutor in any way,
+                // but should be. Since the Gradle executor knows whether we are auto-detecting these sorts of deprecations
+                // or not, the integration spec does not know and thus cannot intelligently filter out the se problems.
+                // Until the problem API testing infrastructure is improved, we will filter out these problems here.
+                it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
             }
         }
     }

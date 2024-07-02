@@ -32,6 +32,7 @@ import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.GradleVersion
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
@@ -244,6 +245,15 @@ class SmokeTestGradleRunner extends GradleRunner {
     private void verifyDeprecationWarnings(BuildResult result) {
         // TODO: Use problems API to verify deprecation warnings instead of parsing output.
         ExecutionResult execResult = OutputScrapingExecutionResult.from(result.output, "")
+
+        maybeExpectedDeprecationWarnings.add(
+            "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+                "This will fail with an error in Gradle 9.0. " +
+                "Use JVM 17 or greater to execute Gradle. " +
+                "Projects can continue to use older JVM versions via toolchains. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
+        )
 
         List<String> deprecationWarningsToCheck = []
         if (!ignoreDeprecationWarnings) {
