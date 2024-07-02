@@ -20,8 +20,8 @@ import org.gradle.performance.fixture.GradleBuildExperimentSpec
 
 class BuildScanPluginResourceCapturingPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
-    private final String WITH_RESOURCE_CAPTURING_LABEL = "With resource capturing"
-    private final String WITHOUT_RESOURCE_CAPTURING_LABEL = "Without resource capturing"
+    private static final String WITH_RESOURCE_CAPTURING_LABEL = "With resource capturing"
+    private static final String WITHOUT_RESOURCE_CAPTURING_LABEL = "Without resource capturing"
 
     def "with and without resource capturing (#scenario)"() {
         given:
