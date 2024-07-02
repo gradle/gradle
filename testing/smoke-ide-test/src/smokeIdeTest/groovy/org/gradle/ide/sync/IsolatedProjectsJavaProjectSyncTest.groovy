@@ -26,13 +26,28 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeaSyncTest {
 
     def "IDEA sync has known IP violations for vanilla Java project"() {
         given:
+        def ideaVersion = "2024.1"
         simpleJavaProject()
 
         when:
-        ideaSync("2024.1")
+        ideaSync(ideaVersion)
 
         then:
         fixture.assertHtmlReportHasProblems {
+            cacheAction = "storing"
+            totalProblemsCount = 10
+            withLocatedProblem(new StringContains("ijIdeaPluginConfigurator"), "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'")
+            withLocatedProblem(new StringContains("ijIdeaPluginConfigurator"), "Project ':' cannot access 'disableSources' extension on subprojects via 'allprojects'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.tasks' functionality on subprojects via 'allprojects'")
+        }
+
+        when:
+        ideaSync(ideaVersion)
+
+        then:
+        fixture.assertHtmlReportHasProblems {
+            cacheAction = "storing"
             totalProblemsCount = 10
             withLocatedProblem(new StringContains("ijIdeaPluginConfigurator"), "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'")
             withLocatedProblem(new StringContains("ijIdeaPluginConfigurator"), "Project ':' cannot access 'disableSources' extension on subprojects via 'allprojects'")
