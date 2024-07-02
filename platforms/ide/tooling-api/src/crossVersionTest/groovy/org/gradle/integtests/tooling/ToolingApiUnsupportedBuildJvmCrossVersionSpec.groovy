@@ -21,14 +21,15 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.BrokenAction
+import org.gradle.integtests.tooling.r18.CounterAction
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
-@Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
 @TargetGradleVersion("current")
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
@@ -36,6 +37,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         toolingApi.requireDaemons()
     }
 
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "cannot run a build when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -54,6 +56,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "cannot fetch model when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -72,6 +75,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "cannot run action when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -90,6 +94,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "cannot run tests when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -106,5 +111,141 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
+    def "running a build with Java versions older than 17 is deprecated"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle X. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+
+        expect:
+        succeeds { connection ->
+            connection.newBuild().run()
+            true
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
+    def "fetching a model with Java versions older than 17 is deprecated"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle X. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+
+        expect:
+        succeeds { connection ->
+            connection.model(GradleProject).get()
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
+    def "running an action with Java versions older than 17 is deprecated"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle X. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+
+        expect:
+        succeeds { connection ->
+            connection.action(new CounterAction()).run()
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
+    def "running tests with Java versions older than 17 is deprecated"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle X. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test.useJUnitJupiter()
+        """
+        file("src/test/java/SomeTest.java") << """
+            class SomeTest {
+                @org.junit.jupiter.api.Test
+                public void test() {}
+            }
+        """
+
+        expect:
+        succeeds { connection ->
+            connection.newTestLauncher().withJvmTestClasses("SomeTest").run()
+            true
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    def "can run build with Java versions 17 and greater without warning"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+
+        expect:
+        succeeds { connection ->
+            connection.newBuild().run()
+            true
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    def "can fetch model with Java versions 17 and greater without warning"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+
+        expect:
+        succeeds { connection ->
+            connection.model(GradleProject).get()
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    def "can run action with Java versions 17 and greater without warning"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+
+        expect:
+        succeeds { connection ->
+            connection.action(new CounterAction()).run()
+        }
+    }
+
+    @TargetGradleVersion(">=8.10")
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    def "can run tests with Java versions 17 and greater without warning"() {
+        given:
+        noJavaVersionDeprecationExpectation()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test.useJUnitJupiter()
+        """
+        file("src/test/java/SomeTest.java") << """
+            class SomeTest {
+                @org.junit.jupiter.api.Test
+                public void test() {}
+            }
+        """
+
+        expect:
+        succeeds { connection ->
+            connection.newTestLauncher().withJvmTestClasses("SomeTest").run()
+            true
+        }
     }
 }
