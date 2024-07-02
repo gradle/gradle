@@ -32,6 +32,7 @@ import org.gradle.util.Path;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
     private final BuildIdentifier buildIdentifier;
@@ -60,7 +61,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @Override
     public String getDisplayName() {
         String prefix;
-        if (identityPath == Path.ROOT) {
+        if (Objects.equals(identityPath, Path.ROOT)) {
             prefix =  "root project";
         } else {
             prefix = "project";

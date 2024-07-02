@@ -26,7 +26,8 @@ import org.gradle.util.GradleVersion;
  */
 @ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
-    public static final String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
+    public static final String BASE_URL_WITHOUT_VERSION = "https://docs.gradle.org/";
+    public static final String BASE_URL = BASE_URL_WITHOUT_VERSION + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
     public static final String KOTLIN_DSL_URL_FORMAT = "%s/kotlin-dsl/gradle/%s";
     public static final String LEARN_MORE_STRING = "Learn more about Gradle by exploring our Samples at ";

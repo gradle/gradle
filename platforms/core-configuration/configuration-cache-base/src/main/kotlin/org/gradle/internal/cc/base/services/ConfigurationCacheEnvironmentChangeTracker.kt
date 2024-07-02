@@ -182,11 +182,11 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
     private
     class Restoring(private val overriddenSystemProperties: Set<Any>) : TrackerMode {
         override fun toTracking(): Tracking {
-            throw IllegalStateException("Cannot track state because it was restored")
+            error("Cannot track state because it was restored")
         }
 
         override fun toRestoring(): Restoring {
-            throw IllegalStateException("Cannot restore state because it was already restored")
+            error("Cannot restore state because it was already restored")
         }
 
         fun loadFrom(storedState: CachedEnvironmentState) {

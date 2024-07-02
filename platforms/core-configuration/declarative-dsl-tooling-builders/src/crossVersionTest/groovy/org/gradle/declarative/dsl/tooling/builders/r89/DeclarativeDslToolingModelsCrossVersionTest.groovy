@@ -33,7 +33,6 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Assignm
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParserKt
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.tooling.ModelBuilder
 
 @TargetGradleVersion(">=8.9")
 @ToolingApiVersion('>=8.9')
@@ -329,10 +328,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
     }
 
     private <T> T fetchSchemaModel(Class<T> modelType) {
-        toolingApi.withConnection() { connection ->
-            ModelBuilder<T> modelBuilder = connection.model(modelType)
-            collectOutputs(modelBuilder)
-            modelBuilder.get()
+        toolingApi.withConnection { connection ->
+            connection.model(modelType).get()
         }
     }
 

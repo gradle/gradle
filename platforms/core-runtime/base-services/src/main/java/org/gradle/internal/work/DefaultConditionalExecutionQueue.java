@@ -19,7 +19,6 @@ package org.gradle.internal.work;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.WorkerLimits;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;

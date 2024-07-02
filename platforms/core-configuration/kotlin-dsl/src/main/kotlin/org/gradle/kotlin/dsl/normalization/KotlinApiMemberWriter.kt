@@ -33,6 +33,7 @@ import org.gradle.internal.tools.api.impl.SimpleAnnotationValue
 import org.objectweb.asm.ClassVisitor
 
 
+internal
 class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) : JavaApiMemberWriter(apiMemberAdapter) {
 
     private
@@ -63,14 +64,12 @@ class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) 
                     // The resulting facade class contains references to classes generated from each script pointing to this class.
                     // Each of those classes is visited separately and have KotlinClassMetadata.MultiFileClassPart on them
                 }
-
                 is KotlinClassMetadata.SyntheticClass -> {
                 }
-
                 is KotlinClassMetadata.Unknown -> {
-                    throw ApiClassExtractionException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
+                    throw ApiClassExtractionException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - " +
+                        "this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
                 }
-
                 null -> Unit
             }
         }
@@ -134,7 +133,6 @@ class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) 
                         "pn" -> packageName = it.value as String
                         "xi" -> extraInt = it.value as Int
                     }
-
                 is ArrayAnnotationValue ->
                     when (it.name) {
                         "d1" -> data1 = it.value.map { arrayItem -> arrayItem.value as String }.toTypedArray()

@@ -100,12 +100,12 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     private
     fun ZipEntry.filtering(): Optional<ContentFilter> {
         if (name.endsWith(".class")) {
-            if (name.endsWith("/module-info.class")
+            return if (name.endsWith("/module-info.class")
                 || name.endsWith("/package-info.class")
             ) {
-                return Optional.of(ContentFilter.VERBATIM)
+                Optional.of(ContentFilter.VERBATIM)
             } else {
-                return Optional.of(ContentFilter.API_ONLY)
+                Optional.of(ContentFilter.API_ONLY)
             }
         }
         if (name.equals("META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule")) {

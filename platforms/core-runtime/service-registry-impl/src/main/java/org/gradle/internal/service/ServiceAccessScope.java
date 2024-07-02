@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+package org.gradle.internal.service;
 
-import org.gradle.api.NonNullApi;
+import javax.annotation.Nullable;
 
-@NonNullApi
-public class DefaultWorkerLimits implements WorkerLimits {
+/**
+ * Scopes determine which services can be accessed on the level of individual service providers.
+ *
+ * @see ServiceAccess
+ */
+interface ServiceAccessScope {
 
-    private final int maxWorkerCount;
+    /**
+     * Return true if the given token can access services in this scope.
+     * <p>
+     * The null token value represents access without a token.
+     */
+    boolean contains(@Nullable ServiceAccessToken token);
 
-    public DefaultWorkerLimits(int maxWorkerCount) {
-        this.maxWorkerCount = maxWorkerCount;
-    }
-
-    @Override
-    public int getMaxWorkerCount() {
-        return maxWorkerCount;
-    }
 }

@@ -20,11 +20,11 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
+import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationRunner
 
 
 class ChainedTransformStepNodeCodec(
@@ -47,6 +47,15 @@ class ChainedTransformStepNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformStepSpec = readNonNull<TransformStepSpec>()
         val previousStep = readNonNull<TransformStepNode>()
-        return transformStepNodeFactory.recreateChained(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStepSpec.transformStep, previousStep, transformStepSpec.recreateDependencies(), buildOperationRunner, calculatedValueContainerFactory)
+        return transformStepNodeFactory.recreateChained(
+            transformStepNodeId,
+            targetComponentVariant,
+            sourceAttributes,
+            transformStepSpec.transformStep,
+            previousStep,
+            transformStepSpec.recreateDependencies(),
+            buildOperationRunner,
+            calculatedValueContainerFactory
+        )
     }
 }

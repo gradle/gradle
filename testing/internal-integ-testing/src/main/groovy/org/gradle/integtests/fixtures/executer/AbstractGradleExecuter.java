@@ -1347,9 +1347,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
+        boolean shouldCheckDeprecations = checkDeprecations;
+
+        // Rich consoles mess with our deprecation log scraping
+        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
+        if ((isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED) ||
+            consoleType == ConsoleOutput.Verbose ||
+            consoleType == ConsoleOutput.Rich
+        ) {
+            shouldCheckDeprecations = false;
+        }
+
         return new ResultAssertion(
             expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
-            !stackTraceChecksOn, checkDeprecations, jdkWarningChecksOn
+            !stackTraceChecksOn, shouldCheckDeprecations, jdkWarningChecksOn
         );
     }
 
@@ -1370,6 +1381,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
         expectedDeprecationWarnings.add(warning);
         return this;
+    }
+
+    @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+    }
+
+    private String normalizeDocumentationLink(String warning) {
+        if (gradleVersionOverride != null) {
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
+        } else {
+            return DocumentationUtils.normalizeDocumentationLink(warning);
+        }
     }
 
     @Override

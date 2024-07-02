@@ -78,12 +78,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 }
 
-                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
         return CheckedFingerprint.Valid
     }
 
+    @Suppress("NestedBlockDepth")
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
         var firstReason: InvalidationReason? = null
@@ -121,7 +122,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 }
 
-                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
         return if (firstReason == null) {
@@ -156,6 +157,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
 
+    @Suppress("CyclomaticComplexMethod")
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? = structuredMessageOrNull {
         when (input) {

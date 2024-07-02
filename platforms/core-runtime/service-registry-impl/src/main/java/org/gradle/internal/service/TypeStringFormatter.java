@@ -26,7 +26,8 @@ class TypeStringFormatter {
             Class<?> aClass = (Class) type;
             Class<?> enclosingClass = aClass.getEnclosingClass();
             if (enclosingClass != null) {
-                return format(enclosingClass) + "$" + aClass.getSimpleName();
+                String ownName = aClass.isAnonymousClass() ? "<anonymous>" : aClass.getSimpleName();
+                return format(enclosingClass) + "$" + ownName;
             } else {
                 return aClass.getSimpleName();
             }

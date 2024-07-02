@@ -413,6 +413,7 @@ open class Combinator(
     }
 
 
+    @Suppress("LoopWithTooManyJumpStatements")
     internal
     fun statementSeparator(): Parser<Unit> = {
         var seenSeparator = false

@@ -39,7 +39,7 @@ object SettingsBlocksCheck : DocumentCheck {
 
     val feature = SettingsBlockCheckFeature()
 
-    class SettingsBlockCheckFeature() : InterpretationStepFeature.DocumentChecks, Serializable {
+    class SettingsBlockCheckFeature : InterpretationStepFeature.DocumentChecks, Serializable {
         override val checkKeys: Iterable<String> = listOf(checkKey)
     }
 

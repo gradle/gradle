@@ -87,6 +87,8 @@ val propagatedEnvironmentVariables = listOf(
     // Simply putting PATH there isn't enough. Windows has case-insensitive env vars but something else fails if the Path variable is published as PATH for test tasks.
     OperatingSystem.current().pathVar,
     "PATHEXT",
+    // Used by KotlinMultiplatformPluginSmokeTest, see https://github.com/gradle/gradle-private/issues/4223
+    "CHROME_BIN"
 )
 
 
@@ -105,9 +107,7 @@ val credentialsKeywords = listOf(
 fun Test.filterEnvironmentVariables() {
     environment = makePropagatedEnvironment()
     environment.forEach { (key, _) ->
-        if (credentialsKeywords.any { key.contains(it, true) }) {
-            throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key")
-        }
+        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
     }
 }
 

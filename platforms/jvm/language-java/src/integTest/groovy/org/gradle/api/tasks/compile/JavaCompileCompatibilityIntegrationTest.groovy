@@ -500,7 +500,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
 
-            compileJava.doFirst {
+            compileJava.doFirst { compileJava ->
                 logger.lifecycle("Source is set to '\${compileJava.sourceCompatibility}'")
                 logger.lifecycle("Release is set to '\${compileJava.options.release.getOrNull()}'")
             }
@@ -534,7 +534,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
 
-            compileJava.doFirst {
+            compileJava.doFirst { compileJava ->
                 logger.lifecycle("Source is set to '\${compileJava.sourceCompatibility}'")
                 logger.lifecycle("Release is set to '\${compileJava.options.release.getOrNull()}'")
             }

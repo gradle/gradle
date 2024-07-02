@@ -24,7 +24,9 @@ import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Path
 import org.junit.ComparisonFailure
+
 /**
  * A test fixture that injects a "checkDeps" task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -155,7 +157,7 @@ $END_MARKER
         }
 
         def configDetailsFile = getResultFile()
-        def configDetails = standardizeRootProjectNodes(configDetailsFile.text.readLines())
+        def configDetails = configDetailsFile.text.readLines()
 
         def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[${root.type}][id:${root.id}][mv:${root.moduleVersionId}][reason:${root.reason}]".toString()
@@ -294,19 +296,6 @@ $END_MARKER
             variants << new Variant(name: variant, attributes: attributes)
         }
         new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants)
-    }
-
-    /**
-     * Standardizes the root project nodes in the given configFile lines to maintain the
-     * original "project :" description instead of the new "root project :" description.
-     *
-     * @param lines the lines to standardize
-     * @return the given lines, with every "root project :" replaced by "project :"
-     */
-    private List<String> standardizeRootProjectNodes(List<String> lines) {
-        return lines.collect { line ->
-            line.replaceAll(/root project :/, 'project :')
-        }
     }
 
     static class ParsedNode {
@@ -500,7 +489,11 @@ $END_MARKER
         }
 
         private NodeBuilder projectNode(String projectIdentityPath, String moduleVersion) {
-            return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+            if (Objects.equals(Path.path(projectIdentityPath), Path.ROOT)) {
+                return node("project:$projectIdentityPath", "root project $projectIdentityPath", moduleVersion)
+            } else {
+                return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+            }
         }
 
         private NodeBuilder moduleNode(String moduleVersionId) {

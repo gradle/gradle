@@ -519,7 +519,27 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
             @Override
             public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-                mv.visitInvokeDynamicInsn(remap(name), remap(descriptor), bootstrapMethodHandle, bootstrapMethodArguments);
+                for (int i = 0; i < bootstrapMethodArguments.length; i++) {
+                    bootstrapMethodArguments[i] = remapIfHandle(bootstrapMethodArguments[i]);
+                }
+                mv.visitInvokeDynamicInsn(remap(name), remap(descriptor), remapHandle(bootstrapMethodHandle), bootstrapMethodArguments);
+            }
+
+            private Object remapIfHandle(Object bootstrapArgument) {
+                if (bootstrapArgument instanceof Handle) {
+                    Handle handle = (Handle) bootstrapArgument;
+                    return remapHandle(handle);
+                }
+                return bootstrapArgument;
+            }
+
+            private Handle remapHandle(Handle handle) {
+                return new Handle(handle.getTag(),
+                    remap(handle.getOwner()),
+                    handle.getName(),
+                    remap(handle.getDesc()),
+                    handle.isInterface()
+                );
             }
 
             @Override
