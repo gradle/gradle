@@ -344,6 +344,18 @@ This does not affect the JVM settings for the Gradle client VM.
 +
 _Default is `-Xmx512m "-XX:MaxMetaspaceSize=384m"`._
 
+`org.gradle.libraries.sourceRepository.credentialsProperties=(colon separated Gradle property names)`::
+Specifies the Gradle property names for username and the password for the repository set in `org.gradle.libraries.sourceRepository.url`.
+The property names must be separated by a single colon. For example, the value can be `myRepoUserKey:myRepoPasswordKey`. In which case,
+the username will be read from the Gradle property `myRepoUserKey` and the password will be read from the Gradle property `myRepoPasswordKey`.
++
+_Default is no credentials._
+
+`org.gradle.libraries.sourceRepository.url=(Maven repository URL)`::
+Overrides for the default Gradle library repository. The value of this property takes precedence over the `GRADLE_LIBS_REPO_OVERRIDE` environment variable.
++
+_Default is the value of the `GRADLE_LIBS_REPO_OVERRIDE` environment variable otherwise a hardwired URL to the public repository._
+
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, info, or debug, Gradle will use this <<logging.adoc#sec:choosing_a_log_level,log level>>.
 The values are not case-sensitive.

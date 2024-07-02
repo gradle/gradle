@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -416,6 +417,23 @@ dependencies {
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
     }
 
+    enum UrlSourceType {
+        ENV_VARS {
+            @Override
+            def withRepoUrl(GradleExecuter executer, MavenHttpRepository repo) {
+                executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+            }
+        },
+        GRADLE_PROPERTIES {
+            @Override
+            def withRepoUrl(GradleExecuter executer, MavenHttpRepository repo) {
+                executer.withArgument("-Porg.gradle.libraries.sourceRepository.url=${repo.uri}/")
+            }
+        }
+
+        abstract def withRepoUrl(GradleExecuter executer, MavenHttpRepository repo)
+    }
+
     @ToBeFixedForConfigurationCache
     @Requires(
         value = [UnitTestPreconditions.StableGroovy, IntegTestPreconditions.NotEmbeddedExecutor],
@@ -424,7 +442,7 @@ dependencies {
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
-        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+        urlSourceType.withRepoUrl(executer, repo)
 
         buildScript """
             apply plugin: "java"
@@ -441,6 +459,9 @@ dependencies {
 
         then:
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+
+        where:
+        urlSourceType << UrlSourceType.values()
     }
 
     @ToBeFixedForConfigurationCache

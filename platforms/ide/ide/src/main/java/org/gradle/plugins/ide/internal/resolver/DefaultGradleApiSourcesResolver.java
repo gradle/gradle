@@ -16,12 +16,14 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.project.ProjectInternal.DetachedResolver;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.util.internal.VersionNumber;
@@ -35,15 +37,18 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
-    private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
+    @VisibleForTesting
+    static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
+    private static final String GRADLE_LIBS_REPO_OVERRIDE_PROJECT_PROPERTY = "org.gradle.libraries.sourceRepository.url";
+    private static final String GRADLE_LIBS_REPO_CREDENTIALS_PROJECT_PROPERTY = "org.gradle.libraries.sourceRepository.credentialsProperties";
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+?)?)-(\\d.+?)\\.jar");
 
     private final DetachedResolver resolver;
 
-    public DefaultGradleApiSourcesResolver(DetachedResolver resolver) {
+    public DefaultGradleApiSourcesResolver(ProviderFactory providers, DetachedResolver resolver) {
         this.resolver = resolver;
-        addGradleLibsRepository();
+        addGradleLibsRepository(providers);
     }
 
     @Override
@@ -73,15 +78,45 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         return null;
     }
 
-    private MavenArtifactRepository addGradleLibsRepository() {
-        return resolver.getRepositories().maven(a -> {
-            a.setName("Gradle Libs");
-            a.setUrl(gradleLibsRepoUrl());
-        });
+    private void addGradleLibsRepository(ProviderFactory providers) {
+        resolver.getRepositories().maven(a -> configureLibsRepo(a, providers));
     }
 
-    private static String gradleLibsRepoUrl() {
-        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
-        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
+    @VisibleForTesting
+    static void configureLibsRepo(MavenArtifactRepository repository, ProviderFactory providers) {
+        repository.setName("Gradle Libs");
+
+        String url = gradleLibsRepoUrl(providers);
+        repository.setUrl(url);
+        if (GRADLE_LIBS_REPO_URL.equals(url)) {
+            // We don't want to accidentally send the credentials to the public repository.
+            return;
+        }
+
+        String credentialsPropertyNames = providers.gradleProperty(GRADLE_LIBS_REPO_CREDENTIALS_PROJECT_PROPERTY).getOrNull();
+        if (credentialsPropertyNames != null && !credentialsPropertyNames.isEmpty()) {
+            String[] userAndPasswordKeys = credentialsPropertyNames.split(":", -1);
+            if (userAndPasswordKeys.length != 2) {
+                throw new IllegalArgumentException("Expected 'userPropertyName:passwordPropertyName' format for " + GRADLE_LIBS_REPO_CREDENTIALS_PROJECT_PROPERTY);
+            }
+            repository.credentials(credentials -> {
+                credentials.setUsername(providers.gradleProperty(userAndPasswordKeys[0].trim()).getOrNull());
+                credentials.setPassword(providers.gradleProperty(userAndPasswordKeys[1].trim()).getOrNull());
+            });
+        }
+    }
+
+    private static String gradleLibsRepoUrl(ProviderFactory providers) {
+        String repoOverride = providers.gradleProperty(GRADLE_LIBS_REPO_OVERRIDE_PROJECT_PROPERTY).getOrNull();
+        if (repoOverride != null) {
+            return repoOverride;
+        }
+
+        repoOverride = providers.environmentVariable(GRADLE_LIBS_REPO_OVERRIDE_VAR).getOrNull();
+        if (repoOverride != null) {
+            return repoOverride;
+        }
+
+        return GRADLE_LIBS_REPO_URL;
     }
 }

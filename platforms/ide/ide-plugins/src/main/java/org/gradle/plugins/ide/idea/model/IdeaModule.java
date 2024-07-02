@@ -621,7 +621,11 @@ public abstract class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(
+            projectInternal,
+            ideArtifactRegistry,
+            new DefaultGradleApiSourcesResolver(project.getProviders(), projectInternal.newDetachedResolver())
+        );
         return ideaDependenciesProvider.provide(this);
     }
 
