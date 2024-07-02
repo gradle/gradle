@@ -18,14 +18,14 @@
 [[sec:conflict-resolution]]
 == Understanding types of conflicts
 
-When doing dependency resolution, Gradle handles two types of conflicts:
+When performing dependency resolution, Gradle handles two types of conflicts:
 
 1. *Version conflicts*: That is when two or more dependencies require a given dependency but with different versions.
 2. *Capability conflicts*: That is when the dependency graph contains multiple modules that provide the same implementation.
 
 == Resolving version conflicts
 
-A version conflict occurs when two components:
+A version conflict occurs when a component declares two dependencies that:
 
 * Depend on the same module, let's say `com.google.guava:guava`
 * But on different versions, let's say `20.0` and `25.1-android`
@@ -37,11 +37,8 @@ Out of these versions, it will select the _highest_ one.
 
 == Resolving capability conflicts
 
-Gradle uses variants and capabilities to identify what a module _provides_.
-A conflict occurs the moment two modules either:
-
-* Attempt to select incompatible variants,
-* Declare the same capability
+Gradle uses attributes and capabilities to identify which artifacts a component _provides_.
+A capability conflict occurs whenever two or more components in dependency graph declare the same capability
 
 Gradle will generally fail the build and report the conflict.
 
