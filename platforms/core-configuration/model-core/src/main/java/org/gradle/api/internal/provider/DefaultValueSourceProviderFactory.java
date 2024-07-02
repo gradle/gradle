@@ -215,6 +215,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
+        public boolean isFixedExecutionTimeValue() {
+            return false;
+        }
+
+        @Override
         protected String toStringNoReentrance() {
             return String.format("valueof(%s)", getValueSourceType().getSimpleName());
         }

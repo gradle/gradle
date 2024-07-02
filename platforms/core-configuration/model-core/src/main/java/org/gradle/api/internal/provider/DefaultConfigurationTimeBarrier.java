@@ -22,6 +22,7 @@ public class DefaultConfigurationTimeBarrier implements ConfigurationTimeBarrier
 
     public void prepare() {
         atConfigurationTime = true;
+        EvaluationContext.current().setAtConfigurationTime(true);
     }
 
     public void cross() {
@@ -29,6 +30,7 @@ public class DefaultConfigurationTimeBarrier implements ConfigurationTimeBarrier
             throw new IllegalStateException("Configuration time barrier can only be crossed once.");
         }
         atConfigurationTime = false;
+        EvaluationContext.current().setAtConfigurationTime(false);
     }
 
     @Override
