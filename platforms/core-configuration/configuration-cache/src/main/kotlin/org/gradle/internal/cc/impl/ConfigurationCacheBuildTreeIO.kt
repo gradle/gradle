@@ -29,7 +29,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 internal
-interface ConfigurationCacheBuildTreeIO : ConfigurationCacheUserTypesIO {
+interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
 
     fun writeCacheEntryDetailsTo(
         buildStateRegistry: BuildStateRegistry,

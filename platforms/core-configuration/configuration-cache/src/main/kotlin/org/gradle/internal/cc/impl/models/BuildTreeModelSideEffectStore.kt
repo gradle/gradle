@@ -21,13 +21,14 @@ import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
-import org.gradle.internal.cc.impl.ConfigurationCacheUserTypesIO
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.withIsolate
 import java.io.Closeable
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -41,7 +42,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 internal
 class BuildTreeModelSideEffectStore(
     private val host: HostServiceProvider,
-    private val cacheIO: ConfigurationCacheUserTypesIO,
+    private val cacheIO: ConfigurationCacheOperationIO,
     private val store: ConfigurationCacheStateStore,
 ) : Closeable {
 
@@ -74,15 +75,19 @@ class BuildTreeModelSideEffectStore(
 
     private
     fun write(encoder: Encoder, value: BuildTreeModelSideEffect) {
-        cacheIO.writeWithUserTypes(encoder, IsolateOwners.OwnerHost(host)) {
-            write(value)
+        cacheIO.runWriteOperation(encoder) { codecs ->
+            withIsolate(IsolateOwners.OwnerHost(host), codecs.userTypesCodec()) {
+                write(value)
+            }
         }
     }
 
     private
     fun read(decoder: Decoder): BuildTreeModelSideEffect {
-        return cacheIO.readWithUserTypes(decoder, IsolateOwners.OwnerHost(host)) {
-            readNonNull()
+        return cacheIO.runReadOperation(decoder) { codecs ->
+            withIsolate(IsolateOwners.OwnerHost(host), codecs.userTypesCodec()) {
+                readNonNull()
+            }
         }
     }
 

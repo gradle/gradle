@@ -16,17 +16,17 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 
 internal
-interface ConfigurationCacheUserTypesIO {
+interface ConfigurationCacheOperationIO {
 
-    fun <T> writeWithUserTypes(encoder: Encoder, owner: IsolateOwner, writeOperation: suspend WriteContext.() -> T): T
+    fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T
 
-    fun <T> readWithUserTypes(decoder: Decoder, owner: IsolateOwner, readOperation: suspend ReadContext.() -> T): T
+    fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T
 
 }

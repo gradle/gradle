@@ -43,7 +43,6 @@ import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
-import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.Tracer
@@ -279,10 +278,9 @@ class DefaultConfigurationCacheIO internal constructor(
         else -> null
     }
 
-    override fun <T> writeWithUserTypes(encoder: Encoder, owner: IsolateOwner, writeOperation: suspend WriteContext.() -> T): T {
+    override fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T {
         val (context, codecs) = writerContextFor(encoder)
-        context.push(owner, codecs.userTypesCodec())
-        return context.runWriteOperation(writeOperation)
+        return context.runWriteOperation { writeOperation(codecs) }
     }
 
     private
@@ -310,10 +308,9 @@ class DefaultConfigurationCacheIO internal constructor(
                 }
             }
 
-    override fun <T> readWithUserTypes(decoder: Decoder, owner: IsolateOwner, readOperation: suspend ReadContext.() -> T): T {
+    override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
         val (context, codecs) = readerContextFor(decoder)
-        context.push(owner, codecs.userTypesCodec())
-        return context.runReadOperation(readOperation)
+        return context.runReadOperation { readOperation(codecs) }
     }
 
     private
