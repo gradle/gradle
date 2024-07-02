@@ -35,7 +35,7 @@ import spock.lang.Specification
 class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
-    InternalProblemReporter problemReporter = new DefaultProblemReporter(Stub(ProblemEmitter), null, org.gradle.internal.operations.CurrentBuildOperationRef.instance(), HashMultimap.create())
+    InternalProblemReporter problemReporter = new DefaultProblemReporter([Stub(ProblemEmitter)], null, org.gradle.internal.operations.CurrentBuildOperationRef.instance(), HashMultimap.create())
 
     def "can serialize and deserialize a validation problem"() {
         given:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
+import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import java.io.Writer
 
 
@@ -26,14 +26,16 @@ import java.io.Writer
  * The report is laid out in such a way as to allow extracting the pure JSON model
  * by looking for the `// begin-report-data` and `// end-report-data` markers.
  */
-internal
-class HtmlReportWriter(val writer: Writer) {
+class HtmlReportWriter(
+    private val writer: Writer,
+    private val htmlReportTemplate: HtmlReportTemplate
+) {
 
     private
     val jsonModelWriter = JsonModelWriter(writer)
 
     private
-    val htmlTemplate = HtmlReportTemplate.load()
+    val htmlTemplate = htmlReportTemplate.load()
 
     fun beginHtmlReport() {
         writer.append(htmlTemplate.first)
@@ -41,7 +43,7 @@ class HtmlReportWriter(val writer: Writer) {
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(details: ConfigurationCacheReportDetails) {
+    fun endHtmlReport(details: ProblemReportDetails) {
         jsonModelWriter.endModel(details)
         endReportData()
         writer.append(htmlTemplate.second)
@@ -66,7 +68,7 @@ class HtmlReportWriter(val writer: Writer) {
         }
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedReportProblem) {
         jsonModelWriter.writeDiagnostic(kind, details)
     }
 

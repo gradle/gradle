@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,10 @@ import java.io.BufferedReader
 import java.net.URL
 
 
-internal
-object HtmlReportTemplate {
-
-    const val reportHtmlFileName = "configuration-cache-report.html"
+class HtmlReportTemplate(private val reportHtmlFileName: String = "configuration-cache-report.html") {
 
     private
-    const val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
+    val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
 
     /**
      * Returns the header and footer of the html template as a pair.

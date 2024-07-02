@@ -41,7 +41,7 @@ import java.util.function.Consumer
 class DefaultBuildTaskSelectorTest extends Specification {
     def buildRegistry = Mock(BuildStateRegistry)
     def taskSelector = Mock(TaskSelector)
-    def selector = new DefaultBuildTaskSelector(buildRegistry, taskSelector, [new HelpBuiltInCommand()], new DefaultProblems(new NoOpProblemEmitter(), Mock(CurrentBuildOperationRef)))
+    def selector = new DefaultBuildTaskSelector(buildRegistry, taskSelector, [new HelpBuiltInCommand()], new DefaultProblems([new NoOpProblemEmitter()], Mock(CurrentBuildOperationRef)))
     def root = rootBuild()
     def target = root.state
 
