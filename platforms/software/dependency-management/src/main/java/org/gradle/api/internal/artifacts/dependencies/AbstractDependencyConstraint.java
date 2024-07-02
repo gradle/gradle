@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public abstract class AbstractDependencyConstraint implements DependencyConstraintInternal {
     private ImmutableActionSet<DependencyConstraint> onMutate = ImmutableActionSet.empty();
@@ -29,6 +30,15 @@ public abstract class AbstractDependencyConstraint implements DependencyConstrai
     }
 
     protected void validateMutation() {
+
+        if (!onMutate.isEmpty()) {
+            // Somebody is trying to mutate a constraint after it has been added to a configuration.
+            DeprecationLogger.deprecateAction("Mutating a dependency after declaration")
+                .willBecomeAnErrorInGradle9()
+                .undocumented()
+                .nagUser();
+        }
+
         onMutate.execute(this);
     }
 }
