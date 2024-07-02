@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.configuration.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
@@ -24,11 +24,6 @@ import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.configuration.problems.DecoratedFailure
-import org.gradle.internal.configuration.problems.DecoratedReportProblem
-import org.gradle.internal.configuration.problems.FailureDecorator
-import org.gradle.internal.configuration.problems.PropertyProblem
-import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
@@ -43,10 +38,10 @@ import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-val logger: Logger = getLogger(ConfigurationCacheReport::class.java)
+val logger: Logger = getLogger(CommonReport::class.java)
 
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCacheReport(
+class CommonReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
     internalOptions: InternalOptions,
@@ -74,7 +69,7 @@ class ConfigurationCacheReport(
          */
         open fun commitReportTo(
             outputDirectory: File,
-            details: ProblemReportDetails
+            details: JsonSource
         ): Pair<State, File?> =
             illegalState()
 
@@ -94,7 +89,7 @@ class ConfigurationCacheReport(
              */
             override fun commitReportTo(
                 outputDirectory: File,
-                details: ProblemReportDetails
+                details: JsonSource
             ): Pair<State, File?> =
                 this to null
 
@@ -106,27 +101,17 @@ class ConfigurationCacheReport(
         }
 
         class Spooling(
-            spoolFileProvider: TemporaryFileProvider,
-            val reportFileName: String,
+            private val reportFileName: String,
             val executor: ManagedExecutor,
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedReportProblem
+            private val groovyJsonClassLoader: ClassLoader,
+            val decorate: (PropertyProblem, ProblemSeverity, String) -> JsonSource,
+            val writer: HtmlReportWriter,
+            private val hashingStream: HashingOutputStream,
+            private val spoolFile: File
         ) : State() {
-
-            private
-            val spoolFile = spoolFileProvider.createTemporaryFile(reportFileName, ".html")
-
-            private
-            val htmlReportTemplate = HtmlReportTemplate()
-
-            private
-            val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
-
-            private
-            val writer = HtmlReportWriter(hashingStream.writer(), htmlReportTemplate)
 
             init {
                 executor.submit {
@@ -137,19 +122,32 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    val severity = when (kind) {
-                        DiagnosticKind.PROBLEM -> ProblemSeverity.Failure
-                        DiagnosticKind.INCOMPATIBLE_TASK -> ProblemSeverity.Warning
-                        DiagnosticKind.INPUT -> ProblemSeverity.Info
-                    }
-                    writer.writeDiagnostic(kind, decorate(problem, severity))
+                    val severity = problemSeverity(kind)
+                    decorate(problem, severity, keyFor(kind))
+                        .writeToJson(writer.jsonModelWriter)
                 }
                 return this
             }
 
+            private
+            fun keyFor(kind: DiagnosticKind) = when (kind) {
+                DiagnosticKind.PROBLEM -> "problem"
+                DiagnosticKind.INPUT -> "input"
+                DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
+            }
+
+
+            private fun problemSeverity(kind: DiagnosticKind): ProblemSeverity {
+                return when (kind) {
+                    DiagnosticKind.PROBLEM -> ProblemSeverity.Failure
+                    DiagnosticKind.INCOMPATIBLE_TASK -> ProblemSeverity.Warning
+                    DiagnosticKind.INPUT -> ProblemSeverity.Info
+                }
+            }
+
             override fun commitReportTo(
                 outputDirectory: File,
-                details: ProblemReportDetails
+                details: JsonSource
             ): Pair<State, File?> {
 
                 val reportFile = try {
@@ -178,7 +176,7 @@ class ConfigurationCacheReport(
             }
 
             private
-            fun closeHtmlReport(details: ProblemReportDetails) {
+            fun closeHtmlReport(details: JsonSource) {
                 writer.endHtmlReport(details)
                 writer.close()
             }
@@ -219,14 +217,27 @@ class ConfigurationCacheReport(
         }
     }
 
+    private val htmlReportTemplate = HtmlReportTemplate()
+    private val spoolFile = temporaryFileProvider.createTemporaryFile(reportFileName, ".html")
+
+    private val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
+
+    private val streamWriter = hashingStream.writer()
+    val jsonWriter = JsonModelWriter(streamWriter)
+
     private
     var state: State = State.Idle { kind, problem ->
+
+        val writer = HtmlReportWriter(streamWriter, htmlReportTemplate, jsonWriter)
+
         State.Spooling(
-            temporaryFileProvider,
             reportFileName,
             executorFactory.create("Configuration cache report writer", 1),
             CharBuf::class.java.classLoader,
-            ::decorateProblem
+            ::decorateProblem,
+            writer,
+            hashingStream,
+            spoolFile
         ).onDiagnostic(kind, problem)
     }
 
@@ -237,13 +248,14 @@ class ConfigurationCacheReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedReportProblem {
+    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity, kind: String): JsonSource {
         val failure = problem.stackTracingFailure
         return DecoratedReportProblem(
             problem.trace,
             decorateMessage(problem, failure),
             decoratedFailureFor(failure, severity),
-            problem.documentationSection
+            problem.documentationSection,
+            kind
         )
     }
 

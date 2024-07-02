@@ -14,15 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.configuration.problems.StructuredMessage
+import java.io.Writer
 
 
-data class ProblemReportDetails(
-    val buildDisplayName: String?,
-    val cacheAction: String,
-    val cacheActionDescription: StructuredMessage,
-    val requestedTasks: String?,
-    val totalProblemCount: Int
-)
+enum class DiagnosticKind {
+    PROBLEM,
+    INPUT,
+    INCOMPATIBLE_TASK
+}
+
+
+class JsonModelWriter(writer: Writer) : JsonModelWriterCommon(writer) {
+
+    private
+    var first = true
+
+    fun beginModel() {
+        beginObject()
+
+        propertyName("diagnostics")
+        beginArray()
+    }
+
+    fun endModel(details: JsonSource) {
+        endArray()
+
+        comma()
+        details.writeToJson(this)
+
+        endObject()
+    }
+}

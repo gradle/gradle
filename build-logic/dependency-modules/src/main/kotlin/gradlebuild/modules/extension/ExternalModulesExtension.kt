@@ -187,6 +187,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jtar = "org.kamranzafar:jtar"
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
+    val kotlinJson = "org.jetbrains.kotlinx:kotlinx-serialization-json"
     val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"

@@ -48,6 +48,7 @@ tasks.processResources {
 
 dependencies {
     api(projects.problemsApi)
+    api(projects.core)
     api(projects.buildOperations)
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
@@ -55,6 +56,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.fileTemp)
     api(projects.configurationProblemsBase)
+    api(projects.messaging)
 
     api(libs.jsr305)
 

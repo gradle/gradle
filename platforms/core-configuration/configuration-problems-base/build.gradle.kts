@@ -35,25 +35,28 @@ dependencies {
 
 tasks.processResources {
     from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
-        into("org/gradle/internal/cc/impl/problems")
+        into("org/gradle/internal/configuration/problems")
         exclude("META-INF/**")
     }
 }
 
 dependencies {
     api(projects.baseServices)
-    api(projects.stdlibJavaExtensions)
-    api(projects.logging)
-    api(projects.problemsApi)
     api(projects.buildOption)
     api(projects.concurrent)
+    api(projects.coreApi)
     api(projects.fileTemp)
+    api(projects.hashing)
+    api(projects.logging)
     api(projects.loggingApi)
+    api(projects.problemsApi)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
+//    api(libs.kotlinJson)
 
     implementation(libs.groovyJson)
-    implementation(projects.hashing)
+    implementation(projects.core)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.guava)

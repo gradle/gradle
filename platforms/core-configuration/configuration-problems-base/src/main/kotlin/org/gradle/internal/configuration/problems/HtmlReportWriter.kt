@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import java.io.Writer
 
 
@@ -28,11 +27,10 @@ import java.io.Writer
  */
 class HtmlReportWriter(
     private val writer: Writer,
-    private val htmlReportTemplate: HtmlReportTemplate
+    private val htmlReportTemplate: HtmlReportTemplate,
+    val jsonModelWriter: JsonModelWriter
 ) {
 
-    private
-    val jsonModelWriter = JsonModelWriter(writer)
 
     private
     val htmlTemplate = htmlReportTemplate.load()
@@ -43,7 +41,7 @@ class HtmlReportWriter(
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(details: ProblemReportDetails) {
+    fun endHtmlReport(details: JsonSource) {
         jsonModelWriter.endModel(details)
         endReportData()
         writer.append(htmlTemplate.second)
@@ -66,10 +64,6 @@ class HtmlReportWriter(
             appendLine(");}")
             appendLine("</script>")
         }
-    }
-
-    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedReportProblem) {
-        jsonModelWriter.writeDiagnostic(kind, details)
     }
 
     fun close() {

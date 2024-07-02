@@ -17,8 +17,6 @@
 package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
-import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -28,7 +26,6 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
-import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.LOAD
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.STORE
@@ -37,8 +34,12 @@ import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.configuration.problems.BuildNameHandler
+import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemReportDetails
+import org.gradle.internal.configuration.problems.ProblemSeverity
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -63,7 +64,7 @@ class ConfigurationCacheProblems(
     val startParameter: ConfigurationCacheStartParameter,
 
     private
-    val report: ConfigurationCacheReport,
+    val report: CommonReport,
 
     private
     val cacheKey: ConfigurationCacheKey,
@@ -89,9 +90,6 @@ class ConfigurationCacheProblems(
 
     private
     val postBuildHandler = PostBuildProblemsHandler()
-
-    private
-    var buildName: String? = null
 
     private
     var isFailOnProblems = startParameter.failOnProblems
@@ -302,7 +300,7 @@ class ConfigurationCacheProblems(
     fun detailsFor(summary: Summary): ProblemReportDetails {
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        return ProblemReportDetails(buildName, cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
+        return ProblemReportDetails(buildNameHandler.buildName, cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
     }
 
     private
@@ -320,15 +318,6 @@ class ConfigurationCacheProblems(
     private
     fun outputDirectoryFor(buildDir: File): File =
         buildDir.resolve("reports/configuration-cache/$cacheKey")
-
-    private
-    inner class BuildNameHandler : InternalBuildAdapter() {
-        override fun settingsEvaluated(settings: Settings) {
-            if ((settings as SettingsInternal).gradle.isRootBuild) {
-                buildName = settings.rootProject.name
-            }
-        }
-    }
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {

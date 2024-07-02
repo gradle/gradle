@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.internal.InternalBuildAdapter
 
-
-fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection): String =
-    getDocumentationFor("configuration_cache", section.anchor)
-
-
+class BuildNameHandler : InternalBuildAdapter() {
+    var buildName: String? = null
+    override fun settingsEvaluated(settings: Settings) {
+        if ((settings as SettingsInternal).gradle.isRootBuild) {
+            buildName = settings.rootProject.name
+        }
+    }
+}
