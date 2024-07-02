@@ -161,9 +161,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
         spec.severity(mapKindToSeverity(diagnostic.getKind()));
-        addFormattedMessage(spec, diagnostic);
-        addDetails(spec, diagnostic);
+        addContextualLabel(spec, diagnostic);
         addLocations(spec, diagnostic);
+        addFormattedMessage(spec, diagnostic);
     }
 
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -172,10 +172,10 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("formatted", formatted)); // TODO (donat) Introduce custom additional data type for compilation problems
     }
 
-    private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+    private static void addContextualLabel(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String diagnosticMessage = diagnostic.getMessage(Locale.getDefault());
         if (diagnosticMessage != null) {
-            spec.details(diagnosticMessage);
+            spec.contextualLabel(diagnosticMessage);
         }
     }
 
