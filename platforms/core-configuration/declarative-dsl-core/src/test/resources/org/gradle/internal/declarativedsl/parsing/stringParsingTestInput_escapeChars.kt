@@ -1,7 +1,3 @@
-val s = "_\\_\t_\b_\r_\n_\"_\$"
+val s = "_\\_\t_\n"  // full set of escape chars intentionally not used: _\\_\t_\b_\r_\n_\"_\$
 
-val m = """a
-${'"'}${'"'}${'"'}
-b
-${'$'}
-c"""
+val q = "\u21E4\u21E5"

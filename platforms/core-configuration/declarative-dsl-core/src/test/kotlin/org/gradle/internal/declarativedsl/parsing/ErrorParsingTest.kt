@@ -67,6 +67,11 @@ class ErrorParsingTest {
                         erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
                     )
                     ParsingError(
+                        message = Unparsable string template: "")". Expecting '"',
+                        potentialElementSource = indexes: 42..44, line/column: 1/43..1/45, file: test,
+                        erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
+                    )
+                    ParsingError(
                         message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ')',
                         potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
                         erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
@@ -237,7 +242,7 @@ class ErrorParsingTest {
     }
 
     @Test
-    @ToBeImplemented
+    @ToBeImplemented // TODO: remove/fix
     fun `'this@' unsupported`() {
         val results = ParseTestUtil.parse(
             """
@@ -258,7 +263,7 @@ class ErrorParsingTest {
     }
 
     @Test
-    @ToBeImplemented
+    @ToBeImplemented // TODO: remove/fix
     fun `backtick identifiers unsupported`() {
         val results = ParseTestUtil.parse(
             """
@@ -282,7 +287,7 @@ class ErrorParsingTest {
     }
 
     @Test
-    @ToBeImplemented
+    @ToBeImplemented // TODO: remove/fix
     fun `reserved keywords`() {
         val results = ParseTestUtil.parse(
             """

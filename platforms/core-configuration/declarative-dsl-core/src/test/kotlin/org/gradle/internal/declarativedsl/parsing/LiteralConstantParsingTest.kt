@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.parsing
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.jupiter.api.Test
 
-@ToBeImplemented
+@ToBeImplemented // TODO: remove/fix
 class LiteralConstantParsingTest {
 
     @Test

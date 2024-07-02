@@ -86,6 +86,7 @@ sealed interface UnsupportedLanguageFeature {
     data object ExplicitVariableType : UnsupportedLanguageFeature
     data object StarImport : UnsupportedLanguageFeature
     data object RenamingImport : UnsupportedLanguageFeature
+    data object StringTemplates : UnsupportedLanguageFeature
     data object AnnotationUsage : UnsupportedLanguageFeature
     data object LoopStatement : UnsupportedLanguageFeature
     data object ConditionalExpression : UnsupportedLanguageFeature
