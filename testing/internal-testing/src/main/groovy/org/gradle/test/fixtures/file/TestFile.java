@@ -143,6 +143,8 @@ public class TestFile extends File {
         }
     }
 
+    // TODO: have a file() overload that takes a factory and shared the creation logic
+
     public List<TestFile> files(Object... paths) {
         List<TestFile> files = new ArrayList<>();
         for (Object path : paths) {
