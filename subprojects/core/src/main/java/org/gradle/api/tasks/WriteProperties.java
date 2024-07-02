@@ -17,28 +17,32 @@
 package org.gradle.api.tasks;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.DeferredUtil;
 
-import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 /**
  * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
@@ -59,42 +63,18 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public abstract class WriteProperties extends DefaultTask {
-    private final Map<String, Callable<String>> deferredProperties = new HashMap<>();
-    private final Map<String, String> properties = new HashMap<>();
-    private String lineSeparator = "\n";
-    private String comment;
-    private String encoding = "ISO_8859_1";
+
+    public WriteProperties() {
+        getEncoding().convention("ISO_8859_1");
+        getLineSeparator().convention("\n");
+    }
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
-     *
-     * @since 3.3
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Map<String, String> getProperties() {
-        ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
-        propertiesBuilder.putAll(properties);
-        try {
-            for (Map.Entry<String, Callable<String>> e : deferredProperties.entrySet()) {
-                propertiesBuilder.put(e.getKey(), e.getValue().call());
-            }
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        return propertiesBuilder.build();
-    }
-
-    /**
-     * Sets all properties to be written to the properties file replacing any existing properties.
-     *
-     * @see #properties(Map)
-     * @see #property(String, Object)
-     */
-    public void setProperties(Map<String, Object> properties) {
-        this.properties.clear();
-        properties(properties);
-    }
+    @ReplacesEagerProperty(adapter = PropertiesAdapter.class)
+    public abstract MapProperty<String, Object> getProperties();
 
     /**
      * Adds a property to be written to the properties file.
@@ -107,22 +87,23 @@ public abstract class WriteProperties extends DefaultTask {
      * </p>
      *
      * @param name Name of the property
-     * @param value Value of the property
+     * @param value Value of the property or provider for value
      * @since 3.4
      */
     public void property(final String name, final Object value) {
         checkForNullValue(name, value);
         if (DeferredUtil.isDeferred(value)) {
-            deferredProperties.put(name, new Callable<String>() {
-                @Override
-                public String call() throws Exception {
+            if (value instanceof Provider) {
+                getProperties().put(name, (Provider<?>) value);
+            } else {
+                getProperties().put(name, getProviderFactory().provider(() -> {
                     Object futureValue = DeferredUtil.unpack(value);
                     checkForNullValue(name, futureValue);
-                    return String.valueOf(futureValue);
-                }
-            });
+                    return futureValue;
+                }));
+            }
         } else {
-            properties.put(name, String.valueOf(value));
+            getProperties().put(name, value);
         }
     }
 
@@ -136,64 +117,37 @@ public abstract class WriteProperties extends DefaultTask {
      * @see #property(String, Object)
      * @since 3.4
      */
+    @Deprecated
     public void properties(Map<String, Object> properties) {
+        ProviderApiDeprecationLogger.logDeprecation(WriteProperties.class, "properties(Map<String, Object>)", "properties");
         for (Map.Entry<String, Object> e : properties.entrySet()) {
             property(e.getKey(), e.getValue());
         }
     }
 
     /**
-     * Returns the line separator to be used when creating the properties file.
+     * The line separator to be used when creating the properties file.
      * Defaults to {@literal `\n`}.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getLineSeparator() {
-        return lineSeparator;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getLineSeparator();
 
     /**
-     * Sets the line separator to be used when creating the properties file.
+     * The optional comment to add at the beginning of the properties file.
      */
-    public void setLineSeparator(String lineSeparator) {
-        this.lineSeparator = lineSeparator;
-    }
-
-    /**
-     * Returns the optional comment to add at the beginning of the properties file.
-     */
-    @Nullable
+    @Input
     @Optional
-    @Input
-    @ToBeReplacedByLazyProperty
-    public String getComment() {
-        return comment;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getComment();
 
     /**
-     * Sets the optional comment to add at the beginning of the properties file.
-     */
-    public void setComment(@Nullable String comment) {
-        this.comment = comment;
-    }
-
-    /**
-     * Returns the encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
+     * The encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
      * If set to anything different, unicode escaping is turned off.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getEncoding() {
-        return encoding;
-    }
-
-    /**
-     * Sets the encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
-     * If set to anything different, unicode escaping is turned off.
-     */
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Returns the output file to write the properties to.
@@ -246,19 +200,46 @@ public abstract class WriteProperties extends DefaultTask {
 
     @TaskAction
     public void writeProperties() throws IOException {
-        Charset charset = Charset.forName(getEncoding());
+        Charset charset = Charset.forName(getEncoding().get());
         File file = getDestinationFile().getAsFile().get();
         OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         try {
             Properties propertiesToWrite = new Properties();
-            propertiesToWrite.putAll(getProperties());
-            PropertiesUtils.store(propertiesToWrite, out, getComment(), charset, getLineSeparator());
+            for (Map.Entry<String, Object> entry : getProperties().get().entrySet()) {
+                propertiesToWrite.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+            PropertiesUtils.store(propertiesToWrite, out, getComment().getOrNull(), charset, getLineSeparator().get());
         } finally {
             IoActions.closeQuietly(out);
         }
     }
 
+    @Inject
+    public abstract ProviderFactory getProviderFactory();
+
     private static void checkForNullValue(String key, Object value) {
         Preconditions.checkNotNull(value, "Property '%s' is not allowed to have a null value.", key);
+    }
+
+    static class PropertiesAdapter {
+        @BytecodeUpgrade
+        static Map<String, String> getProperties(WriteProperties task) {
+            return task
+                .getProperties()
+                .get().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
+        }
+
+        /**
+         * Sets all properties to be written to the properties file replacing any existing properties.
+         *
+         * @see #properties(Map)
+         * @see #property(String, Object)
+         */
+        @BytecodeUpgrade
+        static void setProperties(WriteProperties task, Map<String, Object> properties) {
+            task.getProperties().empty();
+            task.properties(properties);
+        }
     }
 }
