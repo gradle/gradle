@@ -16,54 +16,58 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> implements Factory<T> {
-    private final CompileOptions compileOptions;
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractJavaCompileSpecFactory.class);
 
+    private final CompileOptions compileOptions;
     private final JavaInstallationMetadata toolchain;
 
-    public AbstractJavaCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata toolchain) {
+    public AbstractJavaCompileSpecFactory(CompileOptions compileOptions, JavaInstallationMetadata toolchain) {
         this.compileOptions = compileOptions;
         this.toolchain = toolchain;
     }
 
     @Override
     public T create() {
-        if (toolchain != null) {
-            return chooseSpecForToolchain();
-        }
-
-        if (compileOptions.isFork()) {
-            return chooseSpecFromCompileOptions(Jvm.current().getJavaHome());
-        }
-
-        return getDefaultSpec();
-    }
-
-    private T chooseSpecForToolchain() {
         File toolchainJavaHome = toolchain.getInstallationPath().getAsFile();
         if (!toolchain.getLanguageVersion().canCompileOrRun(8)) {
+            LOGGER.info("Falling back to command line compiler: requested toolchain is below JDK 1.7");
             return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
 
         if (compileOptions.isFork()) {
-            return chooseSpecFromCompileOptions(toolchainJavaHome);
+            File forkJavaHome = compileOptions.getForkOptions().getJavaHome();
+            if (forkJavaHome != null) {
+                LOGGER.info("Falling back to command line compiler: forking with Java Home set");
+                return getCommandLineSpec(Jvm.forHome(forkJavaHome).getJavacExecutable());
+            }
+
+            String forkExecutable = compileOptions.getForkOptions().getExecutable();
+            if (forkExecutable != null) {
+                LOGGER.info("Falling back to command line compiler: forking with javac executable set");
+                return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(forkExecutable));
+            }
         }
 
-        if (!toolchain.isCurrentJvm()) {
-            return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
+        if (toolchain.isCurrentJvm() && JdkJavaCompiler.canBeUsed()) {
+            // Please keep it in mind, that when using TestKit with debug enabled (i.e. in embedded mode), this line won't be reached after Java 16 (JEP 396)
+            // If you need this to be executed, add the necessary configs from JPMSConfiguration to the test runner executing Gradle
+            LOGGER.info("Using in-process compilation");
+            return getInProcessSpec();
         }
 
-        return getDefaultSpec();
+        LOGGER.info("Running compilation in compiler daemon");
+        return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
     }
 
     private T chooseSpecFromCompileOptions(File fallbackJavaHome) {
@@ -78,11 +82,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         final int languageVersion;
-        if (toolchain != null) {
-            languageVersion = toolchain.getLanguageVersion().asInt();
-        } else {
-            languageVersion = JavaVersion.current().ordinal() + 1;
-        }
+        languageVersion = toolchain.getLanguageVersion().asInt();
 
         return getForkingSpec(fallbackJavaHome, languageVersion);
     }
@@ -91,5 +91,5 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
 
     abstract protected T getForkingSpec(File javaHome, int javaLanguageVersion);
 
-    abstract protected T getDefaultSpec();
+    abstract protected T getInProcessSpec();
 }

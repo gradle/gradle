@@ -32,8 +32,6 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
 
     def setup() {
         buildFile << """
-            import org.gradle.internal.jvm.JpmsConfiguration
-
             apply plugin: 'groovy'
 
             dependencies {
@@ -44,17 +42,6 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             testing {
                 suites {
                     test {
-                        targets {
-                            all {
-                                testTask.configure {
-                                    if (JavaVersion.current().isJava9Compatible()) {
-                                        // Normally, test runners are not inheriting the JVM arguments from the Gradle daemon.
-                                        // This case though, we need it, as we are executing a compilation task inside the nested build.
-                                        jvmArgs = JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS
-                                    }
-                                }
-                            }
-                        }
                         useSpock()
                     }
                 }
