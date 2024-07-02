@@ -82,6 +82,14 @@ public interface Scope {
     interface Gradle extends Build {}
 
     /**
+     * These services are created once per build invocation on a build to register any {@code org.gradle.api.initialization.Settings} scoped services.
+     * These services are closed at the end of the build invocation.
+     *
+     * <p>{@link Gradle} and parent scope services are visible to {@link Settings} scope services, but not vice versa.</p>
+     */
+    interface Settings extends Gradle {}
+
+    /**
      * These services are created once per project per build invocation.
      * These services are closed at the end of the build invocation.
      *
