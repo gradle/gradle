@@ -472,6 +472,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         new ResultAssertion(
             0,
             expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
             true

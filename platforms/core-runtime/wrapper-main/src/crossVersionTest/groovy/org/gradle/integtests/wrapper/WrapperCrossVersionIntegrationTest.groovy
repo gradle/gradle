@@ -15,12 +15,10 @@
  */
 package org.gradle.integtests.wrapper
 
-
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 @SuppressWarnings("IntegrationTestFixtures")
@@ -39,10 +37,7 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
         cleanupDaemons(executer, current)
     }
 
-    @Requires(value = [
-        IntegTestPreconditions.NotEmbeddedExecutor,
-        UnitTestPreconditions.NotWindowsJavaBefore11
-    ], reason = "wrapperExecuter requires a real distribution, https://github.com/gradle/gradle-private/issues/3758")
+    @Requires(value = [UnitTestPreconditions.NotWindowsJavaBefore11], reason = "https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
@@ -55,7 +50,7 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
     }
 
     void checkWrapperWorksWith(GradleExecuter executer, GradleDistribution executionVersion) {
-        def result = executer.usingExecutable('gradlew').withTasks('hello').run()
+        def result = executer.withTasks('hello').run()
 
         assert result.output.contains("hello from $executionVersion.version.version")
         assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")

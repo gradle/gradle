@@ -59,6 +59,5 @@ trait RunnerFactory {
 
         runner(*(tasks + args))
             .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinVersion), "Old KGP version")
-            .forwardOutput()
     }
 }

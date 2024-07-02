@@ -27,13 +27,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 
+/**
+ * Detects Gradle deprecation warnings in build output.
+ *
+ * TODO: This class could probably use a better name, maybe something like GradleDeprecationVerifier
+ */
 public class ResultAssertion implements Action<ExecutionResult> {
     private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
+    private final List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings;
     private final boolean expectStackTraces;
     private final boolean checkDeprecations;
     private final boolean checkJdkWarnings;
@@ -47,11 +54,18 @@ public class ResultAssertion implements Action<ExecutionResult> {
     private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
 
     public ResultAssertion(
-        int expectedGenericDeprecationWarnings, List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
-        boolean expectStackTraces, boolean checkDeprecations, boolean checkJdkWarnings
+        int expectedGenericDeprecationWarnings,
+        List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
+        List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
+        boolean expectStackTraces,
+        boolean checkDeprecations,
+        boolean checkJdkWarnings
     ) {
+        assert checkDeprecations || expectedDeprecationWarnings.isEmpty() : "Should not expect deprecations when deprecations are not checked";
+
         this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
+        this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
         this.expectStackTraces = expectStackTraces;
         this.checkDeprecations = checkDeprecations;
         this.checkJdkWarnings = checkJdkWarnings;
@@ -63,7 +77,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
         String error = executionResult.getError();
         boolean executionFailure = executionResult instanceof ExecutionFailure;
 
-        // for tests using rich console standard out and error are combined in output of execution result
+        // For tests using rich console standard out and error are combined in output of execution result
         if (executionFailure) {
             normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
         }
@@ -140,11 +154,14 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                 // A javac warning, ignore
                 i++;
-            } else if (line.matches(".*w: .* is deprecated\\..*")) {
+            } else if (line.matches(".*w: .* is deprecated\\..*") || line.matches(".*w: .* This declaration overrides a deprecated member but is not marked as deprecated itself\\..*")) {
                 // A kotlinc warning, ignore
                 i++;
             } else if (line.matches("\\[Warn] :.* is deprecated: .*")) {
                 // A scalac warning, ignore
+                i++;
+            } else if (line.matches("\\(.*\\) \\[DEP\\d+] DeprecationWarning: .*")) {
+                // A node/npm warning, ignore
                 i++;
             } else if (isDeprecationMessageInHelpDescription(line)) {
                 i++;
@@ -217,9 +234,10 @@ public class ResultAssertion implements Action<ExecutionResult> {
      * @return {@code true} if a matching deprecation warning was removed; {@code false} otherwise
      */
     private boolean removeFirstExpectedDeprecationWarning(List<String> lines, int startIdx) {
-        Optional<ExpectedDeprecationWarning> matchedWarning = expectedDeprecationWarnings.stream()
-            .filter(warning -> warning.matchesNextLines(lines, startIdx))
-            .findFirst();
+        Optional<ExpectedDeprecationWarning> matchedWarning =
+            Stream.concat(expectedDeprecationWarnings.stream(), maybeExpectedDeprecationWarnings.stream())
+                .filter(warning -> warning.matchesNextLines(lines, startIdx))
+                .findFirst();
         if (matchedWarning.isPresent()) {
             lastMatchedDeprecationWarning = matchedWarning.get();
             expectedDeprecationWarnings.remove(lastMatchedDeprecationWarning);

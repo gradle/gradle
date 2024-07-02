@@ -388,6 +388,16 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. Run with '-Ddevelocity.deprecation.captureOrigin=true' to see where the deprecated functionality is being used. " +
                     "For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "- The deprecated \"gradleEnterprise.server\" API has been replaced by \"develocity.server\"")
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "- The deprecated \"gradleEnterprise.allowUntrustedServer\" API has been replaced by \"develocity.allowUntrustedServer\"")
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "- The deprecated \"gradleEnterprise.buildScan.uploadInBackground\" API has been replaced by \"develocity.buildScan.uploadInBackground\"")
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
+            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
+                "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
             .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
@@ -416,7 +426,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     SmokeTestGradleRunner scanRunner(String... args) {
         // Run with --build-cache to test also build-cache events
-        runner("build", "-Dscan.dump", "--build-cache", *args).forwardOutput()
+        runner("build", "-Dscan.dump", "--build-cache", *args)
     }
 
     void usePluginVersion(String version) {

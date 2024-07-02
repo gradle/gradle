@@ -63,7 +63,7 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         expect:
-        runner('compileJava').forwardOutput().build()
+        runner('compileJava').build()
     }
 
     @Override

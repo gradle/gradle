@@ -22,13 +22,13 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL;
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL_WITHOUT_VERSION;
 
 public class DocumentationUtils {
-    public static final String PATTERN = BASE_URL_WITHOUT_VERSION + "current/";
+    public static final String CURRENT_DOCS_URL = BASE_URL_WITHOUT_VERSION + "current/";
 
     public static String normalizeDocumentationLink(String message) {
-        return message.replace(PATTERN, BASE_URL + "/");
+        return message.replace(CURRENT_DOCS_URL, BASE_URL + "/");
     }
 
     public static String normalizeDocumentationLink(String message, GradleVersion version) {
-        return message.replace(PATTERN, BASE_URL_WITHOUT_VERSION + version.getVersion() + "/");
+        return message.replace(CURRENT_DOCS_URL, BASE_URL_WITHOUT_VERSION + version.getVersion() + "/");
     }
 }
