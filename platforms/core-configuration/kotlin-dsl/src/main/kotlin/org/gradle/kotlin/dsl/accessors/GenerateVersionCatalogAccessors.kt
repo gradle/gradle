@@ -32,8 +32,8 @@ import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.support.PluginDependenciesSpecScopeInternal
@@ -133,9 +133,9 @@ fun IO.buildVersionCatalogAccessorsFor(
     srcDir: File,
     binDir: File
 ) {
-    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
+    makeAccessorOutputDirs(srcDir, binDir, KOTLIN_DSL_PACKAGE_PATH)
 
-    val baseFileName = "$kotlinDslPackagePath/VersionCatalogAccessors"
+    val baseFileName = "$KOTLIN_DSL_PACKAGE_PATH/VersionCatalogAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
     writeVersionCatalogAccessorsSourceCodeTo(sourceFile, versionCatalogs)

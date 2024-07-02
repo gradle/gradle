@@ -18,11 +18,11 @@ package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 
 val fileHeader: String
-    get() = fileHeaderFor(kotlinDslPackageName)
+    get() = fileHeaderFor(KOTLIN_DSL_PACKAGE_NAME)
 
 
 fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
-    """$licenseHeader
+    """$LICENSE_HEADER
 
 @file:Suppress(
     "unused",
@@ -41,16 +41,9 @@ fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
 package $packageName
 """
 
-const val KOTLIN_DSL_PACKAGE_NAME = "org.gradle.kotlin.dsl" // TODO: once a wrapper can be updated to a version which has this, replace `kotlinDslPackageName` below
+const val KOTLIN_DSL_PACKAGE_NAME = "org.gradle.kotlin.dsl"
 
-@Suppress("TopLevelPropertyNaming")
-const val kotlinDslPackageName = "org.gradle.kotlin.dsl"
-
-
-const val KOTLIN_DSL_PACKAGE_PATH = "org/gradle/kotlin/dsl" // TODO: once a wrapper can be updated to a version which has this, replace `kotlinDslPackagePath` below
-
-@Suppress("TopLevelPropertyNaming")
-const val kotlinDslPackagePath = "org/gradle/kotlin/dsl"
+const val KOTLIN_DSL_PACKAGE_PATH = "org/gradle/kotlin/dsl"
 
 const val LICENSE_HEADER = """/*
  * Copyright 2018 the original author or authors.
@@ -66,7 +59,7 @@ const val LICENSE_HEADER = """/*
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */""" // TODO: once a wrapper can be updated to a version which has this, replace `licenseHeader` below
+ */"""
 
 @Suppress("TopLevelPropertyNaming")
 const val licenseHeader = """/*
