@@ -8,6 +8,7 @@ Include only their name, impactful features should be called out separately belo
 
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
+
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
@@ -52,19 +53,6 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="config-cache"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-nothing that affects the build configuration has changed.
-
-#### Report improvements
-
-TBD:
-- Incompatible tasks tab
-- Copy experience
-- Invalidation reason
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
