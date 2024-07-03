@@ -91,7 +91,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         }
 
         then:
-        def jvmArg = extension.asJvmArg
+        def jvmArg = extension.asJvmArg.get()
         jvmArg.replaceFirst(/-javaagent:[^=]*\.jar=/, '') == expected
 
         where:
