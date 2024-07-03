@@ -16,6 +16,7 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 import model.StageName
+import model.TestType
 
 class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : BaseGradleBuildType(stage = stage, init = {
     id("${model.projectId}_FlakyQuarantine_${os.asName()}_${arch.asName()}")
