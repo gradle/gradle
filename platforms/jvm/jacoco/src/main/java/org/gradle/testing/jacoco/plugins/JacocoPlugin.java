@@ -113,8 +113,8 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
                 suite.getTargets().configureEach(target -> {
                     jacocoResultsVariant.configure(variant -> {
-                        Provider<File> resultsDir = target.getTestTask().map(task ->
-                            task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()
+                        Provider<File> resultsDir = target.getTestTask().flatMap(task ->
+                            task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile().getAsFile()
                         );
 
                         variant.getOutgoing().artifact(
