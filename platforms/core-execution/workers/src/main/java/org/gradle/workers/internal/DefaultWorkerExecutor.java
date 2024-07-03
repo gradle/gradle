@@ -170,10 +170,15 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         final BuildOperationRef currentBuildOperation = buildOperationRunner.getCurrentOperation();
         WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), () -> {
             try {
+                // ~~ Make a bucket for BOID ~~
+                // Register in Problems service that currentBuildOperation belongs to ProblemsGlobals.currentTaskName()
                 BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
                 return worker.execute(spec, currentBuildOperation);
+                // Get all problems for BOID
             } catch (Throwable t) {
                 throw new WorkExecutionException(spec.getDisplayName(), t);
+            } finally {
+
             }
         });
         executionQueue.submit(execution);
