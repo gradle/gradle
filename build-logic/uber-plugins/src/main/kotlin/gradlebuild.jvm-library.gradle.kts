@@ -52,9 +52,10 @@ plugins {
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
 }
 
-val dependencyAnalysis = project.extensions.getByType<DependencyAnalysisSubExtension>()
-dependencyAnalysis.issues {
-    onAny {
-        severity("fail")
+configure<DependencyAnalysisSubExtension> {
+    issues {
+        onAny {
+            severity("fail")
+        }
     }
 }

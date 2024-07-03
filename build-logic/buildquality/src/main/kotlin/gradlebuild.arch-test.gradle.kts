@@ -58,7 +58,7 @@ testing {
                 all {
                     testTask.configure {
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
-                        classpath += sourceSets.getByName("main").output.classesDirs
+                        classpath += sourceSets["main"].output.classesDirs
                         systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
                         extensions.findByType<DevelocityTestConfiguration>()?.apply {
                             // PTS doesn't work well with architecture tests which scan all classes
