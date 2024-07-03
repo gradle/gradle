@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.cc.base.logger
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.configuration.problems.DecoratedFailure

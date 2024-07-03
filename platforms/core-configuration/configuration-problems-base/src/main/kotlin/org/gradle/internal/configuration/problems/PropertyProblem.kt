@@ -58,7 +58,6 @@ enum class DocumentationSection(val anchor: String) {
 
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
-public
 const val BACKTICK = '`'
 
 

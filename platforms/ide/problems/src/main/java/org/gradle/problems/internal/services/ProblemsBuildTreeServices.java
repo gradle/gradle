@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.configuration.problems.ProblemFactory;
@@ -53,6 +54,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
     }
 
+    private static InternalFlag enableProblemsReport = new InternalFlag("org.gradle.internal.problems.report.enabled", false);
+
     @Provides
     ProblemReportCreator createProblemsReportCreator(
         ExecutorFactory executorFactory,
@@ -60,7 +63,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         InternalOptions internalOptions,
         ProblemFactory problemFactory
     ) {
-        if (Boolean.parseBoolean(System.getProperty("org.gradle.internal.problems.report.enabled"))) {
+        if (internalOptions.getOption(enableProblemsReport).get()) {
             return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, problemFactory);
         }
         return new NoOpProblemReportCreator();

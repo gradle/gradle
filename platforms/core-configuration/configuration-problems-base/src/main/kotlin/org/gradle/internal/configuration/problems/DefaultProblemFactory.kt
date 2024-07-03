@@ -43,7 +43,7 @@ class DefaultProblemFactory(
     }
 
     private fun getProblemDiagnostics(exception: Throwable?, getStackTrace: Boolean): ProblemDiagnostics {
-        if(getStackTrace) {
+        if (getStackTrace) {
             return problemStream.forCurrentCaller(exception)
         }
         return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
