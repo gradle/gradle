@@ -23,7 +23,6 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
-import org.gradle.configurationcache.shareddata.SharedDataController
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
 import org.gradle.initialization.GradlePropertiesController
@@ -44,6 +43,7 @@ import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.shareddata.SharedDataController
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -126,7 +126,7 @@ class DefaultConfigurationCache internal constructor(
     val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
 
     private
-    val sharedData = lazy { SharedDataController(host, cacheIO, cacheFingerprintController, store) }
+    val sharedData = lazy { SharedDataController(isolateOwnerHost, cacheIO, calculatedValueContainerFactory, store) }
 
     private
     val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
@@ -270,7 +270,8 @@ class DefaultConfigurationCache internal constructor(
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
+            val usedSharedData = sharedData.value.collectAccessedValues()
+            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, usedSharedData, layout.fileFor(StateType.Entry))
         }
     }
 

@@ -66,6 +66,7 @@ public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjec
         };
     }
 
+    @Override
     public <T> void put(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier, Provider<T> dataProvider) {
         Lock writeLock = modificationLock.writeLock();
         writeLock.lock();

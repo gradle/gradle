@@ -152,13 +152,13 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices
     ) {
         registration.add(ProjectInternal.class, project);
-        registration.add(DefaultProjectSharedData.class);
         dependencyManagementServices.addDslServices(registration, project);
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);
         }
     }
 
+    @Provides
     protected ProjectSharedData createProjectSharedData(
         ProjectInternal project,
         SharedDataRegistry sharedDataRegistry,
@@ -177,6 +177,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         );
     }
 
+    @Provides
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
         PluginRegistry parentRegistry;
         ProjectState parent = project.getOwner().getBuildParent();

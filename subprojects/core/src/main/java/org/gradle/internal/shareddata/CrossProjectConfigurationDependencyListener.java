@@ -18,12 +18,12 @@ package org.gradle.internal.shareddata;
 
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 import org.gradle.util.Path;
 
 @StatefulListener
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface CrossProjectConfigurationDependencyListener {
     /**
      * Called when a configuration of a project is consumed as a dependency.

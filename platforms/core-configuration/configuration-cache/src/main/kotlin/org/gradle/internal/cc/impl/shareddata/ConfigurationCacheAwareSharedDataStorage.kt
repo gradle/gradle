@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.shareddata
+package org.gradle.internal.cc.impl.shareddata
 
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Provider
-import org.gradle.configurationcache.BuildTreeConfigurationCache
+import org.gradle.internal.cc.impl.BuildTreeConfigurationCache
 import org.gradle.internal.shareddata.SharedDataStorage
 import org.gradle.util.Path
 

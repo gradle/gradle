@@ -545,6 +545,20 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
+    override fun configurationDependencyObserved(consumingProject: ProjectState, targetProjectIdentityPath: Path) {
+        onProjectDependency(consumingProject.identityPath, targetProjectIdentityPath)
+    }
+
+    private
+    fun onProjectDependency(consumerProjectIdentityPath: Path, targetProjectIdentityPath: Path) {
+        if (host.cacheIntermediateModels) {
+            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumerProjectIdentityPath, targetProjectIdentityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
+        }
+    }
+
     override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
         if (referrer.identityPath == target.identityPath)
             return
@@ -560,16 +574,6 @@ class ConfigurationCacheFingerprintWriter(
     override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
         if (host.modelAsProjectDependency) {
             onProjectDependency(consumer.identityPath, target.identityPath)
-        }
-    }
-
-    private
-    fun onProjectDependency(consumerPath: Path, targetPath: Path) {
-        if (host.cacheIntermediateModels) {
-            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumerPath, targetPath)
-            if (projectDependencies.add(dependency)) {
-                projectScopedWriter.write(dependency)
-            }
         }
     }
 
@@ -893,4 +897,4 @@ fun jvmFingerprint() =
         System.getProperty("java.vm.name"),
         System.getProperty("java.vm.vendor"),
         System.getProperty("java.vm.version")
-    ).joinToString (separator = "|")
+    ).joinToString(separator = "|")

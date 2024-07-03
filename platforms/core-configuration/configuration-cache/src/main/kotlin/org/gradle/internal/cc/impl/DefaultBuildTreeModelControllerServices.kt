@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
-import org.gradle.configurationcache.shareddata.ConfigurationCacheAwareSharedDataStorage
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
@@ -49,6 +48,7 @@ import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFac
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
+import org.gradle.internal.cc.impl.shareddata.ConfigurationCacheAwareSharedDataStorage
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
@@ -251,6 +251,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
         }
 
+        @Provides
         fun createSharedDataStorage(
             projectStateRegistry: ProjectStateRegistry,
             cache: BuildTreeConfigurationCache

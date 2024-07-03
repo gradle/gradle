@@ -754,7 +754,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getSharedData(): ProjectSharedData {
-            onAccess()
+            onAccess("sharedData")
             return delegate.sharedData
         }
 

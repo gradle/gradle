@@ -36,6 +36,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         intermediateModels: Map<ModelKey, BlockAddress>,
         projectMetadata: Map<Path, BlockAddress>,
         sideEffects: List<BlockAddress>,
+        sharedData: Map<Path, BlockAddress>,
         stateFile: ConfigurationCacheStateFile
     )
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsSharedDataInvalidationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def "invalidates a shared data consumer project when the data is used in model building"() {

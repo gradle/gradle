@@ -138,6 +138,7 @@ class DefaultConfigurationCacheIO internal constructor(
             fun ReadContext.readBlockAddressMap(): Map<Path, BlockAddress> = buildMap {
                 readCollection { put(Path.path(readString()), addressSerializer.read(this@readBlockAddressMap)) }
             }
+            val metadata = readBlockAddressMap()
             val sideEffects = readList {
                 addressSerializer.read(this)
             }
