@@ -15,7 +15,7 @@ Once installed on your system, simply launch the application.
 
 ### Adding a build
 
-The first screen shown by the _Gradle Client_ allows you to add local Gradle builds you want to interact with.
+The first screen shown by the _Gradle Client_ allows you to add local Gradle builds to explore.
 
 Click the _Add build_ button and pick the folder of a local build.
 Note that the folder must contain a `settings.gradle(.kts|.dcl)` file to be accepted.
