@@ -34,6 +34,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
@@ -306,12 +307,20 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.attributes = attributes;
     }
 
-    @SuppressWarnings("unchecked")
     public void addMutationValidator(Action<? super ModuleDependency> action) {
         this.onMutate = onMutate.add(action);
     }
 
     protected void validateMutation() {
+
+        if (!onMutate.isEmpty()) {
+            // Somebody is trying to mutate a dependency after it has been added to a configuration.
+            DeprecationLogger.deprecateAction("Mutating a dependency after declaration")
+                .willBecomeAnErrorInGradle9()
+                .undocumented()
+                .nagUser();
+        }
+
         onMutate.execute(this);
     }
 
