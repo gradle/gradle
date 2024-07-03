@@ -91,7 +91,7 @@ At the bottom of the screen you can expand a drawer to read the logs.
 
 **Declarative Documents** (_Only for builds using [Declarative Gradle](https://declarative.gradle.org/)_)
 
-* Informs about the declarative build definition and allows to trigger mutations.
+* Informs about the declarative build definition and allows triggering mutations.
 * Fetches the [DeclarativeSchemaModel](https://github.com/gradle/gradle/blob/10b91d86d67226538bd721a2ee2aefb5233947d5/platforms/core-configuration/declarative-dsl-tooling-models/src/main/java/org/gradle/declarative/dsl/tooling/models/DeclarativeSchemaModel.java#L22) Tooling API model.
 * This action requires the completion of the [initialization phase](https://docs.gradle.org/current/userguide/build_lifecycle.html#sec:initialization) of the build.
 * No subprojects of the build are configured.
