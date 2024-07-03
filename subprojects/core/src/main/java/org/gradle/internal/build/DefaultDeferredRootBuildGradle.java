@@ -16,8 +16,10 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.GradleInternal;
 
+@NonNullApi
 public class DefaultDeferredRootBuildGradle implements DeferredRootBuildGradle {
 
     private GradleInternal rootBuildGradle;
