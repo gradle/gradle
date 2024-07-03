@@ -136,6 +136,8 @@ class NameMatcherTest extends Specification {
         matches("soNa", "someName", "somename")
         matches("SN", "SomeName", "someName")
         matches("na1", "name1", "Name1", "NAME1")
+        matches("soNaWiEx", "someNameWithExtra", "someNameRandomWithExtra", "other")
+        matches("sNRWE", "someNameRandomWithExtra", "someNameWithExtra", "other")
     }
 
     def "prefers case insensitive match over camel case match"() {
