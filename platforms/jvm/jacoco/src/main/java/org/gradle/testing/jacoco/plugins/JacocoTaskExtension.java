@@ -22,9 +22,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -32,8 +33,9 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
@@ -41,9 +43,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -87,23 +87,9 @@ public abstract class JacocoTaskExtension {
     private final JavaForkOptions task;
     private final ObjectFactory objectFactory;
 
-    private boolean enabled = true;
-    private final RegularFileProperty destinationFile;
-    private List<String> includes = new ArrayList<>();
-    private List<String> excludes = new ArrayList<>();
-    private List<String> excludeClassLoaders = new ArrayList<>();
-    private boolean includeNoLocationClasses;
-    private String sessionId;
-    private boolean dumpOnExit = true;
-    private Output output = Output.FILE;
-    private String address;
-    private int port;
-    private boolean jmx;
-
     /**
      * Creates a Jacoco task extension.
      *
-     * @param objects the object factory
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
@@ -112,184 +98,115 @@ public abstract class JacocoTaskExtension {
         this.agent = agent;
         this.task = task;
         this.objectFactory = objects;
-        destinationFile = objects.fileProperty();
+        getEnabled().convention(true);
+        getIncludeNoLocationClasses().convention(false);
+        getDumpOnExit().convention(true);
+        getOutput().convention(Output.FILE);
+        getPort().convention(0);
+        getJmx().convention(false);
     }
 
     /**
      * Whether or not the task should generate execution data. Defaults to {@code true}.
-     * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isEnabled() {
-        return enabled;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getEnabled();
+
+    @Internal
+    public Property<Boolean> getIsEnabled() {
+        return getEnabled();
     }
 
     /**
-     * Sets the enabled.
+     * The path for execution data to be written to.
      *
-     * @since 1.6
-     */
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    /**
-     * The path for the execution data to be written to.
-     * @since 1.7
-     */
-    @Nullable
-    @Optional
-    @OutputFile
-    @ToBeReplacedByLazyProperty
-    public File getDestinationFile() {
-        return destinationFile.getAsFile().getOrNull();
-    }
-
-    /**
-     * Set the provider for calculating the destination file.
-     *
-     * @param destinationFile Destination file provider
+     * @return destination file for execution data output
      * @since 4.0
      */
-    public void setDestinationFile(Provider<File> destinationFile) {
-        // TODO: This is a workaround for behavior in AGP.
-        // see https://github.com/gradle/gradle/issues/33389
-        // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly
-        this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
-    }
+    @Internal
+    @ReplacesEagerProperty(adapter = DestinationFileAdapter.class)
+    public abstract RegularFileProperty getDestinationFile();
 
     /**
-     * Sets the destination file.
+     * This method exists because {@link #getDestinationFile()} cannot be annotated with {@code @OutputFile} directly,
+     * as it cannot carry a task dependency and produces:
      *
-     * @since 1.7
+     * Property 'destinationFile' is declared as an output property of an object with type JacocoTaskExtension but does not have a task associated with it.
+     *
+     * @return the destination directory as a file
+     * @since 9.7.0
      */
-    public void setDestinationFile(@Nullable File destinationFile) {
-        this.destinationFile.set(destinationFile);
+    @Nullable
+    @Deprecated
+    @Incubating
+    @Optional
+    @OutputFile
+    @SuppressWarnings("InlineMeSuggester")
+    protected File getDestinationFileOutput() {
+        return getDestinationFile().getAsFile().getOrNull();
     }
 
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      * @since 1.6
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getIncludes() {
-        return includes;
-    }
-
-    /**
-     * Sets the includes.
-     *
-     * @since 1.6
-     */
-    public void setIncludes(@Nullable List<String> includes) {
-        this.includes = includes;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getIncludes();
 
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
      * @since 1.6
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getExcludes() {
-        return excludes;
-    }
-
-    /**
-     * Sets the excludes.
-     *
-     * @since 1.6
-     */
-    public void setExcludes(@Nullable List<String> excludes) {
-        this.excludes = excludes;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getExcludes();
 
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      * @since 1.6
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getExcludeClassLoaders() {
-        return excludeClassLoaders;
-    }
-
-    /**
-     * Sets the exclude class loaders.
-     *
-     * @since 1.6
-     */
-    public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
-        this.excludeClassLoaders = excludeClassLoaders;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getExcludeClassLoaders();
 
     /**
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
      *
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
-     * @since 2.13
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isIncludeNoLocationClasses() {
-        return includeNoLocationClasses;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getIncludeNoLocationClasses();
 
-    /**
-     * Sets the include no location classes.
-     *
-     * @since 2.13
-     */
-    public void setIncludeNoLocationClasses(boolean includeNoLocationClasses) {
-        this.includeNoLocationClasses = includeNoLocationClasses;
+    @Internal
+    public Property<Boolean> getIsIncludeNoLocationClasses() {
+        return getIncludeNoLocationClasses();
     }
 
     /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      * @since 1.6
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    /**
-     * Sets the session id.
-     *
-     * @since 1.6
-     */
-    public void setSessionId(@Nullable String sessionId) {
-        this.sessionId = sessionId;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getSessionId();
 
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
-     * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isDumpOnExit() {
-        return dumpOnExit;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDumpOnExit();
 
-    /**
-     * Sets the dump on exit.
-     *
-     * @since 1.6
-     */
-    public void setDumpOnExit(boolean dumpOnExit) {
-        this.dumpOnExit = dumpOnExit;
+    @Internal
+    public Property<Boolean> getIsDumpOnExit() {
+        return getDumpOnExit();
     }
 
     /**
@@ -297,59 +214,25 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Output getOutput() {
-        return output;
-    }
-
-    /**
-     * Sets the output.
-     *
-     * @since 1.6
-     */
-    public void setOutput(Output output) {
-        this.output = output;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<Output> getOutput();
 
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
      * @since 1.6
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getAddress() {
-        return address;
-    }
-
-    /**
-     * Sets the address.
-     *
-     * @since 1.6
-     */
-    public void setAddress(@Nullable String address) {
-        this.address = address;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getAddress();
 
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * Sets the port.
-     *
-     * @since 1.6
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getPort();
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
@@ -387,21 +270,14 @@ public abstract class JacocoTaskExtension {
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
      *
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
-     * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isJmx() {
-        return jmx;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getJmx();
 
-    /**
-     * Sets the jmx.
-     *
-     * @since 1.6
-     */
-    public void setJmx(boolean jmx) {
-        this.jmx = jmx;
+    @Internal
+    public Property<Boolean> getIsJmx() {
+        return getJmx();
     }
 
     /**
@@ -412,7 +288,7 @@ public abstract class JacocoTaskExtension {
      * @since 4.6
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Read-only FileCollection property")
     public FileCollection getAgentClasspath() {
         return agent.getAgentConf();
     }
@@ -424,33 +300,54 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getAsJvmArg() {
-        StringBuilder builder = new StringBuilder();
-        ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDirectory().get().getAsFile());
-        builder.append("-javaagent:");
-        builder.append(agent.getJar().getAbsolutePath());
-        builder.append('=');
-        argument.append("destfile", getDestinationFile());
-        argument.append("append", true);
-        argument.append("includes", getIncludes());
-        argument.append("excludes", getExcludes());
-        argument.append("exclclassloader", getExcludeClassLoaders());
-        if (agent.supportsInclNoLocationClasses()) {
-            argument.append("inclnolocationclasses", isIncludeNoLocationClasses());
-        }
-        argument.append("sessionid", getSessionId());
-        argument.append("dumponexit", isDumpOnExit());
-        argument.append("output", getOutput().getAsArg());
-        argument.append("address", getAddress());
-        argument.append("port", getPort());
-        argument.append("classdumpdir", getClassDumpDirectory().getAsFile().getOrNull());
+    @ReplacesEagerProperty
+    public Provider<String> getAsJvmArg() {
+        return getEnabled().map(__ -> {
+            File workingDir = task.getWorkingDirectory().get().getAsFile();
+            StringBuilder builder = new StringBuilder();
+            ArgumentAppender argument = new ArgumentAppender(builder, workingDir);
+            builder.append("-javaagent:");
+            builder.append(agent.getJar().getAbsolutePath());
+            builder.append('=');
+            argument.append("destfile", getDestinationFileOutput());
+            argument.append("append", true);
+            argument.append("includes", getIncludes().get());
+            argument.append("excludes", getExcludes().get());
+            argument.append("exclclassloader", getExcludeClassLoaders().get());
+            if (agent.supportsInclNoLocationClasses()) {
+                argument.append("inclnolocationclasses", getIncludeNoLocationClasses().getOrNull());
+            }
+            argument.append("sessionid", getSessionId().getOrNull());
+            argument.append("dumponexit", getDumpOnExit().getOrNull());
+            argument.append("output", getOutput().map(Output::getAsArg).getOrNull());
+            argument.append("address", getAddress().getOrNull());
+            argument.append("port", getPort().getOrNull());
+            argument.append("classdumpdir", getClassDumpDirectory().getAsFile().getOrNull());
 
-        if (agent.supportsJmx()) {
-            argument.append("jmx", isJmx());
+            if (agent.supportsJmx()) {
+                argument.append("jmx", getJmx().getOrNull());
+            }
+
+            return builder.toString();
+        });
+    }
+
+    static abstract class DestinationFileAdapter {
+        @Nullable
+        @BytecodeUpgrade
+        static File getDestinationFile(JacocoTaskExtension extension) {
+            return extension.getDestinationFile().getAsFile().getOrNull();
         }
 
-        return builder.toString();
+        @BytecodeUpgrade
+        static void setDestinationFile(JacocoTaskExtension extension, Provider<File> destinationFile) {
+            extension.getDestinationFile().fileProvider(destinationFile);
+        }
+
+        @BytecodeUpgrade
+        static void setDestinationFile(JacocoTaskExtension extension, File destinationFile) {
+            extension.getDestinationFile().set(destinationFile);
+        }
     }
 
     private static class ArgumentAppender {
