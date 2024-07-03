@@ -16,15 +16,20 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import org.gradle.api.GradleException;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.File;
+
 /**
- * Probes a JVM installation to determine the Java version it provides.
+ * Probes a JVM installation and returns valid {@link Jvm} instances for it.
  */
 @ServiceScope(Scope.Global.class)
-public interface JvmVersionDetector {
+public interface JvmDetector {
+
     /**
      * Probes the Java version for the given JVM installation.
      */
@@ -34,4 +39,11 @@ public interface JvmVersionDetector {
      * Probes the Java version for the given `java` command.
      */
     int getJavaVersionMajor(String javaCommand);
+
+    /**
+     * Get a probed JVM instance for the given Java home.
+     *
+     * @throws GradleException if the JVM at the given Java home is not valid
+     */
+    Jvm getValidJvm(File javaHome);
 }

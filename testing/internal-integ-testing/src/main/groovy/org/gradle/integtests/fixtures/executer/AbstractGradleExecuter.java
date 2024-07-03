@@ -42,7 +42,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -114,7 +114,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         ValidationServicesFixture.getServices()
     ).getServices();
 
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
+    private static final JvmDetector JVM_DETECTOR = GLOBAL_SERVICES.get(JvmDetector.class);
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
@@ -679,7 +679,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected final JavaVersion getJavaVersionFromJavaHome() {
         try {
-            return JavaVersion.toVersion(JVM_VERSION_DETECTOR.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
+            return JavaVersion.toVersion(JVM_DETECTOR.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
         } catch (IllegalArgumentException | JavaHomeException e) {
             return JavaVersion.current();
         }

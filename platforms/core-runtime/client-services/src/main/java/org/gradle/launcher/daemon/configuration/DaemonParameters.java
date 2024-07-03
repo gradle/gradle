@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -151,7 +151,7 @@ public class DaemonParameters {
     }
 
     // TODO: Move this to the construction of DaemonRequestContext to avoid mutating the parameters? Is that possible?
-    public void applyDefaultsFromJvmCriteria(JvmVersionDetector detector) {
+    public void applyDefaultsFromJvmCriteria(JvmDetector detector) {
         if (getRequestedJvmCriteria().probeJavaLanguageVersion(detector).asInt() >= 9) {
             Set<String> jpmsArgs = new LinkedHashSet<>(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
             jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);

@@ -17,25 +17,36 @@
 package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.internal.ExecException;
 
 import java.io.File;
 import java.nio.file.NoSuchFileException;
 
-public class DefaultJvmVersionDetector implements JvmVersionDetector {
+public class DefaultJvmDetector implements JvmDetector {
 
     private final JvmMetadataDetector detector;
 
-    public DefaultJvmVersionDetector(JvmMetadataDetector detector) {
+    public DefaultJvmDetector(JvmMetadataDetector detector) {
         this.detector = detector;
     }
 
     @Override
+    public Jvm getValidJvm(File javaHome) {
+        JvmInstallationMetadata metadata = detector.getMetadata(InstallationLocation.autoDetected(javaHome, "specific path"));
+
+        if (!metadata.isValidInstallation()) {
+            throw new GradleException("Unable to determine version for JDK located at " + metadata.getJavaHome() + ". Reason: " + metadata.getErrorMessage(), metadata.getErrorCause());
+        }
+
+        return metadata.asJvm();
+    }
+
+    @Override
     public int getJavaVersionMajor(JavaInfo jvm) {
-        return getVersionFromJavaHome(jvm.getJavaHome());
+        return getMajorVersionFromJavaHome(jvm.getJavaHome());
     }
 
     @Override
@@ -46,18 +57,11 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
             Exception cause = new NoSuchFileException(javaCommand);
             throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''", cause);
         }
-        return getVersionFromJavaHome(parentFolder.getParentFile());
+        return getMajorVersionFromJavaHome(parentFolder.getParentFile());
     }
 
-    private int getVersionFromJavaHome(File javaHome) {
-        JvmInstallationMetadata metadata = validate(detector.getMetadata(InstallationLocation.autoDetected(javaHome, "specific path")));
-        return JavaVersionParser.parseMajorVersion(metadata.getJavaVersion());
+    private int getMajorVersionFromJavaHome(File javaHome) {
+        return Integer.parseInt(getValidJvm(javaHome).getJavaVersion().getMajorVersion());
     }
 
-    private JvmInstallationMetadata validate(JvmInstallationMetadata metadata) {
-        if(metadata.isValidInstallation()) {
-            return metadata;
-        }
-        throw new GradleException("Unable to determine version for JDK located at " + metadata.getJavaHome() + ". Reason: " + metadata.getErrorMessage(), metadata.getErrorCause());
-    }
 }

@@ -673,6 +673,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return failure
     }
 
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    protected ExecutionResult fails(List<String> tasks) {
+        fails(tasks.toArray(new String[tasks.size()]))
+    }
+
     protected void executedAndNotSkipped(String... tasks) {
         assertHasResult()
         tasks.each {

@@ -32,7 +32,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         executer.requireDaemon()
     }
 
-    def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
+    def "executes the daemon with the current jvm if the current jvm is specified"() {
         given:
         writeJvmCriteria(Jvm.current())
         captureJavaHome()
@@ -44,7 +44,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given other daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
+    def "executes the daemon with the specified jdk"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm)
@@ -55,7 +55,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
-    def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {
+    def "fails when specified jdk is not available locally"() {
         given:
         // Java 10 is not available
         def java10 = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_10)

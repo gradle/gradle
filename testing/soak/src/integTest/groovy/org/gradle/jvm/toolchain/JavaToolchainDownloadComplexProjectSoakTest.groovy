@@ -109,7 +109,11 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         def filterForOtherJdk = (JvmInstallationMetadata metadata) -> !AvailableJavaHomes.isCurrentJavaHome(metadata) &&
             jdkRepository.getJdk().getJavaHome().toPath().toAbsolutePath() != metadata.javaHome.toAbsolutePath() &&
             metadata.vendor.rawVendor != jdkMetadata.vendor.rawVendor
-        AvailableJavaHomes.getAvailableJdks(filterForOtherJdk).stream().findFirst().orElseThrow()
+        def jdk = AvailableJavaHomes.getAvailableJdk(filterForOtherJdk)
+        if (jdk == null) {
+            throw new IllegalStateException("No JDK with different vendor found")
+        }
+        return jdk
     }
 
     private String settingsForBuildWithSubprojects(String resolverCode) {

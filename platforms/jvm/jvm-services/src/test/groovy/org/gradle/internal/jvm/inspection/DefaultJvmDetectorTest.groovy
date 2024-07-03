@@ -26,10 +26,10 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultJvmVersionDetectorTest extends Specification {
+class DefaultJvmDetectorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(DefaultJvmVersionDetectorTest)
-    DefaultJvmVersionDetector detector = new DefaultJvmVersionDetector(
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(DefaultJvmDetectorTest)
+    DefaultJvmDetector detector = new DefaultJvmDetector(
         new DefaultJvmMetadataDetector(
             TestFiles.execHandleFactory(),
             TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
@@ -51,6 +51,11 @@ class DefaultJvmVersionDetectorTest extends Specification {
         detector.getJavaVersionMajor(Jvm.current().getJavaExecutable().path.replace(".exe", "")) == Integer.parseInt(JavaVersion.current().majorVersion)
     }
 
+    def "can get JVM instance for current jvm"() {
+        expect:
+        detector.getValidJvm(Jvm.current().javaHome) is Jvm.current()
+    }
+
     def "fails for unknown java command"() {
         when:
         detector.getJavaVersionMajor("unknown")
@@ -68,7 +73,7 @@ class DefaultJvmVersionDetectorTest extends Specification {
                 return JvmInstallationMetadata.failure(new File("invalid"), cause)
             }
         }
-        def detector = new DefaultJvmVersionDetector(metadataDetector)
+        def detector = new DefaultJvmDetector(metadataDetector)
 
         when:
         detector.getJavaVersionMajor(Jvm.current())

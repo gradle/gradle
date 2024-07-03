@@ -36,7 +36,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -57,7 +57,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final ClassLoaderRegistry classLoaderRegistry;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private final InternalProblemReporter problemReporter;
 
     public DaemonGroovyCompiler(
@@ -67,7 +67,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         CompilerWorkerExecutor compilerWorkerExecutor,
         ClassLoaderRegistry classLoaderRegistry,
         JavaForkOptionsFactory forkOptionsFactory,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         InternalProblemReporter problemReporter
     ) {
         super(compilerWorkerExecutor);
@@ -76,7 +76,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         this.classLoaderRegistry = classLoaderRegistry;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
         this.problemReporter = problemReporter;
     }
 
@@ -107,7 +107,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
-        if (jvmVersionDetector.getJavaVersionMajor(javaForkOptions.getExecutable()) >= 9) {
+        if (jvmDetector.getJavaVersionMajor(javaForkOptions.getExecutable()) >= 9) {
             javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
         } else {
             // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.

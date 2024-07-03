@@ -37,7 +37,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         toolingApi.requireDaemons()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "cannot run a build when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -56,7 +56,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "cannot fetch model when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -75,7 +75,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "cannot run action when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -94,7 +94,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "cannot run tests when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)

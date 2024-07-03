@@ -24,7 +24,12 @@ import org.gradle.api.JavaVersion;
 public class SupportedJavaVersions {
 
     /**
-     * The minimum version of Java that will be required to run Gradle in the next major version.
+     * The minimum version of Java that is required to run the Gradle daemon.
+     */
+    public static final JavaVersion MINIMUM_JAVA_VERSION = JavaVersion.VERSION_1_8;
+
+    /**
+     * The minimum version of Java that will be required to run the Gradle daemon in the next major version.
      */
     public static final JavaVersion FUTURE_MINIMUM_JAVA_VERSION = JavaVersion.VERSION_17;
 

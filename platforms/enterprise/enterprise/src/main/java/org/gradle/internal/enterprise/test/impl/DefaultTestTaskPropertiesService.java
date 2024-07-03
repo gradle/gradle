@@ -40,7 +40,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.OutputFilePropertyType;
@@ -61,7 +61,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private final JavaModuleDetector javaModuleDetector;
 
     @Inject
@@ -69,13 +69,13 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         PropertyWalker propertyWalker,
         FileCollectionFactory fileCollectionFactory,
         JavaForkOptionsFactory forkOptionsFactory,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         JavaModuleDetector javaModuleDetector
     ) {
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
         this.forkOptionsFactory = forkOptionsFactory;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
         this.javaModuleDetector = javaModuleDetector;
     }
 
@@ -185,6 +185,6 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private int detectJavaVersion(String executable) {
-        return jvmVersionDetector.getJavaVersionMajor(executable);
+        return jvmDetector.getJavaVersionMajor(executable);
     }
 }

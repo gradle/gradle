@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.Address;
@@ -63,7 +63,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final Set<File> applicationModulePath = new LinkedHashSet<>();
 
     private final MemoryManager memoryManager;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private String baseName = "Gradle Worker";
@@ -80,7 +80,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory,
         OutputEventListener outputEventListener,
         MemoryManager memoryManager,
-        JvmVersionDetector jvmVersionDetector
+        JvmDetector jvmDetector
     ) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
@@ -89,7 +89,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.workerImplementationFactory = workerImplementationFactory;
         this.outputEventListener = outputEventListener;
         this.memoryManager = memoryManager;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
     }
 
     public int getConnectTimeoutSeconds() {
@@ -243,7 +243,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         JavaExecHandleBuilder javaCommand = getJavaCommand();
         javaCommand.setDisplayName(displayName);
 
-        boolean java9Compatible = jvmVersionDetector.getJavaVersionMajor(javaCommand.getExecutable()) >= 9;
+        boolean java9Compatible = jvmDetector.getJavaVersionMajor(javaCommand.getExecutable()) >= 9;
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         javaCommand.args("'" + displayName + "'");

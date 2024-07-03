@@ -46,7 +46,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir)
 
         and:
-        def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
+        def buildJavaHome = AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()).javaHome
         file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
     }
 

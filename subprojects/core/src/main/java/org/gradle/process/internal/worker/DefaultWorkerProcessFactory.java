@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
@@ -37,7 +37,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final MessagingServer server;
     private final IdGenerator<Long> idGenerator;
     private final JavaExecHandleFactory execHandleFactory;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private final OutputEventListener outputEventListener;
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
     private final MemoryManager memoryManager;
@@ -51,7 +51,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
         File gradleUserHomeDir,
         TemporaryFileProvider temporaryFileProvider,
         JavaExecHandleFactory execHandleFactory,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         OutputEventListener outputEventListener,
         MemoryManager memoryManager
     ) {
@@ -59,7 +59,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
         this.server = server;
         this.idGenerator = idGenerator;
         this.execHandleFactory = execHandleFactory;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
         this.outputEventListener = outputEventListener;
         this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, gradleUserHomeDir);
         this.memoryManager = memoryManager;
@@ -88,7 +88,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     }
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {
-        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager, jvmVersionDetector);
+        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager, jvmDetector);
         builder.setLogLevel(loggingManager.getLevel());
         builder.setConnectTimeoutSeconds(connectTimeoutSeconds);
         return builder;

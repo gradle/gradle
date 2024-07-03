@@ -34,7 +34,7 @@ import spock.lang.Issue
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/3890")
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @NoDebug
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails when build is configured to use Java 7 or earlier"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)

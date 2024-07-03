@@ -37,7 +37,7 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
-import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.events.OutputEventListener
@@ -96,7 +96,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
         tmpDir.file("gradleUserHome"),
         tmpDirTemporaryFileProvider,
         execHandleFactory,
-        new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+        new DefaultJvmDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
         outputEventListener,
         Stub(MemoryManager)
     )
