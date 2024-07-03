@@ -5,7 +5,10 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/eskatos/gradle-client/ci.yml)
 ![GitHub Issues](https://img.shields.io/github/issues/eskatos/gradle-client)
 
-This is a desktop application acting as a Gradle Tooling API client.
+This is a desktop application acting as a Gradle [Tooling API](https://docs.gradle.org/current/userguide/third_party_integration.html#embedding) client to connect to Gradle builds.
+
+IDEs typically use the Gradle Tooling API to provide support for Gradle builds.
+This application is used to showcase what IDEs could do with new Gradle tooling features.
 
 ## Usage
 
