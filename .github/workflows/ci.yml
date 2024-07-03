@@ -63,10 +63,18 @@ jobs:
           add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan packageReleaseDeb
       - uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         with:
           name: linux-distribution
           path: gradle-client/build/compose/binaries/main-release/deb
           if-no-files-found: error
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: gradle-client/build/compose/binaries/main-release/deb/**
   build_macos:
     needs: check_macos
     runs-on: macos-latest
@@ -82,10 +90,18 @@ jobs:
           add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan packageReleaseDmg
       - uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         with:
           name: macos-distribution
           path: gradle-client/build/compose/binaries/main-release/dmg
           if-no-files-found: error
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: gradle-client/build/compose/binaries/main-release/dmg/**
   build_windows:
     needs: check_windows
     runs-on: windows-latest
@@ -101,7 +117,15 @@ jobs:
           add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan packageReleaseMsi
       - uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         with:
           name: windows-distribution
           path: gradle-client/build/compose/binaries/main-release/msi
           if-no-files-found: error
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: gradle-client/build/compose/binaries/main-release/msi/**
