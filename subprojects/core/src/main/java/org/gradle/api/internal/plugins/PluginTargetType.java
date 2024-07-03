@@ -26,9 +26,9 @@ import javax.annotation.Nullable;
 @NonNullApi
 public enum PluginTargetType {
 
-    PROJECT("a Project (or in a build script)"),
-    SETTINGS("the Settings (or in a settings script)"),
-    GRADLE("the Gradle (or in an init script)");
+    PROJECT("in a build script (or to the Project object)"),
+    SETTINGS("in a settings script (or to the Settings object)"),
+    GRADLE("in an init script (or to the Gradle object)");
 
     private final String applyTargetDescription;
 

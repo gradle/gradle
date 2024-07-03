@@ -72,7 +72,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         throw problems.getInternalReporter()
             .throwing(spec -> {
                 String message = String.format(
-                    "The plugin must be applied to %s, but was applied to %s",
+                    "The plugin must be applied %s, but was applied %s",
                     actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
                 );
 

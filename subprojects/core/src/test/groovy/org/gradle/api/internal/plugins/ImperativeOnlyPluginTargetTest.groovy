@@ -48,7 +48,7 @@ class ImperativeOnlyPluginTargetTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "The plugin must be applied to the Settings (or in a settings script), but was applied to a Project (or in a build script)"
+        e.message == "The plugin must be applied in a settings script (or to the Settings object), but was applied in a build script (or to the Project object)"
 
         1 * problemEmitter.emit(_, _)
     }
