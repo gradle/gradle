@@ -1,5 +1,8 @@
 name: Dependency Submission
-on: push
+on:
+  push:
+    branches:
+      - main
 permissions:
   contents: write
 jobs:
