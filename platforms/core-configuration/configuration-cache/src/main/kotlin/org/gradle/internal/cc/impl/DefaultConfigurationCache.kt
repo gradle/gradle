@@ -43,6 +43,7 @@ import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.shareddata.SharedDataController
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -58,6 +59,7 @@ import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.shareddata.SharedDataStorage.ProjectProducedSharedData
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -122,6 +124,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+
+    private
+    val sharedData = lazy { SharedDataController(isolateOwnerHost, cacheIO, cacheFingerprintController, calculatedValueContainerFactory, store) }
 
     private
     val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
@@ -224,6 +229,10 @@ class DefaultConfigurationCache internal constructor(
         return projectMetadata.loadOrCreateOriginalValue(identityPath, creator)
     }
 
+    override fun loadOrCreateProjectSharedData(identityPath: Path, creator: () -> ProjectProducedSharedData): ProjectProducedSharedData {
+        return sharedData.value.loadOrCreateValue(identityPath, creator)
+    }
+
     override fun finalizeCacheEntry() {
         if (problems.shouldDiscardEntry) {
             store.useForStore { layout ->
@@ -247,6 +256,7 @@ class DefaultConfigurationCache internal constructor(
         val updatedProjects = mutableSetOf<Path>()
         intermediateModels.visitProjects(reusedProjects::add, updatedProjects::add)
         projectMetadata.visitProjects(reusedProjects::add) { }
+        sharedData.value.visitProjects(reusedProjects::add, updatedProjects::add)
         return ProjectUsage(reusedProjects, updatedProjects)
     }
 
@@ -260,7 +270,8 @@ class DefaultConfigurationCache internal constructor(
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
+            val usedSharedData = sharedData.value.collectAccessedValues()
+            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, usedSharedData, layout.fileFor(StateType.Entry))
         }
     }
 
@@ -352,6 +363,9 @@ class DefaultConfigurationCache internal constructor(
         stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
         stoppable.addIfInitialized(lazyIntermediateModels)
         stoppable.addIfInitialized(lazyProjectMetadata)
+        if (sharedData.isInitialized()) {
+            stoppable.add(sharedData.value)
+        }
         stoppable.addIfInitialized(storeDelegate)
         stoppable.stop()
     }
@@ -564,6 +578,7 @@ class DefaultConfigurationCache internal constructor(
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
             intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
             projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
+            sharedData.value.restoreFromCacheEntry(entryDetails.sharedData, projectResult)
         }
 
         if (projectResult is CheckedFingerprint.Valid) {

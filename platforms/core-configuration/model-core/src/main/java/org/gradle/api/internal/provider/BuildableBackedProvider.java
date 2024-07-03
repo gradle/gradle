@@ -63,6 +63,13 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
                     visitor.execute(dependency);
                 }
             }
+
+            @Override
+            public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+                for (Task dependency : buildableDependencies()) {
+                    visitor.execute(new ValueProducerExtra.TaskExtra(dependency));
+                }
+            }
         };
     }
 

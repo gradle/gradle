@@ -89,6 +89,7 @@ class DefaultConfigurationCacheIO internal constructor(
         intermediateModels: Map<ModelKey, BlockAddress>,
         projectMetadata: Map<Path, BlockAddress>,
         sideEffects: List<BlockAddress>,
+        sharedData: Map<Path, BlockAddress>,
         stateFile: ConfigurationCacheStateFile
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
@@ -105,6 +106,10 @@ class DefaultConfigurationCacheIO internal constructor(
             }
             writeCollection(sideEffects) {
                 addressSerializer.write(this, it)
+            }
+            writeCollection(sharedData.entries) { entry ->
+                writeString(entry.key.path)
+                addressSerializer.write(this, entry.value)
             }
         }
     }
@@ -129,16 +134,16 @@ class DefaultConfigurationCacheIO internal constructor(
                 val address = addressSerializer.read(this)
                 intermediateModels[modelKey] = address
             }
-            val metadata = mutableMapOf<Path, BlockAddress>()
-            readCollection {
-                val path = Path.path(readString())
-                val address = addressSerializer.read(this)
-                metadata[path] = address
+
+            fun ReadContext.readBlockAddressMap(): Map<Path, BlockAddress> = buildMap {
+                readCollection { put(Path.path(readString()), addressSerializer.read(this@readBlockAddressMap)) }
             }
+            val metadata = readBlockAddressMap()
             val sideEffects = readList {
                 addressSerializer.read(this)
             }
-            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects)
+            val sharedData = readBlockAddressMap()
+            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects, sharedData)
         }
     }
 

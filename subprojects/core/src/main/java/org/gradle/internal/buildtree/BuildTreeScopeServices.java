@@ -69,6 +69,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.shareddata.DefaultSharedDataRegistry;
 
 import java.util.List;
 
@@ -108,6 +109,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(DefaultBuildLogicBuildQueue.class);
         registration.add(DefaultDeferredRootBuildGradle.class);
+        registration.add(DefaultSharedDataRegistry.class);
         modelServices.applyServicesTo(registration);
     }
 

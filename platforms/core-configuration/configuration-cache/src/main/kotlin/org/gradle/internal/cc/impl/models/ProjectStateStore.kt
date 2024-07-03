@@ -18,11 +18,11 @@ package org.gradle.internal.cc.impl.models
 
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.internal.Describables
+import org.gradle.internal.DisplayName
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.StateType
-import org.gradle.internal.Describables
-import org.gradle.internal.DisplayName
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -43,7 +43,8 @@ abstract class ProjectStateStore<K, V>(
     private val store: ConfigurationCacheStateStore,
     private val stateType: StateType,
     private val valueDescription: String,
-    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
+    private val writeProcedure: (K, doWrite: () -> BlockAddress) -> BlockAddress = { _, doWrite -> doWrite() }
 ) : Closeable {
 
     private
@@ -156,7 +157,7 @@ abstract class ProjectStateStore<K, V>(
         }
 
         val value = creator()
-        val address = valuesStore.write(value)
+        val address = writeProcedure(key) { valuesStore.write(value) }
         // Only return the address to enforce load-after-store behavior
         return address
     }
