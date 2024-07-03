@@ -50,6 +50,7 @@ import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -1123,7 +1124,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (disableToolchainDownload) {
-            allArgs.add("-Porg.gradle.java.installations.auto-download=false");
+            allArgs.add("-P" + AutoInstalledInstallationSupplier.AUTO_DOWNLOAD + "=false");
         }
         if (disableToolchainDetection) {
             allArgs.add("-P" + ToolchainConfiguration.AUTO_DETECT + "=false");

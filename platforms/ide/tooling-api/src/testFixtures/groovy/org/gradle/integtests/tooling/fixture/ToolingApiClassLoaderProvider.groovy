@@ -25,6 +25,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
@@ -89,6 +90,7 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowPackage('org.gradle.tooling')
         sharedSpec.allowPackage('org.gradle.kotlin.dsl.tooling.fixtures')
         sharedSpec.allowClass(OperatingSystem)
+        sharedSpec.allowClass(Jvm)
         sharedSpec.allowClass(Requires)
         sharedSpec.allowClass(TestPrecondition)
         sharedSpec.allowClass(TargetGradleVersion)

@@ -34,6 +34,9 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -129,6 +132,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def setup() {
+        // These properties are set on CI. Reset them to allow tests to configure toolchains explicitly.
+        System.setProperty(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD, "false")
+        System.setProperty(ToolchainConfiguration.AUTO_DETECT, "false")
+        System.clearProperty(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY)
+
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)

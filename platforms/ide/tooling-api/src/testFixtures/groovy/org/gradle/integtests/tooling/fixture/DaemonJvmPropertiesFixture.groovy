@@ -17,33 +17,28 @@
 package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.SelfType
+import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
 import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(ToolingApiSpecification)
 trait DaemonJvmPropertiesFixture {
 
-    File currentJavaHome = findJavaHome()
-
-    private File findJavaHome() {
-        def potentialJavaHome = new File(System.getProperty("java.home")).canonicalFile
-        if (potentialJavaHome.name.equalsIgnoreCase( "jre")) {
-            return potentialJavaHome.parentFile
-        }
-        return potentialJavaHome
-    }
-
-    def setup() {
-        System.clearProperty("org.gradle.java.installations.paths")
-        requireDaemons()
-    }
-
     void withInstallations(File... jdks) {
         file("gradle.properties").writeProperties(
-            "org.gradle.java.installations.auto-detect": "false",
-            "org.gradle.java.installations.paths": jdks.collect { it.canonicalPath }.join(",")
+            ToolchainConfiguration.AUTO_DETECT: "false",
+            LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY: jdks.collect { it.canonicalPath }.join(",")
         )
     }
 
+    void assertDaemonUsedJvm(Jvm jvm) {
+        assertDaemonUsedJvm(jvm.javaHome)
+    }
+
+    /**
+     * Prefer {@link #assertDaemonUsedJvm(Jvm)}. We should remove this method.
+     */
     void assertDaemonUsedJvm(File expectedJavaHome) {
         assert file("javaHome.txt").text == expectedJavaHome.canonicalPath
     }
@@ -59,6 +54,10 @@ trait DaemonJvmPropertiesFixture {
     void assertJvmCriteria(String version) {
         Map<String, String> properties = buildPropertiesFile.properties
         assert properties.get("toolchainVersion") == version
+    }
+
+    void writeJvmCriteria(Jvm jvm) {
+        writeJvmCriteria(jvm.javaVersion.majorVersion)
     }
 
     void writeJvmCriteria(String version) {

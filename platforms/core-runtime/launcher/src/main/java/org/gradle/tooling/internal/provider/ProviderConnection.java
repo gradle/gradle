@@ -302,7 +302,9 @@ public class ProviderConnection {
         if (standardInput == null) {
             standardInput = SafeStreams.emptyInput();
         }
-        if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
+
+        boolean compatible = isDaemonCriteriaCompatibleWith(params.daemonParams.getRequestedJvmCriteria(), Jvm.current());
+        if (Boolean.TRUE.equals(operationParameters.isEmbedded()) && compatible) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
@@ -313,6 +315,18 @@ public class ProviderConnection {
             executor = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager);
+    }
+
+    boolean isDaemonCriteriaCompatibleWith(DaemonJvmCriteria criteria, Jvm jvm) {
+        if (criteria instanceof DaemonJvmCriteria.Spec) {
+            return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(jvm);
+        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
+            return ((DaemonJvmCriteria.JavaHome) criteria).getJavaHome().getAbsoluteFile().equals(jvm.getJavaHome().getAbsoluteFile());
+        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
+            return true;
+        } else {
+            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
+        }
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {

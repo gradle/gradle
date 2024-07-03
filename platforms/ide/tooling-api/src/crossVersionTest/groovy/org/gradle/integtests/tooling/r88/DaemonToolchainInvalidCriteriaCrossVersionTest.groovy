@@ -20,6 +20,7 @@ import groovy.test.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.GradleConnectionException
 
 @TargetGradleVersion(">=8.8")
@@ -36,7 +37,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        assertDaemonUsedJvm(currentJavaHome)
+        assertDaemonUsedJvm(Jvm.current())
     }
 
     def "Given non-integer toolchain version When execute any task Then fails with expected exception message"() {
