@@ -1,0 +1,76 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getDumpOnExit()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getEnabled()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getIncludeNoLocationClasses()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getIsDumpOnExit()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getIsEnabled()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getIsIncludeNoLocationClasses()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getIsJmx()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getJmx()",
+            "acceptation": "Boolean property upgrade",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        }
+    ]
+}
