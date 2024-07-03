@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.experiments
+package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -24,7 +25,7 @@ import spock.lang.Issue
  * not resolvable.
  */
 @Issue("https://github.com/gradle/gradle/issues/29630")
-class SecondaryVariantsBreakConsumableConfs extends AbstractIntegrationSpec {
+class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends AbstractIntegrationSpec {
     // region No Secondary Variants
     def "no secondary variants works fine for resolution"() {
         expect:
@@ -49,25 +50,15 @@ class SecondaryVariantsBreakConsumableConfs extends AbstractIntegrationSpec {
     // endregion No Secondary Variants
 
     // region Secondary Variant with No Artifacts
-    def "adding secondary variant with no artifact fails resolution - THIS SHOULD SUCCEED"() {
+    def "adding secondary variant with no artifact is deprecated"() {
         expect:
+        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variants: 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds("resolve", "-PregisterSecondaryVariant=true")
         assertResolved([])
-
-//        expect:
-//        fails("resolve", "-PregisterSecondaryVariant=true")
-//
-//        and:
-//        failure.assertHasDescription("Could not determine the dependencies of task ':resolve'.")
-//        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolvableConfiguration'.")
-//        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':resolvableConfiguration'.
-//   > No variants of root project : match the consumer attributes:
-//       - Configuration ':consumableConfiguration' variant mySecondaryVariant:
-//           - Incompatible because this component declares attribute 'myAttribute' with value 'value2' and the consumer needed attribute 'myAttribute' with value 'value1'""")
     }
 
     // Does this not failing indicate the report is unreliable?
-    def "adding secondary variant with no artifact works fine for dependencyInsight - SHOULD THIS FAIL?"() {
+    def "adding secondary variant with no artifact works fine for dependencyInsight"() {
         expect:
         succeeds("dependencyInsight", "--configuration", "resolvableConfiguration", "--dependency", ":")
     }
@@ -107,20 +98,11 @@ class SecondaryVariantsBreakConsumableConfs extends AbstractIntegrationSpec {
     // endregion Secondary Variant with no Artifacts with an Artifact explicitly added to main variant
 
     // region Secondary Variant with an Artifact
-    def "adding secondary variant with an artifact fails resolution - THIS SHOULD SUCCEED"() {
+    def "adding secondary variant with an artifact is deprecated"() {
         expect:
+        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variants: 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
         assertResolved([])
-//        expect:
-//        fails("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
-//
-//        and:
-//        failure.assertHasDescription("Could not determine the dependencies of task ':resolve'.")
-//        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolvableConfiguration'.")
-//        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':resolvableConfiguration'.
-//   > No variants of root project : match the consumer attributes:
-//       - Configuration ':consumableConfiguration' variant mySecondaryVariant:
-//           - Incompatible because this component declares attribute 'myAttribute' with value 'value2' and the consumer needed attribute 'myAttribute' with value 'value1'""")
     }
 
     def "adding secondary variant with an artifact works fine for dependencyInsight"() {

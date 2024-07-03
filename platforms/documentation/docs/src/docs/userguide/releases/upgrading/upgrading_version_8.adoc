@@ -55,6 +55,15 @@ When this happens, configurations in the substituted project could be selected t
 
 Consuming non-consumable configurations in this manner is deprecated and will result in an error in Gradle 9.0.
 
+[[variants_with_no_artifacts]]
+=== Defining secondary variants for primary variants without artifacts is deprecated
+
+In prior versions of Gradle, it was possible to define [Secondary Variants](https://docs.gradle.org/8.9/userguide/publishing_customization.html#sec:publishing-custom-components) for consumable "primary" variants that lacked artifacts.
+
+As secondary variants are meant to represent "precomputed transformations" of artifacts, this makes no sense for primary variants that lack artifacts.
+
+Defining secondary variants for a primary variant lacking artifacts is deprecated and will result in an error in Gradle 9.0.
+
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
 
@@ -160,7 +169,7 @@ plugins {
 }
 
 configurations.runtimeClasspath {
-    // `beforeResolve` is not called before the configuration is partially resolved for 
+    // `beforeResolve` is not called before the configuration is partially resolved for
     // build dependencies, but only before a full graph resolution.
     // Configurations should not be mutated in this hook
     incoming.beforeResolve {

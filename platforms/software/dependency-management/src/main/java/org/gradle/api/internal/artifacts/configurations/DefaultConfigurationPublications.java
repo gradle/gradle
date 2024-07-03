@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications, FinalizableValue {
     private final DisplayName displayName;
@@ -93,10 +95,25 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
         PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
-//        if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
-            visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
-//        }
-        if (variants != null) {
+        boolean secondaryVariantsExist = variants != null && !variants.isEmpty();
+
+        // If there are no artifacts in the primary variant, but there are secondary variants, something is wrong.
+        // We don't want to allow a secondary variant ("precomputed transform") to be the only source of artifacts,
+        // as that would conceptually represent a transform from nothing -> something.  Builds should just define
+        // a new primary variant instead.
+        if (allArtifactSet.isEmpty() && secondaryVariantsExist) {
+            DeprecationLogger.deprecateBehaviour("The " + displayName + " has no artifacts and thus should not define any secondary variants.")
+                .withAdvice("Secondary variants: " + variants.stream().map(ConfigurationVariant::getName).collect(Collectors.joining(", ", "'", "'")) + " should be made directly consumable.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "variants_with_no_artifacts")
+                .nagUser();
+        }
+
+        // Always visit the primary variant
+        visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
+
+        // If secondary variants exist, visit them too
+        if (secondaryVariantsExist) {
             for (ConfigurationVariantInternal variant : variants.withType(ConfigurationVariantInternal.class)) {
                 visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
             }
