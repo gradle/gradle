@@ -51,6 +51,8 @@ jobs:
   build_linux:
     needs: check_linux
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -78,6 +80,8 @@ jobs:
   build_macos:
     needs: check_macos
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -105,6 +109,8 @@ jobs:
   build_windows:
     needs: check_windows
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
