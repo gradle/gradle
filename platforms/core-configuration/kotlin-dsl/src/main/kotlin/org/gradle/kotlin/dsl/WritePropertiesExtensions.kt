@@ -23,7 +23,7 @@ import org.gradle.api.tasks.WriteProperties
 
 /**
  * Backward-compatibility for {@link org.gradle.api.tasks.WriteProperties#setProperties(Map)}
- * @since 9.1.0
+ * @since 9.3.0
  */
 @Incubating
 @Suppress("NOTHING_TO_INLINE")
