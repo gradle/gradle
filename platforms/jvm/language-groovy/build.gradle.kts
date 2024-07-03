@@ -71,6 +71,12 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
+tasks.withType<Test>().configureEach {
+    if (!javaVersion.isJava9Compatible) {
+        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
