@@ -13,7 +13,7 @@ group = "org.gradle.client"
 
 // Version must be strictly x.y.z and >= 1.0.0
 // for native packaging to work across platforms
-version = "1.0.1"
+version = "1.0.0"
 
 val appName = "GradleClient"
 val appDisplayName = "Gradle Client"
