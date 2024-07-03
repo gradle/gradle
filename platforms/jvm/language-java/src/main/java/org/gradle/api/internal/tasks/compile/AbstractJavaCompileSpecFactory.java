@@ -42,26 +42,24 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         File toolchainJavaHome = toolchain.getInstallationPath().getAsFile();
         if (!toolchain.getLanguageVersion().canCompileOrRun(8)) {
             LOGGER.info("Compilation mode: command line compilation");
-            LOGGER.info("Command line compilation is used, as requested toolchain is below JDK 1.7");
             return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
 
         if (compileOptions.isFork()) {
-            LOGGER.info("Compilation mode: explicit forking compiler");
             File forkJavaHome = compileOptions.getForkOptions().getJavaHome();
             if (forkJavaHome != null) {
-                LOGGER.info("Forking mode has fork.javaHome set: {}", forkJavaHome);
+                LOGGER.info("Compilation mode: command line compilation");
                 return getCommandLineSpec(Jvm.forHome(forkJavaHome).getJavacExecutable());
             }
 
             String forkExecutable = compileOptions.getForkOptions().getExecutable();
             if (forkExecutable != null) {
-                LOGGER.info("Forking mode has fork.executable set: {}", forkExecutable);
+                LOGGER.info("Compilation mode: command line compilation");
                 return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(forkExecutable));
             }
 
             int languageVersion = toolchain.getLanguageVersion().asInt();
-            LOGGER.info("Forking mode with default executable for language version {}", languageVersion);
+            LOGGER.info("Compilation mode: forking compiler");
             return getForkingSpec(toolchainJavaHome, languageVersion);
         }
 
@@ -69,12 +67,10 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             // Please keep it in mind, that when using TestKit with debug enabled (i.e. in embedded mode), this line won't be reached after Java 16 (JEP 396)
             // If you need this to be executed, add the necessary configs from JPMSConfiguration to the test runner executing Gradle
             LOGGER.info("Compilation mode: in-process compilation");
-            LOGGER.info("In-process compilation is used, as requested toolchain is the same as the current JVM, and all modules are open");
             return getInProcessSpec();
         }
 
-        LOGGER.info("Compilation mode: implicit forking compiler");
-        LOGGER.info("No specific compiler is requested, using default forking compiler for language version {}", toolchain.getLanguageVersion().asInt());
+        LOGGER.info("Compilation mode: default, forking compiler");
         return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
     }
 
