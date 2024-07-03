@@ -51,7 +51,7 @@ class SecondaryVariantsBreakConsumableConfs extends AbstractIntegrationSpec {
     // region Secondary Variant with No Artifacts
     def "adding secondary variant with no artifact fails resolution - THIS SHOULD SUCCEED"() {
         expect:
-        succeeds("resolve")
+        succeeds("resolve", "-PregisterSecondaryVariant=true")
         assertResolved([])
 
 //        expect:
@@ -109,7 +109,7 @@ class SecondaryVariantsBreakConsumableConfs extends AbstractIntegrationSpec {
     // region Secondary Variant with an Artifact
     def "adding secondary variant with an artifact fails resolution - THIS SHOULD SUCCEED"() {
         expect:
-        succeeds("resolve")
+        succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
         assertResolved([])
 //        expect:
 //        fails("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
