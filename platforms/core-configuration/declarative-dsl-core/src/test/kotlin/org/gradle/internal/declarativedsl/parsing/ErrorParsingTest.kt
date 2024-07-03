@@ -51,25 +51,10 @@ class ErrorParsingTest {
         val expected = """
             ErroneousStatement (
                 MultipleFailures(
-                    UnsupportedConstruct(
-                        languageFeature = PrefixExpression,
-                        potentialElementSource = indexes: 37..40, line/column: 1/38..1/41, file: test,
-                        erroneousSource = indexes: 37..40, line/column: 1/38..1/41, file: test
-                    )
-                    UnsupportedConstruct(
-                        languageFeature = UnsupportedOperator,
-                        potentialElementSource = indexes: 40..41, line/column: 1/41..1/42, file: test,
-                        erroneousSource = indexes: 40..41, line/column: 1/41..1/42, file: test
-                    )
                     ParsingError(
                         message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ',',
                         potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
                         erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
-                    )
-                    ParsingError(
-                        message = Unparsable string template: "")". Expecting '"',
-                        potentialElementSource = indexes: 42..44, line/column: 1/43..1/45, file: test,
-                        erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
                     )
                     ParsingError(
                         message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ')',

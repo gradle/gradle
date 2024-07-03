@@ -81,6 +81,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.lexer.KtTokens.INTEGER_LITERAL
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.LPAR
+import org.jetbrains.kotlin.lexer.KtTokens.MINUS
 import org.jetbrains.kotlin.lexer.KtTokens.MUL
 import org.jetbrains.kotlin.lexer.KtTokens.OPEN_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.QUALIFIED_ACCESS
@@ -220,10 +221,11 @@ class GrammarToTree(
             else -> expression(tree, node)
         }
 
+    @Suppress("UNCHECKED_CAST")
     private
     fun expression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
-            BINARY_EXPRESSION -> binaryExpression(tree, node)
+            BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<Expr>
             LABELED_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.LabelledStatement)
             ANNOTATED_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.AnnotationUsage)
             in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
@@ -235,7 +237,7 @@ class GrammarToTree(
             ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.Indexing)
             FUN -> tree.unsupported(node, UnsupportedLanguageFeature.FunctionDeclaration)
             ERROR_ELEMENT -> tree.parsingError(node, node)
-            PREFIX_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.PrefixExpression)
+            PREFIX_EXPRESSION -> unaryExpression(tree, node)
             OPERATION_REFERENCE -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperator)
             PARENTHESIZED -> parenthesized(tree, node)
             LAMBDA_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.FunctionDeclaration)
@@ -363,20 +365,16 @@ class GrammarToTree(
                     OPEN_QUOTE, CLOSING_QUOTE -> {}
 
                     LITERAL_STRING_TEMPLATE_ENTRY -> sb.append(it.asText)
-
                     ESCAPE_STRING_TEMPLATE_ENTRY -> sb.append(it.unescapedValue)
 
-                    LONG_STRING_TEMPLATE_ENTRY, SHORT_STRING_TEMPLATE_ENTRY -> {
+                    LONG_STRING_TEMPLATE_ENTRY, SHORT_STRING_TEMPLATE_ENTRY ->
                         collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.StringTemplates))
-                        break
-                    }
 
-                    ERROR_ELEMENT -> {
+                    ERROR_ELEMENT ->
                         collectingFailure(tree.parsingError(node, it, "Unparsable string template: \"${node.asText}\""))
-                        break
-                    }
 
-                    else -> collectingFailure(tree.parsingError(it, "Parsing failure, unexpected tokenType in string template: $tokenType"))
+                    else ->
+                        collectingFailure(tree.parsingError(it, "Parsing failure, unexpected tokenType in string template: $tokenType"))
                 }
             }
 
@@ -414,9 +412,6 @@ class GrammarToTree(
                     convertedText !is Long -> return reportIncorrectConstant("illegal constant expression")
 
                     hasUnsignedLongSuffix(text) || hasLongSuffix(text) -> {
-                        if (text.endsWith("l")) {
-                            return reportIncorrectConstant("wrong long suffix")
-                        }
                         return Element(Literal.LongLiteral(convertedText, tree.sourceData(node)))
                     }
 
@@ -465,15 +460,25 @@ class GrammarToTree(
 
     private
     fun valueArguments(tree: CachingLightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument>> {
+
         val children = tree.children(node)
 
         val list = mutableListOf<SyntacticResult<FunctionArgument>>()
-        children.forEach {
+        children
+            .filter { it.isError }
+            .forEach {
+                list.add(tree.parsingError(node, it, "Unparsable value argument: \"${node.asText}\""))
+            }
+
+        if (list.isNotEmpty()) return list     // TODO: do this in more places where children get iterated
+
+        children
+            .filter { it.isNotError }
+            .forEach {
             when (val tokenType = it.tokenType) {
                 VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
                 COMMA, LPAR, RPAR -> doNothing()
                 LAMBDA_EXPRESSION -> list.add(lambda(tree, it))
-                ERROR_ELEMENT -> list.add(tree.parsingError(node, it, "Unparsable value argument: \"${node.asText}\""))
                 else -> tree.parsingError(it, "Parsing failure, unexpected token type in value arguments: $tokenType")
             }
         }
@@ -558,67 +563,106 @@ class GrammarToTree(
             }
         }
 
-    @Suppress("UNCHECKED_CAST")
     private
-    fun binaryExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
-        when (val binaryStatement = binaryStatement(tree, node)) {
-            is FailingResult -> binaryStatement
-            is Element -> if (binaryStatement.element is Expr) binaryStatement as ElementResult<Expr>
-            else tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
-        }
+    fun unaryExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
+        elementOrFailure {
+            var operationTokenName: String? = null
+            var argument: LighterASTNode? = null
 
-    @Suppress("NestedBlockDepth")
-    private
-    fun binaryStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> {
-        val children = tree.children(node)
-
-        var isLeftArgument = true
-        lateinit var operationTokenName: String
-        var leftArg: LighterASTNode? = null
-        var rightArg: LighterASTNode? = null
-
-        children.forEach {
-            when (it.tokenType) {
-                OPERATION_REFERENCE -> {
-                    isLeftArgument = false
-                    operationTokenName = it.asText
+            val children = tree.children(node)
+            children.forEach {
+                when (it.tokenType) {
+                    OPERATION_REFERENCE -> {
+                        operationTokenName = it.asText
+                    }
+                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
+                    else -> if (it.isExpression()) argument = it
                 }
-                else -> if (it.isExpression()) {
-                    if (isLeftArgument) {
-                        leftArg = it
-                    } else {
-                        rightArg = it
+            }
+
+            elementIfNoFailures {
+                if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
+                if (argument == null) collectingFailure(tree.parsingError(node, "Missing argument in unary expression"))
+
+                elementIfNoFailures {
+                    when (operationTokenName!!.getOperationSymbol()) {
+                        MINUS -> {
+                            val constantExpression = checkForFailure(constantExpression(tree, argument!!))
+                            elementIfNoFailures {
+                                when (val literal = checked(constantExpression)) {
+                                    is Literal.IntLiteral -> {
+                                        Element(Literal.IntLiteral(-literal.value, tree.sourceData(node)))
+                                    }
+                                    is Literal.LongLiteral -> {
+                                        Element(Literal.LongLiteral(-literal.value, tree.sourceData(node)))
+                                    }
+                                    else -> tree.parsingError(argument!!, "Unsupported constant in unary expression: ${literal::class.java}")
+                                }
+                            }
+                        }
+                        else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationTokenName")
                     }
                 }
             }
         }
 
-        val operationToken = operationTokenName.getOperationSymbol()
+    @Suppress("NestedBlockDepth")
+    private
+    fun binaryStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> =
+        elementOrFailure {
+            val children = tree.children(node)
 
-        if (leftArg == null) return tree.parsingError(node, "Missing left hand side in binary expression")
-        if (rightArg == null) return tree.parsingError(node, "Missing right hand side in binary expression")
+            var isLeftArgument = true
+            var operationTokenName: String? = null
+            var leftArg: LighterASTNode? = null
+            var rightArg: LighterASTNode? = null
 
-        return when (operationToken) {
-            EQ -> elementOrFailure {
-                val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
-                val expr = checkForFailure(expression(tree, rightArg!!))
-
-                elementIfNoFailures {
-                    Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+            children.forEach {
+                when (it.tokenType) {
+                    OPERATION_REFERENCE -> {
+                        isLeftArgument = false
+                        operationTokenName = it.asText
+                    }
+                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
+                    else -> if (it.isExpression()) {
+                        if (isLeftArgument) {
+                            leftArg = it
+                        } else {
+                            rightArg = it
+                        }
+                    }
                 }
             }
 
-            IDENTIFIER -> elementOrFailure {
-                val receiver = checkForFailure(expression(tree, leftArg!!))
-                val argument = checkForFailure(valueArgument(tree, rightArg!!))
+            elementIfNoFailures {
+                if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
+                if (leftArg == null) collectingFailure(tree.parsingError(node, "Missing left hand side in binary expression"))
+                if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
+
                 elementIfNoFailures {
-                    Element(FunctionCall(checked(receiver), operationTokenName, listOf(checked(argument)), tree.sourceData(node)))
+                    val operationToken = operationTokenName!!.getOperationSymbol()
+                    when (operationToken) {
+                        EQ -> {
+                            val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
+                            val expr = checkForFailure(expression(tree, rightArg!!))
+                            elementIfNoFailures {
+                                Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+                            }
+                        }
+
+                        IDENTIFIER -> {
+                            val receiver = checkForFailure(expression(tree, leftArg!!))
+                            val argument = checkForFailure(valueArgument(tree, rightArg!!))
+                            elementIfNoFailures {
+                                Element(FunctionCall(checked(receiver), operationTokenName!!, listOf(checked(argument)), tree.sourceData(node)))
+                            }
+                        }
+
+                        else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
+                    }
                 }
             }
-
-            else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
         }
-    }
 
     private
     fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)

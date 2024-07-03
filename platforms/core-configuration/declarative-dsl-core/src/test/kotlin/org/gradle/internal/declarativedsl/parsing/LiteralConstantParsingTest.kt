@@ -47,12 +47,12 @@ class LiteralConstantParsingTest {
                 val a = 0B0
                 val a = 0b0001_0010_0100_1000
                 val a = 1_2L
-                val a = 12__34l
+                val a = -12__34l
                 val a = 0x1_2_3_4L
                 val a = 0B0L
-                val a = 0b0001_0010_0100_1000l
+                val a = -0b0001_0010_0100_1000l
                 val a = 0xa_af1
-                val a = 0xa_af_1
+                val a = -0xa_af_1
             """.trimIndent()
 
         val results = ParseTestUtil.parse(code)
@@ -118,48 +118,33 @@ class LiteralConstantParsingTest {
                 )
 
                 // (121 .. 131): val a = 1l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 1l,
-                        potentialElementSource = indexes: 129..131, line/column: 11/9..11/11, file: test,
-                        erroneousSource = indexes: 129..131, line/column: 11/9..11/11, file: test
-                    )
+                LocalValue [indexes: 121..131, line/column: 11/1..11/11, file: test] (
+                    name = a
+                    rhs = LongLiteral [indexes: 129..131, line/column: 11/9..11/11, file: test] (1)
                 )
 
                 // (132 .. 144): val a = 0x1l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 0x1l,
-                        potentialElementSource = indexes: 140..144, line/column: 12/9..12/13, file: test,
-                        erroneousSource = indexes: 140..144, line/column: 12/9..12/13, file: test
-                    )
+                LocalValue [indexes: 132..144, line/column: 12/1..12/13, file: test] (
+                    name = a
+                    rhs = LongLiteral [indexes: 140..144, line/column: 12/9..12/13, file: test] (1)
                 )
 
                 // (145 .. 157): val a = 0X1l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 0X1l,
-                        potentialElementSource = indexes: 153..157, line/column: 13/9..13/13, file: test,
-                        erroneousSource = indexes: 153..157, line/column: 13/9..13/13, file: test
-                    )
+                LocalValue [indexes: 145..157, line/column: 13/1..13/13, file: test] (
+                    name = a
+                    rhs = LongLiteral [indexes: 153..157, line/column: 13/9..13/13, file: test] (1)
                 )
 
                 // (158 .. 170): val a = 0b1l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 0b1l,
-                        potentialElementSource = indexes: 166..170, line/column: 14/9..14/13, file: test,
-                        erroneousSource = indexes: 166..170, line/column: 14/9..14/13, file: test
-                    )
+                LocalValue [indexes: 158..170, line/column: 14/1..14/13, file: test] (
+                    name = a
+                    rhs = LongLiteral [indexes: 166..170, line/column: 14/9..14/13, file: test] (1)
                 )
 
                 // (171 .. 183): val a = 0B1l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 0B1l,
-                        potentialElementSource = indexes: 179..183, line/column: 15/9..15/13, file: test,
-                        erroneousSource = indexes: 179..183, line/column: 15/9..15/13, file: test
-                    )
+                LocalValue [indexes: 171..183, line/column: 15/1..15/13, file: test] (
+                    name = a
+                    rhs = LongLiteral [indexes: 179..183, line/column: 15/9..15/13, file: test] (1)
                 )
 
                 // (184 .. 193): val a = 0
@@ -204,52 +189,43 @@ class LiteralConstantParsingTest {
                     rhs = LongLiteral [indexes: 289..293, line/column: 22/9..22/13, file: test] (12)
                 )
 
-                // (294 .. 309): val a = 12__34l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 12__34l,
-                        potentialElementSource = indexes: 302..309, line/column: 23/9..23/16, file: test,
-                        erroneousSource = indexes: 302..309, line/column: 23/9..23/16, file: test
-                    )
-                )
-
-                // (310 .. 328): val a = 0x1_2_3_4L
-                LocalValue [indexes: 310..328, line/column: 24/1..24/19, file: test] (
+                // (294 .. 310): val a = 12__34l
+                LocalValue [indexes: 294..310, line/column: 23/1..23/17, file: test] (
                     name = a
-                    rhs = LongLiteral [indexes: 318..328, line/column: 24/9..24/19, file: test] (4660)
+                    rhs = LongLiteral [indexes: 302..310, line/column: 23/9..23/17, file: test] (-1234)
                 )
 
-                // (329 .. 341): val a = 0B0L
-                LocalValue [indexes: 329..341, line/column: 25/1..25/13, file: test] (
+                // (311 .. 329): val a = 0x1_2_3_4L
+                LocalValue [indexes: 311..329, line/column: 24/1..24/19, file: test] (
                     name = a
-                    rhs = LongLiteral [indexes: 337..341, line/column: 25/9..25/13, file: test] (0)
+                    rhs = LongLiteral [indexes: 319..329, line/column: 24/9..24/19, file: test] (4660)
                 )
 
-                // (342 .. 372): val a = 0b0001_0010_0100_1000l
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 0b0001_0010_0100_1000l,
-                        potentialElementSource = indexes: 350..372, line/column: 26/9..26/31, file: test,
-                        erroneousSource = indexes: 350..372, line/column: 26/9..26/31, file: test
-                    )
-                )
-
-                // (373 .. 388): val a = 0xa_af1
-                LocalValue [indexes: 373..388, line/column: 27/1..27/16, file: test] (
+                // (330 .. 342): val a = 0B0L
+                LocalValue [indexes: 330..342, line/column: 25/1..25/13, file: test] (
                     name = a
-                    rhs = IntLiteral [indexes: 381..388, line/column: 27/9..27/16, file: test] (43761)
+                    rhs = LongLiteral [indexes: 338..342, line/column: 25/9..25/13, file: test] (0)
                 )
 
-                // (389 .. 405): val a = 0xa_af_1
-                LocalValue [indexes: 389..405, line/column: 28/1..28/17, file: test] (
+                // (343 .. 374): val a = 0b0001_0010_0100_1000l
+                LocalValue [indexes: 343..374, line/column: 26/1..26/32, file: test] (
                     name = a
-                    rhs = IntLiteral [indexes: 397..405, line/column: 28/9..28/17, file: test] (43761)
+                    rhs = LongLiteral [indexes: 351..374, line/column: 26/9..26/32, file: test] (-4680)
+                )
+
+                // (375 .. 390): val a = 0xa_af1
+                LocalValue [indexes: 375..390, line/column: 27/1..27/16, file: test] (
+                    name = a
+                    rhs = IntLiteral [indexes: 383..390, line/column: 27/9..27/16, file: test] (43761)
+                )
+
+                // (391 .. 408): val a = 0xa_af_1
+                LocalValue [indexes: 391..408, line/column: 28/1..28/18, file: test] (
+                    name = a
+                    rhs = IntLiteral [indexes: 399..408, line/column: 28/9..28/18, file: test] (-43761)
                 )""".trimIndent()
 
         results.assert(removeCommentAndEmptyLines(expected))
-
-        // TODO: do we really want to not handle the `l` suffix? if so, the grammar needs to specify that
-        // TODO: we do support both bin and hex literals, our grammar says otherwise
     }
 
     @Test
@@ -468,8 +444,6 @@ class LiteralConstantParsingTest {
                     )
                 )""".trimIndent()
         results.assert(expected)
-
-        // TODO: we don't support either float or real literals, our grammar should say that
     }
 
     @Test
@@ -518,12 +492,9 @@ class LiteralConstantParsingTest {
                 )
 
                 // (35 .. 46): val a = -2u
-                ErroneousStatement (
-                    UnsupportedConstruct(
-                        languageFeature = PrefixExpression,
-                        potentialElementSource = indexes: 43..46, line/column: 4/9..4/12, file: test,
-                        erroneousSource = indexes: 43..46, line/column: 4/9..4/12, file: test
-                    )
+                LocalValue [indexes: 35..46, line/column: 4/1..4/12, file: test] (
+                    name = a
+                    rhs = IntLiteral [indexes: 43..46, line/column: 4/9..4/12, file: test] (-2)
                 )
 
                 // (47 .. 60): val a = 0xFFu
@@ -541,45 +512,45 @@ class LiteralConstantParsingTest {
                 // (76 .. 89): val a = 3.14u
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 84..89, line/column: 7/9..7/14, file: test,
-                        erroneousSource = indexes: 84..89, line/column: 7/9..7/14, file: test
+                        erroneousSource = indexes: 89..89, line/column: 7/14..7/14, file: test
                     )
                 )
 
                 // (90 .. 102): val a = 1e1u
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 98..102, line/column: 8/9..8/13, file: test,
-                        erroneousSource = indexes: 98..102, line/column: 8/9..8/13, file: test
+                        erroneousSource = indexes: 102..102, line/column: 8/13..8/13, file: test
                     )
                 )
 
                 // (103 .. 117): val a = 1.0e1u
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 111..117, line/column: 9/9..9/15, file: test,
-                        erroneousSource = indexes: 111..117, line/column: 9/9..9/15, file: test
+                        erroneousSource = indexes: 117..117, line/column: 9/15..9/15, file: test
                     )
                 )
 
                 // (118 .. 133): val a = 2_2.0fu
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 126..133, line/column: 10/9..10/16, file: test,
-                        erroneousSource = indexes: 126..133, line/column: 10/9..10/16, file: test
+                        erroneousSource = indexes: 133..133, line/column: 10/16..10/16, file: test
                     )
                 )
 
                 // (134 .. 158): val a = 6.022_137e+2_3fu
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 142..158, line/column: 11/9..11/25, file: test,
-                        erroneousSource = indexes: 142..158, line/column: 11/9..11/25, file: test
+                        erroneousSource = indexes: 158..158, line/column: 11/25..11/25, file: test
                     )
                 )
 
@@ -598,36 +569,36 @@ class LiteralConstantParsingTest {
                 // (183 .. 194): val a = 1uU
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 191..194, line/column: 14/9..14/12, file: test,
-                        erroneousSource = indexes: 191..194, line/column: 14/9..14/12, file: test
+                        erroneousSource = indexes: 194..194, line/column: 14/12..14/12, file: test
                     )
                 )
 
                 // (195 .. 206): val a = 1Uu
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 203..206, line/column: 15/9..15/12, file: test,
-                        erroneousSource = indexes: 203..206, line/column: 15/9..15/12, file: test
+                        erroneousSource = indexes: 206..206, line/column: 15/12..15/12, file: test
                     )
                 )
 
                 // (207 .. 218): val a = 1Lu
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 215..218, line/column: 16/9..16/12, file: test,
-                        erroneousSource = indexes: 215..218, line/column: 16/9..16/12, file: test
+                        erroneousSource = indexes: 218..218, line/column: 16/12..16/12, file: test
                     )
                 )
 
                 // (219 .. 230): val a = 1LU
                 ErroneousStatement (
                     ParsingError(
-                        message = Missing right hand side in binary expression,
+                        message = Expecting an element,
                         potentialElementSource = indexes: 227..230, line/column: 17/9..17/12, file: test,
-                        erroneousSource = indexes: 227..230, line/column: 17/9..17/12, file: test
+                        erroneousSource = indexes: 230..230, line/column: 17/12..17/12, file: test
                     )
                 )
 
@@ -644,18 +615,11 @@ class LiteralConstantParsingTest {
                 )
 
                 // (255 .. 266): val a = 3Ul
-                ErroneousStatement (
-                    ParsingError(
-                        message = Incorrect constant expression, wrong long suffix: 3Ul,
-                        potentialElementSource = indexes: 263..266, line/column: 20/9..20/12, file: test,
-                        erroneousSource = indexes: 263..266, line/column: 20/9..20/12, file: test
-                    )
+                LocalValue [indexes: 255..266, line/column: 20/1..20/12, file: test] (
+                    name = a
+                    rhs = LongLiteral [indexes: 263..266, line/column: 20/9..20/12, file: test] (3)
                 )""".trimIndent()
         results.assert(removeCommentAndEmptyLines(expected))
-
-        // TODO: we do support unsigned literals, our grammar should state that
-        // TODO: `Missing right hand side in binary expression` is weird...
-        // TODO: we should support negative numeric literal values, see PrefixExpression above
     }
 
     @Test

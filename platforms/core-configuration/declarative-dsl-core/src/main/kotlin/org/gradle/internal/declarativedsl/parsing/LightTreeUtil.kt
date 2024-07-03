@@ -184,6 +184,14 @@ val LighterASTNode.asText: String
 
 
 internal
+val LighterASTNode.isError: Boolean
+    get() = tokenType == ERROR_ELEMENT
+internal
+val LighterASTNode.isNotError: Boolean
+    get() = !isError
+
+
+internal
 val LighterASTNode.unescapedValue: String
     get() {
         val escape = this.asText
