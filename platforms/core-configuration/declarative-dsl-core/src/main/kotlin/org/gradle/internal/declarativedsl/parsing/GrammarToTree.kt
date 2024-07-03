@@ -185,31 +185,31 @@ class GrammarToTree(
     private
     fun import(tree: CachingLightTree, node: LighterASTNode): ElementResult<Import> =
         elementOrFailure {
-            val children = tree.children(node)
-
-            var content: CheckedResult<ElementResult<PropertyAccess>>? = null
-            children.forEach {
-                when (it.tokenType) {
-                    DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(propertyAccessStatement(tree, it))
-                    MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.StarImport))
-                    IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.RenamingImport))
-                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
-                }
-            }
-
-            collectingFailure(content ?: tree.parsingError(node, "Qualified expression without selector"))
-
+            val children = childrenWithParsingErrorCollection(tree, node)
             elementIfNoFailures {
-                fun PropertyAccess.flatten(): List<String> =
-                    buildList {
-                        if (receiver is PropertyAccess) {
-                            addAll(receiver.flatten())
-                        }
-                        add(name)
+                var content: CheckedResult<ElementResult<PropertyAccess>>? = null
+                children.forEach {
+                    when (it.tokenType) {
+                        DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(propertyAccessStatement(tree, it))
+                        MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.StarImport))
+                        IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.RenamingImport))
                     }
+                }
 
-                val nameParts = checked(content!!).flatten()
-                Element(Import(AccessChain(nameParts), tree.sourceData(node, offset = 0)))
+                collectingFailure(content ?: tree.parsingError(node, "Qualified expression without selector"))
+
+                elementIfNoFailures {
+                    fun PropertyAccess.flatten(): List<String> =
+                        buildList {
+                            if (receiver is PropertyAccess) {
+                                addAll(receiver.flatten())
+                            }
+                            add(name)
+                        }
+
+                    val nameParts = checked(content!!).flatten()
+                    Element(Import(AccessChain(nameParts), tree.sourceData(node, offset = 0)))
+                }
             }
         }
 
@@ -271,86 +271,88 @@ class GrammarToTree(
     private
     fun localValue(tree: CachingLightTree, node: LighterASTNode): ElementResult<LocalValue> =
         elementOrFailure {
-            val children = tree.children(node)
-
-            var identifier: Syntactic<String>? = null
-            var expression: CheckedResult<ElementResult<Expr>>? = null
-            children.forEach {
-                when (val tokenType = it.tokenType) {
-                    MODIFIER_LIST -> {
-                        val modifiers = tree.children(it)
-                        modifiers.forEach { modifier ->
-                            when (modifier.tokenType) {
-                                ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.AnnotationUsage))
-                                else -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.ValModifierNotSupported))
-                            }
-                        }
-                    }
-                    is KtSingleValueToken -> if (tokenType.value == "var") {
-                        collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LocalVarNotSupported))
-                    }
-                    IDENTIFIER -> identifier = Syntactic(it.asText)
-                    COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.ExplicitVariableType))
-                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
-                    else -> if (it.isExpression()) {
-                        expression = checkForFailure(expression(tree, it))
-                    }
-                }
-            }
-
-            collectingFailure(identifier ?: tree.parsingError(node, "Local value without identifier"))
-            collectingFailure(expression ?: tree.unsupported(node, UnsupportedLanguageFeature.UninitializedProperty))
+            val children = childrenWithParsingErrorCollection(tree, node)
 
             elementIfNoFailures {
-                Element(LocalValue(identifier!!.value, checked(expression!!), tree.sourceData(node)))
+                var identifier: Syntactic<String>? = null
+                var expression: CheckedResult<ElementResult<Expr>>? = null
+                children.forEach {
+                    when (val tokenType = it.tokenType) {
+                        MODIFIER_LIST -> {
+                            val modifiers = tree.children(it)
+                            modifiers.forEach { modifier ->
+                                when (modifier.tokenType) {
+                                    ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.AnnotationUsage))
+                                    else -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.ValModifierNotSupported))
+                                }
+                            }
+                        }
+                        is KtSingleValueToken -> if (tokenType.value == "var") {
+                            collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LocalVarNotSupported))
+                        }
+                        IDENTIFIER -> identifier = Syntactic(it.asText)
+                        COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.ExplicitVariableType))
+                        else -> if (it.isExpression()) {
+                            expression = checkForFailure(expression(tree, it))
+                        }
+                    }
+                }
+
+                collectingFailure(identifier ?: tree.parsingError(node, "Local value without identifier"))
+                collectingFailure(expression ?: tree.unsupported(node, UnsupportedLanguageFeature.UninitializedProperty))
+
+                elementIfNoFailures {
+                    Element(LocalValue(identifier!!.value, checked(expression!!), tree.sourceData(node)))
+                }
             }
         }
 
     private
     fun qualifiedExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         elementOrFailure {
-            val children = tree.children(node)
+            val children = childrenWithParsingErrorCollection(tree, node)
 
-            var isSelector = false
-            var referenceSelector: CheckedResult<SyntacticResult<String>>? = null
-            var referenceSourceData: SourceData? = null
-            var functionCallSelector: CheckedResult<ElementResult<FunctionCall>>? = null
-            var receiver: CheckedResult<ElementResult<Expr>>? = null // before dot
-            children.forEach {
-                when (val tokenType = it.tokenType) {
-                    DOT -> isSelector = true
-                    SAFE_ACCESS -> {
-                        collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.SafeNavigation))
-                    }
-                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
-                    else -> {
-                        val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
-                        if (isEffectiveSelector) {
-                            val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
-                            if (tokenType is KtNameReferenceExpressionElementType) {
-                                referenceSelector = checkForFailure(referenceExpression(it))
-                                referenceSourceData = tree.sourceData(it)
-                            } else if (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION) {
-                                functionCallSelector = checkForFailure(callExpression(tree, it))
+            elementIfNoFailures {
+                var isSelector = false
+                var referenceSelector: CheckedResult<SyntacticResult<String>>? = null
+                var referenceSourceData: SourceData? = null
+                var functionCallSelector: CheckedResult<ElementResult<FunctionCall>>? = null
+                var receiver: CheckedResult<ElementResult<Expr>>? = null // before dot
+                children.forEach {
+                    when (val tokenType = it.tokenType) {
+                        DOT -> isSelector = true
+                        SAFE_ACCESS -> {
+                            collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.SafeNavigation))
+                        }
+                        else -> {
+                            val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
+                            if (isEffectiveSelector) {
+                                val callExpressionCallee = if (tokenType == CALL_EXPRESSION) tree.getFirstChildExpressionUnwrapped(it) else null
+                                if (tokenType is KtNameReferenceExpressionElementType) {
+                                    referenceSelector = checkForFailure(referenceExpression(it))
+                                    referenceSourceData = tree.sourceData(it)
+                                } else if (tokenType == CALL_EXPRESSION && callExpressionCallee?.tokenType != LAMBDA_EXPRESSION) {
+                                    functionCallSelector = checkForFailure(callExpression(tree, it))
+                                } else {
+                                    collectingFailure(tree.parsingError(node, it, "The expression cannot be a selector (occur after a dot)"))
+                                }
                             } else {
-                                collectingFailure(tree.parsingError(node, it, "The expression cannot be a selector (occur after a dot)"))
+                                receiver = checkForFailure(expression(tree, it))
                             }
-                        } else {
-                            receiver = checkForFailure(expression(tree, it))
                         }
                     }
                 }
-            }
 
-            collectingFailure(referenceSelector ?: functionCallSelector ?: tree.parsingError(node, "Qualified expression without selector"))
-            collectingFailure(receiver ?: tree.parsingError(node, "Qualified expression without receiver"))
+                collectingFailure(referenceSelector ?: functionCallSelector ?: tree.parsingError(node, "Qualified expression without selector"))
+                collectingFailure(receiver ?: tree.parsingError(node, "Qualified expression without receiver"))
 
-            elementIfNoFailures {
-                if (referenceSelector != null) {
-                    Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!))
-                } else {
-                    val functionCall = checked(functionCallSelector!!)
-                    Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
+                elementIfNoFailures {
+                    if (referenceSelector != null) {
+                        Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!))
+                    } else {
+                        val functionCall = checked(functionCallSelector!!)
+                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
+                    }
                 }
             }
         }
@@ -427,54 +429,51 @@ class GrammarToTree(
     }
 
     private
-    fun callExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<FunctionCall> {
-        val children = tree.children(node)
+    fun callExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<FunctionCall> =
+        elementOrFailure {
+            val children = childrenWithParsingErrorCollection(tree, node)
 
-        var name: String? = null
-        val valueArguments = mutableListOf<LighterASTNode>()
-        children.forEach { child ->
-            fun process(node: LighterASTNode) {
-                when (val tokenType = node.tokenType) {
-                    REFERENCE_EXPRESSION -> {
-                        name = node.asText
+            elementIfNoFailures {
+                var name: String? = null
+                val valueArguments = mutableListOf<LighterASTNode>()
+                children.forEach { child ->
+                    fun process(node: LighterASTNode) {
+                        when (val tokenType = node.tokenType) {
+                            REFERENCE_EXPRESSION -> {
+                                name = node.asText
+                            }
+                            VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
+                                valueArguments += node
+                            }
+                            else -> tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType")
+                        }
                     }
-                    VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
-                        valueArguments += node
-                    }
-                    else -> tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType")
+
+                    process(child)
+                }
+
+                if (name == null) tree.parsingError(node, "Name missing from function call!")
+
+                val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
+                elementIfNoFailures {
+                    Element(FunctionCall(null, name!!, arguments.map(::checked), tree.sourceData(node)))
                 }
             }
-
-            process(child)
         }
 
-        if (name == null) tree.parsingError(node, "Name missing from function call!")
 
-        return elementOrFailure {
-            val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
-            elementIfNoFailures {
-                Element(FunctionCall(null, name!!, arguments.map(::checked), tree.sourceData(node)))
-            }
-        }
-    }
 
     private
     fun valueArguments(tree: CachingLightTree, node: LighterASTNode): List<SyntacticResult<FunctionArgument>> {
-
         val children = tree.children(node)
+        val (parsingErrors, validChildren) = children.partition { it.tokenType == ERROR_ELEMENT }
+
+        if (parsingErrors.isNotEmpty()) {
+            return parsingErrors.map { tree.parsingError(node, it, "Unparsable value argument: \"${node.asText}\"") }
+        }
 
         val list = mutableListOf<SyntacticResult<FunctionArgument>>()
-        children
-            .filter { it.isError }
-            .forEach {
-                list.add(tree.parsingError(node, it, "Unparsable value argument: \"${node.asText}\""))
-            }
-
-        if (list.isNotEmpty()) return list     // TODO: do this in more places where children get iterated
-
-        children
-            .filter { it.isNotError }
-            .forEach {
+        validChildren.forEach {
             when (val tokenType = it.tokenType) {
                 VALUE_ARGUMENT -> list.add(valueArgument(tree, it))
                 COMMA, LPAR, RPAR -> doNothing()
@@ -489,33 +488,35 @@ class GrammarToTree(
     fun lambda(tree: CachingLightTree, node: LighterASTNode): SyntacticResult<FunctionArgument.Lambda> =
         syntacticOrFailure {
             val children = childrenWithParsingErrorCollection(tree, node)
-            val functionalLiteralNode = children.firstOrNull { it: LighterASTNode -> it.isKind(FUNCTION_LITERAL) }
+            syntacticIfNoFailures {
+                val functionalLiteralNode = children.firstOrNull { it: LighterASTNode -> it.isKind(FUNCTION_LITERAL) }
 
-            collectingFailure(functionalLiteralNode ?: tree.parsingError(node, "No functional literal in lambda definition"))
+                collectingFailure(functionalLiteralNode ?: tree.parsingError(node, "No functional literal in lambda definition"))
 
-            var block: LighterASTNode? = null
-            functionalLiteralNode?.let {
-                val literalNodeChildren = tree.children(functionalLiteralNode)
-                literalNodeChildren.forEach {
-                    when (it.tokenType) {
-                        VALUE_PARAMETER_LIST -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LambdaWithParameters))
-                        BLOCK -> block = it
-                        ARROW -> doNothing()
+                var block: LighterASTNode? = null
+                functionalLiteralNode?.let {
+                    val literalNodeChildren = tree.children(functionalLiteralNode)
+                    literalNodeChildren.forEach {
+                        when (it.tokenType) {
+                            VALUE_PARAMETER_LIST -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LambdaWithParameters))
+                            BLOCK -> block = it
+                            ARROW -> doNothing()
+                        }
                     }
                 }
-            }
 
-            var statements: List<ElementResult<DataStatement>>? = null
-            block?.let {
-                statements = tree.children(block!!).map { statement(tree, it) }
-            }
+                var statements: List<ElementResult<DataStatement>>? = null
+                block?.let {
+                    statements = tree.children(block!!).map { statement(tree, it) }
+                }
 
-            collectingFailure(statements ?: tree.parsingError(node, "Lambda expression without statements"))
+                collectingFailure(statements ?: tree.parsingError(node, "Lambda expression without statements"))
 
-            syntacticIfNoFailures {
-                val checkedStatements = statements!!.map { it.asBlockElement() }
-                val b = Block(checkedStatements, tree.sourceData(block!!))
-                Syntactic(FunctionArgument.Lambda(b, tree.sourceData(node)))
+                syntacticIfNoFailures {
+                    val checkedStatements = statements!!.map { it.asBlockElement() }
+                    val b = Block(checkedStatements, tree.sourceData(block!!))
+                    Syntactic(FunctionArgument.Lambda(b, tree.sourceData(node)))
+                }
             }
         }
 
@@ -539,27 +540,29 @@ class GrammarToTree(
                 }
             }
 
-            val children = tree.children(node)
-            var identifier: String? = null
-            children.forEach {
-                when (val tokenType = it.tokenType) {
-                    VALUE_ARGUMENT_NAME -> identifier = it.asText
-                    EQ -> doNothing()
-                    is KtConstantExpressionElementType -> expression = checkForFailure(constantExpression(tree, it))
-                    CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
-                    else ->
-                        if (it.isExpression()) expression = checkForFailure(expression(tree, it))
-                        else tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType")
-                }
-            }
-
-            collectingFailure(expression ?: tree.parsingError(node, "Argument is absent"))
-
+            val children = childrenWithParsingErrorCollection(tree, node)
             syntacticIfNoFailures {
-                Syntactic(
-                    if (identifier != null) FunctionArgument.Named(identifier!!, checked(expression!!), tree.sourceData(node))
-                    else FunctionArgument.Positional(checked(expression!!), tree.sourceData(node))
-                )
+                var identifier: String? = null
+                children.forEach {
+                    when (val tokenType = it.tokenType) {
+                        VALUE_ARGUMENT_NAME -> identifier = it.asText
+                        EQ -> doNothing()
+                        is KtConstantExpressionElementType -> expression = checkForFailure(constantExpression(tree, it))
+                        CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
+                        else ->
+                            if (it.isExpression()) expression = checkForFailure(expression(tree, it))
+                            else tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType")
+                    }
+                }
+
+                collectingFailure(expression ?: tree.parsingError(node, "Argument is absent"))
+
+                syntacticIfNoFailures {
+                    Syntactic(
+                        if (identifier != null) FunctionArgument.Named(identifier!!, checked(expression!!), tree.sourceData(node))
+                        else FunctionArgument.Positional(checked(expression!!), tree.sourceData(node))
+                    )
+                }
             }
         }
 
@@ -569,38 +572,41 @@ class GrammarToTree(
             var operationTokenName: String? = null
             var argument: LighterASTNode? = null
 
-            val children = tree.children(node)
-            children.forEach {
-                when (it.tokenType) {
-                    OPERATION_REFERENCE -> {
-                        operationTokenName = it.asText
-                    }
-                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
-                    else -> if (it.isExpression()) argument = it
-                }
-            }
+            val children = childrenWithParsingErrorCollection(tree, node)
 
             elementIfNoFailures {
-                if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
-                if (argument == null) collectingFailure(tree.parsingError(node, "Missing argument in unary expression"))
+                children
+                    .forEach {
+                        when (it.tokenType) {
+                            OPERATION_REFERENCE -> {
+                                operationTokenName = it.asText
+                            }
+                            else -> if (it.isExpression()) argument = it
+                        }
+                    }
 
                 elementIfNoFailures {
-                    when (operationTokenName!!.getOperationSymbol()) {
-                        MINUS -> {
-                            val constantExpression = checkForFailure(constantExpression(tree, argument!!))
-                            elementIfNoFailures {
-                                when (val literal = checked(constantExpression)) {
-                                    is Literal.IntLiteral -> {
-                                        Element(Literal.IntLiteral(-literal.value, tree.sourceData(node)))
+                    if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
+                    if (argument == null) collectingFailure(tree.parsingError(node, "Missing argument in unary expression"))
+
+                    elementIfNoFailures {
+                        when (operationTokenName!!.getOperationSymbol()) {
+                            MINUS -> {
+                                val constantExpression = checkForFailure(constantExpression(tree, argument!!))
+                                elementIfNoFailures {
+                                    when (val literal = checked(constantExpression)) {
+                                        is Literal.IntLiteral -> {
+                                            Element(Literal.IntLiteral(-literal.value, tree.sourceData(node)))
+                                        }
+                                        is Literal.LongLiteral -> {
+                                            Element(Literal.LongLiteral(-literal.value, tree.sourceData(node)))
+                                        }
+                                        else -> tree.parsingError(argument!!, "Unsupported constant in unary expression: ${literal::class.java}")
                                     }
-                                    is Literal.LongLiteral -> {
-                                        Element(Literal.LongLiteral(-literal.value, tree.sourceData(node)))
-                                    }
-                                    else -> tree.parsingError(argument!!, "Unsupported constant in unary expression: ${literal::class.java}")
                                 }
                             }
+                            else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationTokenName")
                         }
-                        else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationTokenName")
                     }
                 }
             }
@@ -610,55 +616,56 @@ class GrammarToTree(
     private
     fun binaryStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<DataStatement> =
         elementOrFailure {
-            val children = tree.children(node)
+            val children = childrenWithParsingErrorCollection(tree, node)
 
-            var isLeftArgument = true
-            var operationTokenName: String? = null
-            var leftArg: LighterASTNode? = null
-            var rightArg: LighterASTNode? = null
+            elementIfNoFailures {
+                var isLeftArgument = true
+                var operationTokenName: String? = null
+                var leftArg: LighterASTNode? = null
+                var rightArg: LighterASTNode? = null
 
-            children.forEach {
-                when (it.tokenType) {
-                    OPERATION_REFERENCE -> {
-                        isLeftArgument = false
-                        operationTokenName = it.asText
-                    }
-                    ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
-                    else -> if (it.isExpression()) {
-                        if (isLeftArgument) {
-                            leftArg = it
-                        } else {
-                            rightArg = it
+                children.forEach {
+                    when (it.tokenType) {
+                        OPERATION_REFERENCE -> {
+                            isLeftArgument = false
+                            operationTokenName = it.asText
+                        }
+                        else -> if (it.isExpression()) {
+                            if (isLeftArgument) {
+                                leftArg = it
+                            } else {
+                                rightArg = it
+                            }
                         }
                     }
                 }
-            }
-
-            elementIfNoFailures {
-                if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
-                if (leftArg == null) collectingFailure(tree.parsingError(node, "Missing left hand side in binary expression"))
-                if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
 
                 elementIfNoFailures {
-                    val operationToken = operationTokenName!!.getOperationSymbol()
-                    when (operationToken) {
-                        EQ -> {
-                            val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
-                            val expr = checkForFailure(expression(tree, rightArg!!))
-                            elementIfNoFailures {
-                                Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
-                            }
-                        }
+                    if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
+                    if (leftArg == null) collectingFailure(tree.parsingError(node, "Missing left hand side in binary expression"))
+                    if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
 
-                        IDENTIFIER -> {
-                            val receiver = checkForFailure(expression(tree, leftArg!!))
-                            val argument = checkForFailure(valueArgument(tree, rightArg!!))
-                            elementIfNoFailures {
-                                Element(FunctionCall(checked(receiver), operationTokenName!!, listOf(checked(argument)), tree.sourceData(node)))
+                    elementIfNoFailures {
+                        val operationToken = operationTokenName!!.getOperationSymbol()
+                        when (operationToken) {
+                            EQ -> {
+                                val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
+                                val expr = checkForFailure(expression(tree, rightArg!!))
+                                elementIfNoFailures {
+                                    Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+                                }
                             }
-                        }
 
-                        else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
+                            IDENTIFIER -> {
+                                val receiver = checkForFailure(expression(tree, leftArg!!))
+                                val argument = checkForFailure(valueArgument(tree, rightArg!!))
+                                elementIfNoFailures {
+                                    Element(FunctionCall(checked(receiver), operationTokenName!!, listOf(checked(argument)), tree.sourceData(node)))
+                                }
+                            }
+
+                            else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
+                        }
                     }
                 }
             }
@@ -713,11 +720,13 @@ class GrammarToTree(
     private
     fun FailureCollectorContext.childrenWithParsingErrorCollection(tree: CachingLightTree, node: LighterASTNode): List<LighterASTNode> {
         val children = tree.children(node)
-        children.forEach {
-            if (it.tokenType == ERROR_ELEMENT) {
-                collectingFailure(tree.parsingError(node, it))
-            }
+
+        val (bad, good) = children.partition { it.tokenType == ERROR_ELEMENT }
+
+        bad.forEach {
+            collectingFailure(tree.parsingError(node, it))
         }
-        return children
+
+        return good
     }
 }
