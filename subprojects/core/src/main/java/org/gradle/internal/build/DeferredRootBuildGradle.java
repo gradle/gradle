@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -24,6 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Access to the root build's {@link GradleInternal} instance
  * that becomes available as soon as the root build state is created.
  */
+@NonNullApi
 @ServiceScope(Scope.BuildTree.class)
 public interface DeferredRootBuildGradle {
 
