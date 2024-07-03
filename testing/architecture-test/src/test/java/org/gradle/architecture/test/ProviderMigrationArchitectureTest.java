@@ -56,6 +56,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.tngtech.archunit.base.DescribedPredicate.and;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -231,8 +232,9 @@ public class ProviderMigrationArchitectureTest {
         public void check(JavaMethod javaMethod, ConditionEvents events) {
             boolean hasSetter = hasSetter(javaMethod);
             List<Class<?>> expectedReturnTypes = hasSetter ? mutableTypes : immutableTypes;
-            boolean satisfied = expectedReturnTypes.stream().anyMatch(expectedReturnType -> javaMethod.getRawReturnType().isAssignableTo(expectedReturnType));
-            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type assignable to " + expectedReturnTypes.get(0).getName());
+            JavaClass returnType = javaMethod.getRawReturnType();
+            boolean satisfied = expectedReturnTypes.stream().anyMatch(returnType::isAssignableTo);
+            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type (" + returnType.getName() + ") assignable to any of " + expectedReturnTypes.stream().map(Class::getSimpleName).collect(Collectors.toList()));
             events.add(new SimpleConditionEvent(javaMethod, satisfied, message));
         }
 
