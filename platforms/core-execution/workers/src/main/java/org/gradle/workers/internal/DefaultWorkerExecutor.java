@@ -76,10 +76,18 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ProjectCacheDir projectCacheDir;
 
     public DefaultWorkerExecutor(
-        WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
-        JavaForkOptionsFactory forkOptionsFactory, WorkerThreadRegistry workerThreadRegistry, BuildOperationRunner buildOperationRunner,
-        AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
-        ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
+        WorkerFactory daemonWorkerFactory,
+        WorkerFactory isolatedClassloaderWorkerFactory,
+        WorkerFactory noIsolationWorkerFactory,
+        JavaForkOptionsFactory forkOptionsFactory,
+        WorkerThreadRegistry workerThreadRegistry,
+        BuildOperationRunner buildOperationRunner,
+        AsyncWorkTracker asyncWorkTracker,
+        WorkerDirectoryProvider workerDirectoryProvider,
+        WorkerExecutionQueueFactory workerExecutionQueueFactory,
+        ClassLoaderStructureProvider classLoaderStructureProvider,
+        ActionExecutionSpecFactory actionExecutionSpecFactory,
+        Instantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
         File baseDir,
         ProjectCacheDir projectCacheDir
@@ -145,6 +153,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
+
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
