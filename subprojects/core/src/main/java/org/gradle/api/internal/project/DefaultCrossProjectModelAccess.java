@@ -47,7 +47,10 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+        ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+        return project != null
+            ? LifecycleAwareProject.from(project, eagerLifecycleExecutor)
+            : null;
     }
 
     @Override

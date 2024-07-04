@@ -88,6 +88,7 @@ import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
+import org.gradle.internal.metaobject.DynamicObjectUtil
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.service.ServiceRegistry
@@ -1078,7 +1079,7 @@ class ProblemReportingCrossProjectModelAccess(
             action: DynamicObject.() -> DynamicInvokeResult,
             resultNotFoundExceptionProvider: DynamicObject.() -> GroovyRuntimeException
         ): Any? {
-            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
+            val delegateBean = DynamicObjectUtil.asDynamicObject(delegate)
 
             dynamicCallProblemReporting.enterDynamicCall(delegateBean)
 
