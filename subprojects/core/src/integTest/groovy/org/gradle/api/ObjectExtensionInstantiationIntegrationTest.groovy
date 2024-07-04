@@ -557,8 +557,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             tasks.register("mytask") {
                 extensions.create("myext", MyExtension)
                 myext.prop = "foobar"
+                def myextProp = myext.prop
                 doLast {
-                    println("myext.prop = " + myext.prop.get())
+                    println("myext.prop = " + myextProp.get())
                 }
             }
         """
