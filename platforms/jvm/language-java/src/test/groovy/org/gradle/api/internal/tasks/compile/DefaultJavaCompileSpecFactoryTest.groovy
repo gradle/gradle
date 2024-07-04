@@ -51,12 +51,10 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         // Where the toolchain == null, we use the current JVM
         fork  | executable | toolchain | implementsForking | implementsCommandLine
         false | false      | null      | false             | false
-        false | false      | null      | false             | false
         false | false      | "11"      | true              | false
         // Below Java 8 toolchain compiler always runs via command-line
         false | false      | "7"       | false             | true
         true  | false      | null      | true              | false
-        true  | true       | null      | false             | true
         true  | true       | null      | false             | true
         true  | true       | "11"      | false             | true
     }
