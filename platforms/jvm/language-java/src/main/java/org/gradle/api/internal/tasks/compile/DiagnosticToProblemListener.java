@@ -32,10 +32,14 @@ import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.Problem;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.function.Function;
 
@@ -53,6 +57,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private final InternalProblemReporter problemReporter;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
+    private final Collection<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
@@ -85,7 +90,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 break;
         }
 
-        problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+        Problem reportedProblem = problemReporter.create(spec -> buildProblem(diagnostic, spec));
+        problemsReported.add(reportedProblem);
+        problemReporter.report(reportedProblem);
     }
 
     /**
@@ -165,9 +172,14 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String diagnosticMessage = diagnostic.getMessage(Locale.getDefault());
-        if (diagnosticMessage != null) {
-            spec.details(diagnosticMessage);
+        String message = diagnostic.getMessage(Locale.getDefault());
+        String[] messageLines = message.split("\n");
+
+        // Contextual label is always the first line of the message
+        spec.contextualLabel(messageLines[0]);
+        // If we have some multi-line messages (see compiler.java), we can add the complete message as details
+        if (messageLines.length > 1) {
+            spec.details(message);
         }
     }
 
@@ -276,4 +288,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
+    public Collection<Problem> getReportedProblems() {
+        return Collections.unmodifiableCollection(problemsReported);
+    }
 }

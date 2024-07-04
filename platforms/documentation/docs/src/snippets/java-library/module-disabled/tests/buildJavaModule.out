@@ -13,7 +13,7 @@ FAILURE: Build failed with an exception.
 
 * What went wrong:
 Execution failed for task ':compileJava'.
-> Compilation failed; see the compiler error output for details.
+> Compilation failed with reported problems; see the problem details below.
 
 * Try:
 > Run with --info option to get more log output.

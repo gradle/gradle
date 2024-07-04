@@ -994,6 +994,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "problems-rendering",
+    "path": "platforms/ide/problems-rendering",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "process-memory-services",
     "path": "platforms/core-runtime/process-memory-services",
     "unitTests": true,
