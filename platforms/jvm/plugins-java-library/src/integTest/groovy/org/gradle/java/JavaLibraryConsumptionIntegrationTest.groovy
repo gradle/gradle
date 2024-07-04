@@ -49,7 +49,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails 'checkForRxJavaDependency', 'build'
-        failure.assertHasCause('Compilation failed; see the compiler error output for details.')
+        failure.assertHasCause('Compilation failed with reported problems; see the problem details below.')
         failure.assertHasErrorOutput('error: package rx.observers does not exist')
     }
 
