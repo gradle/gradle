@@ -26,61 +26,33 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
  */
 @ServiceScope(Scope.Global.class)
 public interface GradleModuleServices extends ServiceRegistrationProvider {
+
     /**
-     * Called once per process, to register any globally scoped services. These services are reused across builds in the same process.
-     * The services are closed when the process finishes.
-     *
-     * <p>Global services are visible to all other services.</p>
-     *
      * @see Scope.Global
      */
     void registerGlobalServices(ServiceRegistration registration);
 
     /**
-     * Called to register any services scoped to the Gradle user home directory. These services are reused across builds in the same process while the Gradle user home directory remains unchanged. The services are closed when the Gradle user home directory changes.
-     *
-     * <p>These services are "mostly global" as there is usually only a single Gradle user home directory used for a given process. Some processes, such as test processes, may run builds with different user home directories.</p>
-     *
-     * <p>Global services are visible to these shared services, but not vice versa.</p>
-     *
      * @see Scope.UserHome
      */
     void registerGradleUserHomeServices(ServiceRegistration registration);
 
     /**
-     * Called once per "main" build session to register any cross build session scoped services.  These services are reused across build invocations when in
-     * continuous mode. They are closed at the end of the build session.
-     *
-     * <p>Global and shared services are visible to build session scope services, but not vice versa</p>
-     *
      * @see Scope.CrossBuildSession
      */
     void registerCrossBuildSessionServices(ServiceRegistration registration);
 
     /**
-     * Called once per build session to register any build session scoped services.  These services are reused across build invocations when in
-     * continuous mode. They are closed at the end of the build session.
-     *
-     * <p>Global and shared services are visible to build session scope services, but not vice versa</p>
-     *
      * @see Scope.BuildSession
      */
     void registerBuildSessionServices(ServiceRegistration registration);
 
     /**
-     * Called once per build invocation on a build tree to register any build tree scoped services to use during that build invocation.  These services are recreated when in continuous mode and shared across all nested builds. They are closed when the build invocation is completed.
-     *
-     * <p>Global, user home and build session services are visible to build tree scope services, but not vice versa.</p>
-     *
      * @see Scope.BuildTree
      */
     void registerBuildTreeServices(ServiceRegistration registration);
 
     /**
-     * Called once per build invocation on a build, to register any build scoped services to use during that build invocation. These services are closed at the end of the build invocation.
-     *
-     * <p>Global, user home, build session and build tree services are visible to the build scope services, but not vice versa.</p>
-     *
      * @see Scope.Build
      */
     void registerBuildServices(ServiceRegistration registration);
@@ -93,10 +65,6 @@ public interface GradleModuleServices extends ServiceRegistrationProvider {
     void registerSettingsServices(ServiceRegistration registration);
 
     /**
-     * Called once per project per build invocation, to register any project scoped services. These services are closed at the end of the build invocation.
-     *
-     * <p>Global, user home, build session, build tree, build and gradle scoped services are visible to the project scope services, but not vice versa.</p>
-     *
      * @see Scope.Project
      */
     void registerProjectServices(ServiceRegistration registration);
