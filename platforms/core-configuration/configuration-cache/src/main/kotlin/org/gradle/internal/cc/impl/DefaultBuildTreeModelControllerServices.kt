@@ -36,6 +36,9 @@ import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
+import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
@@ -43,14 +46,23 @@ import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParamet
 import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
+import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
+import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
+import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
+import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
+import org.gradle.internal.extensions.core.get
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.service.PrivateService
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -205,6 +217,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(DefaultConfigurationCacheProblemsListener::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
+            registration.addProvider(ConfigurationCacheStoresProvider())
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
@@ -258,6 +271,58 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         @Provides
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
             return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+        }
+    }
+
+    private
+    class ConfigurationCacheStoresProvider : ServiceRegistrationProvider {
+
+        @Provides
+        fun createHostServiceProvider(deferredRootBuildGradle: DeferredRootBuildGradle): HostServiceProvider {
+            return deferredRootBuildGradle.gradle.services.get()
+        }
+
+        @Provides
+        @PrivateService
+        fun createIsolateOwner(host: HostServiceProvider): IsolateOwner {
+            return IsolateOwners.OwnerHost(host)
+        }
+
+        @Provides
+        fun createConfigurationCacheBuildTreeIo(host: HostServiceProvider): ConfigurationCacheBuildTreeIO {
+            return host.service()
+        }
+
+        @Provides
+        fun createConfigurationCacheStateStore(cacheRepository: ConfigurationCacheRepository, cacheKey: ConfigurationCacheKey): ConfigurationCacheStateStore {
+            return cacheRepository.forKey(cacheKey.string)
+        }
+
+        @Provides
+        fun createBuildTreeWorkGraphPreparer(isolateOwner: IsolateOwner, cacheIO: ConfigurationCacheOperationIO, store: ConfigurationCacheStateStore): BuildTreeModelSideEffectStore {
+            return BuildTreeModelSideEffectStore(isolateOwner, cacheIO, store)
+        }
+
+        @Provides
+        fun createIntermediateModelController(
+            isolateOwner: IsolateOwner,
+            cacheIO: ConfigurationCacheOperationIO,
+            store: ConfigurationCacheStateStore,
+            calculatedValueContainerFactory: CalculatedValueContainerFactory,
+            cacheFingerprintController: ConfigurationCacheFingerprintController
+        ): IntermediateModelController {
+            return IntermediateModelController(isolateOwner, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController)
+        }
+
+        @Provides
+        fun createProjectMetadataController(
+            isolateOwner: IsolateOwner,
+            cacheIO: ConfigurationCacheOperationIO,
+            resolveStateFactory: LocalComponentGraphResolveStateFactory,
+            store: ConfigurationCacheStateStore,
+            calculatedValueContainerFactory: CalculatedValueContainerFactory,
+        ): ProjectMetadataController {
+            return ProjectMetadataController(isolateOwner, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory)
         }
     }
 }

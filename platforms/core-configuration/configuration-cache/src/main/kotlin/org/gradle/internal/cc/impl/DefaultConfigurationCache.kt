@@ -43,23 +43,18 @@ import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.extensions.core.get
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.service.LazyService
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -75,7 +70,6 @@ class DefaultConfigurationCache internal constructor(
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val cacheRepository: ConfigurationCacheRepository,
     private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
@@ -83,16 +77,19 @@ class DefaultConfigurationCache internal constructor(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
-    private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess,
-    private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
-) : BuildTreeConfigurationCache, Stoppable {
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    host: LazyService<HostServiceProvider>,
+    store: LazyService<ConfigurationCacheStateStore>,
+    cacheIO: LazyService<ConfigurationCacheBuildTreeIO>,
+    buildTreeModelSideEffects: LazyService<BuildTreeModelSideEffectStore>,
+    intermediateModels: LazyService<IntermediateModelController>,
+    projectMetadata: LazyService<ProjectMetadataController>
+) : BuildTreeConfigurationCache {
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -102,43 +99,28 @@ class DefaultConfigurationCache internal constructor(
     var cacheEntryRequiresCommit = false
 
     private
-    val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
+    val host by lazy { host.instance }
 
     private
-    val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(host) }
+    val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(this.host) }
 
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     private
-    val storeDelegate = lazy { cacheRepository.forKey(cacheKey.string) }
+    val store by lazy { store.instance }
 
     private
-    val store by storeDelegate
+    val cacheIO by lazy { cacheIO.instance }
 
     private
-    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
+    val buildTreeModelSideEffects by lazy { buildTreeModelSideEffects.instance }
 
     private
-    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(isolateOwnerHost, cacheIO, store) }
+    val intermediateModels by lazy { intermediateModels.instance }
 
     private
-    val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
-
-    private
-    val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
-
-    private
-    val buildTreeModelSideEffects
-        get() = lazyBuildTreeModelSideEffects.value
-
-    private
-    val intermediateModels
-        get() = lazyIntermediateModels.value
-
-    private
-    val projectMetadata
-        get() = lazyProjectMetadata.value
+    val projectMetadata by lazy { projectMetadata.instance }
 
     private
     val gradlePropertiesController: GradlePropertiesController
@@ -151,8 +133,6 @@ class DefaultConfigurationCache internal constructor(
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
         problems.action(cacheAction, cacheActionDescription)
-        // TODO:isolated find a way to avoid this late binding
-        modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
 
     override fun loadOrScheduleRequestedTasks(
@@ -348,22 +328,6 @@ class DefaultConfigurationCache internal constructor(
     private
     fun formatBootstrapSummary(message: String, vararg args: Any?) =
         StructuredMessage.forText(String.format(Locale.US, message, *args))
-
-    override fun stop() {
-        val stoppable = CompositeStoppable.stoppable()
-        stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
-        stoppable.addIfInitialized(lazyIntermediateModels)
-        stoppable.addIfInitialized(lazyProjectMetadata)
-        stoppable.addIfInitialized(storeDelegate)
-        stoppable.stop()
-    }
-
-    private
-    fun CompositeStoppable.addIfInitialized(closeable: Lazy<*>) {
-        if (closeable.isInitialized()) {
-            add(closeable.value!!)
-        }
-    }
 
     private
     fun checkFingerprint(): CheckedFingerprint {

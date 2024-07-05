@@ -17,9 +17,12 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
+@ServiceScope(Scope.BuildTree::class)
 internal
 interface ConfigurationCacheStateStore {
 

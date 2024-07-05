@@ -16,15 +16,18 @@
 
 package org.gradle.internal.cc.impl.services
 
-import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
+import org.gradle.internal.service.LazyService
 
 
 internal
-class ConfigurationCacheBuildTreeModelSideEffectExecutor : BuildTreeModelSideEffectExecutor {
+class ConfigurationCacheBuildTreeModelSideEffectExecutor(
+    sideEffectStore: LazyService<BuildTreeModelSideEffectStore>
+) : BuildTreeModelSideEffectExecutor {
 
-    lateinit var sideEffectStore: BuildTreeModelSideEffectStore
+    private val sideEffectStore by lazy { sideEffectStore.instance }
 
     override fun runIsolatableSideEffect(sideEffect: BuildTreeModelSideEffect) {
         sideEffect.runSideEffect()

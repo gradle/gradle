@@ -24,10 +24,13 @@ import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.InputStream
 import java.io.OutputStream
 
+@ServiceScope(Scope.BuildTree::class)
 internal
 interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
 
