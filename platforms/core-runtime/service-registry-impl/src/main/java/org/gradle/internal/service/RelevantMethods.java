@@ -15,8 +15,13 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.specs.Spec;
+import org.gradle.util.internal.CollectionUtils;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -86,6 +91,9 @@ class RelevantMethods {
                 if (method.getReturnType().equals(Void.TYPE)) {
                     throw new ServiceValidationException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
                 }
+                if (takesReturnTypeAsLazyServiceParameter(method)) {
+                    throw new ServiceValidationException(String.format("Method %s.%s() cannot decorate a lazy service", TypeStringFormatter.format(type), method.getName()));
+                }
                 if (takesReturnTypeAsParameter(method)) {
                     add(decorators, method);
                 } else {
@@ -106,6 +114,25 @@ class RelevantMethods {
             if (seen.add(signature.toString())) {
                 builder.add(SERVICE_METHOD_FACTORY.toServiceMethod(method));
             }
+        }
+
+        private static boolean takesReturnTypeAsLazyServiceParameter(Method method) {
+            final Class<?> returnType = method.getReturnType();
+            return CollectionUtils.any(method.getGenericParameterTypes(), new Spec<Type>() {
+                @Override
+                public boolean isSatisfiedBy(Type type) {
+                    if (type instanceof ParameterizedType) {
+                        ParameterizedType parameterizedType = (ParameterizedType) type;
+                        Type rawType = parameterizedType.getRawType();
+                        if (rawType.equals(LazyService.class)) {
+                            Type typeArg = parameterizedType.getActualTypeArguments()[0];
+                            return returnType.equals(typeArg);
+                        }
+                        return false;
+                    }
+                    return false;
+                }
+            });
         }
 
         private static boolean takesReturnTypeAsParameter(Method method) {

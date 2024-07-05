@@ -171,6 +171,19 @@ class DefaultServiceRegistryLazyServiceTest extends Specification {
             "Locating services with type List<TestService> is not supported."
     }
 
+    def "lazy service decoration is not supported"() {
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService create(LazyService<TestService> service) { unreachable() }
+        })
+
+        then:
+        def e = thrown(ServiceValidationException)
+        withoutTestClassName(e.message) ==
+            "Method <anonymous>.create() cannot decorate a lazy service"
+    }
+
     private interface TestService {
     }
 
@@ -188,10 +201,6 @@ class DefaultServiceRegistryLazyServiceTest extends Specification {
 
     private static class TestRegistry extends DefaultServiceRegistry {
         TestRegistry() {
-        }
-
-        TestRegistry(ServiceRegistry parent) {
-            super(parent)
         }
     }
 
