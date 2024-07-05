@@ -100,10 +100,8 @@ public interface Scope {
      * The scope of a Gradle invocation with a specific Gradle user home directory.
      * <p>
      * When the user-home directory changes between subsequent Gradle invocations in the same <em>build process</em>,
-     * this state is discarded and recreated. Otherwise, the state is reused between invocations.
-     * <p>
-     * A regular Gradle invocation deals with a single user home directory,
-     * but the daemon can be potentially reused for invocations with other directories as well.
+     * the state of this scope is discarded and recreated.
+     * Otherwise, the state is reused between invocations.
      * <p>
      * The related state is created per Gradle invocation.
      * <p>
@@ -114,13 +112,14 @@ public interface Scope {
     /**
      * The scope of the state shared across {@link BuildSession build sessions}.
      * <p>
-     * A regular Gradle invocation requires only one build session.
+     * A regular Gradle invocation requires only one "main" build session.
      * However, when the {@code GradleBuild} task is involved, it can create "nested" build sessions.
-     * Having the {@code GradleBuild} task reuse the outer session is complicated because
+     * Having the {@code GradleBuild} task reuse the "main" build session is complicated because
      * it <a href="https://github.com/gradle/gradle/issues/4559">can use a different Gradle user home</a>.
      * <p>
      * The cross build session state is managed by the {@code CrossBuildSessionState} class.
      * An instance is created per Gradle invocation.
+     * Unlike the {@code UserHome} or {@code Global} state, this state is discarded at the end of each invocation.
      *
      * <p>{@link Global} services are visible to {@link CrossBuildSession} services and descendant scopes, but not vice versa.
      */
