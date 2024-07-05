@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,21 @@
 package org.gradle.internal.service;
 
 /**
- * Wraps a single service instance. Implementations must be thread safe.
+ * A lazy service can be consumed as a dependency
+ * to avoid instantiation at the injection time.
  */
-interface Service {
-
-    String getDisplayName();
+public interface LazyService<T> {
 
     /**
-     * Returns the instance of the underlying service.
+     * Returns the instance of the service.
+     * <p>
+     * The service will be created lazily on the first invocation.
+     * All subsequent calls will return the same instance of the service.
+     * <p>
+     * Calling this method is <em>thread-safe</em>.
+     *
+     * @return service instance
      */
-    Object get();
+    T getInstance();
 
-    <T> LazyService<T> asLazyService();
-
-    void requiredBy(ServiceProvider serviceProvider);
 }
