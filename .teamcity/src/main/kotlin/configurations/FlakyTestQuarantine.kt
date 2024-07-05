@@ -16,6 +16,7 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 import model.StageName
+import model.TestType
 
 class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : BaseGradleBuildType(stage = stage, init = {
     id("${model.projectId}_FlakyQuarantine_${os.asName()}_${arch.asName()}")
@@ -64,7 +65,9 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         steps {
             gradleWrapper {
                 name = "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
-                tasks = "${if (index == 0) "clean " else ""}${testCoverage.testType.name}Test"
+                val testTaskName =
+                    if (testCoverage.testType == TestType.isolatedProjects) "isolatedProjectsIntegTest" else "${testCoverage.testType.name}Test"
+                tasks = "${if (index == 0) "clean " else ""}$testTaskName"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }

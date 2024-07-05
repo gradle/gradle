@@ -88,13 +88,15 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
             "-DagpVersion=$agpVersion",
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
+            "-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}",
             "--stacktrace"
         ] + tasks.toList()
 
         def runner = agpRunner(agpVersion, *runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
-            .forwardOutput()
+            .withJdkWarningChecksDisabled() // Kapt seems to be accessing JDK internals. See KT-49187
+
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments(
                 "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",

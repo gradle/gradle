@@ -30,6 +30,7 @@ import javassist.CtConstructor
 import javassist.CtField
 import javassist.CtMember
 import javassist.CtMethod
+import javassist.Modifier
 import org.jetbrains.kotlin.kdoc.psi.api.KDoc
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -135,6 +136,7 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
         if (!(extensionCandidate || ktFunction.valueParameters.size == paramCount)) {
             return@collectDescendantsOfType false
         }
+        val isVarargs = Modifier.isVarArgs(method.modifiers)
 
         // Parameter type check
         method.parameterTypes
@@ -144,7 +146,7 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
             .withIndex()
             .all<IndexedValue<CtClass>> {
                 val ktParamType = ktFunction.valueParameters[it.index].typeReference!!
-                it.value.isLikelyEquivalentTo(ktParamType)
+                it.value.isLikelyEquivalentTo(ktParamType) || (isVarargs && it.value.componentType.isLikelyEquivalentTo(ktParamType))
             }
     }
 }

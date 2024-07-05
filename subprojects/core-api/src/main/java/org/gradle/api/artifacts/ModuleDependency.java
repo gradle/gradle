@@ -30,10 +30,15 @@ import java.util.Set;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current project.
- *
+ * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a component that exists
+ * outside of the current project.
  * <p>
- * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
+ * Modules can supply {@link ModuleDependency#getArtifacts() multiple artifacts} in addition to the
+ * {@link #addArtifact(DependencyArtifact) implicit default artifact}.  Non-default artifacts
+ * available in a module can be selected by a consumer by specifying a classifier or extension
+ * when declaring a dependency on that module.
+ * <p>
+ * For examples on configuring exclude rules for modules please refer to {@link #exclude(java.util.Map)}.
  */
 public interface ModuleDependency extends Dependency, HasConfigurableAttributes<ModuleDependency> {
     /**
@@ -45,7 +50,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * might pull in exactly the same transitive dependency.
      * To guarantee that the transitive dependency is excluded from the entire configuration
      * please use per-configuration exclude rules: {@link Configuration#getExcludeRules()}.
-     * In fact, in majority of cases the actual intention of configuring per-dependency exclusions
+     * In fact, in a majority of cases the actual intention of configuring per-dependency exclusions
      * is really excluding a dependency from the entire configuration (or classpath).
      * <p>
      * If your intention is to exclude a particular transitive dependency
@@ -81,6 +86,16 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
 
     /**
      * Returns the artifacts belonging to this dependency.
+     * <p>
+     * Initially, a dependency has no artifacts, so this can return an empty set.  Typically, however, a producer
+     * project will add a single artifact to a module, which will be represented in this collection via a
+     * single element.  But this is <strong>NOT</strong> always true.  Modules can use
+     * custom classifiers or extensions to distinguish multiple artifacts that they contain.
+     * <p>
+     * In general, projects publishing using Gradle should favor supplying multiple artifacts by supplying
+     * multiple variants, each containing a different artifact, that are selectable through variant-aware
+     * dependency resolution.  This mechanism where a module contains multiple artifacts is primarily
+     * intended to support dependencies on non-Gradle-published components.
      *
      * @see #addArtifact(DependencyArtifact)
      */

@@ -50,7 +50,6 @@ dependencies {
     api(libs.spock)
 
     implementation(projects.concurrent)
-    implementation(projects.loggingApi)
     implementation(projects.wrapperShared)
 
     implementation(libs.commonsIo)

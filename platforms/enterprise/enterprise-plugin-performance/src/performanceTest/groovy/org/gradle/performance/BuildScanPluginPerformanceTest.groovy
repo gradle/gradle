@@ -16,14 +16,7 @@
 
 package org.gradle.performance
 
-import org.apache.commons.io.FileUtils
-import org.gradle.profiler.BuildContext
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.Phase
-import org.gradle.profiler.ScenarioContext
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.VersionNumber
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 
 class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
@@ -36,46 +29,36 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
     def "with and without plugin application (#scenario)"() {
         given:
-        def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
+        def jobArgs = ['--continue', '--no-scan', '-Dscan.capture-file-fingerprints'] + scenarioArgs
 
         runner.baseline {
-            warmUpCount WARMUPS
-            invocationCount INVOCATIONS
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
-                // Increase client VM heap memory because of a huge amount of output events
-                clientJvmArgs("-Xmx256m", "-Xms256m")
                 args(*jobArgs)
                 tasksToRun(*tasks)
                 if (withFailure) {
                     expectFailure()
                 }
-                addBuildMutator { invocationSettings -> new InjectDevelocityPlugin(invocationSettings.projectDir, pluginVersionNumber) }
-                addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
-                if (manageCacheState) {
-                    addBuildMutator { new ManageLocalCacheState(it.projectDir) }
-                }
+            }
+            addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
+            if (manageCacheState) {
+                addBuildMutator { new ManageLocalCacheState(it.projectDir) }
             }
         }
 
         runner.buildSpec {
-            warmUpCount WARMUPS
-            invocationCount INVOCATIONS
             displayName(WITH_PLUGIN_LABEL)
             invocation {
-                // Increase client VM heap memory because of a huge amount of output events
-                clientJvmArgs("-Xmx256m", "-Xms256m")
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
                 if (withFailure) {
                     expectFailure()
                 }
-                addBuildMutator { invocationSettings -> new InjectDevelocityPlugin(invocationSettings.projectDir, pluginVersionNumber) }
-                addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
-                if (manageCacheState) {
-                    addBuildMutator { new ManageLocalCacheState(it.projectDir) }
-                }
+            }
+            addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
+            if (manageCacheState) {
+                addBuildMutator { new ManageLocalCacheState(it.projectDir) }
             }
         }
 
@@ -89,131 +72,22 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         println(speedStats)
 
         where:
-        scenario                                                | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                                  | manageCacheState
-        "clean build - 50 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache']                                             | true
-        "clean build - 20 projects - slow tasks - less console" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project20:buildNeeded'] | true        | ['--build-cache', '-DreducedOutput=true', '-DslowTasks=true'] | true
-        "help"                                                  | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                            | false
-        "help - no console output"                              | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | ['-DreducedOutput=true']                                      | false
+        scenario                                                | tasks                              | withFailure | scenarioArgs                                                  | manageCacheState
+        "clean build - 50 projects"                             | ['clean', 'build']                 | true        | ['--build-cache']                                             | true
+        "clean build - 20 projects - slow tasks - less console" | ['clean', 'project20:buildNeeded'] | true        | ['--build-cache', '-DreducedOutput=true', '-DslowTasks=true'] | true
+        "help"                                                  | ['help']                           | false       | []                                                            | false
+        "help - no console output"                              | ['help']    | false                                                         | ['-DreducedOutput=true']                                      | false
     }
 
-    static class ManageLocalCacheState implements BuildMutator {
-        final File projectDir
-
-        ManageLocalCacheState(File projectDir) {
-            this.projectDir = projectDir
+    @Override
+    protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        super.configureGradleSpec(builder)
+        builder.warmUpCount = WARMUPS
+        builder.invocationCount = INVOCATIONS
+        builder.invocation {
+            // Increase client VM heap memory because of a huge amount of output events
+            clientJvmArgs("-Xmx256m", "-Xms256m")
         }
-
-        @Override
-        void beforeBuild(BuildContext context) {
-            def projectTestDir = new TestFile(projectDir)
-            def cacheDir = projectTestDir.file('local-build-cache')
-            def settingsFile = projectTestDir.file('settings.gradle')
-            settingsFile << """
-                    buildCache {
-                        local {
-                            directory = '${cacheDir.absoluteFile.toURI()}'
-                        }
-                    }
-                """.stripIndent()
-        }
-
-        @Override
-        void afterBuild(BuildContext context, Throwable t) {
-            assert !new File(projectDir, 'error.log').exists()
-            def buildCacheDirectory = new TestFile(projectDir, 'local-build-cache')
-            def cacheEntries = buildCacheDirectory.listFiles()
-            if (cacheEntries == null) {
-                throw new IllegalStateException("Cache dir doesn't exist, did the build succeed? Please check the build log.")
-            }
-
-            cacheEntries.sort().eachWithIndex { TestFile entry, int i ->
-                if (i % 2 == 0) {
-                    entry.delete()
-                }
-            }
-        }
-    }
-
-    static class SaveScanSpoolFile implements BuildMutator {
-        final InvocationSettings invocationSettings
-        final String testId
-
-        SaveScanSpoolFile(InvocationSettings invocationSettings, String testId) {
-            this.invocationSettings = invocationSettings
-            this.testId = testId.replaceAll(/[- ]/, '_')
-        }
-
-        @Override
-        void beforeBuild(BuildContext context) {
-            spoolDir().deleteDir()
-        }
-
-        @Override
-        void afterBuild(BuildContext context, Throwable t) {
-            def spoolDir = this.spoolDir()
-            if (context.phase == Phase.MEASURE && (context.iteration == invocationSettings.buildCount) && spoolDir.exists()) {
-                def targetDirectory = new File("build/scan-dumps/$testId")
-                targetDirectory.deleteDir()
-                FileUtils.moveToDirectory(spoolDir, targetDirectory, true)
-            }
-        }
-
-        private File spoolDir() {
-            new File(invocationSettings.gradleUserHome, "build-scan-data")
-        }
-    }
-
-    static class InjectDevelocityPlugin implements BuildMutator {
-        private static final VersionNumber DEVELOCITY_PLUGIN_RENAME_VERSION = VersionNumber.parse("3.17")
-
-        final File projectDir
-        final String develocityPluginVersion
-        final boolean isDevelocity
-
-        InjectDevelocityPlugin(File projectDir, String develocityPluginVersion) {
-            this.projectDir = projectDir
-            this.develocityPluginVersion = develocityPluginVersion
-            this.isDevelocity = VersionNumber.parse(develocityPluginVersion).baseVersion >= DEVELOCITY_PLUGIN_RENAME_VERSION
-            println "InjectDevelocityPlugin develocityPluginVersion = $develocityPluginVersion"
-        }
-
-        private String getDevelocityPluginArtifactName() {
-            isDevelocity ? 'develocity-gradle-plugin' : 'gradle-enterprise-gradle-plugin'
-        }
-
-        private String getDevelocityPluginId() {
-            isDevelocity ? 'com.gradle.develocity' : 'com.gradle.enterprise'
-        }
-
-        @Override
-        void beforeScenario(ScenarioContext context) {
-            def projectTestDir = new TestFile(projectDir)
-            def settingsScript = projectTestDir.file('settings.gradle')
-            settingsScript.text = """
-                    buildscript {
-                        repositories {
-                            maven {
-                                name 'gradleInternalRepository'
-                                url '${System.getenv("GRADLE_INTERNAL_REPO_URL")}/enterprise-libs-snapshots-local/'
-                                credentials {
-                                    username = System.getenv("GRADLE_INTERNAL_REPO_USERNAME")
-                                    password = System.getenv("GRADLE_INTERNAL_REPO_PASSWORD")
-                                }
-                                authentication {
-                                    basic(BasicAuthentication)
-                                }
-                            }
-                        }
-
-                        dependencies {
-                            classpath "com.gradle:${develocityPluginArtifactName}:${develocityPluginVersion}"
-                        }
-                    }
-
-                    if (System.getProperty('enableScan')) {
-                        apply plugin: '${develocityPluginId}'
-                    }
-                    """ + settingsScript.text
-        }
+        builder.addBuildMutator { invocationSettings -> new InjectDevelocityPlugin(invocationSettings.projectDir, pluginVersionNumber) }
     }
 }

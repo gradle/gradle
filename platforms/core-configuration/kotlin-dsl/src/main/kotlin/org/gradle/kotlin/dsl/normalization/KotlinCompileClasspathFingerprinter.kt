@@ -33,6 +33,8 @@ import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.tools.api.ApiClassExtractionException
+import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.kotlin.dsl.support.loggerFor
 
 
@@ -44,7 +46,10 @@ class KotlinCompileClasspathFingerprinter(
 ) : AbstractFileCollectionFingerprinter(
     ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
         CachingResourceHasher(
-            AbiExtractingClasspathResourceHasher.withoutFallback(KotlinApiClassExtractor()),
+            AbiExtractingClasspathResourceHasher.withoutFallback(ApiClassExtractor
+                .withWriter(KotlinApiMemberWriter.adapter())
+                .includePackagePrivateMembers()
+                .build()),
             cacheService
         ),
         ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
@@ -71,7 +76,7 @@ class KotlinCompileClasspathFingerprinter(
 private
 class CompileAvoidanceExceptionReporter : ZipHasher.HashingExceptionReporter {
     override fun report(zipFileSnapshot: RegularFileSnapshot, e: Exception) {
-        if (e is CompileAvoidanceException) {
+        if (e is ApiClassExtractionException) {
             val jarPath = zipFileSnapshot.absolutePath
             logger.info("Cannot use Kotlin build script compile avoidance with {}: {}", jarPath, e.message)
         }
