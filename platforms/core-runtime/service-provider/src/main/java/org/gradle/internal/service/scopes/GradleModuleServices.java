@@ -21,38 +21,58 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 
 /**
  * Can be implemented by Gradle modules to provide services in various scopes.
+ * <p>
+ * Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
  *
- * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
+ * @see Scope
  */
 @ServiceScope(Scope.Global.class)
 public interface GradleModuleServices extends ServiceRegistrationProvider {
 
     /**
+     * Called to register services in the {@link Scope.Global Global} scope.
+     *
+     * @see Scope
      * @see Scope.Global
      */
     void registerGlobalServices(ServiceRegistration registration);
 
     /**
+     * Called to register services in the {@link Scope.UserHome UserHome} scope.
+     *
+     * @see Scope
      * @see Scope.UserHome
      */
     void registerGradleUserHomeServices(ServiceRegistration registration);
 
     /**
+     * Called to register services in the {@link Scope.CrossBuildSession CrossBuildSession} scope.
+     *
+     * @see Scope
      * @see Scope.CrossBuildSession
      */
     void registerCrossBuildSessionServices(ServiceRegistration registration);
 
     /**
+     * Called to register services in the {@link Scope.BuildSession BuildSession} scope.
+     *
+     * @see Scope
      * @see Scope.BuildSession
      */
     void registerBuildSessionServices(ServiceRegistration registration);
 
     /**
+     * Called to register services in the {@link Scope.BuildTree BuildTree} scope.
+     *
+     * @see Scope
      * @see Scope.BuildTree
      */
     void registerBuildTreeServices(ServiceRegistration registration);
 
     /**
+     * Called to register services in the {@link Scope.Build Build} scope.
+     *
+     * @see Scope
      * @see Scope.Build
      */
     void registerBuildServices(ServiceRegistration registration);
@@ -65,6 +85,9 @@ public interface GradleModuleServices extends ServiceRegistrationProvider {
     void registerSettingsServices(ServiceRegistration registration);
 
     /**
+     * Called to register services in the {@link Scope.Project Project} scope.
+     *
+     * @see Scope
      * @see Scope.Project
      */
     void registerProjectServices(ServiceRegistration registration);
