@@ -50,6 +50,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         "Kotlin" | "build.gradle.kts" | "version"          | ""
         "Groovy" | "build.gradle"     | "project.version"  | "project ->"
         "Groovy" | "build.gradle"     | "version"          | ""
+        "Groovy" | "build.gradle"     | "it.version"       | ""
     }
 
     def 'lifecycle.allprojects is executed lazily before project evaluation if immutable state accessed'() {
@@ -108,9 +109,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
             "getTasksByName('foo', true)",
             "task('foo')",
             "defaultTasks",
-            "logger",
             "layout",
-            "logging",
             "repositories",
             "dependencies",
             "state",

@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
+import kotlin.Deprecated;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
@@ -69,6 +70,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -103,15 +105,13 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
         this.delegate = delegate;
     }
 
-    abstract void onMutableStateAccess();
+    protected abstract void onMutableStateAccess(String what);
 
     @Override
     public abstract boolean equals(Object obj);
 
     @Override
-    public int hashCode() {
-        return delegate.hashCode();
-    }
+    public abstract int hashCode();
 
     @Nullable
     protected Object invokeMethodOnThisBean(String methodName, Object[] args) {
@@ -136,7 +136,7 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
             return thisBeanResult;
         }
 
-        onMutableStateAccess();
+        onMutableStateAccess("invokeMethod");
 
         DynamicObject delegateDynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
         DynamicInvokeResult delegateResult = delegateDynamicObject.tryInvokeMethod(name, varargs);
@@ -156,7 +156,7 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
             return thisBeanResult;
         }
 
-        onMutableStateAccess();
+        onMutableStateAccess("getProperty");
 
         DynamicObject delegateDynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
         DynamicInvokeResult delegateResult = delegateDynamicObject.tryGetProperty(propertyName);
@@ -187,49 +187,49 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
     @Nullable
     @Override
     public String getDescription() {
-        onMutableStateAccess();
+        onMutableStateAccess("description");
         return delegate.getDescription();
     }
 
     @Override
     public void setDescription(@Nullable String description) {
-        onMutableStateAccess();
+        onMutableStateAccess("description");
         delegate.setDescription(description);
     }
 
     @Override
     public Object getGroup() {
-        onMutableStateAccess();
+        onMutableStateAccess("group");
         return delegate.getGroup();
     }
 
     @Override
     public void setGroup(Object group) {
-        onMutableStateAccess();
+        onMutableStateAccess("group");
         delegate.setGroup(group);
     }
 
     @Override
     public Object getVersion() {
-        onMutableStateAccess();
+        onMutableStateAccess("version");
         return delegate.getVersion();
     }
 
     @Override
     public void setVersion(Object version) {
-        onMutableStateAccess();
+        onMutableStateAccess("version");
         delegate.setVersion(version);
     }
 
     @Override
     public Object getStatus() {
-        onMutableStateAccess();
+        onMutableStateAccess("status");
         return delegate.getStatus();
     }
 
     @Override
     public void setStatus(Object status) {
-        onMutableStateAccess();
+        onMutableStateAccess("status");
         delegate.setStatus(status);
     }
 
@@ -252,22 +252,25 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     @SuppressWarnings("deprecation")
+    @Deprecated(message = "Use layout.buildDirectory instead")
     public File getBuildDir() {
-        onMutableStateAccess();
+        onMutableStateAccess("buildDir");
         return delegate.getBuildDir();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
+    @SuppressWarnings("deprecation")
+    @Deprecated(message = "Use layout.buildDirectory instead")
     public void setBuildDir(File path) {
-        onMutableStateAccess();
+        onMutableStateAccess("buildDir");
         delegate.setBuildDir(path);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
+    @SuppressWarnings("deprecation")
+    @Deprecated(message = "Use layout.buildDirectory instead")
     public void setBuildDir(Object path) {
-        onMutableStateAccess();
+        onMutableStateAccess("buildDir");
         delegate.setBuildDir(path);
     }
 
@@ -293,7 +296,7 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public TaskContainerInternal getTasks() {
-        onMutableStateAccess();
+        onMutableStateAccess("tasks");
         return delegate.getTasks();
     }
 
@@ -339,33 +342,32 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public boolean hasProperty(String propertyName) {
-        onMutableStateAccess();
+        onMutableStateAccess("hasProperty");
         return delegate.hasProperty(propertyName);
     }
 
     @Override
     public Map<String, ?> getProperties() {
-        onMutableStateAccess();
+        onMutableStateAccess("properties");
         return delegate.getProperties();
     }
 
     @Nullable
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        onMutableStateAccess();
+        onMutableStateAccess("property");
         return delegate.property(propertyName);
     }
 
     @Nullable
     @Override
     public Object findProperty(String propertyName) {
-        onMutableStateAccess();
+        onMutableStateAccess("findProperty");
         return delegate.findProperty(propertyName);
     }
 
     @Override
     public Logger getLogger() {
-        onMutableStateAccess();
         return delegate.getLogger();
     }
 
@@ -391,13 +393,13 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
-        onMutableStateAccess();
+        onMutableStateAccess("allTasks");
         return delegate.getAllTasks(recursive);
     }
 
     @Override
     public Set<Task> getTasksByName(String name, boolean recursive) {
-        onMutableStateAccess();
+        onMutableStateAccess("tasksByName");
         return delegate.getTasksByName(name, recursive);
     }
 
@@ -408,145 +410,122 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public File file(Object path) {
-        onMutableStateAccess();
         return delegate.file(path);
     }
 
     @Override
     public File file(Object path, PathValidation validation) throws InvalidUserDataException {
-        onMutableStateAccess();
         return delegate.file(path, validation);
     }
 
     @Override
     public URI uri(Object path) {
-        onMutableStateAccess();
         return delegate.uri(path);
     }
 
     @Override
     public String relativePath(Object path) {
-        onMutableStateAccess();
         return delegate.relativePath(path);
     }
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        onMutableStateAccess();
         return delegate.files(paths);
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        onMutableStateAccess();
         return delegate.files(paths, configureClosure);
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction) {
-        onMutableStateAccess();
         return delegate.files(paths, configureAction);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
-        onMutableStateAccess();
         return delegate.fileTree(baseDir);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {
-        onMutableStateAccess();
         return delegate.fileTree(baseDir, configureClosure);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction) {
-        onMutableStateAccess();
         return delegate.fileTree(baseDir, configureAction);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        onMutableStateAccess();
         return delegate.fileTree(args);
     }
 
     @Override
     public FileTree zipTree(Object zipPath) {
-        onMutableStateAccess();
         return delegate.zipTree(zipPath);
     }
 
     @Override
     public FileTree tarTree(Object tarPath) {
-        onMutableStateAccess();
         return delegate.tarTree(tarPath);
     }
 
     @Override
     public <T> Provider<T> provider(Callable<? extends T> value) {
-        onMutableStateAccess();
         return delegate.provider(value);
     }
 
     @Override
     public ProviderFactory getProviders() {
-        onMutableStateAccess();
         return delegate.getProviders();
     }
 
     @Override
     public ObjectFactory getObjects() {
-        onMutableStateAccess();
         return delegate.getObjects();
     }
 
     @Override
     public ProjectLayout getLayout() {
-        onMutableStateAccess();
+        onMutableStateAccess("layout");
         return delegate.getLayout();
     }
 
     @Override
     public File mkdir(Object path) {
-        onMutableStateAccess();
         return delegate.mkdir(path);
     }
 
     @Override
     public boolean delete(Object... paths) {
-        onMutableStateAccess();
         return delegate.delete(paths);
     }
 
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
-        onMutableStateAccess();
         return delegate.delete(action);
     }
 
     @Override
     public ExecResult javaexec(Closure closure) {
-        onMutableStateAccess();
         return delegate.javaexec(closure);
     }
 
     @Override
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        onMutableStateAccess();
         return delegate.javaexec(action);
     }
 
     @Override
     public ExecResult exec(Closure closure) {
-        onMutableStateAccess();
         return delegate.exec(closure);
     }
 
     @Override
     public ExecResult exec(Action<? super ExecSpec> action) {
-        onMutableStateAccess();
         return delegate.exec(action);
     }
 
@@ -562,25 +541,25 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public AntBuilder getAnt() {
-        onMutableStateAccess();
+        onMutableStateAccess("ant");
         return delegate.getAnt();
     }
 
     @Override
     public AntBuilder createAntBuilder() {
-        onMutableStateAccess();
+        onMutableStateAccess("antBuilder");
         return delegate.createAntBuilder();
     }
 
     @Override
     public AntBuilder ant(Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("ant");
         return delegate.ant(configureClosure);
     }
 
     @Override
     public AntBuilder ant(Action<? super AntBuilder> configureAction) {
-        onMutableStateAccess();
+        onMutableStateAccess("ant");
         return delegate.ant(configureAction);
     }
 
@@ -617,13 +596,14 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
     }
 
     @Override
+    @AllowUsingApiForExternalUse
     public Map<String, Project> getChildProjects() {
         return delegate.getChildProjects();
     }
 
     @Override
     public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
-        onMutableStateAccess();
+        onMutableStateAccess("setProperty");
         delegate.setProperty(name, value);
     }
 
@@ -644,31 +624,31 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public Task task(String name) throws InvalidUserDataException {
-        onMutableStateAccess();
+        onMutableStateAccess("task");
         return delegate.task(name);
     }
 
     @Override
     public Task task(Map<String, ?> args, String name) throws InvalidUserDataException {
-        onMutableStateAccess();
+        onMutableStateAccess("task");
         return delegate.task(args, name);
     }
 
     @Override
     public Task task(Map<String, ?> args, String name, Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("task");
         return delegate.task(args, name, configureClosure);
     }
 
     @Override
     public Task task(String name, Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("task");
         return delegate.task(name, configureClosure);
     }
 
     @Override
     public Task task(String name, Action<? super Task> configureAction) {
-        onMutableStateAccess();
+        onMutableStateAccess("task");
         return delegate.task(name, configureAction);
     }
 
@@ -690,31 +670,31 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public List<String> getDefaultTasks() {
-        onMutableStateAccess();
+        onMutableStateAccess("defaultTasks");
         return delegate.getDefaultTasks();
     }
 
     @Override
     public void setDefaultTasks(List<String> defaultTasks) {
-        onMutableStateAccess();
+        onMutableStateAccess("defaultTasks");
         delegate.setDefaultTasks(defaultTasks);
     }
 
     @Override
     public void defaultTasks(String... defaultTasks) {
-        onMutableStateAccess();
+        onMutableStateAccess("defaultTasks");
         delegate.defaultTasks(defaultTasks);
     }
 
     @Override
     public Project evaluationDependsOn(String path) throws UnknownProjectException {
-        onMutableStateAccess();
+        onMutableStateAccess("evaluationDependsOn");
         return delegate.evaluationDependsOn(path);
     }
 
     @Override
     public void evaluationDependsOnChildren() {
-        onMutableStateAccess();
+        onMutableStateAccess("evaluationDependsOnChildren");
         delegate.evaluationDependsOnChildren();
     }
 
@@ -740,61 +720,55 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public GradleInternal getGradle() {
-        onMutableStateAccess();
         return delegate.getGradle();
     }
 
     @Override
     public LoggingManager getLogging() {
-        onMutableStateAccess();
         return delegate.getLogging();
     }
 
     @Override
     public Object configure(Object object, Closure configureClosure) {
-        onMutableStateAccess();
         return delegate.configure(object, configureClosure);
     }
 
     @Override
     public Iterable<?> configure(Iterable<?> objects, Closure configureClosure) {
-        onMutableStateAccess();
         return delegate.configure(objects, configureClosure);
     }
 
     @Override
     public <T> Iterable<T> configure(Iterable<T> objects, Action<? super T> configureAction) {
-        onMutableStateAccess();
         return delegate.configure(objects, configureAction);
     }
 
     @Override
     public RepositoryHandler getRepositories() {
-        onMutableStateAccess();
+        onMutableStateAccess("repositories");
         return delegate.getRepositories();
     }
 
     @Override
     public void repositories(Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("repositories");
         delegate.repositories(configureClosure);
     }
 
     @Override
     public DependencyHandler getDependencies() {
-        onMutableStateAccess();
+        onMutableStateAccess("dependencies");
         return delegate.getDependencies();
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("dependencies");
         delegate.dependencies(configureClosure);
     }
 
     @Override
     public DependencyFactory getDependencyFactory() {
-        onMutableStateAccess();
         return delegate.getDependencyFactory();
     }
 
@@ -840,49 +814,45 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public ProjectStateInternal getState() {
-        onMutableStateAccess();
+        onMutableStateAccess("state");
         return delegate.getState();
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-        onMutableStateAccess();
         return delegate.container(type);
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-        onMutableStateAccess();
         return delegate.container(type, factory);
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        onMutableStateAccess();
         return delegate.container(type, factoryClosure);
     }
 
     @Override
     public ExtensionContainerInternal getExtensions() {
-        onMutableStateAccess();
+        onMutableStateAccess("extensions");
         return delegate.getExtensions();
     }
 
     @Override
     public ResourceHandler getResources() {
-        onMutableStateAccess();
         return delegate.getResources();
     }
 
     @Override
     public SoftwareComponentContainer getComponents() {
-        onMutableStateAccess();
+        onMutableStateAccess("components");
         return delegate.getComponents();
     }
 
     @Override
     public void components(Action<? super SoftwareComponentContainer> configuration) {
-        onMutableStateAccess();
+        onMutableStateAccess("components");
         delegate.components(configuration);
     }
 
@@ -937,7 +907,6 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
         return delegate.getProjectPath();
     }
 
-    @Nullable
     @Override
     public ProjectInternal getProject() {
         return this;
@@ -986,73 +955,67 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public InputNormalizationHandlerInternal getNormalization() {
-        onMutableStateAccess();
+        onMutableStateAccess("normalization");
         return delegate.getNormalization();
     }
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
-        onMutableStateAccess();
+        onMutableStateAccess("normalization");
         delegate.normalization(configuration);
     }
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
-        onMutableStateAccess();
+        onMutableStateAccess("dependencyLocking");
         delegate.dependencyLocking(configuration);
     }
 
     @Override
     public DependencyLockingHandler getDependencyLocking() {
-        onMutableStateAccess();
+        onMutableStateAccess("dependencyLocking");
         return delegate.getDependencyLocking();
     }
 
     @Override
     public ScriptHandlerInternal getBuildscript() {
-        onMutableStateAccess();
+        onMutableStateAccess("buildscript");
         return delegate.getBuildscript();
     }
 
     @Override
     public void buildscript(Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("buildscript");
         delegate.buildscript(configureClosure);
     }
 
     @Override
     public WorkResult copy(Closure closure) {
-        onMutableStateAccess();
         return delegate.copy(closure);
     }
 
     @Override
     public WorkResult copy(Action<? super CopySpec> action) {
-        onMutableStateAccess();
         return delegate.copy(action);
     }
 
     @Override
     public CopySpec copySpec(Closure closure) {
-        onMutableStateAccess();
         return delegate.copySpec(closure);
     }
 
     @Override
     public CopySpec copySpec(Action<? super CopySpec> action) {
-        onMutableStateAccess();
         return delegate.copySpec(action);
     }
 
     @Override
     public CopySpec copySpec() {
-        onMutableStateAccess();
         return delegate.copySpec();
     }
 
     @Override
     public WorkResult sync(Action<? super SyncSpec> action) {
-        onMutableStateAccess();
         return delegate.sync(action);
     }
 
@@ -1063,44 +1026,45 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public Property<Object> getInternalStatus() {
-        onMutableStateAccess();
+        onMutableStateAccess("internalStatus");
         return delegate.getInternalStatus();
     }
 
     @Override
     public RoleBasedConfigurationContainerInternal getConfigurations() {
-        onMutableStateAccess();
+        onMutableStateAccess("configurations");
         return delegate.getConfigurations();
     }
 
     @Override
     public void configurations(Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("configurations");
         delegate.configurations(configureClosure);
     }
 
     @Override
     public ArtifactHandler getArtifacts() {
-        onMutableStateAccess();
+        onMutableStateAccess("artifacts");
         return delegate.getArtifacts();
     }
 
     @Override
     public void artifacts(Closure configureClosure) {
-        onMutableStateAccess();
+        onMutableStateAccess("artifacts");
         delegate.artifacts(configureClosure);
     }
 
     @Override
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
-        onMutableStateAccess();
+        onMutableStateAccess("artifacts");
         delegate.artifacts(configureAction);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
+    @SuppressWarnings("deprecation")
+    @Deprecated(message = "The concept of conventions is deprecated. Use extensions instead.")
     public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess();
+        onMutableStateAccess("convention");
         return delegate.getConvention();
     }
 
@@ -1131,31 +1095,31 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public PluginContainer getPlugins() {
-        onMutableStateAccess();
+        onMutableStateAccess("plugins");
         return delegate.getPlugins();
     }
 
     @Override
     public void apply(Closure closure) {
-        onMutableStateAccess();
+        onMutableStateAccess("apply");
         delegate.apply(closure);
     }
 
     @Override
     public void apply(Action<? super ObjectConfigurationAction> action) {
-        onMutableStateAccess();
+        onMutableStateAccess("apply");
         delegate.apply(action);
     }
 
     @Override
     public void apply(Map<String, ?> options) {
-        onMutableStateAccess();
+        onMutableStateAccess("apply");
         delegate.apply(options);
     }
 
     @Override
     public PluginManagerInternal getPluginManager() {
-        onMutableStateAccess();
+        onMutableStateAccess("pluginManager");
         return delegate.getPluginManager();
     }
 

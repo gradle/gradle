@@ -41,8 +41,13 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     }
 
     @Override
-    void onMutableStateAccess() {
+    protected void onMutableStateAccess(String what) {
         eagerLifecycleExecutor.executeAllprojectsFor(delegate);
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 
     @Override
@@ -59,5 +64,10 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
         } else {
             return delegate.equals(other);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return delegate.hashCode();
     }
 }
