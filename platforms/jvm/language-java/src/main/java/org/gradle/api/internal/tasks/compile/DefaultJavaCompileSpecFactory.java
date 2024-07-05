@@ -19,11 +19,10 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultJavaCompileSpec> {
-    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata toolchain) {
+    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, JavaInstallationMetadata toolchain) {
         super(compileOptions, toolchain);
     }
 
@@ -38,7 +37,7 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
     }
 
     @Override
-    protected DefaultJavaCompileSpec getDefaultSpec() {
+    protected DefaultJavaCompileSpec getInProcessSpec() {
         return new DefaultJavaCompileSpec();
     }
 
