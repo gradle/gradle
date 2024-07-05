@@ -26,6 +26,7 @@ val libs = project.the<ExternalModulesExtension>()
 dependencies {
     api(project(":base-asm"))
     api(project(":internal-instrumentation-api"))
+    implementation(project(":instrumentation-reporting"))
     compileOnly(libs.asm)
     compileOnly(libs.asmUtil)
     compileOnly(libs.asmTree)

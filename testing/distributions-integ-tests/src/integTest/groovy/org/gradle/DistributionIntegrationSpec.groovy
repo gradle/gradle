@@ -83,6 +83,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "input-tracking",
         "installation-beacon",
         "instrumentation-agent-services",
+        "instrumentation-reporting",
         "internal-instrumentation-api",
         "io",
         "java-api-extractor",
