@@ -28,6 +28,22 @@ package org.gradle.internal.service.scopes;
  * over a given <em>user build</em> to do some work.
  * It can be a command-line invocation or a Tooling API client request (e.g. an IDE sync).
  *
+ * <pre>
+ *            Global
+ *     ┌────────┴─────────┐
+ *  UserHome      CrossBuildSession
+ *     └────────┬─────────┘
+ *         BuildSession
+ *              │
+ *          BuildTree
+ *              │
+ *            Build
+ *              │
+ *            Gradle
+ *              │
+ *           Project
+ * </pre>
+ *
  * @see ServiceScope
  */
 public interface Scope {
