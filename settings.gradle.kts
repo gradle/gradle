@@ -97,6 +97,7 @@ val core = platform("core") {
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
         subproject("instrumentation-declarations")
+        subproject("instrumentation-reporting")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
         subproject("io")
