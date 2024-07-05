@@ -17,17 +17,19 @@
 package org.gradle.internal.service.scopes;
 
 /**
- * Scopes represent the state, services and lifetime of each activity performed by Gradle as part of
+ * Each scope corresponds to some state managed by Gradle when
  * executing a <em>Gradle invocation</em> against a <em>user build</em>.
  * <p>
  * <b>User build</b> is a collection of files on disk that constitutes the user's software project,
  * building of which is orchestrated by Gradle.
- * It can be a Java library, a backend microservice, or an enterprise monorepo.
+ * It can be a Java library, an enterprise monorepo or anything else.
  * <p>
  * <b>Gradle invocation</b> is a direct or indirect request of the user to invoke Gradle
  * over a given <em>user build</em> to do some work.
  * It can be a command-line invocation or a Tooling API client request (e.g. an IDE sync).
  *
+ * <h4>Scope hierarchy</h4>
+ * The scopes are arranged in a hierarchy (with some scopes having multiple parents):
  * <pre>
  *            Global
  *     ┌────────┴─────────┐
@@ -43,6 +45,39 @@ package org.gradle.internal.service.scopes;
  *              │
  *           Project
  * </pre>
+ *
+ * Each scope roughly corresponds to the following user-facing concepts:
+ * <ul>
+ * <li>{@link Global}            — Gradle daemon process
+ * <li>{@link UserHome}          — Gradle user home
+ * <li>{@link CrossBuildSession} — exists mainly because of {@code GradleBuild} task
+ * <li>{@link BuildSession}      — continuous build
+ * <li>{@link BuildTree}         — composite build
+ * <li>{@link Build}             — build in a composite build
+ * <li>{@link Gradle}            — exists for historical reasons, almost empty
+ * <li>{@link Project}           — project in a build
+ * </ul>
+ *
+ * There can be multiple "instances" of a scope inside one "instance" of a parent scope.
+ * <p>
+ * For example, in a composite build, the simplified hierarchy of state can look like:
+ * <pre>
+ * build tree
+ * ├── root build
+ * │   ├── root project
+ * │   └── project
+ * └── included build
+ *     ├── root project
+ *     └── project
+ * </pre>
+ *
+ * <h4>Services and their visibility</h4>
+ * The state in each scope is created and managed by services registered in that scope.
+ * All services of a scope are assembled in a {@code ServiceRegistry}.
+ * When the registry is closed all its services are closed as well and the state is discarded.
+ * <p>
+ * Services of all parent scopes are visible to services in a given scope.
+ * For example, all {@code Global} services are visible to services in {@code UserHome} scope, but not vice versa.
  *
  * @see ServiceScope
  */
@@ -62,10 +97,10 @@ public interface Scope {
     interface Global extends Scope {}
 
     /**
-     * The scope of a Gradle invocation particular Gradle user home directory.
+     * The scope of a Gradle invocation with a specific Gradle user home directory.
      * <p>
-     * When that directory changes between Gradle invocations, the state is discarded and recreated.
-     * Otherwise, the state is reused between invocations.
+     * When the user-home directory changes between subsequent Gradle invocations in the same <em>build process</em>,
+     * this state is discarded and recreated. Otherwise, the state is reused between invocations.
      * <p>
      * A regular Gradle invocation deals with a single user home directory,
      * but the daemon can be potentially reused for invocations with other directories as well.
