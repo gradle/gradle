@@ -73,6 +73,7 @@ package org.gradle.internal.service;
  *     SomeService someService,
  *     MyService myServiceFromParent,
  *     List&lt;OtherService&gt; otherServices,
+ *     LazyService&lt;ExpensiveService&gt; lazyService,
  *     ServiceRegistry ownerServiceRegistry
  * ) { ... }</code></pre>
  * <p>
@@ -97,6 +98,12 @@ package org.gradle.internal.service;
  * from the current and all parent registries.
  * If there are no services of this type, the list will be <em>empty</em>.
  * See <code>List&lt;OtherService&gt; otherServices</code> in the example.
+ * <p>
+ *
+ * <b>Lazy dependency.</b>
+ * When the parameter is of type {@link LazyService LazyService&lt;T&gt;},
+ * it will receive a lazily instantiated dependency.
+ * See <code>LazyService&lt;ExpensiveService&gt; lazyService</code> in the example.
  * <p>
  *
  * <b>Owner dependency.</b>

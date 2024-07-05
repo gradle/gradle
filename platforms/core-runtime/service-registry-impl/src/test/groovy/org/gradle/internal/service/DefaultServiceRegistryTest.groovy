@@ -1672,6 +1672,11 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
+        <T> LazyService<T> asLazyService() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         void requiredBy(ServiceProvider serviceProvider) {
         }
     }

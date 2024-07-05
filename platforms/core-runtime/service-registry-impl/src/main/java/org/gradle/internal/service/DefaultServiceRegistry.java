@@ -662,7 +662,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    private static abstract class ManagedObjectServiceProvider implements ServiceProvider, Service {
+    private static abstract class ManagedObjectServiceProvider implements ServiceProvider, Service, LazyService<Object> {
         protected final DefaultServiceRegistry owner;
         private final Queue<ServiceProvider> dependents = new ConcurrentLinkedQueue<ServiceProvider>();
         private volatile Object instance;
@@ -678,6 +678,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             owner.ownServices.instanceRealized(this, instance);
         }
 
+        @Override
         public final Object getInstance() {
             Object result = instance;
             if (result == null) {
@@ -696,6 +697,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
          * Subclasses implement this method to create the service instance. It is never called concurrently and may not return null.
          */
         protected abstract Object createServiceInstance();
+
+        @Override
+        public <T> LazyService<T> asLazyService() {
+            return Cast.uncheckedCast(this);
+        }
 
         @Override
         public final void requiredBy(ServiceProvider serviceProvider) {
@@ -721,7 +727,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    private static abstract class SingletonService extends ManagedObjectServiceProvider {
+    private static abstract class SingletonService extends ManagedObjectServiceProvider implements LazyService<Object> {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
         protected final ServiceAccessScope accessScope;
@@ -1003,6 +1009,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         private FactoryMethodService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, List<? extends Type> serviceTypes, Object target, ServiceMethod method) {
             super(owner, accessScope, token, serviceTypes);
+            if (method.getMethod().getReturnType().isAssignableFrom(LazyService.class)) {
+                throw new ServiceValidationException(String.format("Cannot register service of type %s, use the actual service type instead", format(method.getServiceType())));
+            }
             validateImplementationForServiceTypes(serviceTypes, method.getServiceType());
             this.target = target;
             this.method = method;
@@ -1245,6 +1254,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             if (rawType.equals(Factory.class)) {
                 final Type typeArg = parameterizedType.getActualTypeArguments()[0];
                 return getFactoryService(typeArg, token, serviceProvider);
+            } else if (rawType.equals(LazyService.class)) {
+                final Type typeArg = parameterizedType.getActualTypeArguments()[0];
+                return getLazyService(typeArg, token, serviceProvider);
             }
             if (rawType instanceof Class) {
                 if (((Class<?>) rawType).isAssignableFrom(List.class)) {
@@ -1265,22 +1277,37 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     @Nullable
     private static Service getFactoryService(Type type, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
+        return serviceProvider.getFactory(resolveTypeParameter(type), token);
+    }
+
+    @Nullable
+    private static Service getLazyService(Type type, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
+        final Service delegate = serviceProvider.getService(resolveTypeParameter(type), token);
+        if (delegate == null) {
+            return null;
+        }
+
+        return new LazyServiceWrapper(delegate);
+    }
+
+    private static Class<?> resolveTypeParameter(Type type) {
         if (type instanceof Class) {
-            return serviceProvider.getFactory((Class) type, token);
+            return (Class<?>) type;
         }
         if (type instanceof WildcardType) {
             final WildcardType wildcardType = (WildcardType) type;
             if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
                 if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                    return serviceProvider.getFactory((Class<?>) wildcardType.getLowerBounds()[0], token);
+                    return (Class<?>) wildcardType.getLowerBounds()[0];
                 }
             }
             if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
                 if (wildcardType.getUpperBounds()[0] instanceof Class) {
-                    return serviceProvider.getFactory((Class<?>) wildcardType.getUpperBounds()[0], token);
+                    return (Class<?>) wildcardType.getUpperBounds()[0];
                 }
             }
         }
+
         throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(type)));
     }
 
@@ -1329,6 +1356,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public Object get() {
             return services;
+        }
+
+        @Override
+        public <T> LazyService<T> asLazyService() {
+            throw new UnsupportedOperationException("collection service cannot be lazy");
         }
 
         @Override
@@ -1448,7 +1480,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    private class ThisAsService implements ServiceProvider, Service {
+    private class ThisAsService implements ServiceProvider, Service, LazyService<ServiceRegistry> {
 
         private final ServiceAccessScope accessScope;
 
@@ -1494,8 +1526,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Object get() {
+        public ServiceRegistry get() {
             return DefaultServiceRegistry.this;
+        }
+
+        @Override
+        public <T> LazyService<T> asLazyService() {
+            return Cast.uncheckedCast(this);
+        }
+
+        @Override
+        public ServiceRegistry getInstance() {
+            return get();
         }
 
         @Override
