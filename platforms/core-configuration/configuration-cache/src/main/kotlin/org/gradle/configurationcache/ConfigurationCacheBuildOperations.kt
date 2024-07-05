@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.CheckStatus
 import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
 import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.ProjectInvalidationReasons
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
@@ -108,10 +109,12 @@ private
 class FingerprintCheckResult(
     private val checkResult: CheckedFingerprint
 ) : ConfigurationCacheCheckFingerprintBuildOperationType.Result {
-    init {
-        require(checkResult !is CheckedFingerprint.NotFound) {
-            "Should not emit build operation when entry is not found"
-        }
+
+    override fun getStatus(): CheckStatus = when (checkResult) {
+        is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
+        is CheckedFingerprint.Valid -> CheckStatus.VALID
+        is CheckedFingerprint.EntryInvalid -> CheckStatus.INVALID
+        is CheckedFingerprint.ProjectsInvalid -> CheckStatus.PARTIAL
     }
 
     override fun getBuildInvalidationReasons(): List<FingerprintInvalidationReason> {
@@ -128,6 +131,7 @@ class FingerprintCheckResult(
                     it.key.path, listOf(FingerprintInvalidationReasonImpl(it.value.toString()))
                 )
             }
+
             else -> emptyList()
         }
     }

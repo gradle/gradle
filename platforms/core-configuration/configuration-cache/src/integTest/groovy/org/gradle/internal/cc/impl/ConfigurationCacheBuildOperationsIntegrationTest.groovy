@@ -64,9 +64,14 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         then:
         workGraphStoredAndLoaded()
-        operations.none(ConfigurationCacheCheckFingerprintBuildOperationType)
+        def checkOp = operations.only(ConfigurationCacheCheckFingerprintBuildOperationType)
         def loadOp = operations.only(ConfigurationCacheLoadBuildOperationType)
         def storeOp = operations.only(ConfigurationCacheStoreBuildOperationType)
+        with(checkOp.result) {
+            status == "NOT_FOUND"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
         with(storeOp.result) {
             cacheEntrySize > 0
         }
@@ -81,6 +86,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         then:
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "VALID"
             buildInvalidationReasons == []
             projectInvalidationReasons == []
         }
@@ -106,7 +112,11 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         then:
         workGraphStoredAndLoaded()
-        operations.none(ConfigurationCacheCheckFingerprintBuildOperationType)
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "NOT_FOUND"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
 
         when: "changing the build-level contents"
 
@@ -116,6 +126,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         then: "build fingerprint is invalidated"
         workGraphStoredAndLoaded()
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "INVALID"
             buildInvalidationReasons == [
                 [message: "system property 'settings.property' has changed"]
             ]
@@ -130,6 +141,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         then: "build fingerprint is invalidated"
         workGraphStoredAndLoaded()
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "INVALID"
             buildInvalidationReasons == [
                 [message: "system property 'project.property' has changed"]
             ]

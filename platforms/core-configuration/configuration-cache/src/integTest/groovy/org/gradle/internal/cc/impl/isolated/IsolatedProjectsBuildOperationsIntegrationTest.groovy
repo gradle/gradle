@@ -28,7 +28,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
         """
     }
 
-    def "emits no fingerprint operation when running without cache entry"() {
+    def "emits not found fingerprint operation when running without cache entry"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
 
@@ -40,7 +40,32 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
         fetchAllModels()
 
         then:
-        operations.none(ConfigurationCacheCheckFingerprintBuildOperationType)
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "NOT_FOUND"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
+    }
+
+    def "emits fingerprint operation when cache hits"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+
+        buildFile """
+            plugins.apply(my.MyPlugin)
+        """
+
+        initializeCache()
+
+        when:
+        fetchAllModels()
+
+        then:
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "VALID"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
     }
 
     def "emits fingerprint check operation when invalidating build state"() {
@@ -61,6 +86,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits build invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "INVALID"
             buildInvalidationReasons == [
                 [message: "file 'settings.gradle' has changed"]
             ]
@@ -87,6 +113,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits project invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
@@ -127,6 +154,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits sub project invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
@@ -170,6 +198,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits subproject invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
@@ -220,6 +249,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits subproject invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
@@ -270,6 +300,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits subproject invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
@@ -316,6 +347,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
         then: "emits sub project invalidation reason"
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [

@@ -365,11 +365,11 @@ class DefaultConfigurationCache internal constructor(
         return store.useForStateLoad { layout ->
             val entryFile = layout.fileFor(StateType.Entry)
             val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-            if (entryDetails == null) {
-                // No entry file -> treat the entry as empty/missing/invalid
-                CheckedFingerprint.NotFound
-            } else {
-                buildOperationRunner.withFingerprintCheckOperations {
+            buildOperationRunner.withFingerprintCheckOperations {
+                if (entryDetails == null) {
+                    // No entry file -> treat the entry as empty/missing/invalid
+                    CheckedFingerprint.NotFound
+                } else {
                     checkFingerprint(entryDetails, layout)
                 }
             }

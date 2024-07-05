@@ -21,7 +21,7 @@ import org.gradle.internal.operations.BuildOperationType;
 import java.util.List;
 
 /**
- * Details about the configuration cache fingerprint check operation. This operation is only emitted when the configuration cache entry is available.
+ * Details about the configuration cache fingerprint check operation.
  *
  * @since 8.10
  */
@@ -36,15 +36,19 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
     /**
      * Result of the fingerprint check. The fingerprint can be:
      * <ul>
-     *     <li><b>Valid</b>: the cached configuration can be fully reused.
+     *     <li><b>Not found</b>: there is no cached configuration for the key. Corresponds to {@link CheckStatus#NOT_FOUND}.
+     *     Both {@link #getBuildInvalidationReasons()} and {@link #getProjectInvalidationReasons()} are empty.</li>
+     *     <li><b>Valid</b>: the cached configuration can be fully reused. Corresponds to {@link CheckStatus#VALID}.
      *     Both {@link #getBuildInvalidationReasons()} and {@link #getProjectInvalidationReasons()} are empty.</li>
      *
      *     <li><b>Partially invalidated</b>: some projects are invalidated and have to be reconfigured.
-     *     The rest of the configuration data is still reused.
+     *     The configuration is rebuilt but cached data of the unaffected projects is reused.
+     *     Corresponds to {@link CheckStatus#PARTIAL}.
      *     The {@link #getBuildInvalidationReasons()} list is empty.
      *     The {@link #getProjectInvalidationReasons()} list contains information about invalidated projects.</li>
      *
      *     <li><b>Fully invalidated</b>: some of the build-level inputs has changed. The entry is discarded and configuration phase reruns from scratch.
+     *     Corresponds to {@link CheckStatus#INVALID}.
      *     The {@link #getBuildInvalidationReasons()} list contains the invalidation reasons.
      *     The {@link #getProjectInvalidationReasons()} list is empty.</li>
      * </ul>
@@ -52,6 +56,15 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
      * @since 8.10
      */
     public interface Result {
+
+        /**
+         * Returns the overall status of the fingerprint check.
+         *
+         * @return the status
+         * @since 8.10
+         */
+        CheckStatus getStatus();
+
         /**
          * Returns the list of the build fingerprint invalidation reasons. Can be empty if all build-level inputs are up-to-date.
          * The entry may still be partially invalidated if any of the project-scoped fingerprints are invalid.
@@ -115,5 +128,38 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
          * @since 8.10
          */
         String getMessage();
+    }
+
+    /**
+     * An overall result of the fingerprint check.
+     *
+     * @since 8.10
+     */
+    public enum CheckStatus {
+        /**
+         * Fingerprint file was not found. Most likely, there is no cached configuration for the given key. No invalidation reasons are reported.
+         *
+         * @since 8.10
+         */
+        NOT_FOUND,
+        /**
+         * The cached entry is valid and can be reused. No invalidation reasons are reported.
+         *
+         * @since 8.10
+         */
+        VALID,
+        /**
+         * Configuration of some projects is invalidated. Configuration phase is going to be re-executed but the data from unaffected project will be reused.
+         * A list of invalidated projects and their invalidation reasons can be found in {@link Result#getProjectInvalidationReasons()}.
+         *
+         * @since 8.10
+         */
+        PARTIAL,
+        /**
+         * The cached entry is invalid. Configuration phase is going to be re-executed from scratch. A list of invalidation reasons can be found in {@link Result#getBuildInvalidationReasons()}.
+         *
+         * @since 8.10
+         */
+        INVALID
     }
 }
