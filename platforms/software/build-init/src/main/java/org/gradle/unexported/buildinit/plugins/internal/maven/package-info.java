@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.maven;
-
-public class Dependency {
-    private final String configuration;
-
-    public Dependency(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-}
+/**
+ * Maven buildinit classes used in the worker action.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.unexported.buildinit.plugins.internal.maven;

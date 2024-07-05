@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.maven;
+package org.gradle.unexported.buildinit.plugins.internal.maven;
 
-public class ProjectDependency extends Dependency {
-    private final String projectPath;
+public class Dependency {
+    private final String configuration;
 
-    public ProjectDependency(String configuration, String projectPath) {
-        super(configuration);
-        this.projectPath = projectPath;
+    public Dependency(String configuration) {
+        this.configuration = configuration;
     }
 
-    public String getProjectPath() {
-        return projectPath;
+    public String getConfiguration() {
+        return configuration;
     }
 }

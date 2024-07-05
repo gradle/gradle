@@ -50,6 +50,13 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
     }
 
     @Override
+    public Set<String> getUnexportedPackages() {
+        return ImmutableSet.of(
+            "org.gradle.unexported"
+        );
+    }
+
+    @Override
     public Set<String> getExportedResourcePrefixes() {
         return ImmutableSet.of(
             "META-INF/gradle-plugins"

@@ -23,6 +23,9 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.unexported.buildinit.plugins.internal.maven.Maven2Gradle
+import org.gradle.unexported.buildinit.plugins.internal.maven.MavenConversionException
+import org.gradle.unexported.buildinit.plugins.internal.maven.MavenProjectsCreator
 import org.junit.Rule
 import spock.lang.Specification
 

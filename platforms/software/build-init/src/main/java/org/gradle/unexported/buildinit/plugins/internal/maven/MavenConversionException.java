@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.maven;
+package org.gradle.unexported.buildinit.plugins.internal.maven;
 import org.gradle.internal.exceptions.Contextual;
 
 @Contextual

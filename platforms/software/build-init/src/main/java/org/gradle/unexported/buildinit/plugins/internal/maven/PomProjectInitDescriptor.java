@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal.maven;
+package org.gradle.unexported.buildinit.plugins.internal.maven;
 
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
