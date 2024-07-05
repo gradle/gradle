@@ -81,8 +81,8 @@ This works similarly to configuring projects in a multi-project build.
 The following sample shows how to perform extra configuration from an init script _before_ the projects are evaluated:
 
 ====
-include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
 include::sample[dir="snippets/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
+include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
 ====
 
 This sample uses this feature to configure an additional repository to be used only for specific environments.

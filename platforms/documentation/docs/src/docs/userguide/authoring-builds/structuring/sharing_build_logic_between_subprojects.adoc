@@ -251,9 +251,10 @@ While writing plugins is outside the scope of this section, the recommended way 
 
 Let's take a look at an example project:
 
+====
 [.multi-language-sample]
 =====
-[source, kotlin]
+[source,kotlin]
 ----
 .
 ├── buildSrc
@@ -282,7 +283,7 @@ Let's take a look at an example project:
 =====
 [.multi-language-sample]
 =====
-[source, groovy]
+[source,groovy]
 ----
 .
 ├── buildSrc
@@ -309,6 +310,7 @@ Let's take a look at an example project:
 <1> Create the `myproject.java-conventions` convention plugin.
 <2> Applies the `myproject.java-conventions` convention plugin.
 =====
+====
 
 This build contains three subprojects:
 
