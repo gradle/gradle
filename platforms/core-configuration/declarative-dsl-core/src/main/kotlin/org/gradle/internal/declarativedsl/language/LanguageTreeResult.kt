@@ -114,6 +114,8 @@ sealed interface UnsupportedLanguageFeature {
 
     data object SafeNavigation : UnsupportedLanguageFeature
 
+    data object ThisWithLabelQualifier : UnsupportedLanguageFeature
+
     data object Reflection : UnsupportedLanguageFeature
     data object TodoNotCoveredYet : UnsupportedLanguageFeature
 }

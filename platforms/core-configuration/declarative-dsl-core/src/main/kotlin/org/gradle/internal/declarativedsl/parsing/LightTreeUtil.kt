@@ -157,14 +157,16 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.print(
 
 internal
 fun FlyweightCapableTreeStructure<LighterASTNode>.children(
-    node: LighterASTNode
+    node: LighterASTNode,
+    filter: (LighterASTNode) -> Boolean = { true }
 ): List<LighterASTNode> {
     val ref = Ref<Array<LighterASTNode?>>()
     getChildren(node, ref)
     return ref.get()
         .filterNotNull()
         .filter { it.isUseful }
-} // TODO: any usages that need to be checked for parsing errors?
+        .filter { filter(it) }
+}
 
 
 internal

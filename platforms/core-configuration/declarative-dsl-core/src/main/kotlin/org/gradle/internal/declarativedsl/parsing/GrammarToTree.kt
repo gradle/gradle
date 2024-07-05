@@ -24,6 +24,7 @@ import org.gradle.internal.declarativedsl.language.SyntacticResult
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.ThisWithLabelQualifier
 import org.gradle.internal.declarativedsl.parsing.FailureCollectorContext.CheckedResult
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
@@ -45,6 +46,7 @@ import org.jetbrains.kotlin.KtNodeTypes.IMPORT_ALIAS
 import org.jetbrains.kotlin.KtNodeTypes.IMPORT_LIST
 import org.jetbrains.kotlin.KtNodeTypes.INTEGER_CONSTANT
 import org.jetbrains.kotlin.KtNodeTypes.LABELED_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.LABEL_QUALIFIER
 import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_ARGUMENT
 import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.LITERAL_STRING_TEMPLATE_ENTRY
@@ -241,7 +243,7 @@ class GrammarToTree(
             OPERATION_REFERENCE -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperator)
             PARENTHESIZED -> parenthesized(tree, node)
             LAMBDA_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.FunctionDeclaration)
-            THIS_EXPRESSION -> Element(This(tree.sourceData(node)))
+            THIS_EXPRESSION -> thisExpression(tree, node)
             else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in expression: $tokenType")
         }
 
@@ -611,6 +613,14 @@ class GrammarToTree(
                 }
             }
         }
+
+    private
+    fun thisExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> {
+        if (tree.children(node) { it.tokenType == LABEL_QUALIFIER }.isNotEmpty()) {
+            return tree.unsupported(node, ThisWithLabelQualifier)
+        }
+        return Element(This(tree.sourceData(node)))
+    }
 
     @Suppress("NestedBlockDepth")
     private

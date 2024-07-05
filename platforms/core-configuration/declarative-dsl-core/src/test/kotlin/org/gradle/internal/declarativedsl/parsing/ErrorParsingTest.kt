@@ -1,7 +1,6 @@
 package org.gradle.internal.declarativedsl.parsing
 
 
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.jupiter.api.Test
 
 
@@ -227,7 +226,6 @@ class ErrorParsingTest {
     }
 
     @Test
-    @ToBeImplemented // TODO: remove/fix
     fun `'this@' unsupported`() {
         val results = ParseTestUtil.parse(
             """
@@ -236,20 +234,18 @@ class ErrorParsingTest {
         )
 
         val expected = """
-            Assignment [indexes: 0..13, line/column: 1/1..1/14, file: test] (
-                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
-                    name = a
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = ThisWithLabelQualifier,
+                    potentialElementSource = indexes: 4..13, line/column: 1/5..1/14, file: test,
+                    erroneousSource = indexes: 4..13, line/column: 1/5..1/14, file: test
                 )
-                rhs = This
             )""".trimIndent()
         results.assert(expected)
-
-        // TODO: should produce an unsupported language feature error instead
     }
 
     @Test
-    @ToBeImplemented // TODO: remove/fix
-    fun `backtick identifiers unsupported`() {
+    fun `backtick identifiers`() {
         val results = ParseTestUtil.parse(
             """
             `some content with spaces`()
@@ -267,19 +263,16 @@ class ErrorParsingTest {
                 rhs = IntLiteral [indexes: 61..62, line/column: 2/33..2/34, file: test] (1)
             )""".trimIndent()
         results.assert(expected)
-
-        // TODO: should produce an unsupported language feature error instead
     }
 
     @Test
-    @ToBeImplemented // TODO: remove/fix
     fun `reserved keywords`() {
         val results = ParseTestUtil.parse(
             """
             val abstract = 1
             val annotation = 1
             val by = 1
-            /*val catch = 1
+            val catch = 1
             val companion = 1
             val constructor = 1
             val crossinline = 1
@@ -322,7 +315,7 @@ class ErrorParsingTest {
             val actual = 1
             val const = 1
             val suspend = 1
-            val value = 1*/
+            val value = 1
             """.trimIndent()
         )
 
@@ -338,10 +331,184 @@ class ErrorParsingTest {
             LocalValue [indexes: 36..46, line/column: 3/1..3/11, file: test] (
                 name = by
                 rhs = IntLiteral [indexes: 45..46, line/column: 3/10..3/11, file: test] (1)
+            )
+            LocalValue [indexes: 47..60, line/column: 4/1..4/14, file: test] (
+                name = catch
+                rhs = IntLiteral [indexes: 59..60, line/column: 4/13..4/14, file: test] (1)
+            )
+            LocalValue [indexes: 61..78, line/column: 5/1..5/18, file: test] (
+                name = companion
+                rhs = IntLiteral [indexes: 77..78, line/column: 5/17..5/18, file: test] (1)
+            )
+            LocalValue [indexes: 79..98, line/column: 6/1..6/20, file: test] (
+                name = constructor
+                rhs = IntLiteral [indexes: 97..98, line/column: 6/19..6/20, file: test] (1)
+            )
+            LocalValue [indexes: 99..118, line/column: 7/1..7/20, file: test] (
+                name = crossinline
+                rhs = IntLiteral [indexes: 117..118, line/column: 7/19..7/20, file: test] (1)
+            )
+            LocalValue [indexes: 119..131, line/column: 8/1..8/13, file: test] (
+                name = data
+                rhs = IntLiteral [indexes: 130..131, line/column: 8/12..8/13, file: test] (1)
+            )
+            LocalValue [indexes: 132..147, line/column: 9/1..9/16, file: test] (
+                name = dynamic
+                rhs = IntLiteral [indexes: 146..147, line/column: 9/15..9/16, file: test] (1)
+            )
+            LocalValue [indexes: 148..160, line/column: 10/1..10/13, file: test] (
+                name = enum
+                rhs = IntLiteral [indexes: 159..160, line/column: 10/12..10/13, file: test] (1)
+            )
+            LocalValue [indexes: 161..177, line/column: 11/1..11/17, file: test] (
+                name = external
+                rhs = IntLiteral [indexes: 176..177, line/column: 11/16..11/17, file: test] (1)
+            )
+            LocalValue [indexes: 178..191, line/column: 12/1..12/14, file: test] (
+                name = final
+                rhs = IntLiteral [indexes: 190..191, line/column: 12/13..12/14, file: test] (1)
+            )
+            LocalValue [indexes: 192..207, line/column: 13/1..13/16, file: test] (
+                name = finally
+                rhs = IntLiteral [indexes: 206..207, line/column: 13/15..13/16, file: test] (1)
+            )
+            LocalValue [indexes: 208..219, line/column: 14/1..14/12, file: test] (
+                name = get
+                rhs = IntLiteral [indexes: 218..219, line/column: 14/11..14/12, file: test] (1)
+            )
+            LocalValue [indexes: 220..234, line/column: 15/1..15/15, file: test] (
+                name = import
+                rhs = IntLiteral [indexes: 233..234, line/column: 15/14..15/15, file: test] (1)
+            )
+            LocalValue [indexes: 235..248, line/column: 16/1..16/14, file: test] (
+                name = infix
+                rhs = IntLiteral [indexes: 247..248, line/column: 16/13..16/14, file: test] (1)
+            )
+            LocalValue [indexes: 249..261, line/column: 17/1..17/13, file: test] (
+                name = init
+                rhs = IntLiteral [indexes: 260..261, line/column: 17/12..17/13, file: test] (1)
+            )
+            LocalValue [indexes: 262..276, line/column: 18/1..18/15, file: test] (
+                name = inline
+                rhs = IntLiteral [indexes: 275..276, line/column: 18/14..18/15, file: test] (1)
+            )
+            LocalValue [indexes: 277..290, line/column: 19/1..19/14, file: test] (
+                name = inner
+                rhs = IntLiteral [indexes: 289..290, line/column: 19/13..19/14, file: test] (1)
+            )
+            LocalValue [indexes: 291..307, line/column: 20/1..20/17, file: test] (
+                name = internal
+                rhs = IntLiteral [indexes: 306..307, line/column: 20/16..20/17, file: test] (1)
+            )
+            LocalValue [indexes: 308..324, line/column: 21/1..21/17, file: test] (
+                name = lateinit
+                rhs = IntLiteral [indexes: 323..324, line/column: 21/16..21/17, file: test] (1)
+            )
+            LocalValue [indexes: 325..341, line/column: 22/1..22/17, file: test] (
+                name = noinline
+                rhs = IntLiteral [indexes: 340..341, line/column: 22/16..22/17, file: test] (1)
+            )
+            LocalValue [indexes: 342..354, line/column: 23/1..23/13, file: test] (
+                name = open
+                rhs = IntLiteral [indexes: 353..354, line/column: 23/12..23/13, file: test] (1)
+            )
+            LocalValue [indexes: 355..371, line/column: 24/1..24/17, file: test] (
+                name = operator
+                rhs = IntLiteral [indexes: 370..371, line/column: 24/16..24/17, file: test] (1)
+            )
+            LocalValue [indexes: 372..383, line/column: 25/1..25/12, file: test] (
+                name = out
+                rhs = IntLiteral [indexes: 382..383, line/column: 25/11..25/12, file: test] (1)
+            )
+            LocalValue [indexes: 384..400, line/column: 26/1..26/17, file: test] (
+                name = override
+                rhs = IntLiteral [indexes: 399..400, line/column: 26/16..26/17, file: test] (1)
+            )
+            LocalValue [indexes: 401..416, line/column: 27/1..27/16, file: test] (
+                name = private
+                rhs = IntLiteral [indexes: 415..416, line/column: 27/15..27/16, file: test] (1)
+            )
+            LocalValue [indexes: 417..434, line/column: 28/1..28/18, file: test] (
+                name = protected
+                rhs = IntLiteral [indexes: 433..434, line/column: 28/17..28/18, file: test] (1)
+            )
+            LocalValue [indexes: 435..449, line/column: 29/1..29/15, file: test] (
+                name = public
+                rhs = IntLiteral [indexes: 448..449, line/column: 29/14..29/15, file: test] (1)
+            )
+            LocalValue [indexes: 450..465, line/column: 30/1..30/16, file: test] (
+                name = reified
+                rhs = IntLiteral [indexes: 464..465, line/column: 30/15..30/16, file: test] (1)
+            )
+            LocalValue [indexes: 466..480, line/column: 31/1..31/15, file: test] (
+                name = sealed
+                rhs = IntLiteral [indexes: 479..480, line/column: 31/14..31/15, file: test] (1)
+            )
+            LocalValue [indexes: 481..496, line/column: 32/1..32/16, file: test] (
+                name = tailrec
+                rhs = IntLiteral [indexes: 495..496, line/column: 32/15..32/16, file: test] (1)
+            )
+            LocalValue [indexes: 497..508, line/column: 33/1..33/12, file: test] (
+                name = set
+                rhs = IntLiteral [indexes: 507..508, line/column: 33/11..33/12, file: test] (1)
+            )
+            LocalValue [indexes: 509..523, line/column: 34/1..34/15, file: test] (
+                name = vararg
+                rhs = IntLiteral [indexes: 522..523, line/column: 34/14..34/15, file: test] (1)
+            )
+            LocalValue [indexes: 524..537, line/column: 35/1..35/14, file: test] (
+                name = where
+                rhs = IntLiteral [indexes: 536..537, line/column: 35/13..35/14, file: test] (1)
+            )
+            LocalValue [indexes: 538..551, line/column: 36/1..36/14, file: test] (
+                name = field
+                rhs = IntLiteral [indexes: 550..551, line/column: 36/13..36/14, file: test] (1)
+            )
+            LocalValue [indexes: 552..568, line/column: 37/1..37/17, file: test] (
+                name = property
+                rhs = IntLiteral [indexes: 567..568, line/column: 37/16..37/17, file: test] (1)
+            )
+            LocalValue [indexes: 569..585, line/column: 38/1..38/17, file: test] (
+                name = receiver
+                rhs = IntLiteral [indexes: 584..585, line/column: 38/16..38/17, file: test] (1)
+            )
+            LocalValue [indexes: 586..599, line/column: 39/1..39/14, file: test] (
+                name = param
+                rhs = IntLiteral [indexes: 598..599, line/column: 39/13..39/14, file: test] (1)
+            )
+            LocalValue [indexes: 600..616, line/column: 40/1..40/17, file: test] (
+                name = setparam
+                rhs = IntLiteral [indexes: 615..616, line/column: 40/16..40/17, file: test] (1)
+            )
+            LocalValue [indexes: 617..633, line/column: 41/1..41/17, file: test] (
+                name = delegate
+                rhs = IntLiteral [indexes: 632..633, line/column: 41/16..41/17, file: test] (1)
+            )
+            LocalValue [indexes: 634..646, line/column: 42/1..42/13, file: test] (
+                name = file
+                rhs = IntLiteral [indexes: 645..646, line/column: 42/12..42/13, file: test] (1)
+            )
+            LocalValue [indexes: 647..661, line/column: 43/1..43/15, file: test] (
+                name = expect
+                rhs = IntLiteral [indexes: 660..661, line/column: 43/14..43/15, file: test] (1)
+            )
+            LocalValue [indexes: 662..676, line/column: 44/1..44/15, file: test] (
+                name = actual
+                rhs = IntLiteral [indexes: 675..676, line/column: 44/14..44/15, file: test] (1)
+            )
+            LocalValue [indexes: 677..690, line/column: 45/1..45/14, file: test] (
+                name = const
+                rhs = IntLiteral [indexes: 689..690, line/column: 45/13..45/14, file: test] (1)
+            )
+            LocalValue [indexes: 691..706, line/column: 46/1..46/16, file: test] (
+                name = suspend
+                rhs = IntLiteral [indexes: 705..706, line/column: 46/15..46/16, file: test] (1)
+            )
+            LocalValue [indexes: 707..720, line/column: 47/1..47/14, file: test] (
+                name = value
+                rhs = IntLiteral [indexes: 719..720, line/column: 47/13..47/14, file: test] (1)
             )""".trimIndent()
         results.assert(expected)
-
-        // TODO: is this ok? should we issue unsupported language feature errors for such reserved keywords?
     }
 
     @Test

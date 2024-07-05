@@ -19,7 +19,6 @@ package org.gradle.internal.declarativedsl.parsing
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.jupiter.api.Test
 
-@ToBeImplemented // TODO: remove/fix
 class LiteralConstantParsingTest {
 
     @Test
@@ -654,8 +653,6 @@ class LiteralConstantParsingTest {
                     )
                 )""".trimIndent()
         results.assert(removeCommentAndEmptyLines(expected))
-
-        // TODO: the upper-case values should probably produce an error instead of a property access
     }
 
 }
