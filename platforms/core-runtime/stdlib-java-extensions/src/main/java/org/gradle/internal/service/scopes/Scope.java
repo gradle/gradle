@@ -28,7 +28,7 @@ package org.gradle.internal.service.scopes;
  * over a given <em>user build</em> to do some work.
  * It can be a command-line invocation or a Tooling API client request (e.g. an IDE sync).
  *
- * <h4>Scope hierarchy</h4>
+ * <h3>Scope hierarchy</h3>
  * The scopes are arranged in a hierarchy (with some scopes having multiple parents):
  * <pre>
  *            Global
