@@ -15,8 +15,13 @@
  */
 package org.gradle.api.internal.artifacts
 
+import org.gradle.api.Buildable
+import org.gradle.api.Task
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.internal.tasks.WorkNodeAction
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.util.Matchers
@@ -49,5 +54,48 @@ class DefaultResolvableArtifactTest extends Specification {
 
     def dep(String group, String moduleName, String version) {
         new DefaultModuleVersionIdentifier(group, moduleName, version)
+    }
+
+    def "visiting producer tasks works properly"() {
+        def dependency = dep('group', 'module1', '1.2')
+        def artifactSource = Stub(CalculatedValue)
+        def ivyArt = Stub(IvyArtifactName)
+        def artifactId = Stub(ComponentArtifactIdentifier)
+        def tasks = [
+            Stub(Task, name: 'task1'),
+            Stub(Task, name: 'task2'),
+            Stub(Task, name: 'task3'),
+            Stub(Task, name: 'task4'),
+            Stub(Task, name: 'task5')
+        ]
+        def taskIndex = 0;
+        def buildDependencies = Stub(TaskDependencyContainer) {
+            visitDependencies(_) >> { TaskDependencyResolveContext context ->
+                context.add(tasks[taskIndex++])
+                context.add(Stub(TaskDependency) {
+                    getDependencies(null) >> [tasks[taskIndex++], tasks[taskIndex++]]
+                })
+                context.add(Mock(TaskDependencyContainer) {
+                    1 * visitDependencies(context)
+                })
+                context.add(Stub(Buildable) {
+                    buildDependencies >> Stub(TaskDependency) {
+                        getDependencies(null) >> [tasks[taskIndex++], tasks[taskIndex++]]
+                    }
+                })
+                context.add(Mock(WorkNodeAction) {
+                    1 * visitDependencies(context)
+                })
+            }
+        }
+
+        def artifact = new DefaultResolvableArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+
+        when:
+        def producerTasks = []
+        artifact.visitProducerTasks(producerTasks::add);
+
+        then:
+        producerTasks == tasks
     }
 }

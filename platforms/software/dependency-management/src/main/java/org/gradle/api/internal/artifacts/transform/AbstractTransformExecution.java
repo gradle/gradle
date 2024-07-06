@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -131,6 +132,14 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     public WorkOutput execute(ExecutionRequest executionRequest) {
         transformExecutionListener.beforeTransformExecution(transform, subject);
         try {
+            subject.getProducerTasks().forEach(producerTask -> {
+                if (!producerTask.getState().getExecuted()) {
+                    DeprecationLogger.deprecateAction(String.format("Executing the transform %s before %s has completed", transform.getDisplayName(), producerTask))
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "executing_a_transform_before_the_input_task_has_completed")
+                        .nagUser();
+                }
+            });
             return executeWithinTransformerListener(executionRequest);
         } finally {
             transformExecutionListener.afterTransformExecution(transform, subject);
