@@ -22,7 +22,7 @@ class GradleRunnerJavaCompilationIntegrationTest extends BaseGradleRunnerIntegra
         given:
         buildScript """
             plugins {
-                id 'java-library'
+                id 'java'
             }
         """
         file("src/main/java/Hello.java").text = "public class Hello {}"
