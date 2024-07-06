@@ -249,4 +249,18 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
         result.groupedOutput.subjectsFor('GreenMultiplier') == initialSubjects
         result.groupedOutput.subjectsFor('BlueMultiplier') == initialSubjects
     }
+
+    def "warns when a transform is executed prematurely"() {
+        buildFile << '''project(':util') { resolveGreen.inputs.files.files }'''
+        consoleType = ConsoleOutput.Plain
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Executing the transform GreenMultiplier before task ':lib:jar1' has completed has been deprecated. " +
+            'This will fail with an error in Gradle 9.0. ' +
+            'Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#executing_a_transform_before_the_input_task_has_completed')
+        executer.expectDocumentedDeprecationWarning("Executing the transform GreenMultiplier before task ':lib:jar2' has completed has been deprecated. " +
+            'This will fail with an error in Gradle 9.0. ' +
+            'Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#executing_a_transform_before_the_input_task_has_completed')
+        runAndFail(":util:resolveBlue", "-DshowOutput")
+    }
 }
