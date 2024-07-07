@@ -195,12 +195,85 @@ abstract class AbstractIntegrationSpec extends Specification {
         return "junit:junit:4.13"
     }
 
-    void buildFile(@GroovyBuildScriptLanguage String script) {
-        groovyFile(buildFile, script)
+    /**
+     * <b>Appends</b> provided code to the {@link #getBuildFile() default build file}.
+     * <p>
+     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void buildFile(@GroovyBuildScriptLanguage String append) {
+        buildFile << append
     }
 
-    void settingsFile(@GroovyBuildScriptLanguage String script) {
-        groovyFile(settingsFile, script)
+    /**
+     * <b>Appends</b> provided code to the given build file.
+     * <p>
+     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
+        file(buildFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given build file.
+     * <p>
+     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void buildFile(TestFile buildFile, @GroovyBuildScriptLanguage String append) {
+        buildFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the {@link #getSettingsFile() default settings file}.
+     * <p>
+     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void settingsFile(@GroovySettingsScriptLanguage String append) {
+        settingsFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given settings file.
+     * <p>
+     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
+        file(settingsFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given settings file.
+     * <p>
+     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void settingsFile(TestFile settingsFile, @GroovySettingsScriptLanguage String append) {
+        settingsFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the {@link #getInitScriptFile() default init script file}.
+     * <p>
+     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void initScriptFile(@GroovyInitScriptLanguage String append) {
+        initScriptFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given init script file.
+     * <p>
+     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
+        file(initScriptFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given init script file.
+     * <p>
+     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void initScriptFile(TestFile initScriptFile, @GroovyInitScriptLanguage String append) {
+        initScriptFile << append
     }
 
     /**
