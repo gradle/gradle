@@ -18,6 +18,8 @@ package gradlebuild.integrationtests.action
 
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Property
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.workers.WorkAction
@@ -27,6 +29,7 @@ import java.io.File
 import java.io.IOException
 import java.lang.reflect.Method
 import java.lang.reflect.Type
+import kotlin.reflect.KClass
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
 
@@ -47,8 +50,15 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
         if (!packageDirectory.exists() && !packageDirectory.mkdirs()) {
             throw IOException("Failed to create directory `$packageDirectory`")
         }
-        val groovyAnnotationFile = File(packageDirectory, "GroovyBuildScriptLanguage.groovy")
-        groovyAnnotationFile.writeText(generateGroovyAnnotation(packageName))
+
+        writeAnnotationFile(packageDirectory, packageName, "GroovyBuildScriptLanguage") { groovyReceiverAccessors<Project>() }
+        writeAnnotationFile(packageDirectory, packageName, "GroovySettingsScriptLanguage") { groovyReceiverAccessors<Settings>() }
+        writeAnnotationFile(packageDirectory, packageName, "GroovyInitScriptLanguage") { groovyReceiverAccessors<Gradle>() }
+    }
+
+    private fun writeAnnotationFile(packageDirectory: File, packageName: String, name: String, scriptReceiverAccessors: () -> String) {
+        val groovyBuildScriptAnnotationFile = File(packageDirectory, "$name.groovy")
+        groovyBuildScriptAnnotationFile.writeText(generateGroovyAnnotation(packageName, name, scriptReceiverAccessors))
     }
 
     private
@@ -61,8 +71,8 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
     }
 
     private
-    fun generateGroovyAnnotation(packageName: String): String {
-        @Suppress("UnnecessaryVariable")
+    fun generateGroovyAnnotation(packageName: String, name: String, scriptReceiverAccessors: () -> String): String {
+        @Suppress("GrPackage")
         @Language("groovy")
         val annotationBody = """
         |/*
@@ -100,9 +110,9 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
         |@Language(value = "groovy", prefix = '''
         |${groovyImports().withTrimmableMargin()}
         |
-        |${groovyProjectAccessors().withTrimmableMargin()}
+        |${scriptReceiverAccessors().withTrimmableMargin()}
         |''')
-        |@interface GroovyBuildScriptLanguage {}
+        |@interface $name {}
         |""".trimMargin() + '\n'
         return annotationBody
     }
@@ -123,9 +133,14 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
     }
 
     private
-    fun groovyProjectAccessors(): String {
+    inline fun <reified Receiver> groovyReceiverAccessors(): String {
+        return groovyReceiverAccessors(Receiver::class)
+    }
+
+    private
+    fun groovyReceiverAccessors(receiverType: KClass<*>): String {
         val objectMethods = Any::class.java.declaredMethods.toList()
-        return Project::class
+        return receiverType
             .memberFunctions
             .asSequence()
             .mapNotNull { it.javaMethod }
