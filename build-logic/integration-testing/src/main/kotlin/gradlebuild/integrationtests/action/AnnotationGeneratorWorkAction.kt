@@ -51,9 +51,17 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
             throw IOException("Failed to create directory `$packageDirectory`")
         }
 
-        writeAnnotationFile(packageDirectory, packageName, "GroovyBuildScriptLanguage") { groovyReceiverAccessors<Project>() }
-        writeAnnotationFile(packageDirectory, packageName, "GroovySettingsScriptLanguage") { groovyReceiverAccessors<Settings>() }
-        writeAnnotationFile(packageDirectory, packageName, "GroovyInitScriptLanguage") { groovyReceiverAccessors<Gradle>() }
+        writeAnnotationFile(packageDirectory, packageName, "GroovyBuildScriptLanguage") {
+            groovyReceiverAccessors<Project>() + "\n" + PLUGINS_BLOCK_SIGNATURE
+        }
+
+        writeAnnotationFile(packageDirectory, packageName, "GroovySettingsScriptLanguage") {
+            groovyReceiverAccessors<Settings>() + "\n" + PLUGINS_BLOCK_SIGNATURE
+        }
+
+        writeAnnotationFile(packageDirectory, packageName, "GroovyInitScriptLanguage") {
+            groovyReceiverAccessors<Gradle>()
+        }
     }
 
     private fun writeAnnotationFile(packageDirectory: File, packageName: String, name: String, scriptReceiverAccessors: () -> String) {
@@ -176,6 +184,10 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
     companion object {
         private
         const val RESOURCE = "/default-imports.txt"
+
+        private
+        const val PLUGINS_BLOCK_SIGNATURE =
+            "void plugins(@groovy.transform.stc.ClosureParams(value = groovy.transform.stc.SimpleType.class, options = 'org.gradle.plugin.use.PluginDependenciesSpec') Closure configuration) {}"
 
         /**
          * Logic duplicated from [org.gradle.configuration.DefaultImportsReader].
