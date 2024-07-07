@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
     private String printLocations() {
-        groovyScript """
+        settingsScriptSnippet """
             println "settings root dir: " + layout.rootDirectory + "."
             println "settings dir: " + layout.settingsDirectory + "."
             println "settings source file: " + layout.settingsDirectory.file(providers.provider { buildscript.sourceFile.name }).get() + "."

@@ -303,8 +303,31 @@ abstract class AbstractIntegrationSpec extends Specification {
         targetBuildFile << code
     }
 
-    static String groovyScript(@GroovyBuildScriptLanguage String script) {
-        script
+    /**
+     * Provides syntax highlighting for the snippet of the build script code.
+     *
+     * @return the same snippet
+     */
+    static String buildScriptSnippet(@GroovyBuildScriptLanguage String snippet) {
+        snippet
+    }
+
+    /**
+     * Provides syntax highlighting for the snippet of the settings script code.
+     *
+     * @return the same snippet
+     */
+    static String settingsScriptSnippet(@GroovySettingsScriptLanguage String snippet) {
+        snippet
+    }
+
+    /**
+     * Provides syntax highlighting for the snippet of the init script code.
+     *
+     * @return the same snippet
+     */
+    static String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
+        snippet
     }
 
     void versionCatalogFile(@Language("toml") String script) {

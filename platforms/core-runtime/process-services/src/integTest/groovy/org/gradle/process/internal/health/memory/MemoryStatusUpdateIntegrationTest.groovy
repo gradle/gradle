@@ -35,7 +35,7 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static String waitForMemoryEventsTask() {
-        return groovyScript('''
+        return buildScriptSnippet('''
             import java.util.concurrent.CountDownLatch
             import org.gradle.process.internal.health.memory.*
 
