@@ -82,6 +82,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         options.add(new IsolatedProjectsOption());
+        options.add(new PropertyUpgradeReportOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -616,6 +617,18 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    public static class PropertyUpgradeReportOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public PropertyUpgradeReportOption() {
+            super(null, BooleanCommandLineOptionConfiguration.create("property-upgrade-report", "Runs build with property upgrade report.", "Runs build without property upgrade report."));
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setPropertyUpgradeReportEnabled(value);
         }
     }
 }
