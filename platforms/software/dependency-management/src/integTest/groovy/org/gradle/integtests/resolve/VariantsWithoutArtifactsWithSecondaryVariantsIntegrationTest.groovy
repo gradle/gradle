@@ -52,7 +52,7 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     // region Secondary Variant with No Artifacts
     def "adding secondary variant with no artifact is deprecated"() {
         expect:
-        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variants: 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds("resolve", "-PregisterSecondaryVariant=true")
         assertResolved([])
     }
@@ -100,7 +100,7 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     // region Secondary Variant with an Artifact
     def "adding secondary variant with an artifact is deprecated"() {
         expect:
-        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variants: 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
         assertResolved([])
     }
@@ -195,6 +195,6 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     }
 
     private void assertResolved(List<File> artifacts) {
-        result.assertOutputContains("Resolved: " + artifacts*.path.toString())
+        outputContains("Resolved: " + artifacts*.path.toString())
     }
 }
