@@ -46,6 +46,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         assertComponentUnderTestWasBuilt()
     }
 
+    @ToBeFixedForConfigurationCache
     def "binaries have the right Swift version"() {
         given:
         makeSingleProject()
@@ -122,12 +123,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'])
+    @ToBeFixedForConfigurationCache
     def "can build Swift 4 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -186,6 +182,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
+    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 5 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -215,6 +212,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 5 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -244,6 +242,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 3 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -328,12 +327,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'])
+    @ToBeFixedForConfigurationCache
     def "can compile Swift 5 component on Swift 5 compiler"() {
         given:
         makeSingleProject()

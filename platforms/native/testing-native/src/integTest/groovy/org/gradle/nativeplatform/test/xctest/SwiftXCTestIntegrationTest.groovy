@@ -212,6 +212,7 @@ dependencies {
         result.assertTasksSkipped(":assemble")
     }
 
+    @ToBeFixedForConfigurationCache
     def "skips test tasks when no source is available for Swift library"() {
         given:
         buildFile << "apply plugin: 'swift-library'"
@@ -224,6 +225,7 @@ dependencies {
         result.assertTasksSkipped(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
+    @ToBeFixedForConfigurationCache
     def "skips test tasks when no source is available for Swift application"() {
         given:
         buildFile << """
@@ -459,7 +461,7 @@ apply plugin: 'swift-library'
         app.greeter.writeToProject(file('hello'))
         app.logger.writeToProject(file('log'))
 
-        def test = new SwiftXCTestWithDepAndCustomXCTestSuite('bundle', 'Main','XCTAssert(main() == 0)', ['App'] as String[], [] as String[])
+        def test = new SwiftXCTestWithDepAndCustomXCTestSuite('bundle', 'Main', 'XCTAssert(main() == 0)', ['App'] as String[], [] as String[])
         test.writeToProject(testDirectory)
 
         when:

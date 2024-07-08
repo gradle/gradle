@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -90,6 +90,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
+    @ToBeFixedForConfigurationCache
     def "ignores duplicate target machines"() {
         given:
         makeSingleProject()

@@ -16,10 +16,13 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 
 class CppSystemHeaderDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+
+    @ToBeFixedForConfigurationCache
     def "discovers C and C++ standard library headers"() {
         def outputFile = file("dirs.txt")
         buildFile << """
