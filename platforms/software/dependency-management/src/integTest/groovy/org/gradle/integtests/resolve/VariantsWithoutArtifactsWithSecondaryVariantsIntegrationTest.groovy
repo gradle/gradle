@@ -21,11 +21,11 @@ import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
- * This test is to verify that adding a secondary variant with no artifacts makes a main variant
- * not resolvable.
+ * These tests are to verify the behavior when adding a secondary variant to a main variant
+ * without artifacts.
  */
 @Issue("https://github.com/gradle/gradle/issues/29630")
-class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends AbstractIntegrationSpec {
+final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends AbstractIntegrationSpec {
     // region No Secondary Variants
     def "no secondary variants works fine for resolution"() {
         expect:
