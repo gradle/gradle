@@ -27,6 +27,7 @@ import org.gradle.tooling.model.GradleProject
  * Test the JVM version compatibility of the tooling API where the tooling
  * API client JVM is the same as the daemon JVM.
  */
+@TargetGradleVersion("current") // Supporting multiple Gradle versions is more work.
 class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
     def setup() {
@@ -35,7 +36,6 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
 
     // region Deprecated JVM
 
-    @TargetGradleVersion(">=8.10")
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running a build with deprecated Java versions is deprecated"() {
         given:
@@ -48,7 +48,6 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
-    @TargetGradleVersion(">=8.10")
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "fetching a model with deprecated Java versions is deprecated"() {
         given:
@@ -60,7 +59,6 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
-    @TargetGradleVersion(">=8.10")
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running an action with deprecated Java versions is deprecated"() {
         given:
@@ -72,7 +70,6 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
-    @TargetGradleVersion(">=8.10")
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running tests with deprecated Java versions is deprecated"() {
         given:

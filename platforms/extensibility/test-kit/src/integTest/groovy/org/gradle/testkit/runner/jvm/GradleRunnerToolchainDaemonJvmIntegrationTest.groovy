@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.jvm
+package org.gradle.testkit.runner.jvm
 
 import org.gradle.internal.jvm.Jvm
+import org.gradle.testkit.runner.GradleRunner
 
 /**
- * Verifies JDK compatibility for tooling api when setting the java home via Gradle property.
+ * Verifies JDK compatibility for GradleRunner when configuring the daemon JVM via toolchains.
  */
-class GradlePropertyBuildJvmCrossVersionSpec extends ExplicitDaemonJvmCrossVersionSpec {
+class GradleRunnerToolchainDaemonJvmIntegrationTest extends GradleRunnerExplicitDaemonJvmIntegrationTest {
 
     @Override
-    void configureBuild(Jvm jvm) {
-        propertiesFile.writeProperties("org.gradle.java.home": jvm.javaHome.canonicalPath)
+    def configureBuild(Jvm jvm) {
+        writeJvmCriteria(jvm)
     }
 
+    @Override
+    def configureRunner(GradleRunner runner, Jvm jvm) {
+        runner.withArguments("-Porg.gradle.java.installations.paths=" + jvm.javaHome.canonicalPath)
+    }
 }

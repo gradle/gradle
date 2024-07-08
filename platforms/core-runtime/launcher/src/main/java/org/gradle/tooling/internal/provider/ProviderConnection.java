@@ -371,6 +371,11 @@ public class ProviderConnection {
         Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
         if (envVariables != null) {
             daemonParams.setEnvironmentVariables(envVariables);
+
+            String javaHomeVar = envVariables.get("JAVA_HOME");
+            if (javaHomeVar != null) {
+                daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, new File(javaHomeVar)));
+            }
         }
 
         File javaHome = operationParameters.getJavaHome();

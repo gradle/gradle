@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.tooling.jvm
 
-
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -35,6 +34,7 @@ import org.gradle.tooling.model.GradleProject
  * API client JVM is different than the daemon JVM. Subclasses implement the various ways of
  * specifying the daemon JDK version.
  */
+@TargetGradleVersion("current") // Supporting multiple Gradle versions is more work.
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
@@ -141,7 +141,6 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
     // region Deprecated JVM
 
-    @TargetGradleVersion(">=8.10")
     @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running a build with deprecated Java versions is deprecated"() {
         given:
@@ -162,7 +161,6 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         assertDaemonUsedJvm(jdk)
     }
 
-    @TargetGradleVersion(">=8.10")
     @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "fetching a model with deprecated Java versions is deprecated"() {
         given:
@@ -183,7 +181,6 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         assertDaemonUsedJvm(jdk)
     }
 
-    @TargetGradleVersion(">=8.10")
     @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running an action with deprecated Java versions is deprecated"() {
         given:
@@ -203,7 +200,6 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         Jvm.forHome(javaHome).javaHome.absoluteFile == jdk.javaHome.absoluteFile
     }
 
-    @TargetGradleVersion(">=8.10")
     @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running tests with deprecated Java versions is deprecated"() {
         given:
