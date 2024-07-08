@@ -387,6 +387,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > More than one variant of root project : matches the consumer attributes:
+       - Configuration ':default':
+           - Unmatched attribute:
+               - Provides artifactType 'txt' but the consumer didn't ask for it
        - Configuration ':default' variant v1
        - Configuration ':default' variant v2""")
 
@@ -561,6 +564,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 consumable("default") {
                     outgoing {
+                        artifact(file("dummy.txt"))
                         variants {
                             val v1 by creating { }
                             val v2 by creating { }
