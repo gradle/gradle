@@ -199,7 +199,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Changes the selected target component for this module.
+     * Changes the selected target component for this module due to version conflict resolution.
      */
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
@@ -239,7 +239,8 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Overrides the component selection for this module, when this module has been replaced by another.
+     * Overrides the component selection for this module, when this module has been replaced
+     * by another due to capability conflict resolution.
      */
     @Override
     public void replaceWith(ComponentState selected) {
@@ -255,6 +256,10 @@ public class ModuleResolveState implements CandidateModule {
         }
         this.selected = selected;
         this.replaced = computeReplaced(selected);
+
+        if (replaced) {
+            selected.getModule().getPendingDependencies().retarget(pendingDependencies);
+        }
 
         doRestart(selected);
     }
@@ -315,7 +320,7 @@ public class ModuleResolveState implements CandidateModule {
         }
     }
 
-    void removeSelector(SelectorState selector, ResolutionConflictTracker conflictTracker) {
+    void removeSelector(SelectorState selector) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
@@ -323,7 +328,7 @@ public class ModuleResolveState implements CandidateModule {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection(conflictTracker);
+            maybeUpdateSelection();
         }
     }
 
@@ -400,6 +405,9 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     PendingDependencies getPendingDependencies() {
+        if (replaced) {
+            return selected.getModule().getPendingDependencies();
+        }
         return pendingDependencies;
     }
 
@@ -411,7 +419,7 @@ public class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
-    public void maybeUpdateSelection(ResolutionConflictTracker conflictTracker) {
+    public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
             return;
@@ -423,14 +431,14 @@ public class ModuleResolveState implements CandidateModule {
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         newSelected.setSelectors(selectors);
         if (selected == null) {
-            // In some cases we should ignore this because the selection happens to be a known conflict
-            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
-                select(newSelected);
-            }
+            select(newSelected);
         } else if (newSelected != selected) {
             if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
                 // Let's ignore modules that are changing selection way too much, by keeping the highest version
                 if (maybeSkipSelectionChange(newSelected)) {
+                    // TODO: selectBest updates state, but we ignore that. We should do something with newSelected here
+                    // or reset the selectors to before the selectBest call. Alternatively, we should fail here and ask
+                    // the user to add a version constraint.
                     return;
                 }
             }

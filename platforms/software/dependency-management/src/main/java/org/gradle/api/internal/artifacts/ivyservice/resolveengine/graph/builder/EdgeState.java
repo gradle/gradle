@@ -87,7 +87,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void computeSelector() {
-        this.selector = resolveState.getSelector(dependencyState, from.versionProvidedByAncestors(dependencyState));
+        this.selector = resolveState.computeSelectorFor(dependencyState, from.versionProvidedByAncestors(dependencyState));
     }
 
     @Override
@@ -158,7 +158,7 @@ class EdgeState implements DependencyGraphEdge {
         removeFromTargetConfigurations();
         maybeDecreaseHardEdgeCount(source);
         selector.getTargetModule().removeUnattachedDependency(this);
-        selector.release(resolveState.getConflictTracker());
+        selector.release();
     }
 
     void removeFromTargetConfigurations() {
@@ -374,6 +374,7 @@ class EdgeState implements DependencyGraphEdge {
         if (node == null) {
             return null;
         } else {
+            assert node.getComponent() == getSelectedComponent();
             return node.getNodeId();
         }
     }
