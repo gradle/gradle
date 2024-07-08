@@ -32,13 +32,15 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
         buildFile << """
             task createClasspathManifest {
                 def outputDir = file("\$buildDir/\$name")
+                def outputFile = file("\$outputDir/plugin-classpath.txt")
 
-                inputs.files sourceSets.main.runtimeClasspath
+                def mainRuntimeClasspath = sourceSets.main.runtimeClasspath
+                inputs.files mainRuntimeClasspath
                 outputs.dir outputDir
 
                 doLast {
                     outputDir.mkdirs()
-                    file("\$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\\n")
+                    outputFile.text = mainRuntimeClasspath.join("\\n")
                 }
             }
 
