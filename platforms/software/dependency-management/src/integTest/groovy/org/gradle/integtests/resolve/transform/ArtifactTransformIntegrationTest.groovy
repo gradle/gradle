@@ -527,7 +527,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming lib2.zip to lib2.zip.txt") == 1
 
         when:
-        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'files' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.noDeprecationChecks() // This isn't the point of this test, and won't be emitted when the result is pulled from the configuration cache
         run "resolve"
 
         then:
@@ -736,7 +736,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming lib1.jar to lib1.jar.red") == 1
 
         when:
-        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'java7', 'java8' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.noDeprecationChecks() // This isn't the point of this test, and won't be emitted when the result is pulled from the configuration cache
         run "resolve"
 
         then:
@@ -874,7 +874,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming lib1.jar.blue to lib1.jar.blue.red") == 1
 
         when:
-        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'java7', 'java8' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.noDeprecationChecks() // This isn't the point of this test, and won't be emitted when the result is pulled from the configuration cache
         run "resolve"
 
         then:
