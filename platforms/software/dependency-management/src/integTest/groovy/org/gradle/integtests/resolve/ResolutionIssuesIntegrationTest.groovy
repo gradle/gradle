@@ -51,7 +51,24 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            ${header}
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            configurations {
+                dependencyScope("implementation")
+                resolvable("runtimeClasspath") {
+                    extendsFrom implementation
+                }
+            }
+
+            tasks.register('resolve') {
+                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    println root.get()
+                }
+            }
+
             ${mavenTestRepository()}
 
             dependencies {
@@ -606,57 +623,51 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    def getHeader() {
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-2008178522")
+    def "another reproducer for corrupt RR"() {
+
+        mavenRepo.module("com.netflix.eureka", "eureka-client", "2.0.1")
+            .dependsOn(
+                mavenRepo.module("com.netflix.netflix-commons", "netflix-eventbus", "0.3.0")
+                    .dependsOn(mavenRepo.module("com.netflix.archaius", "archaius-core", "0.3.3").publish())
+                    .publish()
+            )
+            .dependsOn(mavenRepo.module("com.netflix.archaius", "archaius-core", "0.7.6").publish())
+            .publish()
+
+        mavenRepo.module("org.springframework.cloud", "spring-cloud-netflix-dependencies", "4.1.0")
+            .hasPackaging("pom")
+            .dependencyConstraint([exclusions: [[group: "com.netflix.archaius", module: "archaius-core"]]], mavenRepo.module("com.netflix.eureka", "eureka-client", "2.0.1"))
+            .publish()
+
+        settingsFile << """
+            include 'indirect'
         """
+
+        file("indirect/build.gradle") << """
             plugins {
-                id("jvm-ecosystem")
+                id("java-library")
             }
-
-            configurations {
-                dependencyScope("implementation")
-                resolvable("runtimeClasspath") {
-                    extendsFrom implementation
-                }
-            }
-
-            tasks.register('resolve') {
-                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
-                doLast {
-                    println root.get()
-                }
+            dependencies {
+                implementation(platform("org.springframework.cloud:spring-cloud-netflix-dependencies:4.1.0"))
             }
         """
-    }
 
-    def selectHighest(String module) {
-        """
-            configurations.runtimeClasspath {
-                resolutionStrategy {
-                    capabilitiesResolution {
-                        withCapability("$module") {
-                            selectHighestVersion()
-                        }
-                    }
-                }
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("com.netflix.eureka:eureka-client:2.0.1")
+                implementation(project(":indirect"))
             }
         """
-    }
 
-    def withModules(String... modules) {
-        return new Object() {
-            def addCapability(String group, String module) {
-                modules.collect {
-                    """
-                        dependencies.components.withModule('$it') {
-                            allVariants {
-                                withCapabilities {
-                                    addCapability('$group', '$module', id.version)
-                                }
-                            }
-                        }
-                    """
-                }.join("\n")
-            }
-        }
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath", "--stacktrace")
     }
 }
