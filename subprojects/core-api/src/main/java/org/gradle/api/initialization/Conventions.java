@@ -22,7 +22,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Conventions for configuring Software Types
+ * Shared conventions for configuring software types.  Conventions apply initial values to the model objects of software types.
+ * When a software type plugin is applied to a project, the model object for the software type will be pre-configured with the values
+ * set in the convention.
  *
  * @since 8.10
  */

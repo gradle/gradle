@@ -422,7 +422,7 @@ public interface Settings extends PluginAware, ExtensionAware {
 
 
     /**
-     * Returns the software type conventions for this build.
+     * Returns the software type conventions object for this build.
      *
      * @since 8.10
      */
