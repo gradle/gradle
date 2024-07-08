@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -81,7 +82,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 ModuleIdentifier rootModuleId = rootId;
                 candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getId().getModule().equals(rootModuleId));
             }
-            if (candidatesForConflict.size() > 1) {
+            if (candidatesForConflict.size() > 1 && !allSameProjectIvyNodes(candidatesForConflict)) {
                 PotentialConflict conflict = new PotentialConflict() {
                     @Override
                     public void withParticipatingModules(Action<ModuleIdentifier> action) {
@@ -100,6 +101,19 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             }
         }
         return PotentialConflictFactory.noConflict();
+    }
+
+    /**
+     * Returns true if all the candidate nodes for conflict are Ivy modules and they all belong to the same project.
+     * <p>
+     * It is not a conflict to depend on multiple Ivy configurations within a project.
+     *
+     * @param nodes nodes to examine
+     */
+    private boolean allSameProjectIvyNodes(List<NodeState> nodes) {
+        boolean isIvyConflict = nodes.stream().allMatch(n -> n.getComponent().getMetadata() instanceof IvyModuleResolveMetadata);
+        boolean isSameProjectConflict = nodes.stream().map(n -> n.getComponent().getId()).distinct().count() == 1;
+        return isIvyConflict && isSameProjectConflict;
     }
 
     private Set<NodeState> findNodesFor(CapabilityInternal capability) {
