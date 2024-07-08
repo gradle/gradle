@@ -23,7 +23,7 @@ import spock.lang.Ignore;
 /**
  * Demonstrates how default capabilities are sometimes handled differently from explicit capabilities.
  */
-class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSpec {
+class CapabilitiesConflictsAndTheDefaultCapabilityIntegrationTest extends AbstractIntegrationSpec {
     def "can NOT dep (by attributes) 2 variants from same project, sharing the same (default) capability"() {
         buildFile << """
             dependencies {
