@@ -470,9 +470,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > More than one variant of root project 'example' matches the consumer attributes:
-       - Configuration ':default' variant 'v1'
-       - Configuration ':default' variant 'v2'""")
+        assertFullMessageCorrect("""   > More than one variant of root project : matches the consumer attributes:
+       - Configuration ':default':
+           - Unmatched attribute:
+               - Provides artifactType 'txt' but the consumer didn't ask for it
+       - Configuration ':default' variant v1
+       - Configuration ':default' variant v2""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -1011,6 +1014,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 consumable("default") {
                     outgoing {
+                        artifact(file("dummy.txt"))
                         variants {
                             create("v1")
                             create("v2")

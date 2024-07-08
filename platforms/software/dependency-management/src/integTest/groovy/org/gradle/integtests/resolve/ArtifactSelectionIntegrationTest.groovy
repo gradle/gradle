@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
+import org.gradle.util.GradleVersion
 
 @FluidDependenciesResolveTest
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -176,6 +177,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         m1.getArtifact(name: 'some-jar', type: 'jar').expectGet()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'classesFormat', 'dirFormat', 'jarFormat' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds "resolve"
         // Currently builds all file dependencies
         executed ":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:jar", ":app:resolve"
@@ -283,6 +285,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         m2.getArtifact(name: 'some-classes', type: 'classes').expectGet()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'classesFormat', 'dirFormat', 'jarFormat' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds "resolve"
         // Currently builds all file dependencies
         executed ":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve"
@@ -381,6 +384,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2', 'var3' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -477,6 +481,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2', 'var3' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -565,6 +570,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2', 'var3' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -741,12 +747,13 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         when:
         m1.ivy.expectGet()
         m1.jar.expectGet()
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
-        outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
-        outputContains("components: [test-lib.jar, project ':lib', project ':ui', org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
+        outputContains("files: [test-lib.jar, transformed-b2.jar, test-1.0.jar]")
+        outputContains("components: [test-lib.jar, project :ui, org:test:1.0]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
     }
 
     def "can query the content of view before task graph is calculated"() {
@@ -849,6 +856,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         m2.getArtifact(name: 'some-classes', type: 'classes').expectGet()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'classesFormat', 'dirFormat', 'jarFormat' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds "resolve"
         // Currently builds all file dependencies
         executed ":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve"
@@ -912,6 +920,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'classesFormat', 'dirFormat', 'jarFormat' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds "resolve"
         result.assertTasksScheduled(":lib:classes", ":app:resolve")
     }
@@ -1228,6 +1237,8 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':lib:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'broken1', 'broken2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':ui:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'broken1', 'broken2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails(":app:resolve")
         resolve.assertFailurePresent(failure)
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")

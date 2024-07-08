@@ -143,63 +143,46 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         """
 
         buildFile << """
-            $header
-
-            configurations {
-                compile.attributes.attribute(usage, 'compile')
-            }
-
-            dependencies {
-                compile project(':a')
-            }
-
-            task show {
-                inputs.files configurations.compile
-                def artifacts = configurations.compile.${expression}
-                doLast {
-                    println "files: " + artifacts.collect { it.file.name }
-                    println "ids: " + artifacts.collect { it.id.displayName }
-                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-                    println "variants: " + artifacts.collect { it.variant.attributes }
-                    assert artifacts.failures.empty
-                }
-            }
-        """
-
-        file("a/build.gradle") << """
-            $header
-
-            configurations {
-                compile {
-                    attributes.attribute(buildType, 'debug')
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact file('a1.jar')
-                                attributes.attribute(flavor, 'one')
-                            }
-                        }
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
+configurations {
+    compile {
+        attributes.attribute(Attribute.of('other', String), 'select')
+    }
+}
+dependencies {
+    compile project(':a')
+}
+project(':a') {
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('a1.jar')
+                        attributes.attribute(flavor, 'one')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                     attributes.attribute(usage, 'compile')
                 }
             }
-            dependencies {
-                compile project(':b')
-            }
-        """
-
-        file("b/build.gradle") << """
-            $header
-
-            configurations {
-                compile {
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact file('b2.jar')
-                                attributes.attribute(flavor, 'two')
-                            }
-                        }
+        }
+    }
+    dependencies {
+        compile project(':b')
+    }
+}
+project(':b') {
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('b2.jar')
+                        attributes.attribute(flavor, 'two')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                     attributes.attribute(usage, 'compile')
                 }
@@ -207,13 +190,15 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
         outputContains("files: [a1.jar, b2.jar]")
-        outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
-        outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
+        outputContains("components: [project :a, project :b]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, other=select, usage=compile}, {artifactType=jar, flavor=two, other=select, usage=compile}]")
 
         where:
         expression                                                    | _
@@ -328,6 +313,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -445,6 +432,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -472,88 +461,84 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         buildFile << """
             $header
 
-            configurations {
-                compile {
-                    attributes.attribute(usage, 'compile')
-                }
-            }
+configurations {
+    compile {
+        attributes.attribute(Attribute.of('other', String), 'select')
+    }
+}
 
-            dependencies {
-                compile project(':a')
-            }
+dependencies {
+    compile project(':a')
+}
 
-            task show {
-                def artifacts = configurations.compile.${expression}
-                doLast {
-                    println "files: " + artifacts.collect { it.file.name }
-                    throw new RuntimeException()
-                }
-            }
-        """
-
-        file("a/build.gradle") << """
-            $header
-
-            task oneJar(type: Jar) { archiveBaseName = 'a1' }
-            task twoJar(type: Jar) { archiveBaseName = 'a2' }
-            configurations {
-                compile {
-                    attributes.attribute(buildType, 'debug')
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact tasks.oneJar
-                                attributes.attribute(flavor, 'one')
-                            }
-                            var2 {
-                                artifact tasks.twoJar
-                                attributes.attribute(flavor, 'two')
-                            }
-                        }
+project(':a') {
+    task oneJar(type: Jar) { archiveBaseName = 'a1' }
+    task twoJar(type: Jar) { archiveBaseName = 'a2' }
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                attributes.attribute(flavor, 'zero')
+                attributes.attribute(Attribute.of('mismatch', String), 'mismatch')
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
-                    attributes.attribute(usage, 'compile')
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                        attributes.attribute(Attribute.of('other', String), 'select')
+                    }
                 }
             }
-            dependencies {
-                compile project(':b')
-            }
-        """
-
-        file("b/build.gradle") << """
-            $header
-
-            task oneJar(type: Jar) { archiveBaseName = 'b1' }
-            task twoJar(type: Jar) { archiveBaseName = 'b2' }
-            configurations {
-                compile {
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact tasks.oneJar
-                                attributes.attribute(flavor, 'one')
-                            }
-                            var2 {
-                                artifact tasks.twoJar
-                                attributes.attribute(flavor, 'two')
-                            }
-                        }
+        }
+    }
+    dependencies {
+        compile project(':b')
+    }
+}
+project(':b') {
+    task oneJar(type: Jar) { archiveBaseName = 'b1' }
+    task twoJar(type: Jar) { archiveBaseName = 'b2' }
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
-                    attributes.attribute(usage, 'compile')
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                        attributes.attribute(Attribute.of('other', String), 'select')
+                    }
                 }
             }
         """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' variant 'var1' declares attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'other' with value 'select', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
+      - Unmatched attributes:
+          - Doesn't say anything about other (required 'select')
+          - Provides buildType 'debug' but the consumer didn't ask for it
+          - Provides flavor 'zero' but the consumer didn't ask for it
+          - Provides mismatch 'mismatch' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant var1 declares attribute 'other' with value 'select', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'var2' declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var2' declares attribute 'other' with value 'select', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
@@ -609,36 +594,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                 }
             }
 
-            task show {
-                inputs.files configurations.compile
-                def artifacts = configurations.compile.incoming.artifactView {
-                    attributes({it.attribute(usage, 'transformed')})
-                }.artifacts
-                doLast {
-                    println "files: " + artifacts.collect { it.file.name }
-                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-                    println "variants: " + artifacts.collect { it.variant.attributes }
-                    assert artifacts.failures.empty
-                }
-            }
-        """
-
-        file("a/build.gradle") << """
-            $header
-
-            configurations {
-                compile {
-                    attributes.attribute(buildType, 'debug')
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact file('a1.jar')
-                                attributes.attribute(flavor, 'one')
-                            }
-                        }
-                    }
-                    attributes.attribute(usage, 'compile')
-                }
+project(':a') {
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            attributes.attribute(flavor, 'one')
+            outgoing {
+                artifact file('a1.jar')
             }
         """
 
@@ -997,6 +959,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         m2.artifact.expectGetBroken()
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
@@ -1042,7 +1005,12 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                 compile project(':b')
             }
 
-            configurations.compile.attributes.attribute(usage, "compile")
+project(':a') {
+    configurations.default.outgoing.variants {
+        v1 { }
+        v2 { }
+    }
+}
 
             task resolveLenient {
                 def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
@@ -1088,6 +1056,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         m3.artifact.expectGet()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds 'resolveLenient'
 
         outputContains("failure 1: Could not find org:missing-module:1.0.")
@@ -1097,7 +1066,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:default':
+      - Unmatched attribute:
+          - Doesn't say anything about usage (required 'compile')
   - Configuration ':a:default' variant 'v1':
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
@@ -1153,16 +1125,18 @@ Searched in the following locations:
         file("a/build.gradle") << """
             $common
 
-            task jar1(type: Jar)
-            task jar2(type: Jar)
-            dependencies {
-                compile project(':c')
-            }
-            configurations.default.outgoing.variants {
-                v1 { artifact tasks.jar1 }
-                v2 { artifact tasks.jar2 }
-            }
-        """
+task resolveLenient {
+    def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
+    inputs.files lenientView.files
+    doLast {
+        def resolvedFiles = ['c-jar1.jar']
+        assert lenientView.files.collect { it.name } == resolvedFiles
+        assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
+        assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
+        assert lenientView.artifacts.failures.size() == 3
+    }
+}
+"""
 
         file("b/build.gradle") << """
             $common
@@ -1184,6 +1158,7 @@ Searched in the following locations:
         m0.pom.expectGetMissing()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds 'resolveLenient'
         result.assertTasksScheduled(":c:jar1", ":resolveLenient")
     }
