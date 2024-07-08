@@ -23,18 +23,18 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
 class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'lifecycle.allproject is executed eagerly when triggered in #dsl DSL'() {
+    def 'lifecycle.allproject is executed eagerly when getProperty accessed in Groovy DSL'() {
         settingsFile << """
             gradle.lifecycle.allprojects {
-                println "lifecycle.allprojects: \${name}"
+                ext.foo = "\$name bar"
             }
             include(":a")
         """
         file("a/build.gradle") << ""
-        file(buildFileName) << """
+        buildFile << """
             project(":a") { $projectReceiver
                println("before")
-               $mutableStateAccess
+               $propertyAccess
                println("after")
             }
         """
@@ -43,14 +43,13 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         run "help", "-q"
 
         then:
-        outputContains "before\nlifecycle.allprojects: a\nafter"
+        outputContains "before\na bar\nafter"
 
         where:
-        dsl      | buildFileName      | mutableStateAccess | projectReceiver
-        "Kotlin" | "build.gradle.kts" | "version"          | ""
-        "Groovy" | "build.gradle"     | "project.version"  | "project ->"
-        "Groovy" | "build.gradle"     | "version"          | ""
-        "Groovy" | "build.gradle"     | "it.version"       | ""
+        propertyAccess         | projectReceiver
+        "println(foo)"         | ""
+        "println(project.foo)" | "project ->"
+        "println(it.foo)"      | ""
     }
 
     def 'lifecycle.allprojects is executed lazily before project evaluation if immutable state accessed'() {
@@ -87,7 +86,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         buildFile << """
             project(":a") {
                 println("before")
-                $mutableStateAccess
+                it.$mutableStateAccess
                 println("after")
             }
         """
@@ -121,7 +120,10 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
             "convention",
             "plugins",
             "pluginManager",
-            "findProperty('foo')"
+            "findProperty('foo')",
+            "hasProperty('foo')",
+            "getProperties()",
+            "apply{}"
         ]
     }
 
@@ -161,7 +163,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         settingsFile << """
             rootProject.name = 'root'
             gradle.lifecycle.allprojects {
-                ext.foo = "bar"
+                ext.foo = "\$name bar"
             }
             include(":a")
             include(":b")
@@ -172,7 +174,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
 
         buildFile << """
             $invocation { project ->
-                println "\${project.name} foo=\${project.foo}"
+                println "\${project.foo}"
             }
         """
 
@@ -184,23 +186,23 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
 
         where:
         api                | invocation                            | expectedOutput
-        "allprojects"      | "allprojects"                         | "root foo=bar\na foo=bar\nb foo=bar"
-        "subprojects"      | "subprojects"                         | "a foo=bar\nb foo=bar"
-        "project"          | "project(':a')"                       | "a foo=bar"
-        "findProject"      | "configure(findProject(':a'))"        | "a foo=bar"
-        "getAllprojects"   | "getAllprojects().forEach"            | "root foo=bar\na foo=bar\nb foo=bar"
-        "getSubprojects"   | "getSubprojects().forEach"            | "a foo=bar\nb foo=bar"
-        "getChildProjects" | "getChildProjects().values().forEach" | "a foo=bar\nb foo=bar"
+        "allprojects"      | "allprojects"                         | "root bar\na bar\nb bar"
+        "subprojects"      | "subprojects"                         | "a bar\nb bar"
+        "project"          | "project(':a')"                       | "a bar"
+        "findProject"      | "configure(findProject(':a'))"        | "a bar"
+        "getAllprojects"   | "getAllprojects().forEach"            | "root bar\na bar\nb bar"
+        "getSubprojects"   | "getSubprojects().forEach"            | "a bar\nb bar"
+        "getChildProjects" | "getChildProjects().values().forEach" | "a bar\nb bar"
     }
 
     def 'lifecycle.allprojects can be executed before gradle.allprojects'() {
         settingsFile << """
             rootProject.name = 'root'
             gradle.allprojects {
-                println "\${name} foo=\${foo}"
+                println "\${foo}"
             }
             gradle.lifecycle.allprojects {
-                ext.foo = "bar"
+                ext.foo = "\$name bar"
             }
             include(":a")
             include(":b")
@@ -213,7 +215,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         run "help", "-q"
 
         then:
-        outputContains "root foo=bar\na foo=bar\nb foo=bar"
+        outputContains "root bar\na bar\nb bar"
     }
 
     static def projectMutableStateAccess = "version"

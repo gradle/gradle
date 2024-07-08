@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
-import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import kotlin.Deprecated;
@@ -44,6 +43,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -69,13 +69,10 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.Cast;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
@@ -87,6 +84,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -97,12 +95,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport implements ProjectInternal {
+public abstract class MutableStateAccessAwareProject implements ProjectInternal, DynamicObjectAware {
 
     protected final ProjectInternal delegate;
+    private final DynamicObject dynamicObject;
 
     protected MutableStateAccessAwareProject(ProjectInternal delegate) {
         this.delegate = delegate;
+        this.dynamicObject = new BeanDynamicObject(this, Project.class);
     }
 
     protected abstract void onMutableStateAccess(String what);
@@ -114,58 +114,16 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
     public abstract int hashCode();
 
     @Nullable
-    protected Object invokeMethodOnThisBean(String methodName, Object[] args) {
-        DynamicObject thisBean = new BeanDynamicObject(this).withNotImplementsMissing();
-        DynamicInvokeResult result = thisBean.tryInvokeMethod(methodName, args);
-        return result.isFound() ? result.getValue() : null;
-    }
+    @SuppressWarnings("unused") // used by Groovy dynamic dispatch
+    protected abstract Object propertyMissing(String name);
 
     @Nullable
-    protected Object getPropertyOnThisBean(String propertyName) {
-        DynamicObject thisBean = new BeanDynamicObject(this).withNotImplementsMissing();
-        DynamicInvokeResult result = thisBean.tryGetProperty(propertyName);
-        return result.isFound() ? result.getValue() : null;
-    }
+    @SuppressWarnings("unused") // used by Groovy dynamic dispatch
+    protected abstract Object methodMissing(String name, Object args);
 
     @Override
-    @Nullable
-    public Object invokeMethod(String name, Object args) {
-        Object[] varargs = Cast.uncheckedNonnullCast(args);
-        Object thisBeanResult = invokeMethodOnThisBean(name, varargs);
-        if (thisBeanResult != null) {
-            return thisBeanResult;
-        }
-
-        onMutableStateAccess("invokeMethod");
-
-        DynamicObject delegateDynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
-        DynamicInvokeResult delegateResult = delegateDynamicObject.tryInvokeMethod(name, varargs);
-
-        if (delegateResult.isFound()) {
-            return delegateResult.getValue();
-        }
-
-        throw delegateDynamicObject.methodMissingException(name, varargs);
-    }
-
-    @Override
-    @Nullable
-    public Object getProperty(String propertyName) {
-        Object thisBeanResult = getPropertyOnThisBean(propertyName);
-        if (thisBeanResult != null) {
-            return thisBeanResult;
-        }
-
-        onMutableStateAccess("getProperty");
-
-        DynamicObject delegateDynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
-        DynamicInvokeResult delegateResult = delegateDynamicObject.tryGetProperty(propertyName);
-
-        if (delegateResult.isFound()) {
-            return delegateResult.getValue();
-        }
-
-        throw delegateDynamicObject.getMissingProperty(propertyName);
+    public DynamicObject getAsDynamicObject() {
+        return dynamicObject;
     }
 
     @Nullable
@@ -955,25 +913,29 @@ public abstract class MutableStateAccessAwareProject extends GroovyObjectSupport
 
     @Override
     public InputNormalizationHandlerInternal getNormalization() {
-        onMutableStateAccess("normalization");
         return delegate.getNormalization();
     }
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
-        onMutableStateAccess("normalization");
         delegate.normalization(configuration);
+    }
+
+    public void normalization(Closure closure) {
+        normalization(ConfigureUtil.configureUsing(closure));
+    }
+
+    public void dependencyLocking(Closure configuration) {
+        dependencyLocking(ConfigureUtil.configureUsing(configuration));
     }
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
-        onMutableStateAccess("dependencyLocking");
         delegate.dependencyLocking(configuration);
     }
 
     @Override
     public DependencyLockingHandler getDependencyLocking() {
-        onMutableStateAccess("dependencyLocking");
         return delegate.getDependencyLocking();
     }
 

@@ -61,6 +61,7 @@ import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.metaobject.DynamicObjectUtil
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -81,33 +82,34 @@ class ProblemReportingCrossProjectModelAccess(
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting,
-    private val buildModelParameters: BuildModelParameters
+    private val buildModelParameters: BuildModelParameters,
+    private val instantiator: Instantiator
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.let {
-            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it))
+            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)
         }
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
-        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project))
+        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
     }
 
     override fun getChildProjects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableMap<String, Project> {
         return delegate.getChildProjects(referrer, relativeTo).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo))
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo), instantiator)
         }
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo))
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo), instantiator)
         }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo))
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo), instantiator)
         }
     }
 
@@ -134,25 +136,25 @@ class ProblemReportingCrossProjectModelAccess(
     fun ProjectInternal.wrap(
         referrer: ProjectInternal,
         access: CrossProjectModelAccessInstance,
+        instantiator: Instantiator
     ): ProjectInternal {
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+            instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
         }
     }
 
     @Suppress("LargeClass")
-    private
-    class ProblemReportingProject(
+    open class ProblemReportingProject(
         delegate: ProjectInternal,
-        val referrer: ProjectInternal,
-        val access: CrossProjectModelAccessInstance,
-        val problems: ProblemsListener,
-        val coupledProjectsListener: CoupledProjectsListener,
-        val problemFactory: ProblemFactory,
-        val buildModelParameters: BuildModelParameters,
-        val dynamicCallProblemReporting: DynamicCallProblemReporting,
+        private val referrer: ProjectInternal,
+        private val access: CrossProjectModelAccessInstance,
+        private val problems: ProblemsListener,
+        private val coupledProjectsListener: CoupledProjectsListener,
+        private val problemFactory: ProblemFactory,
+        private val buildModelParameters: BuildModelParameters,
+        private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     ) : MutableStateAccessAwareProject(delegate) {
 
         override fun onMutableStateAccess(what: String) {
@@ -173,35 +175,20 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun hashCode(): Int = delegate.hashCode()
 
-        override fun toString() : String = delegate.toString()
+        override fun toString(): String = delegate.toString()
 
-        override fun getProperty(propertyName: String): Any? {
-            // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
-            val thisBeanResult = getPropertyOnThisBean(propertyName)
-            if (thisBeanResult != null) {
-                return thisBeanResult
-            }
-
+        override fun propertyMissing(name: String): Any? {
             onProjectsCoupled()
-
             return withDelegateDynamicCallReportingConfigurationOrder(
-                propertyName,
-                action = { tryGetProperty(propertyName) },
-                resultNotFoundExceptionProvider = { getMissingProperty(propertyName) }
+                name,
+                action = { tryGetProperty(name) },
+                resultNotFoundExceptionProvider = { getMissingProperty(name) }
             )
         }
 
-        @Suppress("SpreadOperator")
-        override fun invokeMethod(name: String, args: Any): Any? {
-            // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
-            val varargs: Array<Any?> = args.uncheckedCast()
-            val thisBeanResult = invokeMethodOnThisBean(name, varargs)
-            if (thisBeanResult != null) {
-                return thisBeanResult
-            }
-
+        override fun methodMissing(name: String, args: Any): Any? {
             onProjectsCoupled()
-
+            val varargs: Array<Any?> = args.uncheckedCast()
             @Suppress("SpreadOperator")
             return withDelegateDynamicCallReportingConfigurationOrder(
                 name,

@@ -16,7 +16,14 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.internal.Cast;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.EagerLifecycleExecutor;
+
+import javax.annotation.Nullable;
 
 
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
@@ -25,9 +32,12 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
         ProjectInternal project,
         EagerLifecycleExecutor eagerLifecycleExecutor
     ) {
-        return project instanceof LifecycleAwareProject
-            ? project
-            : new LifecycleAwareProject(project, eagerLifecycleExecutor);
+        if (project instanceof LifecycleAwareProject) {
+            return project;
+        } else {
+            Instantiator instantiator = project.getServices().get(Instantiator.class);
+            return instantiator.newInstance(LifecycleAwareProject.class, project, eagerLifecycleExecutor);
+        }
     }
 
     private final EagerLifecycleExecutor eagerLifecycleExecutor;
@@ -43,6 +53,34 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     @Override
     protected void onMutableStateAccess(String what) {
         eagerLifecycleExecutor.executeAllprojectsFor(delegate);
+    }
+
+    @Override
+    protected Object propertyMissing(String name) {
+        onMutableStateAccess("getProperty");
+        DynamicObject dynamicDelegate = DynamicObjectUtil.asDynamicObject(delegate);
+        DynamicInvokeResult delegateResult = dynamicDelegate.tryGetProperty(name);
+
+        if (delegateResult.isFound()) {
+            return delegateResult.getValue();
+        }
+
+        throw dynamicDelegate.getMissingProperty(name);
+    }
+
+    @Nullable
+    @Override
+    protected Object methodMissing(String name, Object args) {
+        onMutableStateAccess("invokeMethod");
+        Object[] varargs = Cast.uncheckedNonnullCast(args);
+        DynamicObject dynamicDelegate = DynamicObjectUtil.asDynamicObject(delegate);
+        DynamicInvokeResult delegateResult = dynamicDelegate.tryInvokeMethod(name, varargs);
+
+        if (delegateResult.isFound()) {
+            return delegateResult.getValue();
+        }
+
+        throw dynamicDelegate.methodMissingException(name, varargs);
     }
 
     @Override

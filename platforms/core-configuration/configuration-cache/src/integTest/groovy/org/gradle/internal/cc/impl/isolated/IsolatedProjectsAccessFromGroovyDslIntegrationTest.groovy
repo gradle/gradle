@@ -886,7 +886,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
-        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.internal.project.LifecycleAwareProject")
+        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':b'")
         }
@@ -920,7 +920,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         fails 'help', WARN_PROBLEMS_CLI_OPT, ENABLE_CLI
 
         then:
-        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.internal.project.LifecycleAwareProject")
+        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':b'")
         }

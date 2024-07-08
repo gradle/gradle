@@ -167,11 +167,18 @@ class DefaultBuildModelControllerServices(
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
-            eagerLifecycleExecutor: EagerLifecycleExecutor
+            eagerLifecycleExecutor: EagerLifecycleExecutor,
+            instantiator: Instantiator
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, eagerLifecycleExecutor)
             return ProblemReportingCrossProjectModelAccess(
-                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting, buildModelParameters
+                delegate,
+                problemsListener,
+                listenerManager.getBroadcaster(CoupledProjectsListener::class.java),
+                problemFactory,
+                dynamicCallProblemReporting,
+                buildModelParameters,
+                instantiator
             )
         }
 
