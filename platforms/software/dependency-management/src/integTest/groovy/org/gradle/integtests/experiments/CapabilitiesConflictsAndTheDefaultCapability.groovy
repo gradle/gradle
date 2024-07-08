@@ -46,7 +46,7 @@ class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSp
         assertCapabilityConflictReported("example:producer-with-default-capability:1.0")
     }
 
-    def "can NOT dep (by name) 2 variants from same project, sharing the same (default) capability - THIS RESOLVE SHOULD FAIL"() {
+    def "can NOT dep (by name) 2 variants from same project, sharing the same (default) capability"() {
         buildFile << """
             dependencies {
                 myDeps project(path: ":producer-with-default-capability", configuration: "confRed")
@@ -65,10 +65,32 @@ class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSp
         fails("doResolve")
 
         then:
-        assertCapabilityConflictReported("example:producer:1.0")
+        assertCapabilityConflictReported("example:producer-with-default-capability:1.0")
     }
 
-    def "can NOT dep (by name + by attributes) 2 variants from same project, sharing the same (default) capability - THIS RESOLVE SHOULD FAIL"() {
+    def "can NOT dep (by name) 2 variants from same project, sharing the same (default) capability, when that capability uses an empty group"() {
+        buildFile << """
+            dependencies {
+                myDeps project(path: ":producer-with-default-capability-with-empty-group", configuration: "confRed")
+                myDeps project(path: ":producer-with-default-capability-with-empty-group", configuration: "confBlue")
+            }
+        """
+
+        when:
+        succeeds(":producer-with-default-capability-with-empty-group:outgoingVariants")
+
+        then:
+        assertVariantHasCapability("confRed", ":producer-with-default-capability-with-empty-group:1.0")
+        assertVariantHasCapability("confBlue", ":producer-with-default-capability-with-empty-group:1.0")
+
+        when:
+        fails("doResolve")
+
+        then:
+        assertCapabilityConflictReported(":producer-with-default-capability-with-empty-group:1.0")
+    }
+
+    def "can NOT dep (by name + by attributes) 2 variants from same project, sharing the same (default) capability"() {
         buildFile << """
             dependencies {
                 myDeps project(path: ":producer-with-default-capability", configuration: "confRed")
@@ -91,7 +113,7 @@ class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSp
         fails("doResolve")
 
         then:
-        assertCapabilityConflictReported("example:producer:1.0")
+        assertCapabilityConflictReported("example:producer-with-default-capability:1.0")
     }
 
     def "can NOT dep (by attributes) 2 variants from same project, sharing the same (default) capability"() {
@@ -311,6 +333,7 @@ class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSp
             rootProject.name = "example"
 
             include "producer-with-default-capability"
+            include "producer-with-default-capability-with-empty-group"
             include "producer-with-explicit-capability-1"
             include "producer-with-explicit-capability-2"
             include "producer-with-explicit-capability-equal-to-default"
@@ -333,6 +356,7 @@ class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSp
         """
 
         setupProducerWithDefaultCapability()
+        setupProducerWithDefaultCapabilityWithEmptyGroup()
         setupProducerWithExplicitCapability1()
         setupProducerWithExplicitCapability2()
         setupProducerWithExplicitCapabilityEqualToDefault()
@@ -344,6 +368,36 @@ class CapabilitiesConflictsAndTheDefaultCapability extends AbstractIntegrationSp
 
         file("producer-with-default-capability/build.gradle") << """
             version = "1.0"
+
+            def color = Attribute.of("color", String)
+
+            configurations {
+                consumable("confRed") {
+                    attributes {
+                        attribute(color, "red")
+                    }
+                }
+                consumable("confBlue") {
+                    attributes {
+                        attribute(color, "blue")
+                    }
+                }
+            }
+
+            artifacts {
+                confRed file("red.jar")
+                confBlue file("blue.jar")
+            }
+        """
+    }
+
+    private void setupProducerWithDefaultCapabilityWithEmptyGroup() {
+        file("producer-with-default-capability-with-empty-group/red.jar").text = "red variant from producer-with-default-capability-with-empty-group"
+        file("producer-with-default-capability-with-empty-group/blue.jar").text = "blue variant from producer-with-default-capability-with-empty-group"
+
+        file("producer-with-default-capability-with-empty-group/build.gradle") << """
+            version = "1.0"
+            group = ""
 
             def color = Attribute.of("color", String)
 
