@@ -43,14 +43,14 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
     }
 
     /**
-     * Configure this build to use the given JDK.
+     * Configure this build to use the given JVM.
      */
     void configureBuild(Jvm jvm) { }
 
     /**
-     * Configure the tooling API launcher to use the given JDK.
+     * Configure the tooling API launcher to use the given JVM.
      */
-    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, Jvm jdk) { }
+    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, Jvm jvm) { }
 
     // region Unsupported JVM
 
@@ -75,6 +75,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
     }
 
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to fetch model with unsupported java version"() {
         given:
         configureBuild(jdk)

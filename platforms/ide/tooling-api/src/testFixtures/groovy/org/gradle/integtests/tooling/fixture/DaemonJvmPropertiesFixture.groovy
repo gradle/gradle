@@ -18,8 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.SelfType
 import org.gradle.internal.jvm.Jvm
-import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier
-import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
 import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(ToolingApiSpecification)
@@ -27,8 +25,11 @@ trait DaemonJvmPropertiesFixture {
 
     void withInstallations(File... jdks) {
         file("gradle.properties").writeProperties(
-            ToolchainConfiguration.AUTO_DETECT: "false",
-            LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY: jdks.collect { it.canonicalPath }.join(",")
+            // We hard-code these strings since this file needs to be loaded
+            // in the target distributions' classloaders, and the classes that
+            // contain these properties may not exist in older versions
+            "org.gradle.java.installations.auto-detect": "false",
+            "org.gradle.java.installations.paths": jdks.collect { it.canonicalPath }.join(",")
         )
     }
 

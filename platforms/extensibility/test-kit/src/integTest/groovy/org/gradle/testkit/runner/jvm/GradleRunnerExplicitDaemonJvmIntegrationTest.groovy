@@ -35,17 +35,18 @@ import spock.lang.Issue
  * specifying the daemon JDK version.
  */
 @NonCrossVersion // Supporting multiple Gradle versions is more work.
+@SuppressWarnings('IntegrationTestFixtures')
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRunnerIntegrationTest implements DaemonJvmPropertiesFixture {
 
-    final GradleRunner newRunner(Jvm jvm, String task) {
-        def r = runner()
-        configureRunner(r, jvm)
-        r.withArguments([task] + r.getArguments())
-    }
-
+    /**
+     * Configure this build to use the given JVM.
+     */
     def configureBuild(Jvm jvm) { }
 
+    /**
+     * Configure the gradle runner to use the given JVM.
+     */
     def configureRunner(GradleRunner runner, Jvm jvm) { }
 
     // region Unsupported JVM
@@ -254,6 +255,12 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
     }
 
     // endregion
+
+    final GradleRunner newRunner(Jvm jvm, String task) {
+        def r = runner()
+        configureRunner(r, jvm)
+        r.withArguments([task] + r.getArguments())
+    }
 
     def failingBuild() {
         buildFile << """

@@ -334,10 +334,6 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             plugins { id 'groovy-gradle-plugin' }
             repositories { mavenCentral() }
             dependencies { testImplementation("junit:junit:4.13") }
-            test.testLogging {
-                showStandardStreams = true
-                showExceptions = true
-            }
         """
         def plugin = file('src/main/groovy/my-plugin.gradle')
         loggingListener(plugin)

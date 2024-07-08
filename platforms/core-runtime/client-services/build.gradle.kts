@@ -42,6 +42,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.fileCollections)
 
+    api(libs.inject)
     api(libs.jsr305)
 
     implementation(projects.serviceRegistryBuilder)

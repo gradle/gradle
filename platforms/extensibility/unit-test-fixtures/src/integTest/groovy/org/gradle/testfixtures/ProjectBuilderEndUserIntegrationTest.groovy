@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 
@@ -102,7 +103,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testExecuted()
-        assertTestStdout(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/8.10-20240702040000+0000/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"))
+        assertTestStdout(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"))
     }
 
     @Requires(UnitTestPreconditions.NonDeprecatedDaemonJdkVersion)
