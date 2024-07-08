@@ -174,7 +174,10 @@ public interface Scope {
     interface Build extends BuildTree {}
 
     /**
-     * The scope of the {@code org.gradle.api.invocation.Gradle} instance state.
+     * The scope of the {@code org.gradle.api.invocation.Gradle} instance of a build.
+     * <p>
+     * The state and the services are created at the same time the {@code Gradle} instance
+     * is initialized for a given <em>build</em>, and they are discarded at the end of the build execution.
      * <p>
      * The <em>Gradle state</em> is being merged into the {@link Build build state} and is mostly empty.
      * <p>
