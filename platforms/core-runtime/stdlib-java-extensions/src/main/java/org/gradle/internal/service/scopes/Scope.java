@@ -55,7 +55,7 @@ package org.gradle.internal.service.scopes;
  * <li>{@link BuildTree}         — composite build
  * <li>{@link Build}             — build in a composite build
  * <li>{@link Gradle}            — exists for historical reasons, almost empty
- * <li>{@link Settings}          — settings script
+ * <li>{@link Settings}          — init scripts, settings script
  * <li>{@link Project}           — project in a build
  * </ul>
  *
@@ -183,11 +183,13 @@ public interface Scope {
     interface Gradle extends Build {}
 
     /**
-     * The scope that owns {@code Settings} instance state.
+     * The scope that owns the settings of a build.
      * <p>
-     * The build state is managed by the {@code SettingsState} class.
-     * An instance is created for each build in the build definition,
-     * once per build execution and is discarded at the end of that execution.
+     * The settings state is managed by the {@code SettingsState} class.
+     * The creation of that state implies evaluation of init scripts and settings scripts
+     * of the owner-build and any builds that are included as part of a composite build.
+     * <p>
+     * The state is discarded at the end of the build execution.
      * <p>
      * {@link Gradle} and parent services are visible to {@link Settings} scope services, but not vice versa.
      */
