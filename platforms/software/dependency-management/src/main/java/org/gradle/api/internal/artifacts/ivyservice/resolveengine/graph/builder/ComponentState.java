@@ -465,14 +465,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return null;
     }
 
-    boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+    /* package */ boolean hasMoreThanOneSelectedNode(boolean onlyIncludeNodesFoundUsingVariantAwareResolution) {
         int count = 0;
         for (NodeState node : nodes) {
-            if (node.isSelectedByVariantAwareResolution()) {
+            if (!onlyIncludeNodesFoundUsingVariantAwareResolution || node.isSelectedByVariantAwareResolution()) {
                 count++;
-                if (count == 2) {
-                    return true;
-                }
+            }
+            if (count == 2) {
+                return true;
             }
         }
         return false;

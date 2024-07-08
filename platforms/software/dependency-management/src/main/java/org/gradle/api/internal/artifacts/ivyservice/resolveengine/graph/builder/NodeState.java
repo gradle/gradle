@@ -1167,7 +1167,7 @@ public class NodeState implements DependencyGraphNode {
         // capability in order to detect the conflict between the two.
         // Note that the fact that the implicit capability is not included in other cases
         // is not a bug but a performance optimization.
-        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || capabilitiesConflictHandler.hasSeenCapability(component.getImplicitCapability()))) {
+        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNode(false) || capabilitiesConflictHandler.hasSeenCapability(component.getImplicitCapability()))) {
             action.execute(component.getImplicitCapability());
         } else {
             // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list

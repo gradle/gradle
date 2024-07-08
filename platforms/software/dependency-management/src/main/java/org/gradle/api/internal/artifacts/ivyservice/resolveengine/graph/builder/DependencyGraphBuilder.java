@@ -385,7 +385,7 @@ public class DependencyGraphBuilder {
                 } else {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
-                    } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+                    } else if (selected.hasMoreThanOneSelectedNode(true)) {
                         validateMultipleNodeSelection(consumerSchema, module, selected, resolutionFailureHandler);
                     }
                     if (denyDynamicSelectors) {
