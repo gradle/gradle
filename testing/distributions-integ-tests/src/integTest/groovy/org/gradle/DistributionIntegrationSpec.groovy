@@ -86,7 +86,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "internal-instrumentation-api",
         "io",
         "java-api-extractor",
-        "stdlib-kotlin-extensions",
         "jvm-services",
         "launcher",
         "logging",
@@ -109,6 +108,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "service-registry-impl",
         "snapshots",
         "stdlib-java-extensions",
+        "stdlib-kotlin-extensions",
         "time",
         "toolchains-jvm-shared",
         "tooling-api",
@@ -132,7 +132,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        82
+        80
     }
 
     /**
