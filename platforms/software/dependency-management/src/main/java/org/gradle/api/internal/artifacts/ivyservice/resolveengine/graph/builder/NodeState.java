@@ -1216,7 +1216,7 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    boolean isSelectedByVariantAwareResolution() {
+    public boolean isSelectedByVariantAwareResolution() {
         // the order is strange logically but here for performance optimization
         return selectedByVariantAwareResolution && isSelected();
     }
