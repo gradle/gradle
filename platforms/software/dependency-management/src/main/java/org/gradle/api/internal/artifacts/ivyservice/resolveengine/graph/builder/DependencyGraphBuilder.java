@@ -49,13 +49,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
@@ -137,10 +137,8 @@ public class DependencyGraphBuilder {
         boolean failingOnChangingVersions,
         DependencyGraphVisitor modelVisitor
     ) {
-        ResolutionConflictTracker conflictTracker = new ResolutionConflictTracker(
-            new DefaultConflictHandler(moduleConflictResolver, moduleReplacements),
-            new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers)
-        );
+        DefaultConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
+        DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
 
         ResolveState resolveState = new ResolveState(
             idGenerator,
@@ -159,7 +157,8 @@ public class DependencyGraphBuilder {
             versionParser,
             conflictResolution,
             syntheticDependencies,
-            conflictTracker,
+            moduleConflictHandler,
+            capabilitiesConflictHandler,
             variantSelector
         );
 
@@ -177,8 +176,8 @@ public class DependencyGraphBuilder {
         resolveState.onMoreSelected(resolveState.getRoot());
         final List<EdgeState> dependencies = new ArrayList<>();
 
-        ModuleConflictHandler moduleConflictHandler = resolveState.getConflictTracker().getModuleConflictHandler();
-        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getConflictTracker().getCapabilitiesConflictHandler();
+        ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
+        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
 
         while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
@@ -224,7 +223,7 @@ public class DependencyGraphBuilder {
 
     private static boolean registerCapabilities(final ResolveState resolveState, final NodeState node) {
         AtomicBoolean foundConflict = new AtomicBoolean(false);
-        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getConflictTracker().getCapabilitiesConflictHandler();
+        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
 
         node.forEachCapability(capabilitiesConflictHandler, new Action<CapabilityInternal>() {
             @Override
@@ -321,7 +320,7 @@ public class DependencyGraphBuilder {
         ComponentState currentSelection = module.getSelected();
 
         try {
-            module.maybeUpdateSelection(resolveState.getConflictTracker());
+            module.maybeUpdateSelection();
         } catch (ModuleVersionResolveException e) {
             // Ignore: All selectors failed, and will have failures recorded
             return;
@@ -338,7 +337,7 @@ public class DependencyGraphBuilder {
 
     private static void checkForModuleConflicts(ResolveState resolveState, ModuleResolveState module) {
         // A new module. Check for conflict with capabilities and module replacements.
-        PotentialConflict c = resolveState.getConflictTracker().getModuleConflictHandler().registerCandidate(module);
+        PotentialConflict c = resolveState.getModuleConflictHandler().registerCandidate(module);
         if (c.conflictExists()) {
             // We have a conflict
             LOGGER.debug("Found new conflicting module {}", module);

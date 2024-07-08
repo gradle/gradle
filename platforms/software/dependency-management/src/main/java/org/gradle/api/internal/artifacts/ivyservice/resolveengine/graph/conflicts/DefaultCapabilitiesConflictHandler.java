@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -149,21 +148,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability) {
         return capabilityWithoutVersionToNodes.containsKey(capability.getCapabilityId());
-    }
-
-    @Override
-    public boolean hasKnownConflictFor(ModuleVersionIdentifier id) {
-        if (conflicts.isEmpty()) {
-            return false;
-        }
-
-        // TODO: This method does not make sense for capabilities, since
-        // we need to check the variant's capabilities instead of assuming
-        // the module version ID of its parent component is its only capability.
-
-        return capabilityIdToConflict.values().stream()
-            .flatMap(capability -> capability.nodes.stream())
-            .anyMatch(node -> node.getComponent().getId().equals(id));
     }
 
     public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {

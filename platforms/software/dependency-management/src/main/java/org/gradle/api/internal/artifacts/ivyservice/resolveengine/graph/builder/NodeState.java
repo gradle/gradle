@@ -1033,7 +1033,7 @@ public class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : virtualEdges) {
                 outgoingDependency.markUnused();
                 outgoingDependency.removeFromTargetConfigurations();
-                outgoingDependency.getSelector().release(resolveState.getConflictTracker());
+                outgoingDependency.getSelector().release();
             }
         }
         virtualEdges = null;
@@ -1137,7 +1137,7 @@ public class NodeState implements DependencyGraphNode {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
                 if (from.removeOutgoingEdge(incomingEdge)) {
-                    incomingEdge.getSelector().release(resolveState.getConflictTracker());
+                    incomingEdge.getSelector().release();
                 }
             }
             pendingDependencies.registerConstraintProvider(from);
@@ -1230,7 +1230,7 @@ public class NodeState implements DependencyGraphNode {
             // We can ignore if we are already removing edges anyway
             outgoingEdges.remove(edgeState);
             edgeState.markUnused();
-            edgeState.getSelector().release(resolveState.getConflictTracker());
+            edgeState.getSelector().release();
         }
     }
 
