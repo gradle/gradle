@@ -92,9 +92,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                         val action = component.actionFor(outcome.model)
                         if (action != null) {
                             action.run {
-                                verticalScrollContent {
-                                    ModelContent(outcome.model)
-                                }
+                                ModelContent(outcome.model)
                             }
                         } else {
                             Text(
@@ -114,7 +112,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
 }
 
 @Composable
-fun verticalScrollContent(
+fun horizontalScrollContent(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(
