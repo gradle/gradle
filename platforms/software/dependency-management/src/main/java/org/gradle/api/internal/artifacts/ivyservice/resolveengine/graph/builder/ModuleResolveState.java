@@ -440,9 +440,9 @@ public class ModuleResolveState implements CandidateModule {
             // TODO: This check is no longer necessary. We should always select.
             // The original reproducer that caused us to add this check no longer fails when the check is removed:
             // https://github.com/gradle/gradle/commit/982396e31ffab7b41e07b351b220d2788687804f
-            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
+//            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
                 select(newSelected);
-            }
+//            }
 
             // TODO: selectBest updates state, but we ignore that. We should do something with newSelected here
             // or reset the selectors to before the selectBest call
