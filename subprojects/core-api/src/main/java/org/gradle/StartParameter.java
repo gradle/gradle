@@ -102,6 +102,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
     private boolean refreshKeys;
     private boolean exportKeys;
+    private boolean propertyUpgradeReportEnabled;
     private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
     /**
@@ -1013,5 +1014,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public boolean isConfigurationCacheRequested() {
         // TODO:configuration-cache add nagging in 8.6 (https://github.com/gradle/gradle/issues/26720)
         return false;
+    }
+
+    /**
+     * Returns true if the property upgrade report is enabled.
+     *
+     * @since 8.10
+     */
+    @Incubating
+    public boolean isPropertyUpgradeReportEnabled() {
+        return propertyUpgradeReportEnabled;
+    }
+
+    /**
+     * Sets whether the property upgrade report is enabled.
+     *
+     * @since 8.10
+     */
+    @Incubating
+    public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
+        this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
     }
 }
