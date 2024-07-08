@@ -18,23 +18,18 @@ package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
-import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
-import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
-import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure
-import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
-import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
-import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
@@ -544,8 +539,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionByNameException.class, ConfigurationNotCompatibleFailure.class, this.&setupConfigurationNotCompatibleFailureForProject)
     private final Demonstration configurationNotFound = new Demonstration("Configuration not found", VariantSelectionByNameException.class, ConfigurationDoesNotExistFailure.class, this.&setupConfigurationNotFound)
 
-    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupConfigurationNotFound)
-    private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupExternalConfigurationNotFound)
     private final Demonstration multipleConfigurationsWithSameCapabilities = new Demonstration("Multiple configurations with the same capabilities", ConfigurationSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupMultipleConfigurationsWithSameCapabilities)
     private final Demonstration multipleConfigurationsWithIncompatibleAttributesSelected = new Demonstration("Multiple selected variants with incompatible attributes", ConfigurationSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupMultipleSelectedVariantsWithIncompatibleAttributes)
 
@@ -705,26 +698,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupExternalConfigurationNotFound() {
-        buildKotlinFile << """
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
-
-            configurations {
-                dependencyScope("myLibs")
-
-                resolvable("resolveMe") {
-                    extendsFrom(configurations.getByName("myLibs"))
-                }
-            }
-
-            dependencies {
-                add("myLibs", module(mapOf("group" to "com.squareup.okhttp3", "name" to "okhttp", "version" to "4.4.0", "configuration" to "absent")))
-            }
-
-            ${forceConsumerResolution()}
-        """
-    }
-
     private void setupConfigurationNotFound() {
         buildKotlinFile << """
             configurations {
@@ -737,138 +710,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 add("myDependencies", project(":", "absent"))
-            }
-
-            ${forceConsumerResolution()}
-        """
-    }
-
-    private void setupAmbiguousArtifactsFailureForProject() {
-        buildKotlinFile << """
-            configurations {
-                consumable("default") {
-                    outgoing {
-                        variants {
-                            val v1 by creating { }
-                            val v2 by creating { }
-                        }
-                    }
-                }
-
-                dependencyScope("myDependencies")
-
-                resolvable("resolveMe") {
-                    extendsFrom(configurations.getByName("myDependencies"))
-                }
-            }
-
-            dependencies {
-                add("myDependencies", project(":"))
-            }
-
-            ${forceConsumerResolution()}
-        """
-    }
-
-    private void setupAmbiguousArtifactTransformFailureForProject() {
-        buildKotlinFile <<  """
-            val color = Attribute.of("color", String::class.java)
-            val shape = Attribute.of("shape", String::class.java)
-            val matter = Attribute.of("state", String::class.java)
-
-            configurations {
-                consumable("roundBlueLiquidElements") {
-                    attributes.attribute(shape, "round")
-                    attributes.attribute(color, "blue")
-                    attributes.attribute(matter, "liquid")
-                }
-
-                dependencyScope("myDependencies")
-
-                resolvable("resolveMe") {
-                    extendsFrom(configurations.getByName("myDependencies"))
-                    // Initially request only round
-                    attributes.attribute(shape, "round")
-                }
-            }
-
-            abstract class BrokenTransform : TransformAction<TransformParameters.None> {
-                override fun transform(outputs: TransformOutputs) {
-                    throw AssertionError("Should not actually be selected to run")
-                }
-            }
-
-            dependencies {
-                add("myDependencies", project(":"))
-
-                // Register 2 transforms that both will move blue -> red, but also do
-                // something else to another irrelevant attribute in order to make them
-                // unique from each other
-                registerTransform(BrokenTransform::class.java) {
-                    from.attribute(color, "blue")
-                    to.attribute(color, "red")
-                    from.attribute(matter, "liquid")
-                    to.attribute(matter, "solid")
-                }
-                registerTransform(BrokenTransform::class.java) {
-                    from.attribute(color, "blue")
-                    to.attribute(color, "red")
-                    from.attribute(matter, "liquid")
-                    to.attribute(matter, "gas")
-                }
-            }
-
-            val forceResolution by tasks.registering {
-                inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
-                    attributes.attribute(color, "red")
-                }.artifacts.artifactFiles)
-
-                doLast {
-                    inputs.files.files.forEach { println(it) }
-                }
-            }
-        """
-    }
-
-    private void setupNoMatchingArtifactVariantsFailureForProject() {
-        buildKotlinFile << """
-            val artifactType = Attribute.of("artifactType", String::class.java)
-            val color = Attribute.of("color", String::class.java)
-
-            configurations {
-                consumable("myElements") {
-                    attributes.attribute(color, "blue")
-
-                    outgoing {
-                        variants {
-                            val secondary by creating {
-                                // Without artifacts on the variant, we would get a AmbiguousArtifactVariantsException - need a mismatch with the derived artifact type of "jar"
-                                artifact(file("secondary.jar"))
-                            }
-                        }
-
-                        artifacts {
-                            artifact(file("implicit.jar"))
-                        }
-                    }
-                }
-            }
-
-            configurations {
-                dependencyScope("myDependencies")
-
-                resolvable("resolveMe") {
-                    extendsFrom(configurations.getByName("myDependencies"))
-
-                    // We need to match the "myElements" configuration, then the AV will look at its variants
-                    attributes.attribute(color, "blue")
-                    // Without requesting this special attribute that mismatches the derived value of "jar", we would get a successful result that pulls implicit.jar
-                    attributes.attribute(artifactType, "dll")
-                }
-            }
-
-            dependencies {
-                add("myDependencies", project(":"))
             }
 
             ${forceConsumerResolution()}
