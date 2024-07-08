@@ -157,8 +157,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return false;
         }
 
-        // TODO: Should this look at implicit capabilities? Or just look at group:name
-        // Or, does this intend to see if a specific NODE is in conflict?
+        // TODO: This method does not make sense for capabilities, since
+        // we need to check the variant's capabilities instead of assuming
+        // the module version ID of its parent component is its only capability.
 
         return capabilityIdToConflict.values().stream()
             .flatMap(capability -> capability.nodes.stream())

@@ -437,12 +437,13 @@ public class ModuleResolveState implements CandidateModule {
         if (selected == null) {
             // In some cases we should ignore this because the selection happens to be a known conflict
 
-            // TODO: Is this check trying to check if this _node_ is in conflict? (Even though we are only performing selection
-            // and don't necessarily have the node yet), Or, is it trying to see if there is a capability conflict for the capabilities
-            // this node will have? In the second case, this misses explicitly declared capabilities.
+            // TODO: This check is no longer necessary. We should always select.
+            // The original reproducer that caused us to add this check no longer fails when the check is removed:
+            // https://github.com/gradle/gradle/commit/982396e31ffab7b41e07b351b220d2788687804f
             if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
                 select(newSelected);
             }
+
             // TODO: selectBest updates state, but we ignore that. We should do something with newSelected here
             // or reset the selectors to before the selectBest call
         } else if (newSelected != selected) {
