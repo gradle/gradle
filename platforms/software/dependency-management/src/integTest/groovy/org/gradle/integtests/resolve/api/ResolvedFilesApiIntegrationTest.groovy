@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.GradleVersion
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -590,6 +592,8 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         }
 
         when:
+        maybeExpectDeprecation(expression)
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
