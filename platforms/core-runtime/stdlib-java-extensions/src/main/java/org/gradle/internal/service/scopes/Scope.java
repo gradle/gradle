@@ -72,7 +72,7 @@ package org.gradle.internal.service.scopes;
  *     └── project
  * </pre>
  *
- * <h4>Services and their visibility</h4>
+ * <h3>Services and their visibility</h3>
  * The state in each scope is created and managed by services registered in that scope.
  * All services of a scope are assembled in a {@code ServiceRegistry}.
  * When the registry is closed all its services are closed as well and the state is discarded.
