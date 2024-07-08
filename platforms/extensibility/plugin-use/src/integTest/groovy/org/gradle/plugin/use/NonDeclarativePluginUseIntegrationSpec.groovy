@@ -163,8 +163,11 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
 
         when:
         def pluginModule = publishPlugin """
-            project.task('pluginTask').doLast {
-                println "pluginTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            project.tasks.register("pluginTask") {
+                def resource = this.getClass().classLoader.getResource('d/v.txt')
+                doLast {
+                    println "pluginTask - " + resource.text
+                }
             }
         """
 
@@ -184,8 +187,9 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
             $USE
 
             task scriptTask {
+                def resource = this.getClass().classLoader.getResource('d/v.txt')
                 doLast {
-                    println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+                    println "scriptTask - " + resource.text
                 }
             }
 
