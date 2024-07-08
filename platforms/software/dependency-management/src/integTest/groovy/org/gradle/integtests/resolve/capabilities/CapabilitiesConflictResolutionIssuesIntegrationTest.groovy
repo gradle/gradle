@@ -150,10 +150,11 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     configuration 'runtimeElements'
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'one-preferred')
-                        byConflictResolution()
+                        byConflictResolution("Explicit selection of project :shared variant onePrefRuntimeElements")
                     }
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'two-preferred')
+                        byConflictResolution("Explicit selection of project :shared variant twoPrefRuntimeElements")
                     }
                 }
                 project(":shared", "test:shared:") {
@@ -468,7 +469,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             root(":", ":test:") {
                 module("ch.qos.logback:logback-classic:1.3.11")
                 edge("org.slf4j:slf4j-log4j12:1.5.6", "ch.qos.logback:logback-classic:1.3.11") {
-                    byConflictResolution()
+                    byConflictResolution("Explicit selection of ch.qos.logback:logback-classic:1.3.11")
                 }
                 module("org.slf4j:log4j-over-slf4j:1.4.2")
             }

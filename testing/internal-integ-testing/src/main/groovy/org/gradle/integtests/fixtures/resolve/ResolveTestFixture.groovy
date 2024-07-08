@@ -858,14 +858,6 @@ $END_MARKER
         /**
          * Marks that this node was selected due to conflict resolution.
          */
-        NodeBuilder byConflictResolution() {
-            reasons << 'conflict resolution'
-            this
-        }
-
-        /**
-         * Marks that this node was selected due to conflict resolution.
-         */
         NodeBuilder byConflictResolution(String message) {
             reasons << "${ComponentSelectionCause.CONFLICT_RESOLUTION.defaultReason}: $message".toString()
             this
@@ -916,6 +908,7 @@ $END_MARKER
             this
         }
 
+        // TODO: This is suspicious.
         NodeBuilder maybeRequested() {
             ignoreRequested = true
             ignoreReasons.add('requested')
@@ -928,16 +921,19 @@ $END_MARKER
             this
         }
 
+        // TODO: This is suspicious.
         NodeBuilder maybeByConstraint() {
             ignoreReasonPrefixes.add("constraint")
             this
         }
 
+        // TODO: This is suspicious.
         NodeBuilder maybeSelectedByRule() {
             ignoreReasonPrefixes.add("selected by rule")
             this
         }
 
+        // TODO: This is suspicious.
         NodeBuilder maybeByReason(String reason) {
             ignoreReasons.add(reason)
             this

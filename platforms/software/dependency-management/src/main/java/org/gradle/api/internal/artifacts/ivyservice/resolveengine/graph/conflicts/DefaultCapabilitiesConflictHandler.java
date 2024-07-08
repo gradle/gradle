@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 
@@ -133,11 +132,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 resolutionAction.execute(details);
 
                 if (conflict.nodes.size() > 1) {
-                    ComponentSelectionDescriptorInternal conflictResolution = ComponentSelectionReasons.CONFLICT_RESOLUTION;
-                    if (details.reason != null) {
-                        conflictResolution = conflictResolution.withDescription(details.reason);
-                    }
-                    details.getSelected().addCause(conflictResolution);
+                    assert details.reason != null;
+                    details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
                 }
 
                 return;
