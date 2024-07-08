@@ -188,7 +188,7 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
             tasks.register("resolve") {
                 inputs.files(resolvableConfiguration)
                 doFirst {
-                    println("Resolved: " + resolvableConfiguration.get().files)
+                    println("Resolved: " + inputs.files.files)
                 }
             }
         """
