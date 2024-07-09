@@ -50,7 +50,7 @@ fun removeCommentAndEmptyLines(code: String): String {
     return buildString {
         val lines = code.lines()
         lines.forEach { line ->
-            if (!line.startsWith("//") && line.isNotBlank()) {
+            if (!line.trim().startsWith("//") && line.isNotBlank()) {
                 if (isNotEmpty()) appendLine()
                 append(line)
             }

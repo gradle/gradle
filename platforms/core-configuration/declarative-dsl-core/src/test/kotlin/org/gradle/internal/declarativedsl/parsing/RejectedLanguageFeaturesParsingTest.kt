@@ -362,7 +362,7 @@ class RejectedLanguageFeaturesParsingTest {
     @Test
     fun `rejects annotation usages`() {
         val code = """
-            @A val x = 1
+            @A x = 1
             @A b { }
             b(@A x)
             b { @A f() }
@@ -371,34 +371,34 @@ class RejectedLanguageFeaturesParsingTest {
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = AnnotationUsage,
-                    potentialElementSource = indexes: 0..12, line/column: 1/1..1/13, file: test,
-                    erroneousSource = indexes: 0..2, line/column: 1/1..1/3, file: test
+                    potentialElementSource = indexes: 0..4, line/column: 1/1..1/5, file: test,
+                    erroneousSource = indexes: 0..4, line/column: 1/1..1/5, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = AnnotationUsage,
-                    potentialElementSource = indexes: 13..21, line/column: 2/1..2/9, file: test,
-                    erroneousSource = indexes: 13..21, line/column: 2/1..2/9, file: test
+                    potentialElementSource = indexes: 9..17, line/column: 2/1..2/9, file: test,
+                    erroneousSource = indexes: 9..17, line/column: 2/1..2/9, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = AnnotationUsage,
-                    potentialElementSource = indexes: 24..28, line/column: 3/3..3/7, file: test,
-                    erroneousSource = indexes: 24..28, line/column: 3/3..3/7, file: test
+                    potentialElementSource = indexes: 20..24, line/column: 3/3..3/7, file: test,
+                    erroneousSource = indexes: 20..24, line/column: 3/3..3/7, file: test
                 )
             )
-            FunctionCall [indexes: 30..42, line/column: 4/1..4/13, file: test] (
+            FunctionCall [indexes: 26..38, line/column: 4/1..4/13, file: test] (
                 name = b
                 args = [
-                    FunctionArgument.Lambda [indexes: 32..42, line/column: 4/3..4/13, file: test] (
-                        block = Block [indexes: 34..40, line/column: 4/5..4/11, file: test] (
+                    FunctionArgument.Lambda [indexes: 28..38, line/column: 4/3..4/13, file: test] (
+                        block = Block [indexes: 30..36, line/column: 4/5..4/11, file: test] (
                             ErroneousStatement (
                                 UnsupportedConstruct(
                                     languageFeature = AnnotationUsage,
-                                    potentialElementSource = indexes: 34..40, line/column: 4/5..4/11, file: test,
-                                    erroneousSource = indexes: 34..40, line/column: 4/5..4/11, file: test
+                                    potentialElementSource = indexes: 30..36, line/column: 4/5..4/11, file: test,
+                                    erroneousSource = indexes: 30..36, line/column: 4/5..4/11, file: test
                                 )
                             )
                         )
@@ -435,15 +435,15 @@ class RejectedLanguageFeaturesParsingTest {
     fun `reject unsupported binary expression`() {
         val code =
             """
-            val a = (1 + 2)
+            a = (1 + 2)
             """.trimIndent()
 
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
-                    potentialElementSource = indexes: 9..14, line/column: 1/10..1/15, file: test,
-                    erroneousSource = indexes: 9..14, line/column: 1/10..1/15, file: test
+                    potentialElementSource = indexes: 5..10, line/column: 1/6..1/11, file: test,
+                    erroneousSource = indexes: 5..10, line/column: 1/6..1/11, file: test
                 )
             )""".trimIndent()
         parse(code).assert(expected)

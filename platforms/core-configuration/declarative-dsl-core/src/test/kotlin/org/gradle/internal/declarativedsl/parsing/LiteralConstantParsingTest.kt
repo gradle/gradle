@@ -24,204 +24,260 @@ class LiteralConstantParsingTest {
     @Test
     fun `integer literals`() {
         val code = """
-                val a = 1
-                val a = 0x1
-                val a = 0X1
-                val a = 0b1
-                val a = 0B1
-                val a = 1L
-                val a = 0x1L
-                val a = 0X1L
-                val a = 0b1L
-                val a = 0B1L
-                val a = 1l
-                val a = 0x1l
-                val a = 0X1l
-                val a = 0b1l
-                val a = 0B1l
-                val a = 0
-                val a = 1_2
-                val a = 12__34
-                val a = 0x1_2_3_4
-                val a = 0B0
-                val a = 0b0001_0010_0100_1000
-                val a = 1_2L
-                val a = -12__34l
-                val a = 0x1_2_3_4L
-                val a = 0B0L
-                val a = -0b0001_0010_0100_1000l
-                val a = 0xa_af1
-                val a = -0xa_af_1
+                a = 1
+                a = 0x1
+                a = 0X1
+                a = 0b1
+                a = 0B1
+                a = 1L
+                a = 0x1L
+                a = 0X1L
+                a = 0b1L
+                a = 0B1L
+                a = 1l
+                a = 0x1l
+                a = 0X1l
+                a = 0b1l
+                a = 0B1l
+                a = 0
+                a = 1_2
+                a = 12__34
+                a = 0x1_2_3_4
+                a = 0B0
+                a = 0b0001_0010_0100_1000
+                a = 1_2L
+                a = -12__34l
+                a = 0x1_2_3_4L
+                a = 0B0L
+                a = -0b0001_0010_0100_1000l
+                a = 0xa_af1
+                a = -0xa_af_1
             """.trimIndent()
 
         val results = ParseTestUtil.parse(code)
         val expected = """
-                // (0 .. 9): val a = 1
-                LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
+                // (0 .. 5): a = 1
+                Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
+                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
                 )
 
-                // (10 .. 21): val a = 0x1
-                LocalValue [indexes: 10..21, line/column: 2/1..2/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 18..21, line/column: 2/9..2/12, file: test] (1)
+                // (6 .. 13): a = 0x1
+                Assignment [indexes: 6..13, line/column: 2/1..2/8, file: test] (
+                    lhs = PropertyAccess [indexes: 6..7, line/column: 2/1..2/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 10..13, line/column: 2/5..2/8, file: test] (1)
                 )
 
-                // (22 .. 33): val a = 0X1
-                LocalValue [indexes: 22..33, line/column: 3/1..3/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 30..33, line/column: 3/9..3/12, file: test] (1)
+                // (14 .. 21): a = 0X1
+                Assignment [indexes: 14..21, line/column: 3/1..3/8, file: test] (
+                    lhs = PropertyAccess [indexes: 14..15, line/column: 3/1..3/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 18..21, line/column: 3/5..3/8, file: test] (1)
                 )
 
-                // (34 .. 45): val a = 0b1
-                LocalValue [indexes: 34..45, line/column: 4/1..4/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 42..45, line/column: 4/9..4/12, file: test] (1)
+                // (22 .. 29): a = 0b1
+                Assignment [indexes: 22..29, line/column: 4/1..4/8, file: test] (
+                    lhs = PropertyAccess [indexes: 22..23, line/column: 4/1..4/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 26..29, line/column: 4/5..4/8, file: test] (1)
                 )
 
-                // (46 .. 57): val a = 0B1
-                LocalValue [indexes: 46..57, line/column: 5/1..5/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 54..57, line/column: 5/9..5/12, file: test] (1)
+                // (30 .. 37): a = 0B1
+                Assignment [indexes: 30..37, line/column: 5/1..5/8, file: test] (
+                    lhs = PropertyAccess [indexes: 30..31, line/column: 5/1..5/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 34..37, line/column: 5/5..5/8, file: test] (1)
                 )
 
-                // (58 .. 68): val a = 1L
-                LocalValue [indexes: 58..68, line/column: 6/1..6/11, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 66..68, line/column: 6/9..6/11, file: test] (1)
+                // (38 .. 44): a = 1L
+                Assignment [indexes: 38..44, line/column: 6/1..6/7, file: test] (
+                    lhs = PropertyAccess [indexes: 38..39, line/column: 6/1..6/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 42..44, line/column: 6/5..6/7, file: test] (1)
                 )
 
-                // (69 .. 81): val a = 0x1L
-                LocalValue [indexes: 69..81, line/column: 7/1..7/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 77..81, line/column: 7/9..7/13, file: test] (1)
+                // (45 .. 53): a = 0x1L
+                Assignment [indexes: 45..53, line/column: 7/1..7/9, file: test] (
+                    lhs = PropertyAccess [indexes: 45..46, line/column: 7/1..7/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 49..53, line/column: 7/5..7/9, file: test] (1)
                 )
 
-                // (82 .. 94): val a = 0X1L
-                LocalValue [indexes: 82..94, line/column: 8/1..8/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 90..94, line/column: 8/9..8/13, file: test] (1)
+                // (54 .. 62): a = 0X1L
+                Assignment [indexes: 54..62, line/column: 8/1..8/9, file: test] (
+                    lhs = PropertyAccess [indexes: 54..55, line/column: 8/1..8/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 58..62, line/column: 8/5..8/9, file: test] (1)
                 )
 
-                // (95 .. 107): val a = 0b1L
-                LocalValue [indexes: 95..107, line/column: 9/1..9/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 103..107, line/column: 9/9..9/13, file: test] (1)
+                // (63 .. 71): a = 0b1L
+                Assignment [indexes: 63..71, line/column: 9/1..9/9, file: test] (
+                    lhs = PropertyAccess [indexes: 63..64, line/column: 9/1..9/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 67..71, line/column: 9/5..9/9, file: test] (1)
                 )
 
-                // (108 .. 120): val a = 0B1L
-                LocalValue [indexes: 108..120, line/column: 10/1..10/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 116..120, line/column: 10/9..10/13, file: test] (1)
+                // (72 .. 80): a = 0B1L
+                Assignment [indexes: 72..80, line/column: 10/1..10/9, file: test] (
+                    lhs = PropertyAccess [indexes: 72..73, line/column: 10/1..10/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 76..80, line/column: 10/5..10/9, file: test] (1)
                 )
 
-                // (121 .. 131): val a = 1l
-                LocalValue [indexes: 121..131, line/column: 11/1..11/11, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 129..131, line/column: 11/9..11/11, file: test] (1)
+                // (81 .. 87): a = 1l
+                Assignment [indexes: 81..87, line/column: 11/1..11/7, file: test] (
+                    lhs = PropertyAccess [indexes: 81..82, line/column: 11/1..11/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 85..87, line/column: 11/5..11/7, file: test] (1)
                 )
 
-                // (132 .. 144): val a = 0x1l
-                LocalValue [indexes: 132..144, line/column: 12/1..12/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 140..144, line/column: 12/9..12/13, file: test] (1)
+                // (88 .. 96): a = 0x1l
+                Assignment [indexes: 88..96, line/column: 12/1..12/9, file: test] (
+                    lhs = PropertyAccess [indexes: 88..89, line/column: 12/1..12/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 92..96, line/column: 12/5..12/9, file: test] (1)
                 )
 
-                // (145 .. 157): val a = 0X1l
-                LocalValue [indexes: 145..157, line/column: 13/1..13/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 153..157, line/column: 13/9..13/13, file: test] (1)
+                // (97 .. 105): a = 0X1l
+                Assignment [indexes: 97..105, line/column: 13/1..13/9, file: test] (
+                    lhs = PropertyAccess [indexes: 97..98, line/column: 13/1..13/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 101..105, line/column: 13/5..13/9, file: test] (1)
                 )
 
-                // (158 .. 170): val a = 0b1l
-                LocalValue [indexes: 158..170, line/column: 14/1..14/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 166..170, line/column: 14/9..14/13, file: test] (1)
+                // (106 .. 114): a = 0b1l
+                Assignment [indexes: 106..114, line/column: 14/1..14/9, file: test] (
+                    lhs = PropertyAccess [indexes: 106..107, line/column: 14/1..14/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 110..114, line/column: 14/5..14/9, file: test] (1)
                 )
 
-                // (171 .. 183): val a = 0B1l
-                LocalValue [indexes: 171..183, line/column: 15/1..15/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 179..183, line/column: 15/9..15/13, file: test] (1)
+                // (115 .. 123): a = 0B1l
+                Assignment [indexes: 115..123, line/column: 15/1..15/9, file: test] (
+                    lhs = PropertyAccess [indexes: 115..116, line/column: 15/1..15/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 119..123, line/column: 15/5..15/9, file: test] (1)
                 )
 
-                // (184 .. 193): val a = 0
-                LocalValue [indexes: 184..193, line/column: 16/1..16/10, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 192..193, line/column: 16/9..16/10, file: test] (0)
+                // (124 .. 129): a = 0
+                Assignment [indexes: 124..129, line/column: 16/1..16/6, file: test] (
+                    lhs = PropertyAccess [indexes: 124..125, line/column: 16/1..16/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 128..129, line/column: 16/5..16/6, file: test] (0)
                 )
 
-                // (194 .. 205): val a = 1_2
-                LocalValue [indexes: 194..205, line/column: 17/1..17/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 202..205, line/column: 17/9..17/12, file: test] (12)
+                // (130 .. 137): a = 1_2
+                Assignment [indexes: 130..137, line/column: 17/1..17/8, file: test] (
+                    lhs = PropertyAccess [indexes: 130..131, line/column: 17/1..17/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 134..137, line/column: 17/5..17/8, file: test] (12)
                 )
 
-                // (206 .. 220): val a = 12__34
-                LocalValue [indexes: 206..220, line/column: 18/1..18/15, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 214..220, line/column: 18/9..18/15, file: test] (1234)
+                // (138 .. 148): a = 12__34
+                Assignment [indexes: 138..148, line/column: 18/1..18/11, file: test] (
+                    lhs = PropertyAccess [indexes: 138..139, line/column: 18/1..18/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 142..148, line/column: 18/5..18/11, file: test] (1234)
                 )
 
-                // (221 .. 238): val a = 0x1_2_3_4
-                LocalValue [indexes: 221..238, line/column: 19/1..19/18, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 229..238, line/column: 19/9..19/18, file: test] (4660)
+                // (149 .. 162): a = 0x1_2_3_4
+                Assignment [indexes: 149..162, line/column: 19/1..19/14, file: test] (
+                    lhs = PropertyAccess [indexes: 149..150, line/column: 19/1..19/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 153..162, line/column: 19/5..19/14, file: test] (4660)
                 )
 
-                // (239 .. 250): val a = 0B0
-                LocalValue [indexes: 239..250, line/column: 20/1..20/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 247..250, line/column: 20/9..20/12, file: test] (0)
+                // (163 .. 170): a = 0B0
+                Assignment [indexes: 163..170, line/column: 20/1..20/8, file: test] (
+                    lhs = PropertyAccess [indexes: 163..164, line/column: 20/1..20/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 167..170, line/column: 20/5..20/8, file: test] (0)
                 )
 
-                // (251 .. 280): val a = 0b0001_0010_0100_1000
-                LocalValue [indexes: 251..280, line/column: 21/1..21/30, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 259..280, line/column: 21/9..21/30, file: test] (4680)
+                // (171 .. 196): a = 0b0001_0010_0100_1000
+                Assignment [indexes: 171..196, line/column: 21/1..21/26, file: test] (
+                    lhs = PropertyAccess [indexes: 171..172, line/column: 21/1..21/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 175..196, line/column: 21/5..21/26, file: test] (4680)
                 )
 
-                // (281 .. 293): val a = 1_2L
-                LocalValue [indexes: 281..293, line/column: 22/1..22/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 289..293, line/column: 22/9..22/13, file: test] (12)
+                // (197 .. 205): a = 1_2L
+                Assignment [indexes: 197..205, line/column: 22/1..22/9, file: test] (
+                    lhs = PropertyAccess [indexes: 197..198, line/column: 22/1..22/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 201..205, line/column: 22/5..22/9, file: test] (12)
                 )
 
-                // (294 .. 310): val a = 12__34l
-                LocalValue [indexes: 294..310, line/column: 23/1..23/17, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 302..310, line/column: 23/9..23/17, file: test] (-1234)
+                // (206 .. 218): a = -12__34l
+                Assignment [indexes: 206..218, line/column: 23/1..23/13, file: test] (
+                    lhs = PropertyAccess [indexes: 206..207, line/column: 23/1..23/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 210..218, line/column: 23/5..23/13, file: test] (-1234)
                 )
 
-                // (311 .. 329): val a = 0x1_2_3_4L
-                LocalValue [indexes: 311..329, line/column: 24/1..24/19, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 319..329, line/column: 24/9..24/19, file: test] (4660)
+                // (219 .. 233): a = 0x1_2_3_4L
+                Assignment [indexes: 219..233, line/column: 24/1..24/15, file: test] (
+                    lhs = PropertyAccess [indexes: 219..220, line/column: 24/1..24/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 223..233, line/column: 24/5..24/15, file: test] (4660)
                 )
 
-                // (330 .. 342): val a = 0B0L
-                LocalValue [indexes: 330..342, line/column: 25/1..25/13, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 338..342, line/column: 25/9..25/13, file: test] (0)
+                // (234 .. 242): a = 0B0L
+                Assignment [indexes: 234..242, line/column: 25/1..25/9, file: test] (
+                    lhs = PropertyAccess [indexes: 234..235, line/column: 25/1..25/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 238..242, line/column: 25/5..25/9, file: test] (0)
                 )
 
-                // (343 .. 374): val a = 0b0001_0010_0100_1000l
-                LocalValue [indexes: 343..374, line/column: 26/1..26/32, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 351..374, line/column: 26/9..26/32, file: test] (-4680)
+                // (243 .. 270): a = -0b0001_0010_0100_1000l
+                Assignment [indexes: 243..270, line/column: 26/1..26/28, file: test] (
+                    lhs = PropertyAccess [indexes: 243..244, line/column: 26/1..26/2, file: test] (
+                        name = a
+                    )
+                    rhs = LongLiteral [indexes: 247..270, line/column: 26/5..26/28, file: test] (-4680)
                 )
 
-                // (375 .. 390): val a = 0xa_af1
-                LocalValue [indexes: 375..390, line/column: 27/1..27/16, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 383..390, line/column: 27/9..27/16, file: test] (43761)
+                // (271 .. 282): a = 0xa_af1
+                Assignment [indexes: 271..282, line/column: 27/1..27/12, file: test] (
+                    lhs = PropertyAccess [indexes: 271..272, line/column: 27/1..27/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 275..282, line/column: 27/5..27/12, file: test] (43761)
                 )
 
-                // (391 .. 408): val a = 0xa_af_1
-                LocalValue [indexes: 391..408, line/column: 28/1..28/18, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 399..408, line/column: 28/9..28/18, file: test] (-43761)
+                // (283 .. 296): a = -0xa_af_1
+                Assignment [indexes: 283..296, line/column: 28/1..28/14, file: test] (
+                    lhs = PropertyAccess [indexes: 283..284, line/column: 28/1..28/2, file: test] (
+                        name = a
+                    )
+                    rhs = IntLiteral [indexes: 287..296, line/column: 28/5..28/14, file: test] (-43761)
                 )""".trimIndent()
 
         results.assert(removeCommentAndEmptyLines(expected))
@@ -230,32 +286,32 @@ class LiteralConstantParsingTest {
     @Test
     fun `floating point literals`() {
         val results = ParseTestUtil.parse("""
-                val a = 1.0
-                val a = 1e1
-                val a = 1.0e1
-                val a = 1e-1
-                val a = 1.0e-1
-                val a = 1F
-                val a = 1.0F
-                val a = 1e1F
-                val a = 1.0e1F
-                val a = 1e-1F
-                val a = 1.0e-1F
-                val a = 1f
-                val a = 1.0f
-                val a = 1e1f
-                val a = 1.0e1f
-                val a = 1e-1f
-                val a = 1.0e-1f
-                val a = .1_1
-                val a = 3.141_592
-                val a = 1e1__3_7
-                val a = 1_0f
-                val a = 1e1_2f
-                val a = 2_2.0f
-                val a = .3_3f
-                val a = 3.14_16f
-                val a = 6.022___137e+2_3f
+                a = 1.0
+                a = 1e1
+                a = 1.0e1
+                a = 1e-1
+                a = 1.0e-1
+                a = 1F
+                a = 1.0F
+                a = 1e1F
+                a = 1.0e1F
+                a = 1e-1F
+                a = 1.0e-1F
+                a = 1f
+                a = 1.0f
+                a = 1e1f
+                a = 1.0e1f
+                a = 1e-1f
+                a = 1.0e-1f
+                a = .1_1
+                a = 3.141_592
+                a = 1e1__3_7
+                a = 1_0f
+                a = 1e1_2f
+                a = 2_2.0f
+                a = .3_3f
+                a = 3.14_16f
+                a = 6.022___137e+2_3f
             """.trimIndent()
         )
 
@@ -263,183 +319,183 @@ class LiteralConstantParsingTest {
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 8..11, line/column: 1/9..1/12, file: test,
-                        erroneousSource = indexes: 8..11, line/column: 1/9..1/12, file: test
+                        potentialElementSource = indexes: 4..7, line/column: 1/5..1/8, file: test,
+                        erroneousSource = indexes: 4..7, line/column: 1/5..1/8, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 20..23, line/column: 2/9..2/12, file: test,
-                        erroneousSource = indexes: 20..23, line/column: 2/9..2/12, file: test
+                        potentialElementSource = indexes: 12..15, line/column: 2/5..2/8, file: test,
+                        erroneousSource = indexes: 12..15, line/column: 2/5..2/8, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 32..37, line/column: 3/9..3/14, file: test,
-                        erroneousSource = indexes: 32..37, line/column: 3/9..3/14, file: test
+                        potentialElementSource = indexes: 20..25, line/column: 3/5..3/10, file: test,
+                        erroneousSource = indexes: 20..25, line/column: 3/5..3/10, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 46..50, line/column: 4/9..4/13, file: test,
-                        erroneousSource = indexes: 46..50, line/column: 4/9..4/13, file: test
+                        potentialElementSource = indexes: 30..34, line/column: 4/5..4/9, file: test,
+                        erroneousSource = indexes: 30..34, line/column: 4/5..4/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 59..65, line/column: 5/9..5/15, file: test,
-                        erroneousSource = indexes: 59..65, line/column: 5/9..5/15, file: test
+                        potentialElementSource = indexes: 39..45, line/column: 5/5..5/11, file: test,
+                        erroneousSource = indexes: 39..45, line/column: 5/5..5/11, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 74..76, line/column: 6/9..6/11, file: test,
-                        erroneousSource = indexes: 74..76, line/column: 6/9..6/11, file: test
+                        potentialElementSource = indexes: 50..52, line/column: 6/5..6/7, file: test,
+                        erroneousSource = indexes: 50..52, line/column: 6/5..6/7, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 85..89, line/column: 7/9..7/13, file: test,
-                        erroneousSource = indexes: 85..89, line/column: 7/9..7/13, file: test
+                        potentialElementSource = indexes: 57..61, line/column: 7/5..7/9, file: test,
+                        erroneousSource = indexes: 57..61, line/column: 7/5..7/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 98..102, line/column: 8/9..8/13, file: test,
-                        erroneousSource = indexes: 98..102, line/column: 8/9..8/13, file: test
+                        potentialElementSource = indexes: 66..70, line/column: 8/5..8/9, file: test,
+                        erroneousSource = indexes: 66..70, line/column: 8/5..8/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 111..117, line/column: 9/9..9/15, file: test,
-                        erroneousSource = indexes: 111..117, line/column: 9/9..9/15, file: test
+                        potentialElementSource = indexes: 75..81, line/column: 9/5..9/11, file: test,
+                        erroneousSource = indexes: 75..81, line/column: 9/5..9/11, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 126..131, line/column: 10/9..10/14, file: test,
-                        erroneousSource = indexes: 126..131, line/column: 10/9..10/14, file: test
+                        potentialElementSource = indexes: 86..91, line/column: 10/5..10/10, file: test,
+                        erroneousSource = indexes: 86..91, line/column: 10/5..10/10, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 140..147, line/column: 11/9..11/16, file: test,
-                        erroneousSource = indexes: 140..147, line/column: 11/9..11/16, file: test
+                        potentialElementSource = indexes: 96..103, line/column: 11/5..11/12, file: test,
+                        erroneousSource = indexes: 96..103, line/column: 11/5..11/12, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 156..158, line/column: 12/9..12/11, file: test,
-                        erroneousSource = indexes: 156..158, line/column: 12/9..12/11, file: test
+                        potentialElementSource = indexes: 108..110, line/column: 12/5..12/7, file: test,
+                        erroneousSource = indexes: 108..110, line/column: 12/5..12/7, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 167..171, line/column: 13/9..13/13, file: test,
-                        erroneousSource = indexes: 167..171, line/column: 13/9..13/13, file: test
+                        potentialElementSource = indexes: 115..119, line/column: 13/5..13/9, file: test,
+                        erroneousSource = indexes: 115..119, line/column: 13/5..13/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 180..184, line/column: 14/9..14/13, file: test,
-                        erroneousSource = indexes: 180..184, line/column: 14/9..14/13, file: test
+                        potentialElementSource = indexes: 124..128, line/column: 14/5..14/9, file: test,
+                        erroneousSource = indexes: 124..128, line/column: 14/5..14/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 193..199, line/column: 15/9..15/15, file: test,
-                        erroneousSource = indexes: 193..199, line/column: 15/9..15/15, file: test
+                        potentialElementSource = indexes: 133..139, line/column: 15/5..15/11, file: test,
+                        erroneousSource = indexes: 133..139, line/column: 15/5..15/11, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 208..213, line/column: 16/9..16/14, file: test,
-                        erroneousSource = indexes: 208..213, line/column: 16/9..16/14, file: test
+                        potentialElementSource = indexes: 144..149, line/column: 16/5..16/10, file: test,
+                        erroneousSource = indexes: 144..149, line/column: 16/5..16/10, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 222..229, line/column: 17/9..17/16, file: test,
-                        erroneousSource = indexes: 222..229, line/column: 17/9..17/16, file: test
+                        potentialElementSource = indexes: 154..161, line/column: 17/5..17/12, file: test,
+                        erroneousSource = indexes: 154..161, line/column: 17/5..17/12, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 238..242, line/column: 18/9..18/13, file: test,
-                        erroneousSource = indexes: 238..242, line/column: 18/9..18/13, file: test
+                        potentialElementSource = indexes: 166..170, line/column: 18/5..18/9, file: test,
+                        erroneousSource = indexes: 166..170, line/column: 18/5..18/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 251..260, line/column: 19/9..19/18, file: test,
-                        erroneousSource = indexes: 251..260, line/column: 19/9..19/18, file: test
+                        potentialElementSource = indexes: 175..184, line/column: 19/5..19/14, file: test,
+                        erroneousSource = indexes: 175..184, line/column: 19/5..19/14, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 269..277, line/column: 20/9..20/17, file: test,
-                        erroneousSource = indexes: 269..277, line/column: 20/9..20/17, file: test
+                        potentialElementSource = indexes: 189..197, line/column: 20/5..20/13, file: test,
+                        erroneousSource = indexes: 189..197, line/column: 20/5..20/13, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 286..290, line/column: 21/9..21/13, file: test,
-                        erroneousSource = indexes: 286..290, line/column: 21/9..21/13, file: test
+                        potentialElementSource = indexes: 202..206, line/column: 21/5..21/9, file: test,
+                        erroneousSource = indexes: 202..206, line/column: 21/5..21/9, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 299..305, line/column: 22/9..22/15, file: test,
-                        erroneousSource = indexes: 299..305, line/column: 22/9..22/15, file: test
+                        potentialElementSource = indexes: 211..217, line/column: 22/5..22/11, file: test,
+                        erroneousSource = indexes: 211..217, line/column: 22/5..22/11, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 314..320, line/column: 23/9..23/15, file: test,
-                        erroneousSource = indexes: 314..320, line/column: 23/9..23/15, file: test
+                        potentialElementSource = indexes: 222..228, line/column: 23/5..23/11, file: test,
+                        erroneousSource = indexes: 222..228, line/column: 23/5..23/11, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 329..334, line/column: 24/9..24/14, file: test,
-                        erroneousSource = indexes: 329..334, line/column: 24/9..24/14, file: test
+                        potentialElementSource = indexes: 233..238, line/column: 24/5..24/10, file: test,
+                        erroneousSource = indexes: 233..238, line/column: 24/5..24/10, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 343..351, line/column: 25/9..25/17, file: test,
-                        erroneousSource = indexes: 343..351, line/column: 25/9..25/17, file: test
+                        potentialElementSource = indexes: 243..251, line/column: 25/5..25/13, file: test,
+                        erroneousSource = indexes: 243..251, line/column: 25/5..25/13, file: test
                     )
                 )
                 ErroneousStatement (
                     ParsingError(
                         message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                        potentialElementSource = indexes: 360..377, line/column: 26/9..26/26, file: test,
-                        erroneousSource = indexes: 360..377, line/column: 26/9..26/26, file: test
+                        potentialElementSource = indexes: 256..273, line/column: 26/5..26/22, file: test,
+                        erroneousSource = indexes: 256..273, line/column: 26/5..26/22, file: test
                     )
                 )""".trimIndent()
         results.assert(expected)
@@ -448,175 +504,190 @@ class LiteralConstantParsingTest {
     @Test
     fun `unsigned literal`() {
         val code = """
-                val a = 1u
-                val a = 0u
-                val a = 1_1u
-                val a = -2u
-                val a = 0xFFu
-                val a = 0b100u
-                val a = 3.14u
-                val a = 1e1u
-                val a = 1.0e1u
-                val a = 2_2.0fu
-                val a = 6.022_137e+2_3fu
-                val a = 1U
-                val a = 0xFU
-                val a = 1uU
-                val a = 1Uu
-                val a = 1Lu
-                val a = 1LU
-                val a = 1uL
-                val a = 1UL
-                val a = 3Ul
+                a = 1u
+                a = 0u
+                a = 1_1u
+                a = -2u
+                a = 0xFFu
+                a = 0b100u
+                a = 3.14u
+                a = 1e1u
+                a = 1.0e1u
+                a = 2_2.0fu
+                a = 6.022_137e+2_3fu
+                a = 1U
+                a = 0xFU
+                a = 1uU
+                a = 1Uu
+                a = 1Lu
+                a = 1LU
+                a = 1uL
+                a = 1UL
+                a = 3Ul
             """.trimIndent()
         val results = ParseTestUtil.parse(code)
 
         val expected = """
-                // (0 .. 10): val a = 1u
-                LocalValue [indexes: 0..10, line/column: 1/1..1/11, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 8..10, line/column: 1/9..1/11, file: test] (1)
-                )
-
-                // (11 .. 21): val a = 0u
-                LocalValue [indexes: 11..21, line/column: 2/1..2/11, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 19..21, line/column: 2/9..2/11, file: test] (0)
-                )
-
-                // (22 .. 34): val a = 1_1u
-                LocalValue [indexes: 22..34, line/column: 3/1..3/13, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 30..34, line/column: 3/9..3/13, file: test] (11)
-                )
-
-                // (35 .. 46): val a = -2u
-                LocalValue [indexes: 35..46, line/column: 4/1..4/12, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 43..46, line/column: 4/9..4/12, file: test] (-2)
-                )
-
-                // (47 .. 60): val a = 0xFFu
-                LocalValue [indexes: 47..60, line/column: 5/1..5/14, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 55..60, line/column: 5/9..5/14, file: test] (255)
-                )
-
-                // (61 .. 75): val a = 0b100u
-                LocalValue [indexes: 61..75, line/column: 6/1..6/15, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 69..75, line/column: 6/9..6/15, file: test] (4)
-                )
-
-                // (76 .. 89): val a = 3.14u
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 84..89, line/column: 7/9..7/14, file: test,
-                        erroneousSource = indexes: 89..89, line/column: 7/14..7/14, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 4..6, line/column: 1/5..1/7, file: test,
+                        erroneousSource = indexes: 4..6, line/column: 1/5..1/7, file: test
                     )
                 )
-
-                // (90 .. 102): val a = 1e1u
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 98..102, line/column: 8/9..8/13, file: test,
-                        erroneousSource = indexes: 102..102, line/column: 8/13..8/13, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 11..13, line/column: 2/5..2/7, file: test,
+                        erroneousSource = indexes: 11..13, line/column: 2/5..2/7, file: test
                     )
                 )
-
-                // (103 .. 117): val a = 1.0e1u
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 111..117, line/column: 9/9..9/15, file: test,
-                        erroneousSource = indexes: 117..117, line/column: 9/15..9/15, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 18..22, line/column: 3/5..3/9, file: test,
+                        erroneousSource = indexes: 18..22, line/column: 3/5..3/9, file: test
                     )
                 )
-
-                // (118 .. 133): val a = 2_2.0fu
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 126..133, line/column: 10/9..10/16, file: test,
-                        erroneousSource = indexes: 133..133, line/column: 10/16..10/16, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 28..30, line/column: 4/6..4/8, file: test,
+                        erroneousSource = indexes: 28..30, line/column: 4/6..4/8, file: test
                     )
                 )
-
-                // (134 .. 158): val a = 6.022_137e+2_3fu
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 142..158, line/column: 11/9..11/25, file: test,
-                        erroneousSource = indexes: 158..158, line/column: 11/25..11/25, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 35..40, line/column: 5/5..5/10, file: test,
+                        erroneousSource = indexes: 35..40, line/column: 5/5..5/10, file: test
                     )
                 )
-
-                // (159 .. 169): val a = 1U
-                LocalValue [indexes: 159..169, line/column: 12/1..12/11, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 167..169, line/column: 12/9..12/11, file: test] (1)
-                )
-
-                // (170 .. 182): val a = 0xFU
-                LocalValue [indexes: 170..182, line/column: 13/1..13/13, file: test] (
-                    name = a
-                    rhs = IntLiteral [indexes: 178..182, line/column: 13/9..13/13, file: test] (15)
-                )
-
-                // (183 .. 194): val a = 1uU
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 191..194, line/column: 14/9..14/12, file: test,
-                        erroneousSource = indexes: 194..194, line/column: 14/12..14/12, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 45..51, line/column: 6/5..6/11, file: test,
+                        erroneousSource = indexes: 45..51, line/column: 6/5..6/11, file: test
                     )
                 )
-
-                // (195 .. 206): val a = 1Uu
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 203..206, line/column: 15/9..15/12, file: test,
-                        erroneousSource = indexes: 206..206, line/column: 15/12..15/12, file: test
+                    MultipleFailures(
+                        ParsingError(
+                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
+                            potentialElementSource = indexes: 56..60, line/column: 7/5..7/9, file: test,
+                            erroneousSource = indexes: 56..60, line/column: 7/5..7/9, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 62..63, line/column: 8/1..8/2, file: test,
+                            erroneousSource = indexes: 62..63, line/column: 8/1..8/2, file: test
+                        )
+                        ParsingError(
+                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
+                            potentialElementSource = indexes: 66..69, line/column: 8/5..8/8, file: test,
+                            erroneousSource = indexes: 66..69, line/column: 8/5..8/8, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 71..72, line/column: 9/1..9/2, file: test,
+                            erroneousSource = indexes: 71..72, line/column: 9/1..9/2, file: test
+                        )
+                        ParsingError(
+                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
+                            potentialElementSource = indexes: 75..80, line/column: 9/5..9/10, file: test,
+                            erroneousSource = indexes: 75..80, line/column: 9/5..9/10, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 82..83, line/column: 10/1..10/2, file: test,
+                            erroneousSource = indexes: 82..83, line/column: 10/1..10/2, file: test
+                        )
+                        ParsingError(
+                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
+                            potentialElementSource = indexes: 86..92, line/column: 10/5..10/11, file: test,
+                            erroneousSource = indexes: 86..92, line/column: 10/5..10/11, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 94..95, line/column: 11/1..11/2, file: test,
+                            erroneousSource = indexes: 94..95, line/column: 11/1..11/2, file: test
+                        )
+                        ParsingError(
+                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
+                            potentialElementSource = indexes: 98..113, line/column: 11/5..11/20, file: test,
+                            erroneousSource = indexes: 98..113, line/column: 11/5..11/20, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 115..116, line/column: 12/1..12/2, file: test,
+                            erroneousSource = indexes: 115..116, line/column: 12/1..12/2, file: test
+                        )
+                        UnsupportedConstruct(
+                            languageFeature = UnsignedType,
+                            potentialElementSource = indexes: 119..121, line/column: 12/5..12/7, file: test,
+                            erroneousSource = indexes: 119..121, line/column: 12/5..12/7, file: test
+                        )
                     )
                 )
-
-                // (207 .. 218): val a = 1Lu
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 215..218, line/column: 16/9..16/12, file: test,
-                        erroneousSource = indexes: 218..218, line/column: 16/12..16/12, file: test
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 126..130, line/column: 13/5..13/9, file: test,
+                        erroneousSource = indexes: 126..130, line/column: 13/5..13/9, file: test
                     )
                 )
-
-                // (219 .. 230): val a = 1LU
                 ErroneousStatement (
-                    ParsingError(
-                        message = Expecting an element,
-                        potentialElementSource = indexes: 227..230, line/column: 17/9..17/12, file: test,
-                        erroneousSource = indexes: 230..230, line/column: 17/12..17/12, file: test
+                    MultipleFailures(
+                        UnsupportedConstruct(
+                            languageFeature = UnsignedType,
+                            potentialElementSource = indexes: 135..137, line/column: 14/5..14/7, file: test,
+                            erroneousSource = indexes: 135..137, line/column: 14/5..14/7, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 139..140, line/column: 15/1..15/2, file: test,
+                            erroneousSource = indexes: 139..140, line/column: 15/1..15/2, file: test
+                        )
+                        UnsupportedConstruct(
+                            languageFeature = UnsignedType,
+                            potentialElementSource = indexes: 143..145, line/column: 15/5..15/7, file: test,
+                            erroneousSource = indexes: 143..145, line/column: 15/5..15/7, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 147..148, line/column: 16/1..16/2, file: test,
+                            erroneousSource = indexes: 147..148, line/column: 16/1..16/2, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 155..156, line/column: 17/1..17/2, file: test,
+                            erroneousSource = indexes: 155..156, line/column: 17/1..17/2, file: test
+                        )
+                        ParsingError(
+                            message = Argument is absent,
+                            potentialElementSource = indexes: 163..164, line/column: 18/1..18/2, file: test,
+                            erroneousSource = indexes: 163..164, line/column: 18/1..18/2, file: test
+                        )
+                        UnsupportedConstruct(
+                            languageFeature = UnsignedType,
+                            potentialElementSource = indexes: 167..170, line/column: 18/5..18/8, file: test,
+                            erroneousSource = indexes: 167..170, line/column: 18/5..18/8, file: test
+                        )
                     )
                 )
-
-                // (231 .. 242): val a = 1uL
-                LocalValue [indexes: 231..242, line/column: 18/1..18/12, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 239..242, line/column: 18/9..18/12, file: test] (1)
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 175..178, line/column: 19/5..19/8, file: test,
+                        erroneousSource = indexes: 175..178, line/column: 19/5..19/8, file: test
+                    )
                 )
-
-                // (243 .. 254): val a = 1UL
-                LocalValue [indexes: 243..254, line/column: 19/1..19/12, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 251..254, line/column: 19/9..19/12, file: test] (1)
-                )
-
-                // (255 .. 266): val a = 3Ul
-                LocalValue [indexes: 255..266, line/column: 20/1..20/12, file: test] (
-                    name = a
-                    rhs = LongLiteral [indexes: 263..266, line/column: 20/9..20/12, file: test] (3)
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 183..186, line/column: 20/5..20/8, file: test,
+                        erroneousSource = indexes: 183..186, line/column: 20/5..20/8, file: test
+                    )
                 )""".trimIndent()
         results.assert(removeCommentAndEmptyLines(expected))
     }
@@ -624,31 +695,39 @@ class LiteralConstantParsingTest {
     @Test
     fun `boolean literal`() {
         val code = """
-                val a = true
-                val a = TRUE
-                val a = false
-                val a = FALSE
+                a = true
+                a = TRUE
+                a = false
+                a = FALSE
             """.trimIndent()
         val results = ParseTestUtil.parse(code)
 
         val expected = """
-                LocalValue [indexes: 0..12, line/column: 1/1..1/13, file: test] (
-                    name = a
-                    rhs = BooleanLiteral [indexes: 8..12, line/column: 1/9..1/13, file: test] (true)
+                Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
+                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                        name = a
+                    )
+                    rhs = BooleanLiteral [indexes: 4..8, line/column: 1/5..1/9, file: test] (true)
                 )
-                LocalValue [indexes: 13..25, line/column: 2/1..2/13, file: test] (
-                    name = a
-                    rhs = PropertyAccess [indexes: 21..25, line/column: 2/9..2/13, file: test] (
+                Assignment [indexes: 9..17, line/column: 2/1..2/9, file: test] (
+                    lhs = PropertyAccess [indexes: 9..10, line/column: 2/1..2/2, file: test] (
+                        name = a
+                    )
+                    rhs = PropertyAccess [indexes: 13..17, line/column: 2/5..2/9, file: test] (
                         name = TRUE
                     )
                 )
-                LocalValue [indexes: 26..39, line/column: 3/1..3/14, file: test] (
-                    name = a
-                    rhs = BooleanLiteral [indexes: 34..39, line/column: 3/9..3/14, file: test] (false)
+                Assignment [indexes: 18..27, line/column: 3/1..3/10, file: test] (
+                    lhs = PropertyAccess [indexes: 18..19, line/column: 3/1..3/2, file: test] (
+                        name = a
+                    )
+                    rhs = BooleanLiteral [indexes: 22..27, line/column: 3/5..3/10, file: test] (false)
                 )
-                LocalValue [indexes: 40..53, line/column: 4/1..4/14, file: test] (
-                    name = a
-                    rhs = PropertyAccess [indexes: 48..53, line/column: 4/9..4/14, file: test] (
+                Assignment [indexes: 28..37, line/column: 4/1..4/10, file: test] (
+                    lhs = PropertyAccess [indexes: 28..29, line/column: 4/1..4/2, file: test] (
+                        name = a
+                    )
+                    rhs = PropertyAccess [indexes: 32..37, line/column: 4/5..4/10, file: test] (
                         name = FALSE
                     )
                 )""".trimIndent()

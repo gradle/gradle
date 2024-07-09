@@ -111,6 +111,7 @@ sealed interface UnsupportedLanguageFeature {
     data object InvalidLanguageConstruct : UnsupportedLanguageFeature
     data object PrefixExpression : UnsupportedLanguageFeature
     data object UnsupportedOperationInBinaryExpression : UnsupportedLanguageFeature
+    data object UnsignedType : UnsupportedLanguageFeature
 
     data object SafeNavigation : UnsupportedLanguageFeature
 

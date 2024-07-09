@@ -24,7 +24,11 @@ import org.gradle.internal.declarativedsl.language.SyntacticResult
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.AnnotationUsage
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.Indexing
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.LocalVarNotSupported
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.ThisWithLabelQualifier
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.UnsignedType
 import org.gradle.internal.declarativedsl.parsing.FailureCollectorContext.CheckedResult
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
@@ -93,6 +97,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.SAFE_ACCESS
 import org.jetbrains.kotlin.parsing.hasIllegalUnderscore
 import org.jetbrains.kotlin.parsing.hasLongSuffix
 import org.jetbrains.kotlin.parsing.hasUnsignedLongSuffix
+import org.jetbrains.kotlin.parsing.hasUnsignedSuffix
 import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
@@ -229,14 +234,14 @@ class GrammarToTree(
         when (val tokenType = node.tokenType) {
             BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<Expr>
             LABELED_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.LabelledStatement)
-            ANNOTATED_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.AnnotationUsage)
+            ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
             in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
             is KtConstantExpressionElementType, INTEGER_LITERAL -> constantExpression(tree, node)
             STRING_TEMPLATE -> stringTemplate(tree, node)
             CALL_EXPRESSION -> callExpression(tree, node)
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
             CLASS, TYPEALIAS -> tree.unsupported(node, UnsupportedLanguageFeature.TypeDeclaration)
-            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.Indexing)
+            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
             FUN -> tree.unsupported(node, UnsupportedLanguageFeature.FunctionDeclaration)
             ERROR_ELEMENT -> tree.parsingError(node, node)
             PREFIX_EXPRESSION -> unaryExpression(tree, node)
@@ -264,9 +269,11 @@ class GrammarToTree(
     private
     fun propertyAccessStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<PropertyAccess> =
         when (val tokenType = node.tokenType) {
+            ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
+            BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<PropertyAccess>
             REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, tree.sourceData(node)))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
-            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.Indexing)
+            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
             else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in property access statement: $tokenType")
         }
 
@@ -290,7 +297,7 @@ class GrammarToTree(
                             }
                         }
                         is KtSingleValueToken -> if (tokenType.value == "var") {
-                            collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LocalVarNotSupported))
+                            collectingFailure(tree.unsupported(node, it, LocalVarNotSupported))
                         }
                         IDENTIFIER -> identifier = Syntactic(it.asText)
                         COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.ExplicitVariableType))
@@ -406,27 +413,19 @@ class GrammarToTree(
             else -> null
         }
 
-        when (type) {
+        return when (type) {
             INTEGER_CONSTANT, INTEGER_LITERAL -> {
                 when {
-                    convertedText == null -> {
-                        return reportIncorrectConstant("missing value")
-                    }
-
-                    convertedText !is Long -> return reportIncorrectConstant("illegal constant expression")
-
-                    hasUnsignedLongSuffix(text) || hasLongSuffix(text) -> {
-                        return Element(Literal.LongLiteral(convertedText, tree.sourceData(node)))
-                    }
-
-                    else -> {
-                        return Element(Literal.IntLiteral(convertedText.toInt(), tree.sourceData(node)))
-                    }
+                    convertedText == null -> reportIncorrectConstant("missing value")
+                    convertedText !is Long -> reportIncorrectConstant("illegal constant expression")
+                    hasUnsignedSuffix(text) || hasUnsignedLongSuffix(text) -> tree.unsupported(node, UnsignedType)
+                    hasLongSuffix(text) -> Element(Literal.LongLiteral(convertedText, tree.sourceData(node)))
+                    else -> Element(Literal.IntLiteral(convertedText.toInt(), tree.sourceData(node)))
                 }
             }
-            BOOLEAN_CONSTANT -> return Element(Literal.BooleanLiteral(convertedText as Boolean, tree.sourceData(node)))
-            NULL -> return Element(Null(tree.sourceData(node)))
-            else -> return tree.parsingError(node, "Parsing failure, unsupported constant type: $type")
+            BOOLEAN_CONSTANT -> Element(Literal.BooleanLiteral(convertedText as Boolean, tree.sourceData(node)))
+            NULL -> Element(Null(tree.sourceData(node)))
+            else -> tree.parsingError(node, "Parsing failure, unsupported constant type: $type")
         }
     }
 

@@ -68,43 +68,47 @@ class ErrorParsingTest {
     @Test
     fun `missing assignment in one of a series of assignments`() {
         val code = """
-            val a = 1
-            val b = 2
-            val c 3
-            val d = 4
-            val e = 5
+            a = 1
+            b = 2
+            c 3
+            d = 4
+            e = 5
         """.trimIndent()
 
         val expected = """
-            LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
-                name = a
-                rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
-            )
-            LocalValue [indexes: 10..19, line/column: 2/1..2/10, file: test] (
-                name = b
-                rhs = IntLiteral [indexes: 18..19, line/column: 2/9..2/10, file: test] (2)
-            )
-            ErroneousStatement (
-                UnsupportedConstruct(
-                    languageFeature = UninitializedProperty,
-                    potentialElementSource = indexes: 20..25, line/column: 3/1..3/6, file: test,
-                    erroneousSource = indexes: 20..25, line/column: 3/1..3/6, file: test
+            Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
                 )
+                rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
+            )
+            Assignment [indexes: 6..11, line/column: 2/1..2/6, file: test] (
+                lhs = PropertyAccess [indexes: 6..7, line/column: 2/1..2/2, file: test] (
+                    name = b
+                )
+                rhs = IntLiteral [indexes: 10..11, line/column: 2/5..2/6, file: test] (2)
+            )
+            PropertyAccess [indexes: 12..13, line/column: 3/1..3/2, file: test] (
+                name = c
             )
             ErroneousStatement (
                 ParsingError(
                     message = Unexpected tokens (use ';' to separate expressions on the same line),
-                    potentialElementSource = indexes: 26..27, line/column: 3/7..3/8, file: test,
-                    erroneousSource = indexes: 26..27, line/column: 3/7..3/8, file: test
+                    potentialElementSource = indexes: 14..15, line/column: 3/3..3/4, file: test,
+                    erroneousSource = indexes: 14..15, line/column: 3/3..3/4, file: test
                 )
             )
-            LocalValue [indexes: 28..37, line/column: 4/1..4/10, file: test] (
-                name = d
-                rhs = IntLiteral [indexes: 36..37, line/column: 4/9..4/10, file: test] (4)
+            Assignment [indexes: 16..21, line/column: 4/1..4/6, file: test] (
+                lhs = PropertyAccess [indexes: 16..17, line/column: 4/1..4/2, file: test] (
+                    name = d
+                )
+                rhs = IntLiteral [indexes: 20..21, line/column: 4/5..4/6, file: test] (4)
             )
-            LocalValue [indexes: 38..47, line/column: 5/1..5/10, file: test] (
-                name = e
-                rhs = IntLiteral [indexes: 46..47, line/column: 5/9..5/10, file: test] (5)
+            Assignment [indexes: 22..27, line/column: 5/1..5/6, file: test] (
+                lhs = PropertyAccess [indexes: 22..23, line/column: 5/1..5/2, file: test] (
+                    name = e
+                )
+                rhs = IntLiteral [indexes: 26..27, line/column: 5/5..5/6, file: test] (5)
             )""".trimIndent()
         ParseTestUtil.parse(code).assert(expected)
     }
@@ -112,26 +116,38 @@ class ErrorParsingTest {
     @Test
     fun `missing parenthesis in one of a series of assignments`() {
         val code = """
-            val a = 1
-            val b = (2
-            val c = 9
+            a = 1
+            b = (2
+            c = 9
+            d = 10
         """.trimIndent()
 
         val expected = """
-            LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
-                name = a
-                rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
+            Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
             )
             ErroneousStatement (
                 ParsingError(
                     message = Expecting ')',
-                    potentialElementSource = indexes: 18..20, line/column: 2/9..2/11, file: test,
-                    erroneousSource = indexes: 20..20, line/column: 2/11..2/11, file: test
+                    potentialElementSource = indexes: 10..16, line/column: 2/5..3/4, file: test,
+                    erroneousSource = indexes: 16..16, line/column: 3/4..3/4, file: test
                 )
             )
-            LocalValue [indexes: 21..30, line/column: 3/1..3/10, file: test] (
-                name = c
-                rhs = IntLiteral [indexes: 29..30, line/column: 3/9..3/10, file: test] (9)
+            ErroneousStatement (
+                ParsingError(
+                    message = Unexpected tokens (use ';' to separate expressions on the same line),
+                    potentialElementSource = indexes: 17..18, line/column: 3/5..3/6, file: test,
+                    erroneousSource = indexes: 17..18, line/column: 3/5..3/6, file: test
+                )
+            )
+            Assignment [indexes: 19..25, line/column: 4/1..4/7, file: test] (
+                lhs = PropertyAccess [indexes: 19..20, line/column: 4/1..4/2, file: test] (
+                    name = d
+                )
+                rhs = IntLiteral [indexes: 23..25, line/column: 4/5..4/7, file: test] (10)
             )""".trimIndent()
         ParseTestUtil.parse(code).assert(expected)
     }
@@ -139,34 +155,37 @@ class ErrorParsingTest {
     @Test
     fun `accidentally concatenated lines in a series of assignments`() {
         val code = """
-            val a = 1
-            val b = 2 val c = 3
-            val d = 4
+            a = 1
+            b = 2 c = 3
+            d = 4
         """.trimIndent()
 
         val expected = """
-            LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
-                name = a
-                rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
+            Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
+                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
             )
-            LocalValue [indexes: 10..19, line/column: 2/1..2/10, file: test] (
-                name = b
-                rhs = IntLiteral [indexes: 18..19, line/column: 2/9..2/10, file: test] (2)
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting an element,
+                    potentialElementSource = indexes: 10..15, line/column: 2/5..2/10, file: test,
+                    erroneousSource = indexes: 14..15, line/column: 2/9..2/10, file: test
+                )
             )
             ErroneousStatement (
                 ParsingError(
                     message = Unexpected tokens (use ';' to separate expressions on the same line),
-                    potentialElementSource = indexes: 19..19, line/column: 2/10..2/10, file: test,
-                    erroneousSource = indexes: 19..19, line/column: 2/10..2/10, file: test
+                    potentialElementSource = indexes: 16..17, line/column: 2/11..2/12, file: test,
+                    erroneousSource = indexes: 16..17, line/column: 2/11..2/12, file: test
                 )
             )
-            LocalValue [indexes: 20..29, line/column: 2/11..2/20, file: test] (
-                name = c
-                rhs = IntLiteral [indexes: 28..29, line/column: 2/19..2/20, file: test] (3)
-            )
-            LocalValue [indexes: 30..39, line/column: 3/1..3/10, file: test] (
-                name = d
-                rhs = IntLiteral [indexes: 38..39, line/column: 3/9..3/10, file: test] (4)
+            Assignment [indexes: 18..23, line/column: 3/1..3/6, file: test] (
+                lhs = PropertyAccess [indexes: 18..19, line/column: 3/1..3/2, file: test] (
+                    name = d
+                )
+                rhs = IntLiteral [indexes: 22..23, line/column: 3/5..3/6, file: test] (4)
             )""".trimIndent()
         ParseTestUtil.parse(code).assert(expected)
     }
@@ -175,48 +194,53 @@ class ErrorParsingTest {
     fun `internal error in a block`() {
         val code = """
             block {
-                val a = 1
+                a = 1
                 b = 2
-                val c 3
+                c 3
                 d = 4
+                e = 5
             }
         """.trimIndent()
 
         val expected = """
-            FunctionCall [indexes: 0..55, line/column: 1/1..6/2, file: test] (
+            FunctionCall [indexes: 0..57, line/column: 1/1..7/2, file: test] (
                 name = block
                 args = [
-                    FunctionArgument.Lambda [indexes: 6..55, line/column: 1/7..6/2, file: test] (
-                        block = Block [indexes: 12..53, line/column: 2/5..5/10, file: test] (
-                            LocalValue [indexes: 12..21, line/column: 2/5..2/14, file: test] (
-                                name = a
-                                rhs = IntLiteral [indexes: 20..21, line/column: 2/13..2/14, file: test] (1)
+                    FunctionArgument.Lambda [indexes: 6..57, line/column: 1/7..7/2, file: test] (
+                        block = Block [indexes: 12..55, line/column: 2/5..6/10, file: test] (
+                            Assignment [indexes: 12..17, line/column: 2/5..2/10, file: test] (
+                                lhs = PropertyAccess [indexes: 12..13, line/column: 2/5..2/6, file: test] (
+                                    name = a
+                                )
+                                rhs = IntLiteral [indexes: 16..17, line/column: 2/9..2/10, file: test] (1)
                             )
-                            Assignment [indexes: 26..31, line/column: 3/5..3/10, file: test] (
-                                lhs = PropertyAccess [indexes: 26..27, line/column: 3/5..3/6, file: test] (
+                            Assignment [indexes: 22..27, line/column: 3/5..3/10, file: test] (
+                                lhs = PropertyAccess [indexes: 22..23, line/column: 3/5..3/6, file: test] (
                                     name = b
                                 )
-                                rhs = IntLiteral [indexes: 30..31, line/column: 3/9..3/10, file: test] (2)
+                                rhs = IntLiteral [indexes: 26..27, line/column: 3/9..3/10, file: test] (2)
                             )
-                            ErroneousStatement (
-                                UnsupportedConstruct(
-                                    languageFeature = UninitializedProperty,
-                                    potentialElementSource = indexes: 36..41, line/column: 4/5..4/10, file: test,
-                                    erroneousSource = indexes: 36..41, line/column: 4/5..4/10, file: test
-                                )
+                            PropertyAccess [indexes: 32..33, line/column: 4/5..4/6, file: test] (
+                                name = c
                             )
                             ErroneousStatement (
                                 ParsingError(
                                     message = Unexpected tokens (use ';' to separate expressions on the same line),
-                                    potentialElementSource = indexes: 42..43, line/column: 4/11..4/12, file: test,
-                                    erroneousSource = indexes: 42..43, line/column: 4/11..4/12, file: test
+                                    potentialElementSource = indexes: 34..35, line/column: 4/7..4/8, file: test,
+                                    erroneousSource = indexes: 34..35, line/column: 4/7..4/8, file: test
                                 )
                             )
-                            Assignment [indexes: 48..53, line/column: 5/5..5/10, file: test] (
-                                lhs = PropertyAccess [indexes: 48..49, line/column: 5/5..5/6, file: test] (
+                            Assignment [indexes: 40..45, line/column: 5/5..5/10, file: test] (
+                                lhs = PropertyAccess [indexes: 40..41, line/column: 5/5..5/6, file: test] (
                                     name = d
                                 )
-                                rhs = IntLiteral [indexes: 52..53, line/column: 5/9..5/10, file: test] (4)
+                                rhs = IntLiteral [indexes: 44..45, line/column: 5/9..5/10, file: test] (4)
+                            )
+                            Assignment [indexes: 50..55, line/column: 6/5..6/10, file: test] (
+                                lhs = PropertyAccess [indexes: 50..51, line/column: 6/5..6/6, file: test] (
+                                    name = e
+                                )
+                                rhs = IntLiteral [indexes: 54..55, line/column: 6/9..6/10, file: test] (5)
                             )
                         )
                     )
@@ -249,7 +273,7 @@ class ErrorParsingTest {
         val results = ParseTestUtil.parse(
             """
             `some content with spaces`()
-            val `more conent with spaces` = 1
+            `more conent with spaces` = 1
             """.trimIndent()
         )
 
@@ -258,9 +282,11 @@ class ErrorParsingTest {
                 name = `some content with spaces`
                 args = []
             )
-            LocalValue [indexes: 29..62, line/column: 2/1..2/34, file: test] (
-                name = `more conent with spaces`
-                rhs = IntLiteral [indexes: 61..62, line/column: 2/33..2/34, file: test] (1)
+            Assignment [indexes: 29..58, line/column: 2/1..2/30, file: test] (
+                lhs = PropertyAccess [indexes: 29..54, line/column: 2/1..2/26, file: test] (
+                    name = `more conent with spaces`
+                )
+                rhs = IntLiteral [indexes: 57..58, line/column: 2/29..2/30, file: test] (1)
             )""".trimIndent()
         results.assert(expected)
     }
@@ -269,244 +295,332 @@ class ErrorParsingTest {
     fun `reserved keywords`() {
         val results = ParseTestUtil.parse(
             """
-            val abstract = 1
-            val annotation = 1
-            val by = 1
-            val catch = 1
-            val companion = 1
-            val constructor = 1
-            val crossinline = 1
-            val data = 1
-            val dynamic = 1
-            val enum = 1
-            val external = 1
-            val final = 1
-            val finally = 1
-            val get = 1
-            val import = 1
-            val infix = 1
-            val init = 1
-            val inline = 1
-            val inner = 1
-            val internal = 1
-            val lateinit = 1
-            val noinline = 1
-            val open = 1
-            val operator = 1
-            val out = 1
-            val override = 1
-            val private = 1
-            val protected = 1
-            val public = 1
-            val reified = 1
-            val sealed = 1
-            val tailrec = 1
-            val set = 1
-            val vararg = 1
-            val where = 1
-            val field = 1
-            val property = 1
-            val receiver = 1
-            val param = 1
-            val setparam = 1
-            val delegate = 1
-            val file = 1
-            val expect = 1
-            val actual = 1
-            val const = 1
-            val suspend = 1
-            val value = 1
+            abstract = 1
+            annotation = 1
+            by = 1
+            catch = 1
+            companion = 1
+            constructor = 1
+            crossinline = 1
+            data = 1
+            dynamic = 1
+            enum = 1
+            external = 1
+            final = 1
+            finally = 1
+            get = 1
+            import = 1
+            infix = 1
+            init = 1
+            inline = 1
+            inner = 1
+            internal = 1
+            lateinit = 1
+            noinline = 1
+            open = 1
+            operator = 1
+            out = 1
+            override = 1
+            private = 1
+            protected = 1
+            public = 1
+            reified = 1
+            sealed = 1
+            tailrec = 1
+            set = 1
+            vararg = 1
+            where = 1
+            field = 1
+            property = 1
+            receiver = 1
+            param = 1
+            setparam = 1
+            delegate = 1
+            file = 1
+            expect = 1
+            actual = 1
+            const = 1
+            suspend = 1
+            value = 1
             """.trimIndent()
         )
 
         val expected = """
-            LocalValue [indexes: 0..16, line/column: 1/1..1/17, file: test] (
-                name = abstract
-                rhs = IntLiteral [indexes: 15..16, line/column: 1/16..1/17, file: test] (1)
+            Assignment [indexes: 0..12, line/column: 1/1..1/13, file: test] (
+                lhs = PropertyAccess [indexes: 0..8, line/column: 1/1..1/9, file: test] (
+                    name = abstract
+                )
+                rhs = IntLiteral [indexes: 11..12, line/column: 1/12..1/13, file: test] (1)
             )
-            LocalValue [indexes: 17..35, line/column: 2/1..2/19, file: test] (
-                name = annotation
-                rhs = IntLiteral [indexes: 34..35, line/column: 2/18..2/19, file: test] (1)
+            Assignment [indexes: 13..27, line/column: 2/1..2/15, file: test] (
+                lhs = PropertyAccess [indexes: 13..23, line/column: 2/1..2/11, file: test] (
+                    name = annotation
+                )
+                rhs = IntLiteral [indexes: 26..27, line/column: 2/14..2/15, file: test] (1)
             )
-            LocalValue [indexes: 36..46, line/column: 3/1..3/11, file: test] (
-                name = by
-                rhs = IntLiteral [indexes: 45..46, line/column: 3/10..3/11, file: test] (1)
+            Assignment [indexes: 28..34, line/column: 3/1..3/7, file: test] (
+                lhs = PropertyAccess [indexes: 28..30, line/column: 3/1..3/3, file: test] (
+                    name = by
+                )
+                rhs = IntLiteral [indexes: 33..34, line/column: 3/6..3/7, file: test] (1)
             )
-            LocalValue [indexes: 47..60, line/column: 4/1..4/14, file: test] (
-                name = catch
-                rhs = IntLiteral [indexes: 59..60, line/column: 4/13..4/14, file: test] (1)
+            Assignment [indexes: 35..44, line/column: 4/1..4/10, file: test] (
+                lhs = PropertyAccess [indexes: 35..40, line/column: 4/1..4/6, file: test] (
+                    name = catch
+                )
+                rhs = IntLiteral [indexes: 43..44, line/column: 4/9..4/10, file: test] (1)
             )
-            LocalValue [indexes: 61..78, line/column: 5/1..5/18, file: test] (
-                name = companion
-                rhs = IntLiteral [indexes: 77..78, line/column: 5/17..5/18, file: test] (1)
+            Assignment [indexes: 45..58, line/column: 5/1..5/14, file: test] (
+                lhs = PropertyAccess [indexes: 45..54, line/column: 5/1..5/10, file: test] (
+                    name = companion
+                )
+                rhs = IntLiteral [indexes: 57..58, line/column: 5/13..5/14, file: test] (1)
             )
-            LocalValue [indexes: 79..98, line/column: 6/1..6/20, file: test] (
-                name = constructor
-                rhs = IntLiteral [indexes: 97..98, line/column: 6/19..6/20, file: test] (1)
+            Assignment [indexes: 59..74, line/column: 6/1..6/16, file: test] (
+                lhs = PropertyAccess [indexes: 59..70, line/column: 6/1..6/12, file: test] (
+                    name = constructor
+                )
+                rhs = IntLiteral [indexes: 73..74, line/column: 6/15..6/16, file: test] (1)
             )
-            LocalValue [indexes: 99..118, line/column: 7/1..7/20, file: test] (
-                name = crossinline
-                rhs = IntLiteral [indexes: 117..118, line/column: 7/19..7/20, file: test] (1)
+            Assignment [indexes: 75..90, line/column: 7/1..7/16, file: test] (
+                lhs = PropertyAccess [indexes: 75..86, line/column: 7/1..7/12, file: test] (
+                    name = crossinline
+                )
+                rhs = IntLiteral [indexes: 89..90, line/column: 7/15..7/16, file: test] (1)
             )
-            LocalValue [indexes: 119..131, line/column: 8/1..8/13, file: test] (
-                name = data
-                rhs = IntLiteral [indexes: 130..131, line/column: 8/12..8/13, file: test] (1)
+            Assignment [indexes: 91..99, line/column: 8/1..8/9, file: test] (
+                lhs = PropertyAccess [indexes: 91..95, line/column: 8/1..8/5, file: test] (
+                    name = data
+                )
+                rhs = IntLiteral [indexes: 98..99, line/column: 8/8..8/9, file: test] (1)
             )
-            LocalValue [indexes: 132..147, line/column: 9/1..9/16, file: test] (
-                name = dynamic
-                rhs = IntLiteral [indexes: 146..147, line/column: 9/15..9/16, file: test] (1)
+            Assignment [indexes: 100..111, line/column: 9/1..9/12, file: test] (
+                lhs = PropertyAccess [indexes: 100..107, line/column: 9/1..9/8, file: test] (
+                    name = dynamic
+                )
+                rhs = IntLiteral [indexes: 110..111, line/column: 9/11..9/12, file: test] (1)
             )
-            LocalValue [indexes: 148..160, line/column: 10/1..10/13, file: test] (
-                name = enum
-                rhs = IntLiteral [indexes: 159..160, line/column: 10/12..10/13, file: test] (1)
+            Assignment [indexes: 112..120, line/column: 10/1..10/9, file: test] (
+                lhs = PropertyAccess [indexes: 112..116, line/column: 10/1..10/5, file: test] (
+                    name = enum
+                )
+                rhs = IntLiteral [indexes: 119..120, line/column: 10/8..10/9, file: test] (1)
             )
-            LocalValue [indexes: 161..177, line/column: 11/1..11/17, file: test] (
-                name = external
-                rhs = IntLiteral [indexes: 176..177, line/column: 11/16..11/17, file: test] (1)
+            Assignment [indexes: 121..133, line/column: 11/1..11/13, file: test] (
+                lhs = PropertyAccess [indexes: 121..129, line/column: 11/1..11/9, file: test] (
+                    name = external
+                )
+                rhs = IntLiteral [indexes: 132..133, line/column: 11/12..11/13, file: test] (1)
             )
-            LocalValue [indexes: 178..191, line/column: 12/1..12/14, file: test] (
-                name = final
-                rhs = IntLiteral [indexes: 190..191, line/column: 12/13..12/14, file: test] (1)
+            Assignment [indexes: 134..143, line/column: 12/1..12/10, file: test] (
+                lhs = PropertyAccess [indexes: 134..139, line/column: 12/1..12/6, file: test] (
+                    name = final
+                )
+                rhs = IntLiteral [indexes: 142..143, line/column: 12/9..12/10, file: test] (1)
             )
-            LocalValue [indexes: 192..207, line/column: 13/1..13/16, file: test] (
-                name = finally
-                rhs = IntLiteral [indexes: 206..207, line/column: 13/15..13/16, file: test] (1)
+            Assignment [indexes: 144..155, line/column: 13/1..13/12, file: test] (
+                lhs = PropertyAccess [indexes: 144..151, line/column: 13/1..13/8, file: test] (
+                    name = finally
+                )
+                rhs = IntLiteral [indexes: 154..155, line/column: 13/11..13/12, file: test] (1)
             )
-            LocalValue [indexes: 208..219, line/column: 14/1..14/12, file: test] (
-                name = get
-                rhs = IntLiteral [indexes: 218..219, line/column: 14/11..14/12, file: test] (1)
+            Assignment [indexes: 156..163, line/column: 14/1..14/8, file: test] (
+                lhs = PropertyAccess [indexes: 156..159, line/column: 14/1..14/4, file: test] (
+                    name = get
+                )
+                rhs = IntLiteral [indexes: 162..163, line/column: 14/7..14/8, file: test] (1)
             )
-            LocalValue [indexes: 220..234, line/column: 15/1..15/15, file: test] (
-                name = import
-                rhs = IntLiteral [indexes: 233..234, line/column: 15/14..15/15, file: test] (1)
+            Assignment [indexes: 164..173, line/column: 15/1..15/10, file: test] (
+                lhs = PropertyAccess [indexes: 164..169, line/column: 15/1..15/6, file: test] (
+                    name = infix
+                )
+                rhs = IntLiteral [indexes: 172..173, line/column: 15/9..15/10, file: test] (1)
             )
-            LocalValue [indexes: 235..248, line/column: 16/1..16/14, file: test] (
-                name = infix
-                rhs = IntLiteral [indexes: 247..248, line/column: 16/13..16/14, file: test] (1)
+            Assignment [indexes: 174..182, line/column: 16/1..16/9, file: test] (
+                lhs = PropertyAccess [indexes: 174..178, line/column: 16/1..16/5, file: test] (
+                    name = init
+                )
+                rhs = IntLiteral [indexes: 181..182, line/column: 16/8..16/9, file: test] (1)
             )
-            LocalValue [indexes: 249..261, line/column: 17/1..17/13, file: test] (
-                name = init
-                rhs = IntLiteral [indexes: 260..261, line/column: 17/12..17/13, file: test] (1)
+            Assignment [indexes: 183..193, line/column: 17/1..17/11, file: test] (
+                lhs = PropertyAccess [indexes: 183..189, line/column: 17/1..17/7, file: test] (
+                    name = inline
+                )
+                rhs = IntLiteral [indexes: 192..193, line/column: 17/10..17/11, file: test] (1)
             )
-            LocalValue [indexes: 262..276, line/column: 18/1..18/15, file: test] (
-                name = inline
-                rhs = IntLiteral [indexes: 275..276, line/column: 18/14..18/15, file: test] (1)
+            Assignment [indexes: 194..203, line/column: 18/1..18/10, file: test] (
+                lhs = PropertyAccess [indexes: 194..199, line/column: 18/1..18/6, file: test] (
+                    name = inner
+                )
+                rhs = IntLiteral [indexes: 202..203, line/column: 18/9..18/10, file: test] (1)
             )
-            LocalValue [indexes: 277..290, line/column: 19/1..19/14, file: test] (
-                name = inner
-                rhs = IntLiteral [indexes: 289..290, line/column: 19/13..19/14, file: test] (1)
+            Assignment [indexes: 204..216, line/column: 19/1..19/13, file: test] (
+                lhs = PropertyAccess [indexes: 204..212, line/column: 19/1..19/9, file: test] (
+                    name = internal
+                )
+                rhs = IntLiteral [indexes: 215..216, line/column: 19/12..19/13, file: test] (1)
             )
-            LocalValue [indexes: 291..307, line/column: 20/1..20/17, file: test] (
-                name = internal
-                rhs = IntLiteral [indexes: 306..307, line/column: 20/16..20/17, file: test] (1)
+            Assignment [indexes: 217..229, line/column: 20/1..20/13, file: test] (
+                lhs = PropertyAccess [indexes: 217..225, line/column: 20/1..20/9, file: test] (
+                    name = lateinit
+                )
+                rhs = IntLiteral [indexes: 228..229, line/column: 20/12..20/13, file: test] (1)
             )
-            LocalValue [indexes: 308..324, line/column: 21/1..21/17, file: test] (
-                name = lateinit
-                rhs = IntLiteral [indexes: 323..324, line/column: 21/16..21/17, file: test] (1)
+            Assignment [indexes: 230..242, line/column: 21/1..21/13, file: test] (
+                lhs = PropertyAccess [indexes: 230..238, line/column: 21/1..21/9, file: test] (
+                    name = noinline
+                )
+                rhs = IntLiteral [indexes: 241..242, line/column: 21/12..21/13, file: test] (1)
             )
-            LocalValue [indexes: 325..341, line/column: 22/1..22/17, file: test] (
-                name = noinline
-                rhs = IntLiteral [indexes: 340..341, line/column: 22/16..22/17, file: test] (1)
+            Assignment [indexes: 243..251, line/column: 22/1..22/9, file: test] (
+                lhs = PropertyAccess [indexes: 243..247, line/column: 22/1..22/5, file: test] (
+                    name = open
+                )
+                rhs = IntLiteral [indexes: 250..251, line/column: 22/8..22/9, file: test] (1)
             )
-            LocalValue [indexes: 342..354, line/column: 23/1..23/13, file: test] (
-                name = open
-                rhs = IntLiteral [indexes: 353..354, line/column: 23/12..23/13, file: test] (1)
+            Assignment [indexes: 252..264, line/column: 23/1..23/13, file: test] (
+                lhs = PropertyAccess [indexes: 252..260, line/column: 23/1..23/9, file: test] (
+                    name = operator
+                )
+                rhs = IntLiteral [indexes: 263..264, line/column: 23/12..23/13, file: test] (1)
             )
-            LocalValue [indexes: 355..371, line/column: 24/1..24/17, file: test] (
-                name = operator
-                rhs = IntLiteral [indexes: 370..371, line/column: 24/16..24/17, file: test] (1)
+            Assignment [indexes: 265..272, line/column: 24/1..24/8, file: test] (
+                lhs = PropertyAccess [indexes: 265..268, line/column: 24/1..24/4, file: test] (
+                    name = out
+                )
+                rhs = IntLiteral [indexes: 271..272, line/column: 24/7..24/8, file: test] (1)
             )
-            LocalValue [indexes: 372..383, line/column: 25/1..25/12, file: test] (
-                name = out
-                rhs = IntLiteral [indexes: 382..383, line/column: 25/11..25/12, file: test] (1)
+            Assignment [indexes: 273..285, line/column: 25/1..25/13, file: test] (
+                lhs = PropertyAccess [indexes: 273..281, line/column: 25/1..25/9, file: test] (
+                    name = override
+                )
+                rhs = IntLiteral [indexes: 284..285, line/column: 25/12..25/13, file: test] (1)
             )
-            LocalValue [indexes: 384..400, line/column: 26/1..26/17, file: test] (
-                name = override
-                rhs = IntLiteral [indexes: 399..400, line/column: 26/16..26/17, file: test] (1)
+            Assignment [indexes: 286..297, line/column: 26/1..26/12, file: test] (
+                lhs = PropertyAccess [indexes: 286..293, line/column: 26/1..26/8, file: test] (
+                    name = private
+                )
+                rhs = IntLiteral [indexes: 296..297, line/column: 26/11..26/12, file: test] (1)
             )
-            LocalValue [indexes: 401..416, line/column: 27/1..27/16, file: test] (
-                name = private
-                rhs = IntLiteral [indexes: 415..416, line/column: 27/15..27/16, file: test] (1)
+            Assignment [indexes: 298..311, line/column: 27/1..27/14, file: test] (
+                lhs = PropertyAccess [indexes: 298..307, line/column: 27/1..27/10, file: test] (
+                    name = protected
+                )
+                rhs = IntLiteral [indexes: 310..311, line/column: 27/13..27/14, file: test] (1)
             )
-            LocalValue [indexes: 417..434, line/column: 28/1..28/18, file: test] (
-                name = protected
-                rhs = IntLiteral [indexes: 433..434, line/column: 28/17..28/18, file: test] (1)
+            Assignment [indexes: 312..322, line/column: 28/1..28/11, file: test] (
+                lhs = PropertyAccess [indexes: 312..318, line/column: 28/1..28/7, file: test] (
+                    name = public
+                )
+                rhs = IntLiteral [indexes: 321..322, line/column: 28/10..28/11, file: test] (1)
             )
-            LocalValue [indexes: 435..449, line/column: 29/1..29/15, file: test] (
-                name = public
-                rhs = IntLiteral [indexes: 448..449, line/column: 29/14..29/15, file: test] (1)
+            Assignment [indexes: 323..334, line/column: 29/1..29/12, file: test] (
+                lhs = PropertyAccess [indexes: 323..330, line/column: 29/1..29/8, file: test] (
+                    name = reified
+                )
+                rhs = IntLiteral [indexes: 333..334, line/column: 29/11..29/12, file: test] (1)
             )
-            LocalValue [indexes: 450..465, line/column: 30/1..30/16, file: test] (
-                name = reified
-                rhs = IntLiteral [indexes: 464..465, line/column: 30/15..30/16, file: test] (1)
+            Assignment [indexes: 335..345, line/column: 30/1..30/11, file: test] (
+                lhs = PropertyAccess [indexes: 335..341, line/column: 30/1..30/7, file: test] (
+                    name = sealed
+                )
+                rhs = IntLiteral [indexes: 344..345, line/column: 30/10..30/11, file: test] (1)
             )
-            LocalValue [indexes: 466..480, line/column: 31/1..31/15, file: test] (
-                name = sealed
-                rhs = IntLiteral [indexes: 479..480, line/column: 31/14..31/15, file: test] (1)
+            Assignment [indexes: 346..357, line/column: 31/1..31/12, file: test] (
+                lhs = PropertyAccess [indexes: 346..353, line/column: 31/1..31/8, file: test] (
+                    name = tailrec
+                )
+                rhs = IntLiteral [indexes: 356..357, line/column: 31/11..31/12, file: test] (1)
             )
-            LocalValue [indexes: 481..496, line/column: 32/1..32/16, file: test] (
-                name = tailrec
-                rhs = IntLiteral [indexes: 495..496, line/column: 32/15..32/16, file: test] (1)
+            Assignment [indexes: 358..365, line/column: 32/1..32/8, file: test] (
+                lhs = PropertyAccess [indexes: 358..361, line/column: 32/1..32/4, file: test] (
+                    name = set
+                )
+                rhs = IntLiteral [indexes: 364..365, line/column: 32/7..32/8, file: test] (1)
             )
-            LocalValue [indexes: 497..508, line/column: 33/1..33/12, file: test] (
-                name = set
-                rhs = IntLiteral [indexes: 507..508, line/column: 33/11..33/12, file: test] (1)
+            Assignment [indexes: 366..376, line/column: 33/1..33/11, file: test] (
+                lhs = PropertyAccess [indexes: 366..372, line/column: 33/1..33/7, file: test] (
+                    name = vararg
+                )
+                rhs = IntLiteral [indexes: 375..376, line/column: 33/10..33/11, file: test] (1)
             )
-            LocalValue [indexes: 509..523, line/column: 34/1..34/15, file: test] (
-                name = vararg
-                rhs = IntLiteral [indexes: 522..523, line/column: 34/14..34/15, file: test] (1)
+            Assignment [indexes: 377..386, line/column: 34/1..34/10, file: test] (
+                lhs = PropertyAccess [indexes: 377..382, line/column: 34/1..34/6, file: test] (
+                    name = where
+                )
+                rhs = IntLiteral [indexes: 385..386, line/column: 34/9..34/10, file: test] (1)
             )
-            LocalValue [indexes: 524..537, line/column: 35/1..35/14, file: test] (
-                name = where
-                rhs = IntLiteral [indexes: 536..537, line/column: 35/13..35/14, file: test] (1)
+            Assignment [indexes: 387..396, line/column: 35/1..35/10, file: test] (
+                lhs = PropertyAccess [indexes: 387..392, line/column: 35/1..35/6, file: test] (
+                    name = field
+                )
+                rhs = IntLiteral [indexes: 395..396, line/column: 35/9..35/10, file: test] (1)
             )
-            LocalValue [indexes: 538..551, line/column: 36/1..36/14, file: test] (
-                name = field
-                rhs = IntLiteral [indexes: 550..551, line/column: 36/13..36/14, file: test] (1)
+            Assignment [indexes: 397..409, line/column: 36/1..36/13, file: test] (
+                lhs = PropertyAccess [indexes: 397..405, line/column: 36/1..36/9, file: test] (
+                    name = property
+                )
+                rhs = IntLiteral [indexes: 408..409, line/column: 36/12..36/13, file: test] (1)
             )
-            LocalValue [indexes: 552..568, line/column: 37/1..37/17, file: test] (
-                name = property
-                rhs = IntLiteral [indexes: 567..568, line/column: 37/16..37/17, file: test] (1)
+            Assignment [indexes: 410..422, line/column: 37/1..37/13, file: test] (
+                lhs = PropertyAccess [indexes: 410..418, line/column: 37/1..37/9, file: test] (
+                    name = receiver
+                )
+                rhs = IntLiteral [indexes: 421..422, line/column: 37/12..37/13, file: test] (1)
             )
-            LocalValue [indexes: 569..585, line/column: 38/1..38/17, file: test] (
-                name = receiver
-                rhs = IntLiteral [indexes: 584..585, line/column: 38/16..38/17, file: test] (1)
+            Assignment [indexes: 423..432, line/column: 38/1..38/10, file: test] (
+                lhs = PropertyAccess [indexes: 423..428, line/column: 38/1..38/6, file: test] (
+                    name = param
+                )
+                rhs = IntLiteral [indexes: 431..432, line/column: 38/9..38/10, file: test] (1)
             )
-            LocalValue [indexes: 586..599, line/column: 39/1..39/14, file: test] (
-                name = param
-                rhs = IntLiteral [indexes: 598..599, line/column: 39/13..39/14, file: test] (1)
+            Assignment [indexes: 433..445, line/column: 39/1..39/13, file: test] (
+                lhs = PropertyAccess [indexes: 433..441, line/column: 39/1..39/9, file: test] (
+                    name = setparam
+                )
+                rhs = IntLiteral [indexes: 444..445, line/column: 39/12..39/13, file: test] (1)
             )
-            LocalValue [indexes: 600..616, line/column: 40/1..40/17, file: test] (
-                name = setparam
-                rhs = IntLiteral [indexes: 615..616, line/column: 40/16..40/17, file: test] (1)
+            Assignment [indexes: 446..458, line/column: 40/1..40/13, file: test] (
+                lhs = PropertyAccess [indexes: 446..454, line/column: 40/1..40/9, file: test] (
+                    name = delegate
+                )
+                rhs = IntLiteral [indexes: 457..458, line/column: 40/12..40/13, file: test] (1)
             )
-            LocalValue [indexes: 617..633, line/column: 41/1..41/17, file: test] (
-                name = delegate
-                rhs = IntLiteral [indexes: 632..633, line/column: 41/16..41/17, file: test] (1)
+            Assignment [indexes: 459..467, line/column: 41/1..41/9, file: test] (
+                lhs = PropertyAccess [indexes: 459..463, line/column: 41/1..41/5, file: test] (
+                    name = file
+                )
+                rhs = IntLiteral [indexes: 466..467, line/column: 41/8..41/9, file: test] (1)
             )
-            LocalValue [indexes: 634..646, line/column: 42/1..42/13, file: test] (
-                name = file
-                rhs = IntLiteral [indexes: 645..646, line/column: 42/12..42/13, file: test] (1)
+            Assignment [indexes: 468..478, line/column: 42/1..42/11, file: test] (
+                lhs = PropertyAccess [indexes: 468..474, line/column: 42/1..42/7, file: test] (
+                    name = expect
+                )
+                rhs = IntLiteral [indexes: 477..478, line/column: 42/10..42/11, file: test] (1)
             )
-            LocalValue [indexes: 647..661, line/column: 43/1..43/15, file: test] (
-                name = expect
-                rhs = IntLiteral [indexes: 660..661, line/column: 43/14..43/15, file: test] (1)
+            Assignment [indexes: 479..489, line/column: 43/1..43/11, file: test] (
+                lhs = PropertyAccess [indexes: 479..485, line/column: 43/1..43/7, file: test] (
+                    name = actual
+                )
+                rhs = IntLiteral [indexes: 488..489, line/column: 43/10..43/11, file: test] (1)
             )
-            LocalValue [indexes: 662..676, line/column: 44/1..44/15, file: test] (
-                name = actual
-                rhs = IntLiteral [indexes: 675..676, line/column: 44/14..44/15, file: test] (1)
+            Assignment [indexes: 490..499, line/column: 44/1..44/10, file: test] (
+                lhs = PropertyAccess [indexes: 490..495, line/column: 44/1..44/6, file: test] (
+                    name = const
+                )
+                rhs = IntLiteral [indexes: 498..499, line/column: 44/9..44/10, file: test] (1)
             )
-            LocalValue [indexes: 677..690, line/column: 45/1..45/14, file: test] (
-                name = const
-                rhs = IntLiteral [indexes: 689..690, line/column: 45/13..45/14, file: test] (1)
+            Assignment [indexes: 500..511, line/column: 45/1..45/12, file: test] (
+                lhs = PropertyAccess [indexes: 500..507, line/column: 45/1..45/8, file: test] (
+                    name = suspend
+                )
+                rhs = IntLiteral [indexes: 510..511, line/column: 45/11..45/12, file: test] (1)
             )
-            LocalValue [indexes: 691..706, line/column: 46/1..46/16, file: test] (
-                name = suspend
-                rhs = IntLiteral [indexes: 705..706, line/column: 46/15..46/16, file: test] (1)
-            )
-            LocalValue [indexes: 707..720, line/column: 47/1..47/14, file: test] (
-                name = value
-                rhs = IntLiteral [indexes: 719..720, line/column: 47/13..47/14, file: test] (1)
+            Assignment [indexes: 512..521, line/column: 46/1..46/10, file: test] (
+                lhs = PropertyAccess [indexes: 512..517, line/column: 46/1..46/6, file: test] (
+                    name = value
+                )
+                rhs = IntLiteral [indexes: 520..521, line/column: 46/9..46/10, file: test] (1)
             )""".trimIndent()
         results.assert(expected)
     }

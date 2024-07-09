@@ -22,72 +22,93 @@ class StringParsingTest {
 
     @Test
     fun `empty or blank`() {
-        val code = readInputFromFile("stringParsingTestInput_emptyOrBlank.kt")
+        val code = readInputFromFile("stringParsingTestInput_emptyOrBlank.txt")
 
         val results = ParseTestUtil.parse(code)
 
         val expected = """
-                LocalValue [indexes: 0..10, line/column: 1/1..1/11, file: test] (
-                    name = a
-                    rhs = StringLiteral [indexes: 8..10, line/column: 1/9..1/11, file: test] ()
+                Assignment [indexes: 0..6, line/column: 1/1..1/7, file: test] (
+                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                        name = a
+                    )
+                    rhs = StringLiteral [indexes: 4..6, line/column: 1/5..1/7, file: test] ()
                 )
-                LocalValue [indexes: 11..25, line/column: 2/1..2/15, file: test] (
-                    name = b
-                    rhs = StringLiteral [indexes: 19..25, line/column: 2/9..2/15, file: test] ()
+                Assignment [indexes: 7..17, line/column: 2/1..2/11, file: test] (
+                    lhs = PropertyAccess [indexes: 7..8, line/column: 2/1..2/2, file: test] (
+                        name = b
+                    )
+                    rhs = StringLiteral [indexes: 11..17, line/column: 2/5..2/11, file: test] ()
                 )
-                LocalValue [indexes: 26..37, line/column: 3/1..3/12, file: test] (
-                    name = c
-                    rhs = StringLiteral [indexes: 34..37, line/column: 3/9..3/12, file: test] ( )
+                Assignment [indexes: 18..25, line/column: 3/1..3/8, file: test] (
+                    lhs = PropertyAccess [indexes: 18..19, line/column: 3/1..3/2, file: test] (
+                        name = c
+                    )
+                    rhs = StringLiteral [indexes: 22..25, line/column: 3/5..3/8, file: test] ( )
                 )
-                LocalValue [indexes: 38..53, line/column: 4/1..4/16, file: test] (
-                    name = d
-                    rhs = StringLiteral [indexes: 46..53, line/column: 4/9..4/16, file: test] ( )
+                Assignment [indexes: 26..37, line/column: 4/1..4/12, file: test] (
+                    lhs = PropertyAccess [indexes: 26..27, line/column: 4/1..4/2, file: test] (
+                        name = d
+                    )
+                    rhs = StringLiteral [indexes: 30..37, line/column: 4/5..4/12, file: test] ( )
                 )
-                LocalValue [indexes: 54..67, line/column: 5/1..5/14, file: test] (
-                    name = e
-                    rhs = StringLiteral [indexes: 62..67, line/column: 5/9..5/14, file: test] (   )
+                Assignment [indexes: 38..47, line/column: 5/1..5/10, file: test] (
+                    lhs = PropertyAccess [indexes: 38..39, line/column: 5/1..5/2, file: test] (
+                        name = e
+                    )
+                    rhs = StringLiteral [indexes: 42..47, line/column: 5/5..5/10, file: test] (   )
                 )
-                LocalValue [indexes: 68..85, line/column: 6/1..6/18, file: test] (
-                    name = f
-                    rhs = StringLiteral [indexes: 76..85, line/column: 6/9..6/18, file: test] (   )
+                Assignment [indexes: 48..61, line/column: 6/1..6/14, file: test] (
+                    lhs = PropertyAccess [indexes: 48..49, line/column: 6/1..6/2, file: test] (
+                        name = f
+                    )
+                    rhs = StringLiteral [indexes: 52..61, line/column: 6/5..6/14, file: test] (   )
                 )""".trimIndent()
         results.assert(expected)
     }
 
     @Test
     fun `escape chars`() {
-        val code = readInputFromFile("stringParsingTestInput_escapeChars.kt")
+        val code = readInputFromFile("stringParsingTestInput_escapeChars.txt")
 
         val results = ParseTestUtil.parse(code)
 
         val expected = """
-                |LocalValue [indexes: 0..94, line/column: 1/1..1/95, file: test] (
-                |    name = s
-                |    rhs = StringLiteral [indexes: 8..19, line/column: 1/9..1/20, file: test] (_${'\\'}_${'\t'}_${'\n'})
+                |Assignment [indexes: 0..15, line/column: 1/1..1/16, file: test] (
+                |    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                |        name = s
+                |    )
+                |    rhs = StringLiteral [indexes: 4..15, line/column: 1/5..1/16, file: test] (_\_	_
                 |)
-                |LocalValue [indexes: 96..118, line/column: 3/1..3/23, file: test] (
-                |    name = q
-                |    rhs = StringLiteral [indexes: 104..118, line/column: 3/9..3/23, file: test] (⇤⇥)
+                |)
+                |Assignment [indexes: 92..110, line/column: 3/1..3/19, file: test] (
+                |    lhs = PropertyAccess [indexes: 92..93, line/column: 3/1..3/2, file: test] (
+                |        name = q
+                |    )
+                |    rhs = StringLiteral [indexes: 96..110, line/column: 3/5..3/19, file: test] (⇤⇥)
                 |)""".trimMargin()
         results.assert(expected)
     }
 
     @Test
     fun `multi-line`() {
-        val code = readInputFromFile("stringParsingTestInput_multiLine.kt")
+        val code = readInputFromFile("stringParsingTestInput_multiLine.txt")
 
         val results = ParseTestUtil.parse(code)
 
         val expected = """
-                LocalValue [indexes: 0..17, line/column: 1/1..1/18, file: test] (
-                    name = a
-                    rhs = StringLiteral [indexes: 8..17, line/column: 1/9..1/18, file: test] (a
+                Assignment [indexes: 0..13, line/column: 1/1..1/14, file: test] (
+                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                        name = a
+                    )
+                    rhs = StringLiteral [indexes: 4..13, line/column: 1/5..1/14, file: test] (a
                 b
                 c)
                 )
-                LocalValue [indexes: 18..37, line/column: 2/1..4/5, file: test] (
-                    name = b
-                    rhs = StringLiteral [indexes: 26..37, line/column: 2/9..4/5, file: test] (a
+                Assignment [indexes: 14..29, line/column: 2/1..4/5, file: test] (
+                    lhs = PropertyAccess [indexes: 14..15, line/column: 2/1..2/2, file: test] (
+                        name = b
+                    )
+                    rhs = StringLiteral [indexes: 18..29, line/column: 2/5..4/5, file: test] (a
                 b
                 c)
                 )""".trimIndent()
@@ -96,64 +117,70 @@ class StringParsingTest {
 
     @Test
     fun `templates`() {
-        val code = readInputFromFile("stringParsingTestInput_templates.kt")
+        val code = readInputFromFile("stringParsingTestInput_templates.txt")
 
         val results = ParseTestUtil.parse(code)
 
         val expected = """
-                |LocalValue [indexes: 0..13, line/column: 1/1..1/14, file: test] (
-                |    name = a
-                |    rhs = StringLiteral [indexes: 8..13, line/column: 1/9..1/14, file: test] (abc)
+                |Assignment [indexes: 0..9, line/column: 1/1..1/10, file: test] (
+                |    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                |        name = a
+                |    )
+                |    rhs = StringLiteral [indexes: 4..9, line/column: 1/5..1/10, file: test] (abc)
                 |)
                 |ErroneousStatement (
                 |    UnsupportedConstruct(
                 |        languageFeature = StringTemplates,
-                |        potentialElementSource = indexes: 22..28, line/column: 2/9..2/15, file: test,
-                |        erroneousSource = indexes: 23..27, line/column: 2/10..2/14, file: test
+                |        potentialElementSource = indexes: 14..20, line/column: 2/5..2/11, file: test,
+                |        erroneousSource = indexes: 15..19, line/column: 2/6..2/10, file: test
                 |    )
                 |)
                 |ErroneousStatement (
                 |    UnsupportedConstruct(
                 |        languageFeature = StringTemplates,
-                |        potentialElementSource = indexes: 37..47, line/column: 3/9..3/19, file: test,
-                |        erroneousSource = indexes: 40..44, line/column: 3/12..3/16, file: test
+                |        potentialElementSource = indexes: 25..35, line/column: 3/5..3/15, file: test,
+                |        erroneousSource = indexes: 28..32, line/column: 3/8..3/12, file: test
                 |    )
                 |)
                 |ErroneousStatement (
                 |    UnsupportedConstruct(
                 |        languageFeature = StringTemplates,
-                |        potentialElementSource = indexes: 56..68, line/column: 4/9..4/21, file: test,
-                |        erroneousSource = indexes: 61..63, line/column: 4/14..4/16, file: test
+                |        potentialElementSource = indexes: 40..52, line/column: 4/5..4/17, file: test,
+                |        erroneousSource = indexes: 45..47, line/column: 4/10..4/12, file: test
                 |    )
                 |)
                 |ErroneousStatement (
                 |    UnsupportedConstruct(
                 |        languageFeature = StringTemplates,
-                |        potentialElementSource = indexes: 77..91, line/column: 5/9..5/23, file: test,
-                |        erroneousSource = indexes: 82..86, line/column: 5/14..5/18, file: test
+                |        potentialElementSource = indexes: 57..71, line/column: 5/5..5/19, file: test,
+                |        erroneousSource = indexes: 62..66, line/column: 5/10..5/14, file: test
                 |    )
                 |)
                 |ErroneousStatement (
                 |    UnsupportedConstruct(
                 |        languageFeature = StringTemplates,
-                |        potentialElementSource = indexes: 100..121, line/column: 6/9..8/4, file: test,
-                |        erroneousSource = indexes: 106..117, line/column: 7/3..7/14, file: test
+                |        potentialElementSource = indexes: 76..97, line/column: 6/5..8/4, file: test,
+                |        erroneousSource = indexes: 82..93, line/column: 7/3..7/14, file: test
                 |    )
                 |)
-                |LocalValue [indexes: 122..138, line/column: 9/1..9/17, file: test] (
-                |    name = g
-                |    rhs = StringLiteral [indexes: 130..138, line/column: 9/9..9/17, file: test] (\n)
+                |Assignment [indexes: 98..110, line/column: 9/1..9/13, file: test] (
+                |    lhs = PropertyAccess [indexes: 98..99, line/column: 9/1..9/2, file: test] (
+                |        name = g
+                |    )
+                |    rhs = StringLiteral [indexes: 102..110, line/column: 9/5..9/13, file: test] (\n)
                 |)
                 |ErroneousStatement (
                 |    UnsupportedConstruct(
                 |        languageFeature = StringTemplates,
-                |        potentialElementSource = indexes: 147..163, line/column: 10/9..10/25, file: test,
-                |        erroneousSource = indexes: 151..157, line/column: 10/13..10/19, file: test
+                |        potentialElementSource = indexes: 115..131, line/column: 10/5..10/21, file: test,
+                |        erroneousSource = indexes: 119..125, line/column: 10/9..10/15, file: test
                 |    )
                 |)
-                |LocalValue [indexes: 164..183, line/column: 11/1..11/20, file: test] (
-                |    name = i
-                |    rhs = StringLiteral [indexes: 172..183, line/column: 11/9..11/20, file: test] (${'$'} foo)
+                |Assignment [indexes: 132..147, line/column: 11/1..11/16, file: test] (
+                |    lhs = PropertyAccess [indexes: 132..133, line/column: 11/1..11/2, file: test] (
+                |        name = i
+                |    )
+                |    rhs = StringLiteral [indexes: 136..147, line/column: 11/5..11/16, file: test] (${'$'} foo)
                 |)""".trimMargin()
         results.assert(expected)
     }
