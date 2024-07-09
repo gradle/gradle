@@ -55,6 +55,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
     def "joint Java and Scala compilation can be cached"() {
         given:
+        buildFile.clear()
         buildFile """
             plugins {
                 id 'scala'

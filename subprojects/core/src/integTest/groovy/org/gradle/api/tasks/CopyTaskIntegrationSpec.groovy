@@ -2064,6 +2064,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         '''.stripIndent()
         run 'copy'
 
+        buildFile.clear()
         buildFile '''
             task (copy, type:Copy) {
                from 'src'
@@ -2091,6 +2092,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         '''.stripIndent()
         run 'copy'
 
+        buildFile.clear()
         buildFile '''
             task (copy, type:Copy) {
                from 'src'
@@ -2118,6 +2120,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         '''.stripIndent()
         run 'copy'
 
+        buildFile.clear()
         buildFile '''
             task (copy, type:Copy) {
                from 'src'

@@ -53,6 +53,7 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
             .build()
 
         when:
+        buildFile.clear()
         buildFile """
             task check {
                 doLast {
