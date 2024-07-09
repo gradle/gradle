@@ -45,7 +45,7 @@ object ModelMutationSubtypingTest {
 
         val mutation = ModelMutationRequest(
             ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<NestedSuper>()),
-            ModelMutation.SetPropertyValue(schema.propertyFor(NestedSuper::x), NewValueNodeProvider.Constant(valueFromString("1")!!), ModelMutation.IfPresentBehavior.Overwrite)
+            ModelMutation.SetPropertyValue(schema.propertyFor(NestedSuper::x), NewValueNodeProvider.Constant(valueFromString("1")!!))
         )
 
         val plan = planner.planModelMutation(schema, doc, mutation, mutationArguments { })
@@ -69,7 +69,7 @@ object ModelMutationSubtypingTest {
 
         val mutation = ModelMutationRequest(
             ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<NestedSub>()).inObjectsConfiguredBy(schema.functionFor(NestedSuper::nestedNotInHierarchy)),
-            ModelMutation.SetPropertyValue(schema.propertyFor(NotInHierarchy::x), NewValueNodeProvider.Constant(valueFromString("1")!!), ModelMutation.IfPresentBehavior.Overwrite)
+            ModelMutation.SetPropertyValue(schema.propertyFor(NotInHierarchy::x), NewValueNodeProvider.Constant(valueFromString("1")!!))
         )
 
         val plan = planner.planModelMutation(schema, doc, mutation, mutationArguments { })
@@ -93,7 +93,7 @@ object ModelMutationSubtypingTest {
 
         val mutation = ModelMutationRequest(
             ScopeLocation.inAnyScope().inObjectsConfiguredBy(schema.functionFor(NestedSub::nestedNotInHierarchy)),
-            ModelMutation.SetPropertyValue(schema.propertyFor(NotInHierarchy::x), NewValueNodeProvider.Constant(valueFromString("1")!!), ModelMutation.IfPresentBehavior.Overwrite)
+            ModelMutation.SetPropertyValue(schema.propertyFor(NotInHierarchy::x), NewValueNodeProvider.Constant(valueFromString("1")!!))
         )
 
         val plan = planner.planModelMutation(schema, doc, mutation, mutationArguments { })
@@ -116,8 +116,7 @@ object ModelMutationSubtypingTest {
             ScopeLocation.inAnyScope().inObjectsConfiguredBy(schema.functionFor(NestedSub::nestedNotInHierarchy)),
             ModelMutation.SetPropertyValue(
                 schema.propertyFor(NestedSuper::x), // <- this is a property of NestedSuper, while the scope points to NotInHierarchy
-                NewValueNodeProvider.Constant(valueFromString("1")!!),
-                ModelMutation.IfPresentBehavior.Overwrite
+                NewValueNodeProvider.Constant(valueFromString("1")!!)
             )
         )
 

@@ -10,12 +10,12 @@ import kotlin.test.assertEquals
 
 object ParseTestUtil {
 
-    fun parse(@Language("kts") code: String): LanguageTreeResult {
+    fun parse(@Language("dcl") code: String): LanguageTreeResult {
         val parsedTree = org.gradle.internal.declarativedsl.parsing.parse(code)
         return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test"))
     }
 
-    fun parseAsTopLevelBlock(code: String): Block {
+    fun parseAsTopLevelBlock(@Language("dcl") code: String): Block {
         val parsedTree = org.gradle.internal.declarativedsl.parsing.parse(code)
         return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test")).topLevelBlock
     }

@@ -22,8 +22,9 @@ import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.ScopeLocationNotMatched
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationFailureReason.TargetPropertyNotFound
+import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationIssueReason.ScopeLocationNotMatched
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
+import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
@@ -79,8 +80,7 @@ class ModelToDocumentMutationPlannerTest {
             mutationRequest(
                 ModelMutation.SetPropertyValue(
                     schema.propertyFor(TestApi.NestedReceiver::number),
-                    NewValueNodeProvider.Constant(newValue),
-                    ModelMutation.IfPresentBehavior.Overwrite
+                    NewValueNodeProvider.Constant(newValue)
                 )
             )
         )
@@ -126,7 +126,7 @@ class ModelToDocumentMutationPlannerTest {
 
         // Expected to do nothing:
         assertEquals(emptyList(), mutationPlan.documentMutations)
-        assertEquals(emptyList(), mutationPlan.unsuccessfulModelMutations)
+        assertEquals(emptyList(), mutationPlan.modelMutationIssues)
     }
 
     @Test
@@ -136,10 +136,16 @@ class ModelToDocumentMutationPlannerTest {
             addNestedConfigureBlock()
         )
 
-        // Expected to do insert a configuring block:
+        // Expected to insert a configuring block:
         assertSuccessfulMutation(
             mutationPlan,
-            AddChildrenToEndOfBlock(document.elementNamed("nested")) { listOf(DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())) }
+            AddChildrenToEndOfBlock(document.elementNamed("nested")) {
+                val element = DefaultElementNode("configure", SyntheticallyProduced, emptyList(), emptyList())
+                NewDocumentNodes(
+                    listOf(element),
+                    NodeRepresentationFlagsContainer(forceEmptyBlockForNodes = setOf(element))
+                )
+            }
         )
     }
 
@@ -170,7 +176,9 @@ class ModelToDocumentMutationPlannerTest {
 
         assertSuccessfulMutation(
             mutationPlan,
-            AddChildrenToEndOfBlock(document.elementNamed("nested")) { listOf(newElementNode) }
+            AddChildrenToEndOfBlock(document.elementNamed("nested")) {
+                NewDocumentNodes(listOf(newElementNode))
+            }
         )
     }
 
@@ -179,8 +187,7 @@ class ModelToDocumentMutationPlannerTest {
         val request = mutationRequest(
             ModelMutation.SetPropertyValue(
                 schema.propertyFor(TestApi.NestedReceiver::number),
-                NewValueNodeProvider.Constant(DefaultLiteralNode("789", SyntheticallyProduced)),
-                ModelMutation.IfPresentBehavior.Overwrite
+                NewValueNodeProvider.Constant(DefaultLiteralNode("789", SyntheticallyProduced))
             ),
             ScopeLocation.fromTopLevel().inObjectsOfType(schema.typeFor<TestApi.TopLevelElement>())
         )
@@ -188,7 +195,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertFailedMutation(
             mutationPlan,
-            UnsuccessfulModelMutation(request, listOf(TargetPropertyNotFound))
+            ModelMutationIssue(ModelMutationIssueReason.TargetPropertyNotFound)
         )
     }
 
@@ -215,7 +222,7 @@ class ModelToDocumentMutationPlannerTest {
 
         assertFailedMutation(
             mutationPlan,
-            UnsuccessfulModelMutation(request, listOf(ScopeLocationNotMatched))
+            ModelMutationIssue(ScopeLocationNotMatched)
         )
     }
 
@@ -237,23 +244,26 @@ class ModelToDocumentMutationPlannerTest {
     private
     fun assertSuccessfulMutation(planModelMutations: ModelMutationPlan, expectedDocumentMutation: DocumentMutation) {
         assertTrue(isEquivalentMutation(expectedDocumentMutation, planModelMutations.documentMutations.single()))
-        assertTrue { planModelMutations.unsuccessfulModelMutations.isEmpty() }
+        assertTrue { planModelMutations.modelMutationIssues.isEmpty() }
     }
 
     private
     fun isEquivalentMutation(expected: DocumentMutation, actual: DocumentMutation) = when (expected) {
-        is AddChildrenToEndOfBlock -> actual is AddChildrenToEndOfBlock && expected.targetNode == actual.targetNode && expected.nodes() == actual.nodes()
+        is AddChildrenToEndOfBlock -> actual is AddChildrenToEndOfBlock &&
+            expected.targetNode == actual.targetNode &&
+            expected.nodes().nodes == actual.nodes().nodes &&
+            expected.nodes().representationFlags == actual.nodes().representationFlags
         is ReplaceValue -> actual is ReplaceValue && expected.targetValue == actual.targetValue && expected.replaceWithValue() == actual.replaceWithValue()
         is RemoveNode -> expected == actual
         else -> throw UnsupportedOperationException("cannot check for the expected mutation $expected")
     }
 
     private
-    fun assertFailedMutation(planModelMutations: ModelMutationPlan, expectedFailure: UnsuccessfulModelMutation) {
+    fun assertFailedMutation(planModelMutations: ModelMutationPlan, expectedFailure: ModelMutationIssue) {
         assertTrue { planModelMutations.documentMutations.isEmpty() }
         assertEquals(
             listOf(expectedFailure),
-            planModelMutations.unsuccessfulModelMutations
+            planModelMutations.modelMutationIssues
         )
     }
 }
