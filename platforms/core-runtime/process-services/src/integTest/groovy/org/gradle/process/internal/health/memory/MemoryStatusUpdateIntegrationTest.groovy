@@ -34,7 +34,7 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
         file("osReceived").exists()
     }
 
-    private static String waitForMemoryEventsTask() {
+    private String waitForMemoryEventsTask() {
         return buildScriptSnippet('''
             import java.util.concurrent.CountDownLatch
             import org.gradle.process.internal.health.memory.*
