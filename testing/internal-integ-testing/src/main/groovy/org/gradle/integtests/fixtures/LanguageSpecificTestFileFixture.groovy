@@ -159,4 +159,29 @@ trait LanguageSpecificTestFileFixture {
     String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
         snippet
     }
+
+    /**
+     * Provides syntax highlighting for the snippet of Java code.
+     *
+     * @return the same snippet
+     */
+    String javaSnippet(@Language('java') String snippet) {
+        snippet
+    }
+
+    /**
+     * Provides syntax highlighting for the snippet of Groovy code.
+     * <p>
+     * Consider specialized methods for Gradle scripts:
+     * <ul>
+     * <li>{@link #buildScriptSnippet(java.lang.String)}
+     * <li>{@link #settingsScriptSnippet(java.lang.String)}
+     * <li>{@link #initScriptSnippet(java.lang.String)}
+     * </ul>
+     *
+     * @return the same snippet
+     */
+    String groovySnippet(@Language('groovy') String snippet) {
+        snippet
+    }
 }
