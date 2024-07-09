@@ -345,7 +345,11 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             configurations {
-                other
+                other {
+                    outgoing {
+                        capability("org.test:buildB-capability-2:1.0")
+                    }
+                }
             }
             task myJar(type: Jar) {
                 archiveClassifier = 'my'
@@ -440,7 +444,11 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             configurations {
-                other
+                other {
+                    outgoing {
+                        capability("example:buildB-capability-2:1.0")
+                    }
+                }
             }
             task myJar(type: Jar) {
                 archiveClassifier = 'my'
