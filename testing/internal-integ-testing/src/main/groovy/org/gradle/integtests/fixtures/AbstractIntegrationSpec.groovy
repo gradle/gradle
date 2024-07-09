@@ -195,10 +195,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         return "junit:junit:4.13"
     }
 
-    void versionCatalogFile(@Language("toml") String script) {
-        versionCatalogFile << script
-    }
-
     TestFile getBuildKotlinFile() {
         testDirectory.file(defaultBuildKotlinFileName)
     }

@@ -134,6 +134,13 @@ trait LanguageSpecificTestFileFixture {
     }
 
     /**
+     * <b>Appends</b> provided code to the {@link #getVersionCatalogFile() default version catalog file}.
+     */
+    void versionCatalogFile(@Language("toml") String append) {
+        versionCatalogFile << append
+    }
+
+    /**
      * Provides syntax highlighting for the snippet of the build script code.
      *
      * @return the same snippet
