@@ -25,8 +25,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the {@link #getBuildFile() default build file}.
-     * <p>
-     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void buildFile(@GroovyBuildScriptLanguage String append) {
         buildFile << append
@@ -34,8 +32,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the given build file.
-     * <p>
-     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
         file(buildFile) << append
@@ -43,8 +39,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the given build file.
-     * <p>
-     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void buildFile(TestFile buildFile, @GroovyBuildScriptLanguage String append) {
         buildFile << append
@@ -159,15 +153,5 @@ trait LanguageSpecificTestFileFixture {
      */
     String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
         snippet
-    }
-
-    /**
-     * Sets (replacing) the contents of the build.gradle file.
-     * <p>
-     * To append, use {@link #buildFile(java.lang.String)}
-     */
-    TestFile buildScript(@GroovyBuildScriptLanguage String script) {
-        buildFile.text = script
-        buildFile
     }
 }

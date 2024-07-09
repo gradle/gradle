@@ -76,11 +76,4 @@ abstract class AbstractProcessInstrumentationInDynamicGroovyIntegrationTest exte
         title = processCreator.replace("command", varInitializer.description)
         indyStatus = enableIndy ? "with indy" : "without indy"
     }
-
-
-    // Lift the visibility of the method to make it available for the mixin
-    @Override
-    TestFile buildScript(@GroovyBuildScriptLanguage String script) {
-        super.buildScript(script)
-    }
 }
