@@ -279,15 +279,15 @@ abstract class AbstractIntegrationSpec extends Specification {
     /**
      * <b>Appends</b> provided code to the given Java file.
      */
-    void javaFile(String targetBuildFile, @Language('java') String append) {
-        file(targetBuildFile) << append
+    void javaFile(String targetFile, @Language('java') String append) {
+        file(targetFile) << append
     }
 
     /**
      * <b>Appends</b> provided code to the given Java file.
      */
-    void javaFile(TestFile targetBuildFile, @Language('java') String append) {
-        targetBuildFile << append
+    void javaFile(TestFile targetFile, @Language('java') String append) {
+        targetFile << append
     }
 
     /**
@@ -300,8 +300,8 @@ abstract class AbstractIntegrationSpec extends Specification {
      * <li>{@link #initScriptFile(java.lang.String, java.lang.String)}
      * </ul>
      */
-    void groovyFile(String targetBuildFile, @Language('groovy') String append) {
-        file(targetBuildFile) << append
+    void groovyFile(String targetFile, @Language('groovy') String append) {
+        file(targetFile) << append
     }
 
     /**
@@ -314,8 +314,8 @@ abstract class AbstractIntegrationSpec extends Specification {
      * <li>{@link #initScriptFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
      * </ul>
      */
-    void groovyFile(TestFile targetBuildFile, @Language('groovy') String append) {
-        targetBuildFile << append
+    void groovyFile(TestFile targetFile, @Language('groovy') String append) {
+        targetFile << append
     }
 
     /**
