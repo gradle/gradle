@@ -276,25 +276,6 @@ abstract class AbstractIntegrationSpec extends Specification {
         initScriptFile << append
     }
 
-    /**
-     * Provides best-effort groovy script syntax highlighting.
-     * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
-     *
-     * @deprecated Use a more specific method, e.g {@link #buildFile(java.lang.String, java.lang.String)} or {@link #settingsFile(java.lang.String, java.lang.String)}
-     */
-    @Deprecated
-    void groovyFile(String targetBuildFile, @GroovyBuildScriptLanguage String script) {
-        groovyFile(file(targetBuildFile), script)
-    }
-
-    /**
-     * @deprecated Use a more specific method, e.g {@link #buildFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)} or {@link #settingsFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
-     */
-    @Deprecated
-    void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
-        targetBuildFile << script
-    }
-
     void javaFile(String targetBuildFile, @Language('JAVA') String code) {
         javaFile(file(targetBuildFile), code)
     }
