@@ -16,9 +16,12 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import org.gradle.api.Project;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildState;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-public interface BuildScopeModelBuilder {
+public interface BuildScopeModelBuilder extends ToolingModelBuilder {
     /**
      * Creates the model for the given target. The target build will not necessarily have been configured.
      * This method is responsible for transitioning the target into the appropriate state required to create the model.
@@ -28,4 +31,11 @@ public interface BuildScopeModelBuilder {
      * This method is responsible for any synchronization required to create the model.
      */
     Object create(BuildState target);
+
+    @Override
+    default Object buildAll(String modelName, Project project) {
+        BuildState targetBuild = ((GradleInternal) project.getGradle()).getOwner();
+        return create(targetBuild);
+    }
+
 }
