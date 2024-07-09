@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal
+package org.gradle.problems.internal;
 
-import spock.lang.Specification
+import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.problems.buildtree.ProblemReporter;
 
-class DefaultProblemsTestReport extends Specification {
-
-    def "using org.gradle core namespace is not allowed on the public API"() {
-        def emitter = [Mock(ProblemEmitter)]
-
-        given:
-        def p = new DefaultProblems(emitter)
-
-        when:
-        p.forNamespace(DefaultProblemCategory.GRADLE_CORE_NAMESPACE)
-
-        then:
-        thrown(IllegalStateException)
-    }
+public interface ProblemReportCreator extends ProblemReporter, ProblemEmitter {
 }

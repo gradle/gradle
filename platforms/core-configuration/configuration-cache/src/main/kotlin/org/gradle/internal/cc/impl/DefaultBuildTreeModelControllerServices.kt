@@ -191,6 +191,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
+
+        // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
+        registration.add(DefaultProblemFactory::class.java)
+
         if (modelParameters.isConfigurationCache) {
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
@@ -198,7 +202,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
             registration.add(DefaultConfigurationCacheProblemsListener::class.java)
-            registration.add(DefaultProblemFactory::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)

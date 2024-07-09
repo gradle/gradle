@@ -56,6 +56,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "cli",
         "client-services",
         "concurrent",
+        "configuration-problems-base",
         "core",
         "core-api",
         "daemon-main",
@@ -107,6 +108,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "service-registry-impl",
         "snapshots",
         "stdlib-java-extensions",
+        "stdlib-kotlin-extensions",
         "time",
         "toolchains-jvm-shared",
         "tooling-api",
@@ -130,7 +132,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        82
+        80
     }
 
     /**
@@ -155,7 +157,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         def size = getZip().size()
 
-        assert size <= getMaxDistributionSizeBytes(): "Distribution content needs to be verified. If the increase is expected, raise the size by ${Math.ceil((size - getMaxDistributionSizeBytes()) / 1024 / 1024)}"
+        assert size <= getMaxDistributionSizeBytes() : "Distribution content needs to be verified. If the increase is expected, raise the size by ${Math.ceil((size - getMaxDistributionSizeBytes()) / 1024 / 1024)}"
     }
 
     def "no duplicate jar entries in distribution"() {

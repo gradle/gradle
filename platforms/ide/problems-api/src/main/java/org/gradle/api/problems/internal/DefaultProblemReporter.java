@@ -23,20 +23,22 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
 
+import java.util.Collection;
+
 public class DefaultProblemReporter implements InternalProblemReporter {
 
-    private final ProblemEmitter emitter;
+    private final Collection<ProblemEmitter> emitters;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Multimap<Throwable, Problem> problems;
 
     public DefaultProblemReporter(
-        ProblemEmitter emitter,
+        Collection<ProblemEmitter> emitters,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
         Multimap<Throwable, Problem> problems
     ) {
-        this.emitter = emitter;
+        this.emitters = emitters;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problems = problems;
@@ -114,6 +116,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        emitter.emit(problem, id);
+        for (ProblemEmitter emitter : emitters) {
+            emitter.emit(problem, id);
+        }
     }
 }

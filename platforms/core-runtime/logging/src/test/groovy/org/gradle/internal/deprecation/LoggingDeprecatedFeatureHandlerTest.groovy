@@ -64,7 +64,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
-        handler.init(WarningMode.All, progressBroadcaster, new DefaultProblems(Stub(ProblemEmitter)), problemStream)
+        handler.init(WarningMode.All, progressBroadcaster, createDefaultProblemsWithStub(), problemStream)
+    }
+
+    def DefaultProblems createDefaultProblemsWithStub() {
+        new DefaultProblems([Stub(ProblemEmitter)])
     }
 
     def 'logs each deprecation warning only once'() {
@@ -208,7 +212,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.init(type, progressBroadcaster, new DefaultProblems(Stub(ProblemEmitter)), problemStream)
+        handler.init(type, progressBroadcaster, createDefaultProblemsWithStub(), problemStream)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:

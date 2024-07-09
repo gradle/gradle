@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl.problems
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.configuration.problems.DecoratedFailure
-import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
+import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -31,7 +31,6 @@ import org.gradle.internal.configuration.problems.taskPathFrom
 import java.io.Writer
 
 
-internal
 enum class DiagnosticKind {
     PROBLEM,
     INPUT,
@@ -39,7 +38,6 @@ enum class DiagnosticKind {
 }
 
 
-internal
 class JsonModelWriter(val writer: Writer) {
 
     private
@@ -55,7 +53,7 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(details: ConfigurationCacheReportDetails) = with(details) {
+    fun endModel(details: ProblemReportDetails) = with(details) {
         endArray()
 
         comma()
@@ -82,7 +80,7 @@ class JsonModelWriter(val writer: Writer) {
         endObject()
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedReportProblem) {
         if (first) first = false else comma()
         jsonObject {
             property("trace") {
