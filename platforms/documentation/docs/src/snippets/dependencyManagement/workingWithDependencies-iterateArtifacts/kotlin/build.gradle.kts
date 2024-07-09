@@ -14,9 +14,11 @@ tasks.register("iterateResolvedArtifacts") {
     val scm = configurations["scm"]
     dependsOn(scm)
 
+    val scmArtifacts = scm.map { it.absolutePath }
+    val logger = logger
     doLast {
-        scm.forEach {
-            logger.quiet(it.absolutePath)
+        scmArtifacts.forEach {
+            logger.quiet(it)
         }
     }
 }

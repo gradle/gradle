@@ -11,11 +11,14 @@ dependencies {
 
 // tag::iteration-task[]
 tasks.register("iterateDeclaredDependencies") {
+    val dependencySet = configurations["scm"].dependencies
+    val artifactInfo = dependencySet.map {
+        Triple(it.group, it.name, it.version)
+    }
+    val logger = logger
     doLast {
-        val dependencySet = configurations["scm"].dependencies
-
-        dependencySet.forEach {
-            logger.quiet("${it.group}:${it.name}:${it.version}")
+        artifactInfo.forEach { (group, name, version) ->
+            logger.quiet("$group:$name:$version")
         }
     }
 }
