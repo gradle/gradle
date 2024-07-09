@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * consumption.
  */
 @UsedByScanPlugin
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Settings.class})
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}

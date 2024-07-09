@@ -42,8 +42,8 @@ package org.gradle.internal.service.scopes;
  *            Build
  *              │
  *            Gradle
- *              │
- *           Project
+ *         ┌────┴────┐
+ *      Project   Settings
  * </pre>
  *
  * Each scope roughly corresponds to the following user-facing concepts:
@@ -55,6 +55,7 @@ package org.gradle.internal.service.scopes;
  * <li>{@link BuildTree}         — composite build
  * <li>{@link Build}             — build in a composite build
  * <li>{@link Gradle}            — exists for historical reasons, almost empty
+ * <li>{@link Settings}          — init scripts, settings script
  * <li>{@link Project}           — project in a build
  * </ul>
  *
@@ -71,7 +72,7 @@ package org.gradle.internal.service.scopes;
  *     └── project
  * </pre>
  *
- * <h4>Services and their visibility</h4>
+ * <h3>Services and their visibility</h3>
  * The state in each scope is created and managed by services registered in that scope.
  * All services of a scope are assembled in a {@code ServiceRegistry}.
  * When the registry is closed all its services are closed as well and the state is discarded.
@@ -173,13 +174,29 @@ public interface Scope {
     interface Build extends BuildTree {}
 
     /**
-     * The scope of the {@code org.gradle.api.invocation.Gradle} instance state.
+     * The scope of the {@code org.gradle.api.invocation.Gradle} instance of a build.
+     * <p>
+     * The state and the services are created at the same time the {@code Gradle} instance
+     * is initialized for a given <em>build</em>, and they are discarded at the end of the build execution.
      * <p>
      * The <em>Gradle state</em> is being merged into the {@link Build build state} and is mostly empty.
      * <p>
      * {@link Build} and parent services are visible to {@link Gradle} services and descendant scopes, but not vice versa.
      */
     interface Gradle extends Build {}
+
+    /**
+     * The scope that owns the settings of a build.
+     * <p>
+     * The settings state is managed by the {@code SettingsState} class.
+     * The creation of that state implies evaluation of init scripts and settings scripts
+     * of the owner-build and any builds that are included as part of a composite build.
+     * <p>
+     * The state is discarded at the end of the build execution.
+     * <p>
+     * {@link Gradle} and parent services are visible to {@link Settings} scope services, but not vice versa.
+     */
+    interface Settings extends Gradle {}
 
     /**
      * The scope of a single project within a {@link Build build}.
