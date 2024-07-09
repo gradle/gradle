@@ -48,6 +48,10 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
+class A {
+    inner class B
+}
+
 
 object SchemaSerialization {
 

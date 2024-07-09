@@ -38,6 +38,9 @@ include("module-identity")
 // Code quality rules common to :build-logic and the root build
 include("code-quality-rules")
 
+// Custom detekt rules
+include("detekt-rules")
+
 // Plugins to build :build-logic plugins
 include("gradle-plugin")
 

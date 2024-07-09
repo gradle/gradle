@@ -1,3 +1,7 @@
+MyRuleSet:
+  MyRule:
+    active: true
+
 style:
   MaxLineLength:
     maxLineLength: 250                    # default is 120

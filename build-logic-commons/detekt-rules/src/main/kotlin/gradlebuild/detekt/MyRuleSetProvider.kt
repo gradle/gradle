@@ -14,30 +14,21 @@
  * limitations under the License.
  */
 
-plugins {
-    id("io.gitlab.arturbosch.detekt")
-}
+package gradlebuild.detekt
 
-detekt {
-    // enable all default rules
-    buildUponDefaultConfig = true
+import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.api.RuleSet
+import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 
-    // customize some of the rules, until we can fix the offending cases
-    config.convention(project.isolated.rootProject.projectDirectory.file("gradle/detekt.yml"))
+class MyRuleSetProvider : RuleSetProvider {
+    override val ruleSetId: String = "MyRuleSet"
 
-    // also check the project build file
-    source.from(project.buildFile)
-}
-
-dependencies {
-    detektPlugins("gradlebuild:detekt-rules")
-}
-
-pluginManager.withPlugin("gradlebuild.code-quality") {
-    tasks {
-        named("codeQuality") {
-            dependsOn(detekt)
-        }
+    override fun instance(config: Config): RuleSet {
+        return RuleSet(
+            ruleSetId,
+            listOf(
+                MyRule(config),
+            ),
+        )
     }
 }
-
