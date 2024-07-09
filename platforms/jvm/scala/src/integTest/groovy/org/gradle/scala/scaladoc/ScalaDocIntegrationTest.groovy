@@ -82,6 +82,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
         when:
         this.classes.scalaVersion = newScalaVersion
+        buildFile.clear()
         buildFile(this.classes.buildScript())
         succeeds scaladoc
         then:
