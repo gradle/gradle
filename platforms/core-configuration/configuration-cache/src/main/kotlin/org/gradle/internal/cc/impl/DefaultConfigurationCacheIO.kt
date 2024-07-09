@@ -44,7 +44,9 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.LoggingTracer
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.Tracer
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
@@ -65,23 +67,24 @@ import java.io.OutputStream
 
 
 @ServiceScope(Scope.Build::class)
-class ConfigurationCacheIO internal constructor(
+internal
+class DefaultConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
-    private val host: DefaultConfigurationCache.Host,
+    private val host: ConfigurationCacheHost,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter
-) {
+) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
+
     private
     val codecs = codecs()
 
     private
     val encryptionService by lazy { service<EncryptionService>() }
 
-    internal
-    fun writeCacheEntryDetailsTo(
+    override fun writeCacheEntryDetailsTo(
         buildStateRegistry: BuildStateRegistry,
         intermediateModels: Map<ModelKey, BlockAddress>,
         projectMetadata: Map<Path, BlockAddress>,
@@ -113,8 +116,7 @@ class ConfigurationCacheIO internal constructor(
         writeNullableString(key.parameterHash?.toString())
     }
 
-    internal
-    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {
+    override fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {
         if (!stateFile.exists) {
             return null
         }
@@ -160,16 +162,14 @@ class ConfigurationCacheIO internal constructor(
     /**
      * See [ConfigurationCacheState.writeRootBuildState].
      */
-    internal
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) =
+    override fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) =
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
             }
         }
 
-    internal
-    fun readRootBuildStateFrom(
+    override fun readRootBuildStateFrom(
         stateFile: ConfigurationCacheStateFile,
         loadAfterStore: Boolean,
         graph: BuildTreeWorkGraph,
@@ -182,8 +182,7 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
-    internal
-    fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
+    override fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeBuildContent(host.currentBuild, buildTreeState)
@@ -191,8 +190,7 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
-    internal
-    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
+    override fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readBuildContent(includedBuild)
@@ -226,8 +224,7 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
-    internal
-    fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile) {
+    override fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile) {
         writeConfigurationCacheState(stateFile) {
             withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
                 write(model)
@@ -235,8 +232,7 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
-    internal
-    fun readModelFrom(stateFile: ConfigurationCacheStateFile): Any {
+    override fun readModelFrom(stateFile: ConfigurationCacheStateFile): Any {
         return readConfigurationCacheState(stateFile) {
             withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
                 readNonNull()
@@ -247,8 +243,7 @@ class ConfigurationCacheIO internal constructor(
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
-    internal
-    fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
+    override fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
         KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
@@ -283,7 +278,12 @@ class ConfigurationCacheIO internal constructor(
         else -> null
     }
 
-    internal
+    override fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T {
+        val (context, codecs) = writerContextFor(encoder)
+        return context.runWriteOperation { writeOperation(codecs) }
+    }
+
+    private
     fun writerContextFor(encoder: Encoder): Pair<DefaultWriteContext, Codecs> =
         writeContextFor(
             encoder,
@@ -291,8 +291,7 @@ class ConfigurationCacheIO internal constructor(
             codecs
         ) to codecs
 
-    internal
-    fun <R> withReadContextFor(
+    override fun <R> withReadContextFor(
         stateType: StateType,
         inputStream: () -> InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
@@ -309,7 +308,12 @@ class ConfigurationCacheIO internal constructor(
                 }
             }
 
-    internal
+    override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
+        val (context, codecs) = readerContextFor(decoder)
+        return context.runReadOperation { readOperation(codecs) }
+    }
+
+    private
     fun readerContextFor(
         decoder: Decoder,
     ) =

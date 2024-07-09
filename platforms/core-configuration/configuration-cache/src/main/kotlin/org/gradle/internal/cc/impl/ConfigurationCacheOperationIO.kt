@@ -16,17 +16,17 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.Factory
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import java.io.File
+import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 
-interface ConfigurationCacheHost : HostServiceProvider {
+internal
+interface ConfigurationCacheOperationIO {
 
-    val currentBuild: VintageGradleBuild
+    fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T
 
-    fun createBuild(settingsFile: File?): ConfigurationCacheBuild
+    fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T
 
-    fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
-
-    fun <T> factory(serviceType: Class<T>): Factory<T>
 }
