@@ -292,6 +292,13 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     /**
      * <b>Appends</b> provided code to the given Groovy file.
+     * <p>
+     * Consider specialized methods for Gradle scripts:
+     * <ul>
+     * <li>{@link #buildFile(java.lang.String, java.lang.String)}
+     * <li>{@link #settingsFile(java.lang.String, java.lang.String)}
+     * <li>{@link #initScriptFile(java.lang.String, java.lang.String)}
+     * </ul>
      */
     void groovyFile(String targetBuildFile, @Language('groovy') String append) {
         file(targetBuildFile) << append
@@ -299,6 +306,13 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     /**
      * <b>Appends</b> provided code to the given Groovy file.
+     * <p>
+     * Consider specialized methods for Gradle scripts:
+     * <ul>
+     * <li>{@link #buildFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
+     * <li>{@link #settingsFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
+     * <li>{@link #initScriptFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
+     * </ul>
      */
     void groovyFile(TestFile targetBuildFile, @Language('groovy') String append) {
         targetBuildFile << append
