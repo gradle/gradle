@@ -86,7 +86,7 @@ class GroovyCoverage {
         allVersions.addAll(FUTURE)
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
-            return VersionCoverage.versionsAbove(allVersions, '3.0.22')
+            return VersionCoverage.versionsAtLeast(allVersions, '3.0.22')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
             return VersionCoverage.versionsAbove(allVersions, '3.0.20')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
