@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradleinternal.buildinit.plugins.internal.maven;
+package org.gradle.unexported.buildinit.plugins.internal.maven;
+import org.gradle.internal.exceptions.Contextual;
 
-public class ProjectDependency extends Dependency {
-    private final String projectPath;
-
-    public ProjectDependency(String configuration, String projectPath) {
-        super(configuration);
-        this.projectPath = projectPath;
+@Contextual
+public class MavenConversionException extends RuntimeException {
+    public MavenConversionException(String message) {
+        super(message);
     }
 
-    public String getProjectPath() {
-        return projectPath;
+    public MavenConversionException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

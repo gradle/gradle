@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradleinternal.buildinit.plugins.internal.maven;
+package org.gradle.unexported.buildinit.plugins.internal.maven;
 
 public class Dependency {
     private final String configuration;

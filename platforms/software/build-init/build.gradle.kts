@@ -100,6 +100,8 @@ dependencies {
     integTestImplementation(projects.native)
     integTestImplementation(libs.jetty)
 
+    integTestRuntimeOnly(libs.maven3Compat)
+
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }

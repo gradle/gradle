@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal.maven;
+package org.gradle.unexported.buildinit.plugins.internal.maven;
 
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
@@ -33,8 +33,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.workers.WorkerExecutor;
-import org.gradleinternal.buildinit.plugins.internal.maven.Maven2GradleWorkAction;
-import org.gradleinternal.buildinit.plugins.internal.maven.MavenConversionException;
 
 import java.util.Arrays;
 import java.util.Collections;

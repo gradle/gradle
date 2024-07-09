@@ -1168,7 +1168,6 @@ Class <org.gradle.architecture.library.freeze.LineNumberIgnoringViolationStore> 
 Class <org.gradle.buildinit.plugins.internal.action.BuildInitAutoApplyAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildInitAutoApplyAction.java:0)
 Class <org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InitBuiltInCommand.java:0)
 Class <org.gradle.buildinit.plugins.internal.action.WrapperPluginAutoApplyAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WrapperPluginAutoApplyAction.java:0)
-Class <org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PomProjectInitDescriptor.java:0)
 Class <org.gradle.buildinit.plugins.internal.model.Description> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Description.java:0)
 Class <org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildInitDsl.java:0)
 Class <org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildInitTestFramework.java:0)
