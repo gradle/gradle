@@ -32,6 +32,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
@@ -85,17 +86,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
+
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
+    private final StartParameterInternal startParameter;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
-        Gradle gradle
+        Gradle gradle,
+        StartParameterInternal startParameter
     ) {
         this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
         this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(agentStatus, Lazy.atomic().of(gradle::getSharedServices));
+        this.startParameter = startParameter;
     }
 
     @Override
