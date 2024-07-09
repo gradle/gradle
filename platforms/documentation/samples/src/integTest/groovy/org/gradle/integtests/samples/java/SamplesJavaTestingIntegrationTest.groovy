@@ -19,11 +19,14 @@ package org.gradle.integtests.samples.java
 import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -310,6 +313,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     @UsesSample("java/basic")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE, because = "Task order is non-deterministic in CC")
     def "can run simple Java integration tests with #dsl dsl"() {
         given:
         configureExecuterForToolchains('17')
