@@ -276,12 +276,32 @@ abstract class AbstractIntegrationSpec extends Specification {
         initScriptFile << append
     }
 
-    void javaFile(String targetBuildFile, @Language('JAVA') String code) {
-        javaFile(file(targetBuildFile), code)
+    /**
+     * <b>Appends</b> provided code to the given Java file.
+     */
+    void javaFile(String targetBuildFile, @Language('java') String append) {
+        file(targetBuildFile) << append
     }
 
-    void javaFile(TestFile targetBuildFile, @Language('JAVA') String code) {
-        targetBuildFile << code
+    /**
+     * <b>Appends</b> provided code to the given Java file.
+     */
+    void javaFile(TestFile targetBuildFile, @Language('java') String append) {
+        targetBuildFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Groovy file.
+     */
+    void groovyFile(String targetBuildFile, @Language('groovy') String append) {
+        file(targetBuildFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Groovy file.
+     */
+    void groovyFile(TestFile targetBuildFile, @Language('groovy') String append) {
+        targetBuildFile << append
     }
 
     /**
