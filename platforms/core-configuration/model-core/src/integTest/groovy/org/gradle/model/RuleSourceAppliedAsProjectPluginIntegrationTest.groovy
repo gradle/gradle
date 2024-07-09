@@ -24,7 +24,7 @@ class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegratio
 
     def "plugin class can expose model rules"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -100,7 +100,7 @@ model {
 
     def "configuration in script is not executed if not needed"() {
         given:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -127,7 +127,7 @@ model {
 
     def "informative error message when rules are invalid"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 class Rules extends RuleSource {
                 }
@@ -148,7 +148,7 @@ model {
 
     def "informative error message when two plugins declare model at the same path"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -177,7 +177,7 @@ model {
 
     def "informative error message when two plugins declare model at the same path and model is already created"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -217,7 +217,7 @@ model {
 
     def "informative error message when creation rule throws"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -244,7 +244,7 @@ model {
 
     def "informative error message when mutation rule throws"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -276,7 +276,7 @@ model {
 
     def "model registration must provide instance"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -304,7 +304,7 @@ model {
 
     def "plugin applied by plugin can contribute rules"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyBasePlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -348,7 +348,7 @@ model {
 
     def "configuration made to a project extension during afterEvaluate() is visible to rule sources"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyExtension {
                 String value = "original"
             }
@@ -396,7 +396,7 @@ model {
 
     def "rule can depend on a concrete task type"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -424,7 +424,7 @@ model {
 
     def "reports rule execution failure when rule source constructor throws exception"() {
         when:
-        buildScript '''
+        buildFile '''
             class Rules extends RuleSource {
                 Rules() {
                     throw new RuntimeException("failing constructor")

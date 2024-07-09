@@ -187,7 +187,7 @@ assert System.getProperty('some-prop') == 'some-value'
         def encoding = Charset.defaultCharset().name()
 
         given:
-        buildScript """
+        buildFile """
             task encoding {
                 doFirst { println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
             }

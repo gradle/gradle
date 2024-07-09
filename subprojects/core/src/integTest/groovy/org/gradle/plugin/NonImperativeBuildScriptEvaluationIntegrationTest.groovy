@@ -38,7 +38,7 @@ class NonImperativeBuildScriptEvaluationIntegrationTest extends AbstractIntegrat
             }
         """
 
-        buildScript """
+        buildFile """
             apply from: "scriptPlugin1.gradle"
             apply from: "scriptPlugin2.gradle"
         """

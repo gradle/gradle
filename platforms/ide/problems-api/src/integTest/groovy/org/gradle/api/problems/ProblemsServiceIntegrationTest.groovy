@@ -307,7 +307,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "cannot emit a problem with invalid additional data"() {
         given:
-        buildScript 'class InvalidData implements org.gradle.api.problems.internal.AdditionalData {}'
+        buildFile 'class InvalidData implements org.gradle.api.problems.internal.AdditionalData {}'
         withReportProblemTask """
             problems.forNamespace('org.example.plugin').reporting {
                 it.id('type', 'label')

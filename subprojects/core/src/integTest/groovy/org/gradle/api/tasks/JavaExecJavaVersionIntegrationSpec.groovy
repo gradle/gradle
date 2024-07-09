@@ -89,7 +89,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     private void setupRunHelloWorldTask() {
-        buildScript '''
+        buildFile '''
             apply plugin: "java"
 
             task runHelloWorld(type: JavaExec) {

@@ -127,7 +127,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
     def "pluginManagement block is not supported in ProjectScripts"() {
         given:
-        buildScript """
+        buildFile """
             pluginManagement {}
         """
 

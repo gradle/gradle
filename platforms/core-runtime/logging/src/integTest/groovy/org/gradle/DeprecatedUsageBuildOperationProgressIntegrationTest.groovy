@@ -49,7 +49,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             org.gradle.internal.deprecation.DeprecationLogger.deprecate('Plugin script').willBeRemovedInGradle9().undocumented().nagUser();
         """
 
-        buildScript """
+        buildFile """
             apply from: 'script.gradle'
             apply plugin: SomePlugin
 

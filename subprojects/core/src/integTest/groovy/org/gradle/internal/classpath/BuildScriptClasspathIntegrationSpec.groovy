@@ -364,7 +364,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             """
         }
 
-        buildScript("""
+        buildFile("""
             buildscript {
                 dependencies {
                     classpath "org.gradle.test:mrjar:1.+"
@@ -430,7 +430,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 """)
             }
         }
-        buildScript("""
+        buildFile("""
             abstract class LambdaTask extends DefaultTask {
                 @Input
                 abstract ListProperty<Runnable> getMyActions()

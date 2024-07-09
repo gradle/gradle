@@ -52,7 +52,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         """
 
         when:
-        buildScript USE
+        buildFile USE
 
         then:
         succeeds("pluginTask")
@@ -79,7 +79,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         pluginRepo.module(GROUP, ARTIFACT, VERSION).dependsOn(GROUP, ARTIFACT + "2", VERSION).publishPom()
 
         when:
-        buildScript """
+        buildFile """
             $USE
 
             def ops = []
@@ -127,7 +127,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         publishPlugin("").dependsOn(GROUP, ARTIFACT + "2", VERSION).publishPom()
 
         when:
-        buildScript """
+        buildFile """
             buildscript {
               dependencies {
                 classpath "$GROUP:${ARTIFACT + 2}:$VERSION"
@@ -171,7 +171,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         pluginModule.dependsOn("test", "test", "2").publishPom()
 
         and:
-        buildScript """
+        buildFile """
             buildscript {
                 repositories {
                     maven { url "$pluginRepo.uri" }
@@ -220,7 +220,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
@@ -245,7 +245,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
@@ -266,7 +266,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
@@ -285,7 +285,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         publishPlugin "throw new Exception('throwing plugin')"
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
