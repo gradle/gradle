@@ -89,7 +89,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         withSettingsPluginInBuildLogic()
 
         createDir('build-logic') {
-            groovyFile file('build.gradle'), '''
+            buildFile file('build.gradle'), '''
                 plugins {
                     id 'java'
                     id 'java-gradle-plugin'
@@ -163,7 +163,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
             subprojects { println("lifecycle: <root>.subprojects '\${it.path}'") }
         """
 
-        groovyFile "a/build.gradle", """
+        buildFile "a/build.gradle", """
             println("lifecycle: <evaluating> " + project)
         """
 

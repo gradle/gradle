@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
     private String printLocations() {
-        groovyScript """
+        settingsScriptSnippet """
             println "settings root dir: " + layout.rootDirectory + "."
             println "settings dir: " + layout.settingsDirectory + "."
             println "settings source file: " + layout.settingsDirectory.file(providers.provider { buildscript.sourceFile.name }).get() + "."
@@ -76,10 +76,10 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
         def customSettingsDir = customSettingsFile.parentFile
         // setting a custom settings location is deprecated
         executer.noDeprecationChecks()
-        groovyFile(customSettingsFile, """
+        settingsFile customSettingsFile, """
             rootProject.projectDir = file('..')
             ${printLocations()}
-        """)
+        """
 
         when:
         run("help", "--settings-file", customSettingsPath)
@@ -93,15 +93,15 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
     def "locations are as expected in an included build"() {
         buildTestFixture.withBuildInSubDir()
         def buildB = singleProjectBuild("buildB") { BuildTestFile build ->
-            groovyFile(build.settingsFile, """
+            settingsFile build.settingsFile, """
                 ${printLocations()}
-            """)
+            """
         }
 
         def rootBuild = singleProjectBuild("buildA") { BuildTestFile build ->
-            groovyFile(build.settingsFile, """
+            settingsFile build.settingsFile, """
                 includeBuild "${buildB.toURI()}"
-            """)
+            """
         }
 
         when:
@@ -120,9 +120,9 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         def buildSrcDir = file("buildSrc")
         def buildSrcSettingsFile = buildSrcDir.file("settings.gradle")
-        groovyFile(buildSrcSettingsFile, """
+        settingsFile buildSrcSettingsFile, """
             ${printLocations()}
-        """)
+        """
 
         when:
         run("project")

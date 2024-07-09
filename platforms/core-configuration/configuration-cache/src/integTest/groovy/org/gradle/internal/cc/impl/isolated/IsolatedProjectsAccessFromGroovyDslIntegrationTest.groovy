@@ -643,13 +643,13 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             project.extensions.extraProperties["projectProperty"] = "hello"
         """
 
-        groovyFile "a/aa/myscript.gradle", """
+        buildFile "a/aa/myscript.gradle", """
             // Using `withPlugin` as an example of a configure action
             project.pluginManager.withPlugin('base', {
                 println("My property: " + projectProperty)
             })
         """
-        groovyFile "a/aa/build.gradle", """
+        buildFile "a/aa/build.gradle", """
             plugins {
                 id "base"
             }

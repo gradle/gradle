@@ -133,7 +133,7 @@ abstract class AbstractIntegrationSpec extends Specification {
                 KnownProblemIds.assertIsKnown(it)
             }
 
-            if (getReceivedProblems().every {it == null }) {
+            if (getReceivedProblems().every { it == null }) {
                 receivedProblems = null
             } else {
                 println "Problems that were not accessed during test execution:"
@@ -195,36 +195,154 @@ abstract class AbstractIntegrationSpec extends Specification {
         return "junit:junit:4.13"
     }
 
-    void buildFile(@GroovyBuildScriptLanguage String script) {
-        groovyFile(buildFile, script)
-    }
-
-    void settingsFile(@GroovyBuildScriptLanguage String script) {
-        groovyFile(settingsFile, script)
+    /**
+     * <b>Appends</b> provided code to the {@link #getBuildFile() default build file}.
+     * <p>
+     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void buildFile(@GroovyBuildScriptLanguage String append) {
+        buildFile << append
     }
 
     /**
-     * Provides best-effort groovy script syntax highlighting.
-     * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
+     * <b>Appends</b> provided code to the given build file.
+     * <p>
+     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
-    void groovyFile(String targetBuildFile, @GroovyBuildScriptLanguage String script) {
-        groovyFile(file(targetBuildFile), script)
+    void buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
+        file(buildFile) << append
     }
 
-    void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
-        targetBuildFile << script
+    /**
+     * <b>Appends</b> provided code to the given build file.
+     * <p>
+     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void buildFile(TestFile buildFile, @GroovyBuildScriptLanguage String append) {
+        buildFile << append
     }
 
-    void javaFile(String targetBuildFile, @Language('JAVA') String code) {
-        javaFile(file(targetBuildFile), code)
+    /**
+     * <b>Appends</b> provided code to the {@link #getSettingsFile() default settings file}.
+     * <p>
+     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void settingsFile(@GroovySettingsScriptLanguage String append) {
+        settingsFile << append
     }
 
-    void javaFile(TestFile targetBuildFile, @Language('JAVA') String code) {
-        targetBuildFile << code
+    /**
+     * <b>Appends</b> provided code to the given settings file.
+     * <p>
+     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
+        file(settingsFile) << append
     }
 
-    static String groovyScript(@GroovyBuildScriptLanguage String script) {
-        script
+    /**
+     * <b>Appends</b> provided code to the given settings file.
+     * <p>
+     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void settingsFile(TestFile settingsFile, @GroovySettingsScriptLanguage String append) {
+        settingsFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the {@link #getInitScriptFile() default init script file}.
+     * <p>
+     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void initScriptFile(@GroovyInitScriptLanguage String append) {
+        initScriptFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given init script file.
+     * <p>
+     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
+        file(initScriptFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given init script file.
+     * <p>
+     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
+     */
+    void initScriptFile(TestFile initScriptFile, @GroovyInitScriptLanguage String append) {
+        initScriptFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Java file.
+     */
+    void javaFile(String targetFile, @Language('java') String append) {
+        file(targetFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Java file.
+     */
+    void javaFile(TestFile targetFile, @Language('java') String append) {
+        targetFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Groovy file.
+     * <p>
+     * Consider specialized methods for Gradle scripts:
+     * <ul>
+     * <li>{@link #buildFile(java.lang.String, java.lang.String)}
+     * <li>{@link #settingsFile(java.lang.String, java.lang.String)}
+     * <li>{@link #initScriptFile(java.lang.String, java.lang.String)}
+     * </ul>
+     */
+    void groovyFile(String targetFile, @Language('groovy') String append) {
+        file(targetFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Groovy file.
+     * <p>
+     * Consider specialized methods for Gradle scripts:
+     * <ul>
+     * <li>{@link #buildFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
+     * <li>{@link #settingsFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
+     * <li>{@link #initScriptFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
+     * </ul>
+     */
+    void groovyFile(TestFile targetFile, @Language('groovy') String append) {
+        targetFile << append
+    }
+
+    /**
+     * Provides syntax highlighting for the snippet of the build script code.
+     *
+     * @return the same snippet
+     */
+    static String buildScriptSnippet(@GroovyBuildScriptLanguage String snippet) {
+        snippet
+    }
+
+    /**
+     * Provides syntax highlighting for the snippet of the settings script code.
+     *
+     * @return the same snippet
+     */
+    static String settingsScriptSnippet(@GroovySettingsScriptLanguage String snippet) {
+        snippet
+    }
+
+    /**
+     * Provides syntax highlighting for the snippet of the init script code.
+     *
+     * @return the same snippet
+     */
+    static String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
+        snippet
     }
 
     void versionCatalogFile(@Language("toml") String script) {
@@ -824,7 +942,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         if (!enableProblemsApiCheck) {
             throw new IllegalStateException('Problems API check is not enabled')
         }
-        return buildOperationsFixture.all().collectMany {operation ->
+        return buildOperationsFixture.all().collectMany { operation ->
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
