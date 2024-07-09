@@ -18,11 +18,10 @@ package org.gradle.internal.work;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.WorkerLimits;
-import org.gradle.internal.function.Predicate;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.DefaultLease;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -404,7 +403,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         return coordinationService.withStateLock(new Supplier<Boolean>() {
             @Override
             public Boolean get() {
-                return CollectionUtils.every(locks, new Predicate<ResourceLock>() {
+                return CollectionUtils.every(locks, new Spec<ResourceLock>() {
                     @Override
                     public boolean isSatisfiedBy(ResourceLock lock) {
                         return lock.isLockedByCurrentThread();

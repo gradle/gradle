@@ -12,19 +12,20 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
-    api(project(":core-api"))
-    api(project(":problems-api"))
-    api(project(":hashing"))
-    api(project(":process-services"))
-    api(project(":base-services"))
-    api(project(":files"))
-    api(project(":functional"))
-    api(project(":logging"))
-    api(project(":messaging"))
-    api(project(":persistent-cache"))
-    api(project(":snapshots"))
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
+    api(projects.coreApi)
+    api(projects.problemsApi)
+    api(projects.hashing)
+    api(projects.processServices)
+    api(projects.baseServices)
+    api(projects.files)
+    api(projects.functional)
+    api(projects.logging)
+    api(projects.messaging)
+    api(projects.persistentCache)
+    api(projects.snapshots)
 
     api(libs.asm)
     api(libs.jsr305)
@@ -32,9 +33,10 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
 
-    implementation(project(":base-services-groovy"))
-    implementation(project(":base-asm"))
-    implementation(project(":service-provider"))
+    implementation(projects.baseServicesGroovy)
+    implementation(projects.baseAsm)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
@@ -43,30 +45,30 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 
-    testFixturesApi(testFixtures(project(":diagnostics")))
-    testFixturesApi(testFixtures(project(":core")))
-    testFixturesApi(project(":internal-integ-testing"))
+    testFixturesApi(testFixtures(projects.diagnostics))
+    testFixturesApi(testFixtures(projects.core))
+    testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
-    testImplementation(testFixtures(project(":core-api")))
+    testImplementation(projects.processServices)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.native)
+    testImplementation(projects.resources)
+    testImplementation(testFixtures(projects.coreApi))
 
-    integTestImplementation(project(":platform-base"))
+    integTestImplementation(projects.platformBase)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native")) {
+    integTestDistributionRuntimeOnly(projects.distributionsNative) {
         because("ModelRuleCachingIntegrationTest requires a rules implementation")
     }
 
-    jmhImplementation(platform(project(":distributions-dependencies")))
+    jmhImplementation(platform(projects.distributionsDependencies))
 }
 
 strictCompile {

@@ -19,16 +19,16 @@ val smokeTestImplementation: Configuration by configurations
 val smokeTestDistributionRuntimeOnly: Configuration by configurations
 
 dependencies {
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.internalIntegTesting)
 
-    smokeTestImplementation(project(":base-services"))
-    smokeTestImplementation(project(":core-api"))
-    smokeTestImplementation(project(":test-kit"))
-    smokeTestImplementation(project(":launcher"))
-    smokeTestImplementation(project(":persistent-cache"))
-    smokeTestImplementation(project(":jvm-services"))
-    smokeTestImplementation(project(":build-option"))
-    smokeTestImplementation(project(":process-services"))
+    smokeTestImplementation(projects.baseServices)
+    smokeTestImplementation(projects.coreApi)
+    smokeTestImplementation(projects.testKit)
+    smokeTestImplementation(projects.launcher)
+    smokeTestImplementation(projects.persistentCache)
+    smokeTestImplementation(projects.jvmServices)
+    smokeTestImplementation(projects.buildOption)
+    smokeTestImplementation(projects.processServices)
     smokeTestImplementation(libs.commonsIo)
     smokeTestImplementation(libs.groovyAnt)
     smokeTestImplementation(libs.groovyJson)
@@ -38,12 +38,12 @@ dependencies {
     smokeTestImplementation(libs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
-    smokeTestImplementation(testFixtures(project(":core")))
-    smokeTestImplementation(testFixtures(project(":plugin-development")))
-    smokeTestImplementation(testFixtures(project(":version-control")))
-    smokeTestImplementation(testFixtures(project(":model-core")))
+    smokeTestImplementation(testFixtures(projects.core))
+    smokeTestImplementation(testFixtures(projects.pluginDevelopment))
+    smokeTestImplementation(testFixtures(projects.versionControl))
+    smokeTestImplementation(testFixtures(projects.modelCore))
 
-    smokeTestDistributionRuntimeOnly(project(":distributions-full"))
+    smokeTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
 tasks {
@@ -59,7 +59,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri = santaGitUri
         // Pinned from branch main
-        ref = "e9419cad3583427caca97958301ff98fc8e9a1c3"
+        ref = "de3603990b523f9cbe798d4dc58e6a502333ca60"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {

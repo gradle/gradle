@@ -90,8 +90,8 @@ include 'a', 'b', 'c', 'd', 'e'
         }
 
         then:
-        thrown(GradleConnectionException)
-        caughtGradleConnectionException.cause.cause instanceof OutOfMemoryError
+        def e = thrown(GradleConnectionException)
+        e.cause.cause instanceof OutOfMemoryError
     }
 
     @ToolingApiVersion(">=8.2")

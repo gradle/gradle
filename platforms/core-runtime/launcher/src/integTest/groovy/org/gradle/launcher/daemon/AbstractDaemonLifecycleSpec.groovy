@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonContextParser
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
@@ -41,7 +42,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
     final List<GradleHandle> foregroundDaemons = []
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
-    def javaHome = null
+    Jvm jvm = null
 
     @Delegate
     DaemonEventSequenceBuilder sequenceBuilder =
@@ -58,7 +59,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
         dir
     }
 
-    void startBuild(String javaHome = null, String buildEncoding = null) {
+    void startBuild(String buildEncoding = null) {
         run {
             executer.withTasks("watch")
             executer.withDaemonIdleTimeoutSecs(daemonIdleTimeout)
@@ -66,9 +67,6 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
                 "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
                 "--debug" // Need debug logging so we can extract the `DefaultDaemonContext`
             )
-            if (javaHome) {
-                executer.withJavaHome(javaHome)
-            }
             if (buildEncoding) {
                 executer.withDefaultCharacterEncoding(buildEncoding)
             }
@@ -139,8 +137,8 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void stopDaemonsNow() {
         executer.withArguments("--stop", "--info")
-        if (javaHome) {
-            executer.withJavaHome(javaHome)
+        if (jvm) {
+            executer.withJvm(jvm)
         }
         executer.run()
     }
@@ -151,15 +149,15 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void startForegroundDaemonWithAlternateJavaHome() {
         run {
-            javaHome = AvailableJavaHomes.differentJdk.javaHome
+            jvm = AvailableJavaHomes.differentJdk
             startForegroundDaemonNow()
-            javaHome = null
+            jvm = null
         }
     }
 
     void startForegroundDaemonNow() {
-        if (javaHome) {
-            executer.withJavaHome(javaHome)
+        if (jvm) {
+            executer.withJvm(jvm)
         }
         executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",)
         foregroundDaemons << executer.start()
@@ -173,15 +171,15 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
         assert handle.waitForFailure()
     }
 
-    void daemonContext(num = 0, Closure assertions) {
+    void daemonContext(num = 0, @DelegatesTo(DaemonContext.class) Closure assertions) {
         run { doDaemonContext(builds[num], assertions) }
     }
 
-    void foregroundDaemonContext(num = 0, Closure assertions) {
+    void foregroundDaemonContext(num = 0, @DelegatesTo(DaemonContext.class) Closure assertions) {
         run { doDaemonContext(foregroundDaemons[num], assertions) }
     }
 
-    void doDaemonContext(gradleHandle, Closure assertions) {
+    void doDaemonContext(gradleHandle, @DelegatesTo(DaemonContext.class) Closure assertions) {
         // poll here since even though the daemon has been marked as busy in the registry, the context may not have been
         // flushed to the log yet.
         DaemonContext context

@@ -76,50 +76,6 @@ val propagatedEnvironmentVariables = listOf(
     "LC_ALL",
     "LC_CTYPE",
 
-    "JDK_10",
-    "JDK_10_0",
-    "JDK_10_0_x64",
-    "JDK_10_x64",
-    "JDK_11",
-    "JDK_11_0",
-    "JDK_11_0_x64",
-    "JDK_11_x64",
-    "JDK_12",
-    "JDK_12_0",
-    "JDK_12_0_x64",
-    "JDK_12_x64",
-    "JDK_13",
-    "JDK_13_0",
-    "JDK_13_0_x64",
-    "JDK_13_x64",
-    "JDK_14",
-    "JDK_14_0",
-    "JDK_14_0_x64",
-    "JDK_15",
-    "JDK_15_0",
-    "JDK_15_0_x64",
-    "JDK_16",
-    "JDK_16_0",
-    "JDK_16_0_x64",
-    "JDK_16_x64",
-    "JDK_17",
-    "JDK_17_0",
-    "JDK_17_0_x64",
-    "JDK_17_x64",
-    "JDK_18",
-    "JDK_18_x64",
-    "JDK_19",
-    "JDK_19_x64",
-    "JDK_1_6",
-    "JDK_1_6_x64",
-    "JDK_1_7",
-    "JDK_1_7_x64",
-    "JDK_1_8",
-    "JDK_1_8_x64",
-    "JDK_9",
-    "JDK_9_0",
-    "JDK_9_0_x64",
-    "JDK_9_x64",
     "JDK_HOME",
     "JRE_HOME",
     "CommonProgramFiles",
@@ -131,6 +87,8 @@ val propagatedEnvironmentVariables = listOf(
     // Simply putting PATH there isn't enough. Windows has case-insensitive env vars but something else fails if the Path variable is published as PATH for test tasks.
     OperatingSystem.current().pathVar,
     "PATHEXT",
+    // Used by KotlinMultiplatformPluginSmokeTest, see https://github.com/gradle/gradle-private/issues/4223
+    "CHROME_BIN"
 )
 
 
@@ -149,9 +107,7 @@ val credentialsKeywords = listOf(
 fun Test.filterEnvironmentVariables() {
     environment = makePropagatedEnvironment()
     environment.forEach { (key, _) ->
-        if (credentialsKeywords.any { key.contains(it, true) }) {
-            throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key")
-        }
+        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
     }
 }
 

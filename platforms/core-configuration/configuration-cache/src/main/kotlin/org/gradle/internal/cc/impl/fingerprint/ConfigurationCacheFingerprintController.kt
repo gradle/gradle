@@ -27,7 +27,7 @@ import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeT
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
-import org.gradle.internal.cc.impl.EncryptionService
+import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
@@ -72,6 +72,7 @@ import java.util.function.Supplier
  * Coordinates the writing and reading of the configuration cache fingerprint.
  */
 @ServiceScope(Scope.BuildTree::class)
+@Suppress("LongParameterList")
 internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
@@ -127,7 +128,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         abstract fun dispose(): WritingState
 
         private
-        fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
+        fun illegalStateFor(operation: String): Nothing = error(
             "'$operation' is illegal while in '${javaClass.simpleName}' state."
         )
     }

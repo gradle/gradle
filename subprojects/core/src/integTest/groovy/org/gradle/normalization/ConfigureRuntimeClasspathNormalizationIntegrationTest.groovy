@@ -376,7 +376,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
         when:
         run "clean"
-        executer.withJavaHome(differentJdk.javaHome)
+        executer.withJvm(differentJdk)
         withBuildCache().succeeds project.customTask
         then:
         skipped(project.customTask)

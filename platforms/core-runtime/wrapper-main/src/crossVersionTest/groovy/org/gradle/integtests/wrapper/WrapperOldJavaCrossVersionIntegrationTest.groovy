@@ -28,10 +28,10 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
     @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
-        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
+        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJvm(jdk)
 
         then:
-        def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
+        def result = executor.withArgument('help').runWithFailure()
         result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
 
         where:
@@ -45,7 +45,7 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
 
         then:
-        def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
+        def result = executor.withArgument('help').runWithFailure()
         result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
         where:

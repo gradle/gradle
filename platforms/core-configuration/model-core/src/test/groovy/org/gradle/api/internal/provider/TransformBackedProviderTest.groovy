@@ -50,7 +50,7 @@ class TransformBackedProviderTest extends Specification {
         DeprecationLogger.init(WarningMode.All, progressEventEmitter, new DefaultProblems(problemEmitter), Stub(ProblemStream))
     }
 
-    def teardown() {
+    def cleanup() {
         DeprecationLogger.reset()
     }
 

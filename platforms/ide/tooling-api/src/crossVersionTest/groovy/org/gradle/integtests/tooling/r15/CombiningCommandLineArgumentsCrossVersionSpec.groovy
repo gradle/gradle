@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling.r15
 
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
@@ -26,10 +27,11 @@ class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificat
         file('buildX.gradle') << "logger.info('info message')"
 
         when:
-        def out = withBuild { it.withArguments('-b', 'buildX.gradle', '-i') }.standardOutput
+        maybeExpectDeprecations()
+        withBuild { it.withArguments('-b', 'buildX.gradle', '-i') }
 
         then:
-        out.contains('info message')
+        result.output.contains('info message')
     }
 
     //below was working as expected
@@ -39,9 +41,16 @@ class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificat
         file('buildX.gradle') << "logger.lifecycle('sys property: ' + System.properties['foo'])"
 
         when:
-        def out = withBuild { it.withArguments('-b', 'buildX.gradle') }.standardOutput
+        maybeExpectDeprecations()
+        withBuild { it.withArguments('-b', 'buildX.gradle') }
 
         then:
-        out.contains('sys property: bar')
+        result.output.contains('sys property: bar')
+    }
+
+    def maybeExpectDeprecations() {
+        if (targetVersion >= GradleVersion.version("7.1")) {
+            expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        }
     }
 }

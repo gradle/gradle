@@ -79,7 +79,7 @@ fun configureSourcesVariant() {
         withSourcesJar()
     }
 
-    @Suppress("unused_variable")
+    @Suppress("UnusedPrivateProperty")
     val transitiveSourcesElements by configurations.creating {
         isCanBeResolved = false
         isCanBeConsumed = true
@@ -198,10 +198,6 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
-        // Required by JdkTools and JdkJavaCompiler
-        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"))
-        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"))
-
         if (isUnitTest() || usesEmbeddedExecuter()) {
             jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
         } else {

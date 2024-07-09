@@ -7,21 +7,21 @@ plugins {
 description = "The collector project for the entirety of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(platform(project(":distributions-publishing")))
-    pluginsRuntimeOnly(platform(project(":distributions-jvm")))
-    pluginsRuntimeOnly(platform(project(":distributions-native")))
+    pluginsRuntimeOnly(platform(projects.distributionsPublishing))
+    pluginsRuntimeOnly(platform(projects.distributionsJvm))
+    pluginsRuntimeOnly(platform(projects.distributionsNative))
 
-    pluginsRuntimeOnly(project(":plugin-development"))
-    pluginsRuntimeOnly(project(":build-configuration"))
-    pluginsRuntimeOnly(project(":build-init"))
-    pluginsRuntimeOnly(project(":build-profile"))
-    pluginsRuntimeOnly(project(":antlr"))
-    pluginsRuntimeOnly(project(":enterprise"))
-    pluginsRuntimeOnly(project(":unit-test-fixtures"))
+    pluginsRuntimeOnly(projects.pluginDevelopment)
+    pluginsRuntimeOnly(projects.buildConfiguration)
+    pluginsRuntimeOnly(projects.buildInit)
+    pluginsRuntimeOnly(projects.buildProfile)
+    pluginsRuntimeOnly(projects.antlr)
+    pluginsRuntimeOnly(projects.enterprise)
+    pluginsRuntimeOnly(projects.unitTestFixtures)
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future

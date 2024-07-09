@@ -23,7 +23,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
@@ -201,7 +201,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw resolutionFailureHandler.externalConfigurationNotFoundFailure(fromConfiguration, targetComponent.getId(), targetPattern);
+            throw resolutionFailureHandler.configurationDoesNotExistFailure(targetComponent, targetPattern);
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

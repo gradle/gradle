@@ -122,7 +122,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
     private final Property<JavaLauncher> javaLauncher;
-    private final ListProperty<String> jvmArguments;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -133,8 +132,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
 
         Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
-
-        jvmArguments = objectFactory.listProperty(String.class).convention(jvmArgumentsConvention);
+        javaExecSpec.getJvmArguments().convention(jvmArgumentsConvention);
 
         javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
@@ -153,7 +151,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     public void exec() {
         validateExecutableMatchesToolchain();
 
-        List<String> jvmArgs = jvmArguments.getOrNull();
+        List<String> jvmArgs = javaExecSpec.getJvmArguments().getOrNull();
         if (jvmArgs != null) {
             javaExecSpec.setExtraJvmArgs(jvmArgs);
         }
@@ -205,7 +203,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getJvmArgs() {
-        return jvmArguments.getOrNull();
+        return javaExecSpec.getJvmArguments().getOrNull();
     }
 
     /**
@@ -213,7 +211,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
-        jvmArguments.empty();
+        javaExecSpec.getJvmArguments().empty();
         jvmArgs(arguments);
     }
 
@@ -222,7 +220,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(Iterable<?> arguments) {
-        jvmArguments.empty();
+        javaExecSpec.getJvmArguments().empty();
         jvmArgs(arguments);
     }
 
@@ -238,7 +236,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
 
     private void addJvmArguments(Iterable<?> arguments) {
         for (Object arg : arguments) {
-            jvmArguments.add(arg.toString());
+            javaExecSpec.getJvmArguments().add(arg.toString());
         }
     }
 
@@ -778,7 +776,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public ListProperty<String> getJvmArguments() {
-        return jvmArguments;
+        return javaExecSpec.getJvmArguments();
     }
 
     /**

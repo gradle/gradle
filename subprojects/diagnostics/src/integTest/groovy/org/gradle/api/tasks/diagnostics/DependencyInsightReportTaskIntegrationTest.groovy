@@ -1642,7 +1642,7 @@ org:leaf2:1.0
 
         then:
         outputContains """
-project :
+root project :
   Variant runtimeClasspath:
     | Attribute Name                 | Provided     | Requested    |
     |--------------------------------|--------------|--------------|
@@ -1662,9 +1662,9 @@ project :
     | org.gradle.usage               | java-runtime | java-runtime |
     | org.gradle.jvm.environment     |              | standard-jvm |
 
-project :
+root project :
 \\--- project :impl
-     \\--- project : (*)
+     \\--- root project : (*)
 """
     }
 

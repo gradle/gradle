@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.logging.Logging
-import org.gradle.internal.cc.base.debug
+import org.gradle.internal.extensions.core.debug
 import java.util.Stack
 
 

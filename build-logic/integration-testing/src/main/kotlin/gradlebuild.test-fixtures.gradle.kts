@@ -27,7 +27,6 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
  * Configures the Project as a test fixtures consumer according to the `testFixtures` extension configuration.
  */
 plugins {
-    `java-library`
     `java-test-fixtures`
     groovy
     id("gradlebuild.dependency-modules")

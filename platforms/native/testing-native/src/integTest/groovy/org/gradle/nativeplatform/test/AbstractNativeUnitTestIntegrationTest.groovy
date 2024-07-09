@@ -27,7 +27,7 @@ import static org.gradle.nativeplatform.MachineArchitecture.X86
 import static org.gradle.nativeplatform.MachineArchitecture.X86_64
 
 abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements LanguageTaskNames {
-    @ToBeFixedForConfigurationCache(bottomSpecs = ['CppUnitTestWithApplicationIntegrationTest', 'CppUnitTestWithoutComponentIntegrationTest', 'CppUnitTestWithLibraryIntegrationTest'])
+    @ToBeFixedForConfigurationCache
     def "does nothing when no source files are present"() {
         given:
         makeSingleProject()

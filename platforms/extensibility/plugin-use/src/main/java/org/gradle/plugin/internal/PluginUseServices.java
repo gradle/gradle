@@ -39,6 +39,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -56,6 +57,9 @@ import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPlugin
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
+import org.gradle.plugin.software.internal.DefaultSoftwareTypeConventionApplicator;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
+import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -91,7 +95,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NonNullApi
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareTypeAnnotationHandler createSoftwareTypeAnnotationHandler() {
+        PropertyAnnotationHandler createSoftwareTypeAnnotationHandler() {
             return new SoftwareTypeAnnotationHandler();
         }
     }
@@ -129,6 +133,11 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         SoftwareTypeRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme) {
             return new DefaultSoftwareTypeRegistry(pluginScheme.getInspectionScheme());
+        }
+
+        @Provides
+        SoftwareTypeConventionApplicator createSoftwareTypeConventionApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<SoftwareTypeConventionHandler> softwareTypeConventionHandlers) {
+            return new DefaultSoftwareTypeConventionApplicator(softwareTypeRegistry, softwareTypeConventionHandlers);
         }
 
         @Provides

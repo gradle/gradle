@@ -5,23 +5,23 @@ plugins {
 description = "The collector project for the 'basics' portion of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(platform(project(":distributions-core")))
+    pluginsRuntimeOnly(platform(projects.distributionsCore))
 
-    pluginsRuntimeOnly(project(":resources-http"))
-    pluginsRuntimeOnly(project(":resources-sftp"))
-    pluginsRuntimeOnly(project(":resources-s3"))
-    pluginsRuntimeOnly(project(":resources-gcs"))
-    pluginsRuntimeOnly(project(":resources-http"))
-    pluginsRuntimeOnly(project(":build-cache-http"))
+    pluginsRuntimeOnly(projects.resourcesHttp)
+    pluginsRuntimeOnly(projects.resourcesSftp)
+    pluginsRuntimeOnly(projects.resourcesS3)
+    pluginsRuntimeOnly(projects.resourcesGcs)
+    pluginsRuntimeOnly(projects.resourcesHttp)
+    pluginsRuntimeOnly(projects.buildCacheHttp)
 
-    pluginsRuntimeOnly(project(":tooling-api-builders"))
-    pluginsRuntimeOnly(project(":declarative-dsl-tooling-builders"))
-    pluginsRuntimeOnly(project(":kotlin-dsl-tooling-builders"))
+    pluginsRuntimeOnly(projects.toolingApiBuilders)
+    pluginsRuntimeOnly(projects.declarativeDslToolingBuilders)
+    pluginsRuntimeOnly(projects.kotlinDslToolingBuilders)
 
-    pluginsRuntimeOnly(project(":test-kit"))
-    pluginsRuntimeOnly(project(":unit-test-fixtures"))
+    pluginsRuntimeOnly(projects.testKit)
+    pluginsRuntimeOnly(projects.unitTestFixtures)
 }

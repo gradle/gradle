@@ -17,10 +17,10 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.DefaultWorkerLimits;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.WorkerLimits;
+import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerLimits;
 import org.gradle.test.fixtures.work.TestWorkerLeaseService;
 
 public class BuildOperationExecutorSupport {

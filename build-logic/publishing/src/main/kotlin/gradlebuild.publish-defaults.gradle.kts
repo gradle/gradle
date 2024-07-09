@@ -39,6 +39,7 @@ tasks.withType<AbstractPublishToMaven>().configureEach {
     }
 }
 
+@Suppress("ThrowsCount")
 fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
     gradle.taskGraph.whenReady {
         if (hasTask(publish)) {

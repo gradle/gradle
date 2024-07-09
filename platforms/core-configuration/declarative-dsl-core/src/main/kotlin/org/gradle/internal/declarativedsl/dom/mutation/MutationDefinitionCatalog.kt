@@ -31,9 +31,7 @@ class DefaultMutationDefinitionCatalog : MutationDefinitionCatalog {
 
     override fun registerMutationDefinition(definition: MutationDefinition) {
         val id = definition.id
-        if (mutationDefinitions.putIfAbsent(id, definition) != null) {
-            throw IllegalArgumentException("mutation with ID $id has already been registered")
-        }
+        require(mutationDefinitions.putIfAbsent(id, definition) == null) { "mutation with ID $id has already been registered" }
     }
 
     override val mutationDefinitionsById: Map<String, MutationDefinition>

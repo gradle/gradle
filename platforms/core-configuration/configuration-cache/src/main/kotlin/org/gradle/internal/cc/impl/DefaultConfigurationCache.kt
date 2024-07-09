@@ -49,6 +49,7 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -65,6 +66,7 @@ import java.io.OutputStream
 import java.util.Locale
 
 
+@Suppress("LongParameterList")
 class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
@@ -78,7 +80,6 @@ class DefaultConfigurationCache internal constructor(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
-    private val encryptionService: EncryptionService,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
@@ -517,12 +518,7 @@ class DefaultConfigurationCache internal constructor(
             store.assignSpoolFile(StateType.BuildFingerprint),
             store.assignSpoolFile(StateType.ProjectFingerprint)
         ) { stateFile ->
-            cacheFingerprintWriterContextFor(
-                encryptionService.outputStream(
-                    stateFile.stateType,
-                    stateFile.file::outputStream
-                )
-            ) {
+            cacheFingerprintWriterContextFor(stateFile.stateType, stateFile.file::outputStream) {
                 profileNameFor(stateFile)
             }
         }
@@ -535,8 +531,12 @@ class DefaultConfigurationCache internal constructor(
         }.drop(1)
 
     private
-    fun cacheFingerprintWriterContextFor(outputStream: OutputStream, profile: () -> String): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(outputStream, profile)
+    fun cacheFingerprintWriterContextFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        profile: () -> String
+    ): DefaultWriteContext {
+        val (context, codecs) = cacheIO.writerContextFor(stateType, outputStream, profile)
         return context.apply {
             push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
@@ -603,17 +603,18 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
-        encryptionService.inputStream(fingerprintFile.stateType, fingerprintFile::inputStream).use { inputStream ->
-            cacheIO.withReadContextFor(inputStream) { codecs ->
-                withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
-                    action(object : ConfigurationCacheFingerprintController.Host {
-                        override val valueSourceProviderFactory: ValueSourceProviderFactory
-                            get() = host.service()
-                        override val gradleProperties: GradleProperties
-                            get() = gradlePropertiesController.gradleProperties
-                    })
-                }
+    fun <T> readFingerprintFile(
+        fingerprintFile: ConfigurationCacheStateFile,
+        action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
+    ): T =
+        cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
+            withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+                action(object : ConfigurationCacheFingerprintController.Host {
+                    override val valueSourceProviderFactory: ValueSourceProviderFactory
+                        get() = host.service()
+                    override val gradleProperties: GradleProperties
+                        get() = gradlePropertiesController.gradleProperties
+                })
             }
         }
 

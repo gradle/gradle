@@ -75,6 +75,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -149,6 +150,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
     private String javaHome;
+    private Jvm jvm;
     private File buildScript;
     private File projectDir;
     private File settingsFile;
@@ -219,6 +221,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         this.daemonBaseDir = buildContext.getDaemonBaseDir();
         this.daemonCrashLogsBeforeTest = ImmutableSet.copyOf(DaemonLogsAnalyzer.findCrashLogs(daemonBaseDir));
+
+        if (gradleVersion.compareTo(GradleVersion.version("4.5.0")) < 0) {
+            warningMode = null;
+        }
     }
 
     protected Logger getLogger() {
@@ -242,6 +248,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         dependencyList = false;
         executable = null;
         javaHome = null;
+        jvm = null;
         environmentVars.clear();
         stdinPipe = null;
         defaultCharacterEncoding = null;
@@ -333,6 +340,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (javaHome != null) {
             executer.withJavaHome(javaHome);
+        }
+        if (jvm != null) {
+            executer.withJvm(jvm);
         }
         for (File initScript : initScripts) {
             executer.usingInitScript(initScript);
@@ -627,7 +637,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected String getJavaHome() {
-        return javaHome == null ? Jvm.current().getJavaHome().getAbsolutePath() : javaHome;
+        if (javaHome != null) {
+            return javaHome;
+        }
+        if (jvm != null) {
+            return jvm.getJavaHome().getAbsolutePath();
+        }
+        return Jvm.current().getJavaHome().getAbsolutePath();
     }
 
     protected File getJavaHomeLocation() {
@@ -637,12 +653,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withJavaHome(String javaHome) {
         this.javaHome = javaHome;
+        this.jvm = null;
         return this;
     }
 
     @Override
-    public GradleExecuter withJavaHome(File javaHome) {
-        this.javaHome = javaHome == null ? null : javaHome.getAbsolutePath();
+    public GradleExecuter withJvm(Jvm jvm) {
+        if (jvm.getJavaVersion() == null) {
+            throw new IllegalArgumentException(
+                "The provided JVM does not have a version and was likely created with Jvm.forHome(File). " +
+                    "This method should only be used with probed JVMs. " +
+                    "Use withJavaHome(String) instead."
+            );
+        }
+
+        this.jvm = jvm;
+        this.javaHome = null;
         return this;
     }
 
@@ -1326,9 +1352,24 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
+        boolean shouldCheckDeprecations = checkDeprecations;
+
+        // Rich consoles mess with our deprecation log scraping
+        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
+        if ((isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED) ||
+            consoleType == ConsoleOutput.Verbose ||
+            consoleType == ConsoleOutput.Rich
+        ) {
+            shouldCheckDeprecations = false;
+        }
+
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
-            !stackTraceChecksOn, checkDeprecations, jdkWarningChecksOn
+            expectedGenericDeprecationWarnings,
+            expectedDeprecationWarnings,
+            Collections.emptyList(),
+            !stackTraceChecksOn,
+            shouldCheckDeprecations,
+            jdkWarningChecksOn
         );
     }
 
@@ -1349,6 +1390,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
         expectedDeprecationWarnings.add(warning);
         return this;
+    }
+
+    @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+    }
+
+    private String normalizeDocumentationLink(String warning) {
+        if (gradleVersionOverride != null) {
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
+        } else {
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersion);
+        }
     }
 
     @Override

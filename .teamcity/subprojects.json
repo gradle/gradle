@@ -427,6 +427,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "encryption-services",
+    "path": "platforms/core-configuration/encryption-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "enterprise",
     "path": "platforms/enterprise/enterprise",
     "unitTests": true,
@@ -1078,9 +1085,30 @@
     "crossVersionTests": false
   },
   {
+    "name": "service-lookup",
+    "path": "platforms/core-runtime/service-lookup",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "service-provider",
     "path": "platforms/core-runtime/service-provider",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "service-registry-builder",
+    "path": "platforms/core-runtime/service-registry-builder",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "service-registry-impl",
+    "path": "platforms/core-runtime/service-registry-impl",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

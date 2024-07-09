@@ -12,10 +12,11 @@ sourceSets {
 }
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":concurrent"))
-    api(project(":hashing"))
-    api(project(":stdlib-java-extensions"))
+    api(projects.baseServices)
+    api(projects.concurrent)
+    api(projects.hashing)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.groovyXml)
@@ -26,10 +27,10 @@ dependencies {
     api(libs.spock)
     api(libs.spockJUnit4)
 
-    implementation(project(":build-operations"))
-    implementation(project(":functional"))
-    implementation(project(":native"))
-    implementation(project(":serialization"))
+    implementation(projects.buildOperations)
+    implementation(projects.functional)
+    implementation(projects.native)
+    implementation(projects.serialization)
 
     implementation(libs.ant)
     implementation(libs.asm)

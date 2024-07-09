@@ -37,7 +37,6 @@ Class <org.gradle.api.provider.ValueSourceParameters> is not annotated with @Ser
 Class <org.gradle.api.publish.ivy.internal.publisher.IvyPublisher> is not annotated with @ServiceScope in (IvyPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper> is not annotated with @ServiceScope in (VersionRangeMapper.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenPublishers> is not annotated with @ServiceScope in (MavenPublishers.java:0)
-Class <org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer> is not annotated with @ServiceScope in (TypeAwareBinaryRenderer.java:0)
 Class <org.gradle.api.services.BuildServiceParameters> is not annotated with @ServiceScope in (BuildServiceParameters.java:0)
 Class <org.gradle.api.services.BuildServiceRegistry> is not annotated with @ServiceScope in (BuildServiceRegistry.java:0)
 Class <org.gradle.api.tasks.TaskContainer> is not annotated with @ServiceScope in (TaskContainer.java:0)

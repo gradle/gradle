@@ -38,6 +38,12 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to Ant 1.10.14
+
+Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.14.html[Ant 1.10.14].
+
 === Deprecations
 
 [[consuming_non_consumable_variants_from_ivy_component]]
@@ -97,6 +103,17 @@ To address this issue, all code initially under the `org.gradle.configurationcac
 Since Gradle 8.8, file-system watching has only been supported on macOS 12 (Monterey) and later.
 We added a check to automatically disable file-system watching on macOS 11 (Big Sur) and earlier versions.
 
+==== Possible change to JDK8-based compiler output when annotation processors are used
+
+The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+This change will supply the Tooling API clients with structured, rich information about compilation issues.
+
+The feature should not have any visible impact on the usual build output, with JDK8 being an exception.
+When annotation processors are used in the compiler, the output message differs slightly from the previous ones.
+
+The change mainly manifests itself in typename printed.
+For example, Java standard types like `java.lang.String` will be reported as `java.lang.String` instead of `String`.
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
@@ -143,8 +160,8 @@ plugins {
 }
 
 configurations.runtimeClasspath {
-    // `beforeResolve` is called after the configuration is resolved for task dependencies,
-    // but before it is fully resolved during artifact resolution.
+    // `beforeResolve` is not called before the configuration is partially resolved for 
+    // build dependencies, but only before a full graph resolution.
     // Configurations should not be mutated in this hook
     incoming.beforeResolve {
         // Add a dependency on `com:foo` if not already present
@@ -1443,7 +1460,7 @@ Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/ch
 
 ==== Upgrade to Ant 1.10.13
 
-Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.13.html[Ant 1.10.13].
 
 Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
 

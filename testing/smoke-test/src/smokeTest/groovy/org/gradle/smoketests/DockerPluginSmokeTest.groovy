@@ -48,7 +48,7 @@ class DockerPluginSmokeTest extends AbstractSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('assemble').forwardOutput().build()
+        def result = runner('assemble').build()
 
         then:
         result.task(':assemble').outcome == SUCCESS

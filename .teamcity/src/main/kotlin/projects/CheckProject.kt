@@ -30,6 +30,7 @@ class CheckProject(
         // Avoid rebuilding same revision if it's already built on another branch
         param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
         param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.CHROME_BIN", "%linux.chrome.bin.path%")
 
         text(
             "additional.gradle.parameters",

@@ -192,13 +192,10 @@ class CollectingVisitor : AbstractVisitor() {
             }
         }
 
-    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
-        if (source is TransformedArtifactSet) {
-            // Should only be contained in a ResolutionBackedFileCollection
-            throw IllegalArgumentException("Found artifact set $source but was not expecting an artifact set")
-        } else {
-            FileCollectionStructureVisitor.VisitType.Visit
-        }
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
+        require(source !is TransformedArtifactSet) { "Found artifact set $source but was not expecting an artifact set" }
+        return FileCollectionStructureVisitor.VisitType.Visit
+    }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: MutableIterable<File>) {
         elements.addAll(contents)

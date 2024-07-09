@@ -114,7 +114,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         }
 
         // The variant was not present, even after checking for a legacy non-consumable version. We can fail now.
-        throw variantSelector.getFailureHandler().noVariantsExistFailure(consumerSchema, consumerAttributes, targetComponentState.getId());
+        throw variantSelector.getFailureHandler().configurationDoesNotExistFailure(targetComponentState, configuration.getName());
     }
 
     @Override

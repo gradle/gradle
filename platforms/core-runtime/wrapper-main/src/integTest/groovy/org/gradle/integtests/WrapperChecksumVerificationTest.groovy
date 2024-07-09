@@ -66,10 +66,11 @@ Verification of Gradle distribution failed!
 Your Gradle distribution may have been tampered with.
 Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.
 
- Distribution Url: $gradleBin
+Distribution Url: $gradleBin
 Download Location: $f.absolutePath
 Expected checksum: 'bad'
-  Actual checksum: '$distributionHash'
+Actual checksum: '$distributionHash'
+Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.
 """.trim())
     }
 

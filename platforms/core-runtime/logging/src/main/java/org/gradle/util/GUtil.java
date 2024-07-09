@@ -18,13 +18,13 @@ package org.gradle.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.function.Predicate;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -518,7 +518,7 @@ public class GUtil {
     @Nullable
     private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
         List<? extends T> enumConstants = Arrays.asList(enumType.getEnumConstants());
-        return CollectionUtils.findFirst(enumConstants, new Predicate<T>() {
+        return CollectionUtils.findFirst(enumConstants, new Spec<T>() {
             @Override
             public boolean isSatisfiedBy(T enumValue) {
                 return enumValue.name().equalsIgnoreCase(literal);

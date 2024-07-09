@@ -14,9 +14,9 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
-    api(project(":base-services"))
-    api(project(":messaging"))
-    api(project(":testing-jvm-infrastructure"))
+    api(projects.baseServices)
+    api(projects.messaging)
+    api(projects.testingJvmInfrastructure)
 
     api(libs.junitPlatform)
     api(libs.junitPlatformEngine)

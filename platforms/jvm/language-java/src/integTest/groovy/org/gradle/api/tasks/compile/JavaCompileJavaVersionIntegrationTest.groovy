@@ -55,19 +55,19 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "compileJava"
         then:
         executedAndNotSkipped ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "compileJava"
         then:
         skipped ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getHighestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getHighestSupportedLTS())
         succeeds "compileJava", "--info"
         then:
         executedAndNotSkipped ":compileJava"
@@ -89,19 +89,19 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withJavaHome highestLTS.javaHome
+        executer.withJvm(highestLTS)
         succeeds "compileJava"
         then:
         executedAndNotSkipped ":compileJava"
 
         when:
-        executer.withJavaHome lowestLTS.javaHome
+        executer.withJvm(lowestLTS)
         succeeds "compileJava"
         then:
         skipped ":compileJava"
 
         when:
-        executer.withJavaHome lowestLTS.javaHome
+        executer.withJvm(lowestLTS)
         buildFile.text = forkedJavaCompilation(highestLTS)
         succeeds "compileJava", "--info"
         then:

@@ -92,6 +92,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
     private
     fun findLatest(name: String, notation: String, dest: Properties) {
         val libDependencies = arrayOf(project.dependencies.create(notation))
+        @Suppress("SpreadOperator")
         val templateVersionConfiguration = project.configurations.detachedConfiguration(*libDependencies)
         templateVersionConfiguration.resolutionStrategy.componentSelection.all {
             devSuffixes.forEach {
