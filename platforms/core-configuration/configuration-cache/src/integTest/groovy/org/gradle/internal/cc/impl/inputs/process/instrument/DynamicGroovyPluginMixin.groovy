@@ -20,7 +20,6 @@ import groovy.transform.SelfType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.test.fixtures.file.TestFile
 
 /**
