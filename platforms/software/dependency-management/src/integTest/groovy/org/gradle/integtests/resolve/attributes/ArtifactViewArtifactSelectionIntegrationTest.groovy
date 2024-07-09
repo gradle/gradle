@@ -75,4 +75,44 @@ class ArtifactViewArtifactSelectionIntegrationTest extends AbstractIntegrationSp
         file("build/alternative").assertDoesNotExist()
         file("build/output").assertExists()
     }
+
+    def "can depend on two configurations from the same project"() {
+        file("producer/build.gradle") << """
+            configurations {
+                conf {
+                    assert canBeConsumed
+                    canBeResolved = false
+                    outgoing {
+                        capability("example:capability-1:1.0")
+                    }
+                }
+                additionalConf {
+                    assert canBeConsumed
+                    canBeResolved = false
+                    outgoing {
+                        capability("example:capability-2:1.0")
+                    }
+                }
+            }
+            artifacts {
+                conf file("output")
+                additionalConf file("alternative")
+            }
+        """
+        buildFile << """
+            dependencies {
+                resolveConf project(path: ":producer", configuration: "conf")
+                resolveConf project(path: ":producer", configuration: "additionalConf")
+            }
+            task resolve(type: Sync) {
+                from(configurations.resolveConf)
+                into(buildDir)
+            }
+        """
+        when:
+        succeeds("resolve")
+        then:
+        file("build/output").assertExists()
+        file("build/alternative").assertExists()
+    }
 }
