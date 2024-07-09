@@ -34,7 +34,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         when:
         settingsFile "rootProject.name = 'root'"
 
-        initScript  """
+        initScriptFile """
             org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script')
                 .willBeRemovedInGradle9()
                 .undocumented()

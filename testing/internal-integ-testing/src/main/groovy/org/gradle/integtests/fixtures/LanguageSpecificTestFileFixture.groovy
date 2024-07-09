@@ -52,8 +52,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the {@link #getSettingsFile() default settings file}.
-     * <p>
-     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void settingsFile(@GroovySettingsScriptLanguage String append) {
         settingsFile << append
@@ -61,8 +59,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the given settings file.
-     * <p>
-     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
         file(settingsFile) << append
@@ -70,8 +66,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the given settings file.
-     * <p>
-     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void settingsFile(TestFile settingsFile, @GroovySettingsScriptLanguage String append) {
         settingsFile << append
@@ -79,8 +73,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the {@link #getInitScriptFile() default init script file}.
-     * <p>
-     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void initScriptFile(@GroovyInitScriptLanguage String append) {
         initScriptFile << append
@@ -88,8 +80,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the given init script file.
-     * <p>
-     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
         file(initScriptFile) << append
@@ -97,8 +87,6 @@ trait LanguageSpecificTestFileFixture {
 
     /**
      * <b>Appends</b> provided code to the given init script file.
-     * <p>
-     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
      */
     void initScriptFile(TestFile initScriptFile, @GroovyInitScriptLanguage String append) {
         initScriptFile << append
@@ -182,25 +170,4 @@ trait LanguageSpecificTestFileFixture {
         buildFile.text = script
         buildFile
     }
-
-    /**
-     * Sets (replacing) the contents of the settings.gradle file.
-     * <p>
-     * To append, use {@link #settingsFile(java.lang.String)}
-     */
-    TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
-        settingsFile.text = script
-        settingsFile
-    }
-
-    /**
-     * Sets (replacing) the contents of the settings.gradle file.
-     * <p>
-     * To append, use {@link #initScriptFile(java.lang.String)}
-     */
-    TestFile initScript(@GroovyBuildScriptLanguage String script) {
-        initScriptFile.text = script
-        initScriptFile
-    }
-
 }

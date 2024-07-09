@@ -504,9 +504,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
 
-        settingsScript("""
+        settingsFile """
             include "reproducible", "current"
-        """)
+        """
 
         file("reproducible/build.gradle").text = subprojectSource(reproducibleJar)
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)

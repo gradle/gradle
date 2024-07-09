@@ -855,7 +855,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
 
         and:
-        settingsScript """
+        settingsFile """
             includeBuild 'ext-lib'
             includeBuild 'build-logic'
         """

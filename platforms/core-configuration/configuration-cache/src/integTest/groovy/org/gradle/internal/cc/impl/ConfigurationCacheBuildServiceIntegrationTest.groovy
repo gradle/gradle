@@ -736,13 +736,13 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             """
         }
 
-        settingsScript("""
+        settingsFile """
             includeBuild("included-build")
-        """)
+        """
 
-        buildScript("""
+        buildFile """
             tasks.register("check") {}
-        """)
+        """
 
         when:
         configurationCacheRun "check"
