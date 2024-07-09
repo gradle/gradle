@@ -20,6 +20,11 @@ import groovy.transform.SelfType
 import org.gradle.test.fixtures.file.TestFile
 import org.intellij.lang.annotations.Language
 
+/**
+ * Utility functions that write to files and provide syntax highlighting for the code snippets.
+ *
+ * @see Language
+ */
 @SelfType(AbstractIntegrationSpec)
 trait LanguageSpecificTestFileFixture {
 
