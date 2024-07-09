@@ -37,11 +37,10 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
-import org.gradle.api.internal.tasks.properties.TaskInstantiationSchemeProvider
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.instantiation.InstantiationScheme
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
@@ -53,11 +52,9 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
     private taskIdentityFactory = TestTaskIdentities.factory()
     private taskFactory = Mock(ITaskFactory)
-    private instantiationSchemeProvider = Mock(TaskInstantiationSchemeProvider) {
-        getInstantiationScheme() >> Mock(InstantiationScheme)
-    }
+    private instantiatorFactory = Mock(InstantiatorFactory)
     private serviceRegistry = Mock(ServiceRegistry) {
-        get(TaskInstantiationSchemeProvider) >> instantiationSchemeProvider
+        get(InstantiatorFactory) >> instantiatorFactory
     }
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
