@@ -151,7 +151,7 @@ trait LanguageSpecificTestFileFixture {
      *
      * @return the same snippet
      */
-    static String buildScriptSnippet(@GroovyBuildScriptLanguage String snippet) {
+    String buildScriptSnippet(@GroovyBuildScriptLanguage String snippet) {
         snippet
     }
 
@@ -160,7 +160,7 @@ trait LanguageSpecificTestFileFixture {
      *
      * @return the same snippet
      */
-    static String settingsScriptSnippet(@GroovySettingsScriptLanguage String snippet) {
+    String settingsScriptSnippet(@GroovySettingsScriptLanguage String snippet) {
         snippet
     }
 
@@ -169,7 +169,7 @@ trait LanguageSpecificTestFileFixture {
      *
      * @return the same snippet
      */
-    static String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
+    String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
         snippet
     }
 
