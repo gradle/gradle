@@ -15,7 +15,6 @@ tasks.register("iterateDeclaredDependencies") {
     val artifactInfo = dependencySet.map {
         Triple(it.group, it.name, it.version)
     }
-    val logger = logger
     doLast {
         artifactInfo.forEach { (group, name, version) ->
             logger.quiet("$group:$name:$version")
