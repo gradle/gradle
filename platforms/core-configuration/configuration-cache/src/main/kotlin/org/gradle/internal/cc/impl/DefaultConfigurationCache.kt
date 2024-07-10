@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -599,6 +600,8 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
             withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
+                    override val buildPath: Path
+                        get() = host.service<GradleInternal>().identityPath
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
                     override val gradleProperties: GradleProperties

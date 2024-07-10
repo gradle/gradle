@@ -128,7 +128,12 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
             status == "INVALID"
             buildInvalidationReasons == [
-                [message: "system property 'settings.property' has changed"]
+                [
+                    buildPath: ":",
+                    invalidationReasons: [
+                        [message: "system property 'settings.property' has changed"]
+                    ]
+                ]
             ]
 
             projectInvalidationReasons == []
@@ -143,7 +148,12 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
             status == "INVALID"
             buildInvalidationReasons == [
-                [message: "system property 'project.property' has changed"]
+                [
+                    buildPath: ":",
+                    invalidationReasons: [
+                        [message: "system property 'project.property' has changed"]
+                    ]
+                ]
             ]
 
             projectInvalidationReasons == []

@@ -88,7 +88,12 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
         with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
             status == "INVALID"
             buildInvalidationReasons == [
-                [message: "file 'settings.gradle' has changed"]
+                [
+                    buildPath: ":",
+                    invalidationReasons: [
+                        [message: "file 'settings.gradle' has changed"]
+                    ]
+                ]
             ]
             projectInvalidationReasons == []
         }

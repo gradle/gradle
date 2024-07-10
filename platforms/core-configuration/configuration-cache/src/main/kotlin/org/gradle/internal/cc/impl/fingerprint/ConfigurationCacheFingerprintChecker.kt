@@ -49,6 +49,7 @@ internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val buildPath: Path
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
@@ -78,7 +79,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return CheckedFingerprint.EntryInvalid(reason)
+                        return CheckedFingerprint.EntryInvalid(host.buildPath, reason)
                     }
                 }
 

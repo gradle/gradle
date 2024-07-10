@@ -28,7 +28,7 @@ sealed class CheckedFingerprint {
     object Valid : CheckedFingerprint()
 
     // The entry cannot be reused at all and should be recreated from scratch
-    class EntryInvalid(val reason: StructuredMessage) : CheckedFingerprint()
+    class EntryInvalid(val buildPath: Path, val reason: StructuredMessage) : CheckedFingerprint()
 
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
     class ProjectsInvalid(

@@ -71,12 +71,12 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
          * <p>
          * Not all invalidation reasons may be returned. However, if the entry is invalidated, at least one reason is listed.
          * <p>
-         * The first invalidation in the list is what Gradle shows to the user.
+         * The first invalidation of the first build in the list is what Gradle shows to the user.
          *
          * @return the list of invalidation reasons
          * @since 8.10
          */
-        List<FingerprintInvalidationReason> getBuildInvalidationReasons();
+        List<BuildInvalidationReasons> getBuildInvalidationReasons();
 
         /**
          * Returns a list of project-level invalidation reasons. Only contains entries for projects that were invalidated.
@@ -91,6 +91,29 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
          * @since 8.10
          */
         List<ProjectInvalidationReasons> getProjectInvalidationReasons();
+    }
+
+    /**
+     * Contains invalidation for a single build.
+     *
+     * @since 8.10
+     */
+    public interface BuildInvalidationReasons {
+        /**
+         * Returns the path of the invalidated build in the build tree.
+         *
+         * @return the build path
+         * @since 8.10
+         */
+        String getBuildPath();
+
+        /**
+         * Returns the list of the invalidation reasons for the given build. At least one invalidation is always present.
+         *
+         * @return the list of invalidation reasons
+         * @since 8.10
+         */
+        List<FingerprintInvalidationReason> getInvalidationReasons();
     }
 
     /**

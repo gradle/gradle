@@ -17,7 +17,6 @@
 package org.gradle.configurationcache
 
 import org.gradle.internal.cc.impl.CheckedFingerprint
-import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
@@ -27,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.BuildInvalidationReasons
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.CheckStatus
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.ProjectInvalidationReasons
@@ -120,9 +120,9 @@ class FingerprintCheckResult(
         is CheckedFingerprint.ProjectsInvalid -> CheckStatus.PARTIAL
     }
 
-    override fun getBuildInvalidationReasons(): List<FingerprintInvalidationReason> {
+    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> {
         return when (checkResult) {
-            is CheckedFingerprint.EntryInvalid -> listOf(FingerprintInvalidationReasonImpl(checkResult.reason))
+            is CheckedFingerprint.EntryInvalid -> listOf(BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason))
             else -> emptyList()
         }
     }
@@ -147,10 +147,16 @@ class FingerprintCheckResult(
     }
 
     private
-    data class FingerprintInvalidationReasonImpl(private val message: String) : FingerprintInvalidationReason {
-        constructor(reason: InvalidationReason) : this(reason.toString())
+    data class BuildInvalidationReasonsImpl(
+        private val buildPath: String,
+        private val invalidationReasons: List<FingerprintInvalidationReason>
+    ) : BuildInvalidationReasons {
 
-        override fun getMessage() = message
+        constructor(buildPath: Path, invalidationReason: StructuredMessage) : this(buildPath.toString(), listOf(FingerprintInvalidationReasonImpl(invalidationReason)))
+
+        override fun getBuildPath() = buildPath
+
+        override fun getInvalidationReasons() = invalidationReasons
     }
 
     private
@@ -167,5 +173,12 @@ class FingerprintCheckResult(
         override fun getIdentityPath() = identityPath
 
         override fun getInvalidationReasons() = invalidationReasons
+    }
+
+    private
+    data class FingerprintInvalidationReasonImpl(private val message: String) : FingerprintInvalidationReason {
+        constructor(reason: StructuredMessage) : this(reason.toString())
+
+        override fun getMessage() = message
     }
 }
