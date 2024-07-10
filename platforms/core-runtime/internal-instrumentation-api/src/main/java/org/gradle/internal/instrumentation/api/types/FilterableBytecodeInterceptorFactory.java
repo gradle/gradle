@@ -36,4 +36,11 @@ public interface FilterableBytecodeInterceptorFactory {
             return BytecodeInterceptorType.INSTRUMENTATION;
         }
     }
+
+    interface BytecodeUpgradeReportInterceptorFactory extends FilterableBytecodeInterceptorFactory {
+        @Override
+        default BytecodeInterceptorType getType() {
+            return BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT;
+        }
+    }
 }
