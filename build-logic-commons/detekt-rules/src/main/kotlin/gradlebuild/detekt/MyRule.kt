@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtScript
 
 class MyRule(config: Config) : Rule(config) {
     override val issue = Issue(
@@ -18,10 +19,16 @@ class MyRule(config: Config) : Rule(config) {
     )
 
     override fun visitClass(klass: KtClass) {
+        println("### class")
         super.visitClass(klass)
 
         if (klass.isInner()) {
             report(CodeSmell(issue, Entity.atName(klass), "Custom message"))
         }
+    }
+
+    override fun visitScript(script: KtScript) {
+        println("### script")
+        super.visitScript(script)
     }
 }
