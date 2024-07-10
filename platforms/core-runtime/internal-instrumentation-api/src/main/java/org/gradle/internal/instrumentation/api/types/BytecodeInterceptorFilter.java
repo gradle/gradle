@@ -25,7 +25,8 @@ import java.util.EnumSet;
  */
 public enum BytecodeInterceptorFilter {
     INSTRUMENTATION_ONLY(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION)),
-    ALL(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE));
+    INSTRUMENTATION_AND_BYTECODE_REPORT(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT)),
+    ALL(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT, BytecodeInterceptorType.BYTECODE_UPGRADE));
 
     @SuppressWarnings("ImmutableEnumChecker")
     private final EnumSet<BytecodeInterceptorType> instrumentationTypes;
