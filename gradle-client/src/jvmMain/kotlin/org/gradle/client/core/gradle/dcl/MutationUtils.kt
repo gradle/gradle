@@ -28,7 +28,14 @@ object MutationUtils {
         overlayResult: DocumentOverlayResult,
     ): NodeData<List<ApplicableMutation>> {
         val overlayDocument = overlayResult.inputOverlay
-        val applicability = mutationCatalog.applicabilityFor(modelSchema, overlayDocument)
+        val compatibleMutationsCatalog = DefaultMutationDefinitionCatalog().apply { 
+            mutationCatalog.mutationDefinitionsById.values.forEach { 
+                if (it.isCompatibleWithSchema(modelSchema)) { 
+                    registerMutationDefinition(it)
+                }
+            }
+        }
+        val applicability = compatibleMutationsCatalog.applicabilityFor(modelSchema, overlayDocument)
 
         return OverlayRoutedNodeDataContainer(
             overlayResult.overlayNodeOriginContainer,
