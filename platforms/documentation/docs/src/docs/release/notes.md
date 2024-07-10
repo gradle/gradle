@@ -64,7 +64,7 @@ The `cpp-unit` and `xctest` plugins are not yet compatible.
 
 ### Configuration API enhancements
 
-It is now possible to configure a [Configuration](dsl/org.gradle.api.artifacts.Configuration.html) to extend another configuration by supplying a [Provider<Configuration>](dsl/org.gradle.api.provider.Provider.html) as an argument to [extendsFrom](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[])).
+It is now possible to configure a [Configuration](dsl/org.gradle.api.artifacts.Configuration.html) to extend another configuration by supplying a [Provider<Configuration>](dsl/org.gradle.api.provider.Provider.html) as an argument to [extendsFrom](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.provider.Provider)).
 
 This allows for more flexible configuration hierarchy construction, as the extended configuration can be calculated lazily.
 
