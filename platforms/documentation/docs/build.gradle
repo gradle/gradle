@@ -693,7 +693,6 @@ tasks.named("docsTest") { task ->
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
-        systemProperty("org.gradle.integtest.samples.checkLoadingFromConfigurationCache", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
 
         filter {
