@@ -68,17 +68,22 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
         }
 
         for (Attribute<?> attribute : requested.keySet()) {
-            AttributeValue<?> requestedValue = requested.findEntry(attribute);
-            AttributeValue<?> candidateValue = candidate.findEntry(attribute.getName());
+            AttributeValue<?> requestedAttributeValue = requested.findEntry(attribute);
+            AttributeValue<?> candidateAttributeValue = candidate.findEntry(attribute.getName());
 
-            if (candidateValue.isPresent()) {
-                Object coercedValue = candidateValue.coerce(attribute);
-                boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
+            Attribute<?> typedAttribute = getTypedAttribute(attribute);
+            if (candidateAttributeValue.isPresent()) {
+                Object requestedValue = requestedAttributeValue.coerce(typedAttribute);
+                Object candidateValue = candidateAttributeValue.coerce(typedAttribute);
+
+                boolean match = schema.matchValue(typedAttribute, requestedValue, candidateValue);
+
                 if (!match) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 
@@ -92,14 +97,15 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             AttributeValue<?> firstAttributeValue = first.findEntry(attribute);
             AttributeValue<?> secondAttributeValue = second.findEntry(attribute.getName());
 
+            Attribute<?> typedAttribute = getTypedAttribute(attribute);
             if (secondAttributeValue.isPresent()) {
-                Object firstValue = firstAttributeValue.get();
-                Object secondValue = secondAttributeValue.coerce(attribute);
+                Object firstValue = firstAttributeValue.coerce(typedAttribute);
+                Object secondValue = secondAttributeValue.coerce(typedAttribute);
 
                 // Since attribute compatibility is directional, we check both directions.
                 // This is why we call this a weak match.
-                boolean match = schema.matchValue(attribute, firstValue, secondValue) ||
-                                schema.matchValue(attribute, secondValue, firstValue);
+                boolean match = schema.matchValue(typedAttribute, firstValue, secondValue) ||
+                                schema.matchValue(typedAttribute, secondValue, firstValue);
 
                 if (!match) {
                     return false;
@@ -108,6 +114,21 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
         }
 
         return true;
+    }
+
+    /**
+     * The attributes we are comparing may come from either the consumer or producer.
+     * In this case, some of the attributes may be desugared, meaning they have weaker
+     * types than the attributes our schema is aware of. We should ask the schema
+     * for the properly typed attribute, so we use the correct compatibility rules
+     * for matching.
+     */
+    private Attribute<?> getTypedAttribute(Attribute<?> attribute) {
+        Attribute<?> typedAttribute = schema.getAttribute(attribute.getName());
+        if (typedAttribute == null) {
+            return attribute;
+        }
+        return typedAttribute;
     }
 
     @Override
