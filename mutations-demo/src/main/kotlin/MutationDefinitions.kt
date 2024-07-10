@@ -2,7 +2,6 @@ package org.gradle.client.demo.mutations
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.*
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior
 import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 
@@ -24,8 +23,7 @@ object SetVersionCodeMutation : AndroidPrototypeMutationDefinition {
                     ScopeLocation.inAnyScope().inObjectsOfType(androidApplication),
                     ModelMutation.SetPropertyValue(
                         androidApplication.propertyNamed("versionCode"),
-                        NewValueNodeProvider.ArgumentBased { args -> valueFromString("" + args[versionCodeParam])!! },
-                        IfPresentBehavior.Overwrite
+                        NewValueNodeProvider.ArgumentBased { args -> valueFromString("" + args[versionCodeParam])!! }
                     ),
                 )
             )
@@ -52,8 +50,7 @@ object SetNamespaceMutation : AndroidPrototypeMutationDefinition {
                         androidSoftware.propertyNamed("namespace"),
                         NewValueNodeProvider.ArgumentBased { args ->
                             valueFromString("\"" + args[newNamespaceParam] + "\"")!!
-                        },
-                        IfPresentBehavior.Overwrite
+                        }
                     ),
                 )
             )
