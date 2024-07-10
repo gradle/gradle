@@ -15,6 +15,7 @@ import java.io.File
 
 object MutationUtils {
     val mutationCatalog = DefaultMutationDefinitionCatalog().apply {
+        registerMutationDefinition(EnableLintMutation)
         registerMutationDefinition(SetVersionCodeMutation)
         registerMutationDefinition(SetNamespaceMutation)
         registerMutationDefinition(addLibraryDependencyMutation)
