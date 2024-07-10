@@ -71,7 +71,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
@@ -207,7 +207,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstanceGenerator.class));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstantiatorFactory.class).decorateLenient(services));
         }
     }
 
