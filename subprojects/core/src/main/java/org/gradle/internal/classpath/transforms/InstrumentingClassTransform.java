@@ -32,7 +32,9 @@ import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.model.internal.asm.MethodInterceptionListener;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -292,10 +294,21 @@ public class InstrumentingClassTransform implements ClassTransform {
 
             for (JvmBytecodeCallInterceptor interceptor : interceptors) {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
+                    methodInterceptionListenerFor(interceptor.getType()).onInterceptedMethodIns(owner, name, descriptor);
                     return;
                 }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        }
+
+        private static MethodInterceptionListener methodInterceptionListenerFor(BytecodeInterceptorType type) {
+            switch (type) {
+                case INSTRUMENTATION:
+                case BYTECODE_UPGRADE:
+                    return MethodInterceptionListener.NO_OP;
+                default:
+                    throw new UnsupportedOperationException("Unknown interceptor type: " + type);
+            }
         }
 
         private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {
