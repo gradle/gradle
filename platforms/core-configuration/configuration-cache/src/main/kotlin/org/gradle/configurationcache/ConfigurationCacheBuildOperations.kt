@@ -17,6 +17,8 @@
 package org.gradle.configurationcache
 
 import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.CheckStatus
 import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
@@ -28,6 +30,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.util.Path
 import java.io.File
 
 
@@ -119,17 +122,24 @@ class FingerprintCheckResult(
 
     override fun getBuildInvalidationReasons(): List<FingerprintInvalidationReason> {
         return when (checkResult) {
-            is CheckedFingerprint.EntryInvalid -> listOf(FingerprintInvalidationReasonImpl(checkResult.reason.toString()))
+            is CheckedFingerprint.EntryInvalid -> listOf(FingerprintInvalidationReasonImpl(checkResult.reason))
             else -> emptyList()
         }
     }
 
     override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> {
         return when (checkResult) {
-            is CheckedFingerprint.ProjectsInvalid -> checkResult.invalidProjects.map {
-                ProjectInvalidationReasonsImpl(
-                    it.key.path, listOf(FingerprintInvalidationReasonImpl(it.value.toString()))
-                )
+            is CheckedFingerprint.ProjectsInvalid -> {
+                buildList(checkResult.invalidProjects.size) {
+                    // First reason is shown to the user.
+                    add(ProjectInvalidationReasonsImpl(checkResult.firstInvalidated, checkResult.firstReason))
+                    // The rest is in alphabetical order.
+                    checkResult.invalidProjects.asSequence()
+                        .filterNot { it.key == checkResult.firstInvalidated }
+                        .map { ProjectInvalidationReasonsImpl(it.key, it.value) }
+                        .sortedBy { it.identityPath }
+                        .forEach { add(it) }
+                }
             }
 
             else -> emptyList()
@@ -138,6 +148,8 @@ class FingerprintCheckResult(
 
     private
     data class FingerprintInvalidationReasonImpl(private val message: String) : FingerprintInvalidationReason {
+        constructor(reason: InvalidationReason) : this(reason.toString())
+
         override fun getMessage() = message
     }
 
@@ -146,6 +158,12 @@ class FingerprintCheckResult(
         private val identityPath: String,
         private val invalidationReasons: List<FingerprintInvalidationReason>
     ) : ProjectInvalidationReasons {
+
+        constructor(identityPath: Path, invalidationReason: StructuredMessage) : this(
+            identityPath.toString(),
+            listOf(FingerprintInvalidationReasonImpl(invalidationReason.toString()))
+        )
+
         override fun getIdentityPath() = identityPath
 
         override fun getInvalidationReasons() = invalidationReasons

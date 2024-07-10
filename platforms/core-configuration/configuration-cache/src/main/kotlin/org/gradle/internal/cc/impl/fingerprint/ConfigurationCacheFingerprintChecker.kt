@@ -92,11 +92,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
         var firstInvalidatedPath: Path? = null
-        val projects = mutableMapOf<Path, ProjectInvalidationState>()
+        val projects = hashMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
                 null -> break
-                is ProjectSpecificFingerprint.ProjectFingerprint -> input.run {
+                is ProjectSpecificFingerprint.ProjectFingerprint -> {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
                     val state = projects.entryFor(input.projectPath)
@@ -129,15 +129,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return when (val path = firstInvalidatedPath) {
-            null -> CheckedFingerprint.Valid
-            else -> {
-                val firstInvalidatedState = projects.remove(path)!!
-                CheckedFingerprint.ProjectsInvalid(
-                    path to firstInvalidatedState.invalidationReason,
-                    projects.filterValues { it.isInvalid }.mapValues { it.value.invalidationReason }
-                )
-            }
+        return if (firstInvalidatedPath == null) {
+            CheckedFingerprint.Valid
+        } else {
+            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues { it.value.invalidationReason }
+            CheckedFingerprint.ProjectsInvalid(firstInvalidatedPath, invalidatedProjects)
         }
     }
 
