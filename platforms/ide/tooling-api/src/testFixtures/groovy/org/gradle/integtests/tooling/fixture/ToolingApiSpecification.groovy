@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionFailureWithThrowable
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -278,7 +279,12 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         stderr.reset()
 
         try {
-            T value = action.get()
+            T value
+            try {
+                value = action.get()
+            } catch (Exception e) {
+                throw new AssertionError("Expected action to not throw an exception", e)
+            }
             this.result = assertSuccessful()
             return value
         } finally {
@@ -296,8 +302,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         try {
             try {
                 action.run()
-            } finally {
-                this.failure = assertFailure()
+                throw new AssertionError("Expected action to throw an exception" as Object)
+            } catch (Exception e) {
+                this.failure = assertFailure(e)
+                throw e
             }
         } finally {
             reset()
@@ -396,12 +404,20 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         return result
     }
 
-    ExecutionFailure assertFailure() {
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+    ExecutionFailure assertFailure(Exception exception) {
+        def failure = new ExecutionFailureWithThrowable(
+            OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString()),
+            exception
+        )
 
         // We get BUILD FAILED when we run tasks, and CONFIGURE FAILED when we fetch models without requesting tasks
         String failureOutput = targetDist.selectOutputWithFailureLogging(failure.output, failure.error)
-        assert failureOutput.contains("BUILD FAILED") || failureOutput.contains("CONFIGURE FAILED")
+        boolean hasFailureLog = failureOutput.contains("BUILD FAILED") || failureOutput.contains("CONFIGURE FAILED")
+        if (!hasFailureLog) {
+            // The build failed, but the failure is not in the output. We must have failed before the build could
+            // even start. Make sure we at least do not emit a BUILD SUCCESSFUL message.
+            assert !failure.output.contains("BUILD SUCCESSFUL") && !failure.output.contains("CONFIGURE SUCCESSFUL")
+        }
 
         validateOutput(failure)
         return failure
