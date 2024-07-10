@@ -24,6 +24,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.R
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.DefaultValue;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -80,6 +81,7 @@ import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIV
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyType.FILE_COLLECTION;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.isAssignableToFileSystemLocation;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.isAnnotationOfType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getTypeParameterOrThrow;
@@ -120,18 +122,21 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     public Collection<Result> readRequest(ExecutableElement method) {
         Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, ReplacesEagerProperty.class);
         if (!annotation.isPresent()) {
+            annotation = AnnotationUtils.findAnnotationMirror(method, ToBeReplacedByLazyProperty.class);
+        }
+        if (!annotation.isPresent()) {
             return Collections.emptySet();
         }
 
+        AnnotationMirror annotationMirror = annotation.get();
         if (projectName == null) {
             // We validate project name here because we want to fail only if there is an @ReplacesEagerProperty annotation used in the project
             return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
-        } else if (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get")) {
+        } else if (isAnnotationOfType(annotationMirror, ReplacesEagerProperty.class) && (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get"))) {
             return Collections.singletonList(new InvalidRequest(String.format("Method '%s.%s' annotated with @ReplacesEagerProperty should be a simple getter: name should start with 'get' and method should not have any parameters.", method.getEnclosingElement(), method)));
         }
 
         try {
-            AnnotationMirror annotationMirror = annotation.get();
             List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror);
             List<CallInterceptionRequest> requests = new ArrayList<>();
             for (AccessorSpec accessorSpec : accessorSpecs) {
@@ -162,6 +167,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     @SuppressWarnings("unchecked")
     private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
+        if (isAnnotationOfType(annotationMirror, ToBeReplacedByLazyProperty.class)) {
+            return Collections.emptyList();
+        }
+
         Element element = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
             .map(v -> types.asElement((TypeMirror) v.getValue()))
             .orElseThrow(() -> new IllegalArgumentException("Missing adapter value"));
