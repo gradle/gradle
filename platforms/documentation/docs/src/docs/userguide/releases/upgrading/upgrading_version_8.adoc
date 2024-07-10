@@ -192,11 +192,11 @@ tasks.register("resolve") {
 
 For the following use cases, consider these alternatives when replacing a `beforeResolve` hook:
 
-* **Adding dependencies**: Use link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[`withDependencies`].
+* **Adding dependencies**: Use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[DependencyFactory] and `addLater` or `addAllLater` on link:{javadocPath}/org/gradle/api/artifacts/DependencySet.html[DependencySet].
 * **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
-* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] to add excludes to a configuration.
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
-* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a `withDependencies` hook.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
 [[deprecate_filtered_configuration_file_and_filecollection_methods]]

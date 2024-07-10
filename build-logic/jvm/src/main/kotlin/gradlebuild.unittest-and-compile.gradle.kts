@@ -139,10 +139,10 @@ fun addDependencies() {
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
         configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
-        platformImplementation.withDependencies {
-            // use 'withDependencies' to not attempt to find platform project during script compilation
-            add(project.dependencies.create(platform(project(":distributions-dependencies"))))
-        }
+        // use lazy API to not attempt to find platform project during script compilation
+        platformImplementation.dependencies.addLater(provider {
+            project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
+        })
     }
 }
 

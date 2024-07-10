@@ -83,10 +83,10 @@ pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules t
 val agentsRuntimeOnly by bucket()
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 
-coreRuntimeOnly.withDependencies {
-    // use 'withDependencies' to not attempt to find platform project during script compilation
-    add(project.dependencies.create(dependencies.platform(project(":distributions-dependencies"))))
-}
+// Use lazy API to not attempt to find platform project during script compilation
+coreRuntimeOnly.dependencies.addLater(provider {
+    dependencies.platform(dependencies.create(project(":distributions-dependencies")))
+})
 
 // Configurations to resolve dependencies
 val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -339,9 +339,9 @@ fun startScriptResolver(defaultDependency: String) =
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
+        dependencies.addLater(provider {
+            project.dependencies.create(project(defaultDependency))
+        })
     }
 
 fun sourcesResolver(extends: List<Configuration>) =
@@ -367,9 +367,9 @@ fun docsResolver(defaultDependency: String) =
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
+        dependencies.addLater(provider {
+            project.dependencies.create(project(defaultDependency))
+        })
     }
 
 fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, vararg artifacts: Any) =
