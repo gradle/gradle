@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
 
 class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

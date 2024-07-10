@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.configurationcache;
+package org.gradle.operations.configuration;
 
 import org.gradle.internal.operations.BuildOperationType;
 

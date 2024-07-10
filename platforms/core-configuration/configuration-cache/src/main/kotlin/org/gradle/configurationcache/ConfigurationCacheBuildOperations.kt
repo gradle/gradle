@@ -19,10 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType
-import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.CheckStatus
-import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
-import org.gradle.internal.configurationcache.ConfigurationCacheCheckFingerprintBuildOperationType.ProjectInvalidationReasons
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.operations.BuildOperationContext
@@ -30,6 +26,10 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.CheckStatus
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.ProjectInvalidationReasons
 import org.gradle.util.Path
 import java.io.File
 
