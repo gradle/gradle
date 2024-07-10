@@ -135,6 +135,7 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
     val jars: SortedSet<File>
         get() = localRepo.asFileTree.matching {
             include("**/*.jar")
+            exclude("**/*-sources.jar")
             exclude("**/*-javadoc.jar")
         }.files.toSortedSet()
 
