@@ -62,9 +62,6 @@ Extended Configurations
         buildFile """
             configurations {
                 resolvable('conf1')
-            }
-
-            configurations {
                 resolvable('conf2') {
                     extendsFrom configurations.conf1
                 }
@@ -80,6 +77,110 @@ Configuration conf2
 
 Extended Configurations
     - conf1
+""")
+    }
+
+    def "extending a configuration using a Provider is fine"() {
+        given:
+        buildFile """
+            configurations {
+                def conf1 = resolvable('conf1')
+                resolvable('conf2') {
+                    extendsFrom(conf1)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf2
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+""")
+    }
+
+    def "extending a configuration using a Provider replacing existing hierarchy is fine"() {
+        given:
+        buildFile """
+            configurations {
+                def conf1 = resolvable('conf1')
+                def conf2 = resolvable('conf2')
+                resolvable('conf3') {
+                    extendsFrom(configurations.conf1)
+                    setExtendsFrom(conf2)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf3
+--------------------------------------------------
+
+Extended Configurations
+    - conf2
+""")
+    }
+
+    def "extending a configuration with a lazily-calculated Provider is fine"() {
+        given:
+        buildFile """
+            def x = 1
+
+            configurations {
+                resolvable("conf1")
+                resolvable("conf2")
+                resolvable("conf3") {
+                    extendsFrom(project.provider { if (x == 1) configurations.getByName("conf1") else configurations.getByName("conf2") })
+                }
+            }
+
+            x = 2
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf3
+--------------------------------------------------
+
+Extended Configurations
+    - conf2
+""")
+    }
+
+    def "extending a configuration with a lazily-calculated Provider in Kotlin DSL is fine"() {
+        given:
+        buildKotlinFile << """
+            var x = 1
+
+            configurations {
+                resolvable("conf1")
+                resolvable("conf2")
+                resolvable("conf3") {
+                    extendsFrom(project.provider { if (x == 1) configurations.getByName("conf1") else configurations.getByName("conf2") })
+                }
+            }
+
+            x = 2
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf3
+--------------------------------------------------
+
+Extended Configurations
+    - conf2
 """)
     }
 }
