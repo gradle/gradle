@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.asm;
-
-import org.gradle.api.NonNullApi;
-
-@NonNullApi
-public interface MethodInterceptionListener {
-
-    MethodInterceptionListener NO_OP = (owner, name, descriptor) -> {};
-
-    void onInterceptedMethodIns(String owner, String name, String descriptor);
-}
+/**
+ * Package with classes related to instrumentation reporting.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.instrumentation.reporting;
