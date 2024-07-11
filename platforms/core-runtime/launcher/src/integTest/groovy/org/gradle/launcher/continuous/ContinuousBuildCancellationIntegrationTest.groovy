@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
@@ -104,6 +105,7 @@ class ContinuousBuildCancellationIntegrationTest extends AbstractContinuousInteg
         }
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4256")
     def "does not log daemon cancel message for continuous build"() {
         setup:
         executer.requireDaemon()
