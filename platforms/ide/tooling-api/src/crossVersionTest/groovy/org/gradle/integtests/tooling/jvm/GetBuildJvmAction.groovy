@@ -25,7 +25,6 @@ import org.gradle.tooling.BuildController
 class GetBuildJvmAction implements BuildAction<File> {
     @Override
     File execute(BuildController controller) {
-        println(System.getProperty("java.home"))
         return new File(System.getProperty("java.home")).getAbsoluteFile()
     }
 }
