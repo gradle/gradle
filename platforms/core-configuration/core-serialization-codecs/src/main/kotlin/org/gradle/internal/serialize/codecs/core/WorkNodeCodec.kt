@@ -76,7 +76,7 @@ class WorkNodeCodec(
 
 
     /**
-     * Writes only the scheduled nodes, remaining SchedyledWork data is written separately.
+     * Writes only the scheduled nodes, remaining ScheduledWork data is written separately.
      */
     suspend fun WriteContext.writeNodes(projectPath: String?, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
@@ -134,7 +134,7 @@ class WorkNodeCodec(
         return Pair(scheduledNodes, nodesById)
     }
 
-    suspend fun ReadContext.readScheduledWork(scheduledNodes: List<Node>, nodesById: Map<Int, Node>): ScheduledWork =
+    fun ReadContext.readScheduledWork(scheduledNodes: List<Node>, nodesById: Map<Int, Node>): ScheduledWork =
         withGradleIsolate(owner, internalTypesCodec) {
             doReadScheduledWork(nodesById, scheduledNodes)
         }
@@ -178,10 +178,10 @@ class WorkNodeCodec(
             writeNodeGroup(group, scheduledNodeIds)
         }
         writeCollection(scheduledNodes) { node ->
-            writeSmallInt(scheduledNodeIds.get(node)!!)
+            writeSmallInt(scheduledNodeIds.getValue(node))
             //println("Writing succ references for ${node::class.simpleName}@${System.identityHashCode(node).toString(16)} - id: ${scheduledNodeIds[node]}")
             writeSuccessorReferencesOf(node, scheduledNodeIds)
-            val groupId = groupsById[node.group]!!
+            val groupId = groupsById.getValue(node.group)
             //println("Writing node group for ${node::class.simpleName}@${System.identityHashCode(node).toString(16)} - id: ${scheduledNodeIds[node]} - groupId: $groupId")
             writeSmallInt(groupId)
         }
@@ -414,7 +414,7 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>
     ) {
         for (successor in successors) {
-            val id = scheduledNodeIds.get(successor)
+            val id = scheduledNodeIds[successor]
             if (successor.isRequired) {
                 writeSmallInt(id!!)
                 //println("Writing $label successor id: $id for: ${successor::class.simpleName}")

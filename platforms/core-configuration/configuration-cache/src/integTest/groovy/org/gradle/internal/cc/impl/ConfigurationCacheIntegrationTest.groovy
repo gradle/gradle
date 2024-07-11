@@ -29,7 +29,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         settingsFile << ""
 
         when:
-        run("help", "--configuration-cache")
+        run("help", "--configuration-cache", "-s")
 
         then:
         result.assertHasPostBuildOutput("Configuration cache entry stored.")

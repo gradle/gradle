@@ -205,22 +205,13 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
-    private
-    fun readRootBuildWorkGraphFrom(build: ConfigurationCacheBuild, stateFile: ConfigurationCacheStateFile): Pair<String, ScheduledWork> {
-        return readConfigurationCacheState(stateFile) { state ->
-            state.run {
-                readRootBuildWorkGraph(build)
-            }
-        }
-    }
-
     internal
-    fun readRootBuildWorkNodesFrom(build: ConfigurationCacheBuild, projectStateFile: ConfigurationCacheStateFile, projectPath: String): Triple<String, ArrayList<Node>, HashMap<Int, Node>> {
+    fun readRootBuildWorkNodesFrom(build: ConfigurationCacheBuild, projectStateFile: ConfigurationCacheStateFile): Triple<String, ArrayList<Node>, HashMap<Int, Node>> {
         return readConfigurationCacheState(projectStateFile) { state ->
             state.run {
                 //println("Reading build work nodes from " + this.stateFile.stateFile)
                 //TODO-RC is this the right Gradle?
-                readRootBuildWorkNodes(build, host.currentBuild.gradle, projectPath)
+                readRootBuildWorkNodes(build, host.currentBuild.gradle)
             }
         }
     }
@@ -240,7 +231,7 @@ class ConfigurationCacheIO internal constructor(
     fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
-                writeBuildContent(host.currentBuild, buildTreeState,)
+                writeBuildContent(host.currentBuild, buildTreeState)
             }
         }
     }

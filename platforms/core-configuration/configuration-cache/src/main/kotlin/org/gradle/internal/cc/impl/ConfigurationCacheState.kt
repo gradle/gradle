@@ -172,7 +172,7 @@ class ConfigurationCacheState(
         writeInt(0x1ecac8e)
     }
 
-    suspend fun DefaultWriteContext.writeRootBuildWorkEdges(gradle: GradleInternal, scheduledEntryNodeIds: List<Int>,
+    fun DefaultWriteContext.writeRootBuildWorkEdges(gradle: GradleInternal, scheduledEntryNodeIds: List<Int>,
                                                             scheduledNodes: List<Node>,
                                                             scheduledNodeIds: Map<Node, Int>,
                                                             groupsById: Map<NodeGroup, Int>) {
@@ -183,10 +183,8 @@ class ConfigurationCacheState(
         }
     }
 
-    internal suspend fun DefaultReadContext.readRootBuildWorkNodes(build: ConfigurationCacheBuild, gradle: GradleInternal, projectPath: String): Triple<String, ArrayList<Node>, HashMap<Int, Node>> {
+    internal suspend fun DefaultReadContext.readRootBuildWorkNodes(build: ConfigurationCacheBuild, gradle: GradleInternal): Triple<String, ArrayList<Node>, HashMap<Int, Node>> {
         val originBuildInvocationId = readBuildInvocationId()
-        //TODO-RC just so it is used
-        projectPath.apply {  }
         //TODO-RC build.getProject() is being shared
         setSingletonProperty<ProjectProvider>(build::getProject)
         //TODO-RC is this the right Gradle?
@@ -223,16 +221,6 @@ class ConfigurationCacheState(
             }
         }
         return originBuildInvocationId to builds
-    }
-
-    suspend fun DefaultReadContext.readRootBuildWorkGraph(build: ConfigurationCacheBuild): Pair<String, ScheduledWork> {
-        setSingletonProperty<ProjectProvider>(build::getProject)
-        val originBuildInvocationId = readBuildInvocationId()
-        val workGraph = readWorkGraph(host.currentBuild.gradle)
-        require(readInt() == 0x1ecac8e) {
-            "corrupt state file"
-        }
-        return originBuildInvocationId to workGraph
     }
 
     private
@@ -553,7 +541,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeWorkGraphEdges(gradle: GradleInternal, scheduledEntryNodeIds: List<Int>,
+    fun DefaultWriteContext.writeWorkGraphEdges(gradle: GradleInternal, scheduledEntryNodeIds: List<Int>,
                                                         scheduledNodes: List<Node>,
                                                         scheduledNodeIds: Map<Node, Int>,
                                                         groupsById: Map<NodeGroup, Int>) {
