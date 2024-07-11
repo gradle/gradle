@@ -26,6 +26,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
@@ -98,7 +99,9 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         Pair<RelativePath, ClassVisitor> pathAndVisitor;
         try {
-            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, bytes, typeRegistry));
+            // This is just a guess, but it's good enough for these tests
+            File source = classEntry.getPath().getFile(new File("."));
+            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, source, classEntry.getPath(), bytes, typeRegistry));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.file.RelativePath;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
@@ -23,24 +24,37 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 
 public class ClassData implements InstrumentationMetadata {
     private final InstrumentationTypeRegistry typeRegistry;
     private final Lazy<ClassNode> classNode;
     private final byte[] classContent;
+    private final File source;
+    private final RelativePath classRelativePath;
 
-    public ClassData(ClassReader reader, byte[] content, InstrumentationTypeRegistry typeRegistry) {
+    public ClassData(ClassReader reader, File source, RelativePath classRelativePath, byte[] content, InstrumentationTypeRegistry typeRegistry) {
         this.classNode = Lazy.unsafe().of(() -> {
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);
             return classNode;
         });
+        this.source = source;
+        this.classRelativePath = classRelativePath;
         this.classContent = content;
         this.typeRegistry = typeRegistry;
     }
 
     public byte[] getClassContent() {
         return classContent;
+    }
+
+    public File getSource() {
+        return source;
+    }
+
+    public RelativePath getClassRelativePath() {
+        return classRelativePath;
     }
 
     public ClassNode readClassAsNode() {
