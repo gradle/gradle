@@ -19,42 +19,84 @@ package org.gradle.internal.jvm;
 import javax.annotation.Nullable;
 import java.io.File;
 
+/**
+ * Wraps a JAVA_HOME path to provide access to the various executables and tools
+ * that are part of a JVM installation. The path wrapped by this info may not
+ * necessarily represent a valid JVM installation, however attempts are made
+ * to verify the installation's directory structure upon construction.
+ */
 public interface JavaInfo {
-    /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
-     */
-    File getJavaExecutable() throws JavaHomeException;
 
     /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
-     */
-    File getJavacExecutable() throws JavaHomeException;
-
-    /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
-     */
-    File getJavadocExecutable() throws JavaHomeException;
-
-    /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
-     */
-    File getExecutable(String name) throws JavaHomeException;
-
-    /**
-     * The location of java.
-     *
-     * @return the java home location
+     * Get the JAVA_HOME path represented by this JavaInfo.
      */
     File getJavaHome();
 
     /**
-     * Returns the tools jar. May return null, for example when Jvm was created via
-     * with custom jre location or if jdk is not installed.
+     * @return The `java` executable for this JVM installation.
+     *
+     * @throws IllegalStateException If this JVM installation does not contain a `java` executable.
+     */
+    File getJavaExecutable();
+
+    /**
+     * @return The `javac` executable for this JVM installation.
+     *
+     * @throws IllegalStateException If this JVM installation does not contain a `javac` executable.
+     */
+    File getJavacExecutable();
+
+    /**
+     * @return The `javadoc` executable for this JVM installation.
+     *
+     * @throws IllegalStateException If this JVM installation does not contain a `javadoc` executable.
+     */
+    File getJavadocExecutable();
+
+    /**
+     * @return Get an executable from this JVM installation.
+     *
+     * @throws IllegalStateException If this JVM installation does not contain the executable.
+     */
+    File getExecutable(String name);
+
+    /**
+     * @return true if this JVM installation is a JDK installation or false if it represents a JRE installation.
+     */
+    boolean isJdk();
+
+    /**
+     * Get the tools.jar file for this JVM installation.
+     *
+     * @return null if this JVM installation does not contain a tools.jar file, for example if this
+     * is a JRE installation or the JVM is newer than Java 8.
      */
     @Nullable
     File getToolsJar();
+
+    /**
+     * Get a JRE installation that corresponds to this JVM installation. The returned
+     * JVM may either be embedded within the JDK installation or standalone, meaning
+     * it is installed outside of this JDK installation.
+     *
+     * @return null if no JRE installation is present.
+     */
+    @Nullable
+    File getJre();
+
+    /**
+     * Locates the JRE installation contained within this JVM installation.
+     *
+     * @return null if JRE is embedded within this JVM installation.
+     */
+    @Nullable
+    File getEmbeddedJre();
+
+    /**
+     * Locates a standalone JRE installation that corresponds to this JVM installation.
+     *
+     * @return if there is no corresponding JRE installed parallel to this JVM installation.
+     */
+    @Nullable
+    File getStandaloneJre();
 }

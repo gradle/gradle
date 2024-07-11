@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
@@ -33,12 +34,14 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.jvm.DefaultJavaInfo;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
@@ -46,6 +49,7 @@ import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,7 +61,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final ClassLoaderRegistry classLoaderRegistry;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private final InternalProblemReporter problemReporter;
 
     public DaemonGroovyCompiler(
@@ -67,7 +71,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         CompilerWorkerExecutor compilerWorkerExecutor,
         ClassLoaderRegistry classLoaderRegistry,
         JavaForkOptionsFactory forkOptionsFactory,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         InternalProblemReporter problemReporter
     ) {
         super(compilerWorkerExecutor);
@@ -76,7 +80,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         this.classLoaderRegistry = classLoaderRegistry;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
         this.problemReporter = problemReporter;
     }
 
@@ -107,12 +111,19 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
-        if (jvmVersionDetector.getJavaVersionMajor(javaForkOptions.getExecutable()) >= 9) {
+
+        String javaCommand = javaForkOptions.getExecutable();
+        JavaInfo installation = DefaultJavaInfo.forExecutable(new File(javaCommand));
+        if (installation == null) {
+            Exception cause = new NoSuchFileException(javaCommand);
+            throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''", cause);
+        }
+
+        Jvm jvm = jvmDetector.detectJvm(installation.getJavaHome());
+        if (jvm.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_1_9)) {
             javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
         } else {
             // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.
-            File javaExecutable = new File(javaForkOptions.getExecutable());
-            JavaInfo jvm = Jvm.forHome(javaExecutable.getParentFile().getParentFile());
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
                 String contextualMessage = String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());

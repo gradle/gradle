@@ -34,7 +34,7 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -113,7 +113,7 @@ public class ProviderConnection {
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
 
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private GradleVersion consumerVersion;
 
     public ProviderConnection(
@@ -122,7 +122,7 @@ public class ProviderConnection {
         DaemonClientFactory daemonClientFactory,
         BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader
@@ -135,7 +135,7 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -361,10 +361,14 @@ public class ProviderConnection {
 
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
+            if (jvmDetector.tryDetectJvm(javaHome) == null) {
+                throw new IllegalArgumentException("Could not find a valid JDK at " + javaHome);
+            }
+
             daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
         }
 
-        daemonParams.applyDefaultsFromJvmCriteria(jvmVersionDetector);
+        daemonParams.applyDefaultsFromJvmCriteria(jvmDetector);
         DaemonRequestContext requestContext = daemonParams.toRequestContext();
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {

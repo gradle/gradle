@@ -77,7 +77,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -211,7 +211,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         ClassPathRegistry classPathRegistry,
         TemporaryFileProvider temporaryFileProvider,
         JavaExecHandleFactory execHandleFactory,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         MemoryManager memoryManager,
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
         OutputEventListener outputEventListener
@@ -224,7 +224,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             gradleUserHomeDirProvider.getGradleUserHomeDirectory(),
             temporaryFileProvider,
             execHandleFactory,
-            jvmVersionDetector,
+            jvmDetector,
             outputEventListener,
             memoryManager
         );

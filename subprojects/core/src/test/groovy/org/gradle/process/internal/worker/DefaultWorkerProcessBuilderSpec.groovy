@@ -15,9 +15,8 @@
  */
 package org.gradle.process.internal.worker
 
-import org.gradle.api.JavaVersion
 import org.gradle.internal.id.IdGenerator
-import org.gradle.internal.jvm.inspection.JvmVersionDetector
+import org.gradle.internal.jvm.inspection.JvmDetector
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.remote.ConnectionAcceptor
 import org.gradle.internal.remote.MessagingServer
@@ -51,16 +50,16 @@ class DefaultWorkerProcessBuilderSpec extends Specification {
     def applicationClassesInSystemClassLoaderWorkerImplementationFactory = Mock(ApplicationClassesInSystemClassLoaderWorkerImplementationFactory)
     def outputEventListener = Mock(OutputEventListener)
     def memoryManager = Mock(MemoryManager)
-    def versionDetector = Mock(JvmVersionDetector) {
-        getJavaVersion(_) >> JavaVersion.VERSION_1_9
-    }
-    DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(javaExecHandleFactory,
+    def jvmDetector = Mock(JvmDetector)
+    DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(
+        javaExecHandleFactory,
         messagingServer,
         idGenerator,
         applicationClassesInSystemClassLoaderWorkerImplementationFactory,
         outputEventListener,
         memoryManager,
-        versionDetector)
+        jvmDetector
+    )
 
 
     def "validate entries in classpath"() {

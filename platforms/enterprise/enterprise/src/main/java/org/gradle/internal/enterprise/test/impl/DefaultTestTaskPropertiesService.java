@@ -39,8 +39,11 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.jvm.DefaultJavaInfo;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.OutputFilePropertyType;
@@ -53,6 +56,7 @@ import org.gradle.process.internal.JavaForkOptionsFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -61,7 +65,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private final JavaModuleDetector javaModuleDetector;
 
     @Inject
@@ -69,13 +73,13 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         PropertyWalker propertyWalker,
         FileCollectionFactory fileCollectionFactory,
         JavaForkOptionsFactory forkOptionsFactory,
-        JvmVersionDetector jvmVersionDetector,
+        JvmDetector jvmDetector,
         JavaModuleDetector javaModuleDetector
     ) {
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
         this.forkOptionsFactory = forkOptionsFactory;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
         this.javaModuleDetector = javaModuleDetector;
     }
 
@@ -185,6 +189,11 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private int detectJavaVersion(String executable) {
-        return jvmVersionDetector.getJavaVersionMajor(executable);
+        JavaInfo installation = DefaultJavaInfo.forExecutable(new File(executable));
+        if (installation == null) {
+            throw new IllegalStateException("Could not find a valid JDK at " + executable);
+        }
+        Jvm jvm = jvmDetector.detectJvm(installation.getJavaHome());
+        return Integer.parseInt(jvm.getJavaVersion().getMajorVersion());
     }
 }

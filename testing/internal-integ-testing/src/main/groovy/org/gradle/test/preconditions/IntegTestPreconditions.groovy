@@ -26,8 +26,6 @@ import org.gradle.util.internal.VersionNumber
 
 // These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
 // permitted subtypes to use the parent type's methods without importing them
-import static org.gradle.test.precondition.TestPrecondition.satisfied;
-import static org.gradle.test.precondition.TestPrecondition.notSatisfied;
 
 class IntegTestPreconditions {
 
@@ -192,10 +190,10 @@ class IntegTestPreconditions {
         }
     }
 
-    static class MoreThanOneJavacAvailable implements TestPrecondition {
+    static class MoreThanOneCompilationJdkAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.availableJdksWithJavac.size() >= 2
+            return AvailableJavaHomes.availableCompilationJdks.size() >= 2
         }
     }
 

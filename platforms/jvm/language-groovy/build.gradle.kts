@@ -34,12 +34,15 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseServices)
     implementation(projects.concurrent)
-    implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.fileCollections)
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.processServices)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.groovy)
     implementation(libs.guava)

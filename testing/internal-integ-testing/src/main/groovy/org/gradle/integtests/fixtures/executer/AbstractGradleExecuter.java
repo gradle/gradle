@@ -40,9 +40,8 @@ import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -65,6 +64,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -115,7 +115,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         ValidationServicesFixture.getServices()
     ).getServices();
 
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
+    private static final JvmDetector JVM_DETECTOR = GLOBAL_SERVICES.get(JvmDetector.class);
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
@@ -652,8 +652,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return Jvm.current().getJavaHome().getAbsolutePath();
     }
 
-    protected File getJavaHomeLocation() {
-        return new File(getJavaHome());
+    /**
+     * Get a fully probed JVM instance that will be used to run the build.
+     *
+     * @return null if the configured JVM is not valid.
+     */
+    @Nullable
+    protected Jvm getJvm() {
+        if (javaHome != null) {
+            return JVM_DETECTOR.tryDetectJvm(new File(javaHome));
+        }
+        if (jvm != null) {
+            return jvm;
+        }
+        return Jvm.current();
     }
 
     @Override
@@ -665,25 +677,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withJvm(Jvm jvm) {
-        if (jvm.getJavaVersion() == null) {
-            throw new IllegalArgumentException(
-                "The provided JVM does not have a version and was likely created with Jvm.forHome(File). " +
-                    "This method should only be used with probed JVMs. " +
-                    "Use withJavaHome(String) instead."
-            );
-        }
-
         this.jvm = jvm;
         this.javaHome = null;
         return this;
     }
 
     protected final JavaVersion getJavaVersionFromJavaHome() {
-        try {
-            return JavaVersion.toVersion(JVM_VERSION_DETECTOR.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
-        } catch (IllegalArgumentException | JavaHomeException e) {
+        Jvm jvm = getJvm();
+        if (jvm == null) {
+            // The build JVM is not valid.
+            // TODO: We should really return null here and handle this case in the caller.
             return JavaVersion.current();
         }
+        return jvm.getJavaVersion();
     }
 
     @Override

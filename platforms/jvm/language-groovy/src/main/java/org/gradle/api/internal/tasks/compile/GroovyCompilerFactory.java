@@ -27,7 +27,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -45,7 +45,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final AnnotationProcessorDetector processorDetector;
-    private final JvmVersionDetector jvmVersionDetector;
+    private final JvmDetector jvmDetector;
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
@@ -53,12 +53,12 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final ProjectCacheDir projectCacheDir;
     private final InternalProblems problems;
 
-    public GroovyCompilerFactory(WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, AnnotationProcessorDetector processorDetector, JvmVersionDetector jvmVersionDetector, WorkerDirectoryProvider workerDirectoryProvider, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory, ProjectCacheDir projectCacheDir, InternalProblems problems) {
+    public GroovyCompilerFactory(WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, AnnotationProcessorDetector processorDetector, JvmDetector jvmDetector, WorkerDirectoryProvider workerDirectoryProvider, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory, ProjectCacheDir projectCacheDir, InternalProblems problems) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;
         this.forkOptionsFactory = forkOptionsFactory;
         this.processorDetector = processorDetector;
-        this.jvmVersionDetector = jvmVersionDetector;
+        this.jvmDetector = jvmDetector;
         this.workerDirectoryProvider = workerDirectoryProvider;
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
@@ -75,7 +75,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
                 new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir) :
                 new ClassloaderIsolatedCompilerWorkerExecutor(inProcessWorkerFactory, actionExecutionSpecFactory, projectCacheDir);
 
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), DaemonSideCompiler.class, classPathRegistry, compilerWorkerExecutor, classLoaderRegistry, forkOptionsFactory, jvmVersionDetector, problems.getInternalReporter());
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), DaemonSideCompiler.class, classPathRegistry, compilerWorkerExecutor, classLoaderRegistry, forkOptionsFactory, jvmDetector, problems.getInternalReporter());
         return new AnnotationProcessorDiscoveringCompiler<>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 

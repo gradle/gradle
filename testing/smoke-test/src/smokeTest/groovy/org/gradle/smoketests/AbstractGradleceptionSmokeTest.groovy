@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -46,7 +44,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir)
 
         and:
-        def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
+        def buildJavaHome = AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()).javaHome
         file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
     }
 
@@ -91,18 +89,6 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     static SimpleDateFormat newTimestampDateFormat() {
         new SimpleDateFormat('yyyyMMddHHmmssZ').tap {
             setTimeZone(TimeZone.getTimeZone("UTC"))
-        }
-    }
-
-    static class GradleBuildJvmSpec implements Spec<JvmInstallationMetadata> {
-
-        static boolean isAvailable() {
-            return AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()) != null
-        }
-
-        @Override
-        boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
-            return jvm.languageVersion == JavaVersion.VERSION_11
         }
     }
 }

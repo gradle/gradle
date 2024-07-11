@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
 
@@ -116,6 +117,13 @@ public interface JvmInstallationMetadata {
     Throwable getErrorCause();
 
     boolean isValidInstallation();
+
+    /**
+     * Get this metadata as a valid JVM instance.
+     *
+     * @throws UnsupportedOperationException If this installation is not valid.
+     */
+    Jvm asJvm();
 
     class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
 
@@ -279,6 +287,15 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
+        public Jvm asJvm() {
+            return Jvm.discovered(
+                javaHome.toFile(),
+                javaVersion,
+                Integer.parseInt(languageVersion.getMajorVersion())
+            );
+        }
+
+        @Override
         public String toString() {
             return "DefaultJvmInstallationMetadata{" +
                     "languageVersion=" + languageVersion +
@@ -389,6 +406,11 @@ public interface JvmInstallationMetadata {
         @Override
         public boolean isValidInstallation() {
             return false;
+        }
+
+        @Override
+        public Jvm asJvm() {
+            throw unsupportedOperation();
         }
     }
 

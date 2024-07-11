@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -36,14 +36,14 @@ public interface DaemonJvmCriteria {
      * @param detector The detector to use to probe the JVM if needed
      * @return The Java language version of the JVM criteria
      */
-    JavaLanguageVersion probeJavaLanguageVersion(JvmVersionDetector detector);
+    JavaLanguageVersion probeJavaLanguageVersion(JvmDetector detector);
 
     /**
      * Selects the current JVM, known as the Launcher JVM.
      */
     final class LauncherJvm implements DaemonJvmCriteria {
         @Override
-        public JavaLanguageVersion probeJavaLanguageVersion(JvmVersionDetector detector) {
+        public JavaLanguageVersion probeJavaLanguageVersion(JvmDetector detector) {
             return JavaLanguageVersion.current();
         }
 
@@ -82,11 +82,6 @@ public interface DaemonJvmCriteria {
         private final File javaHome;
 
         public JavaHome(Source source, File javaHome) {
-            // Sanity check the Java home
-            if (!javaHome.isDirectory()) {
-                throw new IllegalArgumentException("Java home '" + javaHome.getAbsolutePath() + "' is not a directory");
-            }
-            Jvm.forHome(javaHome); // Throws an exception if the Java home is invalid
             this.source = source;
             this.javaHome = javaHome;
         }
@@ -96,8 +91,8 @@ public interface DaemonJvmCriteria {
         }
 
         @Override
-        public JavaLanguageVersion probeJavaLanguageVersion(JvmVersionDetector detector) {
-            return JavaLanguageVersion.of(detector.getJavaVersionMajor(Jvm.forHome(javaHome)));
+        public JavaLanguageVersion probeJavaLanguageVersion(JvmDetector detector) {
+            return JavaLanguageVersion.of(detector.detectJvm(javaHome).getJavaVersionMajor());
         }
 
         @Override
@@ -145,7 +140,7 @@ public interface DaemonJvmCriteria {
         }
 
         @Override
-        public JavaLanguageVersion probeJavaLanguageVersion(JvmVersionDetector detector) {
+        public JavaLanguageVersion probeJavaLanguageVersion(JvmDetector detector) {
             return getJavaVersion();
         }
 

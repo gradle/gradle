@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -45,7 +45,7 @@ public class GroovyServices extends AbstractGradleModuleServices {
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory,
             JavaForkOptionsFactory forkOptionsFactory,
             AnnotationProcessorDetector processorDetector,
-            JvmVersionDetector jvmVersionDetector,
+            JvmDetector jvmDetector,
             WorkerDirectoryProvider workerDirectoryProvider,
             ClassPathRegistry classPathRegistry,
             ClassLoaderRegistry classLoaderRegistry,
@@ -58,7 +58,7 @@ public class GroovyServices extends AbstractGradleModuleServices {
                 inProcessWorkerFactory,
                 forkOptionsFactory,
                 processorDetector,
-                jvmVersionDetector,
+                jvmDetector,
                 workerDirectoryProvider,
                 classPathRegistry,
                 classLoaderRegistry,

@@ -103,7 +103,7 @@ public class DefaultConnection implements ConnectionVersion4,
         connection.configure(providerConnectionParameters, consumerVersion);
     }
 
-    private void assertUsingSupportedJavaVersion() {
+    private static void assertUsingSupportedJavaVersion() {
         try {
             UnsupportedJavaRuntimeException.assertUsingSupportedDaemonVersion();
         } catch (IllegalArgumentException e) {

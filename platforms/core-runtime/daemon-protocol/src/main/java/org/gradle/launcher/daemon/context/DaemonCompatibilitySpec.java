@@ -16,11 +16,11 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.internal.jvm.DefaultJavaInfo;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -69,19 +69,20 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(potentialContext.getJavaVersion(), potentialContext.getJavaVendor());
         }
         try {
-            File potentialJavaHome = potentialContext.getJavaHome();
-            JavaInfo desiredJavaInfo;
+            JavaInfo desiredJvm;
             if (criteria instanceof DaemonJvmCriteria.JavaHome) {
-                desiredJavaInfo = Jvm.forHome(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
+                desiredJvm = DefaultJavaInfo.forHome(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
             } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
-                desiredJavaInfo = Jvm.current();
+                desiredJvm = Jvm.current();
             } else {
                 throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
             }
-            if (potentialJavaHome.exists() && desiredJavaInfo != null) {
-                File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
-                File desiredJava = desiredJavaInfo.getJavaExecutable();
-                return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+            JavaInfo potentialJvm = DefaultJavaInfo.forHome(potentialContext.getJavaHome());
+            if (potentialJvm != null && desiredJvm != null) {
+                return Files.isSameFile(
+                    potentialJvm.getJavaHome().toPath(),
+                    desiredJvm.getJavaHome().toPath()
+                );
             }
         } catch (IOException e) {
             // ignore

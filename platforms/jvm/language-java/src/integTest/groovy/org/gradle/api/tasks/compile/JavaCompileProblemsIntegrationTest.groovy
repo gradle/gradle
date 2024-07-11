@@ -438,8 +438,8 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         }
 
         where:
-        jdk << AvailableJavaHomes.getAvailableJdks {
-            it.languageVersion.isJava9Compatible()
+        jdk << AvailableJavaHomes.getAvailableCompilationJdks().findAll {
+            it.javaVersion.isJava9Compatible()
         }
     }
 

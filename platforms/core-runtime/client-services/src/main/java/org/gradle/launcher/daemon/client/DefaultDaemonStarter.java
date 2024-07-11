@@ -27,8 +27,9 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.FlushableEncoder;
@@ -52,6 +53,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,14 +69,21 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonDir daemonDir;
     private final DaemonParameters daemonParameters;
     private final DaemonGreeter daemonGreeter;
-    private final JvmVersionValidator versionValidator;
+    private final JvmDetector jvmDetector;
     private final DaemonJavaToolchainQueryService daemonJavaToolchainQueryService;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
+    @Inject
+    public DefaultDaemonStarter(
+        DaemonDir daemonDir,
+        DaemonParameters daemonParameters,
+        DaemonGreeter daemonGreeter,
+        JvmDetector jvmDetector,
+        DaemonJavaToolchainQueryService daemonJavaToolchainQueryService
+    ) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonGreeter = daemonGreeter;
-        this.versionValidator = versionValidator;
+        this.jvmDetector = jvmDetector;
         this.daemonJavaToolchainQueryService = daemonJavaToolchainQueryService;
     }
 
@@ -83,19 +92,21 @@ public class DefaultDaemonStarter implements DaemonStarter {
         String daemonUid = UUID.randomUUID().toString();
 
         DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-        final JavaInfo resolvedJvm;
+        Jvm resolvedJvm;
         if (criteria instanceof DaemonJvmCriteria.Spec) {
             // Gradle daemon properties have been defined
             IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
             JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain((DaemonJvmCriteria.Spec) criteria);
-            resolvedJvm = Jvm.forHome(jvmInstallationMetadata.getJavaHome().toFile());
+            resolvedJvm = jvmInstallationMetadata.asJvm();
         } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
-            resolvedJvm = Jvm.forHome(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
+            resolvedJvm = jvmDetector.detectJvm(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
         } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
             resolvedJvm = Jvm.current();
         } else {
             throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
+
+        UnsupportedJavaRuntimeException.assertIsSupportedDaemonJvmVersion(Integer.parseInt(resolvedJvm.getJavaVersion().getMajorVersion()));
 
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
         ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
@@ -115,8 +126,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
-
-        versionValidator.validate(resolvedJvm);
 
         List<String> daemonArgs = new ArrayList<>();
         daemonArgs.addAll(getPriorityArgs(daemonParameters.getPriority()));

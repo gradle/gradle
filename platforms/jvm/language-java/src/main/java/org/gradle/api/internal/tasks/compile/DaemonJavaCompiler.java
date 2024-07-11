@@ -20,8 +20,8 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.jvm.DefaultJavaInfo;
 import org.gradle.internal.jvm.JavaInfo;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
@@ -62,7 +62,10 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         }
         ForkingJavaCompileSpec forkingSpec = (ForkingJavaCompileSpec) spec;
 
-        JavaInfo jvm = Jvm.forHome(((ForkingJavaCompileSpec) spec).getJavaHome());
+        JavaInfo jvm = DefaultJavaInfo.forHome(((ForkingJavaCompileSpec) spec).getJavaHome());
+        if (jvm == null) {
+            throw new IllegalStateException("Could not find a valid JDK at " + forkingSpec.getJavaHome());
+        }
 
         MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);

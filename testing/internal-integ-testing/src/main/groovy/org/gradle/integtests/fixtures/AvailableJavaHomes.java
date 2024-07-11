@@ -29,7 +29,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
@@ -64,13 +63,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
@@ -191,70 +189,57 @@ public abstract class AvailableJavaHomes {
      */
     public static List<Jvm> getJdks(JavaVersion... versions) {
         final Set<JavaVersion> remaining = Sets.newHashSet(versions);
-        return getAvailableJdks(element -> remaining.remove(element.getLanguageVersion()));
+        return getAvailableJdks(element -> remaining.remove(element.getLanguageVersion())).collect(Collectors.toList());
     }
 
     /**
      * Returns all JDKs for the given java version.
      */
     public static List<Jvm> getAvailableJdks(final JavaVersion version) {
-        return getAvailableJdks(element -> version.equals(element.getLanguageVersion()));
+        return getAvailableJdks(element -> version.equals(element.getLanguageVersion())).collect(Collectors.toList());
     }
 
-    public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
+    private static Stream<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
         return getAvailableJvmMetadatas().stream()
             .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
             .filter(filter::isSatisfiedBy)
-            .map(AvailableJavaHomes::jvmFromMetadata)
-            .collect(Collectors.toList());
-    }
-
-    public static List<Jvm> getAvailableJvms() {
-        return getAvailableJvmMetadatas().stream().map(AvailableJavaHomes::jvmFromMetadata).collect(Collectors.toList());
-    }
-
-    public static List<Jvm> getAvailableJvms(final Spec<? super JvmInstallationMetadata> filter) {
-        return getAvailableJvmMetadatas().stream()
-            .filter(filter::isSatisfiedBy)
-            .map(AvailableJavaHomes::jvmFromMetadata)
-            .collect(Collectors.toList());
-    }
-
-    public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
-        Map<Jvm, JavaVersion> result = new HashMap<>();
-        for (JavaVersion javaVersion : JavaVersion.values()) {
-            for (Jvm javaInfo : getAvailableJdks(javaVersion)) {
-                result.put(javaInfo, javaVersion);
-            }
-        }
-        return result;
-    }
-
-    public static Map<JavaInfo, JavaVersion> getAvailableJdksWithJavac() {
-        return getAvailableJdksWithVersion()
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getKey().getJavacExecutable()!=null && entry.getValue().isJava8Compatible())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .map(JvmInstallationMetadata::asJvm);
     }
 
     @Nullable
     public static Jvm getAvailableJdk(final Spec<? super JvmInstallationMetadata> filter) {
-        return Iterables.getFirst(getAvailableJdks(filter), null);
+        return getAvailableJdks(filter).findFirst().orElse(null);
+    }
+
+    public static List<Jvm> getAvailableJvms() {
+        return getAvailableJvmMetadatas().stream()
+            .map(JvmInstallationMetadata::asJvm)
+            .collect(Collectors.toList());
+    }
+
+    private static Stream<Jvm> getAvailableJvms(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJvmMetadatas().stream()
+            .filter(filter::isSatisfiedBy)
+            .map(JvmInstallationMetadata::asJvm);
+    }
+
+    public static Jvm getAvailableJvm(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJvms(filter).findFirst().orElse(null);
+    }
+
+    public static List<Jvm> getAvailableCompilationJdks() {
+        return getAvailableJdks(it -> it.getLanguageVersion().isJava8Compatible())
+            .collect(Collectors.toList());
     }
 
     @Nullable
     private static Jvm getSupportedJdk(final Spec<? super JvmInstallationMetadata> filter) {
-        return getAvailableJdk(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it));
+        return getAvailableJdk(it -> DISTRIBUTION.worksWith(it.asJvm()) && filter.isSatisfiedBy(it));
     }
 
     @Nullable
     private static Jvm getSupportedJvm(final Spec<? super JvmInstallationMetadata> filter) {
-        return Iterables.getFirst(getAvailableJvms(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it)), null);
-    }
-
-    private static boolean isSupportedVersion(JvmInstallationMetadata jvmInstallation) {
-        return DISTRIBUTION.worksWith(jvmFromMetadata(jvmInstallation));
+        return getAvailableJvm(it -> DISTRIBUTION.worksWith(it.asJvm()) && filter.isSatisfiedBy(it));
     }
 
     /**
@@ -310,8 +295,7 @@ public abstract class AvailableJavaHomes {
      * Returns a JDK that has a different Java home to the current one, is supported by the Gradle version under tests and has a valid JRE.
      */
     public static Jvm getDifferentJdkWithValidJre() {
-        return getSupportedJdk(jvm -> !isCurrentJavaHome(jvm)
-            && Jvm.discovered(jvm.getJavaHome().toFile(), null, Integer.parseInt(jvm.getLanguageVersion().getMajorVersion())).getJre() != null);
+        return getSupportedJdk(jvm -> !isCurrentJavaHome(jvm) && jvm.asJvm().getJre() != null);
     }
 
     public static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
@@ -334,10 +318,6 @@ public abstract class AvailableJavaHomes {
             .filter(it -> it.getJavaHome().equals(targetJavaHome))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No JVM installation found for " + jvm));
-    }
-
-    private static Jvm jvmFromMetadata(JvmInstallationMetadata metadata) {
-        return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getJavaVersion(), Integer.parseInt(metadata.getLanguageVersion().getMajorVersion()));
     }
 
     public static List<JvmInstallationMetadata> getAvailableJvmMetadatas() {
