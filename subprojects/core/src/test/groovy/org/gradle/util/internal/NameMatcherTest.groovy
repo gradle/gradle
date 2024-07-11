@@ -64,12 +64,6 @@ class NameMatcherTest extends Specification {
         matches("a9n", "abc9Name")
     }
 
-    def "does not select items when multiple camel case match with one containing unmatched word in between"() {
-        expect:
-        matcher.find("someNameWith", ["someNameWithExtra", "someNameRandomWithExtra", "other"]) == null
-            && matcher.matches == ["someNameWithExtra", "someNameRandomWithExtra"] as Set
-    }
-
     def "selects item with matching kebab case prefix"() {
         expect:
         matches("sN", "some-name")
@@ -136,8 +130,8 @@ class NameMatcherTest extends Specification {
         matches("soNa", "someName", "somename")
         matches("SN", "SomeName", "someName")
         matches("na1", "name1", "Name1", "NAME1")
-        matches("soNaWiEx", "someNameWithExtra", "someNameRandomWithExtra", "other")
-        matches("sNRWE", "someNameRandomWithExtra", "someNameWithExtra", "other")
+        matches("sNW", "someNameWithExtra", "someNameWordWithExtra")
+        matches("someNameWith", "someNameWithExtra", "someNameWordWithExtra")
     }
 
     def "prefers case insensitive match over camel case match"() {
