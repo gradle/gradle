@@ -5,6 +5,11 @@ import org.gradle.internal.declarativedsl.dom.mutation.*
 import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 
+interface AndroidPrototypeMutationDefinition : MutationDefinition {
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
+        projectAnalysisSchema.hasAndroidPrototype()
+}
+
 object EnableLintMutation : AndroidPrototypeMutationDefinition {
     override val id: String = "org.gradle.client.demo.mutations.lintEnable"
     override val name: String = "Enable Lint"
