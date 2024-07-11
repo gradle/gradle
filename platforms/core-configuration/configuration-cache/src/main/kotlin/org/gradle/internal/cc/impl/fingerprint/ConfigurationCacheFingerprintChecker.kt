@@ -161,7 +161,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
+    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = computeIfAbsent(path, ::ProjectInvalidationState)
 
     @Suppress("CyclomaticComplexMethod")
     private
@@ -421,7 +421,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    class ProjectInvalidationState {
+    class ProjectInvalidationState(private val identityPath: Path) {
         // When not null, the project is definitely invalid
         // When null, validity is not known
         private
@@ -460,7 +460,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         private
         fun invalidateConsumer(consumer: ProjectInvalidationState) {
             consumer.invalidate {
-                text("project dependency has changed")
+                text("project dependency ")
+                reference(identityPath.toString())
+                text(" has changed")
             }
         }
     }

@@ -266,13 +266,13 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                 [
                     identityPath: ":b",
                     invalidationReasons: [
-                        [message: "project dependency has changed"]
+                        [message: "project dependency ':a' has changed"]
                     ]
                 ]
             ]
         }
         outputContains("file 'a/build.gradle' has changed")
-        outputDoesNotContain("project dependency has changed")
+        outputDoesNotContain("project dependency ':a' has changed")
     }
 
     def "emits fingerprint check operation with invalidated project being first"() {
@@ -317,13 +317,13 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                 [
                     identityPath: ":a",
                     invalidationReasons: [
-                        [message: "project dependency has changed"]
+                        [message: "project dependency ':b' has changed"]
                     ]
                 ],
             ]
         }
         outputContains("file 'b/build.gradle' has changed")
-        outputDoesNotContain("project dependency has changed")
+        outputDoesNotContain("project dependency ':b' has changed")
     }
 
     def "emits fingerprint check operation when invalidating included build"() {
