@@ -70,7 +70,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-abstract class AbstractIntegrationSpec extends Specification {
+abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -195,160 +195,6 @@ abstract class AbstractIntegrationSpec extends Specification {
         return "junit:junit:4.13"
     }
 
-    /**
-     * <b>Appends</b> provided code to the {@link #getBuildFile() default build file}.
-     * <p>
-     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void buildFile(@GroovyBuildScriptLanguage String append) {
-        buildFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given build file.
-     * <p>
-     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
-        file(buildFile) << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given build file.
-     * <p>
-     * Use {@link #buildScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void buildFile(TestFile buildFile, @GroovyBuildScriptLanguage String append) {
-        buildFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the {@link #getSettingsFile() default settings file}.
-     * <p>
-     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void settingsFile(@GroovySettingsScriptLanguage String append) {
-        settingsFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given settings file.
-     * <p>
-     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
-        file(settingsFile) << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given settings file.
-     * <p>
-     * Use {@link #settingsScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void settingsFile(TestFile settingsFile, @GroovySettingsScriptLanguage String append) {
-        settingsFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the {@link #getInitScriptFile() default init script file}.
-     * <p>
-     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void initScriptFile(@GroovyInitScriptLanguage String append) {
-        initScriptFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given init script file.
-     * <p>
-     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
-        file(initScriptFile) << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given init script file.
-     * <p>
-     * Use {@link #initScript(java.lang.String)} to <b>set (replace)</b> the entire file contents instead.
-     */
-    void initScriptFile(TestFile initScriptFile, @GroovyInitScriptLanguage String append) {
-        initScriptFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given Java file.
-     */
-    void javaFile(String targetFile, @Language('java') String append) {
-        file(targetFile) << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given Java file.
-     */
-    void javaFile(TestFile targetFile, @Language('java') String append) {
-        targetFile << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given Groovy file.
-     * <p>
-     * Consider specialized methods for Gradle scripts:
-     * <ul>
-     * <li>{@link #buildFile(java.lang.String, java.lang.String)}
-     * <li>{@link #settingsFile(java.lang.String, java.lang.String)}
-     * <li>{@link #initScriptFile(java.lang.String, java.lang.String)}
-     * </ul>
-     */
-    void groovyFile(String targetFile, @Language('groovy') String append) {
-        file(targetFile) << append
-    }
-
-    /**
-     * <b>Appends</b> provided code to the given Groovy file.
-     * <p>
-     * Consider specialized methods for Gradle scripts:
-     * <ul>
-     * <li>{@link #buildFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
-     * <li>{@link #settingsFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
-     * <li>{@link #initScriptFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
-     * </ul>
-     */
-    void groovyFile(TestFile targetFile, @Language('groovy') String append) {
-        targetFile << append
-    }
-
-    /**
-     * Provides syntax highlighting for the snippet of the build script code.
-     *
-     * @return the same snippet
-     */
-    static String buildScriptSnippet(@GroovyBuildScriptLanguage String snippet) {
-        snippet
-    }
-
-    /**
-     * Provides syntax highlighting for the snippet of the settings script code.
-     *
-     * @return the same snippet
-     */
-    static String settingsScriptSnippet(@GroovySettingsScriptLanguage String snippet) {
-        snippet
-    }
-
-    /**
-     * Provides syntax highlighting for the snippet of the init script code.
-     *
-     * @return the same snippet
-     */
-    static String initScriptSnippet(@GroovyInitScriptLanguage String snippet) {
-        snippet
-    }
-
-    void versionCatalogFile(@Language("toml") String script) {
-        versionCatalogFile << script
-    }
-
     TestFile getBuildKotlinFile() {
         testDirectory.file(defaultBuildKotlinFileName)
     }
@@ -360,32 +206,6 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected String getDefaultBuildKotlinFileName() {
         'build.gradle.kts'
     }
-
-    /**
-     * Sets (replacing) the contents of the build.gradle file.
-     *
-     * To append, use #buildFile(String).
-     */
-    protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
-        buildFile.text = script
-        buildFile
-    }
-
-    /**
-     * Sets (replacing) the contents of the settings.gradle file.
-     *
-     * To append, use #settingsFile(String)
-     */
-    protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
-        settingsFile.text = script
-        settingsFile
-    }
-
-    protected TestFile initScript(@GroovyBuildScriptLanguage String script) {
-        initScriptFile.text = script
-        initScriptFile
-    }
-
 
     protected TestFile getSettingsFile() {
         testDirectory.file(settingsFileName)

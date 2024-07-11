@@ -33,7 +33,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
     def "treats invalid argument as build failure and throws if not expected"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
 
         when:
         runner('helloWorld', '--unknown').build()
@@ -44,7 +44,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
     def "treats invalid argument as build failure and does not throw if expected"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
 
         when:
         runner('helloWorld', '--unknown').buildAndFail()
@@ -105,7 +105,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
     @InspectsExecutedTasks
     def "build fails if project directory does not exist and provides diagnostic information"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
         def nonExistentWorkingDir = new File('some/path/that/does/not/exist')
 
         when:

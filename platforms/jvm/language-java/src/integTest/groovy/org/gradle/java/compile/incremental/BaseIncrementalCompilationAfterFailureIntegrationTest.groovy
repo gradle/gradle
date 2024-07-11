@@ -437,7 +437,8 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
     @Issue("https://github.com/gradle/gradle/issues/21644")
     def "removes all classes for a recompiled source from output to stash dir for Spock tests when super class is changed"() {
         given:
-        buildScript """
+        buildFile.clear()
+        buildFile """
             plugins {
                 id 'groovy'
                 id 'java-library'

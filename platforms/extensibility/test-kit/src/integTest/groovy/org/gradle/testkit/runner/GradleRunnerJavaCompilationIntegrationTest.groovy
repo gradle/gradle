@@ -20,7 +20,7 @@ class GradleRunnerJavaCompilationIntegrationTest extends BaseGradleRunnerIntegra
 
     def "can compile Java code through TestKit"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id 'java'
             }

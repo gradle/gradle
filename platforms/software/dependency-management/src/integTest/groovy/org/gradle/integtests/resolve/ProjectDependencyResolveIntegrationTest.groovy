@@ -503,7 +503,7 @@ project('c') {
         given:
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
-        buildScript '''
+        buildFile '''
             subprojects {
                 apply plugin: 'base'
                 task jar(type: Jar)

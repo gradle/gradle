@@ -103,7 +103,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     def "native services flag should be passed to the daemon and to the worker"() {
         given:
         executer.withArguments(systemProperties.collect { it.toString() })
-        buildScript("""
+        buildFile("""
             import org.gradle.workers.WorkParameters
             import org.gradle.internal.nativeintegration.services.NativeServices
             import org.gradle.internal.nativeintegration.NativeCapabilities
@@ -148,7 +148,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     def "native services are not initialized inside a test executor but should be initialized for a build inside the executor"() {
         given:
         def nativeDirOverride = normaliseFileSeparators(new File(tmpDir.testDirectory, 'native-libs-for-test-executor').absolutePath)
-        buildScript("""
+        buildFile("""
             plugins {
                 id("java-gradle-plugin")
                 id("groovy")

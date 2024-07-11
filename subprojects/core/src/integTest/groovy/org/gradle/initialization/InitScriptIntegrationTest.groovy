@@ -32,7 +32,7 @@ import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip
 class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     private void createProject() {
-        buildScript """
+        buildFile """
             task hello() {
                 doLast {
                     println "Hello from main project"

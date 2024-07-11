@@ -364,7 +364,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             """
         }
 
-        buildScript("""
+        buildFile("""
             buildscript {
                 dependencies {
                     classpath "org.gradle.test:mrjar:1.+"
@@ -430,7 +430,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 """)
             }
         }
-        buildScript("""
+        buildFile("""
             abstract class LambdaTask extends DefaultTask {
                 @Input
                 abstract ListProperty<Runnable> getMyActions()
@@ -504,9 +504,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
 
-        settingsScript("""
+        settingsFile """
             include "reproducible", "current"
-        """)
+        """
 
         file("reproducible/build.gradle").text = subprojectSource(reproducibleJar)
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)

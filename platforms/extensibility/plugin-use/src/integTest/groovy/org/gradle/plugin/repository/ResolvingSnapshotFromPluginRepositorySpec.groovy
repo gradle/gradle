@@ -48,7 +48,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
     def 'Can specify snapshot version'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.0-SNAPSHOT'
           }
@@ -70,7 +70,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
     def 'setting different snapshot version in resolutionStrategy will affect plugin choice'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1000'
           }
@@ -98,7 +98,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
     def 'can specify a snapshot artifact to use'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin"
           }
