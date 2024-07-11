@@ -29,6 +29,10 @@ public interface BuildScopeModelBuilder extends ToolingModelBuilder {
      * No synchronization is applied to the target, so this method may be called for a given target concurrently by multiple threads.
      * Other threads may also be doing work with the target when this method is called.
      * This method is responsible for any synchronization required to create the model.
+     *
+     * Even though this interface primarily offers model building without configuring the build, there
+     * are cases when such builders can be used as regular builders (for example as part of larger build actions),
+     * that's why they need extend {@code ToolingModelBuilder} too.
      */
     Object create(BuildState target);
 
