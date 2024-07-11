@@ -10,30 +10,10 @@ interface AndroidPrototypeMutationDefinition : MutationDefinition {
         projectAnalysisSchema.hasAndroidPrototype()
 }
 
-object EnableLintMutation : AndroidPrototypeMutationDefinition {
-    override val id: String = "org.gradle.client.demo.mutations.lintEnable"
-    override val name: String = "Enable Lint"
-    override val description: String = "Enable linting for Android"
-
-    override val parameters: List<MutationParameter<*>> =
-        emptyList()
-
-    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
-        with(projectAnalysisSchema) {
-            listOf(
-                ModelMutationRequest(
-                    ScopeLocation.fromTopLevel().inObjectsOfType(androidSoftware),
-                    ModelMutation.AddConfiguringBlockIfAbsent(androidLint)
-                ),
-                ModelMutationRequest(
-                    ScopeLocation.fromTopLevel().inObjectsOfType(androidSoftware).inObjectsConfiguredBy(androidLint),
-                    ModelMutation.SetPropertyValue(
-                        androidLintEnabled,
-                        NewValueNodeProvider.Constant(valueFromString("true")!!)
-                    )
-                )
-            )
-        }
+object EnableAndroidLintMutation :
+    EnableLintMutation({ androidSoftware }, { androidLint }, { lintEnabled }),
+    AndroidPrototypeMutationDefinition {
+    override val id: String = "org.gradle.client.demo.mutations.lintEnable.android"
 }
 
 object SetVersionCodeMutation : AndroidPrototypeMutationDefinition {

@@ -23,9 +23,3 @@ val AnalysisSchema.testing: DataClass
 
 val AnalysisSchema.androidLint: TypedMember.TypedFunction
     get() = androidSoftware.singleFunctionNamed("lint")
-
-val AnalysisSchema.androidLintEnabled: TypedMember.TypedProperty
-    get() = typeByFqn("org.gradle.api.experimental.common.extensions.Lint").propertyNamed("enabled")
-
-private fun AnalysisSchema.typeByFqn(name: String): DataClass =
-    dataClassesByFqName.entries.single { it.key.qualifiedName == name }.value

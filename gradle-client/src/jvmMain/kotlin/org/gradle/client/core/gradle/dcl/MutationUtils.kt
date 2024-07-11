@@ -15,12 +15,24 @@ import java.io.File
 
 object MutationUtils {
     val mutationCatalog = DefaultMutationDefinitionCatalog().apply {
-        registerMutationDefinition(EnableLintMutation)
+        // Android:
+        registerMutationDefinition(EnableAndroidLintMutation)
         registerMutationDefinition(SetVersionCodeMutation)
         registerMutationDefinition(SetNamespaceMutation)
         registerMutationDefinition(addLibraryDependencyMutation)
         registerMutationDefinition(addApplicationDependencyMutation)
         registerMutationDefinition(addTestingDependencyMutation)
+        
+        // Kotlin/JVM
+        registerMutationDefinition(EnableKotlinLintMutation)
+        
+        // KMP
+        registerMutationDefinition(addKmpLibraryJvmTarget)
+        registerMutationDefinition(addKmpLibraryNodeJsTarget)
+        registerMutationDefinition(addKmpLibraryMacosArm64Target)
+        registerMutationDefinition(addKmpApplicationJvmTarget)
+        registerMutationDefinition(addKmpApplicationNodeJsTarget)
+        registerMutationDefinition(addKmpApplicationMacosArm64Target)
     }
 
     fun checkApplicabilityForOverlay(
