@@ -563,7 +563,14 @@ class DefaultConfigurationCache internal constructor(
             //println("owner: $owner")
             operations.add(object : RunnableBuildOperation {
                 override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor.displayName("Saving work nodes for $owner")
+                    BuildOperationDescriptor
+                        .displayName("Saving work nodes for $owner")
+                        .progressDisplayName(
+                            when (owner) {
+                                NodeOwner.NoProject -> "tasks in other builds"
+                                is NodeOwner.Project -> owner.project.path
+                            }
+                        )
 
                 override fun run(context: BuildOperationContext) {
                     when (owner) {
@@ -632,8 +639,12 @@ class DefaultConfigurationCache internal constructor(
                 continue
             }
             operations.add(object : RunnableBuildOperation {
-                override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor.displayName("Reading work nodes for $projectPath")
+                override fun description(): BuildOperationDescriptor.Builder {
+                    val pathString = projectPath.toString()
+                    return BuildOperationDescriptor
+                        .displayName(pathString)
+                        .progressDisplayName(pathString)
+                }
 
                 override fun run(context: BuildOperationContext) {
 
@@ -652,7 +663,9 @@ class DefaultConfigurationCache internal constructor(
         if (projectStateFile.exists) {
             operations.add(object : RunnableBuildOperation {
                 override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor.displayName("Reading work nodes for tasks in other builds")
+                    BuildOperationDescriptor
+                        .displayName("tasks in other builds")
+                        .progressDisplayName("tasks in other builds")
 
                 override fun run(context: BuildOperationContext) {
                     val (originalBuildId, scheduledNodes, nodesById) = cacheIO.readRootBuildWorkNodesFrom(build, projectStateFile)
