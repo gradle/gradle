@@ -18,6 +18,7 @@ package org.gradle.test.preconditions
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
 import org.testcontainers.DockerClientFactory
@@ -200,6 +201,40 @@ class UnitTestPreconditions {
                 return false
             }
             return true
+        }
+    }
+
+    /**
+     * The current JVM is not able to run the Gradle daemon.
+     */
+    static final class UnsupportedDaemonJdkVersion implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            def currentMajor = Integer.parseInt(JavaVersion.current().majorVersion)
+            return currentMajor < SupportedJavaVersions.MINIMUM_JAVA_VERSION
+        }
+    }
+
+    /**
+     * The current JVM can run the Gradle daemon, but will not be able to in the next major version.
+     */
+    static final class DeprecatedDaemonJdkVersion implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            def currentMajor = Integer.parseInt(JavaVersion.current().majorVersion)
+            return (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION) &&
+                (currentMajor >= SupportedJavaVersions.MINIMUM_JAVA_VERSION)
+        }
+    }
+
+    /**
+     * The current JVM can run the Gradle daemon, and will continue to be able to in the next major version.
+     */
+    static final class NonDeprecatedDaemonJdkVersion implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            def currentMajor = Integer.parseInt(JavaVersion.current().majorVersion)
+            return currentMajor >= SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION
         }
     }
 

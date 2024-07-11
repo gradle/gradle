@@ -111,7 +111,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         buildFile << addOpens()
 
         expect:
-        executer.withArgument("--info")
         succeeds("test")
     }
 

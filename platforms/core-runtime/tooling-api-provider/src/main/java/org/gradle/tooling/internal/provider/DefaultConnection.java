@@ -105,7 +105,7 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private void assertUsingSupportedJavaVersion() {
         try {
-            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", 8);
+            UnsupportedJavaRuntimeException.assertUsingSupportedDaemonVersion();
         } catch (IllegalArgumentException e) {
             LOGGER.warn(e.getMessage());
         }
