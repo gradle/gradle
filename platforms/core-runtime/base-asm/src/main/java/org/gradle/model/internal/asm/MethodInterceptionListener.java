@@ -23,5 +23,7 @@ public interface MethodInterceptionListener {
 
     MethodInterceptionListener NO_OP = (owner, name, descriptor) -> {};
 
+    MethodInterceptionListener OUTPUT_TO_CONSOLE = (owner, name, descriptor) -> System.out.println("Intercepted method: " + owner + "#" + name + descriptor);
+
     void onInterceptedMethodIns(String owner, String name, String descriptor);
 }
