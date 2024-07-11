@@ -647,15 +647,10 @@ class DefaultConfigurationCache internal constructor(
                 }
 
                 override fun run(context: BuildOperationContext) {
-
-                    val projectState = host.currentBuild.gradle.owner.projects.getProject(projectPath)
-
-                    projectState.applyToMutableState {
-                        val (originalBuildId, scheduledNodes, nodesById) = cacheIO.readRootBuildWorkNodesFrom(build, projectStateFile)
-                        allScheduledNodes.addAll(scheduledNodes)
-                        allNodesById.putAll(nodesById)
-                        allPerProjectOriginalBuildIds.add(originalBuildId)
-                    }
+                    val (originalBuildId, scheduledNodes, nodesById) = cacheIO.readRootBuildWorkNodesFrom(build, projectStateFile)
+                    allScheduledNodes.addAll(scheduledNodes)
+                    allNodesById.putAll(nodesById)
+                    allPerProjectOriginalBuildIds.add(originalBuildId)
                 }
             })
         }
