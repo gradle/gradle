@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.evaluator.checks
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
+import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.features.InterpretationStepFeatureHandler
 import org.gradle.internal.declarativedsl.language.SourceData
@@ -30,7 +31,7 @@ interface DocumentCheck : InterpretationStepFeatureHandler<InterpretationStepFea
     override fun shouldHandleFeature(feature: InterpretationStepFeature.DocumentChecks): Boolean =
         checkKey in feature.checkKeys
 
-    fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer): List<DocumentCheckFailure>
+    fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer, isAnalyzedNode: NodeData<Boolean>): List<DocumentCheckFailure>
 }
 
 
