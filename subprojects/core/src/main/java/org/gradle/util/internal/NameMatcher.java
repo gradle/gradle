@@ -18,6 +18,7 @@ package org.gradle.util.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.internal.jvm.Jvm;
 
 import java.util.Collection;
 import java.util.Map;
@@ -147,16 +148,20 @@ public class NameMatcher {
                 builder.append(Pattern.quote(prefix));
             }
             builder.append(Pattern.quote(matcher.group()));
-            // Manually extend character class instead of properties
-            // (\p{Ll}, \p{javaLowerCase}) to select lowercase characters
-            // due to a known issue in regex below Java 15.
-            // Reference of fix made on java 15 - https://bugs.openjdk.org/browse/JDK-8239887.
-            // \u00DF-\u00F6(ß-ö) - Covers extended Latin lowercase letters including German
-            //  Eszett and various accented characters.
-            // \u00F8-\u00FF(ø-ÿ) - Covers extended Latin lowercase letters including ø,
-            //  accented vowels, and the thorn.
-            // Note: this approach is not as comprehensive as properties.
-            builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
+            Integer currentJavaVersionMajor = Jvm.current().getJavaVersionMajor();
+            if (currentJavaVersionMajor != null && currentJavaVersionMajor >= 15) {
+                builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
+            } else {
+                // Manually extend character class instead of properties
+                // due to a known issue in regex below Java 15
+                // (https://bugs.openjdk.org/browse/JDK-8239887).
+                // \u00DF-\u00F6(ß-ö) - Covers extended Latin lowercase letters including German
+                //  Eszett and various accented characters.
+                // \u00F8-\u00FF(ø-ÿ) - Covers extended Latin lowercase letters including ø,
+                //  accented vowels, and the thorn.
+                // Note: this approach is not as comprehensive as properties.
+                builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
+            }
             pos = matcher.end();
         }
         builder.append(Pattern.quote(name.substring(pos)));
