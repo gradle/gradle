@@ -47,7 +47,5 @@ val AnalysisSchema.kmpApplicationTargetsNodeJs: TypedMember.TypedFunction
 val AnalysisSchema.kmpApplicationTargetsMacOsArm64: TypedMember.TypedFunction
     get() = kmpApplicationTargets.singleConfiguringFunctionNamed("macOsArm64")
 
-
-
 val AnalysisSchema.kotlinJvmLibraryLint: TypedMember.TypedFunction
     get() = kotlinJvmLibrary.singleFunctionNamed("lint")

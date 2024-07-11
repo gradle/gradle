@@ -23,6 +23,10 @@ object MutationUtils {
         registerMutationDefinition(addApplicationDependencyMutation)
         registerMutationDefinition(addTestingDependencyMutation)
         
+        // Java
+        registerMutationDefinition(SetJvmApplicationMainClass)
+        registerMutationDefinition(SetJavaVersion)
+        
         // Kotlin/JVM
         registerMutationDefinition(EnableKotlinLintMutation)
         
