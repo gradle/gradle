@@ -58,7 +58,7 @@ fun defaultDeclarativeScriptEvaluator(
     softwareTypeRegistry: SoftwareTypeRegistry
 ): DeclarativeKotlinScriptEvaluator = DefaultDeclarativeKotlinScriptEvaluator(
     schemaBuilder,
-    documentChecks = setOf(SettingsBlocksCheck),
+    documentChecks = setOf(SettingsBlocksCheck, UnsupportedSyntaxFeatureCheck),
     resolutionResultHandlers = setOf(
         ConventionApplicationHandler.DO_NOTHING,
         ConventionDefinitionCollector(softwareTypeRegistryBasedConventionRegistrar(softwareTypeRegistry))

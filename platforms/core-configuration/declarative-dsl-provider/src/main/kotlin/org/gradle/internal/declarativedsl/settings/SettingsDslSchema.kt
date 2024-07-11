@@ -35,6 +35,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndCon
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluator.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -49,7 +50,8 @@ fun settingsInterpretationSequence(
 ): InterpretationSequence =
     DefaultInterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
+            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement",
+                features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
             conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
             SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
