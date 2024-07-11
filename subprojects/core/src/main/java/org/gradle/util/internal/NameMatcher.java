@@ -147,8 +147,15 @@ public class NameMatcher {
                 builder.append(Pattern.quote(prefix));
             }
             builder.append(Pattern.quote(matcher.group()));
-            // Using explicit character selection instead of properties to select lowercase characters
+            // Manually extend character class instead of properties
+            // (\p{Ll}, \p{javaLowerCase}) to select lowercase characters
             // due to a known issue in regex below Java 15.
+            // Reference of fix made on java 15 - https://bugs.openjdk.org/browse/JDK-8239887.
+            // \u00DF-\u00F6(ß-ö) - Covers extended Latin lowercase letters including German
+            //  Eszett and various accented characters.
+            // \u00F8-\u00FF(ø-ÿ) - Covers extended Latin lowercase letters including ø,
+            //  accented vowels, and the thorn.
+            // Note: this approach is not as comprehensive as properties.
             builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
             pos = matcher.end();
         }
