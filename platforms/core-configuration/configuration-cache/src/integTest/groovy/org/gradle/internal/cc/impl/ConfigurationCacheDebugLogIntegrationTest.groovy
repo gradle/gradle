@@ -63,7 +63,7 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
 
         and: "Gradle and Work Graph events are logged"
         events.contains([profile: "build ':' state", type: "O", frame: "Gradle"])
-        events.contains([profile: "build ':' state", type: "O", frame: "Work Graph"])
+        events.contains([profile: "build ':' state", type: "O", frame: "Work Graph edges"])
 
         and: "state frame events are logged"
         events.contains([profile: "build ':' state", type: "O", frame: ":ok"])

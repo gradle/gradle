@@ -25,6 +25,9 @@ import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
+import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
@@ -57,9 +60,9 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
@@ -68,7 +71,9 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.OutputStream
+import java.util.Collections
 import java.util.Locale
 
 
@@ -181,6 +186,7 @@ class DefaultConfigurationCache internal constructor(
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
             val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
+//            println("loadOrScheduleRequestedTasks - cache hit")
             BuildTreeConfigurationCache.WorkGraphResult(
                 finalizedGraph,
                 wasLoadedFromCache = true,
@@ -189,6 +195,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
+//                println("loadOrScheduleRequestedTasks - cache miss")
                 saveWorkGraph()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -434,7 +441,7 @@ class DefaultConfigurationCache internal constructor(
             stateType = StateType.Work,
         ) { stateFile ->
             writeRootBuildState(stateFile)
-            writeWorkGraph(stateFile.stateFileForWorkGraph())
+            writeRootBuildWorkGraph(stateFile)
         }
     }
 
@@ -478,12 +485,17 @@ class DefaultConfigurationCache internal constructor(
             val (buildInvocationId, builds) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore)
             val partiallyLoadedBuilds = builds.filterIsInstance<BuildWithWorkPartiallyLoaded>()
             require(partiallyLoadedBuilds.size == 1)
-            val (buildInvocationId2, scheduledWork) = cacheIO.readRootBuildWorkGraphFrom(partiallyLoadedBuilds[0].build, stateFile.stateFileForWorkGraph())
+            val build = partiallyLoadedBuilds[0].build
+            val projectPaths = partiallyLoadedBuilds[0].projects.map { it.path }
+            val (buildInvocationId2, scheduledWork) = readRootBuildWorkGraph(build, stateFile, projectPaths)
             require(buildInvocationId == buildInvocationId2)
             val workGraph: BuildTreeWorkGraph.FinalizedGraph = calculateRootTaskGraph(builds, scheduledWork, graph, graphBuilder)
+            //println("Calculated: $workGraph")
             LoadResult(stateFile.stateFile.file, buildInvocationId) to workGraph
         }
     }
+
+
 
 
     private
@@ -527,23 +539,128 @@ class DefaultConfigurationCache internal constructor(
         configurationTimeBarrier.cross()
     }
 
-    private fun writeWorkGraph(stateFile: ConfigurationCacheStateFile) {
-        //TODO-RC need to use separate operations, one for each project, each one for a different store file
-        val graphStoreOperation: RunnableBuildOperation = object : RunnableBuildOperation {
-            override fun description(): BuildOperationDescriptor.Builder =
-                BuildOperationDescriptor.displayName("Saving work nodes")
+    internal fun scheduledNodes() = host.currentBuild.scheduledWork.scheduledNodes
 
-            override fun run(context: BuildOperationContext) {
-                host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-                    cacheIO.writeRootBuildWorkGraphTo(stateFile)
+    internal fun identifyNodesAndGroups() = identifyNodesAndGroups(host.currentBuild.scheduledWork)
+
+    //TODO-RC are we getting the group ids passed in or computing here?
+    private fun writeRootBuildWorkGraph(baseStateFile: ConfigurationCacheStateFile) {
+        // 1 - identify all nodes and entry nodes and split by projects
+        // 2 - save all nodes in their own project-specific state file
+        // 3 - save entry ids, node edges and successor references
+
+        val (scheduledNodeIds, scheduledEntryNodeIds, nodesByProject, groupsById) = identifyNodesAndGroups()
+        val scheduledNodes = scheduledNodes()
+        //println("scheduledEntryNodeIds: ${scheduledEntryNodeIds.size} - ${scheduledEntryNodeIds}")
+        //println("scheduledNodeIds: ${scheduledNodeIds.size} - ${scheduledNodeIds.values}")
+        //println("nodesByProject: ${nodesByProject} - ${nodesByProject.values.fold(0) { s1, s2 -> s1 + s2.values.fold(0) { v1, v2 -> v1 + v2.size } } }")
+        //println("groups: ${groupsById.size} - ${groupsById}")
+        val operations: MutableList<RunnableBuildOperation> = mutableListOf()
+
+        nodesByProject.forEach { (projectPath, nodesByLock) ->
+            //println("path: $projectPath")
+            val nodes = nodesByLock.values.fold(mutableListOf<Node>()) { a, b -> a.apply { addAll(b) } }
+            operations.add(object : RunnableBuildOperation {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Saving work nodes for $projectPath")
+
+                override fun run(context: BuildOperationContext) {
+                    val projectStateFile = baseStateFile.stateFileForProject(projectPath.path)
+                    //println("writeRootBuildWorkNodesTo(${projectStateFile.stateFile})")
+                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                        cacheIO.writeRootBuildWorkNodesTo(projectStateFile, projectPath.path, nodes) { scheduledNodeIds.get(it)!! }
+                    }
                 }
-            }
+            })
+
         }
-        val action : (BuildOperationQueue<RunnableBuildOperation>) -> Unit = { queue -> queue.add(graphStoreOperation) }
-        buildOperationExecutor.runAllWithAccessToProjectState(action)
+        //println("writeRootBuildWorkGraph(${baseStateFile.stateFile})")
+        println("write operations: ${operations.size}")
+        buildOperationExecutor.runAllWithAccessToProjectState {
+            operations.forEach { add(it) }
+        }
+        buildOperationExecutor.runAllWithAccessToProjectState {
+            add(object : RunnableBuildOperation {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Saving work edges")
+
+                override fun run(context: BuildOperationContext) {
+                    val stateFile = baseStateFile.stateFileForWorkGraph()
+                    //println("writeRootBuildWorkEdges(${stateFile.stateFile})")
+                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                        cacheIO.writeRootBuildWorkEdges(stateFile, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
+                    }
+                }
+            })
+        }
+
     }
 
-    private fun writeRootBuildState(stateFile: ConfigurationCacheStateFile) {
+    /**
+     * The root build work graph is read from multiple files - the basic work graph file, and multiple (per-project) node files.
+     */
+    private fun readRootBuildWorkGraph(
+        build: ConfigurationCacheBuild,
+        baseStateFile: ConfigurationCacheStateFile,
+        projectPaths: List<Path>
+    ): Pair<String, ScheduledWork> {
+        //TODO-RC
+        //load each project's work nodes from their private state file
+        //load edges from global file
+        //TODO-RC just so it is used
+        build.apply {  }
+
+        val allScheduledNodes: MutableList<Node> = Collections.synchronizedList(mutableListOf())
+        val allNodesById: MutableMap<Int, Node> = Collections.synchronizedMap(mutableMapOf())
+        val allPerProjectOriginalBuildIds: MutableList<String> = Collections.synchronizedList(mutableListOf())
+        //println(projectPaths)
+        val operations: MutableList<RunnableBuildOperation> = mutableListOf()
+
+        projectPaths.forEach { projectPath ->
+            operations.add(object : RunnableBuildOperation {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Reading work nodes for $projectPath")
+
+                override fun run(context: BuildOperationContext) {
+                    val projectStateFile = baseStateFile.stateFileForProject(projectPath.path)
+                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                        try {
+                            val (originalBuildId, scheduledNodes, nodesById) = cacheIO.readRootBuildWorkNodesFrom(build, projectStateFile, projectPath.path)
+                            allScheduledNodes.addAll(scheduledNodes)
+                            allNodesById.putAll(nodesById)
+                            allPerProjectOriginalBuildIds.add(originalBuildId)
+                        } catch (e: FileNotFoundException) {
+                            // project had no nodes
+                        }
+                    }
+                }
+            })
+        }
+        println("read operations: ${operations.size}")
+        buildOperationExecutor.runAllWithAccessToProjectState {
+            operations.forEach { add(it) }
+        }
+        allPerProjectOriginalBuildIds.fold(allPerProjectOriginalBuildIds[0]) { s: String, s1: String ->
+            require(s == s1) {
+                "Multiple build ids"
+            }
+            s
+        }
+        //println("allScheduledNodes: ${allScheduledNodes.size}")
+        //println("allNodesById: ${allNodesById.size} - ${allNodesById.keys}")
+        var result: Pair<String, ScheduledWork>? = null
+        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+            result = cacheIO.readRootBuildWorkEdgesFrom(baseStateFile.stateFileForWorkGraph(), allScheduledNodes, allNodesById)
+            require(result!!.first == allPerProjectOriginalBuildIds[0]) {
+                "Multiple build ids"
+            }
+        }
+        return result!!
+    }
+
+    private
+    fun writeRootBuildState(stateFile: ConfigurationCacheStateFile) {
+        //println("writeRootBuildState(${stateFile.stateFile})")
         host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
             cacheIO.writeRootBuildStateTo(stateFile)
         }
@@ -692,3 +809,65 @@ class DefaultConfigurationCache internal constructor(
     val configurationCacheLogLevel: LogLevel
         get() = startParameter.configurationCacheLogLevel
 }
+
+private
+fun identifyNodesAndGroups(
+    scheduledWork: ScheduledWork
+) =
+    identifyNodesAndGroups(scheduledWork.scheduledNodes, scheduledWork.entryNodes)
+
+data class NodesAndGroups(
+    val scheduledNodeIds: Map<Node, Int>,
+    val scheduledEntryNodeIds: List<Int>,
+    val scheduledNodeResourceLocks: Map<Path, Map<ResourceLock?, List<Node>>>,
+    val nodeGroups: Map<NodeGroup, Int>
+)
+
+/**
+ * Assigns ids for the given scheduled nodes, while also identifying entry nodes.
+ *
+ * @param scheduledNodes the list of nodes that are scheduled
+ * @param entryNodes a set containing those scheduled nodes that are entry nodes
+ * @return a pair **<a, b>** where
+ * **a** is a map of nodes and their generated ids and
+ * **b** is a set of the ids for scheduled nodes that are also entry nodes
+ */
+private
+fun identifyNodesAndGroups(
+    scheduledNodes: List<Node>,
+    entryNodes: Set<Node>
+): NodesAndGroups {
+    val nodeGroups: MutableMap<NodeGroup, Int> = mutableMapOf()
+    val scheduledNodeIds: HashMap<Node, Int> = HashMap<Node, Int>(scheduledNodes.size)
+    // Not all entry nodes are always scheduled.
+    // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
+    // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
+    // Not restoring them as entry points doesn't affect the resulting execution plan.
+    val scheduledEntryNodeIds: MutableList<Int> = mutableListOf<Int>()
+    val scheduledNodeResourceLocks: MutableMap<Path, MutableMap<ResourceLock?, MutableList<Node>>> = mutableMapOf<Path, MutableMap<ResourceLock?, MutableList<Node>>>()
+    //println("Identifying ${scheduledNodes.size} nodes")
+    scheduledNodes.forEach { node ->
+        val nodeId = scheduledNodeIds.size
+        //println("Assigning id ${nodeId} to ${node::class.simpleName}@${System.identityHashCode(node).toString(16)}")
+        scheduledNodeIds[node] = nodeId
+        val collect: (Node) -> Unit = { n ->
+            scheduledNodeResourceLocks
+                //TODO-RC some nodes have no owning project
+                .computeIfAbsent(n.owningProject?.projectPath ?: Path.ROOT) { mutableMapOf() }
+                .computeIfAbsent(n.projectToLock) { mutableListOf() }
+                .add(n)
+            //println("added $n? $added")
+            nodeGroups.computeIfAbsent(node.group) { nodeGroups.size }
+        }
+        collect(node)
+        if (node in entryNodes) {
+            scheduledEntryNodeIds.add(nodeId)
+        }
+        if (node is LocalTaskNode) {
+            //println("Assigning id ${scheduledNodeIds.size} to ${node.prepareNode::class.simpleName}@${System.identityHashCode(node.prepareNode).toString(16)}")
+            scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
+        }
+    }
+    return NodesAndGroups(scheduledNodeIds, scheduledEntryNodeIds, scheduledNodeResourceLocks, nodeGroups)
+}
+

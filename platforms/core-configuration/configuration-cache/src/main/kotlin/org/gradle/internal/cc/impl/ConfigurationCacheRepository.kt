@@ -122,6 +122,12 @@ class ConfigurationCacheRepository(
                 workGraphFileFor(file),
                 stateType
             )
+
+        override fun stateFileForProject(projectPath: String?): ConfigurationCacheStateFile =
+            ReadableConfigurationCacheStateFile(
+                projectWorkGraphFileFor(file, projectPath),
+                stateType
+            )
     }
 
     private
@@ -162,6 +168,13 @@ class ConfigurationCacheRepository(
         override fun stateFileForWorkGraph(): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
                 workGraphFileFor(file),
+                stateType,
+                onFileAccess
+            )
+
+        override fun stateFileForProject(projectPath: String?): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                projectWorkGraphFileFor(file, projectPath),
                 stateType,
                 onFileAccess
             )
@@ -221,6 +234,12 @@ class ConfigurationCacheRepository(
     fun workGraphFileFor(parentStateFile: File) =
         parentStateFile.run {
             resolveSibling("$name.node")
+        }
+
+    private
+    fun projectWorkGraphFileFor(parentStateFile: File, projectPath: String?) =
+        parentStateFile.run {
+            resolveSibling("$name.$projectPath.node")
         }
 
     private

@@ -36,6 +36,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
@@ -66,6 +67,7 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.codecs.core.WorkNodeCodec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -142,13 +144,14 @@ interface ConfigurationCacheStateFile {
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
     fun stateFileForWorkGraph(): ConfigurationCacheStateFile
+    fun stateFileForProject(projectPath: String?): ConfigurationCacheStateFile
 }
 
 
 internal
 class ConfigurationCacheState(
     private val codecs: Codecs,
-    private val stateFile: ConfigurationCacheStateFile,
+    internal val stateFile: ConfigurationCacheStateFile,
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val host: DefaultConfigurationCache.Host
 ) {
@@ -162,15 +165,49 @@ class ConfigurationCacheState(
         }
     }
 
-    suspend fun DefaultWriteContext.writeRootBuildWorkGraph(build: VintageGradleBuild) {
+    suspend fun DefaultWriteContext.writeRootBuildWorkNodes(gradle: GradleInternal, projectPath: String?, nodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         writeBuildInvocationId()
-        withDebugFrame({ "Work Graph" }) {
-            writeWorkGraphOf(build.gradle, build.scheduledWork)
+        //println("Writing ${nodes.size} nodes for project $projectPath")
+        doWriteNodes(gradle, projectPath, nodes, nodeIdentifier)
+        writeInt(0x1ecac8e)
+    }
 
+    suspend fun DefaultWriteContext.writeRootBuildWorkEdges(gradle: GradleInternal, scheduledEntryNodeIds: List<Int>,
+                                                            scheduledNodes: List<Node>,
+                                                            scheduledNodeIds: Map<Node, Int>,
+                                                            groupsById: Map<NodeGroup, Int>) {
+        writeBuildInvocationId()
+        withDebugFrame({ "Work Graph edges" }) {
+            writeWorkGraphEdges(gradle, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
             writeInt(0x1ecac8e)
         }
     }
 
+    internal suspend fun DefaultReadContext.readRootBuildWorkNodes(build: ConfigurationCacheBuild, gradle: GradleInternal, projectPath: String): Triple<String, ArrayList<Node>, HashMap<Int, Node>> {
+        val originBuildInvocationId = readBuildInvocationId()
+        //TODO-RC just so it is used
+        projectPath.apply {  }
+        //TODO-RC build.getProject() is being shared
+        setSingletonProperty<ProjectProvider>(build::getProject)
+        //TODO-RC is this the right Gradle?
+        val (scheduledNodes, nodesById) = readNodesFrom(gradle).also {
+            require(readInt() == 0x1ecac8e) {
+                "corrupt state file"
+            }
+        }
+        return Triple(originBuildInvocationId, scheduledNodes, nodesById)
+    }
+
+    internal suspend fun DefaultReadContext.readRootBuildWorkEdges(gradle: GradleInternal, scheduledNodes: List<Node>, nodesById: Map<Int, Node>): Pair<String, ScheduledWork> {
+        val originBuildInvocationId = readBuildInvocationId()
+        return originBuildInvocationId to readScheduledWorkFrom(gradle, scheduledNodes, nodesById).also {
+            require(readInt() == 0x1ecac8e) {
+                "corrupt state file"
+            }
+        }
+    }
+
+    internal
     suspend fun DefaultReadContext.readRootBuildState(
         loadAfterStore: Boolean
     ): Pair<String, List<CachedBuildState>> {
@@ -272,7 +309,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildsInTree(rootBuild: VintageGradleBuild, buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
         val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
         val builds = mutableMapOf<BuildState, BuildToStore>()
-        host.visitBuilds { build ->
+        host.visitBuilds { build: VintageGradleBuild ->
             val state = build.state
             builds[state] = BuildToStore(build, build.hasScheduledWork, build.isRootBuild)
             if (build.hasScheduledWork && state is StandAloneNestedBuild) {
@@ -456,8 +493,9 @@ class ConfigurationCacheState(
             withDebugFrame({ "Cleanup registrations" }) {
                 writeBuildOutputCleanupRegistrations(gradle)
             }
-            if (!gradle.isRootBuild) {
-                // for root builds only, nodes are written in separate state files (one per project)
+            if (gradle.isRootBuild) {
+                // for root builds, nodes are written in separate state files (one per project)
+            } else {
                 // for non-root builds, we write the work graph along with the rest of the state
                 withDebugFrame({ "Work Graph" }) {
                     writeWorkGraphOf(gradle, scheduledWork)
@@ -497,7 +535,30 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
         workNodeCodec(gradle).run {
-            writeWork(scheduledWork)
+            writeWork(scheduledWork.scheduledNodes, scheduledWork.entryNodes)
+        }
+    }
+//    private
+//    suspend fun DefaultWriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledNodes: List<Node>, entryNodes: Set<Node>) {
+//        workNodeCodec(gradle).run {
+//            writeWork(scheduledNodes, entryNodes)
+//        }
+//    }
+
+    private
+    suspend fun DefaultWriteContext.doWriteNodes(gradle: GradleInternal, projectPath: String?, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
+        workNodeCodec(gradle).run {
+            writeNodes(projectPath, scheduledNodes, nodeIdentifier)
+        }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeWorkGraphEdges(gradle: GradleInternal, scheduledEntryNodeIds: List<Int>,
+                                                        scheduledNodes: List<Node>,
+                                                        scheduledNodeIds: Map<Node, Int>,
+                                                        groupsById: Map<NodeGroup, Int>) {
+        workNodeCodec(gradle).run {
+            writeEdgesAndOtherNodeMetadata(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
         }
     }
 
@@ -505,6 +566,18 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readWorkGraph(gradle: GradleInternal) =
         workNodeCodec(gradle).run {
             readWork()
+        }
+
+    private
+    suspend fun DefaultReadContext.readNodesFrom(gradle: GradleInternal): Pair<ArrayList<Node>, HashMap<Int, Node>> =
+        workNodeCodec(gradle).run {
+            readScheduledNodes()
+        }
+
+    private
+    suspend fun DefaultReadContext.readScheduledWorkFrom(gradle: GradleInternal, scheduledNodes: List<Node>, nodesById: Map<Int, Node>): ScheduledWork =
+        workNodeCodec(gradle).run {
+            readScheduledWork(scheduledNodes, nodesById)
         }
 
     private
@@ -527,7 +600,7 @@ class ConfigurationCacheState(
         gradle.serviceOf<FlowScope>().uncheckedCast<BuildFlowScope>()
 
     private
-    fun workNodeCodec(gradle: GradleInternal) =
+    fun workNodeCodec(gradle: GradleInternal): WorkNodeCodec =
         codecs.workNodeCodecFor(gradle)
 
     private

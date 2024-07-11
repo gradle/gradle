@@ -47,9 +47,11 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 graphBuilder = scheduleTaskSelectorPostProcessing
             ) { workPreparer.scheduleRequestedTasks(graph, taskSelector) }
             if (!result.wasLoadedFromCache && !result.entryDiscarded && startParameter.loadAfterStore) {
+                //println("loaded from cache")
                 // Load the work graph from cache instead
                 null
             } else {
+                //println("Executing")
                 workExecutor.execute(result.graph)
             }
         }
@@ -67,6 +69,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
 
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
+            //println("Executing $finalizedGraph")
             workExecutor.execute(finalizedGraph)
         }
     }
