@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper
 import org.gradle.language.scala.fixtures.ScalaJarFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -25,11 +26,13 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
 
     private ScalaJarFactory scalaJarFactory
     private ScalaRuntime scalaRuntime
+    private ScalaRuntimeHelper scalaRuntimeHelper
 
     def setup() {
         scalaJarFactory = new ScalaJarFactory(temporaryFolder.testDirectory)
         project.pluginManager.apply(ScalaBasePlugin)
         scalaRuntime = project.scalaRuntime
+        scalaRuntimeHelper = ScalaRuntimeHelper.create(project)
     }
 
     def "inferred Scala class path contains 'scala-compiler' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path"() {
@@ -37,11 +40,10 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             mavenCentral()
         }
         when:
-        def configuration = scalaRuntime.registerScalaClasspathConfigurationFor("test", "case", "2.10.1")
+        def configuration = scalaRuntimeHelper.configureAsScalaClasspath(project.getConfigurations().detachedConfiguration(), "2.10.1")
         def classpath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "2.10.1")])
         then:
-        configuration.name == "scalaClasspathForTestCase"
-        assertHasCorrectScala2Dependencies(configuration.get(), ScalaBasePlugin.DEFAULT_ZINC_VERSION)
+        assertHasCorrectScala2Dependencies(configuration, ScalaBasePlugin.DEFAULT_ZINC_VERSION)
         assertHasCorrectScala2Dependencies(classpath, ScalaBasePlugin.DEFAULT_ZINC_VERSION)
     }
 
@@ -54,11 +56,10 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             zincVersion = useZincVersion
         }
         when:
-        def configuration = scalaRuntime.registerScalaClasspathConfigurationFor("test", "case", "2.10.1")
+        def configuration = scalaRuntimeHelper.configureAsScalaClasspath(project.getConfigurations().detachedConfiguration(), "2.10.1")
         def classpath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "2.10.1")])
         then:
-        configuration.name == "scalaClasspathForTestCase"
-        assertHasCorrectScala2Dependencies(configuration.get(), useZincVersion)
+        assertHasCorrectScala2Dependencies(configuration, useZincVersion)
         assertHasCorrectScala2Dependencies(classpath, useZincVersion)
     }
 
@@ -88,11 +89,10 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             mavenCentral()
         }
         when:
-        def configuration = scalaRuntime.registerScalaClasspathConfigurationFor("test", "case", "3.0.1")
+        def configuration = scalaRuntimeHelper.configureAsScalaClasspath(project.getConfigurations().detachedConfiguration(), "3.0.1")
         def classpath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "3.0.1")])
         then:
-        configuration.name == "scalaClasspathForTestCase"
-        assertHasCorrectScala3Dependencies(configuration.get())
+        assertHasCorrectScala3Dependencies(configuration)
         assertHasCorrectScala3Dependencies(classpath)
     }
 
@@ -192,15 +192,15 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         def cp2x13x12 = cp3x4x0.findAll {!it.name.startsWith("scala3-") }
 
         expect:
-        scalaRuntime.findScalaVersion(cp3x4x0) == "3.4.0"
-        scalaRuntime.getScalaVersion(cp3x4x0) == "3.4.0"
-        scalaRuntime.findScalaVersion(cp3x4x0.reverse()) == "3.4.0"
-        scalaRuntime.getScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+        scalaRuntimeHelper.findScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntimeHelper.getScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntimeHelper.findScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+        scalaRuntimeHelper.getScalaVersion(cp3x4x0.reverse()) == "3.4.0"
 
-        scalaRuntime.findScalaVersion(cp2x13x12) == "2.13.12"
-        scalaRuntime.getScalaVersion(cp2x13x12) == "2.13.12"
-        scalaRuntime.findScalaVersion(cp2x13x12.reverse()) == "2.13.12"
-        scalaRuntime.getScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x12.reverse()) == "2.13.12"
     }
 
     def "allows to correctly extract the Scala version from a classpath with unusual but acceptable files"() {
@@ -223,30 +223,30 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         def cp2x13x0 = cp2x13x5.findAll {it.name != "scala-library.jar" }
 
         expect:
-        scalaRuntime.findScalaVersion(cp3x4x0) == "3.4.0"
-        scalaRuntime.getScalaVersion(cp3x4x0) == "3.4.0"
-        scalaRuntime.findScalaVersion(cp3x4x0.reverse()) == "3.4.0"
-        scalaRuntime.getScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+        scalaRuntimeHelper.findScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntimeHelper.getScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntimeHelper.findScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+        scalaRuntimeHelper.getScalaVersion(cp3x4x0.reverse()) == "3.4.0"
 
-        scalaRuntime.findScalaVersion(cp2x13x12) == "2.13.12"
-        scalaRuntime.getScalaVersion(cp2x13x12) == "2.13.12"
-        scalaRuntime.findScalaVersion(cp2x13x12.reverse()) == "2.13.12"
-        scalaRuntime.getScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x12.reverse()) == "2.13.12"
 
-        scalaRuntime.findScalaVersion(cp3x3x2) == "3.3.2"
-        scalaRuntime.getScalaVersion(cp3x3x2) == "3.3.2"
-        scalaRuntime.findScalaVersion(cp3x3x2.reverse()) == "3.3.2"
-        scalaRuntime.getScalaVersion(cp3x3x2.reverse()) == "3.3.2"
+        scalaRuntimeHelper.findScalaVersion(cp3x3x2) == "3.3.2"
+        scalaRuntimeHelper.getScalaVersion(cp3x3x2) == "3.3.2"
+        scalaRuntimeHelper.findScalaVersion(cp3x3x2.reverse()) == "3.3.2"
+        scalaRuntimeHelper.getScalaVersion(cp3x3x2.reverse()) == "3.3.2"
 
-        scalaRuntime.findScalaVersion(cp2x13x5) == "2.13.5"
-        scalaRuntime.getScalaVersion(cp2x13x5) == "2.13.5"
-        scalaRuntime.findScalaVersion(cp2x13x5.reverse()) == "2.13.5"
-        scalaRuntime.getScalaVersion(cp2x13x5.reverse()) == "2.13.5"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x5) == "2.13.5"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x5) == "2.13.5"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x5.reverse()) == "2.13.5"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x5.reverse()) == "2.13.5"
 
-        scalaRuntime.findScalaVersion(cp2x13x0) == "2.13.0"
-        scalaRuntime.getScalaVersion(cp2x13x0) == "2.13.0"
-        scalaRuntime.findScalaVersion(cp2x13x0.reverse()) == "2.13.0"
-        scalaRuntime.getScalaVersion(cp2x13x0.reverse()) == "2.13.0"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x0) == "2.13.0"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x0) == "2.13.0"
+        scalaRuntimeHelper.findScalaVersion(cp2x13x0.reverse()) == "2.13.0"
+        scalaRuntimeHelper.getScalaVersion(cp2x13x0.reverse()) == "2.13.0"
     }
 
     def "fails to extract the Scala version from a classpath without a valid Scala library"() {
@@ -261,10 +261,10 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         ]
 
         expect:
-        scalaRuntime.findScalaVersion(cpNone) == null
+        scalaRuntimeHelper.findScalaVersion(cpNone) == null
 
         when:
-        scalaRuntime.getScalaVersion(cpNone)
+        scalaRuntimeHelper.getScalaVersion(cpNone)
 
         then:
         Exception e = thrown()

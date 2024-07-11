@@ -19,20 +19,23 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Common interface for Scala tasks.
  *
- * @since 8.8
+ * @since 8.10
  */
 public interface ScalaTask extends Task {
 
     @Classpath
+    @ToBeReplacedByLazyProperty
     FileCollection getClasspath();
 
     void setClasspath(FileCollection classpath);
 
     @Classpath
+    @ToBeReplacedByLazyProperty
     FileCollection getScalaClasspath();
 
     void setScalaClasspath(FileCollection scalaClasspath);

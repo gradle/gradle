@@ -203,8 +203,6 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
     private void assertScalaClasspath(ScalaTask task, Configuration basedOnClasspath) {
         // Also tests repeated retrievals via `task.scalaClasspath`, so don't save it in a variable
         assert task.scalaClasspath instanceof Configuration
-        assert task.scalaClasspath.name == "scalaClasspathForTask${task.name.capitalize()}"
-        assert project.configurations[task.scalaClasspath.name] == task.scalaClasspath
         assert task.scalaClasspath.state == Configuration.State.UNRESOLVED
         assert basedOnClasspath.state == Configuration.State.UNRESOLVED
 

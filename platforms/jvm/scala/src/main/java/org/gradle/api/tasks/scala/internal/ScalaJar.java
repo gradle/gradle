@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks.scala.internal;
 
 import com.google.common.collect.FluentIterable;
-import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
@@ -36,10 +36,8 @@ import java.util.regex.Pattern;
 
 /**
  * Provides information about a Scala JAR file.
- *
- * @since 8.8
  */
-@Incubating
+@NonNullApi
 public class ScalaJar {
 
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("scala(\\d+)?-(\\w.*?)(?:_\\1)?(?:-(\\d.*))?\\.jar");
@@ -53,7 +51,6 @@ public class ScalaJar {
      * @param file the file to inspect
      * @param moduleSpec predicate that the module name must match
      * @return a {@link ScalaJar} instance if the given file is a Scala JAR file with a matching module name, {@code null} otherwise
-     * @since 8.8
      */
     @Nullable
     public static ScalaJar inspect(File file, Spec<String> moduleSpec) {
@@ -104,7 +101,6 @@ public class ScalaJar {
      * @param files the files to inspect
      * @param moduleSpec predicate that the module name must match
      * @return an iterable of {@link ScalaJar} instances describing the Scala JAR files with a matching module name
-     * @since 8.8
      */
     public static Iterable<ScalaJar> inspect(Iterable<? extends File> files, Spec<String> moduleSpec) {
         return FluentIterable.from(files).transform(file -> ScalaJar.inspect(file, moduleSpec)).filter(Objects::nonNull);
@@ -124,7 +120,6 @@ public class ScalaJar {
      * Returns the Scala JAR file.
      *
      * @return The Scala JAR file.
-     * @since 8.8
      */
     public File getFile() {
         return file;
@@ -134,7 +129,6 @@ public class ScalaJar {
      * Returns the Scala JAR module name (compiler, library, jdbc, etc.).
      *
      * @return The Scala JAR module name (compiler, library, jdbc, etc.).
-     * @since 8.8
      */
     public String getModule() {
         return module;
@@ -144,7 +138,6 @@ public class ScalaJar {
      * Returns the Scala JAR version string.
      *
      * @return The Scala JAR version string.
-     * @since 8.8
      */
     public String getVersion() {
         return version;

@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -56,6 +55,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.api.tasks.scala.ScalaTask;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
@@ -110,14 +110,14 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+        project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
         ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
         Category incrementalAnalysisCategory = objectFactory.named(Category.class, "scala-analysis");
         configureConfigurations((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
 
-        configureScalaTaskDefaults(project, scalaRuntime);
+        configureScalaTaskDefaults(project);
         configureScalaCompileDefaults(project, (DefaultJavaPluginExtension) javaPluginExtension(project));
         configureSourceSetDefaults((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage);
         configureScalaDocDefaults(project);
@@ -264,11 +264,14 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
     }
 
-    private static void configureScalaTaskDefaults(final Project project, final ScalaRuntime scalaRuntime) {
+    private static void configureScalaTaskDefaults(final Project project) {
+        ScalaRuntimeHelper scalaRuntimeHelper = ScalaRuntimeHelper.create(project);
         project.getTasks().withType(ScalaTask.class).matching(IConventionAware.class::isInstance).configureEach(scalaTask -> {
-            NamedDomainObjectProvider<Configuration> scalaClasspath = scalaRuntime.registerScalaClasspathConfigurationFor(scalaTask);
+            Configuration scalaClasspath = scalaRuntimeHelper.configureAsScalaClasspath(
+                    project.getConfigurations().detachedConfiguration(),
+                    project.provider(scalaTask::getClasspath).map(scalaRuntimeHelper::findScalaVersion));
             ConventionMapping conventionMapping = ((IConventionAware) scalaTask).getConventionMapping();
-            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) scalaClasspath::get);
+            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaClasspath);
         });
     }
 

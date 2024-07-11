@@ -43,7 +43,6 @@ dependencies {
     implementation(projects.reporting)
     implementation(projects.workerMain)
 
-    implementation(libs.commonsLang)
     implementation(libs.guava)
 
     compileOnly(libs.zinc) {

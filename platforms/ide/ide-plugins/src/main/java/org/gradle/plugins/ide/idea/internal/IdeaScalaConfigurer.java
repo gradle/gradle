@@ -24,7 +24,6 @@ import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Action;
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.XmlProvider;
@@ -34,6 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
@@ -113,7 +113,7 @@ public class IdeaScalaConfigurer {
         for (final Project scalaProject : scalaProjects) {
             final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
-            ProjectLibrary library = ((ProjectInternal) scalaProject).getOwner().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
+            ProjectLibrary library = ((ProjectInternal) scalaProject).getOwner().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk));
             if (library != null) {
                 ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
                 scalaCompilerLibraries.put(scalaProject.getPath(), duplicate == null ? library : duplicate);
@@ -134,20 +134,21 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
-    private static ProjectLibrary createScalaSdkLibrary(Project project, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
+    private static ProjectLibrary createScalaSdkLibrary(Project project, Iterable<File> files, boolean useScalaSdk) {
         ScalaRuntime scalaRuntime = project.getExtensions().findByType(ScalaRuntime.class);
         if (scalaRuntime == null) {
-            // One of the Scala plugins is applied, but ScalaRuntime extension is missing; we can't create a Scala SDK without it
+            // One of the Scala plugins is applied, but ScalaRuntime extension is missing; we shouldn't create a Scala SDK without it
             return null;
         }
-        String scalaVersion = scalaRuntime.findScalaVersion(files);
+        ScalaRuntimeHelper scalaRuntimeHelper = ScalaRuntimeHelper.create(project);
+        String scalaVersion = scalaRuntimeHelper.findScalaVersion(files);
         if (scalaVersion == null) {
             // The Scala version is unknown; we can't create a Scala SDK without it
             return null;
         }
-        NamedDomainObjectProvider<Configuration> scalaClasspath =
-            scalaRuntime.registerScalaClasspathConfigurationFor("ideaModule", ideaModule.getName(), scalaVersion);
-        return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath.get(), useScalaSdk);
+        Configuration scalaClasspath =
+            scalaRuntimeHelper.configureAsScalaClasspath(project.getConfigurations().detachedConfiguration(), scalaVersion);
+        return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
     }
 
     private static ProjectLibrary createScalaSdkFromScalaVersion(String version, FileCollection scalaClasspath, boolean useScalaSdk) {

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.scala.internal;
 
 import com.google.common.collect.Streams;
-import org.gradle.api.tasks.ScalaJar;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
