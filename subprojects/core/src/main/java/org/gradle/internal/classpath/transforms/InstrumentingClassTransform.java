@@ -306,6 +306,8 @@ public class InstrumentingClassTransform implements ClassTransform {
                 case INSTRUMENTATION:
                 case BYTECODE_UPGRADE:
                     return MethodInterceptionListener.NO_OP;
+                case BYTECODE_UPGRADE_REPORT:
+                    return MethodInterceptionListener.OUTPUT_TO_CONSOLE;
                 default:
                     throw new UnsupportedOperationException("Unknown interceptor type: " + type);
             }
