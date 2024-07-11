@@ -20,6 +20,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.times
+import kotlinx.coroutines.delay
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
 import org.gradle.client.core.gradle.dcl.*
@@ -46,6 +47,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialRe
 import org.gradle.tooling.BuildAction
 import org.jetbrains.skiko.Cursor
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val NOT_DECLARED = "Not declared"
 private const val NOTHING_DECLARED = "Nothing declared"
@@ -63,24 +65,59 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     @Suppress("LongMethod")
     override fun ColumnScope.ModelContent(model: ResolvedDomPrerequisites) {
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
-        val fileUpdatesCount = remember { mutableStateOf<Long>(0) }
 
-        val buildFileContent =
-            remember(selectedBuildFile.value, fileUpdatesCount.value) { selectedBuildFile.value.readText() }
-        val settingsFileContent = remember(selectedBuildFile.value, fileUpdatesCount, model.settingsFile) {
-            model.settingsFile.takeIf { it.exists() }?.readText() ?: ""
+        fun readBuildFile() = selectedBuildFile.value.takeIf { it.canRead() }?.readText().orEmpty()
+        fun readSettingsFile() = model.settingsFile.takeIf { it.canRead() }?.readText().orEmpty()
+        
+        val buildFileContent = remember(selectedBuildFile.value) { 
+            mutableStateOf(readBuildFile())
+        }
+        val settingsFileContent = remember(selectedBuildFile.value, model.settingsFile) {
+            mutableStateOf(readSettingsFile())
         }
 
+        val highlightedSourceRangeByFileId = remember {
+            mutableStateOf(mapOf<String, IntRange>())
+        }
+
+        fun updateFileContents() {
+            var changed = false
+            val newBuildFileContent = readBuildFile()
+            if (newBuildFileContent != buildFileContent.value) {
+                changed = true
+                buildFileContent.value = newBuildFileContent
+            }
+            val newSettingsFileContent = readSettingsFile()
+            if (newSettingsFileContent != settingsFileContent.value) {
+                changed = true
+                settingsFileContent.value = newSettingsFileContent
+            }
+            if (changed) {
+                highlightedSourceRangeByFileId.value = emptyMap()
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(300.milliseconds)
+                updateFileContents()
+            }
+        }
+
+        
         val analyzer = analyzer(model)
-        val projectResult = remember(selectedBuildFile.value, buildFileContent) {
-            analyzer.evaluate(selectedBuildFile.value.name, buildFileContent)
+        val projectResult by remember {
+            derivedStateOf {
+                analyzer.evaluate(selectedBuildFile.value.name, buildFileContent.value)
+            }
         }
-        val settingsResult = remember(model.settingsFile, settingsFileContent) {
-            analyzer.evaluate(model.settingsFile.name, settingsFileContent)
+        val settingsResult by remember {
+            derivedStateOf {
+                analyzer.evaluate(model.settingsFile.name, settingsFileContent.value)
+            }
         }
         val domWithConventions = AnalysisDocumentUtils.documentWithConventions(settingsResult, projectResult)
 
-        val highlightedSourceRangeByFileId = mutableStateOf(mapOf<String, IntRange>())
 
         val hasAnyConventionContent =
             domWithConventions?.overlayNodeOriginContainer?.collectToMap(domWithConventions.document)
@@ -132,7 +169,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                                         mutationArgumentsContainer
                                     )
                                     // Trigger recomposition:
-                                    fileUpdatesCount.value += 1
+                                    updateFileContents()
                                 }
                             )
                         ) {
