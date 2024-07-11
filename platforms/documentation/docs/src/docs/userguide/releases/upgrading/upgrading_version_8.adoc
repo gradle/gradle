@@ -40,6 +40,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 1.9.24
+
+The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.24[Kotlin 1.9.24].
+
 ==== Upgrade to Ant 1.10.14
 
 Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.14.html[Ant 1.10.14].
@@ -160,7 +164,7 @@ plugins {
 }
 
 configurations.runtimeClasspath {
-    // `beforeResolve` is not called before the configuration is partially resolved for 
+    // `beforeResolve` is not called before the configuration is partially resolved for
     // build dependencies, but only before a full graph resolution.
     // Configurations should not be mutated in this hook
     incoming.beforeResolve {
