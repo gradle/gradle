@@ -30,7 +30,7 @@ import java.util.Collection;
 import static org.gradle.api.problems.internal.DefaultProblemCategory.GRADLE_CORE_NAMESPACE;
 
 @ServiceScope(Scope.BuildTree.class)
-public class DefaultProblems implements InternalProblems{
+public class DefaultProblems implements InternalProblems {
 
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
@@ -41,6 +41,7 @@ public class DefaultProblems implements InternalProblems{
     public DefaultProblems(Collection<ProblemEmitter> emitter, CurrentBuildOperationRef currentBuildOperationRef) {
         this(emitter, null, currentBuildOperationRef);
     }
+
     public DefaultProblems(Collection<ProblemEmitter> emitter) {
         this(emitter, null, CurrentBuildOperationRef.instance());
     }

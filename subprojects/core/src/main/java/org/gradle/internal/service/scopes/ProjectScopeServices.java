@@ -47,6 +47,7 @@ import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -71,6 +72,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -231,12 +233,13 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeConventionApplicator softwareTypeConventionApplicator
+        SoftwareTypeConventionApplicator softwareTypeConventionApplicator,
+        InternalProblems problems
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
-            new ImperativeOnlyPluginTarget<>(project),
+            new ImperativeOnlyPluginTarget<>(PluginTargetType.PROJECT, project, problems),
             modelRuleExtractor,
             modelRuleSourceDetector
         );
