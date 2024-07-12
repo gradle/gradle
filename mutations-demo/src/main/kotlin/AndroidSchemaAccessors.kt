@@ -3,7 +3,6 @@ package org.gradle.client.demo.mutations
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.dom.mutation.TypedMember
-import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 
 fun AnalysisSchema.hasAndroidPrototype(): Boolean =

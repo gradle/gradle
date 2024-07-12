@@ -3,6 +3,21 @@ package org.gradle.client.demo.mutations
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.dom.mutation.*
+import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
+
+val addCommonLibraryDependencyMutation =
+    AddDependencyMutation(
+        "org.gradle.client.demo.mutations.addDependency.toLibrary",
+        { ScopeLocation.fromTopLevel().inObjectsOfType(hasLibraryDependencies) },
+        { hasLibraryDependencies.singleFunctionNamed("dependencies") }
+    )
+
+val addCommonApplicationDependencyMutation =
+    AddDependencyMutation(
+        "org.gradle.client.demo.mutations.addDependency.toApplication",
+        { ScopeLocation.fromTopLevel().inObjectsOfType(hasApplicationDependencies) },
+        { hasApplicationDependencies.singleFunctionNamed("dependencies") }
+    )
 
 abstract class EnableLintMutation(
     val lintOwner: AnalysisSchema.() -> DataClass,
@@ -31,4 +46,40 @@ abstract class EnableLintMutation(
                 )
             )
         }
+}
+
+val addTestingDependencyMutations: List<MutationDefinition> = run {
+    fun mutationForOwner(
+        idSuffix: String,
+        testingOwnerType: AnalysisSchema.() -> DataClass,
+        testingType: AnalysisSchema.() -> DataClass
+    ) = run {
+        val addDependency = AddDependencyMutation(
+            "org.gradle.client.demo.mutations.addDependency.toTesting.$idSuffix",
+            { ScopeLocation.fromTopLevel().inObjectsOfType(testingOwnerType()).inObjectsOfType(testingType()) },
+            { testingType().singleFunctionNamed("dependencies") }
+        )
+
+        object : MutationDefinition by addDependency {
+            override val name: String
+                get() = "Add a test dependency"
+
+            override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+                with(projectAnalysisSchema) {
+                    listOf(
+                        ModelMutationRequest(
+                            ScopeLocation.inAnyScope().inObjectsOfType(testingOwnerType()),
+                            ModelMutation.AddConfiguringBlockIfAbsent(testingOwnerType().singleFunctionNamed("testing"))
+                        )
+                    ) + addDependency.defineModelMutationSequence(projectAnalysisSchema)
+                }
+        }
+    }
+
+    listOf(
+        mutationForOwner("javaLibrary", { javaLibrary }, { javaTesting }),
+        mutationForOwner("javaApplication", { javaApplication }, { javaTesting }),
+        mutationForOwner("kotlinLibrary", { kotlinJvmLibrary }, { kotlinTesting }),
+        mutationForOwner("kotlinApplication", { kotlinJvmApplication }, { kotlinTesting })
+    )
 }

@@ -23,20 +23,24 @@ object MutationUtils {
         registerMutationDefinition(addApplicationDependencyMutation)
         registerMutationDefinition(addTestingDependencyMutation)
         
+        // Common
+        registerMutationDefinition(addCommonLibraryDependencyMutation)
+        registerMutationDefinition(addCommonApplicationDependencyMutation)
+        
         // Java
         registerMutationDefinition(SetJvmApplicationMainClass)
         registerMutationDefinition(SetJavaVersion)
+        addTestingDependencyMutations.forEach(::registerMutationDefinition)
         
         // Kotlin/JVM
         registerMutationDefinition(EnableKotlinLintMutation)
         
         // KMP
-        registerMutationDefinition(addKmpLibraryJvmTarget)
-        registerMutationDefinition(addKmpLibraryNodeJsTarget)
-        registerMutationDefinition(addKmpLibraryMacosArm64Target)
-        registerMutationDefinition(addKmpApplicationJvmTarget)
-        registerMutationDefinition(addKmpApplicationNodeJsTarget)
-        registerMutationDefinition(addKmpApplicationMacosArm64Target)
+        kmpAddTargetMutations.forEach(::registerMutationDefinition)
+        kmpAddDependencyMutations.forEach(::registerMutationDefinition)
+        registerMutationDefinition(SetKmpJvmApplicationMainClass)
+        registerMutationDefinition(SetKmpJvmApplicationJdkVersion)
+        registerMutationDefinition(SetKmpJvmLibraryJdkVersion)
     }
 
     fun checkApplicabilityForOverlay(

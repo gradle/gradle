@@ -68,66 +68,44 @@ object SetNamespaceMutation : AndroidPrototypeMutationDefinition {
         }
 }
 
-val addTestingDependencyMutation =
-    AddDependencyMutation(
+val addTestingDependencyMutation = run {
+    val addDependency = AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.testing",
-        { testing.singleFunctionNamed("dependencies") },
         {
             ScopeLocation.fromTopLevel()
                 .inObjectsOfType(androidSoftware)
                 .inObjectsConfiguredBy(androidSoftware.singleFunctionNamed("testing"))
-        }
+        },
+        { testing.singleFunctionNamed("dependencies") }
     )
+    
+    object : MutationDefinition by addDependency {
+        override val name: String
+            get() = "Add a test dependency"
+
+        override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+            with(projectAnalysisSchema) {
+                listOf(
+                    ModelMutationRequest(
+                        ScopeLocation.fromTopLevel().inObjectsOfType(androidSoftware),
+                        ModelMutation.AddConfiguringBlockIfAbsent(androidSoftware.singleFunctionNamed("testing"))
+                    )
+                ) + addDependency.defineModelMutationSequence(projectAnalysisSchema)
+            }
+    }
+}
+
 
 val addLibraryDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.topLevel.library",
-        { androidLibrary.singleFunctionNamed("dependencies") },
-        { ScopeLocation.fromTopLevel().inObjectsOfType(androidLibrary) }
+        { ScopeLocation.fromTopLevel().inObjectsOfType(androidLibrary) },
+        { androidLibrary.singleFunctionNamed("dependencies") }
     )
 
 val addApplicationDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.topLevel.application",
-        { androidApplication.singleFunctionNamed("dependencies") },
-        { ScopeLocation.fromTopLevel().inObjectsOfType(androidApplication) }
+        { ScopeLocation.fromTopLevel().inObjectsOfType(androidApplication) },
+        { androidApplication.singleFunctionNamed("dependencies") }
     )
-
-class AddDependencyMutation(
-    override val id: String,
-    private val dependenciesOwnerFunction: AnalysisSchema.() -> TypedMember.TypedFunction,
-    private val dependenciesScope: AnalysisSchema.() -> ScopeLocation,
-) : AndroidPrototypeMutationDefinition {
-    override val name: String = "Add a dependency"
-    override val description: String = "Add a dependency to the dependencies block"
-
-    val dependencyCoordinatesParam =
-        MutationParameter(
-            "Dependency to add",
-            "Maven coordinates",
-            MutationParameterKind.StringParameter
-        )
-
-    override val parameters: List<MutationParameter<*>>
-        get() = listOf(dependencyCoordinatesParam)
-
-    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> {
-        val scopeForDependenciesBlock = dependenciesScope(projectAnalysisSchema)
-        val dependenciesFunction = dependenciesOwnerFunction(projectAnalysisSchema)
-
-        return listOf(
-            ModelMutationRequest(
-                scopeForDependenciesBlock,
-                ModelMutation.AddConfiguringBlockIfAbsent(dependenciesFunction)
-            ),
-            ModelMutationRequest(
-                scopeForDependenciesBlock.inObjectsConfiguredBy(dependenciesFunction),
-                ModelMutation.AddNewElement(
-                    NewElementNodeProvider.ArgumentBased { args ->
-                        elementFromString("implementation(\"" + args[dependencyCoordinatesParam] + "\")")!!
-                    }
-                )
-            )
-        )
-    }
-}

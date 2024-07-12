@@ -11,11 +11,20 @@ fun AnalysisSchema.hasKotlinPrototype(): Boolean =
 val AnalysisSchema.kotlinJvmLibrary: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kotlin.KotlinJvmLibrary")
 
+val AnalysisSchema.kotlinJvmApplication: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kotlin.KotlinJvmApplication")
+
 val AnalysisSchema.kmpLibrary: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kmp.KmpLibrary")
 
+val AnalysisSchema.kmpLibraryTarget: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kmp.KmpLibraryTarget")
+
 val AnalysisSchema.kmpApplication: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kmp.KmpApplication")
+
+val AnalysisSchema.kmpApplicationTarget: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kmp.KmpApplicationTarget")
 
 val AnalysisSchema.kmpLibraryTargets: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kmp.KmpLibraryTargetContainer")
@@ -23,28 +32,37 @@ val AnalysisSchema.kmpLibraryTargets: DataClass
 val AnalysisSchema.kmpLibraryTargetsFunction: TypedMember.TypedFunction
     get() = kmpLibrary.singleFunctionNamed("targets")
 
+val AnalysisSchema.kotlinTesting: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kotlin.testing.Testing")
+
 val AnalysisSchema.kmpApplicationTargets: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kmp.KmpApplicationTargetContainer")
 
 val AnalysisSchema.kmpApplicationTargetsFunction: TypedMember.TypedFunction
     get() = kmpApplication.singleFunctionNamed("targets")
 
-val AnalysisSchema.kmpLibraryTargetsJvm: TypedMember.TypedFunction
+val AnalysisSchema.kmpApplicationTargetsJvm: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kmp.KmpApplicationJvmTarget")
+
+val AnalysisSchema.kmpLibraryTargetsJvm: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kmp.KmpLibraryJvmTarget")
+
+val AnalysisSchema.kmpLibraryTargetsJvmFunction: TypedMember.TypedFunction
     get() = kmpLibraryTargets.singleConfiguringFunctionNamed("jvm")
 
-val AnalysisSchema.kmpLibraryTargetsNodeJs: TypedMember.TypedFunction
+val AnalysisSchema.kmpLibraryTargetsNodeJsFunction: TypedMember.TypedFunction
     get() = kmpLibraryTargets.singleConfiguringFunctionNamed("nodeJs")
 
-val AnalysisSchema.kmpLibraryTargetsMacOsArm64: TypedMember.TypedFunction
+val AnalysisSchema.kmpLibraryTargetsMacOsArm64Function: TypedMember.TypedFunction
     get() = kmpLibraryTargets.singleConfiguringFunctionNamed("macOsArm64")
 
-val AnalysisSchema.kmpApplicationTargetsJvm: TypedMember.TypedFunction
+val AnalysisSchema.kmpApplicationTargetsJvmFunction: TypedMember.TypedFunction
     get() = kmpApplicationTargets.singleConfiguringFunctionNamed("jvm")
 
-val AnalysisSchema.kmpApplicationTargetsNodeJs: TypedMember.TypedFunction
+val AnalysisSchema.kmpApplicationTargetsNodeJsFunction: TypedMember.TypedFunction
     get() = kmpApplicationTargets.singleConfiguringFunctionNamed("nodeJs")
 
-val AnalysisSchema.kmpApplicationTargetsMacOsArm64: TypedMember.TypedFunction
+val AnalysisSchema.kmpApplicationTargetsMacOsArm64Function: TypedMember.TypedFunction
     get() = kmpApplicationTargets.singleConfiguringFunctionNamed("macOsArm64")
 
 val AnalysisSchema.kotlinJvmLibraryLint: TypedMember.TypedFunction
