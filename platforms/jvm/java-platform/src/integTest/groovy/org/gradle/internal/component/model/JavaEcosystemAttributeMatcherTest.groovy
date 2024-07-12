@@ -23,10 +23,12 @@ import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
 /**
  * Tests attribute matching against configurations and their variants in the context of the JVM ecosystem.
  * Here, we apply the JVM ecosystem compatibility and disambiguation rules and verify that given a set of
@@ -317,10 +319,10 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
      * @throws AssertionError If the first round of attribute matching failed to match a single configuration
      *      or the second round failed to match a single variant.
      */
-    def matchConfigurations(List<List<AttributeContainerInternal>> candidates, AttributeContainerInternal requested) {
+    def matchConfigurations(List<List<AttributeContainerInternal>> candidates, ImmutableAttributes requested) {
         // The first element in each configuration array is the implicit variant.
         def implicitVariants = candidates.collect { it.first() }
-        def configurationMatches = schema.matcher().matches(implicitVariants, requested, explanationBuilder)
+        def configurationMatches = schema.matcher().matchMultipleCandidates(implicitVariants, requested, explanationBuilder)
 
         // This test is checking only for successful (single) matches. If we matched multiple configurations
         // in the first round, something is wrong here. Fail before attempting the second round of variant matching.
@@ -328,7 +330,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         // Get all the variants for the configuration which was selected and apply variant matching on them.
         def configurationVariants = candidates.get(implicitVariants.indexOf(configurationMatches.get(0)))
-        def variantMatches = schema.matcher().matches(configurationVariants, requested, explanationBuilder)
+        def variantMatches = schema.matcher().matchMultipleCandidates(configurationVariants, requested, explanationBuilder)
 
         // Once again, the purpose of this test is for successful results. Something is wrong if we have
         // multiple matched variants.
@@ -336,7 +338,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         return variantMatches[0]
     }
 
-    private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm) {
+    private static ImmutableAttributes attributes(String usage, String libraryElements, Integer targetJvm) {
         Map<Attribute<Object>, Object> attrs = [
             (Usage.USAGE_ATTRIBUTE): AttributeTestUtil.named(Usage, usage),
             (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE): targetJvm,

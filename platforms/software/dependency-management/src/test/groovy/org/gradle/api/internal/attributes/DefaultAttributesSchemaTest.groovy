@@ -80,8 +80,8 @@ class DefaultAttributesSchemaTest extends Specification {
         !schema.matcher().selectionSchema.matchValue(attribute, "a", "b")
         schema.matcher().selectionSchema.matchValue(attribute, "a", "a")
 
-        !schema.matcher().isMatching(attribute, "a", "b")
-        schema.matcher().isMatching(attribute, "a", "a")
+        !schema.matcher().isMatchingValue(attribute, "a", "b")
+        schema.matcher().isMatchingValue(attribute, "a", "a")
     }
 
     static class DoNothingRule implements AttributeCompatibilityRule<String> {
@@ -102,8 +102,8 @@ class DefaultAttributesSchemaTest extends Specification {
         !schema.matcher().selectionSchema.matchValue(attribute, "a", "b")
         schema.matcher().selectionSchema.matchValue(attribute, "a", "a")
 
-        !schema.matcher().isMatching(attribute, "a", "b")
-        schema.matcher().isMatching(attribute, "a", "a")
+        !schema.matcher().isMatchingValue(attribute, "a", "b")
+        schema.matcher().isMatchingValue(attribute, "a", "a")
     }
 
     static class BrokenRule implements AttributeCompatibilityRule<String> {
@@ -121,7 +121,7 @@ class DefaultAttributesSchemaTest extends Specification {
         expect:
         schema.matcher().selectionSchema.matchValue(attribute, "a", "a")
 
-        schema.matcher().isMatching(attribute, "a", "a")
+        schema.matcher().isMatchingValue(attribute, "a", "a")
     }
 
     def "strategy is per attribute"() {
@@ -175,8 +175,8 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.matcher().selectionSchema.matchValue(attr, value1, value2)
         !schema.matcher().selectionSchema.matchValue(attr, value2, value1)
 
-        schema.matcher().isMatching(attr, value2, value1)
-        !schema.matcher().isMatching(attr, value1, value2)
+        schema.matcher().isMatchingValue(attr, value2, value1)
+        !schema.matcher().isMatchingValue(attr, value1, value2)
     }
 
     static class IncompatibleStringsRule implements AttributeCompatibilityRule<String> {
@@ -196,7 +196,7 @@ class DefaultAttributesSchemaTest extends Specification {
         expect:
         !schema.matcher().selectionSchema.matchValue(attr, "a", "b")
 
-        !schema.matcher().isMatching(attr, "a", "b")
+        !schema.matcher().isMatchingValue(attr, "a", "b")
     }
 
     def "selects requested value when it is one of the candidate values and no rules defined"() {

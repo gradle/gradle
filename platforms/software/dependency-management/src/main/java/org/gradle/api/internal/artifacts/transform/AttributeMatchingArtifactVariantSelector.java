@@ -84,13 +84,13 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants = ImmutableList.copyOf(producer.getVariants());
 
-        List<? extends ResolvedVariant> matches = matcher.matches(variants, componentRequested, explanationBuilder);
+        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
             // Request is ambiguous. Rerun matching again, except capture an explanation this time for reporting.
             TraceDiscardedVariants newExpBuilder = new TraceDiscardedVariants();
-            matches = matcher.matches(variants, componentRequested, newExpBuilder);
+            matches = matcher.matchMultipleCandidates(variants, componentRequested, newExpBuilder);
             throw failureProcessor.ambiguousArtifactsFailure(schema, matcher, producer, componentRequested, matches);
         }
 
@@ -119,9 +119,16 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     }
 
     /**
-     * Attempt to disambiguate between multiple potential transform candidates. This first performs attribute matching on the {@code candidates}.
-     * If that does not produce a single result, then a subset of the results of attribute matching is returned, where the candidates which have
-     * incompatible attributes values with the <strong>last</strong> candidate are included.
+     * Given a set of potential transform chains, attempt to reduce the set to a minimal set of preferred candidates.
+     * Ideally, this method would return a single candidate.
+     * <p>
+     * This method starts by performing attribute matching on the candidates. This leverages disambiguation rules
+     * from the {@link AttributeMatcher} to reduce the set of candidates. Return a single candidate only one remains.
+     * <p>
+     * If there are multiple results after disambiguation, return a subset of the results such that all candidates have
+     * incompatible attributes values when matched with the <strong>last</strong> candidate. In some cases, this step is
+     * able to arbitrarily reduces the candidate set to a single candidate as long as all remaining candidates are
+     * compatible with each other.
      */
     private static List<TransformedVariant> tryDisambiguate(
         AttributeMatcher matcher,
@@ -129,7 +136,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributes componentRequested,
         AttributeMatchingExplanationBuilder explanationBuilder
     ) {
-        List<TransformedVariant> matches = matcher.matches(candidates, componentRequested, explanationBuilder);
+        List<TransformedVariant> matches = matcher.matchMultipleCandidates(candidates, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches;
         }
@@ -145,7 +152,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         // Find any other candidate which does not match with the last candidate.
         for (int i = 0; i < matches.size() - 1; i++) {
             TransformedVariant current = matches.get(i);
-            if (!matcher.weaklyMatches(current.getAttributes(), last.getAttributes())) {
+            if (!matcher.areMutuallyCompatible(current.getAttributes(), last.getAttributes())) {
                 differentTransforms.add(current);
             }
         }

@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
@@ -34,24 +33,35 @@ public interface AttributeMatcher {
     /**
      * Determines whether the given candidate is compatible with the requested criteria.
      */
-    boolean isMatching(ImmutableAttributes candidate, ImmutableAttributes requested);
+    boolean isMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested);
 
     /**
-     * Determines whether two attribute sets are mutually compatible.
+     * Determines whether two candidates are mutually compatible.
      *
      * @return true if for each shared key in the provided attribute sets, the corresponding
      * attribute value in each set is compatible. false otherwise.
      */
-    boolean weaklyMatches(ImmutableAttributes first, ImmutableAttributes second);
-
-    <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
+    boolean areMutuallyCompatible(ImmutableAttributes first, ImmutableAttributes second);
 
     /**
-     * Selects all matches from {@code candidates} that are compatible with the {@code requested} criteria attributes.
+     * Determine if a candidate value compatible with the requested criteria
+     * for a some attribute.
      */
-    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder builder);
+    <T> boolean isMatchingValue(Attribute<T> attribute, T candidate, T requested);
 
-    List<MatchingDescription<?>> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
+    /**
+     * Selects all matches from {@code candidates} that are compatible with the {@code requested}
+     * criteria attributes. Then, if there are more than one match, perform disambiguation to attempt
+     * to reduce the set of matches to a more preferred subset.
+     */
+    <T extends HasAttributes> List<T> matchMultipleCandidates(
+        Collection<? extends T> candidates,
+        ImmutableAttributes requested,
+        AttributeMatchingExplanationBuilder builder
+    );
+
+    // TODO: Merge this with ResolutionCandidateAssessor
+    List<MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested);
 
     class MatchingDescription<T> {
         private final Attribute<T> requestedAttribute;

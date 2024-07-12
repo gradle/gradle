@@ -136,15 +136,15 @@ public class ConsumerProvidedVariantFinder {
             for (ChainState state : toProcess) {
                 // The set of transforms which could potentially produce a variant compatible with `requested`.
                 ImmutableFilteredList<TransformRegistration> candidates =
-                    state.transforms.matching(transform -> matcher.isMatching(transform.getTo(), state.requested));
+                    state.transforms.matching(transform -> matcher.isMatchingCandidate(transform.getTo(), state.requested));
 
                 // For each candidate, attempt to find a source variant that the transform can use as its root.
                 for (TransformRegistration candidate : candidates) {
                     for (int i = 0; i < sources.size(); i++) {
                         ImmutableAttributes sourceAttrs = sources.get(i);
-                        if (matcher.isMatching(sourceAttrs, candidate.getFrom())) {
+                        if (matcher.isMatchingCandidate(sourceAttrs, candidate.getFrom())) {
                             ImmutableAttributes rootAttrs = attributesFactory.concat(sourceAttrs, candidate.getTo());
-                            if (matcher.isMatching(rootAttrs, state.requested)) {
+                            if (matcher.isMatchingCandidate(rootAttrs, state.requested)) {
                                 DefaultVariantDefinition rootTransformedVariant = new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformStep());
                                 VariantDefinition variantChain = createVariantChain(state.chain, rootTransformedVariant);
                                 results.add(new CachedVariant(i, variantChain));
@@ -261,7 +261,7 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Caches calls to {@link AttributeMatcher#isMatching(ImmutableAttributes, ImmutableAttributes)}
+     * Caches calls to {@link AttributeMatcher#isMatchingCandidate(ImmutableAttributes, ImmutableAttributes)}
      */
     private static class CachingAttributeMatcher {
         private final AttributeMatcher matcher;
@@ -271,8 +271,8 @@ public class ConsumerProvidedVariantFinder {
             this.matcher = matcher;
         }
 
-        public boolean isMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
-            return cache.computeIfAbsent(new CacheKey(candidate, requested), key -> matcher.isMatching(key.candidate, key.requested));
+        public boolean isMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested) {
+            return cache.computeIfAbsent(new CacheKey(candidate, requested), key -> matcher.isMatchingCandidate(key.candidate, key.requested));
         }
 
         private static class CacheKey {

@@ -504,7 +504,7 @@ public class DependencyGraphBuilder {
             NodeState first = it.next();
             NodeState second = it.next();
 
-            if (!matcher.weaklyMatches(first.getMetadata().getAttributes(), second.getMetadata().getAttributes())) {
+            if (!matcher.areMutuallyCompatible(first.getMetadata().getAttributes(), second.getMetadata().getAttributes())) {
                 incompatibleNodes.add(first);
                 incompatibleNodes.add(second);
             }

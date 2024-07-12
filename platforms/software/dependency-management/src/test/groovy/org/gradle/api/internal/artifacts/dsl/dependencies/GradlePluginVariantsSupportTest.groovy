@@ -45,8 +45,8 @@ class GradlePluginVariantsSupportTest extends Specification {
         def producer = versionAttribute('7.0')
 
         then:
-        accepts == (schema.matcher().matches([producer], consumer, ep) == [producer])
-        accepts == schema.matcher().isMatching(producer, consumer)
+        accepts == (schema.matcher().matchMultipleCandidates([producer], consumer, ep) == [producer])
+        accepts == schema.matcher().isMatchingCandidate(producer, consumer)
 
         where:
         currentGradleVersion       | acceptsOrRejects
@@ -74,7 +74,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.0')]
+        schema.matcher().matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.0')]
 
     }
 
@@ -92,7 +92,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.1')]
+        schema.matcher().matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.1')]
     }
 
     def "fails to select one candidate if there is no clear preference"() {
@@ -107,7 +107,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
+        schema.matcher().matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
     }
 
     private ImmutableAttributes versionAttribute(String version) {
