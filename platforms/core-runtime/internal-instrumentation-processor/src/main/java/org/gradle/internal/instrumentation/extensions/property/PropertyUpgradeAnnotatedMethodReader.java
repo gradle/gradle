@@ -497,7 +497,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     private CallInterceptionRequest createGroovyPropertyInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
         String interceptorsClassName = getGroovyInterceptorsClassName(accessor.interceptorType);
-        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, BYTECODE_UPGRADE));
+        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, accessor.interceptorType));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         Type returnType = TypeUtils.extractRawType(accessor.returnType);
         return new CallInterceptionRequestImpl(
@@ -536,7 +536,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String interceptorsClassName = getJavaInterceptorsClassName(accessor.interceptorType);
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
-        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
+        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, accessor.interceptorType));
         String implementationClass = accessor.generatedClassName;
         TypeName newPropertyType = TypeName.get(method.getReturnType());
         String propertyName = getPropertyName(method);
