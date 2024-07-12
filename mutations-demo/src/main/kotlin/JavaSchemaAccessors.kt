@@ -6,6 +6,9 @@ import org.gradle.declarative.dsl.schema.DataClass
 fun AnalysisSchema.hasJavaPrototype(): Boolean =
     dataClassesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.java.JavaLibrary" }
 
+fun AnalysisSchema.hasJvmPrototype(): Boolean =
+    dataClassesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.jvm.HasJvmApplication" }
+
 val AnalysisSchema.hasJvmApplication: DataClass
     get() = typeByFqn("org.gradle.api.experimental.jvm.HasJvmApplication")
 

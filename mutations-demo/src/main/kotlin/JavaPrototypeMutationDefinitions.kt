@@ -4,12 +4,12 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.*
 import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
 
-interface JavaPrototypeMutationDefinition : MutationDefinition {
+interface JvmPrototypeMutationDefinition : MutationDefinition {
     override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
-        projectAnalysisSchema.hasJavaPrototype()
+        projectAnalysisSchema.hasJvmPrototype()
 }
 
-object SetJvmApplicationMainClass : JavaPrototypeMutationDefinition {
+object SetJvmApplicationMainClass : JvmPrototypeMutationDefinition {
     override val id: String = "org.gradle.client.demo.mutations.jvm.application.setMainClass"
     override val name: String = "Set application main class"
     override val description: String = "Set the entry point class for the application"
@@ -33,7 +33,7 @@ object SetJvmApplicationMainClass : JavaPrototypeMutationDefinition {
         }
 }
 
-object SetJavaVersion : JavaPrototypeMutationDefinition {
+object SetJavaVersion : JvmPrototypeMutationDefinition {
     override val id: String = "org.gradle.client.demo.mutations.jvm.setJavaVersion"
     override val name: String = "Set Java version"
     override val description: String = "Set the target Java version"
