@@ -23,13 +23,13 @@ import org.gradle.performance.annotations.Scenario
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
-import spock.lang.Ignore
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @RunFor([
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject", "mediumJavaCompositeBuild"]),
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["mediumJavaPredefinedCompositeBuild"])
 ])
-@Ignore("https://github.com/gradle/gradle-private/issues/4245")
+@LeaksFileHandles("https://github.com/gradle/gradle-private/issues/4245")
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "clean assemble"() {
