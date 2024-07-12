@@ -23,7 +23,6 @@ import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.serialize.graph.CloseableWriteContext
-import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.util.Path
 import java.io.InputStream
@@ -61,7 +60,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
-    fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<CloseableWriteContext, Codecs>
+    fun writeContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<CloseableWriteContext, Codecs>
 
     fun <R> withReadContextFor(
         stateType: StateType,

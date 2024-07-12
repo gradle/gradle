@@ -123,7 +123,7 @@ class IsolatedActionDeserializer(
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun <G : Any> deserialize(action: SerializedIsolatedActionGraph<G>): G =
-        readerContextFor(action).useToRun {
+        readContextFor(action).useToRun {
             runReadOperation {
                 withIsolate(owner) {
                     readNonNull()
@@ -132,7 +132,7 @@ class IsolatedActionDeserializer(
         }
 
     private
-    fun readerContextFor(
+    fun readContextFor(
         action: SerializedIsolatedActionGraph<*>
     ) = DefaultReadContext(
         codec = isolatedActionCodecs.isolatedActionCodecs(),

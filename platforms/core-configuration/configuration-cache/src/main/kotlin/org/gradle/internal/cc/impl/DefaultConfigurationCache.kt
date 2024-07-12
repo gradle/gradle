@@ -504,7 +504,7 @@ class DefaultConfigurationCache internal constructor(
             store.assignSpoolFile(StateType.BuildFingerprint),
             store.assignSpoolFile(StateType.ProjectFingerprint)
         ) { stateFile ->
-            cacheFingerprintWriterContextFor(stateFile.stateType, stateFile.file::outputStream) {
+            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
                 profileNameFor(stateFile)
             }
         }
@@ -517,12 +517,12 @@ class DefaultConfigurationCache internal constructor(
         }.drop(1)
 
     private
-    fun cacheFingerprintWriterContextFor(
+    fun cacheFingerprintWriteContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String
     ): CloseableWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(stateType, outputStream, profile)
+        val (context, codecs) = cacheIO.writeContextFor(stateType, outputStream, profile)
         return context.apply {
             push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
         }

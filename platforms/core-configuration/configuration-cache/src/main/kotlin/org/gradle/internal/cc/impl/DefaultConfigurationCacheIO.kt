@@ -216,7 +216,7 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val (context, codecs) = writerContextFor(stateFile.stateType, stateFile::outputStream) {
+        val (context, codecs) = writeContextFor(stateFile.stateType, stateFile::outputStream) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
         return context.useToRun {
@@ -245,7 +245,7 @@ class DefaultConfigurationCacheIO internal constructor(
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
-    override fun writerContextFor(
+    override fun writeContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String
@@ -285,12 +285,12 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     override fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T {
-        val (context, codecs) = writerContextFor(encoder)
+        val (context, codecs) = writeContextFor(encoder)
         return context.runWriteOperation { writeOperation(codecs) }
     }
 
     private
-    fun writerContextFor(encoder: Encoder): Pair<CloseableWriteContext, Codecs> =
+    fun writeContextFor(encoder: Encoder): Pair<CloseableWriteContext, Codecs> =
         writeContextFor(
             encoder,
             null,
@@ -302,7 +302,7 @@ class DefaultConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
+        readContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
             .let { (context, codecs) ->
                 context.useToRun {
                     runReadOperation {
@@ -314,12 +314,12 @@ class DefaultConfigurationCacheIO internal constructor(
             }
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
-        val (context, codecs) = readerContextFor(decoder)
+        val (context, codecs) = readContextFor(decoder)
         return context.runReadOperation { readOperation(codecs) }
     }
 
     private
-    fun readerContextFor(
+    fun readContextFor(
         decoder: Decoder,
     ) = readContextFor(decoder, codecs) to codecs
 
