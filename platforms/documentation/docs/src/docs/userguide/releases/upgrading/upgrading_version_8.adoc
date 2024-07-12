@@ -89,10 +89,13 @@ Consuming non-consumable configurations in this manner is deprecated and will re
 [[extending_configurations_in_same_project]]
 ==== Deprecated extending configurations in the same project
 
-In prior versions of Gradle, it was possible to extend a configuration in different project.
+In prior versions of Gradle, it was possible to extend a configuration in a different project.
 
-Projects should not have knowledge of configurations in other projects.
-This practice is discouraged because it can lead to unexpected behavior when configurations are extended in a way that is not intended by the configuration's owner.
+The hierarchy of a Project's configurations should not be influenced by configurations in other projects.
+Cross-project hierarchies can lead to unexpected behavior when configurations are extended in a way that is not intended by the configuration's owner.
+
+Projects should also never access the mutable state of another project.
+Since Configurations are mutable, extending configurations across project boundaries restricts the parallelism that Gradle can apply.
 
 Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
 
