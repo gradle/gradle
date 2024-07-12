@@ -22,8 +22,9 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
-import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.util.Path
 import java.io.InputStream
 import java.io.OutputStream
@@ -60,11 +61,11 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
-    fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs>
+    fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<CloseableWriteContext, Codecs>
 
     fun <R> withReadContextFor(
         stateType: StateType,
         inputStream: () -> InputStream,
-        readOperation: suspend DefaultReadContext.(Codecs) -> R
+        readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R
 }

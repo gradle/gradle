@@ -40,10 +40,12 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
-import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.CloseableReadContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.LoggingTracer
+import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
@@ -110,7 +112,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     private
-    fun DefaultWriteContext.writeModelKey(key: ModelKey) {
+    fun WriteContext.writeModelKey(key: ModelKey) {
         writeNullableString(key.identityPath?.path)
         writeString(key.modelName)
         writeNullableString(key.parameterHash?.toString())
@@ -143,7 +145,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     private
-    fun DefaultReadContext.readModelKey(): ModelKey {
+    fun ReadContext.readModelKey(): ModelKey {
         val path = readNullableString()?.let { Path.path(it) }
         val modelName = readString()
         val parameterHash = readNullableString()?.let(HashCode::fromString)
@@ -200,7 +202,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun <T> readConfigurationCacheState(
         stateFile: ConfigurationCacheStateFile,
-        action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
+        action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
         return withReadContextFor(stateFile.stateType, stateFile::inputStream) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
@@ -212,7 +214,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun <T> writeConfigurationCacheState(
         stateFile: ConfigurationCacheStateFile,
-        action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
+        action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
         val (context, codecs) = writerContextFor(stateFile.stateType, stateFile::outputStream) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
@@ -243,7 +245,11 @@ class DefaultConfigurationCacheIO internal constructor(
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
-    override fun writerContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
+    override fun writerContextFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        profile: () -> String
+    ): Pair<CloseableWriteContext, Codecs> =
         KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
@@ -284,7 +290,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     private
-    fun writerContextFor(encoder: Encoder): Pair<DefaultWriteContext, Codecs> =
+    fun writerContextFor(encoder: Encoder): Pair<CloseableWriteContext, Codecs> =
         writeContextFor(
             encoder,
             null,
@@ -294,12 +300,11 @@ class DefaultConfigurationCacheIO internal constructor(
     override fun <R> withReadContextFor(
         stateType: StateType,
         inputStream: () -> InputStream,
-        readOperation: suspend DefaultReadContext.(Codecs) -> R
+        readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
         readerContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
             .let { (context, codecs) ->
                 context.useToRun {
-                    initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
                     }.also {
@@ -316,29 +321,15 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun readerContextFor(
         decoder: Decoder,
-    ) =
-        readContextFor(decoder, codecs).apply {
-            initClassLoader(javaClass.classLoader)
-        } to codecs
+    ) = readContextFor(decoder, codecs) to codecs
 
     private
     fun writeContextFor(
         encoder: Encoder,
         tracer: Tracer?,
         codecs: Codecs
-    ) = writeContextFor(
-        encoder,
-        tracer,
-        codecs.userTypesCodec()
-    )
-
-    private
-    fun writeContextFor(
-        encoder: Encoder,
-        tracer: Tracer?,
-        codec: Codec<Any?>
-    ) = DefaultWriteContext(
-        codec,
+    ): CloseableWriteContext = DefaultWriteContext(
+        codecs.userTypesCodec(),
         encoder,
         beanStateWriterLookup,
         logger,
@@ -351,19 +342,14 @@ class DefaultConfigurationCacheIO internal constructor(
     fun readContextFor(
         decoder: Decoder,
         codecs: Codecs
-    ) = readContextFor(decoder, codecs.userTypesCodec())
-
-    private
-    fun readContextFor(
-        decoder: Decoder,
-        codec: Codec<Any?>
-    ) = DefaultReadContext(
-        codec,
+    ): CloseableReadContext = DefaultReadContext(
+        codecs.userTypesCodec(),
         decoder,
         beanStateReaderLookup,
         logger,
         problems,
-        DefaultClassDecoder()
+        DefaultClassDecoder(),
+        javaClass.classLoader
     )
 
     private

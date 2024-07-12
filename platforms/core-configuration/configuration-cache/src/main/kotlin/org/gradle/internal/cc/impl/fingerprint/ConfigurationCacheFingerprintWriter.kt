@@ -74,7 +74,7 @@ import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
-import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
 import java.io.File
@@ -86,8 +86,8 @@ import java.util.concurrent.ConcurrentHashMap
 internal
 class ConfigurationCacheFingerprintWriter(
     private val host: Host,
-    buildScopedContext: DefaultWriteContext,
-    projectScopedContext: DefaultWriteContext,
+    buildScopedContext: CloseableWriteContext,
+    projectScopedContext: CloseableWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val workExecutionTracker: WorkExecutionTracker,
@@ -891,4 +891,4 @@ fun jvmFingerprint() =
         System.getProperty("java.vm.name"),
         System.getProperty("java.vm.vendor"),
         System.getProperty("java.vm.version")
-    ).joinToString (separator = "|")
+    ).joinToString(separator = "|")

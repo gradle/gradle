@@ -18,10 +18,10 @@ package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
 import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -42,7 +42,7 @@ interface DecodingProvider<T> {
 }
 
 
-interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
+interface WriteContext : MutableIsolateContext, Encoder {
 
     val tracer: Tracer?
 
@@ -58,6 +58,9 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
     fun writeClass(type: Class<*>)
 }
+
+
+interface CloseableWriteContext : WriteContext, AutoCloseable
 
 
 interface Tracer {
@@ -94,6 +97,19 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     fun onFinish(action: () -> Unit)
 
     fun <T : Any> getSingletonProperty(propertyType: Class<T>): T
+}
+
+
+interface MutableReadContext : ReadContext {
+    /**
+     * Sets a client specific property value that can be queried via [getSingletonProperty].
+     */
+    fun <T : Any> setSingletonProperty(singletonProperty: T)
+}
+
+
+interface CloseableReadContext : MutableReadContext, AutoCloseable {
+    fun finish()
 }
 
 
