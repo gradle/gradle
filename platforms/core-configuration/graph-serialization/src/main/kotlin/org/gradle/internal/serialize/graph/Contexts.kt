@@ -128,9 +128,7 @@ class DefaultReadContext(
     problemsListener: ProblemsListener,
 
     private
-    val classDecoder: ClassDecoder,
-
-    override val classLoader: ClassLoader
+    val classDecoder: ClassDecoder
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 

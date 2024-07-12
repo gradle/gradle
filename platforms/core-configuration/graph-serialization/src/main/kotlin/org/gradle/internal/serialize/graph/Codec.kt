@@ -77,8 +77,6 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     override val isolate: ReadIsolate
 
-    val classLoader: ClassLoader
-
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 
     /**

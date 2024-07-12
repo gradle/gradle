@@ -348,8 +348,7 @@ class DefaultConfigurationCacheIO internal constructor(
         beanStateReaderLookup,
         logger,
         problems,
-        DefaultClassDecoder(),
-        javaClass.classLoader
+        DefaultClassDecoder()
     )
 
     private

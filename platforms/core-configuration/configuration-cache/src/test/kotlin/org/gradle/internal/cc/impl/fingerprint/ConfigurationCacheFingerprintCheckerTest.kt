@@ -458,9 +458,6 @@ class ConfigurationCacheFingerprintCheckerTest {
         override val isolate: ReadIsolate
             get() = undefined()
 
-        override val classLoader: ClassLoader
-            get() = undefined()
-
         override fun onFinish(action: () -> Unit) =
             undefined()
 

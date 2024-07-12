@@ -140,8 +140,7 @@ class IsolatedActionDeserializer(
         beanStateReaderLookup = beanStateReaderLookup,
         logger = logger,
         problemsListener = ThrowingProblemsListener,
-        classDecoder = EnvironmentDecoder(action.environment),
-        classLoader = javaClass.classLoader
+        classDecoder = EnvironmentDecoder(action.environment)
     )
 }
 
