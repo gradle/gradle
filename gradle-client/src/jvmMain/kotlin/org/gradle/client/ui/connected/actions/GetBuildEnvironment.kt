@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import org.gradle.client.ui.connected.horizontalScrollContent
+import org.gradle.client.ui.composables.horizontalScrollContent
 import org.gradle.tooling.model.build.BuildEnvironment
 
 class GetBuildEnvironment : GetModelAction<BuildEnvironment> {

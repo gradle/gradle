@@ -1,10 +1,6 @@
 package org.gradle.client.ui.connected
 
-import androidx.compose.foundation.HorizontalScrollbar
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
@@ -13,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.gradle.client.ui.composables.FailureContent
 import org.gradle.client.ui.composables.Loading
@@ -107,35 +102,6 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                     }
                 }
             },
-        )
-    }
-}
-
-@Composable
-fun horizontalScrollContent(
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val stateHorizontal = rememberScrollState(0)
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 12.dp)
-                .horizontalScroll(stateHorizontal)
-        ) {
-            Column {
-                content()
-            }
-        }
-
-        HorizontalScrollbar(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth(),
-            adapter = rememberScrollbarAdapter(stateHorizontal)
         )
     }
 }
