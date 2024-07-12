@@ -54,7 +54,7 @@ class JavaToolchainTest extends Specification {
         def javaHome = new File(javaHomePath).absolutePath
         def metadata = Mock(JvmInstallationMetadata) {
             getJavaHome() >> Paths.get(javaHome)
-            getLanguageVersion() >> Jvm.current().javaVersion
+            getJavaVersion() >> Jvm.current().javaVersion.majorVersion
         }
 
         when:

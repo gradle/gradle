@@ -25,6 +25,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
@@ -243,7 +244,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         if (vendor == null || vendor.isEmpty()) {
             vendor = metadata.getVendor().getRawVendor();
         }
-        String version = metadata.getLanguageVersion().getMajorVersion();
+        String version = Integer.toString(JavaVersionParser.parseMajorVersion(metadata.getJavaVersion()));
         String architecture = metadata.getArchitecture();
         String os = OperatingSystem.current().getFamilyName();
         return String.format("%s-%s-%s-%s", vendor, version, architecture, os)

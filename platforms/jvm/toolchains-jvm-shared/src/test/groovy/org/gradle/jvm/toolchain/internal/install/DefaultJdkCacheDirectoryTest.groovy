@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal.install
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
@@ -225,7 +224,7 @@ class DefaultJdkCacheDirectoryTest extends Specification {
         JvmInstallationMetadata metadata = Mock(JvmInstallationMetadata)
         metadata.isValidInstallation() >> true
         metadata.getVendor() >> JvmVendor.KnownJvmVendor.IBM.asJvmVendor()
-        metadata.getLanguageVersion() >> JavaVersion.VERSION_11
+        metadata.getJavaVersion() >> "11"
         metadata.getArchitecture() >> "arch"
         metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) >> true
 

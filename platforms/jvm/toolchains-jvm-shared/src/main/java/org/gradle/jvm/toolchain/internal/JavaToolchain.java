@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.Jvm;
@@ -31,7 +32,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     static JavaLanguageVersion getJavaLanguageVersion(JvmInstallationMetadata metadata) {
-        return JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
+        return JavaLanguageVersion.of(JavaVersionParser.parseMajorVersion(metadata.getJavaVersion()));
     }
 
     private final Directory javaHome;
