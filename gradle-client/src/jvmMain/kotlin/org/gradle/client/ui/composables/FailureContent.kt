@@ -10,18 +10,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import org.gradle.client.ui.connected.horizontalScrollContent
 
 @Composable
 fun FailureContent(exception: Exception) {
-    Column(
-        modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
-    ) {
-        SelectionContainer {
-            Text(
-                text = exception.stackTraceToString(),
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                color = MaterialTheme.colorScheme.error,
-            )
+    Column {
+        horizontalScrollContent {
+            SelectionContainer {
+                Text(
+                    text = exception.stackTraceToString(),
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }
