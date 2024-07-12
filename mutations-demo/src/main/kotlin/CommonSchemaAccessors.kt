@@ -17,6 +17,9 @@ val AnalysisSchema.hasApplicationDependencies: DataClass
 fun AnalysisSchema.hasCommonPrototype(): Boolean =
     dataClassesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.common.LibraryDependencies" }
 
+fun AnalysisSchema.hasCommonDependencies(): Boolean =
+    dataClassesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.common.HasLibraryDependencies" }
+
 interface CommonPrototypeMutationDefinition : MutationDefinition {
     override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
         projectAnalysisSchema.hasCommonPrototype()

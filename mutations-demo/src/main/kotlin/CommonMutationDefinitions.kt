@@ -8,7 +8,7 @@ import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 val addCommonLibraryDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.toLibrary",
-        { hasCommonPrototype() },
+        { hasCommonDependencies() },
         { ScopeLocation.fromTopLevel().inObjectsOfType(hasLibraryDependencies) },
         { hasLibraryDependencies.singleFunctionNamed("dependencies") }
     )
@@ -16,7 +16,7 @@ val addCommonLibraryDependencyMutation =
 val addCommonApplicationDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.toApplication",
-        { hasCommonPrototype() },
+        { hasCommonDependencies() },
         { ScopeLocation.fromTopLevel().inObjectsOfType(hasApplicationDependencies) },
         { hasApplicationDependencies.singleFunctionNamed("dependencies") }
     )
