@@ -106,7 +106,7 @@ public class GraphVariantSelector {
             throw failureHandler.noVariantsWithMatchingCapabilitiesFailure(consumerSchema, attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), allVariants);
         }
 
-        List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
+        List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
         if (matches.size() > 1) {
             // there's an ambiguity, but we may have several variants matching the requested capabilities.
             // Here we're going to check if in the candidates, there's a single one _strictly_ matching the requested capabilities.
@@ -116,7 +116,7 @@ public class GraphVariantSelector {
             } else if (strictlyMatchingCapabilities.size() > 1) {
                 // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
                 // so we perform another round of selection on the remaining candidates
-                strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
+                strictlyMatchingCapabilities = attributeMatcher.matchMultipleCandidates(strictlyMatchingCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
                 if (strictlyMatchingCapabilities.size() == 1) {
                     return singleVariant(strictlyMatchingCapabilities);
                 }
@@ -198,7 +198,7 @@ public class GraphVariantSelector {
 
         if (!consumerAttributes.isEmpty() && !conf.getAttributes().isEmpty()) {
             // Need to validate that the selected configuration still matches the consumer attributes
-            if (!attributeMatcher.isMatching(conf.getAttributes(), consumerAttributes)) {
+            if (!attributeMatcher.isMatchingCandidate(conf.getAttributes(), consumerAttributes)) {
                 throw failureHandler.configurationNotCompatibleFailure(consumerSchema, attributeMatcher, targetComponentState, conf, consumerAttributes, conf.getCapabilities());
             }
         }
