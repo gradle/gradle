@@ -48,7 +48,7 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("help", "--property-upgrade-report")
 
         then:
-        outputContains("Intercepted method: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
+        outputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at MyPlugin(MyPlugin.java:0)")
     }
 
     @NotYetImplemented
@@ -84,6 +84,6 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("help", "--property-upgrade-report")
 
         then:
-        outputContains("Intercepted method: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
+        outputContains("Intercepted method: MyPlugin.class: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
     }
 }

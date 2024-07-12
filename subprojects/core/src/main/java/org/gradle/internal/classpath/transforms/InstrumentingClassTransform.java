@@ -182,7 +182,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, interceptors, interceptorFilter);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, interceptors, interceptorFilter);
         }
 
         @Override
@@ -272,11 +272,13 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Lazy<MethodNode> asNode;
         private final Collection<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
+        private final ClassData classData;
 
         public InstrumentingMethodVisitor(
             InstrumentingVisitor owner,
             MethodVisitor methodVisitor,
             Lazy<MethodNode> asNode,
+            ClassData classData,
             Collection<JvmBytecodeCallInterceptor> interceptors,
             BytecodeInterceptorFilter interceptorFilter
         ) {
@@ -284,6 +286,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
+            this.classData = classData;
             this.interceptors = interceptors;
             this.interceptorFilter = interceptorFilter;
         }
@@ -296,7 +299,13 @@ public class InstrumentingClassTransform implements ClassTransform {
 
             for (JvmBytecodeCallInterceptor interceptor : interceptors) {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
-                    methodInterceptionListenerFor(interceptor.getType()).onInterceptedMethodIns(owner, name, descriptor);
+                    methodInterceptionListenerFor(interceptor.getType()).onInterceptedMethodIns(
+                        classData.getSource(),
+                        classData.getClassRelativePath().getPathString(),
+                        owner,
+                        name,
+                        descriptor
+                    );
                     return;
                 }
             }
