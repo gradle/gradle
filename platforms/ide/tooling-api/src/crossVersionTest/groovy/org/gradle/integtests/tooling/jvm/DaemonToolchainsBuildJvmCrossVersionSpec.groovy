@@ -30,7 +30,7 @@ class DaemonToolchainsBuildJvmCrossVersionSpec extends ExplicitDaemonJvmCrossVer
 
     @Override
     void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) {
-        launcher.withArguments("-Porg.gradle.java.installations.paths=" + javaHome.canonicalPath)
+        withInstallations(javaHome)
     }
 
 }

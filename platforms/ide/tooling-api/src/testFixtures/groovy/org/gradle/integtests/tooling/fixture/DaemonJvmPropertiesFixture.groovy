@@ -63,6 +63,7 @@ trait DaemonJvmPropertiesFixture {
         properties.put("toolchainVersion", version)
         buildPropertiesFile.writeProperties(properties)
         assertJvmCriteria(version)
+        requireDaemons()
     }
 
     TestFile getBuildPropertiesFile() {

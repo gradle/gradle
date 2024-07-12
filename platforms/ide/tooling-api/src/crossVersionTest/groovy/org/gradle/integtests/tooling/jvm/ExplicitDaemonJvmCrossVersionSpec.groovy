@@ -39,6 +39,7 @@ import org.gradle.tooling.model.GradleProject
 abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
     def setup() {
+        requireDaemons()
         noJavaVersionDeprecationExpectation()
     }
 
@@ -51,7 +52,6 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
      * Configure the tooling API launcher to use the given JVM.
      */
     void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) { }
-
 
     // region Unsupported JVM
 

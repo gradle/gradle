@@ -24,6 +24,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
@@ -34,6 +35,7 @@ import spock.lang.Issue
  * client JVM is different than the daemon JVM. Subclasses implement the various ways of
  * specifying the daemon JDK version.
  */
+@NoDebug // We are starting daemons with different JAVA_HOMEs
 @NonCrossVersion // Supporting multiple Gradle versions is more work.
 @SuppressWarnings('IntegrationTestFixtures')
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")

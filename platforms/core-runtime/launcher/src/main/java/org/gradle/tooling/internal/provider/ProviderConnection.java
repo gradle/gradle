@@ -302,9 +302,7 @@ public class ProviderConnection {
         if (standardInput == null) {
             standardInput = SafeStreams.emptyInput();
         }
-
-        boolean compatible = isDaemonCriteriaCompatibleWith(params.daemonParams.getRequestedJvmCriteria(), Jvm.current());
-        if (Boolean.TRUE.equals(operationParameters.isEmbedded()) && compatible) {
+        if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
@@ -315,18 +313,6 @@ public class ProviderConnection {
             executor = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager);
-    }
-
-    boolean isDaemonCriteriaCompatibleWith(DaemonJvmCriteria criteria, Jvm jvm) {
-        if (criteria instanceof DaemonJvmCriteria.Spec) {
-            return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(jvm);
-        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
-            return ((DaemonJvmCriteria.JavaHome) criteria).getJavaHome().getAbsoluteFile().equals(jvm.getJavaHome().getAbsoluteFile());
-        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
-            return true;
-        } else {
-            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
-        }
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
@@ -371,11 +357,6 @@ public class ProviderConnection {
         Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
         if (envVariables != null) {
             daemonParams.setEnvironmentVariables(envVariables);
-
-            String javaHomeVar = envVariables.get("JAVA_HOME");
-            if (javaHomeVar != null) {
-                daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, new File(javaHomeVar)));
-            }
         }
 
         File javaHome = operationParameters.getJavaHome();
