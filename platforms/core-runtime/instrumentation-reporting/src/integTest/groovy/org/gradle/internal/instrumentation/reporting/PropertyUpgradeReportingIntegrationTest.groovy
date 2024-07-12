@@ -16,11 +16,13 @@
 
 package org.gradle.internal.instrumentation.reporting
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 
 class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
-    def "usage of upgraded properties in buildSrc and included builds should be reported"() {
+    def "usage of upgraded properties in buildSrc should be reported"() {
         given:
         executer.requireOwnGradleUserHomeDir("Run with empty cache, so report is always generated")
         javaFile("buildSrc/src/main/java/MyPlugin.java", """
@@ -32,6 +34,42 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Project project) {
                     project.getTasks().register("myJavaCompile", JavaCompile.class, task -> {
+                        task.getSource();
+                        task.setSource(project.files());
+                    });
+                }
+            }
+        """)
+        buildFile << """
+            apply plugin: MyPlugin
+        """
+
+        when:
+        run("help", "--property-upgrade-report")
+
+        then:
+        outputContains("Intercepted method: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
+    }
+
+    @NotYetImplemented
+    @ToBeImplemented("Inherited properties are not reported for project dependency classes")
+    def "usage of upgraded properties in extended class should be reported"() {
+        given:
+        executer.requireOwnGradleUserHomeDir("Run with empty cache, so report is always generated")
+        javaFile("buildSrc/src/main/java/MyJavaCompile.java", """
+            import org.gradle.api.tasks.compile.JavaCompile;
+
+            public abstract class MyJavaCompile extends JavaCompile {
+            }
+        """)
+        javaFile("buildSrc/src/main/java/MyPlugin.java", """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public abstract class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().register("myJavaCompile", MyJavaCompile.class, task -> {
                         task.getSource();
                         task.setSource(project.files());
                     });
