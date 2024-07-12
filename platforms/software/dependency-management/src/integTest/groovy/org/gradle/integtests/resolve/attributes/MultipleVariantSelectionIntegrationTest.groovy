@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -808,6 +809,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 //        }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29872")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven") // Http server fixtures do not support publishing
     def "attribute compatibility rules are applied when checking for mutual variant compatibility within a component when the producer attributes are desugared"() {
 

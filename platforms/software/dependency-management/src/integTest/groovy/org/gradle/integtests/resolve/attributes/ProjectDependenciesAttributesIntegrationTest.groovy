@@ -144,7 +144,9 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 attributesSchema {
                     attribute(Attribute.of("color", String)) {
-                        compatibilityRules.add(AllCompatibilityRule)
+                        if (${applyRule}) {
+                            compatibilityRules.add(AllCompatibilityRule)
+                        }
                     }
                 }
             }
@@ -172,21 +174,34 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
-        run ':checkDeps'
+        if (applyRule) {
+            run ':checkDeps'
+        } else {
+            fails ':checkDeps'
+        }
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                project(':producer', "test:producer:unspecified") {
-                    variant "redVariant", [color: 'red']
-                    noArtifacts()
-                }
-                project(':producer', "test:producer:unspecified") {
-                    variant "blueVariant", [color: 'blue']
-                    noArtifacts()
+        if (applyRule) {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    project(':producer', "test:producer:unspecified") {
+                        variant "redVariant", [color: 'red']
+                        noArtifacts()
+                    }
+                    project(':producer', "test:producer:unspecified") {
+                        variant "blueVariant", [color: 'blue']
+                        noArtifacts()
+                    }
                 }
             }
+        } else {
+            failure.assertHasCause("""Multiple incompatible variants of test:producer:unspecified were selected:
+   - Variant blueVariant has attributes {color=blue}
+   - Variant redVariant has attributes {color=red}""")
         }
+
+        where:
+        applyRule << [true, false]
     }
 
     private static String blueAndRedVariants() {

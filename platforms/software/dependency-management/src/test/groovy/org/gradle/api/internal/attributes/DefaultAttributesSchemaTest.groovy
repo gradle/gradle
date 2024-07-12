@@ -162,6 +162,20 @@ class DefaultAttributesSchemaTest extends Specification {
         }
     }
 
+    static class FailingCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+        @Override
+        void execute(CompatibilityCheckDetails<Flavor> details) {
+            throw new RuntimeException()
+        }
+    }
+
+    static class FailingSelectionRule implements AttributeDisambiguationRule<Flavor> {
+        @Override
+        void execute(MultipleCandidatesDetails<Flavor> details) {
+            throw new RuntimeException()
+        }
+    }
+
     def "compatibility rules can mark values as compatible"() {
         def attr = Attribute.of(Flavor)
 
@@ -315,13 +329,45 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.withProducer(producer).selectionSchema.matchValue(attr, flavor('value'), flavor('otherValue'))
     }
 
-    def "uses the producers selection rules when the consumer does not express an opinion"() {
+    def "uses the producers disambiguation rules when the consumer does not express an opinion"() {
         def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr = Attribute.of("a", Flavor)
 
         schema.attribute(attr)
         producer.attribute(attr).disambiguationRules.add(CustomSelectionRule)
+
+        def value1 = flavor('value')
+        def value2 = flavor('otherValue')
+
+        def candidates = [value1, value2] as Set
+
+        when:
+        def best = schema.withProducer(producer).selectionSchema.disambiguate(attr, flavor('requested'), candidates)
+
+        then:
+        best == [value1] as Set
+    }
+
+    def "uses the consumer's compatibility rules when both the consumer and producer express an opinion"() {
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+
+        def attr = Attribute.of("a", Flavor)
+
+        schema.attribute(attr).compatibilityRules.add(CustomCompatibilityRule)
+        producer.attribute(attr).compatibilityRules.add(FailingCompatibilityRule)
+
+        expect:
+        schema.withProducer(producer).selectionSchema.matchValue(attr, flavor('value'), flavor('otherValue'))
+    }
+
+    def "uses the consumer's disambiguation rules when both the consumer and producer express an opinion"() {
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+
+        def attr = Attribute.of("a", Flavor)
+
+        schema.attribute(attr).disambiguationRules.add(CustomSelectionRule)
+        producer.attribute(attr).disambiguationRules.add(FailingSelectionRule)
 
         def value1 = flavor('value')
         def value2 = flavor('otherValue')
