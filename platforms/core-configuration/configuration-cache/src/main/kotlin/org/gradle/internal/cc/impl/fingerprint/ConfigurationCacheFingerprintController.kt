@@ -103,18 +103,31 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     val fileCollectionFingerprinter =
-        fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(InputNormalizer.ABSOLUTE_PATH, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
+        fingerprinterRegistry.getFingerprinter(
+            DefaultFileNormalizationSpec.from(
+                InputNormalizer.ABSOLUTE_PATH,
+                DirectorySensitivity.DEFAULT,
+                LineEndingSensitivity.DEFAULT
+            )
+        )
 
     private
     abstract class WritingState {
 
-        open fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> CloseableWriteContext): WritingState =
+        open fun maybeStart(
+            buildScopedSpoolFile: StateFile,
+            projectScopedSpoolFile: StateFile,
+            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
+        ): WritingState =
             illegalStateFor("start")
 
         open fun pause(): WritingState =
             illegalStateFor("pause")
 
-        open fun commit(buildScopedFingerprint: ConfigurationCacheStateFile, projectScopedFingerprint: ConfigurationCacheStateFile): WritingState =
+        open fun commit(
+            buildScopedFingerprint: ConfigurationCacheStateFile,
+            projectScopedFingerprint: ConfigurationCacheStateFile
+        ): WritingState =
             illegalStateFor("commit")
 
         open fun append(fingerprint: ProjectSpecificFingerprint): Unit =
@@ -136,7 +149,11 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     inner class Idle : WritingState() {
-        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> CloseableWriteContext): WritingState {
+        override fun maybeStart(
+            buildScopedSpoolFile: StateFile,
+            projectScopedSpoolFile: StateFile,
+            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
+        ): WritingState {
 
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintWriterHost(),
@@ -167,7 +184,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val buildScopedSpoolFile: StateFile,
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
-        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> CloseableWriteContext): WritingState {
+        override fun maybeStart(
+            buildScopedSpoolFile: StateFile,
+            projectScopedSpoolFile: StateFile,
+            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
+        ): WritingState {
             return this
         }
 
@@ -194,7 +215,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val buildScopedSpoolFile: StateFile,
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
-        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> CloseableWriteContext): WritingState {
+        override fun maybeStart(
+            buildScopedSpoolFile: StateFile,
+            projectScopedSpoolFile: StateFile,
+            writeContextForOutputStream: (StateFile) -> CloseableWriteContext
+        ): WritingState {
             addListener(fingerprintWriter)
             // Continue with the current spool file, rather than starting a new one
             return Writing(fingerprintWriter, this.buildScopedSpoolFile, this.projectScopedSpoolFile)
@@ -208,7 +233,10 @@ class ConfigurationCacheFingerprintController internal constructor(
             fingerprintWriter.append(fingerprint)
         }
 
-        override fun commit(buildScopedFingerprint: ConfigurationCacheStateFile, projectScopedFingerprint: ConfigurationCacheStateFile): WritingState {
+        override fun commit(
+            buildScopedFingerprint: ConfigurationCacheStateFile,
+            projectScopedFingerprint: ConfigurationCacheStateFile
+        ): WritingState {
             closeStreams()
             buildScopedFingerprint.moveFrom(buildScopedSpoolFile.file)
             projectScopedFingerprint.moveFrom(projectScopedSpoolFile.file)
@@ -250,7 +278,11 @@ class ConfigurationCacheFingerprintController internal constructor(
     // Start fingerprinting if not already started and not already committed
     // This should be strict but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
-    fun maybeStartCollectingFingerprint(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> CloseableWriteContext) {
+    fun maybeStartCollectingFingerprint(
+        buildScopedSpoolFile: StateFile,
+        projectScopedSpoolFile: StateFile,
+        writeContextForOutputStream: (StateFile) -> CloseableWriteContext
+    ) {
         writingState = writingState.maybeStart(buildScopedSpoolFile, projectScopedSpoolFile, writeContextForOutputStream)
     }
 
@@ -258,7 +290,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.pause()
     }
 
-    fun commitFingerprintTo(buildScopedFingerprint: ConfigurationCacheStateFile, projectScopedFingerprint: ConfigurationCacheStateFile) {
+    fun commitFingerprintTo(
+        buildScopedFingerprint: ConfigurationCacheStateFile,
+        projectScopedFingerprint: ConfigurationCacheStateFile
+    ) {
         writingState = writingState.commit(buildScopedFingerprint, projectScopedFingerprint)
     }
 
@@ -346,10 +381,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
 
-        override fun hashCodeOf(file: File) =
+        override fun hashCodeOf(file: File): HashCode =
             fileSystemAccess.read(file.absolutePath).hash
 
-        override fun hashCodeOfDirectoryChildrenNames(file: File): HashCode = directoryChildrenNamesHash(file)
+        override fun hashCodeOfDirectoryChildrenNames(file: File): HashCode =
+            directoryChildrenNamesHash(file)
 
         override fun displayNameOf(file: File): String =
             GFileUtils.relativePathOf(file, rootDirectory)
@@ -360,8 +396,18 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun reportInput(input: PropertyProblem) =
             report.onInput(input)
 
-        override fun reportProblem(exception: Throwable?, documentationSection: DocumentationSection?, message: StructuredMessageBuilder) =
-            problems.onProblem(problemFactory.problem(StructuredMessage.build(message), exception, documentationSection))
+        override fun reportProblem(
+            exception: Throwable?,
+            documentationSection: DocumentationSection?,
+            message: StructuredMessageBuilder
+        ) =
+            problems.onProblem(
+                problemFactory.problem(
+                    StructuredMessage.build(message),
+                    exception,
+                    documentationSection
+                )
+            )
 
         override fun location(consumer: String?) =
             problemFactory.locationForCaller(consumer)
@@ -414,7 +460,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType> =
             fileSystemAccess.read(file.absolutePath).let { it.hash to it.type }
 
-        override fun hashCodeOfDirectoryContent(file: File): HashCode = directoryChildrenNamesHash(file)
+        override fun hashCodeOfDirectoryContent(file: File): HashCode =
+            directoryChildrenNamesHash(file)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
