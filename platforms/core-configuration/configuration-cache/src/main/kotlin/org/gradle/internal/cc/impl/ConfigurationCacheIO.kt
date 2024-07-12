@@ -168,11 +168,11 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun writeRootBuildWorkNodesTo(projectStateFile: ConfigurationCacheStateFile, projectPath: String?, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
+    fun writeRootBuildWorkNodesTo(projectStateFile: ConfigurationCacheStateFile, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         writeConfigurationCacheState(projectStateFile) { cacheState ->
             cacheState.run {
                 //println("Writing build work nodes to " + this.stateFile.stateFile)
-                writeRootBuildWorkNodes(host.currentBuild.gradle, projectPath, scheduledNodes, nodeIdentifier)
+                writeRootBuildWorkNodes(host.currentBuild.gradle, scheduledNodes, nodeIdentifier)
             }
         }
     }

@@ -577,13 +577,13 @@ class DefaultConfigurationCache internal constructor(
                         NodeOwner.NoProject -> {
                             val projectStateFile = baseStateFile.stateFileForProject("_tasks_in_another_build")
                             //println("writeRootBuildWorkNodesTo(${projectStateFile.stateFile})")
-                            cacheIO.writeRootBuildWorkNodesTo(projectStateFile, null, nodes) { scheduledNodeIds.getValue(it) }
+                            cacheIO.writeRootBuildWorkNodesTo(projectStateFile, nodes) { scheduledNodeIds.getValue(it) }
                         }
                         is NodeOwner.Project -> {
                             val projectStateFile = baseStateFile.stateFileForProject(owner.project.path)
                             //println("writeRootBuildWorkNodesTo(${projectStateFile.stateFile})")
                             owner.project.owner.applyToMutableState {
-                                cacheIO.writeRootBuildWorkNodesTo(projectStateFile, owner.project.path.toString(), nodes) { scheduledNodeIds.getValue(it) }
+                                cacheIO.writeRootBuildWorkNodesTo(projectStateFile, nodes) { scheduledNodeIds.getValue(it) }
                             }
                         }
                     }

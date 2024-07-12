@@ -78,12 +78,9 @@ class WorkNodeCodec(
     /**
      * Writes only the scheduled nodes, remaining ScheduledWork data is written separately.
      */
-    suspend fun WriteContext.writeNodes(projectPath: String?, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
+    suspend fun WriteContext.writeNodes(scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
-            // TODO-RC
-            //write(projectPath)
-            projectPath.apply {  }
             doWriteNodes(scheduledNodes, nodeIdentifier)
         }
     }

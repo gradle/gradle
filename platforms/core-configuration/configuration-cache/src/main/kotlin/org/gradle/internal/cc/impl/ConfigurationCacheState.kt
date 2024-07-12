@@ -165,10 +165,10 @@ class ConfigurationCacheState(
         }
     }
 
-    suspend fun DefaultWriteContext.writeRootBuildWorkNodes(gradle: GradleInternal, projectPath: String?, nodes: List<Node>, nodeIdentifier: (Node) -> Int) {
+    suspend fun DefaultWriteContext.writeRootBuildWorkNodes(gradle: GradleInternal, nodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         writeBuildInvocationId()
         //println("Writing ${nodes.size} nodes for project $projectPath")
-        doWriteNodes(gradle, projectPath, nodes, nodeIdentifier)
+        doWriteNodes(gradle, nodes, nodeIdentifier)
         writeInt(0x1ecac8e)
     }
 
@@ -534,9 +534,9 @@ class ConfigurationCacheState(
 //    }
 
     private
-    suspend fun DefaultWriteContext.doWriteNodes(gradle: GradleInternal, projectPath: String?, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
+    suspend fun DefaultWriteContext.doWriteNodes(gradle: GradleInternal, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         workNodeCodec(gradle).run {
-            writeNodes(projectPath, scheduledNodes, nodeIdentifier)
+            writeNodes(scheduledNodes, nodeIdentifier)
         }
     }
 
@@ -563,7 +563,7 @@ class ConfigurationCacheState(
         }
 
     private
-    suspend fun DefaultReadContext.readScheduledWorkFrom(gradle: GradleInternal, scheduledNodes: List<Node>, nodesById: Map<Int, Node>): ScheduledWork =
+    fun DefaultReadContext.readScheduledWorkFrom(gradle: GradleInternal, scheduledNodes: List<Node>, nodesById: Map<Int, Node>): ScheduledWork =
         workNodeCodec(gradle).run {
             readScheduledWork(scheduledNodes, nodesById)
         }
