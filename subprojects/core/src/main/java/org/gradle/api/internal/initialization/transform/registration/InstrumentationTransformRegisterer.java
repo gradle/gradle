@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.transform.registration;
 
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
@@ -50,11 +51,13 @@ public class InstrumentationTransformRegisterer {
     private final AgentStatus agentStatus;
     private final Lazy<BuildServiceRegistry> buildServiceRegistry;
     private final IdGenerator<Long> contextIdGenerator;
+    private final StartParameterInternal startParameterInternal;
 
-    public InstrumentationTransformRegisterer(AgentStatus agentStatus, Lazy<BuildServiceRegistry> buildServiceRegistry) {
+    public InstrumentationTransformRegisterer(AgentStatus agentStatus, StartParameterInternal startParameterInternal, Lazy<BuildServiceRegistry> buildServiceRegistry) {
         this.buildServiceRegistry = buildServiceRegistry;
         this.contextIdGenerator = new LongIdGenerator();
         this.agentStatus = agentStatus;
+        this.startParameterInternal = startParameterInternal;
     }
 
     public ScriptClassPathResolutionContext registerTransforms(DependencyHandler dependencyHandler) {
@@ -113,6 +116,7 @@ public class InstrumentationTransformRegisterer {
                     params.getBuildService().set(service);
                     params.getContextId().set(contextId);
                     params.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
+                    params.getIsUpgradeReport().set(startParameterInternal.isPropertyUpgradeReportEnabled());
                 });
             }
         );

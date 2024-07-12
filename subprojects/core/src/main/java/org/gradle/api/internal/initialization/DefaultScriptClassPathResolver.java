@@ -89,7 +89,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
-    private final StartParameterInternal startParameter;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
@@ -99,8 +98,11 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     ) {
         this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
-        this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(agentStatus, Lazy.atomic().of(gradle::getSharedServices));
-        this.startParameter = startParameter;
+        this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(
+            agentStatus,
+            startParameter,
+            Lazy.atomic().of(gradle::getSharedServices)
+        );
     }
 
     @Override

@@ -86,7 +86,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
 
             @Override
             public BytecodeInterceptorFilter getFilter() {
-                return BytecodeInterceptorFilter.ALL;
+                return BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE;
             }
         };
     }

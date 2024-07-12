@@ -57,7 +57,9 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
 
             @Override
             public BytecodeInterceptorFilter getFilter() {
-                return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+                return getParameters().getIsUpgradeReport().getOrElse(false)
+                    ? BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT
+                    : BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
             }
         };
     }

@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath.transforms;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
@@ -84,6 +85,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     @SuppressWarnings("deprecation")
     private static final String GROOVY_INDY_INTERFACE_V7_TYPE = getType(org.codehaus.groovy.vmplugin.v7.IndyInterface.class).getInternalName();
     private static final String GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE);
+    private static final String INSTRUMENTED_GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE, STRING_TYPE);
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
@@ -324,30 +326,21 @@ public class InstrumentingClassTransform implements ClassTransform {
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isGroovyIndyCallsite(bootstrapMethodHandle)) {
+                // Handle for org.gradle.internal.classpath.Instrumented.bootstrap() method
                 Handle interceptor = new Handle(
                     H_INVOKESTATIC,
                     INSTRUMENTED_TYPE.getInternalName(),
-                    getBoostrapMethodName(interceptorFilter),
-                    GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
+                    "bootstrap",
+                    INSTRUMENTED_GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
                     false
                 );
+                bootstrapMethodArguments = ArrayUtils.add(bootstrapMethodArguments, interceptorFilter.name());
                 super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
             } else {
                 for (int i = 0; i < bootstrapMethodArguments.length; i++) {
                     bootstrapMethodArguments[i] = maybeInstrumentBootstrapArgument(bootstrapMethodArguments[i]);
                 }
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
-            }
-        }
-
-        private static String getBoostrapMethodName(BytecodeInterceptorFilter interceptorFilter) {
-            switch (interceptorFilter) {
-                case INSTRUMENTATION_ONLY:
-                    return "bootstrapInstrumentationOnly";
-                case ALL:
-                    return "bootstrapAll";
-                default:
-                    throw new UnsupportedOperationException("Unknown interceptor request: " + interceptorFilter);
             }
         }
 
