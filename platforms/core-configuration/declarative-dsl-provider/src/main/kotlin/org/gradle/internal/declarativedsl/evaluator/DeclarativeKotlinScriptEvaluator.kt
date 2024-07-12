@@ -39,6 +39,7 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
+import org.gradle.internal.declarativedsl.settings.UnsupportedSyntaxFeatureCheck
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 

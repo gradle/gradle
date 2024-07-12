@@ -35,7 +35,6 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndCon
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
-import org.gradle.internal.declarativedsl.evaluator.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
