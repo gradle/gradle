@@ -51,7 +51,7 @@ import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
@@ -355,7 +355,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun CompositeStoppable.addIfInitialized(closeable: Lazy<*>) {
         if (closeable.isInitialized()) {
-            add(closeable.value)
+            add(closeable.value!!)
         }
     }
 
@@ -504,7 +504,7 @@ class DefaultConfigurationCache internal constructor(
             store.assignSpoolFile(StateType.BuildFingerprint),
             store.assignSpoolFile(StateType.ProjectFingerprint)
         ) { stateFile ->
-            cacheFingerprintWriterContextFor(stateFile.stateType, stateFile.file::outputStream) {
+            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
                 profileNameFor(stateFile)
             }
         }
@@ -517,12 +517,12 @@ class DefaultConfigurationCache internal constructor(
         }.drop(1)
 
     private
-    fun cacheFingerprintWriterContextFor(
+    fun cacheFingerprintWriteContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String
-    ): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(stateType, outputStream, profile)
+    ): CloseableWriteContext {
+        val (context, codecs) = cacheIO.writeContextFor(stateType, outputStream, profile)
         return context.apply {
             push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
         }

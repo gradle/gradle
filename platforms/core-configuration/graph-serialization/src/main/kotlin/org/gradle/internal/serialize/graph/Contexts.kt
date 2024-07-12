@@ -18,11 +18,11 @@ package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.logging.Logger
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.service.scopes.Scope
@@ -60,7 +60,7 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder
 
-) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
 
     override val sharedIdentities = WriteIdentities()
 
@@ -130,20 +130,18 @@ class DefaultReadContext(
     private
     val classDecoder: ClassDecoder
 
-) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), ReadContext, Decoder by decoder, AutoCloseable {
+) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
 
     private
     var singletonProperty: Any? = null
 
-    override lateinit var classLoader: ClassLoader
-
     override fun onFinish(action: () -> Unit) {
         pendingOperations.add(action)
     }
 
-    fun finish() {
+    override fun finish() {
         for (op in pendingOperations) {
             op()
         }
@@ -152,10 +150,6 @@ class DefaultReadContext(
 
     private
     var pendingOperations = ReferenceArrayList<() -> Unit>()
-
-    fun initClassLoader(classLoader: ClassLoader) {
-        this.classLoader = classLoader
-    }
 
     override var immediateMode: Boolean = false
 
@@ -177,10 +171,7 @@ class DefaultReadContext(
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
         beanStateReaderLookup.beanStateReaderFor(beanType)
 
-    /**
-     * Sets a client specific property value that can be queried via [getSingletonProperty].
-     */
-    fun <T : Any> setSingletonProperty(singletonProperty: T) {
+    override fun <T : Any> setSingletonProperty(singletonProperty: T) {
         this.singletonProperty = singletonProperty
     }
 
