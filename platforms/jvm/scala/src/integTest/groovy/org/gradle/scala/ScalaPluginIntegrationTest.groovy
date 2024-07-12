@@ -138,9 +138,10 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
                     conf(project(":scala"))
                 }
                 task resolve {
-                    dependsOn configurations.conf
+                    def conf = configurations.conf
+                    dependsOn conf
                     doLast {
-                        println configurations.conf.files
+                        println conf.files
                     }
                 }
             }
