@@ -32,7 +32,7 @@ class ImperativeOnlyPluginTargetTest extends Specification {
     def currentBuildOperationRef = Mock(CurrentBuildOperationRef) {
         getId() >> new OperationIdentifier(42)
     }
-    def problems = new DefaultProblems(problemEmitter, currentBuildOperationRef)
+    def problems = new DefaultProblems([problemEmitter], currentBuildOperationRef)
 
 
     def "mismatched plugin application target is detected"() {
