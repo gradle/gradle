@@ -17,8 +17,9 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntax
-import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
+import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause.AssignmentWithExplicitReceiver
+import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause.ElementWithExplicitReceiver
 
-// when doing document checks we ignore this type of unsupported syntax due to `rootProject.name` not yet having a DCL equivalent
-val ignoreAssignmentWithExplicitReceiver : (UnsupportedSyntax) -> Boolean =
-    { it.cause != UnsupportedSyntaxCause.AssignmentWithExplicitReceiver }
+// `rootProject.name` doesn't yet have a DCL equivalent and the plugins block uses builder style functions
+val ignoreSomeNonDeclarativeSyntaxWeCurrentlyHaveNoSolutionFor : (UnsupportedSyntax) -> Boolean =
+    { it.cause !in setOf(AssignmentWithExplicitReceiver, ElementWithExplicitReceiver) }
