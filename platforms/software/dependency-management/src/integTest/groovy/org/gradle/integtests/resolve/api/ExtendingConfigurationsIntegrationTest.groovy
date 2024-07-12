@@ -191,13 +191,13 @@ task checkResolveParentThenChild {
             include ":project1", ":project2"
         """
 
-        groovyFile(file('project1/build.gradle'), """
+        groovyFile('project1/build.gradle', """
             configurations {
                 resolvable('conf1')
             }
         """)
 
-        groovyFile(file('project2/build.gradle'), """
+        groovyFile('project2/build.gradle', """
             configurations {
                 resolvable('conf2') {
                     extendsFrom project(':project1').configurations.conf1
