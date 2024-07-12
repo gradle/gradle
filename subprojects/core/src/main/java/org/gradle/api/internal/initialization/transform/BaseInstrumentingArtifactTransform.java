@@ -66,6 +66,8 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         Property<Long> getContextId();
         @Input
         Property<Boolean> getAgentSupported();
+        @Input
+        Property<Boolean> getIsUpgradeReport();
     }
 
     protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
