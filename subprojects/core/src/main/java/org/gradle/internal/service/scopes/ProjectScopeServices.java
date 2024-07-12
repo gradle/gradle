@@ -353,6 +353,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
         @Nullable
         @Override
+        public Path getProjectIdentityPath() {
+            return delegate.getProjectIdentityPath();
+        }
+
+        @Nullable
+        @Override
         public ProjectInternal getProject() {
             return delegate.getProject();
         }

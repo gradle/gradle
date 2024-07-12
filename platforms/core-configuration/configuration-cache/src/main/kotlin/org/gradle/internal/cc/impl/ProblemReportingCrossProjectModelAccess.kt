@@ -1038,6 +1038,10 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.projectPath
         }
 
+        override fun getProjectIdentityPath(): Path? {
+            return delegate.projectIdentityPath
+        }
+
         override fun getIdentityPath(): Path {
             return delegate.identityPath
         }
