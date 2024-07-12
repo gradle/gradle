@@ -93,6 +93,7 @@ val kmpAddDependencyMutations = kotlinSoftwareInfos.flatMap { softwareType ->
     softwareType.targets.map { target ->
         AddDependencyMutation(
             "org.gradle.client.demo.mutations.addDependency.kmp.${softwareType.kindName}.${target.name}",
+            { hasKotlinPrototype() },
             {
                 with(softwareType) {
                     with(target) {
@@ -189,7 +190,11 @@ object SetKmpNativeApplicationEntryPoint : KotlinPrototypeMutationDefinition {
     override val description: String = "Set the Native application entry point"
 
     val entryPointParameter =
-        MutationParameter("Entry point function", "Fully qualified function name", MutationParameterKind.StringParameter)
+        MutationParameter(
+            "Entry point function",
+            "Fully qualified function name",
+            MutationParameterKind.StringParameter
+        )
 
     override val parameters: List<MutationParameter<*>> = listOf(entryPointParameter)
 

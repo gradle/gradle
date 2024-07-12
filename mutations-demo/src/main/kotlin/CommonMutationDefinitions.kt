@@ -8,6 +8,7 @@ import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 val addCommonLibraryDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.toLibrary",
+        { hasCommonPrototype() },
         { ScopeLocation.fromTopLevel().inObjectsOfType(hasLibraryDependencies) },
         { hasLibraryDependencies.singleFunctionNamed("dependencies") }
     )
@@ -15,6 +16,7 @@ val addCommonLibraryDependencyMutation =
 val addCommonApplicationDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.toApplication",
+        { hasCommonPrototype() },
         { ScopeLocation.fromTopLevel().inObjectsOfType(hasApplicationDependencies) },
         { hasApplicationDependencies.singleFunctionNamed("dependencies") }
     )
@@ -23,7 +25,7 @@ abstract class EnableLintMutation(
     val lintOwner: AnalysisSchema.() -> DataClass,
     val lintFunction: AnalysisSchema.() -> TypedMember.TypedFunction,
     val lintEnabledProperty: AnalysisSchema.() -> TypedMember.TypedProperty
-): MutationDefinition {
+) : MutationDefinition {
     override val name: String = "Enable Lint"
     override val description: String = "Enable linting for this software"
 
@@ -51,11 +53,13 @@ abstract class EnableLintMutation(
 val addTestingDependencyMutations: List<MutationDefinition> = run {
     fun mutationForOwner(
         idSuffix: String,
+        isCompatible: AnalysisSchema.() -> Boolean,
         testingOwnerType: AnalysisSchema.() -> DataClass,
         testingType: AnalysisSchema.() -> DataClass
     ) = run {
         val addDependency = AddDependencyMutation(
             "org.gradle.client.demo.mutations.addDependency.toTesting.$idSuffix",
+            { isCompatible() },
             { ScopeLocation.fromTopLevel().inObjectsOfType(testingOwnerType()).inObjectsOfType(testingType()) },
             { testingType().singleFunctionNamed("dependencies") }
         )
@@ -77,9 +81,9 @@ val addTestingDependencyMutations: List<MutationDefinition> = run {
     }
 
     listOf(
-        mutationForOwner("javaLibrary", { javaLibrary }, { javaTesting }),
-        mutationForOwner("javaApplication", { javaApplication }, { javaTesting }),
-        mutationForOwner("kotlinLibrary", { kotlinJvmLibrary }, { kotlinTesting }),
-        mutationForOwner("kotlinApplication", { kotlinJvmApplication }, { kotlinTesting })
+        mutationForOwner("javaLibrary", { hasJavaPrototype() }, { javaLibrary }, { javaTesting }),
+        mutationForOwner("javaApplication", { hasJavaPrototype() }, { javaApplication }, { javaTesting }),
+        mutationForOwner("kotlinLibrary", { hasKotlinPrototype() }, { kotlinJvmLibrary }, { kotlinTesting }),
+        mutationForOwner("kotlinApplication", { hasKotlinPrototype() }, { kotlinJvmApplication }, { kotlinTesting })
     )
 }

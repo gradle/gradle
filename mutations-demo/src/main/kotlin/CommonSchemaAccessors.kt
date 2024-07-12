@@ -24,11 +24,15 @@ interface CommonPrototypeMutationDefinition : MutationDefinition {
 
 class AddDependencyMutation(
     override val id: String,
+    val isCompatible: AnalysisSchema.() -> Boolean,
     private val dependenciesOwnerScope: AnalysisSchema.() -> ScopeLocation,
     private val dependenciesConfiguringFunction: AnalysisSchema.() -> TypedMember.TypedFunction,
 ) : CommonPrototypeMutationDefinition {
     override val name: String = "Add a dependency"
     override val description: String = "Add a dependency to the dependencies block"
+
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = 
+        isCompatible(projectAnalysisSchema)
 
     val dependencyCoordinatesParam =
         MutationParameter(

@@ -71,6 +71,7 @@ object SetNamespaceMutation : AndroidPrototypeMutationDefinition {
 val addTestingDependencyMutation = run {
     val addDependency = AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.testing",
+        { hasAndroidPrototype() },
         {
             ScopeLocation.fromTopLevel()
                 .inObjectsOfType(androidSoftware)
@@ -99,6 +100,7 @@ val addTestingDependencyMutation = run {
 val addLibraryDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.topLevel.library",
+        { hasAndroidPrototype() },
         { ScopeLocation.fromTopLevel().inObjectsOfType(androidLibrary) },
         { androidLibrary.singleFunctionNamed("dependencies") }
     )
@@ -106,6 +108,7 @@ val addLibraryDependencyMutation =
 val addApplicationDependencyMutation =
     AddDependencyMutation(
         "org.gradle.client.demo.mutations.addDependency.topLevel.application",
+        { hasAndroidPrototype() },
         { ScopeLocation.fromTopLevel().inObjectsOfType(androidApplication) },
         { androidApplication.singleFunctionNamed("dependencies") }
     )
