@@ -7,4 +7,5 @@ description = "Contains classes for instrumentation reporting, e.g. bytecode upg
 
 dependencies {
     implementation(projects.stdlibJavaExtensions)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

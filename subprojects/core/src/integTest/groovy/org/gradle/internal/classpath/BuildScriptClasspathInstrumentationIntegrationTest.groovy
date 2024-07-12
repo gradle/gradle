@@ -67,7 +67,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks", "--property-upgrade-report")
+        run("tasks")
 
         then:
         gradleUserHomeOutput("original/buildSrc.jar").exists()
