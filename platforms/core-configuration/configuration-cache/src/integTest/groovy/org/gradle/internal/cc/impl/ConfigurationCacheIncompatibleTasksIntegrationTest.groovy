@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.util.internal.ToBeImplemented
 
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
@@ -219,6 +220,166 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         result.assertTasksExecuted(":declared")
         fixture.assertStateLoaded()
+    }
+
+    def "tasks that access project through #providerChain emit no problems when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("reliesOnSerialization") { task ->
+                dependsOn "declared"
+                def projectProvider = $providerChain
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("reliesOnSerialization")
+
+        then:
+        result.assertTasksExecuted(":declared", ":reliesOnSerialization")
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+
+        where:
+        providerChain                               || _
+        "provider { task.project.name }"            || _
+        "provider { task.project }.map { it.name }" || _
+    }
+
+    def "tasks that access project at execution time emit problems when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("incompatible") {
+                dependsOn "declared"
+                doLast { task ->
+                    println task.project.name
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("incompatible")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            problem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through provider created at execution time emit problems when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                dependsOn "declared"
+                def providerFactory = providers
+                doLast { task ->
+                    def projectProvider = providerFactory.provider { task.project.name }
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid tracking all providers created at execution time.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards")
+        configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through indirect provider created at execution time emit problems when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                dependsOn "declared"
+                def valueProvider = providers.provider { "value" }
+                doLast { task ->
+                    println valueProvider.map { it + task.project.name }.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid tracking all providers created at execution time.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards")
+        configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through mapped changing provider emit problems when incompatible task is present"() {
+        given:
+        addTasksWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") { task ->
+                dependsOn "declared"
+                def projectProvider = providers.systemProperty("some.property").map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid checking if the provider has fixed execution time value.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards", "-Dsome.property=value")
+        configurationCacheRun("bypassesSafeguards", "-Dsome.property=value")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through mapped changing value source provider emit problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            import org.gradle.api.provider.*
+
+            abstract class ChangingSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override
+                 String obtain(){
+                    return "some string"
+                }
+            }
+
+            tasks.register("bypassesSafeguards") { task ->
+                dependsOn "declared"
+                def projectProvider = providers.of(ChangingSource) {}.map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid checking if the provider has fixed execution time value.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards")
+        configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
     }
 
     private void assertStateStoredAndDiscardedForDeclaredTask(int line) {
