@@ -182,3 +182,27 @@ object SetKmpJvmLibraryJdkVersion : KotlinPrototypeMutationDefinition {
             )
         }
 }
+
+object SetKmpNativeApplicationEntryPoint : KotlinPrototypeMutationDefinition {
+    override val id: String = "org.gradle.client.demo.mutations.kmpNative.application.setEntryPoint"
+    override val name: String = "Set entry point"
+    override val description: String = "Set the Native application entry point"
+
+    val entryPointParameter =
+        MutationParameter("Entry point function", "Fully qualified function name", MutationParameterKind.StringParameter)
+
+    override val parameters: List<MutationParameter<*>> = listOf(entryPointParameter)
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+        with(projectAnalysisSchema) {
+            listOf(
+                ModelMutationRequest(
+                    ScopeLocation.inAnyScope().inObjectsOfType(kmpApplicationTargetsNative),
+                    ModelMutation.SetPropertyValue(
+                        kmpApplicationTargetsNative.propertyNamed("entryPoint"),
+                        NewValueNodeProvider.ArgumentBased { valueFromString("\"${it[entryPointParameter]}\"")!! }
+                    )
+                )
+            )
+        }
+}

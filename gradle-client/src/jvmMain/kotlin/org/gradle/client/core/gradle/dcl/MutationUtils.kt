@@ -41,6 +41,7 @@ object MutationUtils {
         registerMutationDefinition(SetKmpJvmApplicationMainClass)
         registerMutationDefinition(SetKmpJvmApplicationJdkVersion)
         registerMutationDefinition(SetKmpJvmLibraryJdkVersion)
+        registerMutationDefinition(SetKmpNativeApplicationEntryPoint)
     }
 
     fun checkApplicabilityForOverlay(

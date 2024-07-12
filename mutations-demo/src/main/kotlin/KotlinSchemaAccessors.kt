@@ -44,6 +44,9 @@ val AnalysisSchema.kmpApplicationTargetsFunction: TypedMember.TypedFunction
 val AnalysisSchema.kmpApplicationTargetsJvm: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kmp.KmpApplicationJvmTarget")
 
+val AnalysisSchema.kmpApplicationTargetsNative: DataClass
+    get() = typeByFqn("org.gradle.api.experimental.kmp.KmpApplicationNativeTarget")
+
 val AnalysisSchema.kmpLibraryTargetsJvm: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kmp.KmpLibraryJvmTarget")
 
