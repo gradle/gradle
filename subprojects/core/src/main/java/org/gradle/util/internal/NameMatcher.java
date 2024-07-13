@@ -124,7 +124,7 @@ public class NameMatcher {
 
         if (!caseInsensitiveMatches.isEmpty()) {
             matches.addAll(caseInsensitiveMatches);
-        }else if (!caseSensitiveCamelCaseMatches.isEmpty()) {
+        } else if (!caseSensitiveCamelCaseMatches.isEmpty()) {
             matches.addAll(caseSensitiveCamelCaseMatches);
         } else if (!caseInsensitivePrefixMatches.isEmpty()) {
             matches.addAll(caseInsensitivePrefixMatches);
