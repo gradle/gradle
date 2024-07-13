@@ -84,6 +84,7 @@ public class NameMatcher {
         Pattern kebabCasePrefixPattern = Pattern.compile(kebabCasePattern.pattern() + "[\\p{javaLowerCase}\\p{Digit}-]*");
 
         Set<String> caseInsensitiveMatches = new TreeSet<>();
+        Set<String> caseInsensitivePrefixMatches = new TreeSet<>();
         Set<String> caseSensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> kebabCaseMatches = new TreeSet<>();
@@ -98,6 +99,10 @@ public class NameMatcher {
             }
             if (camelCasePattern.matcher(candidate).matches()) {
                 caseSensitiveCamelCaseMatches.add(candidate);
+                found = true;
+            }
+            if (camelCasePattern.matcher(candidate).lookingAt()) {
+                caseInsensitivePrefixMatches.add(candidate);
                 found = true;
             }
             if (normalisedCamelCasePattern.matcher(candidate).lookingAt()) {
@@ -119,8 +124,10 @@ public class NameMatcher {
 
         if (!caseInsensitiveMatches.isEmpty()) {
             matches.addAll(caseInsensitiveMatches);
-        } else if (!caseSensitiveCamelCaseMatches.isEmpty()) {
+        }else if (!caseSensitiveCamelCaseMatches.isEmpty()) {
             matches.addAll(caseSensitiveCamelCaseMatches);
+        } else if (!caseInsensitivePrefixMatches.isEmpty()) {
+            matches.addAll(caseInsensitivePrefixMatches);
         } else if (kebabCaseMatches.isEmpty() && kebabCasePrefixMatches.isEmpty()) {
             matches.addAll(caseInsensitiveCamelCaseMatches);
         }

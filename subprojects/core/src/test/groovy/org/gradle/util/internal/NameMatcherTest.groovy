@@ -133,6 +133,13 @@ class NameMatcherTest extends Specification {
         matches("na1", "name1", "Name1", "NAME1")
     }
 
+    def "prefers case sensitive prefix match over case insensitive camelcase match"() {
+        expect:
+        matches("someNameWith", "someNameWithExtra", "someNameOtherWithExtra")
+        matches("someNameWith", "someNameWithExtra", "somenamewithextra")
+        matches("sNW", "someNameWithExtra", "someNameOtherWithExtra")
+    }
+
     def "prefers sequential camel case match over non-sequential camel case match"() {
         expect:
         matches("sNW", "someNameWithExtra", "someNameOtherWithExtra")
