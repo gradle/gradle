@@ -257,6 +257,19 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         0 * listener.valueObtained(_, _)
     }
 
+    def "describable value source provides source information of missing value"() {
+        given:
+        def provider = createProviderOf(NullValueSourceWithDisplayName) {}
+
+        when:
+        provider.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == """Cannot query the value of this provider because it has no value available.
+The value of this provider is derived from: nullValueSource"""
+    }
+
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
 
         interface Parameters extends ValueSourceParameters {
@@ -335,6 +348,18 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         Boolean obtain() {
             return false
+        }
+    }
+
+    static abstract class NullValueSourceWithDisplayName implements ValueSource<Boolean, ValueSourceParameters.None>, Describable {
+        @Override
+        Boolean obtain() {
+            return null
+        }
+
+        @Override
+        String getDisplayName() {
+            "nullValueSource"
         }
     }
 }
