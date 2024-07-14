@@ -60,7 +60,7 @@ class PluginsInterpretationSequenceStep(
     override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
 
     override val features: Set<InterpretationStepFeature>
-        get() = setOf(SettingsBlocksCheck.feature)
+        get() = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)
 
     override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
         val pluginRequests = resultReceiver.plugins.specs.map {

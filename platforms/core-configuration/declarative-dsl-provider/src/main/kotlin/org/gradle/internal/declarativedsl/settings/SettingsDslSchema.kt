@@ -49,7 +49,8 @@ fun settingsInterpretationSequence(
 ): InterpretationSequence =
     DefaultInterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
+            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement",
+                features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
             conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
             SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
