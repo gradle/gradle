@@ -44,7 +44,7 @@ class NameMatcherTest extends Specification {
         matches("somena", "SomeName")
         matches("somena", "SomeName")
         matches("some na", "Some Name")
-        matches("someNameWith", "someNameWithExtra", "someNameOtherWithExtra")
+        matches("somenamew", "someNameWithExtra")
     }
 
     def "selects item with matching camel case prefix"() {
@@ -140,6 +140,11 @@ class NameMatcherTest extends Specification {
         matches("sNW", "someNameWithExtra", "someNameOtherWithExtra")
     }
 
+    def "prefers case insensitive exact match over case sensitive prefix match"() {
+        expect:
+        matches("someNameWith", "somenamewith", "someNameWithExtra")
+    }
+
     def "prefers sequential camel case match over non-sequential camel case match"() {
         expect:
         matches("sNW", "someNameWithExtra", "someNameOtherWithExtra")
@@ -172,6 +177,8 @@ class NameMatcherTest extends Specification {
     def "does not select items when multiple camel case matches"() {
         expect:
         matcher.find("sN", ["someName", "soNa", "other"]) == null
+        matcher.find("sNE", ["someNameWithExtraStuff", "someNameWithOtherExtraStuff"]) == null
+        matcher.matches == ["someNameWithExtraStuff", "someNameWithOtherExtraStuff"] as Set
     }
 
     def "does not select items when multiple kebab case matches"() {
