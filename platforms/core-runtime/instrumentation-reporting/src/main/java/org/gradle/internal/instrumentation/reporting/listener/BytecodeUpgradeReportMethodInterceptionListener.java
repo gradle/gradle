@@ -33,9 +33,9 @@ public class BytecodeUpgradeReportMethodInterceptionListener implements MethodIn
     }
 
     @Override
-    public void onInterceptedMethodIns(BytecodeInterceptorType type, File source, String relativePath, String owner, String name, String descriptor, int lineNumber) {
+    public void onInterceptedMethodIns(BytecodeInterceptorType type, String sourceFileName, String relativePath, String owner, String name, String descriptor, int lineNumber) {
         if (type == BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT) {
-            delegate.onInterceptedMethodIns(type, source, relativePath, owner, name, descriptor, lineNumber);
+            delegate.onInterceptedMethodIns(type, sourceFileName, relativePath, owner, name, descriptor, lineNumber);
         }
     }
 

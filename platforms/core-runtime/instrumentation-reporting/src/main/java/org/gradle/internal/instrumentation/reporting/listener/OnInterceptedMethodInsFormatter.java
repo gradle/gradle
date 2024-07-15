@@ -16,18 +16,11 @@
 
 package org.gradle.internal.instrumentation.reporting.listener;
 
-import java.io.File;
-
 public class OnInterceptedMethodInsFormatter {
 
     @SuppressWarnings("unused")
-    public String format(File source, String className, String methodCallOwner, String methodName, String methodDescriptor, int lineNumber) {
+    public String format(String sourceFileName, String className, String methodCallOwner, String methodName, String methodDescriptor, int lineNumber) {
         String methodCallOwnerClassName = methodCallOwner.replace("/", ".");
-        return String.format("%s.%s(): at %s(%s.java:%d)", methodCallOwnerClassName, methodName, className, getClassName(className), lineNumber);
-    }
-
-    private static String getClassName(String relativePath) {
-        String[] relativePathSplit = relativePath.split("[.]");
-        return relativePathSplit[relativePathSplit.length - 1];
+        return String.format("%s.%s(): at %s(%s:%d)", methodCallOwnerClassName, methodName, className, sourceFileName, lineNumber);
     }
 }
