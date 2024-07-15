@@ -82,12 +82,31 @@ public class GroovyDynamicDispatchInterceptors {
         if (interceptor != null) {
             Object[] args = new Object[]{messageArgument};
             interceptor.intercept(new InvocationImpl<>(receiver, args, () -> {
-                ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+                callInstrumentedSetProperty(messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
                 return null;
             }), consumer);
         } else {
-            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+            callInstrumentedSetProperty(messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
         }
+    }
+
+    private static void callInstrumentedSetProperty(
+        Object messageArgument,
+        Class<?> senderClass,
+        Object receiver,
+        String messageName,
+        String consumer,
+        BytecodeInterceptorFilter interceptorFilter
+    ) throws Throwable {
+        if (!ClosureCallInterceptorResolver.of(interceptorFilter).isAwareOfCallSiteName(messageName)) {
+            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+            return;
+        }
+        InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
+        withEntryPoint(consumer, messageName, SET_PROPERTY, () -> {
+            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+            return null;
+        });
     }
 
     @InterceptJvmCalls
