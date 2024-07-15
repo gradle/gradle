@@ -16,13 +16,15 @@
 
 package org.gradle.internal.instrumentation.reporting.listener;
 
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+
 import java.io.File;
 
 public interface MethodInterceptionListener {
 
-    MethodInterceptionListener NO_OP = (source, relativePath, owner, name, descriptor, lineNumber) -> {};
+    MethodInterceptionListener NO_OP = (type, source, relativePath, owner, name, descriptor, lineNumber) -> {};
 
     MethodInterceptionListener OUTPUT_TO_CONSOLE = new ConsoleOutputInterceptionListener();
 
-    void onInterceptedMethodIns(File source, String relativePath, String owner, String name, String descriptor, int lineNumber);
+    void onInterceptedMethodIns(BytecodeInterceptorType type, File source, String relativePath, String owner, String name, String descriptor, int lineNumber);
 }

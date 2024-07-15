@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization.transform;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.PropertiesBackedInstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -85,8 +86,8 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             }
 
             @Override
-            public BytecodeInterceptorFilter getFilter() {
-                return BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE;
+            public InstrumentingClassTransform getClassTransform() {
+                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE);
             }
         };
     }
