@@ -72,10 +72,6 @@ class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTy
 
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
-
-    override fun buildAll(modelName: String, project: Project): Any {
-        error("model should be built before the configuration phase")
-    }
 }
 
 
