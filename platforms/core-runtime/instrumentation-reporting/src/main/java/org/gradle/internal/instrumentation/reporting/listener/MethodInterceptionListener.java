@@ -14,28 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.asm;
-
-import org.gradle.api.NonNullApi;
+package org.gradle.internal.instrumentation.reporting.listener;
 
 import java.io.File;
 
-@NonNullApi
 public interface MethodInterceptionListener {
 
     MethodInterceptionListener NO_OP = (source, relativePath, owner, name, descriptor, lineNumber) -> {};
 
-    MethodInterceptionListener OUTPUT_TO_CONSOLE = new MethodInterceptionListener() {
-        @Override
-        public void onInterceptedMethodIns(File source, String relativePath, String owner, String name, String descriptor, int lineNumber) {
-            System.out.println(owner.replace("/", ".") + "." + name + "(): at " + relativePath.replace(".class", "") + "(" + getClassName(relativePath) + ".java:" + lineNumber + ")");
-        }
-
-        private String getClassName(String relativePath) {
-            String[] relativePathSplit = relativePath.split("/");
-            return relativePathSplit[relativePathSplit.length - 1].replace(".class", "");
-        }
-    };
+    MethodInterceptionListener OUTPUT_TO_CONSOLE = new ConsoleOutputInterceptionListener();
 
     void onInterceptedMethodIns(File source, String relativePath, String owner, String name, String descriptor, int lineNumber);
 }

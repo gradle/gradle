@@ -34,8 +34,8 @@ import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterc
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.model.internal.asm.MethodInterceptionListener;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -309,7 +309,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
                     methodInterceptionListenerFor(interceptor.getType()).onInterceptedMethodIns(
                         classData.getSource(),
-                        classData.getClassRelativePath().getPathString(),
+                        className,
                         owner,
                         name,
                         descriptor,
