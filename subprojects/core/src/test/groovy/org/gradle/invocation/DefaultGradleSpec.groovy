@@ -30,6 +30,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.LifecycleAwareProject
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskState
@@ -53,6 +54,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -93,7 +95,12 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
         _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
-
+        _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
+            newInstance(LifecycleAwareProject, _, _) >> { args ->
+                def newInstanceParams = args[1]
+                new LifecycleAwareProject(newInstanceParams[0], Stub(EagerLifecycleExecutor))
+            }
+        }
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
 
@@ -473,6 +480,7 @@ class DefaultGradleSpec extends Specification {
                 _ * o.getConvention() >> new DefaultConvention(Mock(InstanceGenerator))
                 _ * o.getParent() >> Mock(DynamicObject)
             }
+            _ * p.services >> serviceRegistryFactory.createFor(_)
         }
         return project
     }

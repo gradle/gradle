@@ -52,7 +52,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     @Override
     protected void onMutableStateAccess(String what) {
-        eagerLifecycleExecutor.executeAllprojectsFor(delegate);
+        eagerLifecycleExecutor.executeBeforeProjectFor(delegate);
     }
 
     @Override

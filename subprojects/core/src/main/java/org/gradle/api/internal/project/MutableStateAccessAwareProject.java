@@ -207,6 +207,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getRootDir();
     }
 
+    @Nullable
+    @Override
+    public Path getProjectIdentityPath() {
+        return delegate.getProjectIdentityPath();
+    }
 
     @Override
     @SuppressWarnings("deprecation")

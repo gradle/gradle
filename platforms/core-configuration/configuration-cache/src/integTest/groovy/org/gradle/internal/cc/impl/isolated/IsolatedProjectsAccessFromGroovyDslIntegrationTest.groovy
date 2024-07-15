@@ -917,7 +917,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        fails 'help', WARN_PROBLEMS_CLI_OPT, ENABLE_CLI
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
         failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")

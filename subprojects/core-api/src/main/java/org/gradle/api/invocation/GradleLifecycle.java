@@ -33,8 +33,14 @@ public interface GradleLifecycle {
     /**
      * Adds an {@link IsolatedAction isolated action} to be called immediately before a project is evaluated.
      *
-     * Any extensions added to the {@code Project} model will be available to build scripts.
-     *
+     * The action can be executed eagerly before access to any mutable state of a project in the cross-project configuration manner:
+     * <p>
+     * {@link org.gradle.api.Project#allprojects(Closure) allprojects {}},
+     * {@link org.gradle.api.Project#subprojects(Closure) subprojects {}},
+     * {@link org.gradle.api.Project#project(String, Closure) project(...) {}}
+     * {@link org.gradle.api.Project#getAllprojects() getAllprojects() {}}
+     * {@link org.gradle.api.Project#getSubprojects() getSubprojects() {}}
+     * {@link org.gradle.api.Project#findProject(String) findProject(...) {}}
      * @param action The action to execute.
      * @see IsolatedAction for the requirements to isolated actions
      * @since 8.8
@@ -51,20 +57,4 @@ public interface GradleLifecycle {
      */
     @Incubating
     void afterProject(IsolatedAction<? super Project> action);
-
-    /**
-     * Adds an {@link IsolatedAction isolated action}, to be called before a project is evaluated.
-     * <p>
-     * The action is guaranteed to run before the eager cross-project configuration blocks:
-     * <p>
-     * {@link org.gradle.api.Project#allprojects(Closure) allprojects {}},
-     * {@link org.gradle.api.Project#subprojects(Closure) subprojects {}},
-     * {@link org.gradle.api.Project#project(String, Closure)  project(...) {}}
-     *
-     * @param action The action to execute.
-     * @see IsolatedAction for the requirements to isolated actions
-     * @since 8.10
-     */
-    @Incubating
-    void allprojects(IsolatedAction<? super Project> action);
 }

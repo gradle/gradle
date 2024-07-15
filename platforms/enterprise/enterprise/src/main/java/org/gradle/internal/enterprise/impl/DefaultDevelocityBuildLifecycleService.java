@@ -35,6 +35,6 @@ public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLi
 
     @Override
     public void beforeProject(Action<? super Project> action) {
-        gradle.getLifecycle().allprojects(action::execute);
+        gradle.getLifecycle().beforeProject(action::execute);
     }
 }

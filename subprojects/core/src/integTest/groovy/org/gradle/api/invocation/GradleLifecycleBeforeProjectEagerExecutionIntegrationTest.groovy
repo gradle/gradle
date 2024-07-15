@@ -21,11 +21,11 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
-class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIntegrationSpec {
+class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'lifecycle.allproject is executed eagerly when getProperty accessed in Groovy DSL'() {
+    def 'lifecycle.beforeProject is executed eagerly when getProperty accessed in Groovy DSL'() {
         settingsFile << """
-            gradle.lifecycle.allprojects {
+            gradle.lifecycle.beforeProject {
                 ext.foo = "\$name bar"
             }
             include(":a")
@@ -52,11 +52,11 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         "println(it.foo)"      | ""
     }
 
-    def 'lifecycle.allprojects is executed lazily before project evaluation if immutable state accessed'() {
+    def 'lifecycle.beforeProject is executed lazily before project evaluation if immutable state accessed'() {
         given:
         settingsFile << """
-            gradle.lifecycle.allprojects {
-                println "lifecycle.allprojects: \${name}"
+            gradle.lifecycle.beforeProject {
+                println "lifecycle.beforeProject: \${name}"
             }
             include(":a")
         """
@@ -71,14 +71,14 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         run "help", "-q"
 
         then:
-        outputContains "eager a\nlifecycle.allprojects: a\nevaluate a"
+        outputContains "eager a\nlifecycle.beforeProject: a\nevaluate a"
     }
 
-    def 'lifecycle.allprojects is executed eagerly before mutable state access'() {
+    def 'lifecycle.beforeProject is executed eagerly before mutable state access'() {
         given:
         settingsFile << """
-            gradle.lifecycle.allprojects {
-                println "lifecycle.allprojects: \${name}"
+            gradle.lifecycle.beforeProject {
+                println "lifecycle.beforeProject: \${name}"
             }
             include(":a")
         """
@@ -95,7 +95,7 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         run "help", "-q"
 
         then:
-        outputContains "before\nlifecycle.allprojects: a\nafter"
+        outputContains "before\nlifecycle.beforeProject: a\nafter"
 
         where:
         mutableStateAccess << [
@@ -121,18 +121,17 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
             "plugins",
             "pluginManager",
             "findProperty('foo')",
-            "hasProperty('foo')",
             "getProperties()",
             "apply{}"
         ]
     }
 
-    def 'lifecycle.allprojects is executed only once for a project'() {
+    def 'lifecycle.beforeProject is executed only once for a project'() {
         given:
         settingsFile << """
             rootProject.name = 'root'
-            gradle.lifecycle.allprojects {
-                println "lifecycle.allprojects for \${name}"
+            gradle.lifecycle.beforeProject {
+                println "lifecycle.beforeProject for \${name}"
             }
             include(":a")
         """
@@ -148,8 +147,8 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         run "help", "-q"
 
         then:
-        output.count("lifecycle.allprojects for root") == 1
-        output.count("lifecycle.allprojects for a") == 1
+        output.count("lifecycle.beforeProject for root") == 1
+        output.count("lifecycle.beforeProject for a") == 1
 
         where:
         secondEagerExecutionBlock << [
@@ -158,11 +157,11 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         ]
     }
 
-    def 'lifecycle.allprojects can be executed before project.#api'() {
+    def 'lifecycle.beforeProject can be executed before project.#api'() {
         given:
         settingsFile << """
             rootProject.name = 'root'
-            gradle.lifecycle.allprojects {
+            gradle.lifecycle.beforeProject {
                 ext.foo = "\$name bar"
             }
             include(":a")
@@ -195,13 +194,13 @@ class GradleLifecycleAllprojectsEagerExecutionIntegrationTest extends AbstractIn
         "getChildProjects" | "getChildProjects().values().forEach" | "a bar\nb bar"
     }
 
-    def 'lifecycle.allprojects can be executed before gradle.allprojects'() {
+    def 'lifecycle.beforeProject can be executed before gradle.allprojects'() {
         settingsFile << """
             rootProject.name = 'root'
             gradle.allprojects {
                 println "\${foo}"
             }
-            gradle.lifecycle.allprojects {
+            gradle.lifecycle.beforeProject {
                 ext.foo = "\$name bar"
             }
             include(":a")

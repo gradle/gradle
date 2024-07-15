@@ -25,8 +25,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface EagerLifecycleExecutor {
 
     /**
-     * Eagerly executes the actions, previously registered via {@link IsolatedProjectEvaluationListenerProvider#allprojects(IsolatedAction)}
+     * Eagerly executes the actions, previously registered via {@link IsolatedProjectEvaluationListenerProvider#beforeProject(IsolatedAction)}
      * against the given project. Safe to be called concurrently.
      */
-    void executeAllprojectsFor(Project project);
+    void executeBeforeProjectFor(Project project);
 }

@@ -42,7 +42,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         true
     }
 
-    def 'isolated #lifecycleApi action given as Kotlin lambda can capture managed value'() {
+    def 'isolated beforeProject action given as Kotlin lambda can capture managed value'() {
         given:
         withSettingsPluginInBuildLogic()
 
@@ -61,33 +61,30 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
                     val parameter: org.gradle.api.provider.Property<String>
                 }
             '''
-            file('src/main/kotlin/my-settings-plugin.settings.gradle.kts') << """
+            file('src/main/kotlin/my-settings-plugin.settings.gradle.kts') << '''
                 abstract class CustomTask : DefaultTask() {
                     @get:Input abstract val taskParameter: Property<String>
                     @TaskAction fun printParameter() {
-                        println("The parameter is `\${taskParameter.get()}`")
+                        println("The parameter is `${taskParameter.get()}`")
                     }
                 }
 
                 // Expose dsl to the user, the value will be isolated only after settings has been fully evaluated
                 extensions.create<my.SettingsPluginDsl>("dsl").let { dsl ->
-                    gradle.lifecycle.$lifecycleApi {
+                    gradle.lifecycle.beforeProject {
                         tasks.register<CustomTask>("test") {
                             taskParameter = dsl.parameter
                         }
                     }
                 }
-            """
+            '''
         }
 
         expect:
         configuredTaskRunsCorrectly()
-
-        where:
-        lifecycleApi << ["allprojects", "beforeProject"]
     }
 
-    def 'isolated #lifecycleApi action given as Java lambda can capture managed value'() {
+    def 'isolated beforeProject action given as Java lambda can capture managed value'() {
         given:
         withSettingsPluginInBuildLogic()
 
@@ -106,7 +103,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             '''
-            javaFile file('src/main/java/my/SettingsPlugin.java'), """
+            javaFile file('src/main/java/my/SettingsPlugin.java'), '''
                 package my;
 
                 import org.gradle.api.DefaultTask;
@@ -133,21 +130,18 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
                     public void apply(Settings target) {
                         // Expose dsl to the user, the value will be isolated only after settings has been fully evaluated
                         final Dsl dsl = target.getExtensions().create("dsl", Dsl.class);
-                        target.getGradle().getLifecycle().$lifecycleApi(project -> {
+                        target.getGradle().getLifecycle().beforeProject(project -> {
                             project.getTasks().register("test", TestTask.class, task -> {
                                 task.getTaskParameter().set(dsl.getParameter());
                             });
                         });
                     }
                 }
-            """
+            '''
         }
 
         expect:
         configuredTaskRunsCorrectly()
-
-        where:
-        lifecycleApi << ["allprojects", "beforeProject"]
     }
 
     def "lifecycle beforeProject/afterProject run around project evaluation"() {

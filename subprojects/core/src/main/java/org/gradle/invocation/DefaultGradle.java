@@ -651,12 +651,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             gradle.isolatedProjectEvaluationListenerProvider.afterProject(action);
         }
 
-        @Override
-        public void allprojects(IsolatedAction<? super Project> action) {
-            assertBeforeProjectsLoaded("allprojects");
-            gradle.isolatedProjectEvaluationListenerProvider.allprojects(action);
-        }
-
         private void assertBeforeProjectsLoaded(String methodName) {
             if (gradle.projectsLoaded) {
                 throw new IllegalStateException("GradleLifecycle#" + methodName + " cannot be called after settings have been evaluated.");

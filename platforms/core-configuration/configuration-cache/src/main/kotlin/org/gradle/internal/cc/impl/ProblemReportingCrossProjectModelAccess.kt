@@ -27,6 +27,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
@@ -510,7 +511,7 @@ class ProblemReportingCrossProjectModelAccess(
             action: DynamicObject.() -> DynamicInvokeResult,
             resultNotFoundExceptionProvider: DynamicObject.() -> GroovyRuntimeException
         ): Any? {
-            val delegateBean = DynamicObjectUtil.asDynamicObject(delegate)
+            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
 
             dynamicCallProblemReporting.enterDynamicCall(delegateBean)
 

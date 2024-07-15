@@ -147,7 +147,12 @@ class DefaultProjectTest extends Specification {
     ProviderFactory propertyStateFactoryMock = Stub(ProviderFactory)
     ProcessOperations processOperationsMock = Stub(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
-    Instantiator instantiatorMock = Stub(Instantiator)
+    Instantiator instantiatorMock = Stub(Instantiator) {
+        newInstance(LifecycleAwareProject, _, _) >> { args ->
+            def newInstanceParams = args[1]
+            new LifecycleAwareProject(newInstanceParams[0], eagerLifecycleExecutor)
+        }
+    }
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
     InputNormalizationHandlerInternal inputNormalizationHandler = Stub(InputNormalizationHandlerInternal)
     ProjectConfigurationActionContainer configureActions = Stub(ProjectConfigurationActionContainer)
