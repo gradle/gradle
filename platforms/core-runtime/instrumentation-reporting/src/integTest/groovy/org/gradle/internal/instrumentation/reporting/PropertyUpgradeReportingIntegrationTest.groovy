@@ -48,7 +48,7 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("help", "--property-upgrade-report")
 
         then:
-        outputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at MyPlugin(MyPlugin.java:0)")
+        outputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at MyPlugin(MyPlugin.java:10)")
     }
 
     @NotYetImplemented
