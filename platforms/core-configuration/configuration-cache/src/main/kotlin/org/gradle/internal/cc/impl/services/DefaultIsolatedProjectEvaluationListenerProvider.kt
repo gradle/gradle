@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.invocation.EagerLifecycleExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
@@ -44,7 +45,7 @@ typealias IsolatedProjectActionList = Collection<IsolatedProjectAction>
 internal
 class DefaultIsolatedProjectEvaluationListenerProvider(
     private val userCodeApplicationContext: UserCodeApplicationContext
-) : IsolatedProjectEvaluationListenerProvider {
+) : IsolatedProjectEvaluationListenerProvider, EagerLifecycleExecutor {
 
     private
     val beforeProject = mutableListOf<IsolatedProjectAction>()
@@ -71,6 +72,10 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
                 }
             }
         } ?: action
+
+    override fun executeBeforeProjectFor(project: Project) {
+        // no-op
+    }
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
         beforeProject.isEmpty() && afterProject.isEmpty() -> null

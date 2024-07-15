@@ -21,6 +21,7 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.invocation.EagerLifecycleExecutor;
 
 import javax.annotation.Nullable;
 
@@ -29,21 +30,29 @@ import javax.annotation.Nullable;
  */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
-    public static ProjectInternal from(ProjectInternal target, ProjectInternal referrer, Instantiator instantiator) {
+    public static ProjectInternal from(
+        ProjectInternal target,
+        ProjectInternal referrer,
+        EagerLifecycleExecutor eagerLifecycleExecutor,
+        Instantiator instantiator
+    ) {
         return MutableStateAccessAwareProject.wrap(
             target,
             referrer,
-            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer)
+            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer, eagerLifecycleExecutor)
         );
     }
 
-    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
+    private final EagerLifecycleExecutor eagerLifecycleExecutor;
+
+    LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, EagerLifecycleExecutor eagerLifecycleExecutor) {
         super(delegate, referrer);
+        this.eagerLifecycleExecutor = eagerLifecycleExecutor;
     }
 
     @Override
     protected void onMutableStateAccess(String what) {
-        // no-op for now
+        eagerLifecycleExecutor.executeBeforeProjectFor(delegate);
     }
 
     @Override

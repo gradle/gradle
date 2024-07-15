@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.invocation.EagerLifecycleExecutor;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,10 +32,16 @@ import java.util.stream.Collectors;
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final Instantiator instantiator;
+    private final EagerLifecycleExecutor eagerLifecycleExecutor;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry<ProjectInternal> projectRegistry, Instantiator instantiator) {
+    public DefaultCrossProjectModelAccess(
+        ProjectRegistry<ProjectInternal> projectRegistry,
+        Instantiator instantiator,
+        EagerLifecycleExecutor eagerLifecycleExecutor
+    ) {
         this.projectRegistry = projectRegistry;
         this.instantiator = instantiator;
+        this.eagerLifecycleExecutor = eagerLifecycleExecutor;
     }
 
     @Override
@@ -46,7 +53,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
         ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
         return project != null
-            ? LifecycleAwareProject.from(project, referrer, instantiator)
+            ? LifecycleAwareProject.from(project, referrer, eagerLifecycleExecutor, instantiator)
             : null;
     }
 
@@ -55,7 +62,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return relativeTo.getChildProjectsUnchecked().entrySet().stream().collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> LifecycleAwareProject.from((ProjectInternal) entry.getValue(), referrer, instantiator)
+                entry -> LifecycleAwareProject.from((ProjectInternal) entry.getValue(), referrer, eagerLifecycleExecutor, instantiator)
             )
         );
     }
@@ -63,14 +70,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getSubProjects(relativeTo.getPath()).stream()
-            .map(project -> LifecycleAwareProject.from(project, referrer, instantiator))
+            .map(project -> LifecycleAwareProject.from(project, referrer, eagerLifecycleExecutor, instantiator))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getAllProjects(relativeTo.getPath()).stream()
-            .map(project -> LifecycleAwareProject.from(project, referrer, instantiator))
+            .map(project -> LifecycleAwareProject.from(project, referrer, eagerLifecycleExecutor, instantiator))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
