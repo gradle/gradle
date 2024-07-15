@@ -35,7 +35,6 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -107,9 +106,9 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
         InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter();
         InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
-        BytecodeInterceptorFilter interceptorFilter = typeRegistryAndFilter.getFilter();
+        InstrumentingClassTransform classTransform = typeRegistryAndFilter.getClassTransform();
         ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(interceptorFilter), typeRegistry);
+        ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform, typeRegistry);
         transform.transform(output);
     }
 
@@ -139,6 +138,6 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     protected interface InterceptorTypeRegistryAndFilter {
         InstrumentationTypeRegistry getRegistry();
-        BytecodeInterceptorFilter getFilter();
+        InstrumentingClassTransform getClassTransform();
     }
 }

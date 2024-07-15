@@ -19,38 +19,30 @@ package org.gradle.internal.instrumentation.reporting.listener;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
-class FileOutputMethodInterceptionListener implements MethodInterceptionListener, AutoCloseable {
+public class BytecodeUpgradeReportMethodInterceptionListener implements MethodInterceptionListener, AutoCloseable {
 
-    private final OnInterceptedMethodInsFormatter formatter;
-    private final Writer writer;
+    private final MethodInterceptionListener delegate;
 
-    public FileOutputMethodInterceptionListener(File output) {
-        try {
-            this.writer = new OutputStreamWriter(Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8);;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        this.formatter = new OnInterceptedMethodInsFormatter();
+    public BytecodeUpgradeReportMethodInterceptionListener(File output) {
+        this.delegate = new FileOutputMethodInterceptionListener(output);
+    }
+
+    public BytecodeUpgradeReportMethodInterceptionListener(MethodInterceptionListener delegate) {
+        this.delegate = delegate;
     }
 
     @Override
     public void onInterceptedMethodIns(BytecodeInterceptorType type, File source, String relativePath, String owner, String name, String descriptor, int lineNumber) {
-        try {
-            writer.write(formatter.format(source, relativePath, owner, name, descriptor, lineNumber) + "\n");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        if (type == BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT) {
+            delegate.onInterceptedMethodIns(type, source, relativePath, owner, name, descriptor, lineNumber);
         }
     }
 
     @Override
     public void close() throws Exception {
-        writer.close();
+        if (delegate instanceof AutoCloseable) {
+            ((AutoCloseable) delegate).close();
+        }
     }
 }

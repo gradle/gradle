@@ -33,7 +33,6 @@ import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
@@ -94,6 +93,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final AdhocInterceptors ADHOC_INTERCEPTORS = new AdhocInterceptors();
 
     private final JvmBytecodeInterceptorSet externalInterceptors;
+    private final MethodInterceptionListener methodInterceptionListener;
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -106,7 +106,12 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter) {
+        this(interceptorFilter, MethodInterceptionListener.NO_OP);
+    }
+
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, MethodInterceptionListener methodInterceptionListener) {
         this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorFilter);
+        this.methodInterceptionListener = methodInterceptionListener;
     }
 
     private BytecodeInterceptorFilter interceptorFilter() {
@@ -132,7 +137,8 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ),
                 classData,
                 interceptors,
-                interceptorFilter()
+                interceptorFilter(),
+                methodInterceptionListener
             )
         );
     }
@@ -153,16 +159,24 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final BytecodeInterceptorFilter interceptorFilter;
 
         private final Map<Handle, BridgeMethod> bridgeMethods = new LinkedHashMap<>();
+        private final MethodInterceptionListener methodInterceptionListener;
         private int nextBridgeMethodIndex;
 
         private String className;
         private boolean hasGroovyCallSites;
 
-        public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, List<JvmBytecodeCallInterceptor> interceptors, BytecodeInterceptorFilter interceptorFilter) {
+        public InstrumentingVisitor(
+            ClassVisitor visitor,
+            ClassData classData,
+            List<JvmBytecodeCallInterceptor> interceptors,
+            BytecodeInterceptorFilter interceptorFilter,
+            MethodInterceptionListener methodInterceptionListener
+        ) {
             super(ASM_LEVEL, visitor);
             this.classData = classData;
             this.interceptors = interceptors;
             this.interceptorFilter = interceptorFilter;
+            this.methodInterceptionListener = methodInterceptionListener;
         }
 
         @Override
@@ -183,7 +197,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, interceptors, interceptorFilter);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, interceptors, interceptorFilter, methodInterceptionListener);
         }
 
         @Override
@@ -274,6 +288,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Collection<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
         private final ClassData classData;
+        private final MethodInterceptionListener methodInterceptionListener;
         private int methodInsLineNumber;
 
         public InstrumentingMethodVisitor(
@@ -282,7 +297,8 @@ public class InstrumentingClassTransform implements ClassTransform {
             Lazy<MethodNode> asNode,
             ClassData classData,
             Collection<JvmBytecodeCallInterceptor> interceptors,
-            BytecodeInterceptorFilter interceptorFilter
+            BytecodeInterceptorFilter interceptorFilter,
+            MethodInterceptionListener methodInterceptionListener
         ) {
             super(methodVisitor);
             this.owner = owner;
@@ -291,6 +307,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             this.classData = classData;
             this.interceptors = interceptors;
             this.interceptorFilter = interceptorFilter;
+            this.methodInterceptionListener = methodInterceptionListener;
         }
 
         @Override
@@ -307,7 +324,8 @@ public class InstrumentingClassTransform implements ClassTransform {
 
             for (JvmBytecodeCallInterceptor interceptor : interceptors) {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
-                    methodInterceptionListenerFor(interceptor.getType()).onInterceptedMethodIns(
+                    methodInterceptionListener.onInterceptedMethodIns(
+                        interceptor.getType(),
                         classData.getSource(),
                         className,
                         owner,
@@ -319,18 +337,6 @@ public class InstrumentingClassTransform implements ClassTransform {
                 }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-        }
-
-        private static MethodInterceptionListener methodInterceptionListenerFor(BytecodeInterceptorType type) {
-            switch (type) {
-                case INSTRUMENTATION:
-                case BYTECODE_UPGRADE:
-                    return MethodInterceptionListener.NO_OP;
-                case BYTECODE_UPGRADE_REPORT:
-                    return MethodInterceptionListener.OUTPUT_TO_CONSOLE;
-                default:
-                    throw new UnsupportedOperationException("Unknown interceptor type: " + type);
-            }
         }
 
         private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.instrumentation.reporting.listener;
 
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+
 import java.io.File;
 
 public class ConsoleOutputInterceptionListener implements MethodInterceptionListener {
@@ -23,7 +25,7 @@ public class ConsoleOutputInterceptionListener implements MethodInterceptionList
     private final OnInterceptedMethodInsFormatter formatter = new OnInterceptedMethodInsFormatter();
 
     @Override
-    public void onInterceptedMethodIns(File source, String className, String owner, String name, String descriptor, int lineNumber) {
+    public void onInterceptedMethodIns(BytecodeInterceptorType type, File source, String className, String owner, String name, String descriptor, int lineNumber) {
         System.out.println(formatter.format(source, className, owner, name, descriptor, lineNumber));
     }
 }

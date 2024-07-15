@@ -21,8 +21,11 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
+import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -56,10 +59,12 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
             }
 
             @Override
-            public BytecodeInterceptorFilter getFilter() {
-                return getParameters().getIsUpgradeReport().getOrElse(false)
-                    ? BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT
-                    : BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+            public InstrumentingClassTransform getClassTransform() {
+                if (getParameters().getIsUpgradeReport().getOrElse(false)) {
+                    MethodInterceptionListener interceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(MethodInterceptionListener.OUTPUT_TO_CONSOLE);
+                    return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, interceptionListener);
+                }
+                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY);
             }
         };
     }
