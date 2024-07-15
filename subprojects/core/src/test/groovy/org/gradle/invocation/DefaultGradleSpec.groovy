@@ -29,6 +29,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.CrossProjectConfigurator
+import org.gradle.api.internal.project.LifecycleAwareProject
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskState
@@ -48,6 +49,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -87,7 +89,13 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
-        _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(IsolatedProjectEvaluationListenerProvider)
+        _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
+        _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
+            newInstance(LifecycleAwareProject, _, _) >> { args ->
+                def params = args[1]
+                new LifecycleAwareProject(params[0], Stub(EagerLifecycleExecutor))
+            }
+        }
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -472,4 +480,6 @@ class DefaultGradleSpec extends Specification {
             super(Scope.Build)
         }
     }
+
+    static interface TestIsolatedProjectEvaluationListenerProvider extends IsolatedProjectEvaluationListenerProvider, EagerLifecycleExecutor {}
 }

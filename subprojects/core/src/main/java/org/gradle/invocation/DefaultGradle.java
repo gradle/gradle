@@ -42,6 +42,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.internal.project.LifecycleAwareProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
@@ -66,6 +67,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -114,10 +116,15 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
-                if (!rootProjectActions.isEmpty()) {
-                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
-                }
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
+
+                if (!rootProjectActions.isEmpty()) {
+                    Instantiator instantiator = services.get(Instantiator.class);
+                    services.get(CrossProjectConfigurator.class).rootProject(
+                        LifecycleAwareProject.from(rootProject, instantiator, (EagerLifecycleExecutor) isolatedProjectEvaluationListenerProvider),
+                        rootProjectActions
+                    );
+                }
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
