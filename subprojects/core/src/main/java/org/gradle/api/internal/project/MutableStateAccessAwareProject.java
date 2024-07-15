@@ -84,7 +84,6 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -924,14 +923,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
         delegate.normalization(configuration);
-    }
-
-    public void normalization(Closure closure) {
-        normalization(ConfigureUtil.configureUsing(closure));
-    }
-
-    public void dependencyLocking(Closure configuration) {
-        dependencyLocking(ConfigureUtil.configureUsing(configuration));
     }
 
     @Override
