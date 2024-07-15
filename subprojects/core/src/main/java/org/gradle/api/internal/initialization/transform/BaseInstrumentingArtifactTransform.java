@@ -104,12 +104,13 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     private void doTransform(File input, TransformOutputs outputs, Function<String, String> instrumentedEntryNameMapper) {
         String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
         File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
-        InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter();
-        InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
-        InstrumentingClassTransform classTransform = typeRegistryAndFilter.getClassTransform();
-        ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform, typeRegistry);
-        transform.transform(output);
+        try (InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter(outputs)) {
+            InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
+            InstrumentingClassTransform classTransform = typeRegistryAndFilter.getClassTransform();
+            ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
+            ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform, typeRegistry);
+            transform.transform(output);
+        }
     }
 
     private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
@@ -134,10 +135,13 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         }
     }
 
-    protected abstract InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter();
+    protected abstract InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter(TransformOutputs outputs);
 
-    protected interface InterceptorTypeRegistryAndFilter {
+    protected interface InterceptorTypeRegistryAndFilter extends AutoCloseable {
         InstrumentationTypeRegistry getRegistry();
         InstrumentingClassTransform getClassTransform();
+
+        @Override
+        void close();
     }
 }

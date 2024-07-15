@@ -24,18 +24,27 @@ import org.gradle.internal.component.local.model.TransformedComponentFileArtifac
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE;
 
 public class InstrumentationClasspathMerger {
 
+    public enum FileType {
+        INTERCEPTED_METHODS_REPORT,
+        ARTIFACT
+    }
+
     /**
      * Merges external dependencies and project dependencies to one classpath that is sorted based on the original classpath.
+     *
+     * Returns a Map where the key is the {@link FileType} and the value is a list of files of that type.
      */
-    public static List<File> mergeToClasspath(
+    public static Map<FileType, List<File>> mergeToClasspath(
         ArtifactCollection originalDependencies,
         ArtifactCollection externalDependencies,
         ArtifactCollection projectDependencies
@@ -54,7 +63,11 @@ public class InstrumentationClasspathMerger {
             // we also rely on the fact that for ordered streams `sorted()` method has stable sort.
             .sorted((first, second) -> ordering.compare(first.originalIdentifier, second.originalIdentifier))
             .map(artifact -> artifact.file)
-            .collect(Collectors.toList());
+            .collect(Collectors.groupingBy(InstrumentationClasspathMerger::getFileType));
+    }
+
+    private static FileType getFileType(File file) {
+        return file.getName().equals(INTERCEPTED_METHODS_REPORT_FILE) ? FileType.INTERCEPTED_METHODS_REPORT : FileType.ARTIFACT;
     }
 
     private static class ClassPathTransformedArtifact {

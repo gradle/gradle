@@ -24,7 +24,6 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
     def "usage of upgraded properties in buildSrc should be reported"() {
         given:
-        executer.requireOwnGradleUserHomeDir("Run with empty cache, so report is always generated")
         javaFile("buildSrc/src/main/java/MyPlugin.java", """
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
@@ -45,6 +44,12 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        run("help", "--property-upgrade-report")
+
+        then:
+        outputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at MyPlugin(MyPlugin.java:10)")
+
+        when: "From cache"
         run("help", "--property-upgrade-report")
 
         then:

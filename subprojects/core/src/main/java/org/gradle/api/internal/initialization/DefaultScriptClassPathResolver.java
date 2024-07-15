@@ -39,19 +39,23 @@ import org.gradle.api.internal.initialization.transform.registration.Instrumenta
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
@@ -144,12 +148,14 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            List<File> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
+            Map<FileType, List<File>> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
                 originalDependencies.getArtifacts(),
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies
             );
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
+
+            MethodInterceptionReportCollector.CONSOLE_OUTPUT_COLLECTOR.collect(instrumentedClasspath.getOrDefault(FileType.INTERCEPTED_METHODS_REPORT, Collections.emptyList()));
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(FileType.ARTIFACT, Collections.emptyList()));
         }
     }
 
