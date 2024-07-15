@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator.conventions
+package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.api.Plugin
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
-import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedConventionRepository
+import org.gradle.internal.declarativedsl.defaults.softwareTypeRegistryBasedModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeDslNotEvaluatedException
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
@@ -37,24 +37,24 @@ import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
-import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler
+import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 /**
  * A {@link ConventionHandler} for applying declarative conventions.
  */
-class DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTypeRegistry) : SoftwareTypeConventionHandler {
+class DeclarativeModelDefaultsHandler(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
     private
     val step = projectInterpretationSequenceStep(softwareTypeRegistry)
     private
-    val conventionRepository = softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry)
+    val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 
     override fun <T : Any> apply(target: T, softwareTypeName: String, plugin: Plugin<in T>) {
-        val analysisStepRunner = ApplyConventionsOnlyAnalysisStepRunner()
+        val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(SingleSoftwareTypeConventionApplicationHandler(conventionRepository, softwareTypeName))
+            setOf(SingleSoftwareTypeApplyModelDefaultsHandler(modelDefaultsRepository, softwareTypeName))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)
@@ -78,7 +78,7 @@ class DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry: SoftwareTyp
 
 
 private
-class ApplyConventionsOnlyAnalysisStepRunner : AbstractAnalysisStepRunner() {
+class ApplyDefaultsOnlyAnalysisStepRunner : AbstractAnalysisStepRunner() {
     override fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String): ParseAndResolveResult {
         // Create a synthetic top level receiver
         val topLevelBlock = Block(emptyList(), SyntheticallyProduced)
@@ -113,8 +113,8 @@ fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = 
 
 
 private
-class SingleSoftwareTypeConventionApplicationHandler(val conventionRepository: SoftwareTypeConventionRepository, val softwareTypeName: String) : ConventionApplicationHandler {
-    override fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults> {
-        return listOf(conventionRepository.findConventions(softwareTypeName)).requireNoNulls()
+class SingleSoftwareTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val softwareTypeName: String) : ApplyModelDefaultsHandler {
+    override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> {
+        return listOf(modelDefaultsRepository.findDefaults(softwareTypeName)).requireNoNulls()
     }
 }

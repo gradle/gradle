@@ -22,17 +22,17 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Shared conventions for configuring software types.  Conventions apply initial values to the model objects of software types.
+ * Shared model defaults for configuring software types.  Defaults apply initial values to the model objects of software types.
  * When a software type plugin is applied to a project, the model object for the software type will be pre-configured with the values
- * set in the convention.
+ * set in the default.
  *
  * @since 8.10
  */
 @Incubating
 @ServiceScope(Scope.Build.class)
-public interface Conventions {
+public interface SharedModelDefaults {
     /**
-     * Adds a convention for the software type specified by the given name.
+     * Adds a model default for the software type specified by the given name.
      *
      * @param name the name of the software type
      * @param publicType the public type of the software type

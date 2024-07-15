@@ -133,7 +133,7 @@ trait SoftwareTypeFixture {
         )
     }
 
-    PluginBuilder withSettingsPluginThatConfiguresSoftwareTypeConventions() {
+    PluginBuilder withSettingsPluginThatConfiguresModelDefaults() {
         return withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesSoftwareType,

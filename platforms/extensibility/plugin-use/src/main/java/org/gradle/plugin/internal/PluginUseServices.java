@@ -57,9 +57,9 @@ import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPlugin
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeConventionApplicator;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
+import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
+import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
+import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -136,8 +136,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        SoftwareTypeConventionApplicator createSoftwareTypeConventionApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<SoftwareTypeConventionHandler> softwareTypeConventionHandlers) {
-            return new DefaultSoftwareTypeConventionApplicator(softwareTypeRegistry, softwareTypeConventionHandlers);
+        ModelDefaultsApplicator createSoftwareTypeConventionApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<ModelDefaultsHandler> modelDefaultsHandlers) {
+            return new DefaultModelDefaultsApplicator(softwareTypeRegistry, modelDefaultsHandlers);
         }
 
         @Provides

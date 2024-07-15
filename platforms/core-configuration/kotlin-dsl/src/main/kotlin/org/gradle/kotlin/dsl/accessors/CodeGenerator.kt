@@ -228,35 +228,35 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 
 
 internal
-fun buildConventionAccessor(spec: TypedAccessorSpec): String = spec.run {
+fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleBuildConventionAccessorFor(name, type.type.kotlinString)
-        is TypeAccessibility.Inaccessible -> inaccessibleBuildConventionAccessorFor(name, type)
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
     }
 }
 
 
 private
-fun accessibleBuildConventionAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
     """
         /**
-         * Adds a convention to the [$original][$name] software type.
+         * Adds model defaults for the [$original][$name] software type.
          */
-        fun Conventions.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             add("$stringLiteral", $type, configure)
     """
 }
 
 
 private
-fun inaccessibleBuildConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+fun inaccessibleModelDefaultAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Configures the `$original` extension.
+         * Adds model defaults for the `$original` software type.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun Conventions.`$kotlinIdentifier`(configure: Action<Any>): Unit =
+        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<Any>): Unit =
             add("$stringLiteral", KotlinType.Any, configure)
 
     """

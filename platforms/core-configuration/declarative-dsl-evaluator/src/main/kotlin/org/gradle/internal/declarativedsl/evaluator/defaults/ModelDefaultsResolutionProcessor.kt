@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator.conventions
+package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
@@ -27,8 +27,8 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
  * Processes a resolution result to extract the Software Type convention operations it defines.
  */
 internal
-object ConventionsResolutionProcessor {
-    fun process(resolutionResult: ResolutionResult): Map<String, SoftwareTypeConventionResolutionResults> {
+object ModelDefaultsResolutionProcessor {
+    fun process(resolutionResult: ResolutionResult): Map<String, ModelDefaultsResolutionResults> {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
             getSoftwareType(assignment.lhs.receiverObject).function.simpleName
         }
@@ -42,16 +42,16 @@ object ConventionsResolutionProcessor {
         val softwareTypeNames = assignments.keys + additions.keys + nestedObjectAccess.keys
 
         return softwareTypeNames.associateWith {
-            SoftwareTypeConventionResolutionResults(it, assignments[it].orEmpty(), additions[it].orEmpty(), nestedObjectAccess[it].orEmpty())
+            ModelDefaultsResolutionResults(it, assignments[it].orEmpty(), additions[it].orEmpty(), nestedObjectAccess[it].orEmpty())
         }
     }
 }
 
 
 /**
- * The convention operations extracted from a resolution result.
+ * The operations for model defaults extracted from a resolution result.
  */
-data class SoftwareTypeConventionResolutionResults(
+data class ModelDefaultsResolutionResults(
     val softwareTypeName: String,
     val assignments: List<AssignmentRecord>,
     val additions: List<DataAdditionRecord>,
@@ -91,18 +91,18 @@ internal
 fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
     true == (objectOrigin as? ObjectOrigin.AccessAndConfigureReceiver)?.receiver?.let { receiver ->
         (receiver as? ObjectOrigin.ImplicitThisReceiver)?.resolvedTo?.let { parent ->
-            isConventionsCall(parent)
+            isDefaultsCall(parent)
         }
     }
 
 
 /**
- * Checks is a given ObjectOrigin receiver is a call to the `conventions` function.
+ * Checks is a given ObjectOrigin receiver is a call to the `defaults` function.
  */
 internal
-fun isConventionsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
+fun isDefaultsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
     isTopLevelReceiver(parent.receiver) &&
-    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == ConventionsTopLevelReceiver::conventions.name
+    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == DefaultsTopLevelReceiver::defaults.name
 
 
 /**

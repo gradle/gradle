@@ -46,7 +46,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
-import org.gradle.api.internal.plugins.ConventionApplyingPluginTarget;
+import org.gradle.api.internal.plugins.ModelDefaultsApplyingPluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -104,8 +104,8 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
+import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -231,8 +231,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeConventionApplicator softwareTypeConventionApplicator,
-        InternalProblems problems
+        InternalProblems problems,
+        ModelDefaultsApplicator modelDefaultsApplicator
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -241,7 +241,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new ConventionApplyingPluginTarget<>(project, ruleBasedTarget, softwareTypeConventionApplicator);
+        PluginTarget pluginTarget = new ModelDefaultsApplyingPluginTarget<>(project, ruleBasedTarget, modelDefaultsApplicator);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,

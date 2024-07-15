@@ -31,7 +31,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.initialization.Conventions;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -415,10 +415,10 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public abstract Conventions getConventions();
+    public abstract SharedModelDefaults getDefaults();
 
     @Override
-    public void conventions(Action<? super Conventions> action) {
-        action.execute(getConventions());
+    public void defaults(Action<? super SharedModelDefaults> action) {
+        action.execute(getDefaults());
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator.conventions
+package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
@@ -22,20 +22,20 @@ import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHan
 import java.io.Serializable
 
 
-class ConventionDefinition : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition, Serializable
+class DefineModelDefaults : InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults, Serializable
 
 
-class ConventionDefinitionCollector(private val conventionRegistrar: ConventionDefinitionRegistrar) : ResolutionResultHandler {
+class ModelDefaultsDefinitionCollector(private val defaultsRegistrar: ModelDefaultsDefinitionRegistrar) : ResolutionResultHandler {
     override fun shouldHandleFeature(feature: InterpretationStepFeature.ResolutionResultPostprocessing) =
-        feature is InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition
+        feature is InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        conventionRegistrar.registerConventions(ConventionsResolutionProcessor.process(resolutionResult))
+        defaultsRegistrar.registerDefaults(ModelDefaultsResolutionProcessor.process(resolutionResult))
         return resolutionResult
     }
 }
 
 
-interface ConventionDefinitionRegistrar {
-    fun registerConventions(conventionsBySoftwareType: Map<String, SoftwareTypeConventionResolutionResults>)
+interface ModelDefaultsDefinitionRegistrar {
+    fun registerDefaults(modelDefaultsBySoftwareType: Map<String, ModelDefaultsResolutionResults>)
 }

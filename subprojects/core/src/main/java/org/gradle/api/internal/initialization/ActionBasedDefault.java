@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+package org.gradle.api.internal.initialization;
 
-/**
- * Represents a reusable convention declared for a software type.
- *
- * @param <T> the type of the receiver of the convention
- *
- * @since 8.9
- */
-public interface Convention<T extends Convention.Visitor<?>> {
-    void visit(T visitor);
+import org.gradle.api.Action;
+import org.gradle.plugin.software.internal.ModelDefault;
+import org.gradle.plugin.software.internal.ModelDefault.Visitor;
 
-    interface Visitor<U> {
-        void apply(U convention);
+public class ActionBasedDefault<T> implements ModelDefault<Visitor<Action<? super T>>> {
+    private final Action<? super T> action;
+
+    public ActionBasedDefault(Action<? super T> action) {
+        this.action = action;
+    }
+
+    @Override
+    public void visit(Visitor<Action<? super T>> visitor) {
+        visitor.apply(action);
     }
 }

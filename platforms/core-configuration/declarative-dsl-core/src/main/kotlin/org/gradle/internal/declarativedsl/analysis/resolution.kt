@@ -16,9 +16,9 @@ data class ResolutionResult(
     val additions: List<DataAdditionRecord>,
     val nestedObjectAccess: List<NestedObjectAccessRecord>,
     val errors: List<ResolutionError>,
-    val conventionAssignments: List<AssignmentRecord> = emptyList(),
-    val conventionAdditions: List<DataAdditionRecord> = emptyList(),
-    val conventionNestedObjectAccess: List<NestedObjectAccessRecord> = emptyList()
+    val assignmentsFromDefaults: List<AssignmentRecord> = emptyList(),
+    val additionsFromDefaults: List<DataAdditionRecord> = emptyList(),
+    val nestedObjectAccessFromDefaults: List<NestedObjectAccessRecord> = emptyList()
 )
 
 

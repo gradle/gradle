@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.conventions
+package org.gradle.internal.declarativedsl.defaults
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
-import org.gradle.plugin.software.internal.Convention
-import org.gradle.plugin.software.internal.Convention.Visitor
+import org.gradle.plugin.software.internal.ModelDefault
+import org.gradle.plugin.software.internal.ModelDefault.Visitor
 
 
 /**
  * A convention that applies a property assignment operation (e.g. foo = "bar").
  */
-class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord) :
-    Convention<Visitor<AssignmentRecord>> {
+class AssignmentRecordDefault(private val assignmentRecord: AssignmentRecord) :
+    ModelDefault<Visitor<AssignmentRecord>> {
     override fun visit(visitor: Visitor<AssignmentRecord>) {
         visitor.apply(assignmentRecord)
     }
@@ -37,8 +37,8 @@ class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord)
 /**
  * A convention that applies a data addition operation (e.g. addFoo("bar")).
  */
-class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecord) :
-    Convention<Visitor<DataAdditionRecord>> {
+class AdditionRecordDefault(private val dataAdditionRecord: DataAdditionRecord) :
+    ModelDefault<Visitor<DataAdditionRecord>> {
     override fun visit(visitor: Visitor<DataAdditionRecord>) {
         visitor.apply(dataAdditionRecord)
     }
@@ -48,8 +48,8 @@ class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecor
 /**
  * A convention that applies a nested object access operation (e.g. foo { }).
  */
-class NestedObjectAccessConvention(private val nestedObjectAccessRecord: NestedObjectAccessRecord) :
-    Convention<Visitor<NestedObjectAccessRecord>> {
+class NestedObjectAccessDefault(private val nestedObjectAccessRecord: NestedObjectAccessRecord) :
+    ModelDefault<Visitor<NestedObjectAccessRecord>> {
     override fun visit(visitor: Visitor<NestedObjectAccessRecord>) {
         visitor.apply(nestedObjectAccessRecord)
     }

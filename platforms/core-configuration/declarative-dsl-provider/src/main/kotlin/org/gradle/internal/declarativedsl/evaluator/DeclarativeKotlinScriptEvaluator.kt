@@ -22,12 +22,12 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.conventions.softwareTypeRegistryBasedConventionRegistrar
+import org.gradle.internal.declarativedsl.defaults.softwareTypeRegistryBasedModelDefaultsRegistrar
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
+import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsHandler
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepResult
@@ -61,8 +61,8 @@ fun defaultDeclarativeScriptEvaluator(
     schemaBuilder,
     documentChecks = setOf(SettingsBlocksCheck, UnsupportedSyntaxFeatureCheck),
     resolutionResultHandlers = setOf(
-        ConventionApplicationHandler.DO_NOTHING,
-        ConventionDefinitionCollector(softwareTypeRegistryBasedConventionRegistrar(softwareTypeRegistry))
+        ApplyModelDefaultsHandler.DO_NOTHING,
+        ModelDefaultsDefinitionCollector(softwareTypeRegistryBasedModelDefaultsRegistrar(softwareTypeRegistry))
     )
 )
 

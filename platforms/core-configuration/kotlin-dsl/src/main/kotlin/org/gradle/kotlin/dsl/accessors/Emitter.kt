@@ -172,7 +172,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForConvention -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForBuildConvention -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
         else -> emptyList()
     }
 }
@@ -196,7 +196,7 @@ sealed class Accessor {
 
     data class ForTask(val spec: TypedAccessorSpec) : Accessor()
 
-    data class ForBuildConvention(val spec: TypedAccessorSpec) : Accessor()
+    data class ForModelDefault(val spec: TypedAccessorSpec) : Accessor()
 }
 
 
@@ -216,7 +216,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
                 ).map(Accessor::ForContainerElement)
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
-            yieldAll(uniqueAccessorsFor(buildConventions).map(Accessor::ForBuildConvention))
+            yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
         }
     }
 }

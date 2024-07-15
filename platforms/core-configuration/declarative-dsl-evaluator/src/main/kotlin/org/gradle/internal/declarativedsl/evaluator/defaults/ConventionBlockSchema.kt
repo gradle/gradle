@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator.conventions
+package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Configuring
 
 
 /**
- * Represents a top-level receiver for processing the conventions block in the Settings DSL.
+ * Represents a top-level receiver for processing the defaults block in the Settings DSL.
  */
-interface ConventionsTopLevelReceiver {
+interface DefaultsTopLevelReceiver {
     @Configuring
     @AccessFromCurrentReceiverOnly
-    fun conventions(conventions: ConventionsConfiguringBlock.() -> Unit)
+    fun defaults(defaults: DefaultsConfiguringBlock.() -> Unit)
 }
 
 
@@ -34,6 +34,6 @@ interface ConventionsTopLevelReceiver {
  * A receiver for the conventions block.  Note that this class is only used to provide a receiver for custom accessors
  * that expose the software types available in the build.
  */
-class ConventionsConfiguringBlock
+class DefaultsConfiguringBlock
 
 

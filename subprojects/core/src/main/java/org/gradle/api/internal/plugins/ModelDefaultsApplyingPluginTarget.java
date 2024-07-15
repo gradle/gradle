@@ -20,20 +20,20 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionApplicator;
+import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-public class ConventionApplyingPluginTarget<T> implements PluginTarget {
+public class ModelDefaultsApplyingPluginTarget<T> implements PluginTarget {
     private final PluginTarget delegate;
     private final T target;
-    private final SoftwareTypeConventionApplicator softwareTypeConventionApplicator;
+    private final ModelDefaultsApplicator modelDefaultsApplicator;
 
-    public ConventionApplyingPluginTarget(T target, PluginTarget delegate, SoftwareTypeConventionApplicator softwareTypeConventionApplicator) {
+    public ModelDefaultsApplyingPluginTarget(T target, PluginTarget delegate, ModelDefaultsApplicator modelDefaultsApplicator) {
         this.target = target;
         this.delegate = delegate;
-        this.softwareTypeConventionApplicator = softwareTypeConventionApplicator;
+        this.modelDefaultsApplicator = modelDefaultsApplicator;
     }
 
     @Override
@@ -57,8 +57,8 @@ public class ConventionApplyingPluginTarget<T> implements PluginTarget {
     }
 
     @Override
-    public void applyConventions(Plugin<?> plugin) {
-        softwareTypeConventionApplicator.applyConventionsTo(target, Cast.uncheckedNonnullCast(plugin));
+    public void applyModelDefaults(Plugin<?> plugin) {
+        modelDefaultsApplicator.applyDefaultsTo(target, Cast.uncheckedNonnullCast(plugin));
     }
 
     @Override

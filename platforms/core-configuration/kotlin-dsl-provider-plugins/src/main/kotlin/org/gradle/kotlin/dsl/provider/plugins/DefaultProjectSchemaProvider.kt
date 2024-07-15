@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.Conventions
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -64,7 +64,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                     (scriptTarget as? Project)
                         ?.let { accessibleConfigurationsOf(it) }
                         ?: emptyList(),
-                    targetSchema.buildConventions,
+                    targetSchema.modelDefaults,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -84,7 +84,7 @@ data class TargetTypedSchema(
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val buildConventions: List<ProjectSchemaEntry<TypeOf<*>>>
+    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>
 )
 
 
@@ -321,7 +321,7 @@ val typeOfTaskContainer = typeOf<TaskContainer>()
 
 
 private
-val typeOfBuildConventions = typeOf<Conventions>()
+val typeOfBuildConventions = typeOf<SharedModelDefaults>()
 
 
 internal

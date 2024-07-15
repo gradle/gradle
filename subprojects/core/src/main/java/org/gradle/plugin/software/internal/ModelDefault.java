@@ -16,11 +16,17 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.api.Plugin;
-
 /**
- * Applies the conventions for a given software type to a target project.
+ * Represents a reusable set of defaults declared for a software type.
+ *
+ * @param <T> the type of the receiver of the convention
+ *
+ * @since 8.9
  */
-public interface SoftwareTypeConventionApplicator {
-    <T> void applyConventionsTo(T target, Plugin<? super T> plugin);
+public interface ModelDefault<T extends ModelDefault.Visitor<?>> {
+    void visit(T visitor);
+
+    interface Visitor<U> {
+        void apply(U convention);
+    }
 }

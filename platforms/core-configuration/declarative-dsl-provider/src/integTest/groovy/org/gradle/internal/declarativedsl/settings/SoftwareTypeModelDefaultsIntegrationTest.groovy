@@ -20,12 +20,12 @@ import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
-    def "can configure build-level conventions for property objects in a software type (#testCase)"() {
+class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+    def "can configure build-level defaults for property objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration)
 
@@ -36,21 +36,21 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains(expectedConfiguration)
 
         where:
-        testCase                                           | convention                         | buildConfiguration    | expectedConfiguration
-        "top-level property has convention and is set"     | setId("convention")                | setId("test")         | """id = test\nbar = bar"""
-        "top-level property has convention, nested is set" | setId("convention")                | setFooBar("baz")      | """id = convention\nbar = baz"""
-        "nested property has convention and is set"        | setFooBar("convention")            | setFooBar("baz")      | """id = <no id>\nbar = baz"""
-        "nested property has convention, top-level is set" | setFooBar("convention")            | setId("test")         | """id = test\nbar = convention"""
-        "no conventions, top-level property is set"        | ""                                 | setId("test")         | """id = test\nbar = bar"""
-        "everything has convention and nothing set"        | setAll("convention", "convention") | ""                    | """id = convention\nbar = convention"""
-        "everything has convention and is set"             | setAll("convention", "convention") | setAll("test", "baz") | """id = test\nbar = baz"""
+        testCase                                           | modelDefault                 | buildConfiguration    | expectedConfiguration
+        "top-level property has default and is set"        | setId("default")             | setId("test")         | """id = test\nbar = bar"""
+        "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | """id = default\nbar = baz"""
+        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | """id = <no id>\nbar = baz"""
+        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | """id = test\nbar = default"""
+        "no defaults, top-level property is set"           | ""                           | setId("test")         | """id = test\nbar = bar"""
+        "everything has default and nothing set"           | setAll("default", "default") | ""                    | """id = default\nbar = default"""
+        "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
-    def "sensible error when conventions are set more than once (#testCase)"() {
+    def "sensible error when defaults are set more than once (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("")
 
@@ -61,18 +61,18 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         result.assertHasErrorOutput("Value reassigned")
 
         where:
-        testCase                                    | convention
-        "id has convention set twice"               | setId("convention") + setId("again")
-        "bar has convention set twice"              | setFoo(setBar("convention") + setBar("again"))
+        testCase                                   | modelDefault
+        "id has default set twice"                 | setId("default") + setId("again")
+        "bar has default set twice"                | setFoo(setBar("default") + setBar("again"))
         // TODO - doesn't work
-        //"bar has convention set in multiple blocks" | setFooBar("convention") + setFooBar("again")
+        //"bar has default set in multiple blocks" | setFooBar("default") + setFooBar("again")
     }
 
-    def "can configure build-level conventions for adding functions in a software type (#testCase)"() {
+    def "can configure build-level defaults for adding functions in a software type (#testCase)"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
@@ -86,22 +86,22 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         expectedConfigurations.each { outputContains(it) }
 
         where:
-        testCase                                             | convention       | buildConfiguration | expectedConfigurations
-        "top-level adder has a convention and is called"     | addToList("foo") | addToList("bar")   | "list = foo, bar"
-        "top-level adder has a convention and is not called" | addToList("foo") | ""                 | "list = foo"
-        "nested adder has a convention and is called"        | addToBaz("foo")  | addToBaz("bar")    | "baz = foo, bar"
-        "nested adder has a convention and is not called"    | addToBaz("foo")  | ""                 | "baz = foo"
-        "everything has conventions and nothing is called"   | addToAll("foo")  | ""                 | ["list = foo", "baz = foo"]
-        "everything has conventions and all are called"      | addToAll("foo")  | addToAll("bar")    | ["list = foo, bar", "baz = foo, bar"]
+        testCase                                          | modelDefault     | buildConfiguration | expectedConfigurations
+        "top-level adder has a default and is called"     | addToList("foo") | addToList("bar")   | "list = foo, bar"
+        "top-level adder has a default and is not called" | addToList("foo") | ""                 | "list = foo"
+        "nested adder has a default and is called"        | addToBaz("foo")  | addToBaz("bar")    | "baz = foo, bar"
+        "nested adder has a default and is not called"    | addToBaz("foo")  | ""                 | "baz = foo"
+        "everything has defaults and nothing is called"   | addToAll("foo")  | ""                 | ["list = foo", "baz = foo"]
+        "everything has defaults and all are called"      | addToAll("foo")  | addToAll("bar")    | ["list = foo, bar", "baz = foo, bar"]
     }
 
     @UnsupportedWithConfigurationCache
-    def "can configure build-level conventions for dependencies objects in a software type (#testCase)"() {
+    def "can configure build-level defaults for dependencies objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
         file("foo").createDir()
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(dependencies(convention)) + """
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(dependencies(modelDefault)) + """
             include("foo")
         """
 
@@ -117,26 +117,26 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         expectedConfigurations.each { outputContains(it) }
 
         where:
-        [testCase, convention, buildConfiguration, expectedConfigurations] << [
+        [testCase, modelDefault, buildConfiguration, expectedConfigurations] << [
             [
-                testCase: "implementation has convention and is set",
-                convention: implementation("foo:bar:1.0"),
+                testCase: "implementation has default and is set",
+                modelDefault: implementation("foo:bar:1.0"),
                 buildConfiguration: implementation("baz:buzz:2.0"),
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
             [
-                testCase: "implementation has convention and is not set",
-                convention: implementation("foo:bar:1.0"),
+                testCase: "implementation has default and is not set",
+                modelDefault: implementation("foo:bar:1.0"),
                 buildConfiguration: "",
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}"
                 ]
             ],
             [
-                testCase: "implementation has convention and api is set",
-                convention: implementation("foo:bar:1.0"),
+                testCase: "implementation has default and api is set",
+                modelDefault: implementation("foo:bar:1.0"),
                 buildConfiguration: api("baz:buzz:2.0"),
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}",
@@ -144,8 +144,8 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 ]
             ],
             [
-                testCase: "all configurations have conventions and are set",
-                convention: allConfigs("foo:bar:1.0"),
+                testCase: "all configurations have defaults and are set",
+                modelDefault: allConfigs("foo:bar:1.0"),
                 buildConfiguration: allConfigs("baz:buzz:2.0"),
                 expectedConfigurations: [
                     "api = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}",
@@ -155,8 +155,8 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 ]
             ],
             [
-                testCase: "all configurations have conventions and are not set",
-                convention: allConfigs("foo:bar:1.0"),
+                testCase: "all configurations have defaults and are not set",
+                modelDefault: allConfigs("foo:bar:1.0"),
                 buildConfiguration: "",
                 expectedConfigurations: [
                     "api = ${externalDependency('foo', 'bar', '1.0')}",
@@ -166,32 +166,32 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 ]
             ],
             [
-                testCase: "implementation has multiple conventions and is set",
-                convention: implementation("foo:bar:1.0", "baz:buzz:2.0"),
+                testCase: "implementation has multiple defaults and is set",
+                modelDefault: implementation("foo:bar:1.0", "baz:buzz:2.0"),
                 buildConfiguration: implementation("buzz:baz:1.0", "bar:foo:2.0"),
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}, ${externalDependency('buzz', 'baz', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}"
                 ]
             ],
             [
-                testCase: "implementation has multiple conventions and is not set",
-                convention: implementation("foo:bar:1.0", "baz:buzz:2.0"),
+                testCase: "implementation has multiple defaults and is not set",
+                modelDefault: implementation("foo:bar:1.0", "baz:buzz:2.0"),
                 buildConfiguration: "",
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
             [
-                testCase: "implementation has project convention and is set",
-                convention: implementation('project(":foo")'),
+                testCase: "implementation has project default and is set",
+                modelDefault: implementation('project(":foo")'),
                 buildConfiguration: implementation("baz:buzz:2.0"),
                 expectedConfigurations: [
                     "implementation = ${projectDependency(':foo')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
             [
-                testCase: "implementation has convention and is set to project",
-                convention: implementation("foo:bar:1.0"),
+                testCase: "implementation has default and is set to project",
+                modelDefault: implementation("foo:bar:1.0"),
                 buildConfiguration: implementation('project(":foo")'),
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${projectDependency(':foo')}"
@@ -201,16 +201,16 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     @UnsupportedWithConfigurationCache
-    def "can configure build-level conventions for software types in a multi-project build"() {
+    def "can configure build-level defaults for software types in a multi-project build"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
         file("foo").createDir()
         file("bar").createDir()
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions("""
-            ${setId("convention")}
-            ${setFooBar("convention")}
-            ${addToBaz("convention")}
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults("""
+            ${setId("default")}
+            ${setFooBar("default")}
+            ${addToBaz("default")}
             ${dependencies(implementation("foo:bar:1.0"))}
         """)
         file("settings.gradle.dcl") << """
@@ -232,7 +232,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         outputContains("id = foo\nbar = fooBar")
-        outputContains("baz = convention, foo")
+        outputContains("baz = default, foo")
         outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}")
 
         when:
@@ -240,16 +240,16 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         outputContains("id = bar\nbar = barBar")
-        outputContains("baz = convention")
+        outputContains("baz = default")
         outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
     }
 
-    def "can trigger object configuration for nested objects used in conventions"() {
+    def "can trigger object configuration for nested objects used in defaults"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
-        and: 'a convention that only accesses a nested object but does not apply any configuration to it'
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions("""
+        and: 'a default that only accesses a nested object but does not apply any configuration to it'
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults("""
             ${setFoo("")}
         """)
         file("settings.gradle.dcl") << """
@@ -262,15 +262,15 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         when:
         run(":foo:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
 
-        then: 'the side effect of the configuring function used in the convention should get applied to the project model'
+        then: 'the side effect of the configuring function used in the default should get applied to the project model'
         outputContains("(foo is configured)")
     }
 
-    def "can configure build-level conventions in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
+    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
+        file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("declarative")
             include("non-declarative")
         """
@@ -285,13 +285,13 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         run(":declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        outputContains("""id = foo\nbar = convention""")
+        outputContains("""id = foo\nbar = default""")
 
         when:
         run(":non-declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        outputContains("""id = convention\nbar = bar""")
+        outputContains("""id = default\nbar = bar""")
 
         where:
         type     | extension
@@ -299,11 +299,11 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         "kotlin" | ".kts"
     }
 
-    def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
+    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention")) + """
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("non-declarative")
             include("declarative")
         """
@@ -317,13 +317,13 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         run(":non-declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        outputContains("""id = convention\nbar = bar""")
+        outputContains("""id = default\nbar = bar""")
 
         when:
         run(":declarative:printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        outputContains("""id = bar\nbar = convention""")
+        outputContains("""id = bar\nbar = default""")
 
         where:
         type     | extension
@@ -332,11 +332,11 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     @NotYetImplemented
-    def "can configure build-level conventions in a settings plugin"() {
+    def "can configure build-level defaults in a settings plugin"() {
         given:
-        withSettingsPluginThatConfiguresSoftwareTypeConventions().prepareToExecute()
+        withSettingsPluginThatConfiguresModelDefaults().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults()
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
 
@@ -431,7 +431,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         """
     }
 
-    static String getDeclarativeSettingsScriptThatSetsConventions(String configuration="") {
+    static String getDeclarativeSettingsScriptThatSetsDefaults(String configuration="") {
         return """
             pluginManagement {
                 includeBuild("plugins")
@@ -441,7 +441,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 id("com.example.test-software-type")
             }
 
-            conventions {
+            defaults {
                 testSoftwareType {
                     ${configuration}
                 }

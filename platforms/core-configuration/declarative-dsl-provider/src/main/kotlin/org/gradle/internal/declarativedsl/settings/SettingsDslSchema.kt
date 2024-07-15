@@ -28,12 +28,12 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
-import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
+import org.gradle.internal.declarativedsl.defaults.isDefaultsConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.defaults.defineModelDefaultsInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
@@ -52,7 +52,7 @@ fun settingsInterpretationSequence(
             SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement",
                 features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
-            conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
+            defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry),
             SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
         )
     )
@@ -93,5 +93,5 @@ private
 val ignoreTopLevelPluginsPluginManagementAndConventions = isTopLevelElement.implies(
     isPluginManagementCall.not()
         .and(isTopLevelPluginsBlock.not())
-        .and(isConventionsConfiguringCall.not())
+        .and(isDefaultsConfiguringCall.not())
 )

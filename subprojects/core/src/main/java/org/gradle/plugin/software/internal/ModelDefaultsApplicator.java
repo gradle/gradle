@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization;
+package org.gradle.plugin.software.internal;
 
-import org.gradle.api.Action;
-import org.gradle.plugin.software.internal.Convention;
-import org.gradle.plugin.software.internal.Convention.Visitor;
+import org.gradle.api.Plugin;
 
-public class ActionConvention<T> implements Convention<Visitor<Action<? super T>>> {
-    private final Action<? super T> action;
-
-    public ActionConvention(Action<? super T> action) {
-        this.action = action;
-    }
-
-    @Override
-    public void visit(Visitor<Action<? super T>> visitor) {
-        visitor.apply(action);
-    }
+/**
+ * Applies the model defaults for the software type declared in the given plugin to a target object.
+ */
+public interface ModelDefaultsApplicator {
+    <T> void applyDefaultsTo(T target, Plugin<? super T> plugin);
 }

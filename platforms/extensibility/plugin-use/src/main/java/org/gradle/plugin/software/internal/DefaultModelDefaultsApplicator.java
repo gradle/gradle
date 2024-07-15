@@ -24,19 +24,19 @@ import java.util.List;
 /**
  * Applies the conventions for a given software type to a target project if the provided plugin class is a software type plugin.
  */
-public class DefaultSoftwareTypeConventionApplicator implements SoftwareTypeConventionApplicator {
+public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     private final SoftwareTypeRegistry softwareTypeRegistry;
-    private final List<SoftwareTypeConventionHandler> conventionHandlers;
+    private final List<ModelDefaultsHandler> defaultsHandlers;
 
-    public DefaultSoftwareTypeConventionApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<SoftwareTypeConventionHandler> conventionHandlers) {
+    public DefaultModelDefaultsApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<ModelDefaultsHandler> defaultsHandlers) {
         this.softwareTypeRegistry = softwareTypeRegistry;
-        this.conventionHandlers = conventionHandlers;
+        this.defaultsHandlers = defaultsHandlers;
     }
 
     @Override
-    public <T> void applyConventionsTo(T target, Plugin<? super T> plugin) {
+    public <T> void applyDefaultsTo(T target, Plugin<? super T> plugin) {
         softwareTypeRegistry.implementationFor(Cast.uncheckedCast(plugin.getClass())).ifPresent(softwareTypeImplementation ->
-            conventionHandlers.forEach(handler -> handler.apply(target, softwareTypeImplementation.getSoftwareType(), plugin))
+            defaultsHandlers.forEach(handler -> handler.apply(target, softwareTypeImplementation.getSoftwareType(), plugin))
         );
     }
 }
