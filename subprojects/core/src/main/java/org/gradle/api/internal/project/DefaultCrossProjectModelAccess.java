@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,9 +30,11 @@ import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final Instantiator instantiator;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry<ProjectInternal> projectRegistry) {
+    public DefaultCrossProjectModelAccess(ProjectRegistry<ProjectInternal> projectRegistry, Instantiator instantiator) {
         this.projectRegistry = projectRegistry;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -41,7 +44,10 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+        ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+        return project != null
+            ? LifecycleAwareProject.from(project, instantiator)
+            : null;
     }
 
     @Override
@@ -49,19 +55,23 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return relativeTo.getChildProjectsUnchecked().entrySet().stream().collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> access(referrer, (ProjectInternal) entry.getValue())
+                entry -> LifecycleAwareProject.from((ProjectInternal) entry.getValue(), instantiator)
             )
         );
     }
 
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getSubProjects(relativeTo.getPath()));
+        return projectRegistry.getSubProjects(relativeTo.getPath()).stream()
+            .map(project -> LifecycleAwareProject.from(project, instantiator))
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getAllProjects(relativeTo.getPath()));
+        return projectRegistry.getAllProjects(relativeTo.getPath()).stream()
+            .map(project -> LifecycleAwareProject.from(project, instantiator))
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
