@@ -131,6 +131,7 @@ dependencies {
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.instrumentationReporting)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
