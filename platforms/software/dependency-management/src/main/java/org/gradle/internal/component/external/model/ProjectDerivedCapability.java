@@ -55,7 +55,11 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public int hashCode() {
-        return 31 * project.hashCode() + featureName.hashCode();
+        // See DefaultImmutableCapability#computeHashcode
+        int hash = getVersion().hashCode();
+        hash = 31 * hash + getName().hashCode();
+        hash = 31 * hash + getGroup().hashCode();
+        return  hash;
     }
 
     @Override

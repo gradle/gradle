@@ -22,8 +22,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -93,8 +91,6 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.build.BuildModelLifecycleListener;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -194,11 +190,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         public Module getModule() {
             return new AnonymousModule();
         }
-    }
-
-    @Provides
-    ComponentIdentifierFactory createComponentIdentifierFactory(BuildState currentBuild, BuildStateRegistry buildRegistry) {
-        return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(currentBuild.getBuildIdentifier()));
     }
 
     @Provides

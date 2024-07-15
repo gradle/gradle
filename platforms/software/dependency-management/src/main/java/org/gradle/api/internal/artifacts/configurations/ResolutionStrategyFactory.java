@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
@@ -35,6 +34,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
@@ -46,10 +46,10 @@ import javax.inject.Inject;
  */
 public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInternal> {
 
+    private final BuildState currentBuild;
     private final Instantiator instantiator;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
     private final VcsMappingsStore vcsMappingsStore;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ComponentSelectorConverter componentSelectorConverter;
@@ -62,10 +62,10 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
 
     @Inject
     public ResolutionStrategyFactory(
+        BuildState currentBuild,
         Instantiator instantiator,
         DependencySubstitutionRules globalDependencySubstitutionRules,
         VcsMappingsStore vcsMappingsStore,
-        ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableAttributesFactory attributesFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
@@ -74,10 +74,10 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         ObjectFactory objectFactory,
         StartParameterResolutionOverride startParameterResolutionOverride
     ) {
+        this.currentBuild = currentBuild;
         this.instantiator = instantiator;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
         this.vcsMappingsStore = vcsMappingsStore;
-        this.componentIdentifierFactory = componentIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.componentSelectorConverter = componentSelectorConverter;
@@ -96,7 +96,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         );
 
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(
-            componentIdentifierFactory, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
+            currentBuild, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
         );
 
         ResolutionStrategyInternal resolutionStrategyInternal = instantiator.newInstance(DefaultResolutionStrategy.class,

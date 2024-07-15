@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
@@ -56,23 +57,27 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             case ROOT_PROJECT: {
                 BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
                 String projectName = decoder.readString();
-                return new DefaultProjectComponentIdentifier(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+                ProjectIdentity projectIdentity = new ProjectIdentity(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+                return new DefaultProjectComponentIdentifier(projectIdentity);
             }
             case ROOT_BUILD_PROJECT: {
                 BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
                 Path projectPath = Path.path(decoder.readString());
-                return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath, projectPath, projectPath.getName());
+                ProjectIdentity projectIdentity = new ProjectIdentity(buildIdentifier, projectPath, projectPath, projectPath.getName());
+                return new DefaultProjectComponentIdentifier(projectIdentity);
             }
             case OTHER_BUILD_ROOT_PROJECT: {
                 BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
                 Path identityPath = Path.path(decoder.readString());
-                return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, Path.ROOT, identityPath.getName());
+                ProjectIdentity projectIdentity = new ProjectIdentity(buildIdentifier, identityPath, Path.ROOT, identityPath.getName());
+                return new DefaultProjectComponentIdentifier(projectIdentity);
             }
             case OTHER_BUILD_PROJECT: {
                 BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
                 Path identityPath = Path.path(decoder.readString());
                 Path projectPath = Path.path(decoder.readString());
-                return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, identityPath.getName());
+                ProjectIdentity projectIdentity = new ProjectIdentity(buildIdentifier, identityPath, projectPath, identityPath.getName());
+                return new DefaultProjectComponentIdentifier(projectIdentity);
             }
             case MODULE:
                 return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
@@ -195,11 +200,12 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         } else if (value instanceof DefaultProjectComponentIdentifier) {
             DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) value;
             // Special case some common combinations of names and paths
-            boolean isARootProject = projectComponentIdentifier.projectPath().equals(Path.ROOT);
+            Path projectPath = projectComponentIdentifier.getProjectIdentity().getProjectPath();
+            boolean isARootProject = projectPath.equals(Path.ROOT);
             if (projectComponentIdentifier.getIdentityPath().equals(Path.ROOT) && isARootProject) {
                 return Implementation.ROOT_PROJECT;
             }
-            if (projectComponentIdentifier.getIdentityPath().equals(projectComponentIdentifier.projectPath()) && projectComponentIdentifier.projectPath().getName().equals(projectComponentIdentifier.getProjectName())) {
+            if (projectComponentIdentifier.getIdentityPath().equals(projectPath) && projectPath.getName().equals(projectComponentIdentifier.getProjectName())) {
                 return Implementation.ROOT_BUILD_PROJECT;
             }
             if (isARootProject && projectComponentIdentifier.getProjectName().equals(projectComponentIdentifier.getIdentityPath().getName())) {

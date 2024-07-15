@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
@@ -64,7 +65,7 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     }
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
-        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(getBuildIdentifier(), project.getIdentityPath(), project.getProjectPath(), project.getName());
+        ProjectComponentIdentifier projectIdentifier = project.getOwner().getComponentIdentifier();
         ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getServices().get(DependencyMetaDataProvider.class).getModule());
         LOGGER.info("Registering {} in composite build. Will substitute for module '{}'.", project, moduleId.getModule());
         availableModules.add(Pair.of(moduleId, projectIdentifier));
@@ -74,6 +75,15 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
         DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
         Path foreignBuildPath = Path.path(getBuildIdentifier().getBuildPath());
-        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(foreignBuildPath), original.getIdentityPath(), original.projectPath(), original.getProjectName());
+
+        ProjectIdentity localIdentity = original.getProjectIdentity();
+        ProjectIdentity foreignIdentity = new ProjectIdentity(
+            new ForeignBuildIdentifier(foreignBuildPath),
+            localIdentity.getBuildTreePath(),
+            localIdentity.getProjectPath(),
+            localIdentity.getProjectName()
+        );
+
+        return new DefaultProjectComponentIdentifier(foreignIdentity);
     }
 }
