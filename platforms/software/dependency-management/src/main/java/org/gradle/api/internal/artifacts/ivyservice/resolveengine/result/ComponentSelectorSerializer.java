@@ -162,26 +162,26 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             writeCapabilities(encoder, moduleComponentSelector.getRequestedCapabilities());
         } else if (implementation == Implementation.ROOT_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
-            encoder.writeString(projectComponentSelector.getProjectName());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
+            encoder.writeString(projectComponentSelector.getProjectIdentity().getProjectName());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
             writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
         } else if (implementation == Implementation.ROOT_BUILD_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getProjectPath());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
             writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
         } else if (implementation == Implementation.OTHER_BUILD_ROOT_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
-            encoder.writeString(projectComponentSelector.getProjectName());
+            encoder.writeString(projectComponentSelector.getProjectIdentity().getProjectName());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
             writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
         } else if (implementation == Implementation.OTHER_BUILD_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
             encoder.writeString(projectComponentSelector.getProjectPath());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
@@ -220,7 +220,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         } else if (value instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             // Special case some common combinations of names and paths
-            boolean isARootProject = projectComponentSelector.projectPath().equals(Path.ROOT);
+            boolean isARootProject = projectComponentSelector.getProjectIdentity().getProjectPath().equals(Path.ROOT);
             if (projectComponentSelector.getIdentityPath().equals(Path.ROOT) && isARootProject) {
                 return Implementation.ROOT_PROJECT;
             }
@@ -228,10 +228,12 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
                 return Implementation.OTHER_BUILD_ROOT_PROJECT;
             }
             // For non-root project, project name must be the last element of the project path
-            if (!projectComponentSelector.getProjectName().equals(projectComponentSelector.projectPath().getName())) {
-                throw new IllegalArgumentException("Unexpected name for project " + projectComponentSelector.projectPath() + ". Expected: " + projectComponentSelector.projectPath().getName() + ", found: " + projectComponentSelector.getProjectName());
+            Path projectPath = projectComponentSelector.getProjectIdentity().getProjectPath();
+            String projectName = projectComponentSelector.getProjectIdentity().getProjectName();
+            if (!projectName.equals(projectPath.getName())) {
+                throw new IllegalArgumentException("Unexpected name for project " + projectPath + ". Expected: " + projectPath.getName() + ", found: " + projectName);
             }
-            if (projectComponentSelector.getIdentityPath().equals(projectComponentSelector.projectPath())) {
+            if (projectComponentSelector.getIdentityPath().equals(projectPath)) {
                 return Implementation.ROOT_BUILD_PROJECT;
             }
             return Implementation.OTHER_BUILD_PROJECT;

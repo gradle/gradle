@@ -19,8 +19,6 @@ package org.gradle.api.internal.project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.util.Path;
 
-import java.util.Objects;
-
 public final class ProjectIdentity {
 
     private final BuildIdentifier buildIdentifier;
@@ -65,12 +63,12 @@ public final class ProjectIdentity {
             return false;
         }
         ProjectIdentity that = (ProjectIdentity) o;
-        return Objects.equals(buildTreePath, that.buildTreePath);
+        return buildTreePath.equals(that.buildTreePath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(buildTreePath);
+        return buildTreePath.hashCode();
     }
 
 }

@@ -302,5 +302,4 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             }
         }
     }
-
 }

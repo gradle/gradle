@@ -31,6 +31,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.AttributeTestUtil
@@ -66,14 +67,13 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), Path.ROOT, Path.ROOT, "rootProject"), ImmutableAttributes.EMPTY, capabilities())
 
         when:
-        def result = serialize(selector, serializer)
+        def result = serialize(selector, serializer) as ProjectComponentSelector
 
         then:
-        result.identityPath == selector.identityPath
+        result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.projectPath() == selector.projectPath()
-        result.projectName == selector.projectName
         result.requestedCapabilities == selector.requestedCapabilities
+        assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
     def "serializes root build ProjectComponentSelector"() {
@@ -81,14 +81,13 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), path(":a:b"), path(":a:b"), "b"), ImmutableAttributes.EMPTY, capabilities())
 
         when:
-        def result = serialize(selector, serializer)
+        def result = serialize(selector, serializer) as ProjectComponentSelector
 
         then:
-        result.identityPath == selector.identityPath
+        result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.projectPath() == selector.projectPath()
-        result.projectName == selector.projectName
         result.requestedCapabilities == selector.requestedCapabilities
+        assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
     def "serializes other build root ProjectComponentSelector"() {
@@ -96,14 +95,13 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), path(":prefix"), Path.ROOT, "someProject"), ImmutableAttributes.EMPTY, capabilities())
 
         when:
-        def result = serialize(selector, serializer)
+        def result = serialize(selector, serializer) as ProjectComponentSelector
 
         then:
-        result.identityPath == selector.identityPath
+        result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.projectPath() == selector.projectPath()
-        result.projectName == selector.projectName
         result.requestedCapabilities == selector.requestedCapabilities
+        assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
     def "serializes other build ProjectComponentSelector"() {
@@ -111,14 +109,13 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), path(":prefix:a:b"), path(":a:b"), "b"), ImmutableAttributes.EMPTY, capabilities())
 
         when:
-        def result = serialize(selector, serializer)
+        def result = serialize(selector, serializer) as ProjectComponentSelector
 
         then:
-        result.identityPath == selector.identityPath
+        result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.projectPath() == selector.projectPath()
-        result.projectName == selector.projectName
         result.requestedCapabilities == selector.requestedCapabilities
+        assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
     def "serializes ProjectComponentSelector with attributes"() {
@@ -126,16 +123,15 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), identityPath, projectPath, projectName), AttributeTestUtil.attributes(foo: 'x', bar: 'y'), capabilities())
 
         when:
-        def result = serialize(selector, serializer)
+        def result = serialize(selector, serializer) as ProjectComponentSelector
 
         then:
-        result.identityPath == selector.identityPath
+        result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.projectPath() == selector.projectPath()
-        result.projectName == selector.projectName
         result.attributes.getAttribute(Attribute.of('foo', String)) == 'x'
         result.attributes.getAttribute(Attribute.of('bar', String)) == 'y'
         result.requestedCapabilities == selector.requestedCapabilities
+        assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
 
         where:
         identityPath                  | projectPath  | projectName
@@ -272,6 +268,12 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     }
 
+    void assertSameProjectId(ProjectComponentSelectorInternal result, ProjectComponentSelectorInternal selector) {
+        assert result.projectIdentity.buildIdentifier == selector.projectIdentity.buildIdentifier
+        assert result.projectIdentity.buildTreePath == selector.projectIdentity.buildTreePath
+        assert result.projectIdentity.projectPath == selector.projectIdentity.projectPath
+        assert result.projectIdentity.projectName == selector.projectIdentity.projectName
+    }
 
     private static List<Capability> capabilities() {
         [new DefaultImmutableCapability("org", "foo", "${Math.random()}"), new DefaultImmutableCapability("org", "bar", "${Math.random()}")]

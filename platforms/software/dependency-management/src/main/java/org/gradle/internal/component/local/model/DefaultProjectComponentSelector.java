@@ -50,9 +50,14 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     @Override
+    public ProjectIdentity getProjectIdentity() {
+        return projectIdentity;
+    }
+
+    @Override
     public String getDisplayName() {
         String prefix;
-        if (Objects.equals(projectIdentity.getBuildTreePath(), Path.ROOT)) {
+        if (Path.ROOT.equals(projectIdentity.getBuildTreePath())) {
             prefix =  "root project";
         } else {
             prefix = "project";
@@ -94,25 +99,13 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return projectIdentity.getProjectPath().getPath();
     }
 
-    // TODO: Get rid of this
-    public Path projectPath() {
-        return projectIdentity.getProjectPath();
-    }
-
-    // TODO: Get rid of this.
-    public String getProjectName() {
-        return projectIdentity.getProjectName();
-    }
-
     @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
         if (identifier instanceof ProjectComponentIdentifier) {
             ProjectComponentIdentifierInternal projectComponentIdentifier = (ProjectComponentIdentifierInternal) identifier;
-
-            // TODO: Compare ProjectIdentity directly.
-            return projectComponentIdentifier.getIdentityPath().equals(projectIdentity.getBuildTreePath());
+            return projectComponentIdentifier.getProjectIdentity().equals(projectIdentity);
         }
 
         return false;

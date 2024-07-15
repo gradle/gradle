@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
 
 /**
@@ -28,4 +29,9 @@ public interface ProjectComponentSelectorInternal extends ProjectComponentSelect
      * Returns a unique path for the target project within the current build tree.
      */
     Path getIdentityPath();
+
+    /**
+     * Returns the identity of the target project.
+     */
+    ProjectIdentity getProjectIdentity();
 }

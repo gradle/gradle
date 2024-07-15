@@ -36,7 +36,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
         then:
         defaultBuildComponentSelector.projectPath == ":project:path"
-        defaultBuildComponentSelector.projectName == "projectName"
+        defaultBuildComponentSelector.projectIdentity.projectName == "projectName"
         defaultBuildComponentSelector.displayName == "project :id:path"
         defaultBuildComponentSelector.toString() == "project :id:path"
     }
