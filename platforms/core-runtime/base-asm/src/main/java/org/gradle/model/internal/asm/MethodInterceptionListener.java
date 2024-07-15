@@ -23,10 +23,19 @@ import java.io.File;
 @NonNullApi
 public interface MethodInterceptionListener {
 
-    MethodInterceptionListener NO_OP = (source, relativePath, owner, name, descriptor) -> {};
+    MethodInterceptionListener NO_OP = (source, relativePath, owner, name, descriptor, lineNumber) -> {};
 
-    MethodInterceptionListener OUTPUT_TO_CONSOLE = (source, relativePath, owner, name, descriptor) ->
-        System.out.println(owner.replace("/", ".") + "." + name + "(): at " + relativePath.replace(".class", "") + "(" + relativePath.replace("class", "java:0") +")");
+    MethodInterceptionListener OUTPUT_TO_CONSOLE = new MethodInterceptionListener() {
+        @Override
+        public void onInterceptedMethodIns(File source, String relativePath, String owner, String name, String descriptor, int lineNumber) {
+            System.out.println(owner.replace("/", ".") + "." + name + "(): at " + relativePath.replace(".class", "") + "(" + getClassName(relativePath) + ".java:" + lineNumber + ")");
+        }
 
-    void onInterceptedMethodIns(File source, String relativePath, String owner, String name, String descriptor);
+        private String getClassName(String relativePath) {
+            String[] relativePathSplit = relativePath.split("/");
+            return relativePathSplit[relativePathSplit.length - 1].replace(".class", "");
+        }
+    };
+
+    void onInterceptedMethodIns(File source, String relativePath, String owner, String name, String descriptor, int lineNumber);
 }

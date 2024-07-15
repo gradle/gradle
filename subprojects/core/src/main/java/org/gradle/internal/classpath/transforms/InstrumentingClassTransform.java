@@ -39,6 +39,7 @@ import org.gradle.model.internal.asm.MethodInterceptionListener;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
@@ -273,6 +274,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Collection<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
         private final ClassData classData;
+        private int methodInsLineNumber;
 
         public InstrumentingMethodVisitor(
             InstrumentingVisitor owner,
@@ -292,6 +294,12 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
 
         @Override
+        public void visitLineNumber(int line, Label start) {
+            methodInsLineNumber = line;
+            super.visitLineNumber(line, start);
+        }
+
+        @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
             if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
                 return;
@@ -304,7 +312,8 @@ public class InstrumentingClassTransform implements ClassTransform {
                         classData.getClassRelativePath().getPathString(),
                         owner,
                         name,
-                        descriptor
+                        descriptor,
+                        methodInsLineNumber
                     );
                     return;
                 }
