@@ -163,6 +163,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         private int nextBridgeMethodIndex;
 
         private String className;
+        private String sourceFileName;
         private boolean hasGroovyCallSites;
 
         public InstrumentingVisitor(
@@ -186,6 +187,12 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
 
         @Override
+        public void visitSource(String source, String debug) {
+            this.sourceFileName = source;
+            super.visitSource(source, debug);
+        }
+
+        @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
@@ -197,7 +204,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, interceptors, interceptorFilter, methodInterceptionListener);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
         }
 
         @Override
@@ -287,27 +294,23 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Lazy<MethodNode> asNode;
         private final Collection<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
-        private final ClassData classData;
         private final MethodInterceptionListener methodInterceptionListener;
+        private final String sourceFileName;
         private int methodInsLineNumber;
 
         public InstrumentingMethodVisitor(
             InstrumentingVisitor owner,
             MethodVisitor methodVisitor,
-            Lazy<MethodNode> asNode,
-            ClassData classData,
-            Collection<JvmBytecodeCallInterceptor> interceptors,
-            BytecodeInterceptorFilter interceptorFilter,
-            MethodInterceptionListener methodInterceptionListener
+            Lazy<MethodNode> asNode
         ) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.sourceFileName = owner.sourceFileName;
             this.asNode = asNode;
-            this.classData = classData;
-            this.interceptors = interceptors;
-            this.interceptorFilter = interceptorFilter;
-            this.methodInterceptionListener = methodInterceptionListener;
+            this.interceptors = owner.interceptors;
+            this.interceptorFilter = owner.interceptorFilter;
+            this.methodInterceptionListener = owner.methodInterceptionListener;
         }
 
         @Override
@@ -326,7 +329,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
                     methodInterceptionListener.onInterceptedMethodIns(
                         interceptor.getType(),
-                        classData.getSource(),
+                        sourceFileName,
                         className,
                         owner,
                         name,
