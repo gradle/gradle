@@ -24,11 +24,12 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
-import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * Artifact transform that instruments project based artifacts with Gradle instrumentation.
@@ -51,7 +52,11 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     }
 
     @Override
-    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter() {
+    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter(TransformOutputs outputs) {
+        Optional<BytecodeUpgradeReportMethodInterceptionListener> interceptionListener = getParameters().getIsUpgradeReport().getOrElse(false)
+            ? Optional.of(new BytecodeUpgradeReportMethodInterceptionListener(outputs.file(MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE)))
+            : Optional.empty();
+
         return new InterceptorTypeRegistryAndFilter() {
             @Override
             public InstrumentationTypeRegistry getRegistry() {
@@ -60,11 +65,14 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
 
             @Override
             public InstrumentingClassTransform getClassTransform() {
-                if (getParameters().getIsUpgradeReport().getOrElse(false)) {
-                    MethodInterceptionListener interceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(MethodInterceptionListener.OUTPUT_TO_CONSOLE);
-                    return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, interceptionListener);
-                }
-                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY);
+                return interceptionListener
+                    .map(listener -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, listener))
+                    .orElseGet(() -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY));
+            }
+
+            @Override
+            public void close() {
+                interceptionListener.ifPresent(BytecodeUpgradeReportMethodInterceptionListener::close);
             }
         };
     }

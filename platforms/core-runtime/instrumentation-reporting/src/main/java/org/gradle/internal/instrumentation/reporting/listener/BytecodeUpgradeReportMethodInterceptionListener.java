@@ -40,9 +40,13 @@ public class BytecodeUpgradeReportMethodInterceptionListener implements MethodIn
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (delegate instanceof AutoCloseable) {
-            ((AutoCloseable) delegate).close();
+            try {
+                ((AutoCloseable) delegate).close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

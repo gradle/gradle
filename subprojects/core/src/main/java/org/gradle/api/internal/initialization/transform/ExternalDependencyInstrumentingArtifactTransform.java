@@ -74,7 +74,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     @Override
-    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter() {
+    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter(TransformOutputs outputs) {
         return new InterceptorTypeRegistryAndFilter() {
             @Override
             public InstrumentationTypeRegistry getRegistry() {
@@ -88,6 +88,10 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             @Override
             public InstrumentingClassTransform getClassTransform() {
                 return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE);
+            }
+
+            @Override
+            public void close() {
             }
         };
     }
