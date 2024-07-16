@@ -20,8 +20,11 @@ public class OnInterceptedMethodInsFormatter {
 
     @SuppressWarnings("unused")
     public String format(String sourceFileName, String className, String methodCallOwner, String methodName, String methodDescriptor, int lineNumber) {
-        className = className.replace("/", ".");
         String methodCallOwnerClassName = methodCallOwner.replace("/", ".");
+        // Gradle Kotlin scripts have a weird class name so IntelliJ stacktrace parser doesn't parse them well
+        className = sourceFileName.endsWith("gradle.kts")
+            ? sourceFileName.replace(".kts", "")
+            : className.replace("/", ".");
         return String.format("%s.%s(): at %s(%s:%d)", methodCallOwnerClassName, methodName, className, sourceFileName, lineNumber);
     }
 }
