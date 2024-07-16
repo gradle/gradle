@@ -17,8 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import com.google.common.base.Preconditions
-import org.gradle.internal.extensions.stdlib.getValue
-import org.gradle.internal.extensions.stdlib.setValue
+import org.gradle.internal.extensions.stdlib.threadLocal
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -34,7 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 @ServiceScope(Scope.BuildTree::class)
 class InputTrackingState {
     private
-    var inputTrackingDisabledCounterForThread by ThreadLocal.withInitial { 0 }
+    var inputTrackingDisabledCounterForThread by threadLocal { 0 }
 
     /**
      * Returns input tracking status for the current thread.
