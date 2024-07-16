@@ -37,6 +37,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.time.TimestampSuppliers
+import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -116,18 +117,28 @@ class ConfigurationCacheRepository(
                 stateType
             )
 
-        //TODO-RC we need to support per-project state files
         override fun stateFileForWorkGraph(): ConfigurationCacheStateFile =
             ReadableConfigurationCacheStateFile(
                 workGraphFileFor(file),
                 stateType
             )
 
-        override fun stateFileForProject(projectPath: String?): ConfigurationCacheStateFile =
+        override fun stateFileForProject(projectPath: Path): ConfigurationCacheStateFile =
             ReadableConfigurationCacheStateFile(
                 projectWorkGraphFileFor(file, projectPath),
                 stateType
             )
+
+        override fun stateFileForNodesInAnotherBuild(): ConfigurationCacheStateFile =
+            ReadableConfigurationCacheStateFile(
+                stateFileForNodesInAnotherBuild(file),
+                stateType
+            )
+
+        override fun stateFileForProjectIndex(): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(
+            stateFileForProjectIndex(file),
+            StateType.ProjectMetadata
+        )
     }
 
     private
@@ -172,12 +183,25 @@ class ConfigurationCacheRepository(
                 onFileAccess
             )
 
-        override fun stateFileForProject(projectPath: String?): ConfigurationCacheStateFile =
+        override fun stateFileForProject(projectPath: Path): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
                 projectWorkGraphFileFor(file, projectPath),
                 stateType,
                 onFileAccess
             )
+
+        override fun stateFileForNodesInAnotherBuild(): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                stateFileForNodesInAnotherBuild(file),
+                stateType,
+                onFileAccess
+            )
+
+        override fun stateFileForProjectIndex(): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(
+            stateFileForProjectIndex(file),
+            StateType.ProjectMetadata,
+            onFileAccess
+        )
     }
 
     private
@@ -227,19 +251,31 @@ class ConfigurationCacheRepository(
     private
     fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
         parentStateFile.run {
-            resolveSibling("$name.${build.name}")
+            resolveSibling("_build-${build.name}-$name")
         }
 
     private
     fun workGraphFileFor(parentStateFile: File) =
         parentStateFile.run {
-            resolveSibling("$name.node")
+            resolveSibling("nodes-$name")
         }
 
     private
-    fun projectWorkGraphFileFor(parentStateFile: File, projectPath: String?) =
+    fun projectWorkGraphFileFor(parentStateFile: File, projectPath: Path) =
         parentStateFile.run {
-            resolveSibling("$name.$projectPath.node")
+            resolveSibling("${projectPath}.project.nodes-$name")
+        }
+
+    private
+    fun stateFileForNodesInAnotherBuild(parentStateFile: File) =
+        parentStateFile.run {
+            resolveSibling("_other_build_.nodes-$name")
+        }
+
+    private
+    fun stateFileForProjectIndex(parentStateFile: File) =
+        parentStateFile.run {
+            resolveSibling("index-$name")
         }
 
     private

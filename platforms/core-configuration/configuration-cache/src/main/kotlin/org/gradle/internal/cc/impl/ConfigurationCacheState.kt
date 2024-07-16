@@ -144,7 +144,9 @@ interface ConfigurationCacheStateFile {
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
     fun stateFileForWorkGraph(): ConfigurationCacheStateFile
-    fun stateFileForProject(projectPath: String?): ConfigurationCacheStateFile
+    fun stateFileForProject(projectPath: Path): ConfigurationCacheStateFile
+    fun stateFileForNodesInAnotherBuild(): ConfigurationCacheStateFile
+    fun stateFileForProjectIndex(): ConfigurationCacheStateFile
 }
 
 
@@ -167,7 +169,6 @@ class ConfigurationCacheState(
 
     suspend fun DefaultWriteContext.writeRootBuildWorkNodes(gradle: GradleInternal, nodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         writeBuildInvocationId()
-        //println("Writing ${nodes.size} nodes for project $projectPath")
         doWriteNodes(gradle, nodes, nodeIdentifier)
         writeInt(0x1ecac8e)
     }

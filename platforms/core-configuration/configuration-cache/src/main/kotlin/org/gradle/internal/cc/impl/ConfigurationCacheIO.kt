@@ -49,10 +49,12 @@ import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
+import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
@@ -168,10 +170,23 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
+    fun writeProjectIndex(projectIndexStateFile: ConfigurationCacheStateFile, projects: List<Path>) {
+        writeConfigurationCacheState(projectIndexStateFile) {
+            writeStrings(projects.map { it.path })
+        }
+    }
+
+    internal
+    fun readProjectIndex(projectIndexStateFile: ConfigurationCacheStateFile): List<Path> {
+        return readConfigurationCacheState(projectIndexStateFile) {
+            readStrings().map { Path.path(it) }
+        }
+    }
+
+    internal
     fun writeRootBuildWorkNodesTo(projectStateFile: ConfigurationCacheStateFile, scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         writeConfigurationCacheState(projectStateFile) { cacheState ->
             cacheState.run {
-                //println("Writing build work nodes to " + this.stateFile.stateFile)
                 writeRootBuildWorkNodes(host.currentBuild.gradle, scheduledNodes, nodeIdentifier)
             }
         }
@@ -186,7 +201,6 @@ class ConfigurationCacheIO internal constructor(
     ) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
-                //println("Writing build work nodes to " + this.stateFile.stateFile)
                 writeRootBuildWorkEdges(host.currentBuild.gradle, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
             }
         }
@@ -209,7 +223,6 @@ class ConfigurationCacheIO internal constructor(
     fun readRootBuildWorkNodesFrom(build: ConfigurationCacheBuild, projectStateFile: ConfigurationCacheStateFile): Triple<String, ArrayList<Node>, HashMap<Int, Node>> {
         return readConfigurationCacheState(projectStateFile) { state ->
             state.run {
-                //println("Reading build work nodes from " + this.stateFile.stateFile)
                 //TODO-RC is this the right Gradle?
                 readRootBuildWorkNodes(build, host.currentBuild.gradle)
             }
@@ -220,7 +233,6 @@ class ConfigurationCacheIO internal constructor(
     fun readRootBuildWorkEdgesFrom(stateFile: ConfigurationCacheStateFile, scheduleNodes: List<Node>, nodesById: Map<Int, Node>): Pair<String, ScheduledWork> {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                //println("Reading build work edges from " + this.stateFile.stateFile)
                 //TODO-RC is this the right Gradle?
                 readRootBuildWorkEdges(host.currentBuild.gradle, scheduleNodes, nodesById)
             }
@@ -249,7 +261,6 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        //println("readConfigurationCacheState(${stateFile.stateFile})")
         return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
@@ -262,7 +273,6 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
-        //println("writeConfigurationCacheState(${stateFile.stateFile})")
         val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream)) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }

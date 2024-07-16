@@ -20,17 +20,6 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.tasks.NodeExecutionContext
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.decodePreservingIdentity
-import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
-import org.gradle.internal.serialize.graph.ownerService
-import org.gradle.internal.serialize.graph.readCollection
-import org.gradle.internal.serialize.graph.readCollectionInto
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.cc.base.serialize.withGradleIsolate
-import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
 import org.gradle.execution.plan.FinalizerGroup
@@ -41,6 +30,17 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodePreservingIdentity
+import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.writeCollection
 
 
 class WorkNodeCodec(
@@ -53,8 +53,8 @@ class WorkNodeCodec(
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
             val groupIds: Map<NodeGroup, Int> = identifyGroups(scheduledNodes)
-            doWriteNodes(scheduledNodes)
             val (scheduledNodeIds, scheduledEntryNodeIds) = identifyNodes(scheduledNodes, entryNodes)
+            doWriteScheduledNodes(scheduledNodes, scheduledNodeIds::getValue, false)
             writeEdgesAndOtherNodeMetadata(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupIds)
         }
     }
@@ -69,7 +69,7 @@ class WorkNodeCodec(
     fun identifyGroups(nodes: List<Node>): Map<NodeGroup, Int> {
         val groupIds: MutableMap<NodeGroup, Int> = mutableMapOf()
         nodes.forEach {
-            groupIds.computeIfAbsent(it.group)  { groupIds.size }
+            groupIds.computeIfAbsent(it.group) { groupIds.size }
         }
         return groupIds
     }
@@ -81,7 +81,7 @@ class WorkNodeCodec(
     suspend fun WriteContext.writeNodes(scheduledNodes: List<Node>, nodeIdentifier: (Node) -> Int) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
-            doWriteNodes(scheduledNodes, nodeIdentifier)
+            doWriteScheduledNodes(scheduledNodes, nodeIdentifier, true)
         }
     }
 
@@ -94,15 +94,17 @@ class WorkNodeCodec(
      * Writes only the nodes (without the edges between nodes).
      */
     private
-    suspend fun WriteContext.doWriteNodes(scheduledNodes: List<Node>, nodeIdentifier: ((Node) -> Int)? = null) {
+    suspend fun WriteContext.doWriteScheduledNodes(scheduledNodes: List<Node>, nodeIdentifier: ((Node) -> Int), writeIds: Boolean) {
         writeSmallInt(scheduledNodes.size)
-        //println("Writing ${scheduledNodes.size} scheduledNodes")
         scheduledNodes.forEach { node ->
-            write(node)
-            nodeIdentifier?.run {
-                writeInt(this.invoke(node))
-                if (node is LocalTaskNode) {
-                    writeInt(this.invoke(node.prepareNode))
+            val nodeId = nodeIdentifier(node)
+            if (writeIds) {
+                writeSmallInt(nodeId)
+            }
+            writeNode(node)
+            if (node is LocalTaskNode) {
+                if (writeIds) {
+                    writeSmallInt(nodeIdentifier(node.prepareNode))
                 }
             }
         }
@@ -112,18 +114,15 @@ class WorkNodeCodec(
     private
     suspend fun ReadContext.doReadScheduledNodes(readIds: Boolean): Pair<ArrayList<Node>, HashMap<Int, Node>> {
         val nodeCount = readSmallInt()
-        //println("Reading ${nodeCount} scheduled nodes")
         val scheduledNodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
         for (i in 0 until nodeCount) {
+            val nodeId = if (readIds) readSmallInt() else nodesById.size
             val node = readNode()
-            val nodeId = if (readIds) readInt() else nodesById.size
-            //println("Assigning id ${nodeId} to ${node::class.simpleName}@${System.identityHashCode(node).toString(16)}")
             nodesById[nodeId] = node
             if (node is LocalTaskNode) {
                 node.prepareNode.require()
-                val prepareNodeId = if (readIds) readInt() else nodesById.size
-                //println("Assigning id ${prepareNodeId} to ${node.prepareNode::class.simpleName}@${System.identityHashCode(node.prepareNode).toString(16)}")
+                val prepareNodeId = if (readIds) readSmallInt() else nodesById.size
                 nodesById[prepareNodeId] = node.prepareNode
             }
             scheduledNodes.add(node)
@@ -154,7 +153,6 @@ class WorkNodeCodec(
         scheduledNodes: List<Node>
     ): ScheduledWork {
         val entryNodes = readEntryNodes(nodesById)
-        //println("Entry nodes: $entryNodes")
         readSuccessorReferencesAndGroups(nodesById)
         return ScheduledWork(scheduledNodes, entryNodes)
     }
@@ -175,11 +173,10 @@ class WorkNodeCodec(
             writeNodeGroup(group, scheduledNodeIds)
         }
         writeCollection(scheduledNodes) { node ->
-            writeSmallInt(scheduledNodeIds.getValue(node))
-            //println("Writing succ references for ${node::class.simpleName}@${System.identityHashCode(node).toString(16)} - id: ${scheduledNodeIds[node]}")
+            val nodeId = scheduledNodeIds.getValue(node)
+            writeSmallInt(nodeId)
             writeSuccessorReferencesOf(node, scheduledNodeIds)
             val groupId = groupsById.getValue(node.group)
-            //println("Writing node group for ${node::class.simpleName}@${System.identityHashCode(node).toString(16)} - id: ${scheduledNodeIds[node]} - groupId: $groupId")
             writeSmallInt(groupId)
         }
     }
@@ -198,11 +195,9 @@ class WorkNodeCodec(
         readCollection {
             val scheduledNodeId = readSmallInt()
             val node = nodesById.getValue(scheduledNodeId)
-            //println("Reading succ references for ${node::class.simpleName}@${System.identityHashCode(node).toString(16)}")
             readSuccessorReferencesOf(node, nodesById)
             val groupId = readSmallInt()
             node.group = groupsById[groupId]!!
-            //println("Group for ${node::class.simpleName}@${System.identityHashCode(node).toString(16)}: ${node.group}")
         }
     }
 
@@ -213,11 +208,20 @@ class WorkNodeCodec(
     private
     fun WriteContext.writeScheduledEntryNodeIds(scheduledEntryNodeIds: List<Int>) {
         writeCollection(scheduledEntryNodeIds) {
-            //println("Writing entry node id $it")
             writeSmallInt(it)
         }
     }
 
+    private
+    fun ReadContext.readEntryNodes(nodesById: Map<Int, Node>): ImmutableSet<Node> {
+        // Note that using the ImmutableSet retains the original ordering of entry nodes.
+        val entryNodes = ImmutableSet.builder<Node>()
+        readCollection {
+            val key = readSmallInt()
+            entryNodes.add(nodesById.getValue(key))
+        }
+        return entryNodes.build()
+    }
 
     /**
      * Assigns ids for the given scheduled nodes, while also identifying entry nodes.
@@ -241,35 +245,31 @@ class WorkNodeCodec(
         val scheduledEntryNodeIds = mutableListOf<Int>()
         scheduledNodes.forEach { node ->
             val nodeId = scheduledNodeIds.size
-            //println("Assigning id ${nodeId} to ${node::class.simpleName}@${System.identityHashCode(node).toString(16)}")
             scheduledNodeIds[node] = nodeId
             if (node in entryNodes) {
                 scheduledEntryNodeIds.add(nodeId)
             }
             if (node is LocalTaskNode) {
-                //println("Assigning id ${scheduledNodeIds.size} to ${node.prepareNode::class.simpleName}@${System.identityHashCode(node.prepareNode).toString(16)}")
                 scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
             }
         }
         return Pair(scheduledNodeIds, scheduledEntryNodeIds)
     }
 
-    private
-    fun ReadContext.readEntryNodes(nodesById: Map<Int, Node>): ImmutableSet<Node> {
-        // Note that using the ImmutableSet retains the original ordering of entry nodes.
-        val entryNodes = ImmutableSet.builder<Node>()
-        readCollection {
-            val key = readSmallInt()
-            //println("Reading entry node: ${key}")
-            entryNodes.add(nodesById.getValue(key))
-        }
-        return entryNodes.build()
+    fun Node.getNodeType(): String {
+        val simpleName = javaClass.getSimpleName()
+        return simpleName ?: javaClass.getTypeName()
     }
 
+    private
+    suspend fun WriteContext.writeNode(node: Node) {
+        write(node)
+    }
 
     private
     suspend fun ReadContext.readNode(): Node {
-        val node = readNonNull<Node>()
+        val node = readNonNull<Any>()
+        require(node is Node)
         node.require()
         node.dependenciesProcessed()
         return node
@@ -278,7 +278,6 @@ class WorkNodeCodec(
     private
     fun WriteContext.writeNodeGroup(group: NodeGroup, nodesById: Map<Node, Int>) {
         encodePreservingIdentityOf(group) {
-            //println("writing group: $group")
             when (group) {
                 is OrdinalGroup -> {
                     writeSmallInt(0)
@@ -334,7 +333,6 @@ class WorkNodeCodec(
                 3 -> NodeGroup.DEFAULT_GROUP
                 else -> throw IllegalArgumentException()
             }.also {
-                //println("Read group: $it")
                 isolate.identities.putInstance(id, it)
             }
         }
@@ -414,9 +412,6 @@ class WorkNodeCodec(
             val id = scheduledNodeIds[successor]
             if (successor.isRequired) {
                 writeSmallInt(id!!)
-                //println("Writing $label successor id: $id for: ${successor::class.simpleName}")
-            } else {
-                //println("Skipping $label successor id $id for: ${successor::class.simpleName}")
             }
         }
         writeSmallInt(-1)
@@ -426,7 +421,6 @@ class WorkNodeCodec(
     fun ReadContext.readSuccessorReferences(nodesById: Map<Int, Node>, onSuccessor: (Node) -> Unit) {
         while (true) {
             val successorId = readSmallInt()
-            //println("Read $label successor id: ${successorId}")
             if (successorId == -1) break
             val successor = nodesById.getValue(successorId)
             onSuccessor(successor)
