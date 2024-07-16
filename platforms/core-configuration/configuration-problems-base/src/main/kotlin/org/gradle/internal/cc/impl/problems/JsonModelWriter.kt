@@ -16,11 +16,9 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.configuration.problems.DecoratedFailure
 import org.gradle.internal.configuration.problems.DecoratedReportProblem
-import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -37,89 +35,81 @@ enum class DiagnosticKind {
     INCOMPATIBLE_TASK
 }
 
-
-class JsonModelWriter(val writer: Writer) {
+class JsonModelWriter(val modelWriter: JsonModelWriterCommon) {
 
     private
     val documentationRegistry = DocumentationRegistry()
 
-    private
-    var first = true
-
     fun beginModel() {
-        beginObject()
+        with(modelWriter) {
+            beginObject()
 
-        propertyName("diagnostics")
-        beginArray()
+            propertyName("diagnostics")
+            beginArray()
+        }
     }
 
     fun endModel(details: ProblemReportDetails) = with(details) {
-        endArray()
+        with(modelWriter) {
+            endArray()
+            property("totalProblemCount") {
+                write(totalProblemCount.toString())
+            }
+            if (buildDisplayName != null) {
+                property("buildName", buildDisplayName)
+            }
+            if (requestedTasks != null) {
+                property("requestedTasks", requestedTasks)
+            }
+            property("cacheAction", cacheAction)
+            property("cacheActionDescription") {
+                writeStructuredMessage(cacheActionDescription)
+            }
+            property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
-        comma()
-        property("totalProblemCount") {
-            write(totalProblemCount.toString())
+            endObject()
         }
-        if (buildDisplayName != null) {
-            comma()
-            property("buildName", buildDisplayName)
-        }
-        if (requestedTasks != null) {
-            comma()
-            property("requestedTasks", requestedTasks)
-        }
-        comma()
-        property("cacheAction", cacheAction)
-        comma()
-        property("cacheActionDescription") {
-            writeStructuredMessage(cacheActionDescription)
-        }
-        comma()
-        property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
-
-        endObject()
     }
 
     fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedReportProblem) {
-        if (first) first = false else comma()
-        jsonObject {
-            property("trace") {
-                jsonObjectList(details.trace.sequence.asIterable()) { trace ->
-                    writePropertyTrace(trace)
+        with(modelWriter) {
+            jsonObject {
+                property("trace") {
+                    jsonObjectList(details.trace.sequence.asIterable()) { trace ->
+                        writePropertyTrace(trace)
+                    }
                 }
-            }
-            comma()
-            property(keyFor(kind)) {
-                writeStructuredMessage(details.message)
-            }
-            details.documentationSection?.let {
-                comma()
-                property("documentationLink", documentationLinkFor(it))
-            }
-            details.failure?.let { failure ->
-                comma()
-                writeError(failure)
+                property(keyFor(kind)) {
+                    writeStructuredMessage(details.message)
+                }
+                details.documentationSection?.let {
+                    property("documentationLink", documentationLinkFor(it))
+                }
+                details.failure?.let { failure ->
+                    writeError(failure)
+                }
             }
         }
     }
 
     private
     fun writeError(failure: DecoratedFailure) {
-        val summary = failure.summary
-        val parts = failure.parts
-        property("error") {
-            jsonObject {
-                if (summary != null) {
-                    property("summary") {
-                        writeStructuredMessage(summary)
+        with(modelWriter) {
+            val summary = failure.summary
+            val parts = failure.parts
+            property("error") {
+                jsonObject {
+                    if (summary != null) {
+                        property("summary") {
+                            writeStructuredMessage(summary)
+                        }
                     }
-                }
 
-                if (parts != null) {
-                    if (summary != null) comma()
-                    property("parts") {
-                        jsonObjectList(parts) { (isInternal, text) ->
-                            property(if (isInternal) "internalText" else "text", text)
+                    if (parts != null) {
+                        property("parts") {
+                            jsonObjectList(parts) { (isInternal, text) ->
+                                property(if (isInternal) "internalText" else "text", text)
+                            }
                         }
                     }
                 }
@@ -129,8 +119,10 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun writeStructuredMessage(message: StructuredMessage) {
-        jsonObjectList(message.fragments) { fragment ->
-            writeFragment(fragment)
+        with(modelWriter) {
+            jsonObjectList(message.fragments) { fragment ->
+                writeFragment(fragment)
+            }
         }
     }
 
@@ -143,187 +135,79 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun writeFragment(fragment: StructuredMessage.Fragment) {
-        when (fragment) {
-            is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
-            is StructuredMessage.Fragment.Text -> property("text", fragment.text)
+        with(modelWriter) {
+            when (fragment) {
+                is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
+                is StructuredMessage.Fragment.Text -> property("text", fragment.text)
+            }
         }
     }
 
     private
     fun writePropertyTrace(trace: PropertyTrace) {
-        when (trace) {
-            is PropertyTrace.Property -> {
-                when (trace.kind) {
-                    PropertyKind.Field -> {
-                        property("kind", trace.kind.name)
-                        comma()
-                        property("name", trace.name)
-                        comma()
-                        property("declaringType", firstTypeFrom(trace.trace).name)
-                    }
+        with(modelWriter) {
+            when (trace) {
+                is PropertyTrace.Property -> {
+                    when (trace.kind) {
+                        PropertyKind.Field -> {
+                            property("kind", trace.kind.name)
+                            property("name", trace.name)
+                            property("declaringType", firstTypeFrom(trace.trace).name)
+                        }
 
-                    PropertyKind.PropertyUsage -> {
-                        property("kind", trace.kind.name)
-                        comma()
-                        property("name", trace.name)
-                        comma()
-                        property("from", projectPathFrom(trace.trace))
-                    }
+                        PropertyKind.PropertyUsage -> {
+                            property("kind", trace.kind.name)
+                            property("name", trace.name)
+                            property("from", projectPathFrom(trace.trace))
+                        }
 
-                    else -> {
-                        property("kind", trace.kind.name)
-                        comma()
-                        property("name", trace.name)
-                        comma()
-                        property("task", taskPathFrom(trace.trace))
+                        else -> {
+                            property("kind", trace.kind.name)
+                            property("name", trace.name)
+                            property("task", taskPathFrom(trace.trace))
+                        }
                     }
                 }
-            }
 
-            is PropertyTrace.SystemProperty -> {
-                property("kind", "SystemProperty")
-                comma()
-                property("name", trace.name)
-            }
+                is PropertyTrace.SystemProperty -> {
+                    property("kind", "SystemProperty")
+                    property("name", trace.name)
+                }
 
-            is PropertyTrace.Task -> {
-                property("kind", "Task")
-                comma()
-                property("path", trace.path)
-                comma()
-                property("type", trace.type.name)
-            }
+                is PropertyTrace.Task -> {
+                    property("kind", "Task")
+                    property("path", trace.path)
+                    property("type", trace.type.name)
+                }
 
-            is PropertyTrace.Bean -> {
-                property("kind", "Bean")
-                comma()
-                property("type", trace.type.name)
-            }
+                is PropertyTrace.Bean -> {
+                    property("kind", "Bean")
+                    property("type", trace.type.name)
+                }
 
-            is PropertyTrace.Project -> {
-                property("kind", "Project")
-                comma()
-                property("path", trace.path)
-            }
+                is PropertyTrace.Project -> {
+                    property("kind", "Project")
+                    property("path", trace.path)
+                }
 
-            is PropertyTrace.BuildLogic -> {
-                property("kind", "BuildLogic")
-                comma()
-                property("location", trace.source.displayName)
-            }
+                is PropertyTrace.BuildLogic -> {
+                    property("kind", "BuildLogic")
+                    property("location", trace.source.displayName)
+                }
 
-            is PropertyTrace.BuildLogicClass -> {
-                property("kind", "BuildLogicClass")
-                comma()
-                property("type", trace.name)
-            }
+                is PropertyTrace.BuildLogicClass -> {
+                    property("kind", "BuildLogicClass")
+                    property("type", trace.name)
+                }
 
-            PropertyTrace.Gradle -> {
-                property("kind", "Gradle")
-            }
+                PropertyTrace.Gradle -> {
+                    property("kind", "Gradle")
+                }
 
-            PropertyTrace.Unknown -> {
-                property("kind", "Unknown")
+                PropertyTrace.Unknown -> {
+                    property("kind", "Unknown")
+                }
             }
         }
     }
-
-    private
-    inline fun <T> jsonObjectList(list: Iterable<T>, body: (T) -> Unit) {
-        jsonList(list) {
-            jsonObject {
-                body(it)
-            }
-        }
-    }
-
-    private
-    inline fun jsonObject(body: () -> Unit) {
-        beginObject()
-        body()
-        endObject()
-    }
-
-    private
-    fun beginObject() {
-        write('{')
-    }
-
-    private
-    fun endObject() {
-        write('}')
-    }
-
-    private
-    inline fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
-        beginArray()
-        var first = true
-        list.forEach {
-            if (first) first = false else comma()
-            body(it)
-        }
-        endArray()
-    }
-
-    private
-    fun beginArray() {
-        write('[')
-    }
-
-    private
-    fun endArray() {
-        write(']')
-    }
-
-    private
-    fun property(name: String, value: String) {
-        property(name) { jsonString(value) }
-    }
-
-    private
-    inline fun property(name: String, value: () -> Unit) {
-        propertyName(name)
-        value()
-    }
-
-    private
-    fun propertyName(name: String) {
-        simpleString(name)
-        write(':')
-    }
-
-    private
-    fun simpleString(name: String) {
-        write('"')
-        write(name)
-        write('"')
-    }
-
-    private
-    val buffer = CharBuf.create(255)
-
-    private
-    fun jsonString(value: String) {
-        if (value.isEmpty()) {
-            write("\"\"")
-        } else {
-            buffer.addJsonEscapedString(value)
-            write(buffer.toStringAndRecycle())
-        }
-    }
-
-    private
-    fun comma() {
-        write(',')
-    }
-
-    private
-    fun documentationLinkFor(section: DocumentationSection) =
-        documentationRegistry.documentationLinkFor(section)
-
-    private
-    fun write(csq: CharSequence) = writer.append(csq)
-
-    private
-    fun write(c: Char) = writer.append(c)
 }

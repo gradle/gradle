@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.DisplayName
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.problems.failure.Failure
@@ -55,6 +56,8 @@ enum class DocumentationSection(val anchor: String) {
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
 }
 
+fun documentationLinkFor(section: DocumentationSection) =
+    DocumentationRegistry().documentationLinkFor(section)
 
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 

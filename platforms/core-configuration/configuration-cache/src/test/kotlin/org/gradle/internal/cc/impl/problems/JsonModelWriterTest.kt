@@ -41,11 +41,22 @@ class JsonModelWriterTest {
                         StructuredMessage.build { reference("") }
                     )
                 )
+                writeDiagnostic(
+                    DiagnosticKind.INPUT,
+                    DecoratedReportProblem(
+                        PropertyTrace.Unknown,
+                        StructuredMessage.build { reference("") }
+                    )
+                )
                 endModel(ProblemReportDetails("", "", StructuredMessage.forText(""), "", 0))
             },
             hasEntry(
                 "diagnostics",
                 listOf(
+                    mapOf(
+                        "trace" to listOf(mapOf("kind" to "Unknown")),
+                        "input" to listOf(mapOf("name" to ""))
+                    ),
                     mapOf(
                         "trace" to listOf(mapOf("kind" to "Unknown")),
                         "input" to listOf(mapOf("name" to ""))
@@ -59,7 +70,7 @@ class JsonModelWriterTest {
     fun jsonModelFor(builder: JsonModelWriter.() -> Unit): Map<String, Any> =
         JsonSlurper().parseText(
             StringWriter().also {
-                JsonModelWriter(it).apply(builder)
+                JsonModelWriter(JsonModelWriterCommon(it)).apply(builder)
             }.toString()
         ).uncheckedCast()
 }

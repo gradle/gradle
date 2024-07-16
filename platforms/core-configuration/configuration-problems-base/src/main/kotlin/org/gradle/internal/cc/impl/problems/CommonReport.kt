@@ -37,6 +37,7 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
+import java.io.Writer
 import java.nio.file.Files
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -126,7 +127,13 @@ class ConfigurationCacheReport(
             val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
 
             private
-            val writer = HtmlReportWriter(hashingStream.writer(), htmlReportTemplate)
+            val hashingWriter: Writer = hashingStream.writer()
+
+            private
+            val jsonModelWriter: JsonModelWriter = JsonModelWriter(JsonModelWriterCommon(hashingWriter))
+
+            private
+            val writer = HtmlReportWriter(hashingWriter, htmlReportTemplate, jsonModelWriter)
 
             init {
                 executor.submit {

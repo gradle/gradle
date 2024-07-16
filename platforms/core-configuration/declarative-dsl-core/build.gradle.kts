@@ -25,8 +25,8 @@ dependencies {
 
     implementation(projects.declarativeDslApi)
     implementation(libs.kotlinReflect)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(libs.kotlinxSerializationCore)
+    implementation(libs.kotlinxSerializationJson)
 
     testImplementation(projects.coreApi)
     testImplementation(libs.futureKotlin("test-junit5"))

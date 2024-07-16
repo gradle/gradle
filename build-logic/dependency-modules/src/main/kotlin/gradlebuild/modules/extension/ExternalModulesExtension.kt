@@ -114,8 +114,10 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
     val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
+    val kotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json"
     val kotlinReflect = futureKotlin("reflect")
     val kotlinStdlib = futureKotlin("stdlib")
+    val kotlinxSerializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3Artifact = "org.apache.maven:maven-artifact"
