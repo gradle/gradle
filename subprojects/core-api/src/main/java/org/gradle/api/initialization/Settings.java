@@ -419,4 +419,23 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @Incubating
     void caches(Action<? super CacheConfigurations> cachesConfiguration);
+
+
+    /**
+     * Returns the software type conventions object for this build.
+     *
+     * @since 8.10
+     */
+    @Incubating
+    Conventions getConventions();
+
+    /**
+     * Configures the software type conventions for this build.
+     *
+     * @param action the configuration to apply
+     *
+     * @since 8.10
+     */
+    @Incubating
+    void conventions(Action<? super Conventions> action);
 }

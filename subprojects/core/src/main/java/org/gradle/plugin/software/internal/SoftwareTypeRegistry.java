@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal;
 
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
@@ -46,4 +47,6 @@ public interface SoftwareTypeRegistry {
      * Returns whether a plugin is registered as providing a software type or not.
      */
     Optional<SoftwareTypeImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
+
+    NamedDomainObjectCollectionSchema getSchema();
 }
