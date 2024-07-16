@@ -41,6 +41,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public static final String BUILD_SCRIPT_BASENAME = "build";
 
     private String name;
+    private String publicationName;
     private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
@@ -108,6 +109,21 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
         this.nameExplicitlySet = true;
+    }
+
+    @Override
+    public String getPublicationName() {
+        if (publicationName != null) {
+            return publicationName;
+        }
+        return name;
+    }
+
+    @Override
+    public void setPublicationName(String publicationName) {
+        NameValidator.validate(publicationName, "project publication name",
+            "");
+        this.publicationName = publicationName;
     }
 
     public boolean isExplicitName() {
