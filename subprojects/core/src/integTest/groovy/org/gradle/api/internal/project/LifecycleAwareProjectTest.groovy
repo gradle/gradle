@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(IntegTestPreconditions.NotIsolatedProjects)
 class LifecycleAwareProjectTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.NotIsolatedProjects)
     def 'Different equal instances of LifecycleAwareProject bear the same state'() {
         given:
         settingsFile << """
@@ -43,5 +43,25 @@ class LifecycleAwareProjectTest extends AbstractIntegrationSpec {
 
         then:
         outputContains "root foo=bar\na foo=bar"
+    }
+
+    def 'LifecycleAwareProject delegates hasProperty correctly'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            include(":a")
+        """
+        file("a/build.gradle") << ""
+        buildFile << """
+            project(':a') {
+                println("a contains foo: \${it.hasProperty('foo')}")
+            }
+        """
+
+        when:
+        run "help", "-Pfoo=bar"
+
+        then:
+        outputContains "a contains foo: true"
     }
 }

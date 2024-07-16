@@ -200,6 +200,10 @@ class ProblemReportingCrossProjectModelAccess(
             )
         }
 
+        override fun hasPropertyMissing(name: String): Boolean {
+            return hasProperty(name)
+        }
+
         override fun getParent(): ProjectInternal? =
             super.getParent(referrer)
 

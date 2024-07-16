@@ -73,6 +73,12 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     }
 
     @Override
+    protected boolean hasPropertyMissing(String name) {
+        onMutableStateAccess("hasProperty");
+        return delegate.hasProperty(name);
+    }
+
+    @Override
     public String toString() {
         return delegate.toString();
     }
