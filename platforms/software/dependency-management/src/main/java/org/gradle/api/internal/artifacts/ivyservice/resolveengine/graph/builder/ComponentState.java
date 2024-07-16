@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -453,7 +454,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    Capability getImplicitCapability() {
+    CapabilityInternal getImplicitCapability() {
         return implicitCapability;
     }
 

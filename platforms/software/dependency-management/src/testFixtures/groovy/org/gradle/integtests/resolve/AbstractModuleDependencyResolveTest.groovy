@@ -144,6 +144,10 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         useIvy() ? ivyRepository : mavenRepository
     }
 
+    String getRuntimeVariant() {
+        usesJavaLibraryVariants() ? "runtime" : "default"
+    }
+
     boolean isDeclareRepositoriesInSettings() {
         false
     }

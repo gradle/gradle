@@ -38,12 +38,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
@@ -223,18 +224,11 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges A collector for visited edges.
      */
     public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges) {
-        // If this configuration's version is in conflict, do not traverse.
         // If none of the incoming edges are transitive, remove previous state and do not traverse.
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
         // If traversed before:
         //      If net exclusions for this node have not changed, ignore
         //      If net exclusions for this node have changed, remove previous state and traverse outgoing edges again.
-
-        if (!component.isSelected()) {
-            LOGGER.debug("version for {} is not selected. ignoring.", this);
-            cleanupConstraints();
-            return;
-        }
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
@@ -261,6 +255,7 @@ public class NodeState implements DependencyGraphNode {
             }
         }
 
+        // The exclusions changed or we are in a virtual platform needing refresh.
         // Clear previous traversal state, if any
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
@@ -294,16 +289,16 @@ public class NodeState implements DependencyGraphNode {
      * * Rescheduling any deferred selection impacted by a constraint coming from this node
      * * Making sure we no longer are registered as pending interest on nodes pointed by constraints
      */
-    private void cleanupConstraints() {
+    void cleanupConstraints() {
         // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
         if (upcomingNoLongerPendingConstraints != null) {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
-                for (EdgeState unattachedDependency : module.getUnattachedDependencies()) {
-                    if (!unattachedDependency.getSelector().isResolved()) {
+                for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
+                    if (!unattachedEdge.getSelector().isResolved()) {
                         // Unresolved - we have a selector that was deferred but the constraint has been removed in between
-                        NodeState from = unattachedDependency.getFrom();
-                        from.prepareToRecomputeEdge(unattachedDependency);
+                        NodeState from = unattachedEdge.getFrom();
+                        from.prepareToRecomputeEdge(unattachedEdge);
                     }
                 }
             }
@@ -523,6 +518,9 @@ public class NodeState implements DependencyGraphNode {
         return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
     }
 
+    /**
+     * Creates an edge and add it to this node as an outgoing edge.
+     */
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
@@ -1016,9 +1014,9 @@ public class NodeState implements DependencyGraphNode {
         boolean alreadyRemoving = removingOutgoingEdges;
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
-            for (EdgeState outgoingDependency : outgoingEdges) {
-                outgoingDependency.markUnused();
-                ComponentState targetComponent = outgoingDependency.getTargetComponent();
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                outgoingEdge.markUnused();
+                ComponentState targetComponent = outgoingEdge.getTargetComponent();
                 if (targetComponent == component) {
                     // if the same component depends on itself: do not attempt to cleanup the same thing several times
                     continue;
@@ -1027,7 +1025,7 @@ public class NodeState implements DependencyGraphNode {
                     // don't requeue something which is already changing selection
                     continue;
                 }
-                outgoingDependency.cleanUpOnSourceChange(this);
+                outgoingEdge.cleanUpOnSourceChange(this);
             }
             outgoingEdges.clear();
         }
@@ -1035,7 +1033,7 @@ public class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : virtualEdges) {
                 outgoingDependency.markUnused();
                 outgoingDependency.removeFromTargetConfigurations();
-                outgoingDependency.getSelector().release(resolveState.getConflictTracker());
+                outgoingDependency.getSelector().release();
             }
         }
         virtualEdges = null;
@@ -1139,7 +1137,7 @@ public class NodeState implements DependencyGraphNode {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
                 if (from.removeOutgoingEdge(incomingEdge)) {
-                    incomingEdge.getSelector().release(resolveState.getConflictTracker());
+                    incomingEdge.getSelector().release();
                 }
             }
             pendingDependencies.registerConstraintProvider(from);
@@ -1158,7 +1156,7 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
+    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super CapabilityInternal> action) {
         ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
@@ -1167,15 +1165,21 @@ public class NodeState implements DependencyGraphNode {
         // capability in order to detect the conflict between the two.
         // Note that the fact that the implicit capability is not included in other cases
         // is not a bug but a performance optimization.
-        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || capabilitiesConflictHandler.hasSeenCapability(component.getImplicitCapability()))) {
+        boolean defaultCapabilityHasConflict = capabilitiesConflictHandler.hasSeenNonDefaultCapabilityExplicitly(component.getImplicitCapability());
+        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || defaultCapabilityHasConflict)) {
             action.execute(component.getImplicitCapability());
         } else {
             // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
             // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
             // so just adding this check has a significant impact because most components do not declare any capability
             if (!capabilities.isEmpty()) {
-                for (Capability capability : capabilities) {
-                    action.execute(capability);
+                for (CapabilityInternal capability : capabilities) {
+                    // Only process non-default capabilities
+                    // Or, for the default capability if we have seen that capability on a node for which it is not the default
+                    // Or, the component has multiple selected variants, in which case two nodes in that component may conflict with each other
+                    if (!capability.equals(component.getImplicitCapability()) || defaultCapabilityHasConflict || component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+                        action.execute(capability);
+                    }
                 }
             }
         }
@@ -1226,7 +1230,7 @@ public class NodeState implements DependencyGraphNode {
             // We can ignore if we are already removing edges anyway
             outgoingEdges.remove(edgeState);
             edgeState.markUnused();
-            edgeState.getSelector().release(resolveState.getConflictTracker());
+            edgeState.getSelector().release();
         }
     }
 
