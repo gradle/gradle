@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Basic testing related plugins, which establish conventions for testing output directories,
@@ -39,7 +40,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.files)

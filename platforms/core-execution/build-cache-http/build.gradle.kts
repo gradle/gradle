@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Implementation for interacting with HTTP build caches"
@@ -17,7 +18,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.resourcesHttp)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.core)
     implementation(projects.logging)
     implementation(projects.resources)
