@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for building Groovy projects"
@@ -33,7 +34,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)

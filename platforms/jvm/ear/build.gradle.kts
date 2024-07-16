@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for assembling web application EAR files"
@@ -22,7 +23,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformJvm)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)

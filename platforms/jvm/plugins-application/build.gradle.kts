@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
@@ -27,7 +28,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseServices)
     implementation(projects.languageJava)
