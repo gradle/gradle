@@ -52,7 +52,6 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.toolchainsJvmShared)
 
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))

@@ -36,7 +36,7 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
 
     public static JavaLanguageVersion of(int version) {
         if (version <= 0) {
-            throw new IllegalArgumentException("JavaLanguageVersion must be a positive integer, not " + version);
+            throw new IllegalArgumentException("JavaLanguageVersion must be a positive integer, not '" + version + "'");
         }
         if (version >= LOWER_CACHED_VERSION && version <= HIGHER_CACHED_VERSION) {
             return KNOWN_VERSIONS[version - LOWER_CACHED_VERSION];

@@ -31,7 +31,11 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
     }
 
     static JavaLanguageVersion of(String version) {
-        return of(Integer.parseInt(version));
+        try {
+            return of(Integer.parseInt(version));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("JavaLanguageVersion must be a positive integer, not '" + version + "'");
+        }
     }
 
     /**
