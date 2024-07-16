@@ -5,12 +5,6 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // This cannot really be turned off, because of the false positive in errorprone (https://github.com/google/error-prone/issues/4409)
-    )
-}
-
 dependencies {
     api(projects.serialization)
     api(projects.serviceLookup)
