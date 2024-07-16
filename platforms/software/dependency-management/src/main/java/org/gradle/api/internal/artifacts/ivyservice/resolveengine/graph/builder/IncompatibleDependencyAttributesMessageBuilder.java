@@ -36,7 +36,7 @@ class IncompatibleDependencyAttributesMessageBuilder {
         fmt.append("' are requested");
         fmt.startChildren();
         Set<EdgeState> incomingEdges = module.getIncomingEdges();
-        incomingEdges.addAll(module.getUnattachedDependencies());
+        incomingEdges.addAll(module.getUnattachedEdges());
         for (EdgeState incomingEdge : incomingEdges) {
             SelectorState selector = incomingEdge.getSelector();
             for (String path : pathTo(incomingEdge, false)) {

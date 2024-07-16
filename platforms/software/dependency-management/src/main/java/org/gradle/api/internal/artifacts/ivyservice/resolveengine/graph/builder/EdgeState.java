@@ -138,7 +138,7 @@ class EdgeState implements DependencyGraphEdge {
             // Need to double check that the target still has hard edges to it
             ModuleResolveState module = targetComponent.getModule();
             if (module.isPending()) {
-                selector.getTargetModule().removeUnattachedDependency(this);
+                selector.getTargetModule().removeUnattachedEdge(this);
                 from.makePending(this);
                 module.registerConstraintProvider(from);
                 return;
@@ -150,14 +150,14 @@ class EdgeState implements DependencyGraphEdge {
             targetConfiguration.addIncomingEdge(this);
         }
         if (!targetNodes.isEmpty()) {
-            selector.getTargetModule().removeUnattachedDependency(this);
+            selector.getTargetModule().removeUnattachedEdge(this);
         }
     }
 
     void cleanUpOnSourceChange(NodeState source) {
         removeFromTargetConfigurations();
         maybeDecreaseHardEdgeCount(source);
-        selector.getTargetModule().removeUnattachedDependency(this);
+        selector.getTargetModule().removeUnattachedEdge(this);
         selector.release();
     }
 
@@ -198,7 +198,7 @@ class EdgeState implements DependencyGraphEdge {
         removeFromTargetConfigurations();
         // We now have corner cases that can lead to this restart not succeeding
         if (checkUnattached && !isUnattached()) {
-            selector.getTargetModule().addUnattachedDependency(this);
+            selector.getTargetModule().addUnattachedEdge(this);
         }
         attachToTargetConfigurations();
     }
@@ -233,9 +233,9 @@ class EdgeState implements DependencyGraphEdge {
             }
             if (targetNodes.isEmpty()) {
                 // There is a chance we could not attach target configurations previously
-                List<EdgeState> unattachedDependencies = targetComponent.getModule().getUnattachedDependencies();
-                if (!unattachedDependencies.isEmpty()) {
-                    for (EdgeState otherEdge : unattachedDependencies) {
+                List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
+                if (!unattachedEdges.isEmpty()) {
+                    for (EdgeState otherEdge : unattachedEdges) {
                         if (otherEdge != this && !otherEdge.isConstraint()) {
                             otherEdge.attachToTargetConfigurations();
                             if (otherEdge.targetNodeSelectionFailure != null) {

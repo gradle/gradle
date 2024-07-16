@@ -141,7 +141,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":p1:checkDeps"
+        succeeds(":p1:checkDeps")
 
         then:
         resolve.expectGraph {
@@ -213,7 +213,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":checkDeps"
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -275,7 +275,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":checkDeps"
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -338,7 +338,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":checkDeps"
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -400,7 +400,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":checkDeps"
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -459,14 +459,14 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":checkDeps"
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
                 module("ch.qos.logback:logback-classic:1.3.11")
                 edge("org.slf4j:slf4j-log4j12:1.5.6", "ch.qos.logback:logback-classic:1.3.11") {
-                    byConflictResolution("Explicit selection of ch.qos.logback:logback-classic:1.3.11")
+                    byConflictResolution("Explicit selection of ch.qos.logback:logback-classic:1.3.11 variant runtime")
                 }
                 module("org.slf4j:log4j-over-slf4j:1.4.2")
             }
@@ -503,7 +503,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        run ":checkDeps"
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -517,6 +517,53 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 }
             }
         }
+    }
+
+    @Issue("https://github.com/ljacomet/logging-capabilities/issues/20")
+    def "resolving a conflict does not depend on participant order"() {
+        given:
+        mavenRepo.module("org", "testA", "1.0").publish()
+        mavenRepo.module("org", "testB", "1.0").publish()
+        mavenRepo.module("org", "testC", "1.0").publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                ${deps.collect { "implementation('$it')" }.join("\n")}
+            }
+        """
+
+        capability("org.test", "cap") {
+            forModule("org:testA")
+            forModule("org:testB")
+            forModule("org:testC")
+            selectModule("org", "testC")
+        }
+
+        when:
+        resolve.prepare()
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:testA:1.0', 'org:testC:1.0') {
+                    byConflictResolution("Explicit selection of org:testC:1.0 variant runtime")
+                }
+                edge('org:testB:1.0', 'org:testC:1.0') {
+                    byConflictResolution("Explicit selection of org:testC:1.0 variant runtime")
+                }
+                module('org:testC:1.0')
+            }
+        }
+
+        where:
+        deps << ['org:testA:1.0', 'org:testB:1.0', 'org:testC:1.0'].permutations()
     }
 
     // region test fixtures

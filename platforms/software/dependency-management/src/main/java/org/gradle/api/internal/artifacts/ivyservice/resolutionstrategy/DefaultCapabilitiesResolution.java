@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.CapabilityResolutionDetails;
 import org.gradle.api.artifacts.ComponentVariantIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UpgradeCapabilityResolver;
@@ -122,13 +121,10 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
                 if (reason != null) {
                     cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
                 } else {
-                    cand.byReason(() -> {
-                        String selectedNodeDesc = resolutionDetails.selected.getId().getDisplayName();
-                        if (resolutionDetails.selected.getId() instanceof ProjectComponentIdentifier) {
-                            selectedNodeDesc += " variant " + resolutionDetails.selected.getVariantName();
-                        }
-                        return "Explicit selection of " + selectedNodeDesc;
-                    });
+                    cand.byReason(() -> String.format("Explicit selection of %s variant %s",
+                        resolutionDetails.selected.getId().getDisplayName(),
+                        resolutionDetails.selected.getVariantName()
+                    ));
                 }
             } else {
                 cand.evict();

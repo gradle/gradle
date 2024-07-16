@@ -131,8 +131,8 @@ public class DependencyGraphBuilder {
         boolean failingOnChangingVersions,
         DependencyGraphVisitor modelVisitor
     ) {
-        DefaultConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
-        DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
+        ModuleConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
+        CapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
 
         ResolveState resolveState = new ResolveState(
             idGenerator,
@@ -263,16 +263,16 @@ public class DependencyGraphBuilder {
     private boolean resolveEdges(
         final NodeState node,
         final List<EdgeState> dependencies,
-        final Spec<EdgeState> dependencyFilter,
+        final Spec<EdgeState> edgeFilter,
         final boolean recomputeSelectors,
         final ResolveState resolveState
     ) {
         if (dependencies.isEmpty()) {
             return false;
         }
-        if (performSelectionSerially(dependencies, dependencyFilter, resolveState, recomputeSelectors)) {
-            maybeDownloadMetadataInParallel(node, dependencies, dependencyFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-            attachToTargetRevisionsSerially(dependencies, dependencyFilter);
+        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)) {
+            maybeDownloadMetadataInParallel(node, dependencies, edgeFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
+            attachToTargetRevisionsSerially(dependencies, edgeFilter);
             return true;
         } else {
             return false;
@@ -280,25 +280,25 @@ public class DependencyGraphBuilder {
 
     }
 
-    private static boolean performSelectionSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter, ResolveState resolveState, boolean recomputeSelectors) {
+    private static boolean performSelectionSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter, ResolveState resolveState, boolean recomputeSelectors) {
         boolean processed = false;
-        for (EdgeState dependency : dependencies) {
-            if (!dependencyFilter.isSatisfiedBy(dependency)) {
+        for (EdgeState edge : edges) {
+            if (!edgeFilter.isSatisfiedBy(edge)) {
                 continue;
             }
             if (recomputeSelectors) {
-                dependency.computeSelector();
+                edge.computeSelector();
             }
-            SelectorState selector = dependency.getSelector();
+            SelectorState selector = edge.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
             if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
-            if (dependency.isUsed()) {
+            if (edge.isUsed()) {
                 // Some corner case result in the edge being removed, in that case it needs to be "removed"
-                module.addUnattachedDependency(dependency);
+                module.addUnattachedEdge(edge);
             }
             processed = true;
         }
@@ -345,13 +345,13 @@ public class DependencyGraphBuilder {
      * Prepares the resolution of edges, either serially or concurrently.
      * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the number of edges, and whether they have unresolved metadata.
      */
-    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
+    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, Spec<EdgeState> edgeFilter, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
         List<ComponentState> requiringDownload = null;
-        for (EdgeState dependency : dependencies) {
-            if (!dependencyFilter.isSatisfiedBy(dependency)) {
+        for (EdgeState edge : edges) {
+            if (!edgeFilter.isSatisfiedBy(edge)) {
                 continue;
             }
-            ComponentState targetComponent = dependency.getTargetComponent();
+            ComponentState targetComponent = edge.getTargetComponent();
             if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
                 if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
                     // Avoid initializing the list if there are no components requiring download (a common case)
@@ -374,12 +374,12 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> edges, Spec<EdgeState> dependencyFilter) {
+    private static void attachToTargetRevisionsSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState edge : edges) {
-            if (dependencyFilter.isSatisfiedBy(edge)) {
+            if (edgeFilter.isSatisfiedBy(edge)) {
                 edge.attachToTargetConfigurations();
             }
         }
@@ -396,7 +396,7 @@ public class DependencyGraphBuilder {
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
-                    attachFailureToEdges(error, module.getUnattachedDependencies());
+                    attachFailureToEdges(error, module.getUnattachedEdges());
                 } else {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);

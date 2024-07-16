@@ -294,11 +294,11 @@ public class NodeState implements DependencyGraphNode {
         if (upcomingNoLongerPendingConstraints != null) {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
-                for (EdgeState unattachedDependency : module.getUnattachedDependencies()) {
-                    if (!unattachedDependency.getSelector().isResolved()) {
+                for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
+                    if (!unattachedEdge.getSelector().isResolved()) {
                         // Unresolved - we have a selector that was deferred but the constraint has been removed in between
-                        NodeState from = unattachedDependency.getFrom();
-                        from.prepareToRecomputeEdge(unattachedDependency);
+                        NodeState from = unattachedEdge.getFrom();
+                        from.prepareToRecomputeEdge(unattachedEdge);
                     }
                 }
             }

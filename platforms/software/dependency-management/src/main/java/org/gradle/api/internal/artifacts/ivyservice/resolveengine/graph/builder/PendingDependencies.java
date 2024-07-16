@@ -21,9 +21,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Tracks hard dependencies targeting a given module. A module should end up in a graph if it has hard dependencies.
- * Also tracks all constraints that have been observed for a module. These constraints should be activated when
- * the hard edge count becomes positive.
+ * Tracks hard (non-constraint) dependencies targeting a given module. A module should end up in a graph if it has
+ * hard dependencies. Also tracks all constraints that have been observed for a module. These constraints should be
+ * activated when the hard edge count becomes positive.
  */
 public class PendingDependencies {
     private final ModuleIdentifier moduleIdentifier;
