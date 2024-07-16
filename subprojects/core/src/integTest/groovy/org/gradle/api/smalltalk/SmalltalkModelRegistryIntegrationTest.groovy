@@ -62,6 +62,7 @@ class SmalltalkModelRegistryIntegrationTest extends AbstractIntegrationSpec {
         """
 
         groovyFile "build-logic/src/main/groovy/my/MySettingsPlugin.groovy", """
+            package my
             import ${Plugin.name}
             import ${Settings.name}
             import ${SmalltalkModelRegistry.name}
