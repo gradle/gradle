@@ -116,6 +116,7 @@ dependencies {
     api(projects.snapshots)
     api(projects.workerMain)
     api(projects.buildProcessServices)
+    api(projects.instrumentationReporting)
 
     api(libs.ant)
     api(libs.asm)
@@ -131,7 +132,6 @@ dependencies {
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.instrumentationReporting)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

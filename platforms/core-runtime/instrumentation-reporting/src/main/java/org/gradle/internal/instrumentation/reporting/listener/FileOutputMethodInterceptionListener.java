@@ -33,7 +33,7 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
 
     public FileOutputMethodInterceptionListener(File output) {
         try {
-            this.writer = new OutputStreamWriter(Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8);;
+            this.writer = new OutputStreamWriter(Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
