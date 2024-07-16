@@ -16,24 +16,16 @@
 
 package org.gradle.internal.instrumentation.reporting;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.List;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface MethodInterceptionReportCollector {
 
     String INTERCEPTED_METHODS_REPORT_FILE = "gradle-intercepted-methods.report";
-
-    MethodInterceptionReportCollector CONSOLE_OUTPUT_COLLECTOR = report -> {
-        try {
-            Files.readAllLines(report.toPath(), StandardCharsets.UTF_8).forEach(System.out::println);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    };
 
     void collect(File report);
 

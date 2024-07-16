@@ -93,12 +93,14 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
+    private final MethodInterceptionReportCollector reportCollector;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
         Gradle gradle,
-        StartParameterInternal startParameter
+        StartParameterInternal startParameter,
+        MethodInterceptionReportCollector reportCollector
     ) {
         this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
@@ -107,6 +109,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             startParameter,
             Lazy.atomic().of(gradle::getSharedServices)
         );
+        this.reportCollector = reportCollector;
     }
 
     @Override
@@ -154,7 +157,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 instrumentedProjectDependencies
             );
 
-            MethodInterceptionReportCollector.CONSOLE_OUTPUT_COLLECTOR.collect(instrumentedClasspath.getOrDefault(FileType.INTERCEPTED_METHODS_REPORT, Collections.emptyList()));
+            reportCollector.collect(instrumentedClasspath.getOrDefault(FileType.INTERCEPTED_METHODS_REPORT, Collections.emptyList()));
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(FileType.ARTIFACT, Collections.emptyList()));
         }
     }

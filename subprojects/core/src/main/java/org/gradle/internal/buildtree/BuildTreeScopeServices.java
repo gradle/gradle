@@ -60,6 +60,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -161,5 +163,10 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
+    }
+
+    @Provides
+    protected MethodInterceptionReportCollector createMethodInterceptionReportCollector() {
+        return new DefaultMethodInterceptionReportCollector();
     }
 }
