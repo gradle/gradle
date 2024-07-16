@@ -682,9 +682,6 @@ class DefaultConfigurationCache internal constructor(
                 }
             })
         }
-        buildOperationExecutor.runAllWithAccessToProjectState {
-            operations.forEach { add(it) }
-        }
         val stateFileForNodesInOtherBuilds = baseStateFile.stateFileForNodesInAnotherBuild()
         if (stateFileForNodesInOtherBuilds.exists) {
             operations.add(object : RunnableBuildOperation {
