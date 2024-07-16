@@ -24,7 +24,10 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
     def "usage of upgraded properties in buildSrc should be reported"() {
         given:
-        javaFile("buildSrc/src/main/java/MyPlugin.java", """
+        executer.requireOwnGradleUserHomeDir("We cache report in global cache")
+        javaFile("buildSrc/src/main/java/test/MyPlugin.java", """
+            package test;
+
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.tasks.compile.JavaCompile;
@@ -40,20 +43,20 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
             }
         """)
         buildFile << """
-            apply plugin: MyPlugin
+            apply plugin: test.MyPlugin
         """
 
         when:
-        run("help", "--property-upgrade-report")
+        run("--property-upgrade-report")
 
         then:
-        outputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at MyPlugin(MyPlugin.java:10)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
 
         when: "From cache"
-        run("help", "--property-upgrade-report")
+        run("--property-upgrade-report")
 
         then:
-        outputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at MyPlugin(MyPlugin.java:10)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
     }
 
     @NotYetImplemented
@@ -89,6 +92,6 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("help", "--property-upgrade-report")
 
         then:
-        outputContains("Intercepted method: MyPlugin.class: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
+        postBuildOutputContains("Intercepted method: MyPlugin.class: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
     }
 }

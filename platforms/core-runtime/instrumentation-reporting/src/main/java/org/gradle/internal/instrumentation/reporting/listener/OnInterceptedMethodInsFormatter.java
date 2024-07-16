@@ -20,6 +20,7 @@ public class OnInterceptedMethodInsFormatter {
 
     @SuppressWarnings("unused")
     public String format(String sourceFileName, String className, String methodCallOwner, String methodName, String methodDescriptor, int lineNumber) {
+        className = className.replace("/", ".");
         String methodCallOwnerClassName = methodCallOwner.replace("/", ".");
         return String.format("%s.%s(): at %s(%s:%d)", methodCallOwnerClassName, methodName, className, sourceFileName, lineNumber);
     }
