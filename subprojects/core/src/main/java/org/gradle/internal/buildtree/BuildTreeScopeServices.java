@@ -35,6 +35,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.smalltalk.SmalltalkModelRegistry;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.DefaultTaskSelector;
@@ -68,6 +69,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.smalltalk.DefaultSmalltalkModelRegistry;
 
 import java.util.List;
 
@@ -106,6 +108,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
         registration.add(DefaultBuildLogicBuildQueue.class);
+        registration.add(SmalltalkModelRegistry.class, DefaultSmalltalkModelRegistry.class);
         modelServices.applyServicesTo(registration);
     }
 
