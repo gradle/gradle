@@ -1157,7 +1157,7 @@
   {
     "name": "stdlib-kotlin-extensions",
     "path": "platforms/core-configuration/stdlib-kotlin-extensions",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

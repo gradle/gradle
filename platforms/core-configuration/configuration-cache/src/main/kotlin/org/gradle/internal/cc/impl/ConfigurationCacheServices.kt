@@ -132,6 +132,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     object TaskExecutionAccessCheckerProvider : ServiceRegistrationProvider {
         @Provides
         fun createTaskExecutionAccessChecker(
+            /** In non-CC builds, [BuildTreeConfigurationCache] is not registered; accepting a list here is a way to ignore its absence. */
+            configurationCache: List<BuildTreeConfigurationCache>,
             configurationTimeBarrier: ConfigurationTimeBarrier,
             modelParameters: BuildModelParameters,
             /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
@@ -140,11 +142,27 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             workExecutionTracker: WorkExecutionTracker,
         ): TaskExecutionAccessChecker {
             val broadcast = listenerManager.getBroadcaster(TaskExecutionAccessListener::class.java)
+            val workGraphLoadingState = workGraphLoadingStateFrom(configurationCache)
             return when {
-                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
-                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
-                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast, workExecutionTracker)
+                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(workGraphLoadingState, broadcast, workExecutionTracker)
+                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(
+                    workGraphLoadingState,
+                    broadcast,
+                    workExecutionTracker
+                )
+
+                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, workGraphLoadingState, broadcast, workExecutionTracker)
             }
+        }
+
+        private
+        fun workGraphLoadingStateFrom(maybeConfigurationCache: List<BuildTreeConfigurationCache>): WorkGraphLoadingState {
+            if (maybeConfigurationCache.isEmpty()) {
+                return WorkGraphLoadingState { false }
+            }
+
+            val configurationCache = maybeConfigurationCache.single()
+            return WorkGraphLoadingState { configurationCache.isLoaded }
         }
     }
 
