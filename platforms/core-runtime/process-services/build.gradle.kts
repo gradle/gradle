@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Process execution abstractions."
@@ -21,6 +20,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.nativePlatform)
+    implementation(projects.internalInstrumentationApi)
 
     testImplementation(testFixtures(projects.core))
 

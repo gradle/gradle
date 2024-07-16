@@ -69,7 +69,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     }
 
     @Input
-    @ToBeReplacedByLazyProperty
+//    @ToBeReplacedByLazyProperty
     public Set<ReportState> getInputReports() {
         Set<ReportState> inputs = new LinkedHashSet<ReportState>();
         for (Report report : getEnabledInputReports()) {
