@@ -22,6 +22,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -131,6 +132,16 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     @Override
     public <T> void add(TypeOf<T> publicType, String name, T extension) {
         extensionsStorage.add(publicType, name, extension);
+    }
+
+    @Override
+    public <T> void addLater(Class<T> publicType, String name, Provider<? extends T> extensionProvider) {
+        addLater(typeOf(publicType), name, extensionProvider);
+    }
+
+    @Override
+    public <T> void addLater(TypeOf<T> publicType, String name, Provider<? extends T> extensionProvider) {
+        extensionsStorage.addLater(publicType, name, extensionProvider);
     }
 
     @Override

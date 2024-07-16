@@ -17,156 +17,194 @@
 package org.gradle.internal.extensibility
 
 import org.gradle.api.Action
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.plugins.Convention
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
-import org.junit.Before
-import org.junit.Test
+import spock.lang.Specification
 
 import static org.gradle.api.reflect.TypeOf.typeOf
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNull
-import static org.junit.Assert.assertSame
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertTrue
+
 import static org.junit.Assert.fail
 
-class DefaultConventionTest {
+class DefaultConventionTest extends Specification {
     Convention convention
+    ExtensionContainerInternal extensions
+    ProviderFactory providerFactory
 
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2
 
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
-    @Before void setUp() {
+    def setup() {
         convention = new DefaultConvention(instantiator)
+        extensions = ((ExtensionContainerInternal)convention)
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
         convention.plugins.plugin2 = convention2
+        providerFactory = TestUtil.providerFactory()
     }
 
-    @Test void mixesInEachPropertyOfConventionObject() {
-        assertEquals(convention1.b, convention.extensionsAsDynamicObject.b)
+    def "mixes in each property of convention object"() {
+        expect:
+        convention1.b == convention.extensionsAsDynamicObject.b
     }
 
-    @Test void conventionObjectsPropertiesHavePrecedenceAccordingToOrderAdded() {
-        assertEquals(convention1.a, convention.extensionsAsDynamicObject.a)
+    def "convention objects properties have precedence according to order added"() {
+        expect:
+        convention1.a == convention.extensionsAsDynamicObject.a
     }
 
-    @Test void canSetConventionObjectProperties() {
+    def "can set convention object properties"() {
+        when:
         convention.extensionsAsDynamicObject.b = 'newvalue'
-        assertEquals('newvalue', convention1.b)
+        then:
+        convention1.b == 'newvalue'
     }
 
-    @Test void canSetPropertiesWithAmbiguity() {
+    def "can set properties with ambiguity"() {
+        when:
         convention.extensionsAsDynamicObject.a = 'newvalue'
-        assertEquals('newvalue', convention1.a)
+        then:
+        convention1.a == 'newvalue'
     }
 
-    @Test(expected = MissingPropertyException) void throwsMissingPropertyExceptionForUnknownProperty() {
+    def "throws missing property exception for unknown property"() {
+        when:
         convention.extensionsAsDynamicObject.prop
+        then:
+        thrown(MissingPropertyException)
     }
 
-    @Test void mixesInEachMethodOfConventionObject() {
-        assertEquals(convention1.meth('somearg'), convention.extensionsAsDynamicObject.meth('somearg'))
+    def "mixes in each method of convention object"() {
+        expect:
+        convention1.meth('somearg') == convention.extensionsAsDynamicObject.meth('somearg')
     }
 
-    @Test void conventionObjectsMethodsHavePrecedenceAccordingToOrderAdded() {
-        assertEquals(convention1.meth(), convention.extensionsAsDynamicObject.meth())
+    def "convention objects methods have precedence according to order added"() {
+        expect:
+        convention1.meth() == convention.extensionsAsDynamicObject.meth()
     }
 
-    @Test(expected = MissingMethodException) void testMissingMethod() {
+    def "test missing method"() {
+        when:
         convention.extensionsAsDynamicObject.methUnknown()
+        then:
+        thrown(MissingMethodException)
     }
 
-    @Test void testCanLocateConventionObjectByType() {
-        assertSame(convention1, convention.getPlugin(TestPluginConvention1))
-        assertSame(convention2, convention.getPlugin(TestPluginConvention2))
-        assertSame(convention1, convention.findPlugin(TestPluginConvention1))
-        assertSame(convention2, convention.findPlugin(TestPluginConvention2))
+    def "test can locate convention object by type"() {
+        expect:
+        convention1.is(convention.getPlugin(TestPluginConvention1))
+        convention2.is(convention.getPlugin(TestPluginConvention2))
+        convention1.is(convention.findPlugin(TestPluginConvention1))
+        convention2.is(convention.findPlugin(TestPluginConvention2))
     }
 
-    @Test void testGetPluginFailsWhenMultipleConventionObjectsWithCompatibleType() {
-        try {
-            convention.getPlugin(Object)
-            fail()
-        } catch (java.lang.IllegalStateException e) {
-            assertThat(e.message, equalTo('Found multiple convention objects of type Object.'))
-        }
+    def "test get plugin fails when multiple convention objects with compatible type"() {
+        when:
+        convention.getPlugin(Object)
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Found multiple convention objects of type Object.'
     }
 
-    @Test void testFindPluginFailsWhenMultipleConventionObjectsWithCompatibleType() {
-        try {
-            convention.getPlugin(Object)
-            fail()
-        } catch (java.lang.IllegalStateException e) {
-            assertThat(e.message, equalTo('Found multiple convention objects of type Object.'))
-        }
+    def "test find plugin fails when multiple convention objects with compatible type"() {
+        when:
+        convention.getPlugin(Object)
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Found multiple convention objects of type Object.'
     }
 
-    @Test void testGetPluginFailsWhenNoConventionObjectsWithCompatibleType() {
-        try {
-            convention.getPlugin(String)
-            fail()
-        } catch (java.lang.IllegalStateException e) {
-            assertThat(e.message, equalTo('Could not find any convention object of type String.'))
-        }
+    def "test get plugin fails when no convention objects with compatible type"() {
+        when:
+        convention.getPlugin(String)
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Could not find any convention object of type String.'
     }
 
-    @Test void testFindPluginReturnsNullWhenNoConventionObjectsWithCompatibleType() {
-        assertNull(convention.findPlugin(String))
+    def "test find plugin returns null when no convention objects with compatible type"() {
+        expect:
+        convention.findPlugin(String) == null
     }
 
-    @Test void addsPropertyAndConfigureMethodForEachExtension() {
-        //when
+    def "adds property and configure method for each extension"() {
+        when:
         convention = new DefaultConvention(instantiator)
         def ext = new FooExtension()
         convention.add("foo", ext)
 
-        //then
-        assertTrue(convention.extensionsAsDynamicObject.hasProperty("foo"))
-        assertTrue(convention.extensionsAsDynamicObject.hasMethod("foo", {}))
-        assertTrue(convention.extensionsAsDynamicObject.hasMethod("foo", {} as Action))
-        assertEquals(convention.extensionsAsDynamicObject.properties.get("foo"), ext)
+        then:
+        convention.extensionsAsDynamicObject.hasProperty("foo")
+        convention.extensionsAsDynamicObject.hasMethod("foo", {})
+        convention.extensionsAsDynamicObject.hasMethod("foo", {} as Action)
+        convention.extensionsAsDynamicObject.properties.get("foo") == ext
     }
 
-    @Test void extensionsTakePrecedenceOverPluginConventions() {
+    def "extensions take precedence over plugin conventions"() {
+        when:
         convention = new DefaultConvention(instantiator)
         convention.plugins.foo = new FooPluginExtension()
         convention.add("foo", new FooExtension())
 
-        assertTrue(convention.extensionsAsDynamicObject.properties.get("foo") instanceof FooExtension);
-        assertTrue(convention.extensionsAsDynamicObject.foo instanceof FooExtension);
+        then:
+        convention.extensionsAsDynamicObject.properties.get("foo") instanceof FooExtension
+        convention.extensionsAsDynamicObject.foo instanceof FooExtension
         convention.extensionsAsDynamicObject.foo {
-            assertEquals("Hello world!", message);
+            assert message == "Hello world!"
         }
     }
 
-    @Test void canCreateExtensions() {
+    def "can create extensions"() {
         convention = new DefaultConvention(instantiator)
+
+        when:
         FooExtension extension = convention.create("foo", FooExtension)
-        assert extension.is(convention.getByName("foo"))
+        then:
+        extension.is(convention.getByName("foo"))
     }
 
-    @Test void honoursHasPublicTypeForAddedExtension() {
+    def "honours hasPublicType for added extension"() {
+        when:
         convention.add("pet", new ExtensionWithPublicType())
-        assert publicTypeOf("pet") == typeOf(PublicExtensionType)
+        then:
+        publicTypeOf("pet") == typeOf(PublicExtensionType)
     }
 
-    @Test void honoursHasPublicTypeForCreatedExtension() {
+    def "honours hasPublicType for created extension"() {
+        when:
         convention.create("pet", ExtensionWithPublicType)
-        assert publicTypeOf("pet") == typeOf(PublicExtensionType)
+        then:
+        publicTypeOf("pet") == typeOf(PublicExtensionType)
     }
 
-    @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
+    def "create will expose given type as the schema type even when instantiator returns decorated type"() {
+        when:
         convention = new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient())
-        assert convention.create("foo", FooExtension).class != FooExtension
-        assert publicTypeOf("foo") == typeOf(FooExtension)
+        then:
+        convention.create("foo", FooExtension).class != FooExtension
+        publicTypeOf("foo") == typeOf(FooExtension)
+    }
+
+    def "can add extension lazily"() {
+        when:
+        extensions.addLater(String, "foo", providerFactory.provider { 'bar' })
+        then:
+        extensions.getByName("foo") == "bar"
+    }
+
+    def "can add extension lazily with public type"() {
+        when:
+        extensions.addLater(PublicExtensionType, "foo", providerFactory.provider { new ExtensionExtendingPublicType() })
+        then:
+        publicTypeOf("foo") == typeOf(PublicExtensionType)
     }
 
     private TypeOf<?> publicTypeOf(String extension) {
@@ -181,6 +219,9 @@ class DefaultConventionTest {
         TypeOf<?> getPublicType() {
             typeOf(PublicExtensionType)
         }
+    }
+
+    static class ExtensionExtendingPublicType implements PublicExtensionType {
     }
 
     static class FooExtension {

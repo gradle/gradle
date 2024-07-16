@@ -39,6 +39,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.plugins.AddSoftwareTypesAsExtensionsPluginTarget;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -107,6 +108,7 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -233,7 +235,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         InternalProblems problems,
-        ModelDefaultsApplicator modelDefaultsApplicator
+        ModelDefaultsApplicator modelDefaultsApplicator,
+        SoftwareTypeRegistry softwareTypeRegistry
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -242,7 +245,13 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new ModelDefaultsApplyingPluginTarget<>(project, ruleBasedTarget, modelDefaultsApplicator);
+        PluginTarget addExtensionsTarget = new AddSoftwareTypesAsExtensionsPluginTarget(
+            project,
+            ruleBasedTarget,
+            pluginScheme.getInspectionScheme(),
+            softwareTypeRegistry
+        );
+        PluginTarget pluginTarget = new ModelDefaultsApplyingPluginTarget<>(project, addExtensionsTarget, modelDefaultsApplicator);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,

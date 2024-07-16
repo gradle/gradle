@@ -19,6 +19,7 @@ package org.gradle.internal.extensibility;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.ExtensionsSchema;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 
 import javax.annotation.Nullable;
@@ -39,7 +40,15 @@ public class ExtensionsStorage {
             throw new IllegalArgumentException(
                 format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, new ExtensionHolder<>(name, publicType, extension));
+        extensions.put(name, new DefaultExtensionHolder<>(name, publicType, extension));
+    }
+
+    public <T> void addLater(TypeOf<T> publicType, String name, Provider<? extends T> extensionProvider) {
+        if (hasExtension(name)) {
+            throw new IllegalArgumentException(
+                format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
+        }
+        extensions.put(name, new LazyExtensionHolder<>(name, publicType, extensionProvider));
     }
 
     public boolean hasExtension(String name) {
@@ -148,12 +157,18 @@ public class ExtensionsStorage {
         throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
 
-    private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
+    private interface ExtensionHolder<T> extends ExtensionsSchema.ExtensionSchema {
+        T get();
+
+        T configure(Action<? super T> action);
+    }
+
+    private static class DefaultExtensionHolder<T> implements ExtensionHolder<T> {
         private final String name;
         private final TypeOf<T> publicType;
         protected final T extension;
 
-        private ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
+        private DefaultExtensionHolder(String name, TypeOf<T> publicType, T extension) {
             this.name = name;
             this.publicType = publicType;
             this.extension = extension;
@@ -169,11 +184,47 @@ public class ExtensionsStorage {
             return publicType;
         }
 
+        @Override
         public T get() {
             return extension;
         }
 
+        @Override
         public T configure(Action<? super T> action) {
+            action.execute(extension);
+            return extension;
+        }
+    }
+
+    private static class LazyExtensionHolder<T> implements ExtensionHolder<T> {
+        private final String name;
+        private final TypeOf<T> publicType;
+        private final Provider<? extends T> extensionProvider;
+
+        private LazyExtensionHolder(String name, TypeOf<T> publicType, Provider<? extends T> extensionProvider) {
+            this.name = name;
+            this.publicType = publicType;
+            this.extensionProvider = extensionProvider;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public TypeOf<T> getPublicType() {
+            return publicType;
+        }
+
+        @Override
+        public T get() {
+            return extensionProvider.get();
+        }
+
+        @Override
+        public T configure(Action<? super T> action) {
+            T extension = extensionProvider.get();
             action.execute(extension);
             return extension;
         }
