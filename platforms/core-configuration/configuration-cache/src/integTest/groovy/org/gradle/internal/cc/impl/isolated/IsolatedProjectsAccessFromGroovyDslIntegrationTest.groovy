@@ -944,4 +944,26 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
         }
     }
+
+    @ToBeImplemented
+    def "reports problem on hasProperty access of another project"() {
+        settingsFile << """
+            include ':a'
+        """
+        file("a/build.gradle") << ""
+        file("build.gradle") << """
+            project(':a') {
+                hasProperty('foo')
+            }
+        """
+
+        when:
+        isolatedProjectsFails 'build'
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.hasProperty' functionality on another project", 1)
+        }
+    }
 }
