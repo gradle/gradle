@@ -106,7 +106,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         }
     }
 
-    def "tasks that access project through mapped changing provider emit problems when incompatible task is present"() {
+    def "tasks that access project through mapped changing provider emit problems"() {
         given:
         buildFile """
             tasks.register("bypassesSafeguards") { task ->

@@ -25,7 +25,7 @@ import org.gradle.internal.execution.WorkExecutionTracker
 
 
 /**
- * A state of the cached configuration, as much as AbstractTaskProjectAccessChecker is concerned.
+ * A state of the cached configuration, as much as [AbstractTaskProjectAccessChecker] is concerned.
  */
 internal
 fun interface WorkGraphLoadingState {
