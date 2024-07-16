@@ -192,7 +192,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     @SuppressWarnings("unchecked")
     private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
         if (isAnnotationOfType(annotationMirror, ToBeReplacedByLazyProperty.class)) {
-            return readAccessorSpecsFromToBeReplacedByLazyProperty(method);
+            return readAccessorSpecsFromToBeReplacedByLazyProperty(method, annotationMirror);
         }
 
         Element element = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
@@ -223,7 +223,14 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private static List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement method) {
+    private List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement method, AnnotationMirror annotation) {
+        boolean skipForReport = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "skipForReport")
+            .map(v -> (boolean) v.getValue())
+            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'skipForReport' attribute in @%s", ToBeReplacedByLazyProperty.class.getSimpleName())));
+        if (skipForReport) {
+            return Collections.emptyList();
+        }
+
         DeprecationSpec deprecationSpec = new DeprecationSpec(false, RemovedIn.UNSPECIFIED, -1, "", false);
         BinaryCompatibility binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT;
         String methodName = method.getSimpleName().toString();

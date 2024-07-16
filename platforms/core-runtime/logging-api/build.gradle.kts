@@ -16,7 +16,6 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Logging API"
@@ -27,4 +26,5 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.internalInstrumentationApi)
 }

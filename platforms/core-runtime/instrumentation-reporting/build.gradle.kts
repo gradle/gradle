@@ -6,7 +6,7 @@ description = "Contains classes for instrumentation reporting, e.g. bytecode upg
     "Note: For Configuration cache reporting see configuration-cache/input-tracking project."
 
 dependencies {
+    api(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.internalInstrumentationApi)
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

@@ -40,4 +40,9 @@ public @interface ToBeReplacedByLazyProperty {
      * Link to a GitHub issue if it exists.
      */
     String issue() default "";
+
+    /**
+     * If true property will be skipped for report
+     */
+    boolean skipForReport() default false;
 }

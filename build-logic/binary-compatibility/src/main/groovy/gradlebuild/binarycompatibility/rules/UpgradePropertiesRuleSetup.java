@@ -62,13 +62,15 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
     }
 
     private static Map<AccessorKey, UpgradedProperty> mapCurrentAccessorsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
-        return upgradedProperties.stream().collect(Collectors.toMap(AccessorKey::ofUpgradedProperty, Function.identity()));
+        // Some upgrades are reported in multiple projects for some reason, see https://github.com/gradle/gradle/issues/29926
+        return upgradedProperties.stream().collect(Collectors.toMap(AccessorKey::ofUpgradedProperty, Function.identity(), (first, second) -> first));
     }
 
     private static Map<AccessorKey, ReplacedAccessor> mapOldAccessorsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
         return upgradedProperties.stream()
             .flatMap(UpgradePropertiesRuleSetup::mapOldAccessorsOfUpgradedProperty)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            // Some upgrades are reported in multiple projects for some reason, see https://github.com/gradle/gradle/issues/29926
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> first));
     }
 
     private static Stream<Map.Entry<AccessorKey, ReplacedAccessor>> mapOldAccessorsOfUpgradedProperty(UpgradedProperty upgradedProperty) {
