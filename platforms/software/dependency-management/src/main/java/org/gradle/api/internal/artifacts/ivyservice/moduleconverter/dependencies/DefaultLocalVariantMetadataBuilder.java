@@ -305,7 +305,7 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
 
         @Override
         public int hashCode() {
-            return parent.hashCode() ^ name.hashCode();
+            return 31 * parent.hashCode() + name.hashCode();
         }
 
         @Override

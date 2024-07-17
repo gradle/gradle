@@ -181,11 +181,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         public VariantWithOverloadAttributes(VariantResolveMetadata.Identifier variantIdentifier, ImmutableAttributes targetVariant) {
             this.variantIdentifier = variantIdentifier;
             this.targetVariant = targetVariant;
-            this.hashCode = computeHashCode();
-        }
-
-        private int computeHashCode() {
-            return variantIdentifier.hashCode() ^ targetVariant.hashCode();
+            this.hashCode = 31 * variantIdentifier.hashCode() + targetVariant.hashCode();
         }
 
         @Override
