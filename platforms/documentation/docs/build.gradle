@@ -665,7 +665,10 @@ tasks.named("docsTest") { task ->
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
             // SpotBugs doesn't support Java 23
-            excludeTestsMatching "org.gradle.docs.samples.*.publishing-conventions-*"
+            excludeTestsMatching "org.gradle.docs.samples.*.publishing-convention-plugins*"
+            excludeTestsMatching "org.gradle.docs.samples.*.incubating-publishing-convention-plugins*"
+            // PMD doesn't support Java 23
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-code-quality-code-quality*"
         }
 
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
