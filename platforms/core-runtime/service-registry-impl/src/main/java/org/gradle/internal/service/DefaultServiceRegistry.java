@@ -758,6 +758,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
+        public String getDisplayName() {
+            return format("Service", serviceTypes);
+        }
+
+        @Override
         public String toString() {
             return getDisplayName();
         }
@@ -1082,7 +1087,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static class ConstructorService extends FactoryService {
-        private final Constructor<?> constructor;
+        @Nullable
+        private Constructor<?> constructor;
 
         private ConstructorService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, Class<?> serviceType) {
             this(owner, accessScope, token, serviceType, serviceType);
@@ -1110,22 +1116,25 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         protected Type[] getParameterTypes() {
-            return constructor.getGenericParameterTypes();
+            return getConstructor().getGenericParameterTypes();
         }
 
-        private Member getFactory() {
-            return constructor;
+        @Override
+        protected Object createServiceInstance() {
+            Object result = super.createServiceInstance();
+            this.constructor = null;
+            return result;
         }
 
         @Override
         protected String getFactoryDisplayName() {
-            return String.format("%s constructor", format(getFactory().getDeclaringClass()));
+            return String.format("%s constructor", format(getConstructor().getDeclaringClass()));
         }
 
         @Override
         protected Object invokeMethod(Object[] params) {
             try {
-                return constructor.newInstance(params);
+                return getConstructor().newInstance(params);
             } catch (InvocationTargetException e) {
                 throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", serviceTypes)), e.getCause());
             } catch (Exception e) {
@@ -1133,9 +1142,12 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
         }
 
-        @Override
-        public String getDisplayName() {
-            return format("Service", serviceTypes);
+        private Constructor<?> getConstructor() {
+            Constructor<?> constructor = this.constructor;
+            if (constructor == null) {
+                throw new IllegalStateException("Constructor is no longer available for the instance of " + format("service", serviceTypes));
+            }
+            return constructor;
         }
     }
 
