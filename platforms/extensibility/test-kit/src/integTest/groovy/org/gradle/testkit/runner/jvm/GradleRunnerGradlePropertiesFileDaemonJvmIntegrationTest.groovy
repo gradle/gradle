@@ -19,9 +19,9 @@ package org.gradle.testkit.runner.jvm
 import org.gradle.internal.jvm.Jvm
 
 /**
- * Verifies JDK compatibility for GradleRunner when configuring the java home via Gradle property.
+ * Verifies JDK compatibility for GradleRunner when configuring the java home via gradle.properties file.
  */
-class GradleRunnerGradlePropertyDaemonJvmIntegrationTest extends GradleRunnerExplicitDaemonJvmIntegrationTest {
+class GradleRunnerGradlePropertiesFileDaemonJvmIntegrationTest extends GradleRunnerExplicitDaemonJvmIntegrationTest {
 
     @Override
     def configureBuild(Jvm jvm) {

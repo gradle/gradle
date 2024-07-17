@@ -31,7 +31,7 @@ import org.gradle.tooling.model.GradleProject
 class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
     def setup() {
-        noJavaVersionDeprecationExpectation()
+        disableDaemonJavaVersionDeprecationFiltering()
     }
 
     // region Deprecated JVM

@@ -199,7 +199,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
     private boolean checkDeprecations = true;
-    private boolean maybeCheckJavaVersionDeprecation = true;
+    private boolean filterJavaVersionDeprecation = true;
     private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
@@ -269,7 +269,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
-        maybeCheckJavaVersionDeprecation = true;
+        filterJavaVersionDeprecation = true;
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
@@ -425,8 +425,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.noDeprecationChecks();
         }
 
-        if (!maybeCheckJavaVersionDeprecation) {
-            executer.noJavaVersionDeprecationChecks();
+        if (!filterJavaVersionDeprecation) {
+            executer.disableDaemonJavaVersionDeprecationFiltering();
         }
 
         if (durationMeasurement != null) {
@@ -1370,7 +1370,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
-        if (maybeCheckJavaVersionDeprecation) {
+        if (filterJavaVersionDeprecation) {
             maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
                 "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
                     "This will fail with an error in Gradle 9.0. " +
@@ -1430,8 +1430,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter noJavaVersionDeprecationChecks() {
-        maybeCheckJavaVersionDeprecation = false;
+    public GradleExecuter disableDaemonJavaVersionDeprecationFiltering() {
+        filterJavaVersionDeprecation = false;
         return this;
     }
 

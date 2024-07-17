@@ -20,7 +20,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileFactory;
-import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.Jvm;
@@ -30,10 +29,6 @@ import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
-
-    static JavaLanguageVersion getJavaLanguageVersion(JvmInstallationMetadata metadata) {
-        return JavaLanguageVersion.of(JavaVersionParser.parseMajorVersion(metadata.getJavaVersion()));
-    }
 
     private final Directory javaHome;
     private final JavaLanguageVersion javaVersion;
@@ -48,7 +43,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         boolean isFallbackToolchain
     ) {
         this.javaHome = fileFactory.dir(metadata.getJavaHome().toFile());
-        this.javaVersion = getJavaLanguageVersion(metadata);
+        this.javaVersion = JavaLanguageVersion.of(metadata.getJavaMajorVersion());
         this.metadata = metadata;
         this.input = input;
         this.isFallbackToolchain = isFallbackToolchain;

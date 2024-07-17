@@ -48,7 +48,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
 
     private Predicate<JvmInstallationMetadata> languagePredicate() {
         return metadata -> {
-            JavaLanguageVersion actualVersion = JavaToolchain.getJavaLanguageVersion(metadata);
+            JavaLanguageVersion actualVersion = JavaLanguageVersion.of(metadata.getJavaMajorVersion());
             return actualVersion.equals(languageVersion);
         };
     }

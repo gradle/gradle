@@ -209,7 +209,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         def problems = listener.problems
             .collect { it as SingleProblemEvent }
-            .findAll { it.definition.id.name != "executing-gradle-on-jvm-versions-and-lower" }
 
         then:
         problems.size() == 1

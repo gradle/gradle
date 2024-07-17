@@ -40,7 +40,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
     def setup() {
         requireDaemons()
-        noJavaVersionDeprecationExpectation()
+        disableDaemonJavaVersionDeprecationFiltering()
     }
 
     /**

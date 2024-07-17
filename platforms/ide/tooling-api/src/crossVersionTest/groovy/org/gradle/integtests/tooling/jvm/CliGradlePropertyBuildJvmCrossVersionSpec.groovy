@@ -16,14 +16,15 @@
 
 package org.gradle.integtests.tooling.jvm
 
+import org.gradle.tooling.ConfigurableLauncher
+
 /**
- * Verifies JDK compatibility for tooling api when setting the java home via Gradle property.
+ * Verifies JDK compatibility for tooling api when setting the java home via gradle property as a CLI arg.
  */
-class GradlePropertyBuildJvmCrossVersionSpec extends ExplicitDaemonJvmCrossVersionSpec {
+class CliGradlePropertyBuildJvmCrossVersionSpec extends ExplicitDaemonJvmCrossVersionSpec {
 
     @Override
-    void configureBuild(String majorVersion, File javaHome) {
-        propertiesFile.writeProperties("org.gradle.java.home": javaHome.canonicalPath)
+    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) {
+        launcher.withArguments("-Dorg.gradle.java.home=" + javaHome.canonicalPath)
     }
-
 }

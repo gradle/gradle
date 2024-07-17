@@ -17,6 +17,7 @@
 package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
 
@@ -61,6 +62,11 @@ public interface JvmInstallationMetadata {
      * Parsed equivalent of {@link #getJavaVersion()}.
      */
     JavaVersion getLanguageVersion();
+
+    /**
+     * The major Java version parsed from {@link #getJavaVersion()}.
+     */
+    int getJavaMajorVersion();
 
     /**
      * A wrapper around the raw value of the toolchain vendor.
@@ -118,6 +124,7 @@ public interface JvmInstallationMetadata {
 
         private final Path javaHome;
         private final JavaVersion languageVersion;
+        private final int javaMajorVersion;
         private final String javaVersion;
         private final String javaVendor;
         private final String runtimeName;
@@ -142,6 +149,7 @@ public interface JvmInstallationMetadata {
         ) {
             this.javaHome = javaHome.toPath();
             this.languageVersion = JavaVersion.toVersion(javaVersion);
+            this.javaMajorVersion = JavaVersionParser.parseMajorVersion(javaVersion);
             this.javaVersion = javaVersion;
             this.javaVendor = javaVendor;
             this.runtimeName = runtimeName;
@@ -160,6 +168,11 @@ public interface JvmInstallationMetadata {
         @Override
         public JavaVersion getLanguageVersion() {
             return languageVersion;
+        }
+
+        @Override
+        public int getJavaMajorVersion() {
+            return javaMajorVersion;
         }
 
         @Override
@@ -298,6 +311,11 @@ public interface JvmInstallationMetadata {
 
         @Override
         public JavaVersion getLanguageVersion() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public int getJavaMajorVersion() {
             throw unsupportedOperation();
         }
 

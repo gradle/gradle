@@ -479,24 +479,23 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionFailure runAndFail(String... tasks) {
-        fails(*tasks)
+        fails(Arrays.asList(tasks))
     }
 
     protected ExecutionFailure fails(String... tasks) {
+        fails(Arrays.asList(tasks))
+    }
+
+    protected ExecutionFailure fails(List<String> tasks) {
         resetProblemApiCheck()
 
-        failure = executer.withTasks(*tasks).runWithFailure()
+        failure = executer.withTasks(tasks).runWithFailure()
 
         if (enableProblemsApiCheck && getReceivedProblems().isEmpty()) {
             throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
         }
 
         return failure
-    }
-
-    protected ExecutionFailure fails(List<String> tasks) {
-        String[] array = tasks.toArray(new String[tasks.size()])
-        fails(array)
     }
 
     protected void executedAndNotSkipped(String... tasks) {

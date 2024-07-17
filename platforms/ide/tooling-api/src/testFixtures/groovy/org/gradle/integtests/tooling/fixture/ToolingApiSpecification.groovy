@@ -103,7 +103,6 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
-    private List<String> maybeExpectedDeprecations = []
     private List<String> expectedDeprecations = []
     private boolean stackTraceChecksOn = true
 
@@ -463,7 +462,6 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         stdout.reset()
         stderr.reset()
         expectedDeprecations.clear()
-        maybeExpectedDeprecations.clear()
         stackTraceChecksOn = true
     }
 
@@ -472,9 +470,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         GradleVersion.version("6.9") < targetVersion
     }
 
-    private boolean expectJavaVersionDeprecation = true
-    boolean noJavaVersionDeprecationExpectation() {
-        expectJavaVersionDeprecation = false
+    private boolean filterJavaVersionDeprecation = true
+    boolean disableDaemonJavaVersionDeprecationFiltering() {
+        filterJavaVersionDeprecation = false
     }
 
     ExecutionResult getResult() {
@@ -496,7 +494,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void validateOutput(ExecutionResult result) {
-        if (expectJavaVersionDeprecation) {
+        List<String> maybeExpectedDeprecations = []
+        if (filterJavaVersionDeprecation) {
             maybeExpectedDeprecations.add(normalizeDeprecationWarning(
                 "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
                     "This will fail with an error in Gradle X. " +
