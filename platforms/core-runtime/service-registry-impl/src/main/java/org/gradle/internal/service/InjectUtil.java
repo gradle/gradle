@@ -20,8 +20,13 @@ import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 final class InjectUtil {
+
+    private final static Map<Class<?>, Constructor<?>> CACHED_CONSTRUCTORS = Collections.synchronizedMap(new WeakHashMap<Class<?>, Constructor<?>>());
 
     /**
      * Selects the single injectable constructor for the given type.
@@ -31,57 +36,64 @@ final class InjectUtil {
      * @param type the type to find the injectable constructor of.
      */
     static Constructor<?> selectConstructor(final Class<?> type) {
-        if (isInnerClass(type)) {
-            // The DI system doesn't support injecting non-static inner classes.
-            throw new ServiceValidationException(
-                String.format(
-                    "Unable to select constructor for non-static inner class %s.",
-                    format(type)
-                )
-            );
-        }
-
-        final Constructor<?>[] constructors = type.getDeclaredConstructors();
-        if (constructors.length == 1) {
-            Constructor<?> constructor = constructors[0];
-            if (isPublicOrPackageScoped(constructor)) {
-                // If there is a single constructor, and that constructor is public or package private we select it.
-                return constructor;
+        Constructor<?> result = CACHED_CONSTRUCTORS.get(type);
+        if (result == null) {
+            if (isInnerClass(type)) {
+                // The DI system doesn't support injecting non-static inner classes.
+                throw new ServiceValidationException(
+                    String.format(
+                        "Unable to select constructor for non-static inner class %s.",
+                        format(type)
+                    )
+                );
             }
-            if (constructor.getAnnotation(Inject.class) != null) {
-                // Otherwise, if there is a single constructor that is annotated with `@Inject`, we select it (short-circuit).
-                return constructor;
-            }
-        }
 
-        // Search for a valid `@Inject` constructor to use instead.
-        Constructor<?> match = null;
-        for (Constructor<?> constructor : constructors) {
-            if (constructor.getAnnotation(Inject.class) != null) {
-                if (match != null) {
-                    // There was a previously found a match. This means a second constructor with `@Inject` has been found.
-                    throw new ServiceValidationException(
-                        String.format(
-                            "Multiple constructor annotated with @Inject for %s.",
-                            format(type)
-                        )
-                    );
+            final Constructor<?>[] constructors = type.getDeclaredConstructors();
+            if (constructors.length == 1) {
+                Constructor<?> constructor = constructors[0];
+                if (isPublicOrPackageScoped(constructor)) {
+                    // If there is a single constructor, and that constructor is public or package private we select it.
+                    CACHED_CONSTRUCTORS.put(type, constructor);
+                    return constructor;
                 }
-                // A valid match was found.
-                match = constructor;
+                if (constructor.getAnnotation(Inject.class) != null) {
+                    // Otherwise, if there is a single constructor that is annotated with `@Inject`, we select it (short-circuit).
+                    CACHED_CONSTRUCTORS.put(type, constructor);
+                    return constructor;
+                }
             }
-        }
-        if (match == null) {
-            // No constructor annotated with `@Inject` was found.
-            throw new ServiceValidationException(
-                String.format(
-                    "Expected a single non-private constructor, or one constructor annotated with @Inject for %s.",
-                    format(type)
-                )
-            );
-        }
 
-        return match;
+            // Search for a valid `@Inject` constructor to use instead.
+            Constructor<?> match = null;
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getAnnotation(Inject.class) != null) {
+                    if (match != null) {
+                        // There was a previously found a match. This means a second constructor with `@Inject` has been found.
+                        throw new ServiceValidationException(
+                            String.format(
+                                "Multiple constructor annotated with @Inject for %s.",
+                                format(type)
+                            )
+                        );
+                    }
+                    // A valid match was found.
+                    match = constructor;
+                }
+            }
+            if (match == null) {
+                // No constructor annotated with `@Inject` was found.
+                throw new ServiceValidationException(
+                    String.format(
+                        "Expected a single non-private constructor, or one constructor annotated with @Inject for %s.",
+                        format(type)
+                    )
+                );
+            }
+
+            CACHED_CONSTRUCTORS.put(type, match);
+            return match;
+        }
+        return result;
     }
 
     private static boolean isInnerClass(Class<?> clazz) {
