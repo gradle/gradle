@@ -311,7 +311,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Service ListenerManager at DefaultListenerManagerInServiceRegistryTest$<anonymous>.createListenerManager() implements AnnotatedServiceLifecycleHandler but is not declared as a service of this type. This service is declared as having type ListenerManager.'
+        e.message == 'Service ListenerManager implements AnnotatedServiceLifecycleHandler but is not declared as a service of this type. This service is declared as having type ListenerManager.'
     }
 
     def "fails when listener service is not declared as listener type"() {
@@ -328,7 +328,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Service Runnable at DefaultListenerManagerInServiceRegistryTest$<anonymous>.createListener() is annotated with @StatefulListener but is not declared as a service with this annotation. This service is declared as having type Runnable.'
+        e.message == 'Service Runnable is annotated with @StatefulListener but is not declared as a service with this annotation. This service is declared as having type Runnable.'
     }
 
     def "fails when stateful listener registered after first event"() {
