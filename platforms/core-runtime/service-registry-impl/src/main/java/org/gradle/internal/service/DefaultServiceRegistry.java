@@ -1024,7 +1024,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 return super.getDisplayName();
             }
 
-            return format("Service", serviceTypes) + " at " + format(method.getOwner()) + "." + method.getName() + "()";
+            return format("Service", serviceTypes) + " via " + format(method.getOwner()) + "." + method.getName() + "()";
         }
 
         @Override
