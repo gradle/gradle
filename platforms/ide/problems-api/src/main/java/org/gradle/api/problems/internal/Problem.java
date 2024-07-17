@@ -29,6 +29,11 @@ public interface Problem {
      */
     ProblemDefinition getDefinition();
 
+    /**
+     * Declares a short, but context-dependent message for this problem.
+     *
+     * @return the contextual label, or null if not available.
+     */
     @Nullable
     String getContextualLabel();
 
