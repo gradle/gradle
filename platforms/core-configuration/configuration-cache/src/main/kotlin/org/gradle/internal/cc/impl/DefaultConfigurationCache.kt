@@ -61,7 +61,9 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationInvocationException
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -624,21 +626,37 @@ class DefaultConfigurationCache internal constructor(
             })
 
         }
-        buildOperationExecutor.runAllWithAccessToProjectState {
-            operations.forEach { add(it) }
+        runCCOperations {
+            runAllWithAccessToProjectState {
+                operations.forEach { add(it) }
+            }
         }
-        buildOperationExecutor.runAllWithAccessToProjectState {
-            add(object : RunnableBuildOperation {
-                override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor.displayName("Saving work edges")
+        runCCOperations {
+            runAllWithAccessToProjectState {
+                add(object : RunnableBuildOperation {
+                    override fun description(): BuildOperationDescriptor.Builder =
+                        BuildOperationDescriptor.displayName("Saving work edges")
 
-                override fun run(context: BuildOperationContext) {
-                    val stateFile = baseStateFile.stateFileForWorkGraph()
-                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-                        cacheIO.writeRootBuildWorkEdges(stateFile, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
+                    override fun run(context: BuildOperationContext) {
+                        val stateFile = baseStateFile.stateFileForWorkGraph()
+                        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                            cacheIO.writeRootBuildWorkEdges(stateFile, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
+                        }
                     }
-                }
-            })
+                })
+            }
+        }
+
+    }
+
+    private fun runCCOperations(operationExecution: BuildOperationExecutor.() -> Unit) {
+        try {
+            operationExecution.invoke(buildOperationExecutor)
+        } catch (@Suppress("SwallowedException") e: MultipleBuildOperationFailures) {
+            if (e.causes[0] is BuildOperationInvocationException) {
+                throw e.causes[0].cause!!
+            }
+            throw e.causes[0]
         }
 
     }
@@ -698,8 +716,10 @@ class DefaultConfigurationCache internal constructor(
                 }
             })
         }
-        buildOperationExecutor.runAllWithAccessToProjectState {
-            operations.forEach { add(it) }
+        runCCOperations {
+            runAllWithAccessToProjectState {
+                operations.forEach { add(it) }
+            }
         }
         // TODO-RC the number of build ids seen may be even 0, for instance, when only requesting buildSrc build tasks to run
         // as they are not executed - see ConfigurationCacheIncludedBuildLogicIntegrationTest
@@ -712,21 +732,23 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         var result: Pair<String, ScheduledWork>? = null
-        buildOperationExecutor.runAllWithAccessToProjectState {
-            add(object : RunnableBuildOperation {
-                override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor.displayName("Reading work edges")
+        runCCOperations {
+            runAllWithAccessToProjectState {
+                add(object : RunnableBuildOperation {
+                    override fun description(): BuildOperationDescriptor.Builder =
+                        BuildOperationDescriptor.displayName("Reading work edges")
 
-                override fun run(context: BuildOperationContext) {
+                    override fun run(context: BuildOperationContext) {
 
-                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-                        result = cacheIO.readRootBuildWorkEdgesFrom(baseStateFile.stateFileForWorkGraph(), allScheduledNodes, allNodesById)
-                        require(allPerProjectOriginalBuildIds.isEmpty() || result!!.first == allPerProjectOriginalBuildIds[0]) {
-                            "Multiple build ids"
+                        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                            result = cacheIO.readRootBuildWorkEdgesFrom(baseStateFile.stateFileForWorkGraph(), allScheduledNodes, allNodesById)
+                            require(allPerProjectOriginalBuildIds.isEmpty() || result!!.first == allPerProjectOriginalBuildIds[0]) {
+                                "Multiple build ids"
+                            }
                         }
                     }
-                }
-            })
+                })
+            }
         }
         return result!!
     }
