@@ -16,12 +16,12 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.jetbrains.kotlin.config.JvmTarget
 
 class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
     def 'can configure an extension using DependencyCollector in declarative DSL'() {
@@ -315,7 +315,6 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         file("build/libs/example.jar").exists()
     }
 
-    @Requires(value = UnitTestPreconditions.Jdk22OrEarlier, reason = "Kotlin cannot compile on Java 23 yet")
     def 'can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << """
@@ -528,6 +527,24 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
             }
 
             ${mavenCentralRepository()}
+
+            ${if (kotlin) {
+                def lastSupportedVersion = (
+                    JvmTarget.fromString(JavaVersion.current().majorVersion)
+                        ?: (JavaVersion.current() == JavaVersion.VERSION_1_8 ? JvmTarget.JVM_1_8 : JvmTarget.entries.last())
+                ).description
+                """
+                java {
+                    sourceCompatibility = "${lastSupportedVersion}"
+                    targetCompatibility = "${lastSupportedVersion}"
+                }
+                tasks.compileKotlin {
+                    kotlinOptions.jvmTarget = "${lastSupportedVersion}"
+                }
+                """
+            } else {
+                ''
+            }}
 
             gradlePlugin {
                 plugins {
