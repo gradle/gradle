@@ -59,6 +59,33 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
     }
 
+    def "usage of upgraded properties in Kotlin scripts should be reported"() {
+        given:
+        executer.requireOwnGradleUserHomeDir("We cache report in global cache")
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            tasks.register<JavaCompile>("myJavaCompile") {
+                source
+                source = project.files().asFileTree
+            }
+        """
+
+        when:
+        run("--property-upgrade-report")
+
+        then:
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(build.gradle.kts:7)")
+
+        when: "From cache"
+        run("--property-upgrade-report")
+
+        then:
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(build.gradle.kts:7)")
+    }
+
     @NotYetImplemented
     @ToBeImplemented("Inherited properties are not reported for project dependency classes")
     def "usage of upgraded properties in extended class should be reported"() {
