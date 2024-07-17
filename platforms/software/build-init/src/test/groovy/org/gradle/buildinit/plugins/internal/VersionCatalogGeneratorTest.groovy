@@ -133,7 +133,7 @@ junit-something = { module = "JUnit:something", version.ref = "junit-something" 
 
     def "generates plugin"() {
         setup:
-        versionCatalogDependencyRegistry.registerPlugin("com.example.long", "1337")
+        versionCatalogDependencyRegistry.registerPlugin("com.example.long", "1337", null)
 
         when:
         versionCatalogGenerator.generate(buildContentGenerationContext, true)

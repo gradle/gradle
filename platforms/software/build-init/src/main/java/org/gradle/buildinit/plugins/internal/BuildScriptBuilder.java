@@ -159,10 +159,10 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version) {
+    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version, @Nullable String pluginAlias) {
         AbstractStatement plugin;
         if (useVersionCatalog && version != null) {
-            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version);
+            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version, pluginAlias);
             plugin = new PluginSpec(versionCatalogRef, comment);
         } else {
             plugin = new PluginSpec(pluginId, version, comment);
