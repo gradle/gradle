@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization.transform.registration;
 
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
@@ -32,6 +31,7 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE;
@@ -51,13 +51,13 @@ public class InstrumentationTransformRegisterer {
     private final AgentStatus agentStatus;
     private final Lazy<BuildServiceRegistry> buildServiceRegistry;
     private final IdGenerator<Long> contextIdGenerator;
-    private final StartParameterInternal startParameterInternal;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
-    public InstrumentationTransformRegisterer(AgentStatus agentStatus, StartParameterInternal startParameterInternal, Lazy<BuildServiceRegistry> buildServiceRegistry) {
+    public InstrumentationTransformRegisterer(AgentStatus agentStatus, PropertyUpgradeReportConfig propertyUpgradeReportConfig, Lazy<BuildServiceRegistry> buildServiceRegistry) {
         this.buildServiceRegistry = buildServiceRegistry;
         this.contextIdGenerator = new LongIdGenerator();
         this.agentStatus = agentStatus;
-        this.startParameterInternal = startParameterInternal;
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     public ScriptClassPathResolutionContext registerTransforms(DependencyHandler dependencyHandler) {
@@ -116,7 +116,7 @@ public class InstrumentationTransformRegisterer {
                     params.getBuildService().set(service);
                     params.getContextId().set(contextId);
                     params.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
-                    params.getIsUpgradeReport().set(startParameterInternal.isPropertyUpgradeReportEnabled());
+                    params.getIsUpgradeReport().set(propertyUpgradeReportConfig.isEnabled());
                 });
             }
         );

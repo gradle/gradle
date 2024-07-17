@@ -45,6 +45,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
@@ -82,6 +83,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
     private final GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
@@ -92,7 +94,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         InputFingerprinter inputFingerprinter,
         ImmutableWorkspaceProvider workspaceProvider,
         ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry
+        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -103,6 +106,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.workspaceProvider = workspaceProvider;
         this.transformFactoryForLegacy = transformFactoryForLegacy;
         this.gradleCoreTypeRegistry = gradleCoreTypeRegistry;
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     @Override
@@ -155,7 +159,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             inputFingerprinter,
             transformFactoryForLegacy,
             scriptCompilationHandler,
-            gradleCoreTypeRegistry
+            gradleCoreTypeRegistry,
+            propertyUpgradeReportConfig
         );
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
@@ -213,11 +218,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
-        /**
-         * Disabled since we currently don't inspect the properties of the script.
-         */
-        private static final boolean IS_PROPERTY_UPGRADE_REPORT_ENABLED = false;
-
         private final String templateId;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
@@ -242,9 +242,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             InputFingerprinter inputFingerprinter,
             ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
             ScriptCompilationHandler scriptCompilationHandler,
-            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry
+            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+            PropertyUpgradeReportConfig propertyUpgradeReportConfig
         ) {
-            super(remappedSource.getSource(), workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, IS_PROPERTY_UPGRADE_REPORT_ENABLED);
+            super(remappedSource.getSource(), workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, propertyUpgradeReportConfig);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;

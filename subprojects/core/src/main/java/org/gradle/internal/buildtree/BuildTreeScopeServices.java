@@ -63,9 +63,11 @@ import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -167,7 +169,18 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    @PrivateService
     protected MethodInterceptionReportCollector createMethodInterceptionReportCollector(StartParameterInternal startParameter) {
-        return startParameter.isPropertyUpgradeReportEnabled() ? new DefaultMethodInterceptionReportCollector() : MethodInterceptionReportCollector.NO_OP;
+        return startParameter.isPropertyUpgradeReportEnabled()
+            ? new DefaultMethodInterceptionReportCollector()
+            : MethodInterceptionReportCollector.NO_OP;
+    }
+
+    @Provides
+    protected PropertyUpgradeReportConfig createPropertyUpgradeReportConfig(MethodInterceptionReportCollector reportCollector, StartParameterInternal startParameter) {
+        return new PropertyUpgradeReportConfig(
+            reportCollector,
+            startParameter.isPropertyUpgradeReportEnabled()
+        );
     }
 }
