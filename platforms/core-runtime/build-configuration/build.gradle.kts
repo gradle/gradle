@@ -10,12 +10,12 @@ dependencies {
 
     api(projects.core)
     api(projects.coreApi)
+    api(projects.jvmServices)
     api(projects.toolchainsJvmShared)
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.baseServices)
     implementation(projects.daemonProtocol)
-    implementation(projects.jvmServices)
     implementation(projects.logging)
 
     testImplementation(testFixtures(projects.core))
