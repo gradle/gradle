@@ -52,22 +52,18 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     }
 
     @Override
-    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter(TransformOutputs outputs) {
+    protected InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs) {
         Optional<BytecodeUpgradeReportMethodInterceptionListener> interceptionListener = getParameters().getIsUpgradeReport().getOrElse(false)
             ? Optional.of(new BytecodeUpgradeReportMethodInterceptionListener(outputs.file(MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE)))
             : Optional.empty();
 
-        return new InterceptorTypeRegistryAndFilter() {
-            @Override
-            public InstrumentationTypeRegistry getRegistry() {
-                return InstrumentationTypeRegistry.EMPTY;
-            }
-
+        return new InstrumentingClassTransformProvider() {
             @Override
             public InstrumentingClassTransform getClassTransform() {
                 return interceptionListener
-                    .map(listener -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, listener))
-                    .orElseGet(() -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY));
+                    // TODO: Using gradleCoreTypeRegistry means we won't detect calls for user types that extend from Gradle types, fix that
+                    .map(listener -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, getGradleCoreTypeRegistry(), listener))
+                    .orElseGet(() -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY));
             }
 
             @Override
@@ -75,5 +71,9 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
                 interceptionListener.ifPresent(BytecodeUpgradeReportMethodInterceptionListener::close);
             }
         };
+    }
+
+    private InstrumentationTypeRegistry getGradleCoreTypeRegistry() {
+        return internalServices.get().getGradleCoreInstrumentationTypeRegistry();
     }
 }

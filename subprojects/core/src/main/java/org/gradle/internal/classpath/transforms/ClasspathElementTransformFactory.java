@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
 
 import java.io.File;
@@ -37,8 +36,7 @@ public interface ClasspathElementTransformFactory {
      *
      * @param file the jar/directory to transform
      * @param classTransform the transform that will be applied to every class
-     * @param typeRegistry the registry of type hierarchies
      * @return the transformation that will transform the file upon request.
      */
-    ClasspathElementTransform createTransformer(File file, ClassTransform classTransform, InstrumentationTypeRegistry typeRegistry);
+    ClasspathElementTransform createTransformer(File file, ClassTransform classTransform);
 }

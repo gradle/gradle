@@ -29,7 +29,6 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -181,7 +180,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
         return parallelTransformExecutor.transformAll(
             urls,
-            (url, seen) -> cachedURL(url, transformer, seen, InstrumentationTypeRegistry.empty())
+            (url, seen) -> cachedURL(url, transformer, seen)
         );
     }
 
@@ -189,7 +188,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
-                (file, seen) -> cachedFile(file, transformer, seen, InstrumentationTypeRegistry.empty())
+                (file, seen) -> cachedFile(file, transformer, seen)
             )
         );
     }
@@ -214,9 +213,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             gradleCoreInstrumentingRegistry);
     }
 
-    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentationTypeRegistry typeRegistry) {
+    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
         if (original.getProtocol().equals("file")) {
-            return cachedFile(Convert.urlToFile(original), transformer, seen, typeRegistry).map(
+            return cachedFile(Convert.urlToFile(original), transformer, seen).map(
                 result -> result.fold(
                     file -> left(Convert.fileToURL(file)),
                     transform -> right(() -> Convert.fileToURL(transform.call()))
@@ -229,8 +228,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private Optional<Either<File, Callable<File>>> cachedFile(
         File original,
         ClasspathFileTransformer transformer,
-        Set<HashCode> seen,
-        InstrumentationTypeRegistry typeRegistry
+        Set<HashCode> seen
     ) {
         FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
@@ -244,14 +242,14 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             }
             // It's a new content hash, transform it
             return Optional.of(
-                right(() -> transformFile(original, snapshot, transformer, typeRegistry))
+                right(() -> transformFile(original, snapshot, transformer))
             );
         }
         return Optional.of(left(original));
     }
 
-    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, InstrumentationTypeRegistry typeRegistry) {
-        final File result = transformer.transform(original, snapshot, cache.getBaseDir(), typeRegistry);
+    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer) {
+        final File result = transformer.transform(original, snapshot, cache.getBaseDir());
         markAccessed(result, original);
         return result;
     }
