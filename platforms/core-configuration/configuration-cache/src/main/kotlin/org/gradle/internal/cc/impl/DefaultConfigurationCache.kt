@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.Action
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
@@ -62,6 +63,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationInvocationException
+import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -626,39 +628,20 @@ class DefaultConfigurationCache internal constructor(
             })
 
         }
-        runCCOperations {
-            runAllWithAccessToProjectState {
-                operations.forEach { add(it) }
-            }
-        }
-        runCCOperations {
-            runAllWithAccessToProjectState {
-                add(object : RunnableBuildOperation {
-                    override fun description(): BuildOperationDescriptor.Builder =
-                        BuildOperationDescriptor.displayName("Saving work edges")
+        runCCOperations(BuildOperationExecutor::runAllWithAccessToProjectState, operations)
+        runCCOperations(BuildOperationExecutor::runAllWithAccessToProjectState, listOf(
+            object : RunnableBuildOperation {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Saving work edges")
 
-                    override fun run(context: BuildOperationContext) {
-                        val stateFile = baseStateFile.stateFileForWorkGraph()
-                        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-                            cacheIO.writeRootBuildWorkEdges(stateFile, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
-                        }
+                override fun run(context: BuildOperationContext) {
+                    val stateFile = baseStateFile.stateFileForWorkGraph()
+                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                        cacheIO.writeRootBuildWorkEdges(stateFile, scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
                     }
-                })
+                }
             }
-        }
-
-    }
-
-    private fun runCCOperations(operationExecution: BuildOperationExecutor.() -> Unit) {
-        try {
-            operationExecution.invoke(buildOperationExecutor)
-        } catch (@Suppress("SwallowedException") e: MultipleBuildOperationFailures) {
-            if (e.causes[0] is BuildOperationInvocationException) {
-                throw e.causes[0].cause!!
-            }
-            throw e.causes[0]
-        }
-
+        ))
     }
 
     /**
@@ -716,11 +699,7 @@ class DefaultConfigurationCache internal constructor(
                 }
             })
         }
-        runCCOperations {
-            runAllWithAccessToProjectState {
-                operations.forEach { add(it) }
-            }
-        }
+        runCCOperations(BuildOperationExecutor::runAllWithAccessToProjectState, operations)
         // TODO-RC the number of build ids seen may be even 0, for instance, when only requesting buildSrc build tasks to run
         // as they are not executed - see ConfigurationCacheIncludedBuildLogicIntegrationTest
         if (allPerProjectOriginalBuildIds.size > 1) {
@@ -732,25 +711,51 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         var result: Pair<String, ScheduledWork>? = null
-        runCCOperations {
-            runAllWithAccessToProjectState {
-                add(object : RunnableBuildOperation {
-                    override fun description(): BuildOperationDescriptor.Builder =
-                        BuildOperationDescriptor.displayName("Reading work edges")
+        runCCOperations(BuildOperationExecutor::runAllWithAccessToProjectState,
+            object : RunnableBuildOperation {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Reading work edges")
 
-                    override fun run(context: BuildOperationContext) {
+                override fun run(context: BuildOperationContext) {
 
-                        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-                            result = cacheIO.readRootBuildWorkEdgesFrom(baseStateFile.stateFileForWorkGraph(), allScheduledNodes, allNodesById)
-                            require(allPerProjectOriginalBuildIds.isEmpty() || result!!.first == allPerProjectOriginalBuildIds[0]) {
-                                "Multiple build ids"
-                            }
+                    host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+                        result = cacheIO.readRootBuildWorkEdgesFrom(baseStateFile.stateFileForWorkGraph(), allScheduledNodes, allNodesById)
+                        require(allPerProjectOriginalBuildIds.isEmpty() || result!!.first == allPerProjectOriginalBuildIds[0]) {
+                            "Multiple build ids"
                         }
                     }
-                })
+                }
             }
-        }
+        )
         return result!!
+    }
+
+
+    private
+    fun <O: RunnableBuildOperation> runCCOperations(operationExecution: BuildOperationExecutor.(Action<BuildOperationQueue<O>>) -> Unit, operation: O) {
+        runCCOperations(operationExecution, listOf(operation))
+    }
+
+    private
+    fun <O: RunnableBuildOperation> runCCOperations(operationExecution: BuildOperationExecutor.(Action<BuildOperationQueue<O>>) -> Unit, operations: List<O>) {
+        try {
+            if (startParameter.parallelConfigCacheStoring) {
+                operationExecution.invoke(buildOperationExecutor) {
+                    operations.forEach(::add)
+                }
+            } else {
+                operations.forEach { operation ->
+                    operationExecution.invoke(buildOperationExecutor) {
+                        add(operation)
+                    }
+                }
+            }
+        } catch (@Suppress("SwallowedException") e: MultipleBuildOperationFailures) {
+            if (e.causes[0] is BuildOperationInvocationException) {
+                throw e.causes[0].cause!!
+            }
+            throw e.causes[0]
+        }
     }
 
     private

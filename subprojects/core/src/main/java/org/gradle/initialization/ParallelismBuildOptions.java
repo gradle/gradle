@@ -41,10 +41,9 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
 
     public static class ParallelOption extends BooleanBuildOption<ParallelismConfiguration> {
         public static final String GRADLE_PROPERTY = "org.gradle.parallel";
-        public static final String LONG_OPTION = "parallel";
 
         public ParallelOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", "Disables parallel execution to build projects."));
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", "Disables parallel execution to build projects."));
         }
 
         @Override

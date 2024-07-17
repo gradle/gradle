@@ -66,6 +66,8 @@ class ConfigurationCacheStartParameter(
 
     val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
+    val parallelConfigCacheStoring: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-storage", false)
+
     /**
      * Should be provided if a link to the report is expected even if no errors were found.
      * Useful in testing.

@@ -29,7 +29,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         settingsFile << ""
 
         when:
-        run("help", "--configuration-cache", "-s")
+        run("help", "--configuration-cache")
 
         then:
         result.assertHasPostBuildOutput("Configuration cache entry stored.")
@@ -145,8 +145,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun "build", "-s"
-        configurationCacheRun "build", "-s"
+        configurationCacheRun "build"
+        configurationCacheRun "build"
 
         then:
         configurationCache.assertStateLoaded()
@@ -332,7 +332,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def configurationCache = new ConfigurationCacheFixture(this)
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic", "-s"
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
 
         then:
         result.assertTasksExecutedAndNotSkipped(":init")

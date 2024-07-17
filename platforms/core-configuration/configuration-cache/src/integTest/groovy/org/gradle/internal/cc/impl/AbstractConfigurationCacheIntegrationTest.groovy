@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
@@ -26,7 +25,6 @@ import org.intellij.lang.annotations.Language
 abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
 
     static final String ENABLE_CLI_OPT = "--${ConfigurationCacheOption.LONG_OPTION}"
-    static final String ENABLE_CLI_OPTS = ["--${ConfigurationCacheOption.LONG_OPTION}", "--${ParallelismBuildOptions.ParallelOption.LONG_OPTION}"]
     static final String ENABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=true"
     static final String ENABLE_SYS_PROP = "-D$ENABLE_GRADLE_PROP"
 

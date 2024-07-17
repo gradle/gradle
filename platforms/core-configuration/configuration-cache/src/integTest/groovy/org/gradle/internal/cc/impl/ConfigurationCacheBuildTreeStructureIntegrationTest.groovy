@@ -65,7 +65,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
         defineTaskInSettings(settingsFile)
 
         when:
-        configurationCacheRun("--parallel", *(tasks as String[]))
+        configurationCacheRun(tasks as String[])
 
         then:
         with(fixture.only(LoadBuildBuildOperationType)) {
@@ -89,7 +89,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
         }
 
         when:
-        configurationCacheRun("--parallel", *(tasks as String[]))
+        configurationCacheRun(tasks as String[])
 
         then:
         if (projects) {
