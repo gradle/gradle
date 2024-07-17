@@ -25,8 +25,8 @@ import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.HtmlReportWriter
-import org.gradle.internal.cc.impl.problems.JsonModelWriterCommon
 import org.gradle.internal.cc.impl.problems.JsonSource
+import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.cc.impl.problems.ProblemSeverity
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
@@ -143,8 +143,7 @@ class CommonReport(
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            private val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedReportProblem
+            private val groovyJsonClassLoader: ClassLoader
         ) : State() {
 
             private
@@ -164,7 +163,7 @@ class CommonReport(
             }
 
             private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
-                val htmlReportTemplate = HtmlReportTemplate()
+                val htmlReportTemplate = HtmlReportTemplate().load()
                 val hashingWriter = hashingStream.writer()
                 val jsonModelWriter = JsonModelWriter(JsonWriter(hashingWriter))
                 return HtmlReportWriter(hashingWriter, htmlReportTemplate, jsonModelWriter)
@@ -251,24 +250,12 @@ class CommonReport(
 
     private
     var state: State = State.Idle { problem ->
-        val htmlReportTemplate = HtmlReportTemplate()
-        val reportDescription = reportFileName.replace(" ", "-")
-        val spoolFile = temporaryFileProvider.createTemporaryFile(reportDescription, ".html")
-
-        val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
-
-        val streamWriter = hashingStream.writer()
-        val jsonWriter = JsonModelWriter(JsonModelWriterCommon(streamWriter))
-
-        val writer = HtmlReportWriter(streamWriter, htmlReportTemplate.load(), jsonWriter)
 
         State.Spooling(
-            reportDescription,
+            temporaryFileProvider,
+            reportFileName.replace(" ", "-"),
             executorFactory.create("${reportFileName.toCapitalized()} writer", 1),
-            CharBuf::class.java.classLoader,
-            writer,
-            hashingStream,
-            spoolFile
+            CharBuf::class.java.classLoader
         ).onDiagnostic(problem)
     }
 

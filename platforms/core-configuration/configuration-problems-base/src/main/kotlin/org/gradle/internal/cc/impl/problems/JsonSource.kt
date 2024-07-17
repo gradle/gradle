@@ -17,5 +17,5 @@
 package org.gradle.internal.cc.impl.problems
 
 interface JsonSource{
-    fun writeToJson(jsonWriter: JsonModelWriterCommon)
+    fun writeToJson(jsonWriter: JsonWriter)
 }

@@ -28,7 +28,7 @@ import java.io.Writer
  */
 class HtmlReportWriter(
     private val writer: Writer,
-    private val htmlTemplate: Pair<String,String>,
+    private val htmlTemplate: Pair<String, String>,
     val jsonModelWriter: JsonModelWriter
 ) {
 

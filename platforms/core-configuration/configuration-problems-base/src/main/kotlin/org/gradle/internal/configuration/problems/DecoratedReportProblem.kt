@@ -16,8 +16,8 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.cc.impl.problems.JsonModelWriterCommon
 import org.gradle.internal.cc.impl.problems.JsonSource
+import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.FailurePrinterListener
@@ -34,7 +34,7 @@ data class DecoratedReportProblem(
 
 
 final class DecoratedReportProblemJsonSource(val problem: DecoratedReportProblem) : JsonSource {
-    override fun writeToJson(jsonWriter: JsonModelWriterCommon) {
+    override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
                 property("trace") {
@@ -56,7 +56,7 @@ final class DecoratedReportProblemJsonSource(val problem: DecoratedReportProblem
     }
 
     private
-    fun JsonModelWriterCommon.writePropertyTrace(trace: PropertyTrace) {
+    fun JsonWriter.writePropertyTrace(trace: PropertyTrace) {
         when (trace) {
             is PropertyTrace.Property -> {
                 when (trace.kind) {
@@ -118,13 +118,13 @@ final class DecoratedReportProblemJsonSource(val problem: DecoratedReportProblem
         }
     }
 
-    private fun JsonModelWriterCommon.kind(trace: PropertyTrace.Property) {
+    private fun JsonWriter.kind(trace: PropertyTrace.Property) {
         property("kind", trace.kind.name)
         property("name", trace.name)
     }
 }
 
-fun JsonModelWriterCommon.writeError(failure: DecoratedFailure) {
+fun JsonWriter.writeError(failure: DecoratedFailure) {
     property("error") {
         jsonObject {
             failure.summary?.let {

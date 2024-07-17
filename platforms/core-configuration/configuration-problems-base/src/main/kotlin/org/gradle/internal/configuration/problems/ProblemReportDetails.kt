@@ -17,12 +17,12 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.cc.impl.problems.JsonModelWriterCommon
 import org.gradle.internal.cc.impl.problems.JsonSource
+import org.gradle.internal.cc.impl.problems.JsonWriter
 
 
 data class ProblemReportDetails(
-    val buildDisplayName: String,
+    val buildDisplayName: String?,
     val cacheAction: String,
     val cacheActionDescription: StructuredMessage,
     val requestedTasks: String?,
@@ -31,14 +31,12 @@ data class ProblemReportDetails(
 
 
 class ProblemReportDetailsJsonSource(val details: ProblemReportDetails) : JsonSource {
-    override fun writeToJson(jsonWriter: JsonModelWriterCommon) {
+    override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
-            property("totalProblemCount"){
+            property("totalProblemCount") {
                 write(details.totalProblemCount.toString())
             }
-            details.buildDisplayName?.let {
-                property("buildName", it)
-            }
+            details.buildDisplayName?.let { property("buildName", it) }
             details.requestedTasks?.let {
                 property("requestedTasks", it)
             }

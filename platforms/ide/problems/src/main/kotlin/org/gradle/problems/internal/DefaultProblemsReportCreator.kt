@@ -24,8 +24,8 @@ import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.Problem
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
-import org.gradle.internal.cc.impl.problems.JsonModelWriterCommon
 import org.gradle.internal.cc.impl.problems.JsonSource
+import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.FailureDecorator
@@ -61,13 +61,11 @@ class DefaultProblemsReportCreator(
 
     override fun report(reportDir: File, validationFailures: ProblemReporter.ProblemConsumer) {
         report.writeReportFileTo(reportDir, object : JsonSource {
-            override fun writeToJson(jsonWriter: JsonModelWriterCommon) {
+            override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
                     property("reportContext", "problems report")
                     property("totalProblemCount", problemCount.toString())
-                    buildNameProvider.buildName?.let {
-                        property("buildName", it)
-                    }
+                    buildNameProvider.buildName()?.let { property("buildName", it) }
                     property("requestedTasks", taskNames.joinToString(" "))
                     property("cacheAction", "cacheAction")
                     property("cacheActionDescription") {
@@ -86,7 +84,7 @@ class DefaultProblemsReportCreator(
     override fun emit(problem: Problem, id: OperationIdentifier?) {
         problemCount++
         report.onProblem(object : JsonSource {
-            override fun writeToJson(jsonWriter: JsonModelWriterCommon) {
+            override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
                     jsonObject {
                         property("trace") {
