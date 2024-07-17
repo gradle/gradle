@@ -95,7 +95,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val buildConventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
@@ -125,7 +125,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         if (target is Settings) {
             val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
             accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
-                buildConventions.add(ProjectSchemaEntry(typeOfBuildConventions, schema.name, schema.publicType))
+                buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
             }
         }
         if (target is NamedDomainObjectContainer<*>) {
@@ -142,7 +142,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         conventions,
         tasks,
         containerElements,
-        buildConventions
+        buildModelDefaults
     )
 }
 
@@ -321,7 +321,7 @@ val typeOfTaskContainer = typeOf<TaskContainer>()
 
 
 private
-val typeOfBuildConventions = typeOf<SharedModelDefaults>()
+val typeOfModelDefaults = typeOf<SharedModelDefaults>()
 
 
 internal

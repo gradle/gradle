@@ -63,7 +63,7 @@ sealed interface ErrorReason {
 class DefaultOperationGenerationId(override val ordinal: Int) : OperationGenerationId {
     companion object {
         val preExisting = DefaultOperationGenerationId(-1)
-        val convention = DefaultOperationGenerationId(0)
+        val defaults = DefaultOperationGenerationId(0)
         val finalEvaluation = DefaultOperationGenerationId(1)
     }
 

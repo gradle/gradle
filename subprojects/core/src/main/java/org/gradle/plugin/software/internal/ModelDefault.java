@@ -27,6 +27,6 @@ public interface ModelDefault<T extends ModelDefault.Visitor<?>> {
     void visit(T visitor);
 
     interface Visitor<U> {
-        void apply(U convention);
+        void apply(U modelDefault);
     }
 }

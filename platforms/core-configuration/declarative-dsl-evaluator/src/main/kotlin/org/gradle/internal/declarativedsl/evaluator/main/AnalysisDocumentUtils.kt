@@ -31,14 +31,14 @@ import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialRe
 
 
 object AnalysisDocumentUtils {
-    fun documentWithConventions(conventionsSequenceResult: AnalysisSequenceResult, mainSequenceResult: AnalysisSequenceResult): DocumentOverlayResult? {
-        val usedConventions = mainSequenceResult.conventionsConsumingStep()?.stepResultOrPartialResult?.usedSoftwareTypeNames()
+    fun documentWithModelDefaults(modelDefaultsSequenceResult: AnalysisSequenceResult, mainSequenceResult: AnalysisSequenceResult): DocumentOverlayResult? {
+        val usedModelDefaults = mainSequenceResult.modelDefaultsConsumingStep()?.stepResultOrPartialResult?.usedSoftwareTypeNames()
             ?: return null
 
-        val conventions = conventionsSequenceResult.extractConventionsDocument(usedConventions) ?: return null
-        val conventionsConsumingDocument = mainSequenceResult.conventionsConsumingDocument() ?: return null
+        val modelDefaults = modelDefaultsSequenceResult.extractModelDefaultsDocument(usedModelDefaults) ?: return null
+        val modelDefaultsConsumingDocument = mainSequenceResult.modelDefaultsConsumingDocument() ?: return null
 
-        return DocumentOverlay.overlayResolvedDocuments(conventions, conventionsConsumingDocument)
+        return DocumentOverlay.overlayResolvedDocuments(modelDefaults, modelDefaultsConsumingDocument)
     }
 
     fun AnalysisStepResult.resolvedDocument(): DocumentWithResolution {
@@ -51,19 +51,19 @@ object AnalysisDocumentUtils {
     fun AnalysisStepResult.usedSoftwareTypeNames(): Set<String> =
         findUsedSoftwareTypeNames(resolutionResult)
 
-    fun AnalysisSequenceResult.extractConventionsDocument(forSoftwareTypes: Set<String>): DocumentWithResolution? {
-        val conventionsStep = stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is DefineModelDefaults } }
-        val conventionsEvaluated = conventionsStep?.value
-        val originalDocument = conventionsEvaluated?.stepResultOrPartialResult?.resolvedDocument()
+    fun AnalysisSequenceResult.extractModelDefaultsDocument(forSoftwareTypes: Set<String>): DocumentWithResolution? {
+        val modelDefaultsStep = stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is DefineModelDefaults } }
+        val modelDefaultsEvaluated = modelDefaultsStep?.value
+        val originalDocument = modelDefaultsEvaluated?.stepResultOrPartialResult?.resolvedDocument()
             ?: return null
         val transformedDocument = ModelDefaultsDocumentTransformation.extractDefaults(originalDocument.document, originalDocument.resolutionContainer, forSoftwareTypes)
         return DocumentWithResolution(transformedDocument, originalDocument.resolutionContainer)
     }
 
-    fun AnalysisSequenceResult.conventionsConsumingDocument(): DocumentWithResolution? =
-        conventionsConsumingStep()?.stepResultOrPartialResult?.resolvedDocument()
+    fun AnalysisSequenceResult.modelDefaultsConsumingDocument(): DocumentWithResolution? =
+        modelDefaultsConsumingStep()?.stepResultOrPartialResult?.resolvedDocument()
 
     private
-    fun AnalysisSequenceResult.conventionsConsumingStep(): EvaluationResult<AnalysisStepResult>? =
+    fun AnalysisSequenceResult.modelDefaultsConsumingStep(): EvaluationResult<AnalysisStepResult>? =
         stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is ApplyModelDefaults } }?.value
 }

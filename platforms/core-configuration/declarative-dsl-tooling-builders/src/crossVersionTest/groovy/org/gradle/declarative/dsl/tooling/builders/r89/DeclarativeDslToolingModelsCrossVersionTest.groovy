@@ -154,7 +154,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             }
             unresolvedToTestErrorHandling()
             """,
-            AnalysisDocumentUtils.INSTANCE.documentWithConventions(settingsWithErrors, projectWithErrors).document
+            AnalysisDocumentUtils.INSTANCE.documentWithModelDefaults(settingsWithErrors, projectWithErrors).document
         )
     }
 
