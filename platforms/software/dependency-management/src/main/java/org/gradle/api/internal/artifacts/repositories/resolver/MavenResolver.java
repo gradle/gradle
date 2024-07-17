@@ -47,10 +47,14 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MavenResolver extends ExternalResourceResolver {
+    private final static Map<URI, URI> URI_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
     private final URI root;
     private final MavenMetadataLoader mavenMetaDataLoader;
 
@@ -83,7 +87,7 @@ public class MavenResolver extends ExternalResourceResolver {
             injector,
             checksumService);
         this.mavenMetaDataLoader = mavenMetadataLoader;
-        this.root = rootUri;
+        this.root = URI_CACHE.computeIfAbsent(rootUri, u -> rootUri);
     }
 
     @Override
