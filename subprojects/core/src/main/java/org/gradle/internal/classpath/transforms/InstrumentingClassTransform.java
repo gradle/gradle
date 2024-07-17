@@ -28,6 +28,7 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
@@ -94,6 +95,7 @@ public class InstrumentingClassTransform implements ClassTransform {
 
     private final JvmBytecodeInterceptorSet externalInterceptors;
     private final MethodInterceptionListener methodInterceptionListener;
+    private final InstrumentationMetadata instrumentationMetadata;
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -102,16 +104,17 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(INSTRUMENTATION_ONLY);
+        this(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
     }
 
-    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter) {
-        this(interceptorFilter, MethodInterceptionListener.NO_OP);
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, InstrumentationTypeRegistry typeRegistry) {
+        this(interceptorFilter, typeRegistry, MethodInterceptionListener.NO_OP);
     }
 
-    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, MethodInterceptionListener methodInterceptionListener) {
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, InstrumentationTypeRegistry typeRegistry, MethodInterceptionListener methodInterceptionListener) {
         this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorFilter);
         this.methodInterceptionListener = methodInterceptionListener;
+        this.instrumentationMetadata = (type, superType) -> typeRegistry.getSuperTypes(type).contains(superType);
     }
 
     private BytecodeInterceptorFilter interceptorFilter() {
@@ -125,7 +128,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
         // TODO(mlopatkin) can we reuse interceptors in a bigger scope, not per class, but per artifact?
-        List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(classData);
+        List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(instrumentationMetadata);
         if (interceptorFilter().matches(ADHOC_INTERCEPTORS)) {
             interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 1).add(ADHOC_INTERCEPTORS).addAll(interceptors).build();
         }

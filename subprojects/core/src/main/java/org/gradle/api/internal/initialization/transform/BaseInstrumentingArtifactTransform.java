@@ -34,7 +34,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -104,11 +103,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     private void doTransform(File input, TransformOutputs outputs, Function<String, String> instrumentedEntryNameMapper) {
         String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
         File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
-        try (InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter(outputs)) {
-            InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
-            InstrumentingClassTransform classTransform = typeRegistryAndFilter.getClassTransform();
+        try (InstrumentingClassTransformProvider provider = instrumentingClassTransformProvider(outputs)) {
+            InstrumentingClassTransform classTransform = provider.getClassTransform();
             ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
-            ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform, typeRegistry);
+            ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform);
             transform.transform(output);
         }
     }
@@ -135,10 +133,9 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         }
     }
 
-    protected abstract InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter(TransformOutputs outputs);
+    protected abstract InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs);
 
-    protected interface InterceptorTypeRegistryAndFilter extends AutoCloseable {
-        InstrumentationTypeRegistry getRegistry();
+    protected interface InstrumentingClassTransformProvider extends AutoCloseable {
         InstrumentingClassTransform getClassTransform();
 
         @Override

@@ -147,17 +147,17 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     private void instrument(File sourceDir, File destination, File propertyUpgradeReport) {
-        ClasspathElementTransform transform;
         if (isProviderUpgradeReportEnabled) {
             File source = this.source.getResource().getFile();
             try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
-                InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_AND_BYTECODE_REPORT, methodInterceptionListener);
-                transform = transformFactory.createTransformer(sourceDir, classTransform, gradleCoreTypeRegistry);
+                // TODO: Using gradleCoreTypeRegistry means we won't detect user types that extend from Gradle types, fix that
+                InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_AND_BYTECODE_REPORT, gradleCoreTypeRegistry, methodInterceptionListener);
+                ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, classTransform);
                 transform.transform(destination);
             }
         } else {
-            InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_ONLY);
-            transform = transformFactory.createTransformer(sourceDir, classTransform, InstrumentationTypeRegistry.EMPTY);
+            InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
+            ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, classTransform);
             transform.transform(destination);
         }
     }

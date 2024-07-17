@@ -20,13 +20,11 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.transforms.ClassTransform;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
@@ -36,19 +34,16 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
     private final ClassTransform transform;
     private final Predicate<String> shouldLoadTransformedClass;
     private final ClassLoader source;
-    private final InstrumentationTypeRegistry typeRegistry;
 
     TestInstrumentedClassLoader(
         ClassLoader source,
         Predicate<String> shouldLoadTransformedClass,
-        ClassTransform transform,
-        InstrumentationTypeRegistry typeRegistry
+        ClassTransform transform
     ) {
         super("test-transformed-loader", source, Collections.emptyList());
         this.shouldLoadTransformedClass = shouldLoadTransformedClass;
         this.transform = transform;
         this.source = source;
-        this.typeRegistry = typeRegistry;
     }
 
     @Override
@@ -99,9 +94,7 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         Pair<RelativePath, ClassVisitor> pathAndVisitor;
         try {
-            // This is just a guess, but it's good enough for these tests
-            File source = classEntry.getPath().getFile(new File("."));
-            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, source, classEntry.getPath(), bytes, typeRegistry));
+            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, bytes));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

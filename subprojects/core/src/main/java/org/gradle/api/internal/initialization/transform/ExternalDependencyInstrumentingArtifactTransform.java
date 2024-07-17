@@ -74,20 +74,16 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     @Override
-    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter(TransformOutputs outputs) {
-        return new InterceptorTypeRegistryAndFilter() {
+    protected InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs) {
+        return new InstrumentingClassTransformProvider() {
             @Override
-            public InstrumentationTypeRegistry getRegistry() {
-                return PropertiesBackedInstrumentationTypeRegistry.of(() -> {
+            public InstrumentingClassTransform getClassTransform() {
+                InstrumentationTypeRegistry typeRegistry = PropertiesBackedInstrumentationTypeRegistry.of(() -> {
                     File analysisFile = getInput().get().getAsFile();
                     InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
                     return serializer.readDependencyAnalysis(analysisFile).getDependencies();
                 });
-            }
-
-            @Override
-            public InstrumentingClassTransform getClassTransform() {
-                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE);
+                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE, typeRegistry);
             }
 
             @Override
