@@ -97,15 +97,20 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         while (true) {
             when (val input = read()) {
                 null -> break
+                is ProjectSpecificFingerprint.ProjectIdentity -> {
+                    val state = projects.entryFor(input.identityPath)
+                    state.buildPath = input.buildPath
+                    state.projectPath = input.projectPath
+                }
                 is ProjectSpecificFingerprint.ProjectFingerprint -> {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
-                    val state = projects.entryFor(input.projectPath)
+                    val state = projects.entryFor(input.projectIdentityPath)
                     if (!state.isInvalid) {
                         val reason = check(input.value)
                         if (reason != null) {
                             if (firstInvalidatedPath == null) {
-                                firstInvalidatedPath = input.projectPath
+                                firstInvalidatedPath = input.projectIdentityPath
                             }
                             state.invalidate(reason)
                         }
@@ -133,17 +138,26 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         return if (firstInvalidatedPath == null) {
             CheckedFingerprint.Valid
         } else {
-            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues { it.value.invalidationReason }
+            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
+                it.value.toProjectInvalidationData()
+            }
             CheckedFingerprint.ProjectsInvalid(firstInvalidatedPath, invalidatedProjects)
         }
     }
 
     suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
         while (true) {
+            // TODO(mlopatkin): this implementation duplicates some inputs, e.g. a build file input is stored even if the project is reused.
             when (val input = read()) {
                 null -> break
+
+                is ProjectSpecificFingerprint.ProjectIdentity ->
+                    if (reusedProjects.contains(input.identityPath)) {
+                        consumer.accept(input)
+                    }
+
                 is ProjectSpecificFingerprint.ProjectFingerprint ->
-                    if (reusedProjects.contains(input.projectPath)) {
+                    if (reusedProjects.contains(input.projectIdentityPath)) {
                         consumer.accept(input)
                     }
 
@@ -422,6 +436,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     private
     class ProjectInvalidationState(private val identityPath: Path) {
+        var buildPath: Path? = null
+        var projectPath: Path? = null
+
         // When not null, the project is definitely invalid
         // When null, validity is not known
         private
@@ -464,6 +481,18 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 reference(identityPath.toString())
                 text(" has changed")
             }
+        }
+
+        fun toProjectInvalidationData(): CheckedFingerprint.ProjectInvalidationData {
+            val buildPath = this.buildPath
+            val projectPath = this.projectPath
+            require(buildPath != null) {
+                "buildPath for project $identityPath wasn't loaded from the fingerprint"
+            }
+            require(projectPath != null) {
+                "projectPath for project $identityPath wasn't loaded from the fingerprint"
+            }
+            return CheckedFingerprint.ProjectInvalidationData(buildPath, projectPath, invalidationReason)
         }
     }
 }

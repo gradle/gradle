@@ -85,7 +85,7 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
          * All invalidated project have entries in this list, however, not all invalidation reasons may be listed.
          * <p>
          * The first invalidation of the first project in the list is what Gradle shows to the user.
-         * The rest of the invalidated projects follows, ordered by the {@link ProjectInvalidationReasons#getIdentityPath()}.
+         * The rest of the invalidated projects follows, ordered by the {@link ProjectInvalidationReasons#getBuildPath()}, then {@link ProjectInvalidationReasons#getProjectPath()}.
          *
          * @return a list of invalidation projects with their invalidation reasons
          * @since 8.10
@@ -123,12 +123,20 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
      */
     public interface ProjectInvalidationReasons {
         /**
-         * Returns the identity path of the invalidated project.
+         * Returns the build path of the invalidated project.
          *
-         * @return the identity path
+         * @return the build path
          * @since 8.10
          */
-        String getIdentityPath();
+        String getBuildPath();
+
+        /**
+         * Returns the project path of the invalidated project within the build.
+         *
+         * @return the project path
+         * @since 8.10
+         */
+        String getProjectPath();
 
         /**
          * Returns the list of invalidation reasons. At least one invalidation is always present.

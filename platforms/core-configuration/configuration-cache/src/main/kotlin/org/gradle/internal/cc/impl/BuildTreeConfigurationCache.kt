@@ -56,9 +56,9 @@ interface BuildTreeConfigurationCache {
     /**
      * Loads a cached intermediate model, if available, or else runs the given function to create it and then writes the result to the cache.
      *
-     * @param identityPath The project for which the model should be created, or null for a build scoped model.
+     * @param project The project for which the model should be created, or null for a build scoped model.
      */
-    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T?
+    fun <T> loadOrCreateIntermediateModel(project: ProjectIdentityPath?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T?
 
     /**
      * Loads cached dependency resolution metadata for the given project, if available, or else runs the given function to create it and then writes the result to the cache.

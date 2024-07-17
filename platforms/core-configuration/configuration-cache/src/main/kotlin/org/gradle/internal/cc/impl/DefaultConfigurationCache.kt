@@ -209,8 +209,8 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
+    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentityPath?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+        return intermediateModels.loadOrCreateIntermediateModel(project, modelName, parameter, creator)
     }
 
     // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store

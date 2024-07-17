@@ -132,12 +132,12 @@ class FingerprintCheckResult(
             is CheckedFingerprint.ProjectsInvalid -> {
                 buildList(checkResult.invalidProjects.size) {
                     // First reason is shown to the user.
-                    add(ProjectInvalidationReasonsImpl(checkResult.firstInvalidated, checkResult.firstReason))
+                    add(ProjectInvalidationReasonsImpl(checkResult.invalidProjects.getValue(checkResult.firstInvalidated)))
                     // The rest is in alphabetical order.
                     checkResult.invalidProjects.asSequence()
                         .filterNot { it.key == checkResult.firstInvalidated }
-                        .map { ProjectInvalidationReasonsImpl(it.key, it.value) }
-                        .sortedBy { it.identityPath }
+                        .map { ProjectInvalidationReasonsImpl(it.value) }
+                        .sortedWith(compareBy({ it.buildPath }, { it.projectPath }))
                         .forEach { add(it) }
                 }
             }
@@ -161,16 +161,20 @@ class FingerprintCheckResult(
 
     private
     data class ProjectInvalidationReasonsImpl(
-        private val identityPath: String,
+        private val buildPath: String,
+        private val projectPath: String,
         private val invalidationReasons: List<FingerprintInvalidationReason>
     ) : ProjectInvalidationReasons {
 
-        constructor(identityPath: Path, invalidationReason: StructuredMessage) : this(
-            identityPath.toString(),
-            listOf(FingerprintInvalidationReasonImpl(invalidationReason.toString()))
+        constructor(invalidation: CheckedFingerprint.ProjectInvalidationData) : this(
+            invalidation.buildPath.path,
+            invalidation.projectPath.path,
+            listOf(FingerprintInvalidationReasonImpl(invalidation.message.toString()))
         )
 
-        override fun getIdentityPath() = identityPath
+        override fun getBuildPath() = buildPath
+
+        override fun getProjectPath() = projectPath
 
         override fun getInvalidationReasons() = invalidationReasons
     }

@@ -122,7 +122,8 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
-                    identityPath: ":",
+                    buildPath: ":",
+                    projectPath: ":",
                     invalidationReasons: [
                         [message: "file 'build.gradle' has changed"]
                     ]
@@ -163,7 +164,8 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
-                    identityPath: ":a",
+                    buildPath: ":",
+                    projectPath: ":a",
                     invalidationReasons: [
                         [message: "file 'a/build.gradle' has changed"]
                     ]
@@ -207,13 +209,15 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
-                    identityPath: ":a",
+                    buildPath: ":",
+                    projectPath: ":a",
                     invalidationReasons: [
                         [message: "file 'a/build.gradle' has changed"]
                     ]
                 ],
                 [
-                    identityPath: ":b",
+                    buildPath: ":",
+                    projectPath: ":b",
                     invalidationReasons: [
                         [message: "file 'b/build.gradle' has changed"]
                     ]
@@ -258,13 +262,15 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
-                    identityPath: ":a",
+                    buildPath: ":",
+                    projectPath: ":a",
                     invalidationReasons: [
                         [message: "file 'a/build.gradle' has changed"]
                     ]
                 ],
                 [
-                    identityPath: ":b",
+                    buildPath: ":",
+                    projectPath: ":b",
                     invalidationReasons: [
                         [message: "project dependency ':a' has changed"]
                     ]
@@ -309,13 +315,15 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
-                    identityPath: ":b",
+                    buildPath: ":",
+                    projectPath: ":b",
                     invalidationReasons: [
                         [message: "file 'b/build.gradle' has changed"]
                     ]
                 ],
                 [
-                    identityPath: ":a",
+                    buildPath: ":",
+                    projectPath: ":a",
                     invalidationReasons: [
                         [message: "project dependency ':b' has changed"]
                     ]
@@ -356,7 +364,8 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             buildInvalidationReasons == []
             projectInvalidationReasons == [
                 [
-                    identityPath: ":a",
+                    buildPath: ":a",
+                    projectPath: ":",
                     invalidationReasons: [
                         [message: "file 'a/build.gradle' has changed"]
                     ]
