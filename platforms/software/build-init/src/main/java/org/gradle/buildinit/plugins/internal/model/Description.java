@@ -27,7 +27,6 @@ import java.util.TreeSet;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.KOTLINTEST;
@@ -67,7 +66,9 @@ public class Description {
     private final Language language;
     private final BuildInitTestFramework defaultTestFramework;
     private final Set<BuildInitTestFramework> supportedTestFrameworks;
-    private final Optional<String> pluginName;
+    @Nullable
+    private final String pluginName;
+    @Nullable
     private final String pluginVersionProperty;
     @Nullable
     private final String explicitPluginAlias;
@@ -83,7 +84,7 @@ public class Description {
         this.language = language;
         this.defaultTestFramework = defaultTestFramework;
         this.supportedTestFrameworks = new TreeSet<>(supportedTestFrameworks);
-        this.pluginName = ofNullable(pluginName);
+        this.pluginName = pluginName;
         this.pluginVersionProperty = pluginVersionProperty;
         this.explicitPluginAlias = explicitPluginAlias;
     }
@@ -101,7 +102,7 @@ public class Description {
     }
 
     public Optional<String> getPluginName() {
-        return pluginName;
+        return Optional.ofNullable(pluginName);
     }
 
     @Nullable
