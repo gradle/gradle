@@ -87,6 +87,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -157,6 +158,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 @SuppressWarnings("rawtypes")
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
+    private final static StringInterner STRING_INTERNER = new StringInterner();
+
     private final ConfigurationResolver resolver;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final DefaultDependencySet dependencies;
@@ -273,14 +276,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
+        String internedName = STRING_INTERNER.intern(name);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.identityPath = domainObjectContext.identityPath(name);
-        this.projectPath = domainObjectContext.projectPath(name);
-        this.name = name;
+        this.identityPath = domainObjectContext.identityPath(internedName);
+        this.projectPath = domainObjectContext.projectPath(internedName);
+        this.name = internedName;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
         this.dependencyLockingProvider = dependencyLockingProvider;
