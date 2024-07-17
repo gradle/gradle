@@ -22,6 +22,9 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A deeply immutable implementation of {@link CapabilitiesMetadata}.
@@ -34,12 +37,17 @@ import java.util.Collection;
  * subclassing should not break the immutability contract.
  */
 public class ImmutableCapabilities {
+    private static final Map<ImmutableCapability, ImmutableCapability> IMMUTABLE_CAPABILITY_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableSet.of());
 
     private final ImmutableSet<ImmutableCapability> capabilities;
 
     public ImmutableCapabilities(ImmutableSet<ImmutableCapability> capabilities) {
-        this.capabilities = capabilities;
+        ImmutableSet.Builder<ImmutableCapability> builder = ImmutableSet.builderWithExpectedSize(capabilities.size());
+        for (ImmutableCapability c : capabilities) {
+            builder.add(IMMUTABLE_CAPABILITY_CACHE.computeIfAbsent(c, x -> x));
+        }
+        this.capabilities = builder.build();
     }
 
     public static ImmutableCapabilities of(@Nullable Capability capability) {

@@ -442,7 +442,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration setDescription(@Nullable String description) {
-        this.description = description;
+        this.description = STRING_INTERNER.intern(description);
         return this;
     }
 

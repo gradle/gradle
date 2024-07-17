@@ -87,7 +87,7 @@ public class MavenResolver extends ExternalResourceResolver {
             injector,
             checksumService);
         this.mavenMetaDataLoader = mavenMetadataLoader;
-        this.root = URI_CACHE.computeIfAbsent(rootUri, u -> rootUri);
+        this.root = URI_CACHE.computeIfAbsent(rootUri, r -> r);
     }
 
     @Override
