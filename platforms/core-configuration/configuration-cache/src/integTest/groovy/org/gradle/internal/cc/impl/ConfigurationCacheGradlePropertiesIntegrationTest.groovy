@@ -51,7 +51,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         then:
         outputContains '2!'
-        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed."
+        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed: values for [${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp] were changed."
         configurationCache.assertStateStored()
 
         when:
@@ -59,7 +59,30 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         then:
         outputContains '2!'
-        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed."
+        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed: [${SYSTEM_PROJECT_PROPERTIES_PREFIX}unusedProp] were added."
+        configurationCache.assertStateStored()
+    }
+
+    def "invalidates cache when set of Gradle property defining system properties has multiple changes"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            println(forChange + '!')
+        """
+
+        when:
+        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange=1", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove1=2", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove2=3"
+
+        then:
+        outputContains '1!'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange=4", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd1=5", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd2=6"
+
+        then:
+        outputContains '4!'
+        output.matches(/(?s).*because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed: values for \[${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange\] were changed, \[${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd\d, ${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd\d\] were added, \[${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove\d, ${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove\d] were removed.*/)
         configurationCache.assertStateStored()
     }
 
@@ -98,7 +121,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         then:
         outputContains '2!'
-        outputContains "because the set of environment variables prefixed by '$ENV_PROJECT_PROPERTIES_PREFIX' has changed."
+        outputContains "because the set of environment variables prefixed by '$ENV_PROJECT_PROPERTIES_PREFIX' has changed: values for [${ENV_PROJECT_PROPERTIES_PREFIX}gradleProp] were changed."
         configurationCache.assertStateStored()
 
         when: 'the set of prefixed environment variables changes'
@@ -110,7 +133,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         then: 'the cache is invalidated'
         outputContains '2!'
-        outputContains "because the set of environment variables prefixed by '${ENV_PROJECT_PROPERTIES_PREFIX}' has changed."
+        outputContains "because the set of environment variables prefixed by '${ENV_PROJECT_PROPERTIES_PREFIX}' has changed: [${ENV_PROJECT_PROPERTIES_PREFIX}unused] were added."
         configurationCache.assertStateStored()
     }
 
@@ -141,7 +164,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         then:
         outputContains '2!'
         configurationCache.assertStateStored()
-        outputContains "because the set of Gradle properties has changed."
+        outputContains "because the set of Gradle properties has changed: values for [gradleProp] were changed, [unusedProperty] were added."
 
         where:
         dynamicPropertyExpression << [

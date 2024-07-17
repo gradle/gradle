@@ -293,9 +293,9 @@ class ConfigurationCacheFixture {
 
         def messages = reasons.collect { reason ->
             if (details.runsTasks) {
-                "Calculating task graph as configuration cache cannot be reused because $reason has changed."
+                "Calculating task graph as configuration cache cannot be reused because $reason has changed"
             } else {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed."
+                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
             }
         }
 

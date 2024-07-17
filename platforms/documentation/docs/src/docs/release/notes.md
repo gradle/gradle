@@ -64,7 +64,7 @@ nothing that affects the build configuration has changed.
 TBD:
 - Incompatible tasks tab
 - Copy experience
-- Invalidation reason
+- Invalidation reason (+ message improvements?)
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

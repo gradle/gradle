@@ -16,8 +16,8 @@
 
 package org.gradle.internal.cc.impl.inputs.undeclared
 
-import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 
 class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def 'can ignore a file system check configuration input'() {
@@ -72,7 +72,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         configurationCacheRun("-D$IGNORE_FS_CHECKS_PROPERTY=test")
 
         then:
-        outputContains("the set of paths ignored in file-system-check input tracking has changed")
+        outputContains("the set of paths ignored in file-system-check input tracking (${IGNORE_FS_CHECKS_PROPERTY}) has changed")
     }
 
     private static final String IGNORE_FS_CHECKS_PROPERTY = StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME
