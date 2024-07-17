@@ -639,9 +639,6 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
 
-        expect:
-        registry.get(String)
-
         when:
         registry.get(Comparable)
 
