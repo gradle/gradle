@@ -140,8 +140,7 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(@Nullable String comment, String pluginId) {
-        block.plugins.add(new PluginSpec(pluginId, null, comment));
-        return this;
+        return plugin(comment, pluginId, null, null);
     }
 
     /**
