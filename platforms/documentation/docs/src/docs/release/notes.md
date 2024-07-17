@@ -58,6 +58,8 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 With this release, Gradle supports running on [Java 23](https://jdk.java.net/23/).
 This means you can now use Java 23 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
 
+Certain features that rely on third-party tools, such as PMD and Scala support, may not work with Java 23.
+
 For details, see the full [compatibility documentation](userguide/compatibility.html#java).
 
 <a name="config-cache"></a>
