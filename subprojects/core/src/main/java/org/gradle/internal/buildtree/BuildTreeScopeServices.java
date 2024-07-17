@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -166,7 +167,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected MethodInterceptionReportCollector createMethodInterceptionReportCollector() {
-        return new DefaultMethodInterceptionReportCollector();
+    protected MethodInterceptionReportCollector createMethodInterceptionReportCollector(StartParameterInternal startParameter) {
+        return startParameter.isPropertyUpgradeReportEnabled() ? new DefaultMethodInterceptionReportCollector() : MethodInterceptionReportCollector.NO_OP;
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -36,6 +37,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
@@ -43,12 +45,14 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation.Output
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -109,7 +113,10 @@ class StandardKotlinScriptEvaluator(
     private val inputFingerprinter: InputFingerprinter,
     private val internalOptions: InternalOptions,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
+    private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
+    private val startParameterInternal: StartParameterInternal,
+    private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
+    private val methodInterceptionReportCollector: MethodInterceptionReportCollector
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -261,7 +268,7 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost)
+            val output = executionEngineFor(scriptHost)
                 .createRequest(
                     KotlinScriptCompilationAndInstrumentation(
                         programId,
@@ -273,12 +280,16 @@ class StandardKotlinScriptEvaluator(
                         fileCollectionFactory,
                         inputFingerprinter,
                         internalOptions,
-                        transformFactoryForLegacy
+                        transformFactoryForLegacy,
+                        startParameterInternal,
+                        gradleCoreTypeRegistry
                     )
                 )
                 .execute()
-                .getOutputAs(File::class.java)
+                .getOutputAs(Output::class.java)
                 .get()
+            methodInterceptionReportCollector.collect(output.propertyUpgradeReport)
+            output.instrumentedOutput
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -365,9 +376,12 @@ class StandardKotlinScriptEvaluator(
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
         transformFactory: ClasspathElementTransformFactoryForLegacy,
+        startParameterInternal: StartParameterInternal,
+        gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
+        isPropertyUpgradeReportEnabled: Boolean = startParameterInternal.isPropertyUpgradeReportEnabled,
         private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
 
-    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
+    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, isPropertyUpgradeReportEnabled) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"
@@ -394,6 +408,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
+            super.visitIdentityInputs(visitor)
             visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }

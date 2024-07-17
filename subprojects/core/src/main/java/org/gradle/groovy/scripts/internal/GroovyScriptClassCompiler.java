@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -80,6 +81,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
+    private final GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry;
 
     public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
@@ -89,7 +91,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         ImmutableWorkspaceProvider workspaceProvider,
-        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry
     ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -99,6 +102,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceProvider = workspaceProvider;
         this.transformFactoryForLegacy = transformFactoryForLegacy;
+        this.gradleCoreTypeRegistry = gradleCoreTypeRegistry;
     }
 
     @Override
@@ -150,7 +154,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             fileCollectionFactory,
             inputFingerprinter,
             transformFactoryForLegacy,
-            scriptCompilationHandler
+            scriptCompilationHandler,
+            gradleCoreTypeRegistry
         );
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
@@ -208,6 +213,11 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
+        /**
+         * Disabled since we currently don't inspect the properties of the script.
+         */
+        private static final boolean IS_PROPERTY_UPGRADE_REPORT_ENABLED = false;
+
         private final String templateId;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
@@ -231,9 +241,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-            ScriptCompilationHandler scriptCompilationHandler
+            ScriptCompilationHandler scriptCompilationHandler,
+            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry
         ) {
-            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
+            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, IS_PROPERTY_UPGRADE_REPORT_ENABLED);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
@@ -255,6 +266,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
+            super.visitIdentityInputs(visitor);
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
             visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
@@ -270,7 +282,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         @Override
         public Object loadAlreadyProducedOutput(File workspace) {
-            File instrumentedJar = checkNotNull((File) super.loadAlreadyProducedOutput(workspace));
+            Output output = (Output) super.loadAlreadyProducedOutput(workspace);
+            File instrumentedJar = checkNotNull(output).getInstrumentedOutput();
             File metadataDir = metadataDir(workspace);
             return new GroovyScriptCompilationOutput(instrumentedJar, metadataDir);
         }
