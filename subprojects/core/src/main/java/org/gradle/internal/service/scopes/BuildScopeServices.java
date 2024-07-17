@@ -191,6 +191,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -510,7 +511,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         InputFingerprinter inputFingerprinter,
         GroovyDslWorkspaceProvider groovyDslWorkspaceProvider,
         ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry
+        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
         return new GroovyScriptClassCompiler(
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationRunner),
@@ -521,7 +523,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             inputFingerprinter,
             groovyDslWorkspaceProvider.getWorkspace(),
             transformFactoryForLegacy,
-            gradleCoreTypeRegistry
+            gradleCoreTypeRegistry,
+            propertyUpgradeReportConfig
         );
     }
 

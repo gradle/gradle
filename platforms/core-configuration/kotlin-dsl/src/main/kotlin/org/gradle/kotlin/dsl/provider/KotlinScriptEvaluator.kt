@@ -46,6 +46,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -114,9 +115,8 @@ class StandardKotlinScriptEvaluator(
     private val internalOptions: InternalOptions,
     private val gradlePropertiesController: GradlePropertiesController,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
-    private val startParameterInternal: StartParameterInternal,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-    private val methodInterceptionReportCollector: MethodInterceptionReportCollector
+    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -282,14 +282,14 @@ class StandardKotlinScriptEvaluator(
                         inputFingerprinter,
                         internalOptions,
                         transformFactoryForLegacy,
-                        startParameterInternal,
-                        gradleCoreTypeRegistry
+                        gradleCoreTypeRegistry,
+                        propertyUpgradeReportConfig
                     )
                 )
                 .execute()
                 .getOutputAs(Output::class.java)
                 .get()
-            methodInterceptionReportCollector.collect(output.propertyUpgradeReport)
+            propertyUpgradeReportConfig.reportCollector.collect(output.propertyUpgradeReport)
             output.instrumentedOutput
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
@@ -378,12 +378,11 @@ class StandardKotlinScriptEvaluator(
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
         transformFactory: ClasspathElementTransformFactoryForLegacy,
-        startParameterInternal: StartParameterInternal,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-        isPropertyUpgradeReportEnabled: Boolean = startParameterInternal.isPropertyUpgradeReportEnabled,
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
         private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
 
-    ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, isPropertyUpgradeReportEnabled) {
+    ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, propertyUpgradeReportConfig) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"

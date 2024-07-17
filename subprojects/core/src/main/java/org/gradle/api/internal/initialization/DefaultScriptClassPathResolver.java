@@ -32,7 +32,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
@@ -46,7 +45,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
@@ -93,23 +92,22 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
-    private final MethodInterceptionReportCollector reportCollector;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
         Gradle gradle,
-        StartParameterInternal startParameter,
-        MethodInterceptionReportCollector reportCollector
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
         this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
         this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(
             agentStatus,
-            startParameter,
+            propertyUpgradeReportConfig,
             Lazy.atomic().of(gradle::getSharedServices)
         );
-        this.reportCollector = reportCollector;
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     @Override
@@ -157,7 +155,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 instrumentedProjectDependencies
             );
 
-            reportCollector.collect(instrumentedClasspath.getOrDefault(FileType.INTERCEPTED_METHODS_REPORT, Collections.emptyList()));
+            propertyUpgradeReportConfig.getReportCollector().collect(instrumentedClasspath.getOrDefault(FileType.INTERCEPTED_METHODS_REPORT, Collections.emptyList()));
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(FileType.ARTIFACT, Collections.emptyList()));
         }
     }

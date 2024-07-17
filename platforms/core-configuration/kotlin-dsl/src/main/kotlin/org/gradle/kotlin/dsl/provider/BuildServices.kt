@@ -38,6 +38,7 @@ import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -111,9 +112,8 @@ object BuildServices : ServiceRegistrationProvider {
         internalOptions: InternalOptions,
         gradlePropertiesController: GradlePropertiesController,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
-        startParameterInternal: StartParameterInternal,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-        methodInterceptionReportCollector: MethodInterceptionReportCollector
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -138,9 +138,8 @@ object BuildServices : ServiceRegistrationProvider {
             internalOptions,
             gradlePropertiesController,
             transformFactoryForLegacy,
-            startParameterInternal,
             gradleCoreTypeRegistry,
-            methodInterceptionReportCollector
+            propertyUpgradeReportConfig
         )
 
     @Provides

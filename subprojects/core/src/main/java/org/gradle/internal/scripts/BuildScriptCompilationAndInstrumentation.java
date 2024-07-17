@@ -34,6 +34,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -62,7 +63,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
     protected final FileCollectionFactory fileCollectionFactory;
     private final GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry;
-    private final boolean isProviderUpgradeReportEnabled;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public BuildScriptCompilationAndInstrumentation(
         ScriptSource source,
@@ -71,7 +72,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
         InputFingerprinter inputFingerprinter,
         ClasspathElementTransformFactoryForLegacy transformFactory,
         GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
-        boolean isProviderUpgradeReportEnabled
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
         this.source = source;
         this.workspaceProvider = workspaceProvider;
@@ -79,18 +80,20 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
         this.inputFingerprinter = inputFingerprinter;
         this.transformFactory = transformFactory;
         this.gradleCoreTypeRegistry = gradleCoreTypeRegistry;
-        this.isProviderUpgradeReportEnabled = isProviderUpgradeReportEnabled;
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     @Override
     public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-        return isProviderUpgradeReportEnabled ? Optional.of(CACHING_DISABLED_FOR_PROPERTY_REPORT) : Optional.empty();
+        // Disable caching always for property upgrade report,
+        // since there is not much use to cache report remotely, also report can contain absolute paths
+        return propertyUpgradeReportConfig.isEnabled() ? Optional.of(CACHING_DISABLED_FOR_PROPERTY_REPORT) : Optional.empty();
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
     public void visitIdentityInputs(InputVisitor visitor) {
-        visitor.visitInputProperty("isProviderUpgradeReportEnabled", () -> isProviderUpgradeReportEnabled);
+        visitor.visitInputProperty("isProviderUpgradeReportEnabled", propertyUpgradeReportConfig::isEnabled);
     }
 
     /**
@@ -147,7 +150,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     private void instrument(File sourceDir, File destination, File propertyUpgradeReport) {
-        if (isProviderUpgradeReportEnabled) {
+        if (propertyUpgradeReportConfig.isEnabled()) {
             File source = this.source.getResource().getFile();
             try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
                 // TODO: Using gradleCoreTypeRegistry means we won't detect user types that extend from Gradle types, fix that
