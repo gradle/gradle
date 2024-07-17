@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.configuration.problems
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.configuration.problems.writeStructuredMessage
+import org.gradle.internal.cc.impl.problems.JsonModelWriterCommon
+import org.gradle.internal.cc.impl.problems.JsonSource
 
 
 data class ProblemReportDetails(

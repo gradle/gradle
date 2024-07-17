@@ -37,6 +37,8 @@ import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParamet
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemReportDetails
+import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace

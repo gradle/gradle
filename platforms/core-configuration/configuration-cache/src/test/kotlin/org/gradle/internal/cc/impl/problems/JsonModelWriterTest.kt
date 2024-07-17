@@ -20,6 +20,8 @@ import JsonModelWriter
 import groovy.json.JsonSlurper
 import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import org.gradle.internal.configuration.problems.DecoratedReportProblemJsonSource
+import org.gradle.internal.configuration.problems.ProblemReportDetails
+import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.uncheckedCast
