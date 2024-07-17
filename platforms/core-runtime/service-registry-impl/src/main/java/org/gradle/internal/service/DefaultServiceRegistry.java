@@ -1139,6 +1139,15 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
+        public String getDisplayName() {
+            if (constructor == null) {
+                return super.getDisplayName();
+            }
+
+            return format("Service", serviceTypes) + " via " + format(getConstructor().getDeclaringClass()) + " constructor";
+        }
+
+        @Override
         protected String getFactoryDisplayName() {
             return String.format("%s constructor", format(getConstructor().getDeclaringClass()));
         }

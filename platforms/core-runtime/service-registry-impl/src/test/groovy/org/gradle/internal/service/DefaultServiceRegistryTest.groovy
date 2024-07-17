@@ -648,6 +648,26 @@ class DefaultServiceRegistryTest extends Specification {
    - Service String via DefaultServiceRegistryTest\$TestProvider.createString()""")
     }
 
+    def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceTypeViaConstructor() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings('unused')
+            void configure(ServiceRegistration registration) {
+                registration.add(TestServiceImpl)
+                registration.add(TestMultiServiceImpl)
+            }
+        })
+
+        when:
+        registry.get(TestService)
+
+        then:
+        def e = thrown(ServiceLookupException)
+        withoutTestClassName(e.message) == TextUtil.toPlatformLineSeparators("""Multiple services of type TestService available in DefaultServiceRegistry:
+   - Service TestMultiServiceImpl via TestMultiServiceImpl constructor
+   - Service TestServiceImpl via TestServiceImpl constructor""")
+    }
+
     def failsWhenArrayClassRequested() {
         when:
         registry.get(String[].class)
@@ -2127,5 +2147,9 @@ class DefaultServiceRegistryTest extends Specification {
     static class RequiresService {
         RequiresService(Number value) {
         }
+    }
+
+    private String withoutTestClassName(String s) {
+        s.replaceAll(this.class.simpleName + "\\\$", "")
     }
 }
