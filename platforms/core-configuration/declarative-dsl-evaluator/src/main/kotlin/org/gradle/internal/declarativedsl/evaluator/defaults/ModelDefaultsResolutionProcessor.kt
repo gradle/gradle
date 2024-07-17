@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
 /**
- * Processes a resolution result to extract the Software Type convention operations it defines.
+ * Processes a resolution result to extract the Software Type model defaults operations it defines.
  */
 internal
 object ModelDefaultsResolutionProcessor {

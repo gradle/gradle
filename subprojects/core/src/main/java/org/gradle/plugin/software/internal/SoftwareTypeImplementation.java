@@ -32,7 +32,7 @@ public interface SoftwareTypeImplementation<T> {
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
-    void addModelDefault(ModelDefault<?> convention);
+    void addModelDefault(ModelDefault<?> modelDefault);
 
     /**
      * Visits all model defaults of the given type with the provided visitor.

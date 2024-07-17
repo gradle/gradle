@@ -48,7 +48,7 @@ fun defaultsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): Evalua
     buildEvaluationSchema(
         DefaultsTopLevelReceiver::class,
         isTopLevelElement.implies(isDefaultsConfiguringCall),
-        operationGenerationId = DefaultOperationGenerationId.convention
+        operationGenerationId = DefaultOperationGenerationId.defaults
     ) {
         gradleDslGeneralSchema()
         dependencyCollectors()

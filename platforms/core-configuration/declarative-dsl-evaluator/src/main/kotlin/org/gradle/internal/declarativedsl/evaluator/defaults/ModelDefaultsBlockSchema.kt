@@ -31,7 +31,7 @@ interface DefaultsTopLevelReceiver {
 
 
 /**
- * A receiver for the conventions block.  Note that this class is only used to provide a receiver for custom accessors
+ * A receiver for the defaults block.  Note that this class is only used to provide a receiver for custom accessors
  * that expose the software types available in the build.
  */
 class DefaultsConfiguringBlock

@@ -22,7 +22,7 @@ import org.gradle.internal.Cast;
 import java.util.List;
 
 /**
- * Applies the conventions for a given software type to a target project if the provided plugin class is a software type plugin.
+ * Applies the model defaults for a given software type to a target project if the provided plugin class is a software type plugin.
  */
 public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     private final SoftwareTypeRegistry softwareTypeRegistry;

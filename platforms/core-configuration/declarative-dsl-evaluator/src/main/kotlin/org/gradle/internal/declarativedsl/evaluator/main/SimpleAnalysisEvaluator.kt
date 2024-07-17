@@ -51,17 +51,17 @@ class SimpleAnalysisEvaluator(
     val stepRunner = AnalysisStepRunner()
 
     private
-    val conventionStorage = ModelDefaultsStorage()
+    val modelDefaultsStorage = ModelDefaultsStorage()
 
     private
     val analysisContext = AnalysisStepContext(
         supportedDocumentChecks = emptyList(), // TODO: move the settings blocks check here,
         supportedResolutionResultHandlers = listOf(
-            ModelDefaultsDefinitionCollector(conventionStorage),
-            // Note that for this evaluator, which only analyzes the script (but does not apply conversion), we add the conventions
+            ModelDefaultsDefinitionCollector(modelDefaultsStorage),
+            // Note that for this evaluator, which only analyzes the script (but does not apply conversion), we add the model defaults
             // to the resolution result so that they are visible to clients after analysis.  We instead do this application as part
             // of the conversion step runner (during plugin application) for normal script evaluation.
-            AllSoftwareTypesApplyModelDefaultsHandler(conventionStorage)
+            AllSoftwareTypesApplyModelDefaultsHandler(modelDefaultsStorage)
         )
     )
 
