@@ -135,7 +135,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         Object target,
         String templateId,
         HashCode sourceHashCode,
-        RemappingScriptSource source,
+        RemappingScriptSource remappedSource,
         ClassLoader classLoader,
         CompileOperation<?> operation,
         Action<? super ClassNode> verifier,
@@ -145,7 +145,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             templateId,
             sourceHashCode,
             classLoader,
-            source,
+            remappedSource,
             operation,
             verifier,
             scriptBaseClass,
@@ -232,7 +232,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             String templateId,
             HashCode sourceHashCode,
             ClassLoader classLoader,
-            RemappingScriptSource source,
+            RemappingScriptSource remappedSource,
             CompileOperation<?> operation,
             Action<? super ClassNode> verifier,
             Class<? extends Script> scriptBaseClass,
@@ -244,12 +244,12 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             ScriptCompilationHandler scriptCompilationHandler,
             GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry
         ) {
-            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, IS_PROPERTY_UPGRADE_REPORT_ENABLED);
+            super(remappedSource.getSource(), workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, IS_PROPERTY_UPGRADE_REPORT_ENABLED);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-            this.source = source;
+            this.source = remappedSource;
             this.operation = operation;
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;

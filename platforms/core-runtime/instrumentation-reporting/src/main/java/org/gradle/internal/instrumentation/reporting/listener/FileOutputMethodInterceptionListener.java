@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.reporting.listener;
 
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -30,8 +31,10 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
 
     private final OnInterceptedMethodInsFormatter formatter;
     private final Writer writer;
+    private final File source;
 
-    public FileOutputMethodInterceptionListener(File output) {
+    public FileOutputMethodInterceptionListener(@Nullable File source, File output) {
+        this.source = source;
         try {
             this.writer = new OutputStreamWriter(Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -43,7 +46,7 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
     @Override
     public void onInterceptedMethodIns(BytecodeInterceptorType type, String sourceFileName, String relativePath, String owner, String name, String descriptor, int lineNumber) {
         try {
-            writer.write(formatter.format(sourceFileName, relativePath, owner, name, descriptor, lineNumber) + "\n");
+            writer.write(formatter.format(this.source, sourceFileName, relativePath, owner, name, descriptor, lineNumber) + "\n");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

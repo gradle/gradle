@@ -17,6 +17,7 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
@@ -55,6 +56,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
 
     private static final CachingDisabledReason CACHING_DISABLED_FOR_PROPERTY_REPORT = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of buildscript compilation disabled due for property upgrade report");
 
+    private final ScriptSource source;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
@@ -63,6 +65,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     private final boolean isProviderUpgradeReportEnabled;
 
     public BuildScriptCompilationAndInstrumentation(
+        ScriptSource source,
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
@@ -70,6 +73,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
         GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
         boolean isProviderUpgradeReportEnabled
     ) {
+        this.source = source;
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
@@ -145,7 +149,8 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     private void instrument(File sourceDir, File destination, File propertyUpgradeReport) {
         ClasspathElementTransform transform;
         if (isProviderUpgradeReportEnabled) {
-            try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(propertyUpgradeReport)) {
+            File source = this.source.getResource().getFile();
+            try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
                 InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_AND_BYTECODE_REPORT, methodInterceptionListener);
                 transform = transformFactory.createTransformer(sourceDir, classTransform, gradleCoreTypeRegistry);
                 transform.transform(destination);

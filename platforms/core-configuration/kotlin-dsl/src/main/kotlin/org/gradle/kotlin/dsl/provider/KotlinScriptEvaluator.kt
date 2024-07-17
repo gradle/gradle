@@ -271,6 +271,7 @@ class StandardKotlinScriptEvaluator(
             val output = executionEngineFor(scriptHost)
                 .createRequest(
                     KotlinScriptCompilationAndInstrumentation(
+                        scriptHost.scriptSource,
                         programId,
                         compilationClassPath,
                         accessorsClassPath,
@@ -366,6 +367,7 @@ class StandardKotlinScriptEvaluator(
 
     internal
     class KotlinScriptCompilationAndInstrumentation(
+        source: ScriptSource,
         private val programId: ProgramId,
         private val compilationClassPath: ClassPath,
         private val accessorsClassPath: ClassPath,
@@ -381,7 +383,7 @@ class StandardKotlinScriptEvaluator(
         isPropertyUpgradeReportEnabled: Boolean = startParameterInternal.isPropertyUpgradeReportEnabled,
         private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
 
-    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, isPropertyUpgradeReportEnabled) {
+    ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, isPropertyUpgradeReportEnabled) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"

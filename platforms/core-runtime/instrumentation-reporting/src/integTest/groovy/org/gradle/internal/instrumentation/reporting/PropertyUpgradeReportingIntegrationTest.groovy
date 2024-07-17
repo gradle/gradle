@@ -77,13 +77,13 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("--property-upgrade-report")
 
         then:
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(build.gradle.kts:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
 
         when: "From cache"
         run("--property-upgrade-report")
 
         then:
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(build.gradle.kts:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
     }
 
     @NotYetImplemented
