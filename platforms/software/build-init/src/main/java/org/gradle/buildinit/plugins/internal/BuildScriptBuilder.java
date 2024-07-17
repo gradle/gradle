@@ -1870,8 +1870,8 @@ public class BuildScriptBuilder {
         private String indent = "";
         private String eolComment = null;
         private int commentCount = 0;
-        private boolean needSeparatorLine = true;
-        private boolean firstStatementOfBlock = false;
+        private boolean needSeparatorLine = false;
+        private boolean firstStatementOfBlock = true;
         private boolean hasSeparatorLine = false;
 
         PrettyPrinter(Syntax syntax, PrintWriter writer, BuildInitComments comments) {
@@ -1898,6 +1898,9 @@ public class BuildScriptBuilder {
                 }
             }
             println(" */");
+
+            firstStatementOfBlock = false;
+            needSeparatorLine = true;
         }
 
         public void printBlock(String blockSelector, BlockBody blockBody) {
