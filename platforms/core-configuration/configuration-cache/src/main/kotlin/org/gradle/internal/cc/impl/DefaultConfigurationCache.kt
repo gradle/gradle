@@ -701,11 +701,15 @@ class DefaultConfigurationCache internal constructor(
         buildOperationExecutor.runAllWithAccessToProjectState {
             operations.forEach { add(it) }
         }
-        allPerProjectOriginalBuildIds.fold(allPerProjectOriginalBuildIds[0]) { s: String, s1: String ->
-            require(s == s1) {
-                "Multiple build ids"
+        // TODO-RC the number of build ids seen may be even 0, for instance, when only requesting buildSrc build tasks to run
+        // as they are not executed - see ConfigurationCacheIncludedBuildLogicIntegrationTest
+        if (allPerProjectOriginalBuildIds.size > 1) {
+            allPerProjectOriginalBuildIds.fold(allPerProjectOriginalBuildIds[0]) { s: String, s1: String ->
+                require(s == s1) {
+                    "Multiple build ids"
+                }
+                s
             }
-            s
         }
         var result: Pair<String, ScheduledWork>? = null
         buildOperationExecutor.runAllWithAccessToProjectState {
@@ -717,7 +721,7 @@ class DefaultConfigurationCache internal constructor(
 
                     host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
                         result = cacheIO.readRootBuildWorkEdgesFrom(baseStateFile.stateFileForWorkGraph(), allScheduledNodes, allNodesById)
-                        require(result!!.first == allPerProjectOriginalBuildIds[0]) {
+                        require(allPerProjectOriginalBuildIds.isEmpty() || result!!.first == allPerProjectOriginalBuildIds[0]) {
                             "Multiple build ids"
                         }
                     }
