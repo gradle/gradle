@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.reporting.listener;
 
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class BytecodeUpgradeReportMethodInterceptionListener implements MethodInterceptionListener, AutoCloseable {
@@ -25,11 +26,11 @@ public class BytecodeUpgradeReportMethodInterceptionListener implements MethodIn
     private final MethodInterceptionListener delegate;
 
     public BytecodeUpgradeReportMethodInterceptionListener(File output) {
-        this.delegate = new FileOutputMethodInterceptionListener(output);
+        this(null, output);
     }
 
-    public BytecodeUpgradeReportMethodInterceptionListener(MethodInterceptionListener delegate) {
-        this.delegate = delegate;
+    public BytecodeUpgradeReportMethodInterceptionListener(@Nullable File source, File output) {
+        this.delegate = new FileOutputMethodInterceptionListener(source, output);
     }
 
     @Override

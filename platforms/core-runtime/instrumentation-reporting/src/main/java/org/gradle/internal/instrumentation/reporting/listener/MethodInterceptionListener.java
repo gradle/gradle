@@ -22,8 +22,6 @@ public interface MethodInterceptionListener {
 
     MethodInterceptionListener NO_OP = (type, sourceFileName, relativePath, owner, name, descriptor, lineNumber) -> {};
 
-    MethodInterceptionListener OUTPUT_TO_CONSOLE = new ConsoleOutputInterceptionListener();
-
     void onInterceptedMethodIns(
         BytecodeInterceptorType type,
         String sourceFileName,
