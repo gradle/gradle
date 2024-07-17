@@ -57,8 +57,8 @@ import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
@@ -250,7 +250,7 @@ class DefaultConfigurationCacheIO internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String
     ): Pair<CloseableWriteContext, Codecs> =
-        KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
+        StringDeduplicatingKryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -272,7 +272,7 @@ class DefaultConfigurationCacheIO internal constructor(
         else inner()
 
     private
-    fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
+    fun loggingTracerFor(profile: () -> String, encoder: StringDeduplicatingKryoBackedEncoder) =
         loggingTracerLogLevel()?.let { level ->
             LoggingTracer(profile(), encoder::getWritePosition, logger, level)
         }
@@ -302,7 +302,7 @@ class DefaultConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
+        readContextFor(StringDeduplicatingKryoBackedDecoder(inputStreamFor(stateType, inputStream)))
             .let { (context, codecs) ->
                 context.useToRun {
                     runReadOperation {
