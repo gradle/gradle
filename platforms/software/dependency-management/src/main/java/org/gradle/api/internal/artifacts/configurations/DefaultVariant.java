@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class DefaultVariant implements ConfigurationVariantInternal {
+    private final static StringInterner STRING_INTERNER = new StringInterner();
     private final Describable parentDisplayName;
     private final String name;
     private final FreezableAttributeContainer attributes;
@@ -58,7 +60,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
                           DomainObjectCollectionFactory domainObjectCollectionFactory,
                           TaskDependencyFactory taskDependencyFactory) {
         this.parentDisplayName = parentDisplayName;
-        this.name = name;
+        this.name = STRING_INTERNER.intern(name);
         this.attributes = new FreezableAttributeContainer(cache.mutable(parentAttributes), parentDisplayName);
         this.artifactNotationParser = artifactNotationParser;
         artifacts = new DefaultPublishArtifactSet(getDisplayName(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
