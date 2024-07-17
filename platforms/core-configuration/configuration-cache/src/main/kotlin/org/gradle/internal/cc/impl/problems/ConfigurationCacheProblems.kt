@@ -34,6 +34,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
@@ -60,7 +61,7 @@ class ConfigurationCacheProblems(
     val startParameter: ConfigurationCacheStartParameter,
 
     private
-    val report: ConfigurationCacheReport,
+    val report: CommonReport,
 
     private
     val cacheKey: ConfigurationCacheKey,
@@ -236,7 +237,7 @@ class ConfigurationCacheProblems(
         else -> Severity.WARNING
     }
 
-    fun onIncompatibleTask(problem: PropertyProblem) {
+    private fun onIncompatibleTask(problem: PropertyProblem) {
         report.onIncompatibleTask(problem)
     }
 
@@ -272,7 +273,7 @@ class ConfigurationCacheProblems(
         val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, details)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)

@@ -16,7 +16,9 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.writeStructuredMessage
 
 
 data class ProblemReportDetails(
@@ -26,3 +28,25 @@ data class ProblemReportDetails(
     val requestedTasks: String?,
     val totalProblemCount: Int
 )
+
+
+class ProblemReportDetailsJsonSource(val details: ProblemReportDetails) : JsonSource {
+    override fun writeToJson(jsonWriter: JsonModelWriterCommon) {
+        with(jsonWriter) {
+            property("totalProblemCount"){
+                write(details.totalProblemCount.toString())
+            }
+            details.buildDisplayName?.let {
+                property("buildName", it)
+            }
+            details.requestedTasks?.let {
+                property("requestedTasks", it)
+            }
+            property("cacheAction", details.cacheAction)
+            property("cacheActionDescription") {
+                writeStructuredMessage(details.cacheActionDescription)
+            }
+            property("documentationLink", DocumentationRegistry().getDocumentationFor("configuration_cache"))
+        }
+    }
+}

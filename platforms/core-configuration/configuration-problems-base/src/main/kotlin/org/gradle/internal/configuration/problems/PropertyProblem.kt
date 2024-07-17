@@ -16,8 +16,8 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.DisplayName
+import org.gradle.internal.cc.impl.problems.JsonModelWriterCommon
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
@@ -56,8 +56,6 @@ enum class DocumentationSection(val anchor: String) {
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
 }
 
-fun documentationLinkFor(section: DocumentationSection) =
-    DocumentationRegistry().documentationLinkFor(section)
 
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
@@ -132,6 +130,19 @@ data class StructuredMessage(val fragments: List<Fragment>) {
         }
 
         fun build(): StructuredMessage = StructuredMessage(fragments.toList())
+    }
+}
+
+fun JsonModelWriterCommon.writeStructuredMessage(message: StructuredMessage) {
+    jsonObjectList(message.fragments) { fragment ->
+        writeFragment(fragment)
+    }
+}
+
+fun JsonModelWriterCommon.writeFragment(fragment: StructuredMessage.Fragment) {
+    when (fragment) {
+        is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
+        is StructuredMessage.Fragment.Text -> property("text", fragment.text)
     }
 }
 

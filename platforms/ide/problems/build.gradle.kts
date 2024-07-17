@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = """Problem SPI implementations.
@@ -47,16 +48,22 @@ tasks.processResources {
 }
 
 dependencies {
-    api(projects.problemsApi)
     api(projects.buildOperations)
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.buildOption)
     api(projects.concurrent)
-    api(projects.fileTemp)
     api(projects.configurationProblemsBase)
+    api(projects.core)
+    api(projects.fileTemp)
+    api(projects.loggingApi)
+    api(projects.problemsApi)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
+    api(libs.kotlinStdlib)
     api(libs.jsr305)
+
+    implementation(projects.logging)
+    implementation(projects.messaging)
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))

@@ -14,27 +14,8 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.cc.impl.problems
 
-import org.gradle.internal.cc.impl.problems.JsonWriter
-import org.gradle.internal.cc.impl.problems.JsonSource
-
-class JsonModelWriter(val modelWriter: JsonWriter) {
-    fun beginModel() {
-        with(modelWriter) {
-            beginObject()
-
-            propertyName("diagnostics")
-            beginArray()
-        }
-    }
-
-    fun endModel(details: JsonSource) {
-        with(modelWriter) {
-            endArray()
-
-            details.writeToJson(this)
-
-            endObject()
-        }
-    }
+interface JsonSource{
+    fun writeToJson(jsonWriter: JsonModelWriterCommon)
 }
