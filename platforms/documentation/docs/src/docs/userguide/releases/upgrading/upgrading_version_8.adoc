@@ -49,6 +49,20 @@ The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.10
 
 Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backwards compatibility.
 
+==== Gradle daemon JVM configuration via toolchain
+
+The type of the property `UpdateDaemonJvm.jvmVersion` is now `Property<JavaLanguageVersion>`.
+
+If you configured the task in a build script, you will need to replace:
+
+`jvmVersion = JavaVersion.VERSION_17`
+
+with:
+
+`jvmVersion = JavaLanguageVersion.of(17)`
+
+There is no impact when using the CLI options to configure which JVM version to use for the Gradle Daemon.
+
 === Deprecations
 
 [[deprecated_fork_options_java_home]]
