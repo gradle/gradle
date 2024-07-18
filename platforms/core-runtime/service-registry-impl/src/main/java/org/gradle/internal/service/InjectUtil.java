@@ -37,7 +37,9 @@ final class InjectUtil {
      */
     static Constructor<?> selectConstructor(final Class<?> type) {
         Constructor<?> result = CACHED_CONSTRUCTORS.get(type);
-        if (result != null) return result;
+        if (result != null) {
+            return result;
+        }
         if (isInnerClass(type)) {
             // The DI system doesn't support injecting non-static inner classes.
             throw new ServiceValidationException(
