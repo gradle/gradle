@@ -24,10 +24,9 @@ class ConfigurationCacheStringDeduplicationIntegrationTest extends AbstractConfi
     def "strings are deduplicated across projects"() {
         given:
         createDirs 'foo', 'bar'
-        settingsFile '''
+        settingsFile """
             include 'foo', 'bar'
-        '''
-        buildFile """
+
             abstract class StringDedupCheckerService implements ${BuildService.name}<${BuildServiceParameters.name}.None>{
 
                 private String string = null
@@ -51,7 +50,7 @@ class ConfigurationCacheStringDeduplicationIntegrationTest extends AbstractConfi
             }
 
             def service = gradle.sharedServices.registerIfAbsent('stringChecker', StringDedupCheckerService) {}
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 tasks.register('check', StringTask) {
                     string = ['it', 'will', 'be', 'deduplicated'].join(' ')
                 }
