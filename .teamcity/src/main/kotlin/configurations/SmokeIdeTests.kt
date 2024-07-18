@@ -16,11 +16,12 @@
 
 package configurations
 
+import common.Os
 import common.requiresNotEc2Agent
 import model.CIBuildModel
 import model.Stage
 
-class SmokeIdeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
+class SmokeIdeTests(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
     id(buildTypeId(model))
     name = "Smoke Ide Tests"
     description = "Tests against IDE sync process"

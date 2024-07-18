@@ -28,7 +28,7 @@ class Gradleception(
     buildJvm: Jvm,
     jvmDescription: String,
     bundleGroovy4: Boolean = false,
-) : BaseGradleBuildType(stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
     val idParts = mutableListOf<String>()
     val labels = mutableListOf<String>()
     val descriptionParts = mutableListOf<String>()
