@@ -62,7 +62,8 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
-                "org.asciidoctor.jvm.gems",
+                // Plugin broken after JCenter dependency disappeared
+//                "org.asciidoctor.jvm.gems",
                 "org.asciidoctor.jvm.leanpub",
                 "org.asciidoctor.jvm.leanpub.dropbox-copy",
                 "org.asciidoctor.jvm.pdf",
