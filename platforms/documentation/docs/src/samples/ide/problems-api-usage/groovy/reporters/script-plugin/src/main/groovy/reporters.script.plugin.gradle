@@ -1,9 +1,11 @@
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 
-def gradleInternal = gradle as GradleInternal
-def problems = gradleInternal.services.get(Problems)
+interface Injected {
+    @Inject Problems getProblems()
+}
+
+def problems = project.objects.newInstance(Injected).getProblems()
 
 problems.forNamespace('buildscript').reporting {
     it.id('adhoc-script-deprecation', 'Deprecated script plugin')
