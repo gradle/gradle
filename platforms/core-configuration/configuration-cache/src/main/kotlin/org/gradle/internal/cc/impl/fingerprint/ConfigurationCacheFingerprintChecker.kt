@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.RenderingUtils.oxfordListOf
+import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -393,15 +395,26 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
+    fun wereOrWas(values: Collection<String>, verb: String): String? =
+        when (values.size) {
+            0 -> null
+            1 -> "'${values.single()}' was $verb"
+            else -> "${quotedOxfordListOf(values, "and")} were $verb"
+        }
+
+    private
     fun <T> detailedMessageForChanges(oldValues: Map<String, T>, newValues: Map<String, T>): String {
         val added = newValues.keys - oldValues.keys
         val removed = oldValues.keys - newValues.keys
         val changed = oldValues.filter { (key, value) -> key in newValues && newValues[key] != value }.map { it.key }
-        return listOfNotNull(
-            "values for $changed were changed".takeIf { changed.isNotEmpty() },
-            "$added were added".takeIf { added.isNotEmpty() },
-            "$removed were removed".takeIf { removed.isNotEmpty() },
-        ).joinToString(", ")
+        return oxfordListOf(
+            listOfNotNull(
+                wereOrWas(changed, "changed")?.let { if (changed.size == 1) "the value of $it" else "the values of $it" },
+                wereOrWas(added, "added"),
+                wereOrWas(removed, "removed")
+            ),
+            "and"
+        )
     }
 
     private
