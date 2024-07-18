@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,16 @@
 
 package org.gradle.internal.jvm;
 
-public class JavaHomeException extends RuntimeException {
-    public JavaHomeException(String message) {
-        super(message);
-    }
+import org.gradle.api.JavaVersion;
+
+/**
+ * Contains information about the Java versions that are supported by Gradle.
+ */
+public class SupportedJavaVersions {
+
+    /**
+     * The minimum version of Java that is required to run the Gradle daemon.
+     */
+    public static final JavaVersion MINIMUM_JAVA_VERSION = JavaVersion.VERSION_1_8;
+
 }

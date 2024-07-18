@@ -23,7 +23,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
-import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmDetector
 import org.gradle.internal.remote.ObjectConnectionBuilder
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
@@ -97,7 +97,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             gradleUserHome(),
             new GradleUserHomeTemporaryFileProvider({ gradleUserHome() }),
             execHandleFactory,
-            new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+            new DefaultJvmDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
             outputEventListener,
             Stub(MemoryManager)
         )
@@ -116,7 +116,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             gradleUserHome(),
             new GradleUserHomeTemporaryFileProvider({ gradleUserHome() }),
             execHandleFactory,
-            new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+            new DefaultJvmDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
             outputEventListener,
             Stub(MemoryManager)
         )

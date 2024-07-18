@@ -18,7 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.DefaultJavaInfo;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.slf4j.Logger;
@@ -42,14 +43,14 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         File toolchainJavaHome = toolchain.getInstallationPath().getAsFile();
         if (!toolchain.getLanguageVersion().canCompileOrRun(8)) {
             LOGGER.info("Compilation mode: command line compilation");
-            return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
+            return getCommandLineSpec(getJavacExecutable(toolchainJavaHome));
         }
 
         if (compileOptions.isFork()) {
             File forkJavaHome = compileOptions.getForkOptions().getJavaHome();
             if (forkJavaHome != null) {
                 LOGGER.info("Compilation mode: command line compilation");
-                return getCommandLineSpec(Jvm.forHome(forkJavaHome).getJavacExecutable());
+                return getCommandLineSpec(getJavacExecutable(forkJavaHome));
             }
 
             String forkExecutable = compileOptions.getForkOptions().getExecutable();
@@ -72,6 +73,14 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
 
         LOGGER.info("Compilation mode: default, forking compiler");
         return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
+    }
+
+    private static File getJavacExecutable(File javaHome) {
+        JavaInfo javaInfo = DefaultJavaInfo.forHome(javaHome);
+        if (javaInfo == null) {
+            throw new IllegalStateException("Could not find a valid JDK at " + javaHome);
+        }
+        return javaInfo.getJavacExecutable();
     }
 
     abstract protected T getCommandLineSpec(File executable);

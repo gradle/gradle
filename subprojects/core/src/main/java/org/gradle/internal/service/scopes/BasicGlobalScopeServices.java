@@ -44,11 +44,11 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
+import org.gradle.internal.jvm.inspection.JvmDetector;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -121,8 +121,8 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
-        return new DefaultJvmVersionDetector(detector);
+    JvmDetector createJvmDetector(JvmMetadataDetector detector) {
+        return new DefaultJvmDetector(detector);
     }
 
     @Provides

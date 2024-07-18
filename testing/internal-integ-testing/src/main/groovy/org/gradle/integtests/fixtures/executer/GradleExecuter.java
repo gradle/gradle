@@ -134,8 +134,6 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Sets the JVM to execute Gradle with. Replaces any value set by {@link #withJavaHome(String)}.
-     *
-     * @throws IllegalArgumentException If the given JVM is not probed, for example JVMs created by {@link Jvm#forHome(File)}
      */
     GradleExecuter withJvm(Jvm jvm);
 

@@ -49,7 +49,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             $printScriptJavaClassFileMajorVersion
         """)
 
-        assertThat(build("help").output, containsString(outputFor(supportedKotlinJavaVersion())))
+        assertThat(build("help").output, containsString(outputFor(supportedKotlinJavaVersion(JavaVersion.current()))))
     }
 
     @Test
@@ -67,7 +67,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        assertThat(build("help").output, containsString(outputFor(supportedKotlinJavaVersion())))
+        assertThat(build("help").output, containsString(outputFor(supportedKotlinJavaVersion(JavaVersion.current()))))
     }
 
     @Test
@@ -129,7 +129,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             version = "1.0"
             java {
                 toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(${newerJvm.javaVersion?.majorVersion}))
+                    languageVersion.set(JavaLanguageVersion.of(${newerJvm.javaVersion.majorVersion}))
                 }
             }
             dependencies {
@@ -172,7 +172,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .withJvm(newerJvm)
             .run()
 
-        assertThat(helpResult.output, containsString(outputFor(supportedKotlinJavaVersion(newerJvm.javaVersion!!))))
+        assertThat(helpResult.output, containsString(outputFor(supportedKotlinJavaVersion(newerJvm.javaVersion))))
     }
 
     @Test
@@ -203,7 +203,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             version = "1.0"
             java {
                 toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(${newerJvm.javaVersion?.majorVersion}))
+                    languageVersion.set(JavaLanguageVersion.of(${newerJvm.javaVersion.majorVersion}))
                 }
             }
             dependencies {
@@ -247,7 +247,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .withJvm(newerJvm)
             .run()
 
-        assertThat(helpResult.output, containsString(outputFor(supportedKotlinJavaVersion(newerJvm.javaVersion!!))))
+        assertThat(helpResult.output, containsString(outputFor(supportedKotlinJavaVersion(newerJvm.javaVersion))))
     }
 
     private
@@ -260,7 +260,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         "Java Class Major Version = ${TestJavaClassUtil.getClassVersion(javaVersion)}"
 
     private
-    fun supportedKotlinJavaVersion(version: JavaVersion = JavaVersion.current()): JavaVersion {
+    fun supportedKotlinJavaVersion(version: JavaVersion): JavaVersion {
         val maxVersion = JavaVersion.forClassVersion(JvmTarget.supportedValues().last().majorVersion)
         return minOf(version, maxVersion)
     }
