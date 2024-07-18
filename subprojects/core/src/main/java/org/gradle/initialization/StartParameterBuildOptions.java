@@ -620,15 +620,17 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class PropertyUpgradeReportOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class PropertyUpgradeReportOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "property-upgrade-report";
 
         public PropertyUpgradeReportOption() {
-            super(null, BooleanCommandLineOptionConfiguration.create("property-upgrade-report", "Runs build with property upgrade report.", "Runs build without property upgrade report."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Runs build with experimental property upgrade report."));
         }
 
         @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setPropertyUpgradeReportEnabled(value);
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setPropertyUpgradeReportEnabled(true);
         }
     }
 }

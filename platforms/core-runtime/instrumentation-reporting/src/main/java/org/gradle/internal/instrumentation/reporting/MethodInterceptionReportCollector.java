@@ -28,8 +28,6 @@ import java.util.List;
 @ServiceScope(Scope.BuildTree.class)
 public interface MethodInterceptionReportCollector {
 
-    MethodInterceptionReportCollector NO_OP = report -> {};
-
     String INTERCEPTED_METHODS_REPORT_FILE = "gradle-intercepted-methods.report";
 
     void collect(File report);
