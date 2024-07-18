@@ -153,7 +153,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     def "uses jdk if requested via capabilities = #capabilities"() {
         given:
-        def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.jdk"])
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre.hs-adpt", "7.9.jre", "7.7.jre", "14.0.2+12.jre", "8.0.1.jdk"])
 
         when:
         def filter = createSpec()
@@ -174,7 +174,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     def "fails when no jdk is present and requested capabilities = #capabilities"() {
         given:
-        def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12"])
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre", "7.9.jre", "7.7.jre", "14.0.2+12.jre"])
 
         when:
         def filter = createSpec()
@@ -529,17 +529,11 @@ class JavaToolchainQueryServiceTest extends Specification {
             this.additionalCapabilities = additionalCapabilities
         }
 
-        boolean hasCapability(JavaInstallationCapability capability) {
-            return this.additionalCapabilities.contains(capability) || metadata.hasCapability(capability)
-        }
-
-        boolean hasAllCapabilities(Set<JavaInstallationCapability> capabilities) {
-            for (JavaInstallationCapability capability : capabilities) {
-                if (!hasCapability(capability)) {
-                    return false
-                }
-            }
-            return true
+        @Override
+        Set<JavaInstallationCapability> getCapabilities() {
+            EnumSet<JavaInstallationCapability> capabilities = EnumSet.copyOf(metadata.getCapabilities())
+            capabilities.addAll(additionalCapabilities)
+            return capabilities
         }
     }
 

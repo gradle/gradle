@@ -21,8 +21,10 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import java.util.EnumSet;
 import java.util.List;
 
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL;
 import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
@@ -56,7 +58,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         printAttribute(indent, "Language Version", metadata.getLanguageVersion().getMajorVersion());
         printAttribute(indent, "Vendor", metadata.getVendor().getDisplayName());
         printAttribute(indent, "Architecture", metadata.getArchitecture());
-        printAttribute(indent, "Is JDK", String.valueOf(metadata.hasCapability(JAVA_COMPILER)));
+        printAttribute(indent, "Is JDK", String.valueOf(metadata.getCapabilities().containsAll(EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL))));
     }
 
     private void printAttribute(String indent, String key, String value) {

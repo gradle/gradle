@@ -192,12 +192,11 @@ public class JavaToolchainQueryService {
     }
 
     private Optional<JavaToolchain> findInstalledToolchain(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
-        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec);
+        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec, requiredCapabilities);
 
         return registry.toolchains().stream()
             .filter(result -> result.metadata.isValidInstallation())
             .filter(result -> matcher.test(result.metadata))
-            .filter(result -> result.metadata.hasAllCapabilities(requiredCapabilities))
             .min(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJavaHome)))
             .map(result -> {
                 warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result.location);
@@ -239,7 +238,7 @@ public class JavaToolchainQueryService {
         if (!metadata.isValidInstallation()) {
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }
-        if (!metadata.hasAllCapabilities(requiredCapabilities)) {
+        if (!metadata.getCapabilities().containsAll(requiredCapabilities)) {
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' does not provide the required capabilities: " + requiredCapabilities);
         }
         return new JavaToolchain(metadata, fileFactory, new JavaToolchainInput(spec), isFallback);
