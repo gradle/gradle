@@ -793,7 +793,6 @@ tasks.named("docsTest") { task ->
                 "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
                 "snippet-plugins-dsl_groovy_sanityCheck.sample",
                 "snippet-plugins-dsl_kotlin_sanityCheck.sample",
-                "snippet-kotlin-dsl-interoperability-closure-of_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
