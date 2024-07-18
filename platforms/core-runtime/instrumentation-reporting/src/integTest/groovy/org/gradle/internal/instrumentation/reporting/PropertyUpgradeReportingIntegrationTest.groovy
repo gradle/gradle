@@ -90,6 +90,46 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }
 
+    def "should not report upgraded properties if --property-upgrade-report flag is not used"() {
+        given:
+        executer.requireOwnGradleUserHomeDir("We cache report in global cache")
+        javaFile("buildSrc/src/main/java/test/MyPlugin.java", """
+            package test;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.tasks.compile.JavaCompile;
+
+            public abstract class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().register("myJavaCompile", JavaCompile.class, task -> {
+                        task.getSource();
+                        task.setSource(project.files());
+                    });
+                }
+            }
+        """)
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            tasks.register<JavaCompile>("myJavaCompile") {
+                source
+                source = project.files().asFileTree
+            }
+        """
+
+        when:
+        run("help")
+
+        then:
+        postBuildOutputDoesNotContain("Intercepted methods:")
+        postBuildOutputDoesNotContain("at test.MyPlugin")
+        postBuildOutputDoesNotContain("at build.gradle")
+    }
+
     @NotYetImplemented
     @ToBeImplemented("Inherited properties are not reported for project dependency classes")
     def "usage of upgraded properties in extended class should be reported"() {
