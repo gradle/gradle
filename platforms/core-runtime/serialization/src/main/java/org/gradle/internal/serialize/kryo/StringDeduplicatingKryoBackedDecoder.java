@@ -32,9 +32,19 @@ import java.io.InputStream;
  */
 public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     public static final int INITIAL_CAPACITY = 32;
+    private static final String[] INITIAL_CAPACITY_MARKER = new String[0];
     private final Input input;
     private final InputStream inputStream;
-    private String[] strings;
+    private String[] strings = INITIAL_CAPACITY_MARKER;
+    /**
+     * Actual stored string indices start from 2 so `0` and `1` can be used as special codes:
+     * <ul>
+     *     <li>0 for null</li>
+     *     <li>1 for a new string</li>
+     * </ul>
+     * And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
+     **/
+    private int nextString = 2;
     private long extraSkipped;
 
     public StringDeduplicatingKryoBackedDecoder(InputStream inputStream) {
@@ -175,29 +185,37 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
     @Override
     public String readNullableString() throws EOFException {
         try {
-            int idx = readInt();
-            if (idx == -1) {
-                return null;
+            int index = readStringIndex();
+            switch (index) {
+                case 0:
+                    return null;
+                case 1:
+                    return readNewString();
+                default:
+                    return strings[index];
             }
-            if (strings == null) {
-                strings = new String[INITIAL_CAPACITY];
-            }
-            String string = null;
-            if (idx >= strings.length) {
-                String[] grow = new String[strings.length * 3 / 2];
-                System.arraycopy(strings, 0, grow, 0, strings.length);
-                strings = grow;
-            } else {
-                string = strings[idx];
-            }
-            if (string == null) {
-                string = input.readString();
-                strings[idx] = string;
-            }
-            return string;
         } catch (KryoException e) {
             throw maybeEndOfStream(e);
         }
+    }
+
+    private int readStringIndex() {
+        return input.readVarInt(true);
+    }
+
+    private String readNewString() {
+        if (nextString >= strings.length) {
+            strings = growStringArray(strings);
+        }
+        String string = input.readString();
+        strings[nextString++] = string;
+        return string;
+    }
+
+    private static String[] growStringArray(String[] strings) {
+        String[] grow = new String[strings == INITIAL_CAPACITY_MARKER ? INITIAL_CAPACITY : strings.length * 3 / 2];
+        System.arraycopy(strings, 0, grow, 0, strings.length);
+        return grow;
     }
 
     /**

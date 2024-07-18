@@ -91,33 +91,52 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     }
 
     @Override
+    public void writeNullableString(@Nullable CharSequence value) {
+        if (value == null) {
+            writeStringIndex(0);
+            return;
+        }
+        writeNonnullString(value);
+    }
+
+    @Override
     public void writeString(CharSequence value) {
         if (value == null) {
             throw new IllegalArgumentException("Cannot encode a null string.");
         }
-        writeNullableString(value);
+        writeNonnullString(value);
     }
 
-    @Override
-    public void writeNullableString(@Nullable CharSequence value) {
-        if (value == null) {
-            output.writeInt(-1);
-            return;
+    private void writeNonnullString(CharSequence value) {
+        String key = value.toString();
+        if (strings == null) {
+            strings = Maps.newHashMapWithExpectedSize(1024);
+            writeNewString(key);
         } else {
-            if (strings == null) {
-                strings = Maps.newHashMapWithExpectedSize(1024);
+            Integer index = strings.get(key);
+            if (index == null) {
+                writeNewString(key);
+            } else {
+                writeStringIndex(index);
             }
         }
-        String key = value.toString();
-        Integer index = strings.get(key);
-        if (index == null) {
-            index = strings.size();
-            output.writeInt(index);
-            strings.put(key, index);
-            output.writeString(key);
-        } else {
-            output.writeInt(index);
-        }
+    }
+
+    private void writeNewString(String key) {
+        /*
+          Actual stored string indices start from 2 so `0` and `1` can be used as special codes:
+          - 0 for null
+          - 1 for a new string
+          And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
+         */
+        Integer newIndex = strings.size() + 2;
+        strings.put(key, newIndex);
+        writeStringIndex(1);
+        output.writeString(key);
+    }
+
+    private void writeStringIndex(int index) {
+        output.writeVarInt(index, true);
     }
 
     /**
