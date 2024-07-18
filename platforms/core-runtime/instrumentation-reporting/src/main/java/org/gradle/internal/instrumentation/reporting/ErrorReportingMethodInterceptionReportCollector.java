@@ -16,25 +16,17 @@
 
 package org.gradle.internal.instrumentation.reporting;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.File;
-import java.util.List;
 
 /**
- * A class that collects method interception reports.
+ * An implementation of {@link MethodInterceptionReportCollector} that throws an exception if a report file is generated.
  */
-@ServiceScope(Scope.BuildTree.class)
-public interface MethodInterceptionReportCollector {
+public class ErrorReportingMethodInterceptionReportCollector implements MethodInterceptionReportCollector {
 
-    MethodInterceptionReportCollector NO_OP = report -> {};
-
-    String INTERCEPTED_METHODS_REPORT_FILE = "gradle-intercepted-methods.report";
-
-    void collect(File report);
-
-    default void collect(List<File> reports) {
-        reports.forEach(this::collect);
+    @Override
+    public void collect(File report) {
+        if (report.exists()) {
+            throw new IllegalStateException("Report file should not be generated, but was: " + report);
+        }
     }
 }
