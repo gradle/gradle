@@ -26,7 +26,6 @@ import org.gradle.internal.configuration.problems.documentationLinkFor
 import org.gradle.internal.configuration.problems.firstTypeFrom
 import org.gradle.internal.configuration.problems.projectPathFrom
 import org.gradle.internal.configuration.problems.taskPathFrom
-import java.io.Writer
 
 
 enum class DiagnosticKind {
@@ -35,7 +34,7 @@ enum class DiagnosticKind {
     INCOMPATIBLE_TASK
 }
 
-class JsonModelWriter(val modelWriter: JsonModelWriterCommon) {
+class JsonModelWriter(private val modelWriter: JsonWriter) {
 
     private
     val documentationRegistry = DocumentationRegistry()

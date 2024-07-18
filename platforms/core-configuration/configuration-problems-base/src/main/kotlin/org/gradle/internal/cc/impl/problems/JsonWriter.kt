@@ -19,9 +19,8 @@ package org.gradle.internal.cc.impl.problems
 import org.apache.groovy.json.internal.CharBuf
 import java.io.Writer
 
-open class JsonModelWriterCommon(val writer: Writer) {
-    // This is a map of booleans that indicate whether the next element in the array should be preceded by a comma.
-    private var commaContext = false
+class JsonWriter(private val writer: Writer) {
+    private var nextItemNeedsComma = false
 
     fun jsonObject(body: () -> Unit) {
         elementSeparator()
@@ -50,10 +49,6 @@ open class JsonModelWriterCommon(val writer: Writer) {
         decreaseLevel()
     }
 
-
-    fun comma() {
-        write(',')
-    }
 
     fun property(name: String, value: String) {
         property(name) { jsonString(value) }
@@ -86,21 +81,26 @@ open class JsonModelWriterCommon(val writer: Writer) {
 
     private
     fun elementSeparator() {
-            if (commaContext) {
+            if (nextItemNeedsComma) {
                 comma()
             } else {
-                commaContext = true
+                nextItemNeedsComma = true
             }
     }
 
     private
+    fun comma() {
+        write(',')
+    }
+
+    private
     fun increaseLevel() {
-        commaContext = false
+        nextItemNeedsComma = false
     }
 
     private
     fun decreaseLevel() {
-        commaContext = true
+        nextItemNeedsComma = true
     }
 
     private

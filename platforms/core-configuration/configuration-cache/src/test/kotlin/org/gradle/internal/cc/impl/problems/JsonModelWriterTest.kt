@@ -70,7 +70,7 @@ class JsonModelWriterTest {
     fun jsonModelFor(builder: JsonModelWriter.() -> Unit): Map<String, Any> =
         JsonSlurper().parseText(
             StringWriter().also {
-                JsonModelWriter(JsonModelWriterCommon(it)).apply(builder)
+                JsonModelWriter(JsonWriter(it)).apply(builder)
             }.toString()
         ).uncheckedCast()
 }

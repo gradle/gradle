@@ -37,7 +37,6 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
-import java.io.Writer
 import java.nio.file.Files
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -108,12 +107,12 @@ class ConfigurationCacheReport(
 
         class Spooling(
             spoolFileProvider: TemporaryFileProvider,
-            val reportFileName: String,
+            private val reportFileName: String,
             val executor: ManagedExecutor,
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            val groovyJsonClassLoader: ClassLoader,
+            private val groovyJsonClassLoader: ClassLoader,
             val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedReportProblem
         ) : State() {
 
@@ -121,25 +120,23 @@ class ConfigurationCacheReport(
             val spoolFile = spoolFileProvider.createTemporaryFile(reportFileName, ".html")
 
             private
-            val htmlReportTemplate = HtmlReportTemplate()
-
-            private
             val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
 
             private
-            val hashingWriter: Writer = hashingStream.writer()
-
-            private
-            val jsonModelWriter: JsonModelWriter = JsonModelWriter(JsonModelWriterCommon(hashingWriter))
-
-            private
-            val writer = HtmlReportWriter(hashingWriter, htmlReportTemplate, jsonModelWriter)
+            val writer = createHtmlReportWriter(hashingStream)
 
             init {
                 executor.submit {
                     Thread.currentThread().contextClassLoader = groovyJsonClassLoader
                     writer.beginHtmlReport()
                 }
+            }
+
+            private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
+                val htmlReportTemplate = HtmlReportTemplate()
+                val hashingWriter = hashingStream.writer()
+                val jsonModelWriter = JsonModelWriter(JsonWriter(hashingWriter))
+                return HtmlReportWriter(hashingWriter, htmlReportTemplate, jsonModelWriter)
             }
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {

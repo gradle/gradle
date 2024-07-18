@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  */
 
 @ServiceScope(Scope.BuildTree::class)
-class BuildNameProvider(val listenerManager: ListenerManager) : InternalBuildAdapter(), Stoppable {
+class BuildNameProvider(private val listenerManager: ListenerManager) : InternalBuildAdapter(), Stoppable {
 
     init {
         listenerManager.addListener(this)
