@@ -153,42 +153,42 @@ class DefaultProjectSpec extends Specification {
         rootProject.path == ":"
         rootProject.buildTreePath == ':'
         rootProject.identityPath == Path.ROOT
-        rootProject.projectIdentityPath == rootProject.identityPath
+        rootProject.projectIdentity == rootProject.owner.identity
 
         child1.toString() == "project ':child1'"
         child1.displayName == "project ':child1'"
         child1.path == ":child1"
         child1.buildTreePath == ":child1"
         child1.identityPath == Path.path(":child1")
-        child1.projectIdentityPath == child1.identityPath
+        child1.projectIdentity == child1.owner.identity
 
         child2.toString() == "project ':child1:child2'"
         child2.displayName == "project ':child1:child2'"
         child2.path == ":child1:child2"
         child2.buildTreePath == ":child1:child2"
         child2.identityPath == Path.path(":child1:child2")
-        child2.projectIdentityPath == child2.identityPath
+        child2.projectIdentity == child2.owner.identity
 
         nestedRootProject.toString() == "project ':nested'"
         nestedRootProject.displayName == "project ':nested'"
         nestedRootProject.path == ":"
         nestedRootProject.buildTreePath == ":nested"
         nestedRootProject.identityPath == Path.path(":nested")
-        nestedRootProject.projectIdentityPath == nestedRootProject.identityPath
+        nestedRootProject.projectIdentity == nestedRootProject.owner.identity
 
         nestedChild1.toString() == "project ':nested:child1'"
         nestedChild1.displayName == "project ':nested:child1'"
         nestedChild1.path == ":child1"
         nestedChild1.buildTreePath == ":nested:child1"
         nestedChild1.identityPath == Path.path(":nested:child1")
-        nestedChild1.projectIdentityPath == nestedChild1.identityPath
+        nestedChild1.projectIdentity == nestedChild1.owner.identity
 
         nestedChild2.toString() == "project ':nested:child1:child2'"
         nestedChild2.displayName == "project ':nested:child1:child2'"
         nestedChild2.path == ":child1:child2"
         nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
-        nestedChild2.projectIdentityPath == nestedChild2.identityPath
+        nestedChild2.projectIdentity == nestedChild2.owner.identity
     }
 
     def "isolated project view preserves the path and build tree path"() {

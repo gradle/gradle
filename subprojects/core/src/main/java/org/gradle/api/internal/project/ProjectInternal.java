@@ -183,11 +183,13 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     void fireDeferredConfiguration();
 
+    @Override
+    @Nonnull
+    ProjectIdentity getProjectIdentity();
+
     /**
      * Returns a unique path for this project within its containing build.
      */
-    @Override
-    @Nonnull
     Path getProjectPath();
 
     /**

@@ -177,8 +177,6 @@ public class LocalComponentGraphResolveStateFactory {
 
     /**
      * A {@link VariantMetadataFactory} which uses a {@link ConfigurationsProvider} as its data source.
-     *
-     * TODO: This class should acquire a project lock before accessing the configurations provider.
      */
     private static class ConfigurationsProviderMetadataFactory implements VariantMetadataFactory {
 
@@ -211,7 +209,7 @@ public class LocalComponentGraphResolveStateFactory {
 
                 configurationsProvider.visitAll(configuration -> {
                     if (configuration.isCanBeConsumed()) {
-                    visitor.accept(createVariantMetadata(configuration));
+                        visitor.accept(createVariantMetadata(configuration));
                     }
                 });
             });

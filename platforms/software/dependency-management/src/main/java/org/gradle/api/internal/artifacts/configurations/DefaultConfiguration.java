@@ -93,6 +93,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -827,11 +828,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
-                Path projectPath = domainObjectContext.getProjectPath();
+                ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
                 String projectPathString = null;
                 if (!domainObjectContext.isScript()) {
-                    if (projectPath != null) {
-                        projectPathString = projectPath.getPath();
+                    if (projectId != null) {
+                        projectPathString = projectId.getProjectPath().getPath();
                     }
                 }
                 return BuildOperationDescriptor.displayName(displayName)
@@ -1529,7 +1530,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ConfigurationIdentity getIdentity() {
         String name = getName();
-        String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
+        ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
+        String projectPath = projectId == null ? null : projectId.getProjectPath().getPath();
         String buildPath = domainObjectContext.getBuildPath().toString();
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
@@ -2005,13 +2007,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public List<String> forVersionConflict(Set<Conflict> conflicts) {
-            Path projectPath = domainObjectContext.getProjectPath();
-            if (projectPath == null) {
+            ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
+            if (projectId == null) {
                 // projectPath is null for settings execution
                 return Collections.emptyList();
             }
 
-            String taskPath = projectPath.append(Path.path("dependencyInsight")).getPath();
+            String taskPath = projectId.getBuildTreePath().append(Path.path("dependencyInsight")).getPath();
 
             ModuleVersionIdentifier identifier = conflicts.iterator().next().getVersions().get(0);
             String dependencyNotation = identifier.getGroup() + ":" + identifier.getName();

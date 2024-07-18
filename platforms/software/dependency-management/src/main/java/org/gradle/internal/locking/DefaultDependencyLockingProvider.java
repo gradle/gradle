@@ -159,7 +159,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 allLockState = lockFileReaderWriter.readUniqueLockFile();
                 uniqueLockStateLoaded = true;
             } catch (IllegalStateException e) {
-                throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'", e, LockFileReaderWriter.FORMATTING_DOC_LINK);
+                throw new InvalidLockFileException(context.getDisplayName(), e, LockFileReaderWriter.FORMATTING_DOC_LINK);
             }
         }
     }
@@ -210,11 +210,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     public void buildFinished() {
         if (uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
             lockFileReaderWriter.writeUniqueLockfile(allLockState);
-            if (context.isScript()) {
-                LOGGER.lifecycle("Persisted dependency lock state for buildscript of project '{}'", context.getProjectPath());
-            } else {
-                LOGGER.lifecycle("Persisted dependency lock state for project '{}'", context.getProjectPath());
-            }
+            LOGGER.lifecycle("Persisted dependency lock state for {}", context.getDisplayName());
         }
     }
 

@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -57,7 +57,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         )
     )
 
-    def builder = builderFactory.create(RootScriptDomainObjectContext.INSTANCE, configurationsProvider, metaDataProvider, EmptySchema.INSTANCE)
+    def builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, EmptySchema.INSTANCE)
 
     def "caches root component resolve state and metadata"() {
         configurationsProvider.findByName('conf') >> resolvable()

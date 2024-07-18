@@ -52,6 +52,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
@@ -347,15 +348,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             return delegate.projectPath(name);
         }
 
-        @Override
-        public Path getProjectPath() {
-            return delegate.getProjectPath();
-        }
-
         @Nullable
         @Override
-        public Path getProjectIdentityPath() {
-            return delegate.getProjectIdentityPath();
+        public ProjectIdentity getProjectIdentity() {
+            return delegate.getProjectIdentity();
         }
 
         @Nullable
@@ -387,6 +383,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         @Override
         public boolean isPluginContext() {
             return false;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "buildscript of " + delegate.getDisplayName();
         }
     }
 
