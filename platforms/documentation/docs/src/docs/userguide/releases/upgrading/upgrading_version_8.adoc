@@ -51,7 +51,7 @@ Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.1
 === Deprecations
 
 [[minimum_daemon_jvm_version]]
-==== Running Gradle on older JVMs 
+==== Running Gradle on older JVMs
 
 Starting in Gradle 9.0, Gradle will require JVM 17 or later to run. Most Gradle APIs will be compiled to target JVM 17 bytecode.
 
@@ -65,9 +65,10 @@ These clients can be configured to run Gradle builds with a different JVM versio
 - Setting the `org.gradle.java.home` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>>
 - Using the link:{javadocPath}/org/gradle/tooling/ConfigurableLauncher.html#setJavaHome(java.io.File)[ConfigurableLauncher#setJavaHome] method on the Tooling API
 
-Alternatively, the `JAVA_HOME` environment variable can be set to a JVM 17 or newer, which will run both the client and daemon with the same version of the JVM. 
+Alternatively, the `JAVA_HOME` environment variable can be set to a JVM 17 or newer, which will run both the client and daemon with the same version of the JVM.
 
 Running Gradle builds with <<gradle_daemon#sec:disabling_the_daemon,--no-daemon>> or using link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] in tests will require JVM version 17 or later.
+The worker API will remain compatible with JVM 8, and running JVM tests will require JVM 8.
 
 We decided to upgrade the minimum version of the Java runtime for a number of reasons:
 
@@ -75,7 +76,6 @@ We decided to upgrade the minimum version of the Java runtime for a number of re
 - Significant language improvements between Java 8 and Java 17 cannot be used without upgrading.
 - Some of the most popular plugins already require JVM 17 or later.
 - Download metrics for Gradle distributions show that JVM 17 is widely used.
-
 
 [[consuming_non_consumable_variants_from_ivy_component]]
 ==== Deprecated consuming non-consumable configurations from Ivy
