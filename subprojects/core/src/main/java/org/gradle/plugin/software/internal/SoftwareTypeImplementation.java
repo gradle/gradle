@@ -32,10 +32,10 @@ public interface SoftwareTypeImplementation<T> {
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
-    void addConvention(Convention<?> convention);
+    void addModelDefault(ModelDefault<?> modelDefault);
 
     /**
-     * Visits all conventions of the given type with the provided visitor.
+     * Visits all model defaults of the given type with the provided visitor.
      */
-    <V extends Convention.Visitor<?>> void visitConventions(Class<? extends Convention<V>> type, V visitor);
+    <V extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<V>> type, V visitor);
 }

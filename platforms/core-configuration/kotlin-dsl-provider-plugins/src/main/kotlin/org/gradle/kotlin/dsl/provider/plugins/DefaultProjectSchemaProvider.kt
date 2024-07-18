@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.Conventions
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -64,7 +64,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                     (scriptTarget as? Project)
                         ?.let { accessibleConfigurationsOf(it) }
                         ?: emptyList(),
-                    targetSchema.buildConventions,
+                    targetSchema.modelDefaults,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -84,7 +84,7 @@ data class TargetTypedSchema(
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val buildConventions: List<ProjectSchemaEntry<TypeOf<*>>>
+    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>
 )
 
 
@@ -95,7 +95,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val buildConventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
@@ -125,7 +125,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         if (target is Settings) {
             val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
             accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
-                buildConventions.add(ProjectSchemaEntry(typeOfBuildConventions, schema.name, schema.publicType))
+                buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
             }
         }
         if (target is NamedDomainObjectContainer<*>) {
@@ -142,7 +142,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         conventions,
         tasks,
         containerElements,
-        buildConventions
+        buildModelDefaults
     )
 }
 
@@ -321,7 +321,7 @@ val typeOfTaskContainer = typeOf<TaskContainer>()
 
 
 private
-val typeOfBuildConventions = typeOf<Conventions>()
+val typeOfModelDefaults = typeOf<SharedModelDefaults>()
 
 
 internal

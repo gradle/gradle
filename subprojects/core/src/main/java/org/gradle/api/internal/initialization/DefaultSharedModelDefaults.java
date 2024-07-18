@@ -18,7 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.initialization.Conventions;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -29,12 +29,12 @@ import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 
-public class DefaultConventions implements Conventions, MethodMixIn {
+public class DefaultSharedModelDefaults implements SharedModelDefaults, MethodMixIn {
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
 
     @Inject
-    public DefaultConventions(SoftwareTypeRegistry softwareTypeRegistry) {
+    public DefaultSharedModelDefaults(SoftwareTypeRegistry softwareTypeRegistry) {
         this.softwareTypeRegistry = softwareTypeRegistry;
     }
 
@@ -43,7 +43,7 @@ public class DefaultConventions implements Conventions, MethodMixIn {
         if (softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name)) {
             SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
             if (softwareType.getModelPublicType().isAssignableFrom(publicType)) {
-                softwareType.addConvention(new ActionConvention<>(configureAction));
+                softwareType.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
                 throw new IllegalArgumentException(String.format("Cannot add convention for software type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, softwareType.getModelPublicType()));
             }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator.conventions
+package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
@@ -23,16 +23,16 @@ import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionConta
 import org.gradle.internal.declarativedsl.language.SourceData
 
 
-object ConventionDocumentTransformation {
+object ModelDefaultsDocumentTransformation {
 
-    fun extractConventions(
+    fun extractDefaults(
         document: DeclarativeDocument,
         resolutionContainer: DocumentResolutionContainer,
         usedSoftwareTypes: Set<String>
     ): DeclarativeDocument = object : DeclarativeDocument {
         override val content: List<DeclarativeDocument.DocumentNode>
             get() = document.content
-                .filter { node -> isTopLevelConventionsCall(node, resolutionContainer) }
+                .filter { node -> isTopLevelDefaultsCall(node, resolutionContainer) }
                 .flatMap { (it as? ElementNode)?.content.orEmpty() }
                 .filterIsInstance<ElementNode>()
                 .filter { it.name in usedSoftwareTypes }
@@ -42,12 +42,12 @@ object ConventionDocumentTransformation {
     }
 
     private
-    fun isTopLevelConventionsCall(
+    fun isTopLevelDefaultsCall(
         node: DeclarativeDocument.DocumentNode,
         resolutionContainer: DocumentResolutionContainer
-    ) = (node as? ElementNode)?.name == ConventionsTopLevelReceiver::conventions.name &&
+    ) = (node as? ElementNode)?.name == DefaultsTopLevelReceiver::defaults.name &&
         resolutionContainer.data(node).let { resolution ->
             resolution is ConfiguringElementResolved &&
-                resolution.elementType.name.qualifiedName == ConventionsConfiguringBlock::class.qualifiedName
+                resolution.elementType.name.qualifiedName == DefaultsConfiguringBlock::class.qualifiedName
         }
 }

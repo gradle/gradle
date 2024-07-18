@@ -29,8 +29,8 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.plugin.software.internal.Convention;
-import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler;
+import org.gradle.plugin.software.internal.ModelDefault;
+import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
@@ -38,11 +38,11 @@ import javax.annotation.Nullable;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-public class ActionConventionHandler implements SoftwareTypeConventionHandler {
+public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
 
-    public ActionConventionHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme) {
+    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme) {
         this.softwareTypeRegistry = softwareTypeRegistry;
         this.inspectionScheme = inspectionScheme;
     }
@@ -58,8 +58,8 @@ public class ActionConventionHandler implements SoftwareTypeConventionHandler {
             new PropertyVisitor() {
                 @Override
                 public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
-                    softwareTypeImplementation.visitConventions(
-                        Cast.uncheckedCast(ActionConvention.class),
+                    softwareTypeImplementation.visitModelDefaults(
+                        Cast.uncheckedCast(ActionBasedDefault.class),
                         executeActionVisitor(softwareTypeImplementation, value.call())
                     );
                 }
@@ -81,7 +81,7 @@ public class ActionConventionHandler implements SoftwareTypeConventionHandler {
         }
     }
 
-    private static <T> Convention.Visitor<Action<? super T>> executeActionVisitor(SoftwareTypeImplementation<T> softwareTypeImplementation, @Nullable Object modelObject) {
+    private static <T> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareTypeImplementation<T> softwareTypeImplementation, @Nullable Object modelObject) {
         if (modelObject == null) {
             throw new IllegalStateException("The model object for " + softwareTypeImplementation.getSoftwareType() + " declared in " + softwareTypeImplementation.getPluginClass().getName() + " is null.");
         }

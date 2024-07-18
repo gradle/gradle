@@ -105,15 +105,16 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         !topLevelFunctions.find { it.contains("simpleName=testSoftwareType") }
     }
 
+    @TargetGradleVersion(">=8.10")
     def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
         file("settings.gradle.dcl") << """
             $ecosystemPluginInSettings
-            conventions {
+            defaults {
                 testSoftwareType {
-                    id = "convention"
+                    id = "default"
                 }
             }
         """
@@ -128,14 +129,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         def settings = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text)
         def project = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text)
 
-        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
+        ["settingsPluginManagement", "settingsPlugins", "settingsDefaults", "settings"].toSet() == settings.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
         ["project"].toSet() == project.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
 
-        and: 'conventions get properly applied'
+        and: 'defaults get properly applied'
         // check the conventions in the resolution results, they should be there, and it is independent of the DOM overlay
         def projectEvaluated = project.stepResults.values()[0] as EvaluationResult.Evaluated<AnalysisStepResult>
         projectEvaluated.stepResult.assignmentTrace.resolvedAssignments.entrySet().any {
-            it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "convention"
+            it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "default"
         }
 
         when: 'the build and settings files contain errors'
@@ -146,14 +147,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         documentIsEquivalentTo(
             """
             testSoftwareType {
-                unresolvedId = "convention"
+                unresolvedId = "default"
                 foo {
                     bar = "baz"
                 }
             }
             unresolvedToTestErrorHandling()
             """,
-            AnalysisDocumentUtils.INSTANCE.documentWithConventions(settingsWithErrors, projectWithErrors).document
+            AnalysisDocumentUtils.INSTANCE.documentWithModelDefaults(settingsWithErrors, projectWithErrors).document
         )
     }
 

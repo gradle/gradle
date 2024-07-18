@@ -393,8 +393,8 @@
 
 
     /**
-     * Adds a convention to the [softwareType][AccessorNameSpec(original=softwareType)] software type.
+     * Adds model defaults for the [softwareType][AccessorNameSpec(original=softwareType)] software type.
      */
-    fun Conventions.`softwareType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType>): Unit =
+    fun SharedModelDefaults.`softwareType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType>): Unit =
         add("softwareType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType, configure)
 

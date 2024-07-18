@@ -64,7 +64,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
-    is Accessor.ForBuildConvention -> fragmentsForBuildConvention(accessor)
+    is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
 }
 
 
@@ -846,8 +846,8 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
 
 
 private
-fun fragmentsForBuildConvention(
-    accessor: Accessor.ForBuildConvention
+fun fragmentsForModelDefault(
+    accessor: Accessor.ForModelDefault
 ): Fragments {
 
     val accessorSpec = accessor.spec
@@ -859,14 +859,14 @@ fun fragmentsForBuildConvention(
 
     return className to sequenceOf(
         AccessorFragment(
-            source = buildConventionAccessor(accessorSpec),
+            source = modelDefaultAccessor(accessorSpec),
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(0)
                     LDC(softwareTypeName)
                     LDC(jvmPublicType)
                     ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.conventions, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
                     RETURN()
                 }
             },
@@ -883,7 +883,7 @@ fun fragmentsForBuildConvention(
             },
             signature = JvmMethodSignature(
                 name.kotlinIdentifier,
-                "(Lorg/gradle/api/initialization/Conventions;Lorg/gradle/api/Action;)V"
+                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
             )
         )
     )

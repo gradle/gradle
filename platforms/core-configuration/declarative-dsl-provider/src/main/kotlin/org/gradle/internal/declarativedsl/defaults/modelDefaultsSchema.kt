@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.conventions
+package org.gradle.internal.declarativedsl.defaults
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
@@ -28,33 +28,33 @@ import org.gradle.internal.declarativedsl.common.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinition
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionsConfiguringBlock
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionsTopLevelReceiver
+import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
+import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
+import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
-fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
-    "settingsConventions",
-    features = setOf(ConventionDefinition()),
-    buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
+fun defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
+    "settingsDefaults",
+    features = setOf(DefineModelDefaults()),
+    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(softwareTypeRegistry) }
 )
 
 
 private
-fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
+fun defaultsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
     buildEvaluationSchema(
-        ConventionsTopLevelReceiver::class,
-        isTopLevelElement.implies(isConventionsConfiguringCall),
-        operationGenerationId = DefaultOperationGenerationId.convention
+        DefaultsTopLevelReceiver::class,
+        isTopLevelElement.implies(isDefaultsConfiguringCall),
+        operationGenerationId = DefaultOperationGenerationId.defaults
     ) {
         gradleDslGeneralSchema()
         dependencyCollectors()
-        softwareTypesConventions(ConventionsConfiguringBlock::class, softwareTypeRegistry)
+        softwareTypesConventions(DefaultsConfiguringBlock::class, softwareTypeRegistry)
     }
 
 
-val isConventionsConfiguringCall: AnalysisStatementFilter =
-    isConfiguringCall.and(isCallNamed(ConventionsTopLevelReceiver::conventions.name))
+val isDefaultsConfiguringCall: AnalysisStatementFilter =
+    isConfiguringCall.and(isCallNamed(DefaultsTopLevelReceiver::defaults.name))

@@ -33,8 +33,7 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     private final Class<? extends T> modelPublicType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
-
-    private final List<Convention<?>> conventions = new ArrayList<>();
+    private final List<ModelDefault<?>> defaults = new ArrayList<>();
 
     public DefaultSoftwareTypeImplementation(String softwareType,
                                              Class<? extends T> modelPublicType,
@@ -67,16 +66,16 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     }
 
     @Override
-    public void addConvention(Convention<?> convention) {
-        conventions.add(convention);
+    public void addModelDefault(ModelDefault<?> modelDefault) {
+        defaults.add(modelDefault);
     }
 
     @Override
-    public <V extends Convention.Visitor<?>> void visitConventions(Class<? extends Convention<V>> type, V visitor) {
-        conventions.stream()
+    public <V extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<V>> type, V visitor) {
+        defaults.stream()
             .filter(type::isInstance)
             .map(type::cast)
-            .forEach(convention -> convention.visit(visitor));
+            .forEach(modelDefault -> modelDefault.visit(visitor));
     }
 
     @Override

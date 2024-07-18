@@ -196,7 +196,7 @@ class ReflectionContext(
     val resolutionResult: ResolutionResult,
     val trace: AssignmentTrace,
 ) {
-    val additionsByResolvedContainer = (resolutionResult.conventionAdditions + resolutionResult.additions).mapNotNull {
+    val additionsByResolvedContainer = (resolutionResult.additionsFromDefaults + resolutionResult.additions).mapNotNull {
         val resolvedContainer = trace.resolver.resolveToObjectOrPropertyReference(it.container)
         val obj = trace.resolver.resolveToObjectOrPropertyReference(it.dataObject)
         if (resolvedContainer is Ok && obj is Ok) {
@@ -206,9 +206,9 @@ class ReflectionContext(
 
     private
     val allReceiversResolved = run {
-        val allReceiverReferences = resolutionResult.conventionAdditions.map { it.container } +
-            resolutionResult.conventionAssignments.map { it.lhs.receiverObject } +
-            resolutionResult.conventionNestedObjectAccess.map { it.dataObject.accessor.access(it.container, it.dataObject) } +
+        val allReceiverReferences = resolutionResult.additionsFromDefaults.map { it.container } +
+            resolutionResult.assignmentsFromDefaults.map { it.lhs.receiverObject } +
+            resolutionResult.nestedObjectAccessFromDefaults.map { it.dataObject.accessor.access(it.container, it.dataObject) } +
             resolutionResult.additions.map { it.container } +
             resolutionResult.assignments.map { it.lhs.receiverObject } +
             resolutionResult.nestedObjectAccess.map { it.dataObject.accessor.access(it.container, it.dataObject) }

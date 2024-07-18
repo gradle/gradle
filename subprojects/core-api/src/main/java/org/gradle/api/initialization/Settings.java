@@ -420,22 +420,25 @@ public interface Settings extends PluginAware, ExtensionAware {
     @Incubating
     void caches(Action<? super CacheConfigurations> cachesConfiguration);
 
-
     /**
-     * Returns the software type conventions object for this build.
+     * Returns the model defaults object for this build.
+     *
+     * This is an experimental feature.
      *
      * @since 8.10
      */
     @Incubating
-    Conventions getConventions();
+    SharedModelDefaults getDefaults();
 
     /**
-     * Configures the software type conventions for this build.
+     * Configures the model defaults for this build.
+     *
+     * This is an experimental feature.
      *
      * @param action the configuration to apply
      *
      * @since 8.10
      */
     @Incubating
-    void conventions(Action<? super Conventions> action);
+    void defaults(Action<? super SharedModelDefaults> action);
 }

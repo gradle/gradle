@@ -19,11 +19,11 @@ package org.gradle.internal.declarativedsl.evaluator.main
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
-import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
-import org.gradle.internal.declarativedsl.evaluator.conventions.SoftwareTypeConventionRepository
-import org.gradle.internal.declarativedsl.evaluator.conventions.SoftwareTypeConventionResolutionResults
-import org.gradle.internal.declarativedsl.evaluator.conventions.conventionsForAllUsedSoftwareTypes
+import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsHandler
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionCollector
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
+import org.gradle.internal.declarativedsl.evaluator.defaults.defaultsForAllUsedSoftwareTypes
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
@@ -51,17 +51,17 @@ class SimpleAnalysisEvaluator(
     val stepRunner = AnalysisStepRunner()
 
     private
-    val conventionStorage = ConventionStorage()
+    val modelDefaultsStorage = ModelDefaultsStorage()
 
     private
     val analysisContext = AnalysisStepContext(
         supportedDocumentChecks = emptyList(), // TODO: move the settings blocks check here,
         supportedResolutionResultHandlers = listOf(
-            ConventionDefinitionCollector(conventionStorage),
-            // Note that for this evaluator, which only analyzes the script (but does not apply conversion), we add the conventions
+            ModelDefaultsDefinitionCollector(modelDefaultsStorage),
+            // Note that for this evaluator, which only analyzes the script (but does not apply conversion), we add the model defaults
             // to the resolution result so that they are visible to clients after analysis.  We instead do this application as part
             // of the conversion step runner (during plugin application) for normal script evaluation.
-            AllSoftwareTypesConventionApplicationHandler(conventionStorage)
+            AllSoftwareTypesApplyModelDefaultsHandler(modelDefaultsStorage)
         )
     )
 
@@ -90,7 +90,7 @@ class SimpleAnalysisEvaluator(
 
 
 private
-class AllSoftwareTypesConventionApplicationHandler(val softwareTypeConventionRepository: SoftwareTypeConventionRepository) : ConventionApplicationHandler {
-    override fun getConventionResolutionResults(resolutionResult: ResolutionResult): List<SoftwareTypeConventionResolutionResults> =
-        conventionsForAllUsedSoftwareTypes(softwareTypeConventionRepository, resolutionResult)
+class AllSoftwareTypesApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository) : ApplyModelDefaultsHandler {
+    override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> =
+        defaultsForAllUsedSoftwareTypes(modelDefaultsRepository, resolutionResult)
 }

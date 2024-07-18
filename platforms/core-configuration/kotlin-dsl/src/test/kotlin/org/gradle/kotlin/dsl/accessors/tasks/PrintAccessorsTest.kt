@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.accessors.tasks
 
 import org.gradle.api.Project
-import org.gradle.api.initialization.Conventions
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -64,8 +64,8 @@ class PrintAccessorsTest {
                         containerElements = listOf(
                             entry<SourceSetContainer, SourceSet>("main")
                         ),
-                        buildConventions = listOf(
-                            entry<Conventions, TestSoftwareType>("softwareType")
+                        modelDefaults = listOf(
+                            entry<SharedModelDefaults, TestSoftwareType>("softwareType")
                         )
                     )
                 )

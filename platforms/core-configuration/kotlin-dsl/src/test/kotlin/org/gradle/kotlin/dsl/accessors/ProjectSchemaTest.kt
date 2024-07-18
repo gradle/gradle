@@ -224,7 +224,7 @@ fun projectSchemaWith(
     tasks = tasks,
     containerElements = containerElements,
     configurations = configurations.map { ConfigurationEntry(it) },
-    buildConventions = buildConventions
+    modelDefaults = buildConventions
 )
 
 

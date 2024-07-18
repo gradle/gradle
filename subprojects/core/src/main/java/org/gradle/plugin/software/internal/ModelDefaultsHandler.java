@@ -19,8 +19,8 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 
 /**
- * Applies the conventions from a given software type to a target object.
+ * Applies the model defaults from a given software type to a target object.
  */
-public interface SoftwareTypeConventionHandler {
+public interface ModelDefaultsHandler {
     <T> void apply(T target, String softwareTypeName, Plugin<? super T> plugin);
 }
