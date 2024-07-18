@@ -25,6 +25,9 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Collects method interception reports and prints them to the console at the end of the build.
+ */
 public class DefaultMethodInterceptionReportCollector implements MethodInterceptionReportCollector, Closeable {
 
     private final List<File> reports;
