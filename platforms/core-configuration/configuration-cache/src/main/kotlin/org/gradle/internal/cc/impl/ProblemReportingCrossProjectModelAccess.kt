@@ -168,8 +168,7 @@ class ProblemReportingCrossProjectModelAccess(
     ) : MutableStateAccessAwareProject(delegate) {
 
         override fun onMutableStateAccess(what: String) {
-            reportCrossProjectAccessProblem("Project.$what", "functionality")
-            onProjectsCoupled()
+            onIsolationViolation(what)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -248,243 +247,248 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun file(path: Any): File {
-            onMutableStateAccess("file")
+            onIsolationViolation("file")
             return super.file(path)
         }
 
         override fun file(path: Any, validation: PathValidation): File {
-            onMutableStateAccess("file")
+            onIsolationViolation("file")
             return super.file(path, validation)
         }
 
         override fun uri(path: Any): URI {
-            onMutableStateAccess("uri")
+            onIsolationViolation("uri")
             return super.uri(path)
         }
 
         override fun relativePath(path: Any): String {
-            onMutableStateAccess("relativePath")
+            onIsolationViolation("relativePath")
             return super.relativePath(path)
         }
 
         override fun files(vararg paths: Any?): ConfigurableFileCollection {
-            onMutableStateAccess("files")
+            onIsolationViolation("files")
             return super.files(*paths)
         }
 
         override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection {
-            onMutableStateAccess("files")
+            onIsolationViolation("files")
             return super.files(paths, configureClosure)
         }
 
         override fun files(paths: Any, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection {
-            onMutableStateAccess("files")
+            onIsolationViolation("files")
             return super.files(paths, configureAction)
         }
 
         override fun fileTree(baseDir: Any): ConfigurableFileTree {
-            onMutableStateAccess("fileTree")
+            onIsolationViolation("fileTree")
             return super.fileTree(baseDir)
         }
 
         override fun fileTree(baseDir: Any, configureClosure: Closure<*>): ConfigurableFileTree {
-            onMutableStateAccess("fileTree")
+            onIsolationViolation("fileTree")
             return super.fileTree(baseDir, configureClosure)
         }
 
         override fun fileTree(baseDir: Any, configureAction: Action<in ConfigurableFileTree>): ConfigurableFileTree {
-            onMutableStateAccess("fileTree")
+            onIsolationViolation("fileTree")
             return super.fileTree(baseDir, configureAction)
         }
 
         override fun fileTree(args: MutableMap<String, *>): ConfigurableFileTree {
-            onMutableStateAccess("fileTree")
+            onIsolationViolation("fileTree")
             return super.fileTree(args)
         }
 
         override fun zipTree(zipPath: Any): FileTree {
-            onMutableStateAccess("zipTree")
+            onIsolationViolation("zipTree")
             return super.zipTree(zipPath)
         }
 
         override fun tarTree(tarPath: Any): FileTree {
-            onMutableStateAccess("tarTree")
+            onIsolationViolation("tarTree")
             return super.tarTree(tarPath)
         }
 
         override fun <T : Any> provider(value: Callable<out T?>): Provider<T> {
-            onMutableStateAccess("provider")
+            onIsolationViolation("provider")
             return super.provider(value)
         }
 
         override fun getProviders(): ProviderFactory {
-            onMutableStateAccess("providers")
+            onIsolationViolation("providers")
             return super.getProviders()
         }
 
         override fun getObjects(): ObjectFactory {
-            onMutableStateAccess("objects")
+            onIsolationViolation("objects")
             return super.getObjects()
         }
 
         override fun mkdir(path: Any): File {
-            onMutableStateAccess("mkdir")
+            onIsolationViolation("mkdir")
             return super.mkdir(path)
         }
 
         override fun delete(vararg paths: Any?): Boolean {
-            onMutableStateAccess("delete")
+            onIsolationViolation("delete")
             return super.delete(*paths)
         }
 
         override fun delete(action: Action<in DeleteSpec>): WorkResult {
-            onMutableStateAccess("delete")
+            onIsolationViolation("delete")
             return super.delete(action)
         }
 
         override fun javaexec(closure: Closure<*>): ExecResult {
-            onMutableStateAccess("javaexec")
+            onIsolationViolation("javaexec")
             return super.javaexec(closure)
         }
 
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
-            onMutableStateAccess("javaexec")
+            onIsolationViolation("javaexec")
             return super.javaexec(action)
         }
 
         override fun exec(closure: Closure<*>): ExecResult {
-            onMutableStateAccess("exec")
+            onIsolationViolation("exec")
             return super.exec(closure)
         }
 
         override fun exec(action: Action<in ExecSpec>): ExecResult {
-            onMutableStateAccess("exec")
+            onIsolationViolation("exec")
             return super.exec(action)
         }
 
         override fun afterEvaluate(action: Action<in Project>) {
-            onMutableStateAccess("afterEvaluate")
+            onIsolationViolation("afterEvaluate")
             super.afterEvaluate(action)
         }
 
         override fun afterEvaluate(closure: Closure<*>) {
-            onMutableStateAccess("afterEvaluate")
+            onIsolationViolation("afterEvaluate")
             super.afterEvaluate(closure)
         }
 
         override fun beforeEvaluate(action: Action<in Project>) {
-            onMutableStateAccess("beforeEvaluate")
+            onIsolationViolation("beforeEvaluate")
             super.beforeEvaluate(action)
         }
 
         override fun beforeEvaluate(closure: Closure<*>) {
-            onMutableStateAccess("beforeEvaluate")
+            onIsolationViolation("beforeEvaluate")
             super.beforeEvaluate(closure)
         }
 
         override fun getNormalization(): InputNormalizationHandlerInternal {
-            onMutableStateAccess("normalization")
+            onIsolationViolation("normalization")
             return super.getNormalization()
         }
 
         override fun normalization(configuration: Action<in InputNormalizationHandler>) {
-            onMutableStateAccess("normalization")
+            onIsolationViolation("normalization")
             super.normalization(configuration)
         }
 
         override fun dependencyLocking(configuration: Action<in DependencyLockingHandler>) {
-            onMutableStateAccess("dependencyLocking")
+            onIsolationViolation("dependencyLocking")
             super.dependencyLocking(configuration)
         }
 
         override fun getDependencyLocking(): DependencyLockingHandler {
-            onMutableStateAccess("dependencyLocking")
+            onIsolationViolation("dependencyLocking")
             return super.getDependencyLocking()
         }
 
         override fun getResources(): ResourceHandler {
-            onMutableStateAccess("resources")
+            onIsolationViolation("resources")
             return super.getResources()
         }
 
         override fun sync(action: Action<in SyncSpec>): WorkResult {
-            onMutableStateAccess("sync")
+            onIsolationViolation("sync")
             return super.sync(action)
         }
 
         override fun copySpec(closure: Closure<*>): CopySpec {
-            onMutableStateAccess("copySpec")
+            onIsolationViolation("copySpec")
             return super.copySpec(closure)
         }
 
         override fun copySpec(action: Action<in CopySpec>): CopySpec {
-            onMutableStateAccess("copySpec")
+            onIsolationViolation("copySpec")
             return super.copySpec(action)
         }
 
         override fun copySpec(): CopySpec {
-            onMutableStateAccess("copySpec")
+            onIsolationViolation("copySpec")
             return super.copySpec()
         }
 
         override fun copy(closure: Closure<*>): WorkResult {
-            onMutableStateAccess("copy")
+            onIsolationViolation("copy")
             return super.copy(closure)
         }
 
         override fun copy(action: Action<in CopySpec>): WorkResult {
-            onMutableStateAccess("copy")
+            onIsolationViolation("copy")
             return super.copy(action)
         }
 
         override fun getDependencyFactory(): DependencyFactory {
-            onMutableStateAccess("dependencyFactory")
+            onIsolationViolation("dependencyFactory")
             return super.getDependencyFactory()
         }
 
         override fun configure(`object`: Any, configureClosure: Closure<*>): Any {
-            onMutableStateAccess("configure")
+            onIsolationViolation("configure")
             return super.configure(`object`, configureClosure)
         }
 
         override fun configure(objects: MutableIterable<*>, configureClosure: Closure<*>): MutableIterable<*> {
-            onMutableStateAccess("configure")
+            onIsolationViolation("configure")
             return super.configure(objects, configureClosure)
         }
 
         override fun <T : Any?> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
-            onMutableStateAccess("configure")
+            onIsolationViolation("configure")
             return super.configure(objects, configureAction)
         }
 
         override fun getLogging(): LoggingManager {
-            onMutableStateAccess("logging")
+            onIsolationViolation("logging")
             return super.getLogging()
         }
 
         override fun getLogger(): Logger {
-            onMutableStateAccess("logger")
+            onIsolationViolation("logger")
             return super.getLogger()
         }
 
         override fun getAnt(): AntBuilder {
-            onMutableStateAccess("ant")
+            onIsolationViolation("ant")
             return super.getAnt()
         }
 
         override fun createAntBuilder(): AntBuilder {
-            onMutableStateAccess("antBuilder")
+            onIsolationViolation("antBuilder")
             return super.createAntBuilder()
         }
 
         override fun ant(configureClosure: Closure<*>): AntBuilder {
-            onMutableStateAccess("ant")
+            onIsolationViolation("ant")
             return super.ant(configureClosure)
         }
 
         override fun ant(configureAction: Action<in AntBuilder>): AntBuilder {
-            onMutableStateAccess("ant")
+            onIsolationViolation("ant")
             return super.ant(configureAction)
+        }
+
+        override fun getGradle(): GradleInternal {
+            onIsolationViolation("gradle")
+            return super.getGradle()
         }
 
         override fun identityPath(name: String): Path {
@@ -541,11 +545,6 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun getBuildScriptSource(): ScriptSource {
             shouldNotBeUsed()
-        }
-
-        override fun getGradle(): GradleInternal {
-            onMutableStateAccess("gradle")
-            return super.getGradle()
         }
 
         override fun getProjectEvaluationBroadcaster(): ProjectEvaluationListener {
@@ -616,8 +615,13 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        fun shouldNotBeUsed(): Nothing {
+        private fun shouldNotBeUsed(): Nothing {
             throw UnsupportedOperationException("This internal method should not be used.")
+        }
+
+        private fun onIsolationViolation(what : String) {
+            reportCrossProjectAccessProblem("Project.$what", "functionality")
+            onProjectsCoupled()
         }
 
         private
