@@ -22,10 +22,15 @@ import java.util.stream.Collectors;
 import static java.lang.String.join;
 
 public abstract class RenderingUtils {
-    public static String oxfordListOf(Collection<String> values, String conjunction) {
+    public static String quotedOxfordListOf(Collection<String> values, String conjunction) {
         return values.stream()
             .sorted()
             .map(s -> "'" + s + "'")
+            .collect(oxfordJoin(conjunction));
+    }
+
+    public static String oxfordListOf(Collection<String> values, String conjunction) {
+        return values.stream()
             .collect(oxfordJoin(conjunction));
     }
 

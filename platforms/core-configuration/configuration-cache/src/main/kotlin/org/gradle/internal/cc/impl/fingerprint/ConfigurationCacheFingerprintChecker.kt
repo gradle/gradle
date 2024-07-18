@@ -21,6 +21,9 @@ import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.RenderingUtils.oxfordListOf
+import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -235,10 +238,17 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 when {
                     host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
                     jvmFingerprint() != jvm -> text("JVM has changed")
-                    host.startParameterProperties != startParameterProperties -> text("the set of Gradle properties has changed")
-                    host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting -> text("the set of ignored configuration inputs has changed")
-                    host.instrumentationAgentUsed != instrumentationAgentUsed -> text("the instrumentation Java agent ${if (instrumentationAgentUsed) "is no longer available" else "is now applied"}")
-                    host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths -> text("the set of paths ignored in file-system-check input tracking has changed")
+                    host.startParameterProperties != startParameterProperties ->
+                        text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(host.startParameterProperties, startParameterProperties))
+
+                    host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting ->
+                        text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME}) has changed")
+
+                    host.instrumentationAgentUsed != instrumentationAgentUsed ->
+                        text("the instrumentation Java agent ${if (instrumentationAgentUsed) "is no longer available" else "is now applied"}")
+
+                    host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths ->
+                        text("the set of paths ignored in file-system-check input tracking (${StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME}) has changed")
                     else -> null
                 }
             }
@@ -246,7 +256,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
                 val current = System.getenv().filterKeysByPrefix(prefix)
                 ifOrNull(current != snapshot) {
-                    text("the set of environment variables prefixed by ").reference(prefix).text(" has changed")
+                    text("the set of environment variables prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshot, current))
                 }
             }
 
@@ -261,7 +271,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
-                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed")
+                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
                 }
             }
         }
@@ -382,6 +392,29 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     inline fun <T> ifOrNull(condition: Boolean, block: () -> T): T? {
         return if (condition) block() else null
+    }
+
+    private
+    fun wereOrWas(values: Collection<String>, verb: String): String? =
+        when (values.size) {
+            0 -> null
+            1 -> "'${values.single()}' was $verb"
+            else -> "${quotedOxfordListOf(values, "and")} were $verb"
+        }
+
+    private
+    fun <T> detailedMessageForChanges(oldValues: Map<String, T>, newValues: Map<String, T>): String {
+        val added = newValues.keys - oldValues.keys
+        val removed = oldValues.keys - newValues.keys
+        val changed = oldValues.filter { (key, value) -> key in newValues && newValues[key] != value }.map { it.key }
+        return oxfordListOf(
+            listOfNotNull(
+                wereOrWas(changed, "changed")?.let { if (changed.size == 1) "the value of $it" else "the values of $it" },
+                wereOrWas(added, "added"),
+                wereOrWas(removed, "removed")
+            ),
+            "and"
+        )
     }
 
     private
