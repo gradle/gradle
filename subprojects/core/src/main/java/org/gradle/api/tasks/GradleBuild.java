@@ -18,8 +18,10 @@ package org.gradle.api.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -35,70 +37,27 @@ import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild
  */
 @DisableCachingByDefault(because = "Child Gradle build will do its own caching")
 public abstract class GradleBuild extends ConventionTask {
-    private StartParameter startParameter;
-    private String buildName;
-
     public GradleBuild() {
-        this.startParameter = createStartParameterForNewBuild(getServices());
+        StartParameter startParameter = createStartParameterForNewBuild(getServices());
         startParameter.setCurrentDir(getProject().getProjectDir());
+        getStartParameter().convention(startParameter);
     }
 
     /**
-     * Returns the full set of parameters that will be used to execute the build.
+     * Returns the set of parameters that will be used to execute the build.
      *
-     * @return the parameters. Never returns null.
+     * @return the parameters.
      */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public StartParameter getStartParameter() {
-        return startParameter;
-    }
-
-    /**
-     * Sets the full set of parameters that will be used to execute the build.
-     *
-     * @param startParameter the parameters. Should not be null.
-     */
-    public void setStartParameter(StartParameter startParameter) {
-        this.startParameter = startParameter;
-    }
-
-    /**
-     * Returns the project directory for the build. Defaults to the project directory.
-     *
-     * @return The project directory. Never returns null.
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public File getDir() {
-        return getStartParameter().getCurrentDir();
-    }
-
-    /**
-     * Sets the project directory for the build.
-     *
-     * @param dir The project directory. Should not be null.
-     * @since 4.0
-     */
-    public void setDir(File dir) {
-        setDir((Object) dir);
-    }
-
-    /**
-     * Sets the project directory for the build.
-     *
-     * @param dir The project directory. Should not be null.
-     */
-    public void setDir(Object dir) {
-        getStartParameter().setCurrentDir(getProject().file(dir));
-    }
+    @Input
+    @ReplacesEagerProperty(adapter = StartParameterAdapter.class)
+    public abstract Property<StartParameter> getStartParameter();
 
     /**
      * Returns the build file that should be used for this build. Defaults to {@value
      * org.gradle.api.Project#DEFAULT_BUILD_FILE} in the project directory.
      *
      * @return The build file. May be null.
-     * @deprecated Use {@link #getDir()} instead to get the root of the nested build.
+     * @deprecated Use {@code getStartParameter().get().getCurrentDir()} instead to get the root of the nested build.
      * This method will be removed in Gradle 9.0.
      */
     @Nullable
@@ -109,7 +68,7 @@ public abstract class GradleBuild extends ConventionTask {
     public File getBuildFile() {
         logBuildFileDeprecation();
         return DeprecationLogger.whileDisabled(() ->
-            getStartParameter().getBuildFile()
+            getStartParameter().get().getBuildFile()
         );
     }
 
@@ -118,7 +77,7 @@ public abstract class GradleBuild extends ConventionTask {
      *
      * @param file The build file. May be null to use the default build file for the build.
      * @since 4.0
-     * @deprecated Use {@link #setDir(File)} instead to set the root of the nested build.
+     * @deprecated Use {@code getStartParameter().get().setCurrentDir()} instead to set the root of the nested build.
      * This method will be removed in Gradle 9.0.
      */
     @Deprecated
@@ -130,14 +89,14 @@ public abstract class GradleBuild extends ConventionTask {
      * Sets the build file that should be used for this build.
      *
      * @param file The build file. May be null to use the default build file for the build.
-     * @deprecated Use {@link #setDir(Object)} instead to set the root of the nested build.
+     * @deprecated Use {@code getStartParameter().get().setCurrentDir()} instead to set the root of the nested build.
      * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable Object file) {
         logBuildFileDeprecation();
         DeprecationLogger.whileDisabled(() ->
-            getStartParameter().setBuildFile(getProject().file(file))
+            getStartParameter().get().setBuildFile(getProject().file(file))
         );
     }
 
@@ -152,36 +111,6 @@ public abstract class GradleBuild extends ConventionTask {
     }
 
     /**
-     * Returns the tasks that should be executed for this build.
-     *
-     * @return The sequence. May be empty. Never returns null.
-     */
-    @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getTasks() {
-        return getStartParameter().getTaskNames();
-    }
-
-    /**
-     * Sets the tasks that should be executed for this build.
-     *
-     * @param tasks The task names. May be empty or null to use the default tasks for the build.
-     * @since 4.0
-     */
-    public void setTasks(List<String> tasks) {
-        setTasks((Collection<String>) tasks);
-    }
-
-    /**
-     * Sets the tasks that should be executed for this build.
-     *
-     * @param tasks The task names. May be empty or null to use the default tasks for the build.
-     */
-    public void setTasks(Collection<String> tasks) {
-        getStartParameter().setTaskNames(tasks);
-    }
-
-    /**
      * The build name to use for the nested build.
      * <p>
      * If no value is specified, the name of the directory of the build will be used.
@@ -190,24 +119,98 @@ public abstract class GradleBuild extends ConventionTask {
      * @since 6.0
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getBuildName() {
-        return buildName;
-    }
-
-    /**
-     * Sets build name to use for the nested build.
-     *
-     * @param buildName the build name to use for the nested build
-     * @since 6.0
-     */
-    public void setBuildName(String buildName) {
-        this.buildName = buildName;
-    }
+    @Optional
+    @ReplacesEagerProperty
+    public abstract Property<String> getBuildName();
 
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into nested builds too.
-        runNestedRootBuild(buildName, (StartParameterInternal) getStartParameter(), getServices());
+        runNestedRootBuild(getBuildName().getOrNull(), (StartParameterInternal) getStartParameter(), getServices());
+    }
+
+    static class StartParameterAdapter {
+        /**
+         * Returns the full set of parameters that will be used to execute the build.
+         *
+         * @return the parameters. Never returns null.
+         */
+        @BytecodeUpgrade
+        static StartParameter getStartParameter(GradleBuild task) {
+            return task.getStartParameter().get();
+        }
+
+        /**
+         * Sets the full set of parameters that will be used to execute the build.
+         *
+         * @param startParameter the parameters. Should not be null.
+         */
+        @BytecodeUpgrade
+        static void setStartParameter(GradleBuild task, StartParameter startParameter) {
+            task.getStartParameter().set(startParameter);
+        }
+
+        /**
+         * Returns the project directory for the build. Defaults to the project directory.
+         *
+         * @return The project directory. Never returns null.
+         */
+        @Internal
+        @BytecodeUpgrade
+        static File getDir(GradleBuild task) {
+            return task.getStartParameter().get().getCurrentDir();
+        }
+
+        /**
+         * Sets the project directory for the build.
+         *
+         * @param dir The project directory. Should not be null.
+         * @since 4.0
+         */
+        @BytecodeUpgrade
+        static void setDir(GradleBuild task, File dir) {
+            setDir(task, (Object) dir);
+        }
+
+        /**
+         * Sets the project directory for the build.
+         *
+         * @param dir The project directory. Should not be null.
+         */
+        @BytecodeUpgrade
+        static void setDir(GradleBuild task, Object dir) {
+            task.getStartParameter().get().setCurrentDir(task.getProject().file(dir));
+        }
+
+        /**
+         * Returns the tasks that should be executed for this build.
+         *
+         * @return The sequence. May be empty. Never returns null.
+         */
+        @BytecodeUpgrade
+        static List<String> getTasks(GradleBuild task) {
+            return task.getStartParameter().get().getTaskNames();
+        }
+
+        /**
+         * Sets the tasks that should be executed for this build.
+         *
+         * @param tasks The task names. May be empty or null to use the default tasks for the build.
+         * @since 4.0
+         */
+        @BytecodeUpgrade
+        static void setTasks(GradleBuild task, List<String> tasks) {
+            setTasks(task, (Collection<String>) tasks);
+        }
+
+        /**
+         * Sets the tasks that should be executed for this build.
+         *
+         * @param tasks The task names. May be empty or null to use the default tasks for the build.
+         */
+        @BytecodeUpgrade
+        static void setTasks(GradleBuild task, Collection<String> tasks) {
+            task.getStartParameter().get().setTaskNames(tasks);
+        }
     }
 }
