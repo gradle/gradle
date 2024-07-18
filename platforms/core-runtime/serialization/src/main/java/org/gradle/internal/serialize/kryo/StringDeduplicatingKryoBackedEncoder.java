@@ -28,6 +28,10 @@ import java.io.OutputStream;
 import java.util.Map;
 
 public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
+
+    static final int NULL_STRING = 0;
+    static final int NEW_STRING = 1;
+
     private Map<String, Integer> strings;
 
     private final Output output;
@@ -93,7 +97,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     @Override
     public void writeNullableString(@Nullable CharSequence value) {
         if (value == null) {
-            writeStringIndex(0);
+            writeStringIndex(NULL_STRING);
             return;
         }
         writeNonnullString(value);
@@ -131,7 +135,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
          */
         Integer newIndex = strings.size() + 2;
         strings.put(key, newIndex);
-        writeStringIndex(1);
+        writeStringIndex(NEW_STRING);
         output.writeString(key);
     }
 

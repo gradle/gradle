@@ -26,13 +26,16 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder.NEW_STRING;
+import static org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder.NULL_STRING;
+
 /**
  * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire
  * stream.
  */
 public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
-    public static final int INITIAL_CAPACITY = 32;
-    private static final String[] INITIAL_CAPACITY_MARKER = new String[0];
+    private static final int INITIAL_CAPACITY = 32;
+    private static final String[] INITIAL_CAPACITY_MARKER = {};
     private final Input input;
     private final InputStream inputStream;
     private String[] strings = INITIAL_CAPACITY_MARKER;
@@ -43,6 +46,9 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
      *     <li>1 for a new string</li>
      * </ul>
      * And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
+     *
+     * @see StringDeduplicatingKryoBackedEncoder#NULL_STRING
+     * @see StringDeduplicatingKryoBackedEncoder#NEW_STRING
      **/
     private int nextString = 2;
     private long extraSkipped;
@@ -187,9 +193,9 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         try {
             int index = readStringIndex();
             switch (index) {
-                case 0:
+                case NULL_STRING:
                     return null;
-                case 1:
+                case NEW_STRING:
                     return readNewString();
                 default:
                     return strings[index];
