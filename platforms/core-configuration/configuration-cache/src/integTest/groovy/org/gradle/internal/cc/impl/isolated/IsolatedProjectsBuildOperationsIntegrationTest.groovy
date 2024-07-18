@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
@@ -142,20 +143,20 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             include("b")
         """
 
-        file("a/build.gradle") << """
+        def buildFileA = buildFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
-        file("b/build.gradle") << """
+        buildFile("b/build.gradle", """
             // Not applying the plugin intentionally
-        """
+        """)
 
         initializeCache()
 
         when: "subproject script is invalidated"
-        file("a/build.gradle") << """
+        buildFile(buildFileA, """
             println("project a updated")
-        """
+        """)
         fetchAllModels()
 
         then: "emits sub project invalidation reason"
@@ -167,12 +168,12 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     buildPath: ":",
                     projectPath: ":a",
                     invalidationReasons: [
-                        [message: "file 'a/build.gradle' has changed"]
+                        [message: "file '${relpath(buildFileA)}' has changed"]
                     ]
                 ]
             ]
         }
-        outputContains("file 'a/build.gradle' has changed")
+        outputContains("file '${relpath(buildFileA)}' has changed")
     }
 
     def "emits fingerprint check operation when invalidating multiple subprojects"() {
@@ -184,23 +185,23 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             include("b")
         """
 
-        file("a/build.gradle") << """
+        def buildFileA = buildFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
-        file("b/build.gradle") << """
+        def buildFileB = buildFile("b/build.gradle", """
             // Not applying the plugin intentionally
-        """
+        """)
 
         initializeCache()
 
         when: "subproject scripts are invalidated"
-        file("a/build.gradle") << """
+        buildFile(buildFileA, """
             println("project a updated")
-        """
-        file("b/build.gradle") << """
+        """)
+        buildFile(buildFileB, """
             println("project b updated")
-        """
+        """)
         fetchAllModels()
 
         then: "emits subproject invalidation reason"
@@ -212,20 +213,20 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     buildPath: ":",
                     projectPath: ":a",
                     invalidationReasons: [
-                        [message: "file 'a/build.gradle' has changed"]
+                        [message: "file '${relpath(buildFileA)}' has changed"]
                     ]
                 ],
                 [
                     buildPath: ":",
                     projectPath: ":b",
                     invalidationReasons: [
-                        [message: "file 'b/build.gradle' has changed"]
+                        [message: "file '${relpath(buildFileB)}' has changed"]
                     ]
                 ]
             ]
         }
-        outputContains("file 'a/build.gradle' has changed")
-        outputDoesNotContain("file 'b/build.gradle' has changed")
+        outputContains("file '${relpath(buildFileA)}' has changed")
+        outputDoesNotContain("file '${relpath(buildFileB)}' has changed")
     }
 
     def "emits fingerprint check operation when invalidating dependency"() {
@@ -237,23 +238,23 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             include("b")
         """
 
-        file("a/build.gradle") << """
+        def buildFileA = buildFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
-        file("b/build.gradle") << """
+        buildFile("b/build.gradle", """
             plugins.apply(my.MyPlugin)
             dependencies {
                 implementation(project(":a"))
             }
-        """
+        """)
 
         initializeCache()
 
         when: "dependent script is invalidated"
-        file("a/build.gradle") << """
+        buildFile(buildFileA, """
             println("project a updated")
-        """
+        """)
         fetchAllModels()
 
         then: "emits subproject invalidation reason"
@@ -265,7 +266,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     buildPath: ":",
                     projectPath: ":a",
                     invalidationReasons: [
-                        [message: "file 'a/build.gradle' has changed"]
+                        [message: "file '${relpath(buildFileA)}' has changed"]
                     ]
                 ],
                 [
@@ -277,7 +278,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                 ]
             ]
         }
-        outputContains("file 'a/build.gradle' has changed")
+        outputContains("file '${relpath(buildFileA)}' has changed")
         outputDoesNotContain("project dependency ':a' has changed")
     }
 
@@ -290,23 +291,23 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             include("b")
         """
 
-        file("a/build.gradle") << """
+        buildFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
             dependencies {
                 implementation(project(":b"))
             }
-        """
+        """)
 
-        file("b/build.gradle") << """
+        def buildFileB = buildFile("b/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
         initializeCache()
 
         when: "dependent script is invalidated"
-        file("b/build.gradle") << """
+        buildFile(buildFileB, """
             println("project b updated")
-        """
+        """)
         fetchAllModels()
 
         then: "emits subproject invalidation reason"
@@ -318,7 +319,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     buildPath: ":",
                     projectPath: ":b",
                     invalidationReasons: [
-                        [message: "file 'b/build.gradle' has changed"]
+                        [message: "file '${relpath(buildFileB)}' has changed"]
                     ]
                 ],
                 [
@@ -330,7 +331,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                 ],
             ]
         }
-        outputContains("file 'b/build.gradle' has changed")
+        outputContains("file '${relpath(buildFileB)}' has changed")
         outputDoesNotContain("project dependency ':b' has changed")
     }
 
@@ -342,9 +343,9 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             includeBuild("a")
         """
 
-        file("a/settings.gradle") << """
+        settingsFile("a/settings.gradle", """
             rootProject.name = 'a'
-        """
+        """)
 
         buildFile """
             plugins.apply(my.MyPlugin)
@@ -353,9 +354,9 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
         initializeCache()
 
         when: "included project script is invalidated"
-        file("a/build.gradle") << """
+        def buildFileA = buildFile("a/build.gradle", """
             println("included project updated")
-        """
+        """)
         fetchAllModels()
 
         then: "emits sub project invalidation reason"
@@ -367,12 +368,12 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     buildPath: ":a",
                     projectPath: ":",
                     invalidationReasons: [
-                        [message: "file 'a/build.gradle' has changed"]
+                        [message: "file '${relpath(buildFileA)}' has changed"]
                     ]
                 ]
             ]
         }
-        outputContains("file 'a/build.gradle' has changed")
+        outputContains("file '${relpath(buildFileA)}' has changed")
     }
 
     private def fetchAllModels() {
@@ -382,5 +383,9 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
 
     private def initializeCache() {
         fetchAllModels()
+    }
+
+    private String relpath(TestFile file) {
+        return file.relativePathFromBase
     }
 }
