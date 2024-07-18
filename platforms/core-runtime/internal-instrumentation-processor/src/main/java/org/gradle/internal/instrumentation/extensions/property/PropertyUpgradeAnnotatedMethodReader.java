@@ -282,32 +282,21 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         BinaryCompatibility binaryCompatibility,
         BytecodeInterceptorType bytecodeInterceptorType
     ) {
-        AccessorType accessorType;
-        switch (bridgeType) {
-            case ADAPTER_METHOD_BRIDGE:
-                // For adapter first parameter is always a type we upgrade
-                accessorType = method.getParameters().size() > 1
-                    ? AccessorType.SETTER
-                    : AccessorType.GETTER;
-                break;
-            case INSTANCE_METHOD_BRIDGE:
-                accessorType = method.getParameters().isEmpty()
-                    ? AccessorType.GETTER
-                    : AccessorType.SETTER;
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported bridge type: " + bridgeType);
-        }
         String methodName = method.getSimpleName().toString();
         String propertyName = getPropertyName(methodName);
         TypeName returnType = TypeName.get(method.getReturnType());
-        List<ParameterInfo> parameters = method.getParameters().stream()
+
+        // First parameters of adapter is always a type we upgrade, so we skip it for parameters of an accessor
+        int skipParameters = bridgeType == BridgeType.ADAPTER_METHOD_BRIDGE ? 1 : 0;
+        List<ParameterInfo> parameters = method.getParameters().stream().skip(skipParameters)
             .map(parameter -> new ParameterInfoImpl(
                 parameter.getSimpleName().toString(),
                 TypeUtils.extractType(parameter.asType()),
                 METHOD_PARAMETER
             ))
             .collect(Collectors.toList());
+
+        AccessorType accessorType = parameters.isEmpty() ? AccessorType.GETTER : AccessorType.SETTER;
         BridgedMethodInfo bridgedMethodInfo = new BridgedMethodInfo(method, bridgeType);
         return new AccessorSpec(
             generatedClassName,
@@ -367,11 +356,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private AccessorSpec adapterBridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {
-        // Using $$, since internal classes types has $ and due to
-        // that we have some problems translating from asm Type to javapoet TypeName
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
+
+        // Using $$, since internal classes types has $ and due to
+        // that we have some problems translating from asm Type to javapoet TypeName
         String generatedClassName = String.format("%s.$$BridgeFor$$%s$$%s",
             packageElement.getQualifiedName().toString(),
             topClass.getSimpleName().toString(),
