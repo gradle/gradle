@@ -19,8 +19,10 @@ package org.gradle.api.internal.initialization.transform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -31,11 +33,18 @@ import org.gradle.work.DisableCachingByDefault;
 import java.io.File;
 import java.util.Optional;
 
+import static org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform.Parameters;
+
 /**
  * Artifact transform that instruments project based artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache.")
-public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
+public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<Parameters> {
+
+    public interface Parameters extends BaseInstrumentingArtifactTransform.Parameters {
+        @Input
+        Property<Boolean> getIsUpgradeReport();
+    }
 
     @Override
     @Classpath
