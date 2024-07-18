@@ -269,7 +269,7 @@ class DefaultProjectTest extends Specification {
         }
     }
 
-    private DefaultProject defaultProject(String name, ProjectState owner, def parent, File rootDir, ClassLoaderScope scope) {
+    private DefaultProject defaultProject(String name, ProjectState owner, ProjectInternal parent, File rootDir, ClassLoaderScope scope) {
         _ * owner.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
         _ * owner.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
         _ * owner.depth >> owner.projectPath.segmentCount()

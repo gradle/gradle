@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.Path;
 
@@ -57,6 +58,11 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public Path getIdentityPath() {
         return delegate.getIdentityPath();
+    }
+
+    @Override
+    public ProjectIdentity getTargetProjectIdentity() {
+        return delegate.getTargetProjectIdentity();
     }
 
     @Override
