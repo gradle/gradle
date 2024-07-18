@@ -70,8 +70,7 @@ class VersionCatalogGeneratorTest extends Specification {
 
         then:
         versionCatalogFile.file
-        versionCatalogFile.text == toPlatformLineSeparators("""
-[versions]
+        versionCatalogFile.text == toPlatformLineSeparators("""[versions]
 com-example-group-long = "v1"
 
 [libraries]
@@ -89,8 +88,7 @@ com-example-group-long = { module = "com.example.group:long", version.ref = "com
 
         then:
         versionCatalogFile.file
-        versionCatalogFile.text == toPlatformLineSeparators("""
-[versions]
+        versionCatalogFile.text == toPlatformLineSeparators("""[versions]
 group-artifact = "1.1"
 
 [libraries]
@@ -108,8 +106,7 @@ group-artifact = { module = "group:artifact", version.ref = "group-artifact" }
 
         then:
         versionCatalogFile.file
-        versionCatalogFile.text == toPlatformLineSeparators("""
-[versions]
+        versionCatalogFile.text == toPlatformLineSeparators("""[versions]
 group-long = "1.1"
 group-long-x1 = "1.2"
 
@@ -129,8 +126,7 @@ group-long-x1 = { module = "group:long", version.ref = "group-long-x1" }
 
         then:
         versionCatalogFile.file
-        versionCatalogFile.text == toPlatformLineSeparators("""
-[versions]
+        versionCatalogFile.text == toPlatformLineSeparators("""[versions]
 group-artifact-v5 = "1.1.1"
 junit-something = "4"
 
@@ -149,8 +145,7 @@ junit-something = { module = "JUnit:something", version.ref = "junit-something" 
 
         then:
         versionCatalogFile.file
-        versionCatalogFile.text == toPlatformLineSeparators("""
-[plugins]
+        versionCatalogFile.text == toPlatformLineSeparators("""[plugins]
 com-example-long = { id = "com.example.long", version = "1337" }
 """)
     }
@@ -167,8 +162,7 @@ com-example-long = { id = "com.example.long", version = "1337" }
 
         then:
         versionCatalogFile.file
-        versionCatalogFile.text == toPlatformLineSeparators("""
-[plugins]
+        versionCatalogFile.text == toPlatformLineSeparators("""[plugins]
 example-alias = { id = "com.example.long", version = "1337" }
 """)
     }
