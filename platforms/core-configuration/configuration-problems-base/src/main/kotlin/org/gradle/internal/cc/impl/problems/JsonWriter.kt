@@ -81,11 +81,11 @@ class JsonWriter(private val writer: Writer) {
 
     private
     fun elementSeparator() {
-            if (nextItemNeedsComma) {
-                comma()
-            } else {
-                nextItemNeedsComma = true
-            }
+        if (nextItemNeedsComma) {
+            comma()
+        } else {
+            nextItemNeedsComma = true
+        }
     }
 
     private

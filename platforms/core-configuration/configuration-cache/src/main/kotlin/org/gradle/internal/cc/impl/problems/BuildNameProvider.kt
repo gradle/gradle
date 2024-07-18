@@ -27,7 +27,6 @@ import org.gradle.internal.service.scopes.ServiceScope
 /**
  * A utility class that provides the name of the build.
  */
-
 @ServiceScope(Scope.BuildTree::class)
 class BuildNameProvider(private val listenerManager: ListenerManager) : InternalBuildAdapter(), Stoppable {
 
@@ -39,12 +38,21 @@ class BuildNameProvider(private val listenerManager: ListenerManager) : Internal
         listenerManager.removeListener(this)
     }
 
-    var buildName: String? = null
-        get() = field
+    private
+    var rootBuildName: String? = null
+
+    // TODO: This doesn't work well with CC and it never did in the previous solution.
+    // The issue is that settingsEvaluated relies on the BuildListener which is not supported in CC. So we can not throw in case it is null.
+    // the tests that break if you do are in ConfigurationCacheDependencyResolutionIntegrationTest
+    // a nicer way to do this would be to use buildStateRegistry.rootBuild.projects.rootProject.name but that also doesn't work with CC :(
+    // one of the tests that fail if you try this is org.gradle.integtests.resolve.catalog.TomlDependenciesExtensionIntegrationTest.should throw an error if 'from' is called multiple times
+    fun buildName(): String? {
+        return rootBuildName
+    }
 
     override fun settingsEvaluated(settings: Settings) {
         if ((settings as SettingsInternal).gradle.isRootBuild) {
-            buildName = settings.rootProject.name
+            rootBuildName = settings.rootProject.name
         }
     }
 }

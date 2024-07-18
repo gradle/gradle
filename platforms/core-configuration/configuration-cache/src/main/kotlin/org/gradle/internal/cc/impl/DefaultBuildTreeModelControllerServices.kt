@@ -44,7 +44,6 @@ import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProbl
 import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
-import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
@@ -192,7 +191,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
-        registration.add(BuildNameProvider::class.java)
 
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
         registration.add(DefaultProblemFactory::class.java)

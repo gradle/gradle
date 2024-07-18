@@ -29,15 +29,12 @@ import org.gradle.internal.configuration.problems.taskPathFrom
 
 
 enum class DiagnosticKind {
-    PROBLEM,
-    INPUT,
-    INCOMPATIBLE_TASK
+    PROBLEM, INPUT, INCOMPATIBLE_TASK
 }
 
 class JsonModelWriter(private val modelWriter: JsonWriter) {
 
-    private
-    val documentationRegistry = DocumentationRegistry()
+    private val documentationRegistry = DocumentationRegistry()
 
     fun beginModel() {
         with(modelWriter) {
@@ -54,11 +51,11 @@ class JsonModelWriter(private val modelWriter: JsonWriter) {
             property("totalProblemCount") {
                 write(totalProblemCount.toString())
             }
-            if (buildDisplayName != null) {
-                property("buildName", buildDisplayName)
+            buildDisplayName?.let {
+                property("buildName", it)
             }
-            if (requestedTasks != null) {
-                property("requestedTasks", requestedTasks)
+            requestedTasks?.let {
+                property("requestedTasks", it)
             }
             property("cacheAction", cacheAction)
             property("cacheActionDescription") {
@@ -91,8 +88,7 @@ class JsonModelWriter(private val modelWriter: JsonWriter) {
         }
     }
 
-    private
-    fun writeError(failure: DecoratedFailure) {
+    private fun writeError(failure: DecoratedFailure) {
         with(modelWriter) {
             val summary = failure.summary
             val parts = failure.parts
@@ -116,8 +112,7 @@ class JsonModelWriter(private val modelWriter: JsonWriter) {
         }
     }
 
-    private
-    fun writeStructuredMessage(message: StructuredMessage) {
+    private fun writeStructuredMessage(message: StructuredMessage) {
         with(modelWriter) {
             jsonObjectList(message.fragments) { fragment ->
                 writeFragment(fragment)
@@ -125,15 +120,13 @@ class JsonModelWriter(private val modelWriter: JsonWriter) {
         }
     }
 
-    private
-    fun keyFor(kind: DiagnosticKind) = when (kind) {
+    private fun keyFor(kind: DiagnosticKind) = when (kind) {
         DiagnosticKind.PROBLEM -> "problem"
         DiagnosticKind.INPUT -> "input"
         DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
     }
 
-    private
-    fun writeFragment(fragment: StructuredMessage.Fragment) {
+    private fun writeFragment(fragment: StructuredMessage.Fragment) {
         with(modelWriter) {
             when (fragment) {
                 is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
@@ -142,8 +135,7 @@ class JsonModelWriter(private val modelWriter: JsonWriter) {
         }
     }
 
-    private
-    fun writePropertyTrace(trace: PropertyTrace) {
+    private fun writePropertyTrace(trace: PropertyTrace) {
         with(modelWriter) {
             when (trace) {
                 is PropertyTrace.Property -> {

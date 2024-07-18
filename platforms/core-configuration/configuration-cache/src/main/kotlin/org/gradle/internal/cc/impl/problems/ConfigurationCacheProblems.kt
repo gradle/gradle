@@ -294,7 +294,7 @@ class ConfigurationCacheProblems(
     fun detailsFor(summary: Summary): ProblemReportDetails {
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        return ProblemReportDetails(buildNameProvider.buildName, cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
+        return ProblemReportDetails(buildNameProvider.buildName(), cacheActionText, cacheActionDescription, requestedTasks, summary.problemCount)
     }
 
     private
