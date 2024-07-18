@@ -908,7 +908,11 @@ Some plugins expect simple closures, as with the link:{plugin-portal}plugin/com.
 
 .Use `closureOf<T> {}`
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability-closure-of/kotlin",files="build.gradle.kts[tags=closureOf]"]
+bintray {
+    pkg(closureOf<PackageConfig> {
+        // Config for the package here
+    })
+}
 ====
 
 In other cases, like with the link:{plugin-portal}plugin/org.gretty[Gretty Plugin] when configuring farms, the plugin expects a delegate closure:
