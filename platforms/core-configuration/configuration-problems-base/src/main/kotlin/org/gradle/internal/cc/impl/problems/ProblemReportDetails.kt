@@ -20,7 +20,7 @@ import org.gradle.internal.configuration.problems.StructuredMessage
 
 
 data class ProblemReportDetails(
-    val buildDisplayName: String?,
+    val buildDisplayName: String,
     val cacheAction: String,
     val cacheActionDescription: StructuredMessage,
     val requestedTasks: String?,
