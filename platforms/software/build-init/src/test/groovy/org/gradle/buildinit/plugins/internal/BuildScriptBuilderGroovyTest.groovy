@@ -110,7 +110,7 @@ see more at gradle.org""")
         when:
         builder.plugin("Add support for the Java language", "java")
         builder.plugin("Add support for Java libraries", "java-library")
-        builder.plugin("Add support for the Kotlin language", "org.jetbrains.kotlin.jvm", "1.3.41")
+        builder.plugin("Add support for the Kotlin language", "org.jetbrains.kotlin.jvm", "1.3.41", "kotlin-jvm")
         builder.create(target).generate()
 
         then:
