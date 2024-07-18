@@ -28,6 +28,7 @@ import org.gradle.internal.instrumentation.processor.extensibility.Instrumentati
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
 import org.gradle.internal.instrumentation.processor.extensibility.ResourceGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
+import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.ReadRequestContext;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
 
@@ -134,9 +135,10 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     }
 
     private static void readRequests(Collection<AnnotatedMethodReaderExtension> readers, List<ExecutableElement> allMethodElementsInAnnotatedClasses, Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors, List<CallInterceptionRequestReader.Result.Success> successResults) {
+        ReadRequestContext context = new ReadRequestContext();
         for (ExecutableElement methodElement : allMethodElementsInAnnotatedClasses) {
             for (AnnotatedMethodReaderExtension reader : readers) {
-                Collection<CallInterceptionRequestReader.Result> readerResults = reader.readRequest(methodElement);
+                Collection<CallInterceptionRequestReader.Result> readerResults = reader.readRequest(methodElement, context);
                 for (CallInterceptionRequestReader.Result readerResult : readerResults) {
                     if (readerResult instanceof CallInterceptionRequestReader.Result.InvalidRequest) {
                         errors.computeIfAbsent(methodElement, key -> new ArrayList<>()).add((CallInterceptionRequestReader.Result.InvalidRequest) readerResult);
