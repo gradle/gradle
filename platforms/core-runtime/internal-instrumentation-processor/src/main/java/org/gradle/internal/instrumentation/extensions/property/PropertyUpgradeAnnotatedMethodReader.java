@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -65,11 +68,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -95,6 +100,8 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final TypeName DEFAULT_TYPE = ClassName.get(DefaultValue.class);
+    private static final String TO_BE_REPLACED_SETTERS_KEY_PREFIX = "@ToBeReplacedByLazyPropertySetters_";
+    private static final String TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX = "@ToBeReplacedByLazyPropertySettersVisited_";
 
     private final String projectName;
     private final Elements elements;
@@ -143,7 +150,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @Override
-    public Collection<Result> readRequest(ExecutableElement method) {
+    public Collection<Result> readRequest(ExecutableElement method, ReadRequestContext context) {
         Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, ReplacesEagerProperty.class);
         if (!annotation.isPresent()) {
             annotation = AnnotationUtils.findAnnotationMirror(method, ToBeReplacedByLazyProperty.class);
@@ -161,7 +168,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
 
         try {
-            List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror);
+            List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror, context);
             List<CallInterceptionRequest> requests = new ArrayList<>();
             for (AccessorSpec accessorSpec : accessorSpecs) {
                 switch (accessorSpec.accessorType) {
@@ -190,9 +197,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @SuppressWarnings("unchecked")
-    private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
+    private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror, ReadRequestContext context) {
         if (isAnnotationOfType(annotationMirror, ToBeReplacedByLazyProperty.class)) {
-            return readAccessorSpecsFromToBeReplacedByLazyProperty(method, annotationMirror);
+            return readAccessorSpecsFromToBeReplacedByLazyProperty(method, annotationMirror, context);
         }
 
         Element element = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
@@ -223,7 +230,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement method, AnnotationMirror annotation) {
+    private List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement annotatedMethod, AnnotationMirror annotation, ReadRequestContext context) {
         boolean skipForReport = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "skipForReport")
             .map(v -> (boolean) v.getValue())
             .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'skipForReport' attribute in @%s", ToBeReplacedByLazyProperty.class.getSimpleName())));
@@ -231,16 +238,69 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return Collections.emptyList();
         }
 
+        String propertyName = getPropertyName(annotatedMethod);
+        String settersKey = TO_BE_REPLACED_SETTERS_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
+        String propertySettersVisitedKey = TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
+        Collection<ExecutableElement> setters;
+        Set<String> propertySettersVisited = context.computeIfAbsent(propertySettersVisitedKey, key -> new HashSet<>());
+        if (isSetterMethodName(annotatedMethod.getSimpleName().toString()) || !propertySettersVisited.add(propertyName)) {
+            // If setter is annotated we should not visit other setters
+            // also some booleans have two getters, is and get getter, so lets visit setters only once.
+            setters = Collections.emptyList();
+        } else {
+            setters = context.computeIfAbsent(settersKey, key -> getAllSetters(annotatedMethod.getEnclosingElement())).get(propertyName);
+        }
+
         DeprecationSpec deprecationSpec = new DeprecationSpec(false, RemovedIn.UNSPECIFIED, -1, "", false);
-        BinaryCompatibility binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT;
+        String generatedClassName = "org.gradle.internal.classpath.generated." + annotatedMethod.getEnclosingElement().getSimpleName() + "_ReportingAdapter";
+        return Stream.concat(Stream.of(annotatedMethod), setters.stream())
+            .map(method -> bridgedMethodToAccessorSpec(
+                method,
+                generatedClassName,
+                BridgeType.INSTANCE_METHOD_BRIDGE,
+                deprecationSpec,
+                BinaryCompatibility.ACCESSORS_KEPT,
+                BYTECODE_UPGRADE_REPORT))
+            .collect(Collectors.toList());
+    }
+
+    private static Multimap<String, ExecutableElement> getAllSetters(Element element) {
+        return TypeUtils.getExecutableElementsFromElements(Stream.of(element)).stream()
+            .filter(method -> isSetterMethodName(method.getSimpleName().toString()) && method.getParameters().size() == 1)
+            .collect(Multimaps.toMultimap(
+                PropertyUpgradeAnnotatedMethodReader::getPropertyName,
+                Function.identity(),
+                ArrayListMultimap::create
+            ));
+    }
+
+    private static AccessorSpec bridgedMethodToAccessorSpec(
+        ExecutableElement method,
+        String generatedClassName,
+        BridgeType bridgeType,
+        DeprecationSpec deprecationSpec,
+        BinaryCompatibility binaryCompatibility,
+        BytecodeInterceptorType bytecodeInterceptorType
+    ) {
+        AccessorType accessorType;
+        switch (bridgeType) {
+            case ADAPTER_METHOD_BRIDGE:
+                // For adapter first parameter is always a type we upgrade
+                accessorType = method.getParameters().size() > 1
+                    ? AccessorType.SETTER
+                    : AccessorType.GETTER;
+                break;
+            case INSTANCE_METHOD_BRIDGE:
+                accessorType = method.getParameters().isEmpty()
+                    ? AccessorType.GETTER
+                    : AccessorType.SETTER;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported bridge type: " + bridgeType);
+        }
         String methodName = method.getSimpleName().toString();
         String propertyName = getPropertyName(methodName);
-        AccessorType accessorType = method.getParameters().size() > 1
-            ? AccessorType.SETTER
-            : AccessorType.GETTER;
         TypeName returnType = TypeName.get(method.getReturnType());
-        Element enclosingClass = method.getEnclosingElement();
-        String generatedClassName = "org.gradle.internal.classpath.generated." + enclosingClass.getSimpleName() + "_ReportingAdapter";
         List<ParameterInfo> parameters = method.getParameters().stream()
             .map(parameter -> new ParameterInfoImpl(
                 parameter.getSimpleName().toString(),
@@ -248,8 +308,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 METHOD_PARAMETER
             ))
             .collect(Collectors.toList());
-        BridgedMethodInfo bridgedMethodInfo = new BridgedMethodInfo(method, BridgeType.INSTANCE_METHOD_BRIDGE);
-        return Collections.singletonList(new AccessorSpec(
+        BridgedMethodInfo bridgedMethodInfo = new BridgedMethodInfo(method, bridgeType);
+        return new AccessorSpec(
             generatedClassName,
             accessorType,
             propertyName,
@@ -258,9 +318,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             parameters,
             deprecationSpec,
             binaryCompatibility,
-            BYTECODE_UPGRADE_REPORT,
+            bytecodeInterceptorType,
             bridgedMethodInfo
-        ));
+        );
     }
 
     private List<AccessorSpec> readAccessorSpecsFromAdapter(Element adapter, Element upgradedElement, AnnotationMirror annotationMirror) {
@@ -270,7 +330,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         validateBridgedMethods(adapter, upgradedElement, bridgedMethods);
 
         return bridgedMethods.stream()
-            .map(method -> bridgedMethodToAccessorSpec(method, annotationMirror))
+            .map(method -> adapterBridgedMethodToAccessorSpec(method, annotationMirror))
             .collect(Collectors.toList());
     }
 
@@ -306,47 +366,27 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             && !element.getModifiers().contains(Modifier.PRIVATE);
     }
 
-    private AccessorSpec bridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {
-        DeprecationSpec deprecationSpec = readDeprecationSpec(annotationMirror);
-        BinaryCompatibility binaryCompatibility = readBinaryCompatibility(annotationMirror);
-        String methodName = method.getSimpleName().toString();
-        String propertyName = getPropertyName(methodName);
-        AccessorType accessorType = method.getParameters().size() > 1
-            ? AccessorType.SETTER
-            : AccessorType.GETTER;
-        TypeName returnType = TypeName.get(method.getReturnType());
+    private AccessorSpec adapterBridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {
+        // Using $$, since internal classes types has $ and due to
+        // that we have some problems translating from asm Type to javapoet TypeName
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
-
-        // Using $$, since internal classes types has $ and due to
-        // that we have some problems translating from asm Type to javapoet TypeName
         String generatedClassName = String.format("%s.$$BridgeFor$$%s$$%s",
             packageElement.getQualifiedName().toString(),
             topClass.getSimpleName().toString(),
             innerClass.getSimpleName().toString()
         );
 
-        List<ParameterInfo> parameters = method.getParameters().stream()
-            .skip(1)
-            .map(parameter -> new ParameterInfoImpl(
-                parameter.getSimpleName().toString(),
-                TypeUtils.extractType(parameter.asType()),
-                METHOD_PARAMETER
-            ))
-            .collect(Collectors.toList());
-        BridgedMethodInfo bridgedMethodInfo = new BridgedMethodInfo(method, BridgeType.ADAPTER_METHOD_BRIDGE);
-        return new AccessorSpec(
+        DeprecationSpec deprecationSpec = readDeprecationSpec(annotationMirror);
+        BinaryCompatibility binaryCompatibility = readBinaryCompatibility(annotationMirror);
+        return bridgedMethodToAccessorSpec(
+            method,
             generatedClassName,
-            accessorType,
-            propertyName,
-            methodName,
-            returnType,
-            parameters,
+            BridgeType.ADAPTER_METHOD_BRIDGE,
             deprecationSpec,
             binaryCompatibility,
-            BYTECODE_UPGRADE,
-            bridgedMethodInfo
+            BYTECODE_UPGRADE
         );
     }
 
@@ -599,11 +639,19 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private static String getPropertyName(String methodName) {
         if (methodName.startsWith("is") && methodName.length() > 2 && Character.isUpperCase(methodName.charAt(2))) {
             return Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
-        } else if ((methodName.startsWith("get") || methodName.startsWith("set")) && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3))) {
+        } else if (isGetterMethodName(methodName) || isSetterMethodName(methodName)) {
             return Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
         } else {
             return methodName;
         }
+    }
+
+    private static boolean isGetterMethodName(String methodName) {
+        return methodName.startsWith("get") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3));
+    }
+
+    private static boolean isSetterMethodName(String methodName) {
+        return methodName.startsWith("set") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3));
     }
 
     // TODO Consolidate with AnnotationCallInterceptionRequestReaderImpl#Failure

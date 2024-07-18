@@ -51,12 +51,14 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
 
         when: "From cache"
         run("--property-upgrade-report")
 
         then:
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
     }
 
     def "usage of upgraded properties in Kotlin scripts should be reported"() {
@@ -78,12 +80,14 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
 
         when: "From cache"
         run("--property-upgrade-report")
 
         then:
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }
 
     @NotYetImplemented

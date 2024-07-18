@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.asmTree)
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
+    implementation(libs.guava)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseServices)

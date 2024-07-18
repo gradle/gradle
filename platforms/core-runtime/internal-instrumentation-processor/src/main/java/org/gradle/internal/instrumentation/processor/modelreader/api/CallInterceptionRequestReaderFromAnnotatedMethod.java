@@ -21,5 +21,5 @@ import java.util.Collection;
 
 public interface CallInterceptionRequestReaderFromAnnotatedMethod extends CallInterceptionRequestReader<ExecutableElement> {
     @Override
-    Collection<Result> readRequest(ExecutableElement input);
+    Collection<Result> readRequest(ExecutableElement input, ReadRequestContext context);
 }
