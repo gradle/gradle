@@ -689,6 +689,9 @@ tasks.named("docsTest") { task ->
     filter {
         // TODO(https://github.com/gradle/gradle/issues/22538)
         excludeTestsMatching "org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation.sample"
+        // https://github.com/gradle/gradle-private/issues/4260
+        excludeTestsMatching "*snippet-plugins-dsl_kotlin_sanityCheck.sample*"
+        excludeTestsMatching "*snippet-plugins-buildscript_groovy_sanityCheck.sample*"
     }
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
