@@ -68,7 +68,7 @@ public class Path implements Comparable<Path> {
 
     private final String[] segments;
     private final boolean absolute;
-    private String fullPath;
+    private volatile String fullPath;
 
     private Path(String[] segments, boolean absolute) {
         this.segments = segments;
@@ -104,7 +104,11 @@ public class Path implements Comparable<Path> {
 
     public String getPath() {
         if (fullPath == null) {
-            fullPath = createFullPath();
+            synchronized (this) {
+                if (fullPath == null) {
+                    fullPath = createFullPath();
+                }
+            }
         }
         return fullPath;
     }
