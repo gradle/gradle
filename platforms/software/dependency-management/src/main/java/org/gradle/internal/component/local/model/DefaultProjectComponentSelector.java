@@ -35,8 +35,6 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     private final ImmutableAttributes attributes;
     private final List<Capability> requestedCapabilities;
 
-    private String displayName;
-
     public DefaultProjectComponentSelector(
         ProjectIdentity projectIdentity,
         ImmutableAttributes attributes,
@@ -54,16 +52,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public String getDisplayName() {
-        if (displayName == null) {
-            String prefix;
-            if (Path.ROOT.equals(projectIdentity.getBuildTreePath())) {
-                prefix =  "root project";
-            } else {
-                prefix = "project";
-            }
-            displayName = prefix + " " + projectIdentity.getBuildTreePath().getPath();
-        }
-        return displayName;
+        return projectIdentity.getDisplayName();
     }
 
     @Override

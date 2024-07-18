@@ -16,18 +16,22 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.internal.Describables;
 import org.gradle.util.Path;
 
 /**
  * Identifies a single project within the build and the build tree.
  */
-public final class ProjectIdentity {
+public final class ProjectIdentity implements Describable {
 
     private final BuildIdentifier buildIdentifier;
     private final Path buildTreePath;
     private final Path projectPath;
     private final String projectName;
+
+    private final Describable displayName;
 
     public ProjectIdentity(
         BuildIdentifier buildIdentifier,
@@ -39,6 +43,9 @@ public final class ProjectIdentity {
         this.buildTreePath = buildTreePath;
         this.projectPath = projectPath;
         this.projectName = projectName;
+
+        String prefix = Path.ROOT.equals(buildTreePath) ? "root project" : "project";
+        this.displayName = Describables.memoize(Describables.of(prefix, buildTreePath.getPath()));
     }
 
     /**
@@ -67,6 +74,16 @@ public final class ProjectIdentity {
      */
     public String getProjectName() {
         return projectName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName.getDisplayName();
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     @Override

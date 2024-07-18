@@ -23,7 +23,6 @@ import org.gradle.util.Path;
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifierInternal {
 
     private final ProjectIdentity projectIdentity;
-    private String displayName;
 
     public DefaultProjectComponentIdentifier(ProjectIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
@@ -44,16 +43,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     @Override
     public String getDisplayName() {
-        if (displayName == null) {
-            String prefix;
-            if (Path.ROOT.equals(projectIdentity.getBuildTreePath())) {
-                prefix =  "root project";
-            } else {
-                prefix = "project";
-            }
-            displayName = prefix + " " + projectIdentity.getBuildTreePath().getPath();
-        }
-        return displayName;
+        return projectIdentity.getDisplayName();
     }
 
     @Override
