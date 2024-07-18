@@ -7,6 +7,7 @@ import configurations.DocsTestProject
 import configurations.DocsTestTrigger
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
+import configurations.OsAwareBaseGradleBuildType
 import configurations.PartialTrigger
 import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
@@ -40,15 +41,15 @@ class StageProject(
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
-    val specificBuildTypes: List<BaseGradleBuildType>
+    val specificBuildTypes: List<OsAwareBaseGradleBuildType>
 
     val performanceTests: List<PerformanceTestsPass>
 
-    val functionalTests: List<BaseGradleBuildType>
+    val functionalTests: List<OsAwareBaseGradleBuildType>
 
-    val crossVersionTests: List<BaseGradleBuildType>
+    val crossVersionTests: List<OsAwareBaseGradleBuildType>
 
-    val docsTestTriggers: List<BaseGradleBuildType>
+    val docsTestTriggers: List<OsAwareBaseGradleBuildType>
 
     init {
         features {

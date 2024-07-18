@@ -6,7 +6,7 @@ import common.isSecurityFork
 import configurations.BaseGradleBuildType
 import configurations.GitHubMergeQueueCheckPass
 import configurations.PerformanceTestsPass
-import configurations.StagePasses
+import configurations.StageTriggers
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.Project
 import model.CIBuildModel
@@ -64,8 +64,8 @@ class CheckProject(
             return@forEach
         }
         val stageProject = StageProject(model, functionalTestBucketProvider, performanceTestBucketProvider, stage, previousPerformanceTestPasses, previousCrossVersionTests)
-        val stagePasses = StagePasses(model, stage, prevStage, stageProject)
-        buildType(stagePasses)
+        val stageTriggers = StageTriggers(model, stage, prevStage, stageProject)
+        stageTriggers.triggers.forEach(::buildType)
         subProject(stageProject)
 
         prevStage = stage

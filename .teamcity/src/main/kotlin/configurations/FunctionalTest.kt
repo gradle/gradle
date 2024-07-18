@@ -53,7 +53,7 @@ class FunctionalTest(
     maxParallelForks: String = "%maxParallelForks%",
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {}
-) : BaseGradleBuildType(stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
     this.name = name
     this.description = description
     this.id(id)
