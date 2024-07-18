@@ -19,7 +19,6 @@ package org.gradle.api.internal.project;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
-import kotlin.Deprecated;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
@@ -85,7 +84,6 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
@@ -102,7 +100,7 @@ import java.util.concurrent.Callable;
  * {@link #methodMissing(String, Object)} methods.
  * <p>
  * Instances of this class should be created via {@link org.gradle.internal.reflect.Instantiator} to ensure proper runtime decoration.
- * */
+ */
 public abstract class MutableStateAccessAwareProject implements ProjectInternal, DynamicObjectAware {
 
     protected final ProjectInternal delegate;
@@ -221,25 +219,33 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getProjectIdentityPath();
     }
 
+    /**
+     * @deprecated Use layout.buildDirectory instead
+     */
     @Override
-    @SuppressWarnings("deprecation")
-    @Deprecated(message = "Use layout.buildDirectory instead")
+    @Deprecated
     public File getBuildDir() {
         onMutableStateAccess("buildDir");
         return delegate.getBuildDir();
     }
 
+    /**
+     * @deprecated Use layout.buildDirectory instead
+     */
     @Override
+    @Deprecated
     @SuppressWarnings("deprecation")
-    @Deprecated(message = "Use layout.buildDirectory instead")
     public void setBuildDir(File path) {
         onMutableStateAccess("buildDir");
         delegate.setBuildDir(path);
     }
 
+    /**
+     * @deprecated Use layout.buildDirectory instead
+     */
     @Override
+    @Deprecated
     @SuppressWarnings("deprecation")
-    @Deprecated(message = "Use layout.buildDirectory instead")
     public void setBuildDir(Object path) {
         onMutableStateAccess("buildDir");
         delegate.setBuildDir(path);
@@ -634,7 +640,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.projectPath(name);
     }
 
-    @Nonnull
     @Override
     public Path getProjectPath() {
         return delegate.getProjectPath();
@@ -1027,9 +1032,12 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         delegate.artifacts(configureAction);
     }
 
+    /**
+     * @deprecated the concept of conventions is deprecated. Use extensions instead
+     */
     @Override
+    @Deprecated
     @SuppressWarnings("deprecation")
-    @Deprecated(message = "The concept of conventions is deprecated. Use extensions instead.")
     public org.gradle.api.plugins.Convention getConvention() {
         onMutableStateAccess("convention");
         return delegate.getConvention();
@@ -1046,7 +1054,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public int compareTo(@Nonnull Project o) {
+    public int compareTo(Project o) {
         return delegate.compareTo(o);
     }
 
