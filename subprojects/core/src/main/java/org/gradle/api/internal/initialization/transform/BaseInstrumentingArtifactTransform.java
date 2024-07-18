@@ -55,7 +55,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NA
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class BaseInstrumentingArtifactTransform implements TransformAction<Parameters> {
+public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> implements TransformAction<T> {
 
     public interface Parameters extends TransformParameters {
         @Internal
@@ -64,8 +64,6 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         Property<Long> getContextId();
         @Input
         Property<Boolean> getAgentSupported();
-        @Input
-        Property<Boolean> getIsUpgradeReport();
     }
 
     protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));

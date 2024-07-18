@@ -33,7 +33,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
  * Artifact transform that instruments external artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
+public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<BaseInstrumentingArtifactTransform.Parameters> {
 
     @Override
     public void transform(TransformOutputs outputs) {
