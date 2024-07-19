@@ -29,12 +29,7 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
         "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
-        "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
     ].collect { it.toString() }
-
-    static boolean testWithLoadAfterStore() {
-        return !Boolean.getBoolean("org.gradle.configuration-cache.internal.test-disable-load-after-store")
-    }
 
     ConfigurationCacheGradleExecuter(
         GradleDistribution distribution,
