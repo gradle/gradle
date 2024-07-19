@@ -125,19 +125,15 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
 
     def "can consume build-provided model of shared type from setting script in a build script"() {
         settingsFile """
-            // internal API for injection
-            SmalltalkBuildModelRegistry modelRegistry = settings.services.get(SmalltalkBuildModelRegistry)
-            modelRegistry.registerModel("myValue", String) {
+            settings.buildModels.registerModel("myValue", String) {
                 println("Computing myValue")
                 "hey"
             }
         """
 
         buildFile """
-            // internal API for injection
-            SmalltalkBuildModelRegistry modelRegistry = project.services.get(SmalltalkBuildModelRegistry)
-            def valueProvider = modelRegistry.getModel("myValue", String)
-            def computedValue = valueProvider.get()
+            def modelProvider = project.buildModels.getModel("myValue", String)
+            def computedValue = modelProvider.get()
             println("Project '" + project.buildTreePath + "' got value '" + computedValue + "'")
 
             tasks.register("something")
