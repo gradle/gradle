@@ -196,4 +196,39 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Project ':' got value 'hey'")
     }
 
+    def "can consume build-provided model of shared type from setting script in a build script"() {
+        buildFile file("build-logic/build.gradle"), """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+
+        settingsFile """
+            // internal API for injection
+            SmalltalkModelRegistry modelRegistry = settings.services.get(SmalltalkModelRegistry)
+            modelRegistry.registerModel("myValue", String) {
+                println("Computing myValue")
+                "hey"
+            }
+        """
+
+        buildFile """
+            // internal API for injection
+            SmalltalkModelRegistry modelRegistry = project.services.get(SmalltalkModelRegistry)
+            def valueProvider = modelRegistry.getModel("myValue", String)
+            def computedValue = valueProvider.get()
+            println("Project '" + project.buildTreePath + "' got value '" + computedValue + "'")
+
+            tasks.register("something")
+        """
+
+        when:
+        run "something"
+//        run "something", "-Dorg.gradle.unsafe.isolated-projects=true"
+
+        then:
+        outputContains("Computing myValue")
+        outputContains("Project ':' got value 'hey'")
+    }
+
 }
