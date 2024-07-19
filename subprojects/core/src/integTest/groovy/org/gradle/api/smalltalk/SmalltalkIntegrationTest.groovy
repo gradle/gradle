@@ -104,7 +104,7 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
         outputContains("registry is available")
     }
 
-    def "can consume build-provided model in a project plugin"() {
+    def "can consume build-provided model from setting plugin in a project plugin"() {
         buildFile file("build-logic/build.gradle"), """
             plugins {
                 id 'groovy-gradle-plugin'
@@ -124,6 +124,13 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        groovyFile "build-logic/src/main/groovy/my/MyModel.groovy", """
+            class MyModel {
+                String value
+                MyModel(value) { this.value = value }
+            }
+        """
+
         groovyFile "build-logic/src/main/groovy/my/MySettingsPlugin.groovy", """
             package my
             import ${Plugin.name}
@@ -136,9 +143,9 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
                 abstract SmalltalkModelRegistry getRegistry()
 
                 void apply(Settings s) {
-                    getRegistry().registerModel("myValue", String) {
+                    getRegistry().registerModel("myValue", MyModel) {
                         println("Computing myValue")
-                        return "hey";
+                        return new MyModel("hey")
                     }
                 }
             }
@@ -156,9 +163,9 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
                 abstract SmalltalkModelRegistry getRegistry()
 
                 void apply(Project project) {
-                    def valueProvider = getRegistry().getModel("myValue", String)
-                    def computedValue = valueProvider.get()
-                    println("Project '" + project.buildTreePath + "' got value '" + computedValue + "'")
+                    def valueProvider = getRegistry().getModel("myValue", MyModel)
+                    MyModel computedValue = valueProvider.get()
+                    println("Project '" + project.buildTreePath + "' got value '" + computedValue.value + "'")
                 }
             }
         """
@@ -181,8 +188,8 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-//        run "something"
-        run "something", "-Dorg.gradle.unsafe.isolated-projects=true"
+        run "something"
+//        run "something", "-Dorg.gradle.unsafe.isolated-projects=true"
 
         then:
         outputContains("Computing myValue")
