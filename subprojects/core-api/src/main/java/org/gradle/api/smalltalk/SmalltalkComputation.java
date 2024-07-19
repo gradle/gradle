@@ -14,8 +14,28 @@
  * limitations under the License.
  */
 
+package org.gradle.api.smalltalk;
+
+import org.gradle.api.Incubating;
+
+import java.io.Serializable;
+
 /**
- * Smalltalk between projects and builds
+ * TBD
+ *
+ * @param <T>
+ *
+ * @since 8.10
+ * @see org.gradle.api.IsolatedAction
  */
-@org.gradle.api.NonNullApi
-package org.gradle.internal.smalltalk;
+@Incubating
+public interface SmalltalkComputation<T> extends Serializable {
+
+    /**
+     * TBD
+     *
+     * @since 8.10
+     */
+    T get();
+
+}

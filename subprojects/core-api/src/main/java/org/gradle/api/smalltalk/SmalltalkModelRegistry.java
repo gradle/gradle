@@ -18,12 +18,15 @@ package org.gradle.api.smalltalk;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * TBD
  *
  * @since 8.10
  */
+@ServiceScope(Scope.Build.class)
 @Incubating
 public interface SmalltalkModelRegistry {
 
@@ -39,6 +42,6 @@ public interface SmalltalkModelRegistry {
      *
      * @since 8.10
      */
-    <T> void registerModel(String key, Class<T> type, IsolatedProvider<T> provider);
+    <T> void registerModel(String key, Class<T> type, SmalltalkComputation<T> provider);
 
 }

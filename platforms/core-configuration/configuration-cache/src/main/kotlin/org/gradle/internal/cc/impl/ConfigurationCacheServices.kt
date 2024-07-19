@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.api.smalltalk.SmalltalkModelRegistry
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.InternalOptions
@@ -31,6 +32,7 @@ import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
+import org.gradle.internal.cc.impl.smalltalk.DefaultSmalltalkModelRegistry
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
@@ -82,6 +84,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(DefaultConfigurationCacheHost::class.java)
             add(DefaultConfigurationCacheIO::class.java)
             add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
+            add<SmalltalkModelRegistry, DefaultSmalltalkModelRegistry>()
         }
     }
 
