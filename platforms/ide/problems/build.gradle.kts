@@ -59,8 +59,8 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.kotlinStdlib)
     api(libs.jsr305)
+    api(libs.kotlinStdlib)
 
     implementation(projects.logging)
     implementation(projects.messaging)

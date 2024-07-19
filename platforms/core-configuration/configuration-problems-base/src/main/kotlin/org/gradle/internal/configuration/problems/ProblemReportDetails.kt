@@ -30,7 +30,7 @@ data class ProblemReportDetails(
 )
 
 
-class ProblemReportDetailsJsonSource(val details: ProblemReportDetails) : JsonSource {
+class ProblemReportDetailsJsonSource(private val details: ProblemReportDetails) : JsonSource {
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             property("totalProblemCount") {

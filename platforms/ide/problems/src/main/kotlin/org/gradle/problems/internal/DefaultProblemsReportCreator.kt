@@ -37,21 +37,22 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.buildtree.ProblemReporter
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 val logger: Logger = Logging.getLogger(DefaultProblemsReportCreator::class.java)
 
 class DefaultProblemsReportCreator(
-    executorFactory: ExecutorFactory?,
-    temporaryFileProvider: TemporaryFileProvider?,
-    internalOptions: InternalOptions?,
+    executorFactory: ExecutorFactory,
+    temporaryFileProvider: TemporaryFileProvider,
+    internalOptions: InternalOptions,
     startParameter: StartParameterInternal,
     private val failureFactory: FailureFactory,
     private val buildNameProvider: BuildNameProvider
 ) : ProblemReportCreator {
 
-    private val report = CommonReport(executorFactory!!, temporaryFileProvider!!, internalOptions!!, "problem-report")
+    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report")
     private val taskNames: List<String> = startParameter.taskNames
-    private var problemCount = 0
+    private var problemCount = AtomicInteger(0)
 
     private val failureDecorator = FailureDecorator()
 
@@ -63,16 +64,12 @@ class DefaultProblemsReportCreator(
         report.writeReportFileTo(reportDir, object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
-                    property("reportContext", "problems report")
+                    property("reportContext", "problem report")
                     property("totalProblemCount", problemCount.toString())
                     buildNameProvider.buildName()?.let { property("buildName", it) }
                     property("requestedTasks", taskNames.joinToString(" "))
-                    property("cacheAction", "cacheAction")
-                    property("cacheActionDescription") {
-                        writeStructuredMessage(StructuredMessage.Builder().text("").build())
-                    }
                     property("documentationLink", DocumentationRegistry().getDocumentationFor("problem-report"))
-                    property("documentationLinkCaption", "Problem Report")
+                    property("documentationLinkCaption", "Problem report")
                 }
             }
         })?.let {
@@ -82,7 +79,7 @@ class DefaultProblemsReportCreator(
     }
 
     override fun emit(problem: Problem, id: OperationIdentifier?) {
-        problemCount++
+        problemCount.incrementAndGet()
         report.onProblem(object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {

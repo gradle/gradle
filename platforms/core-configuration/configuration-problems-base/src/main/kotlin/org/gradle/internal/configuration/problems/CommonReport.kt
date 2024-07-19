@@ -16,7 +16,6 @@
 
 package org.gradle.internal.configuration.problems
 
-import JsonModelWriter
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
@@ -25,11 +24,13 @@ import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.HtmlReportWriter
+import org.gradle.internal.cc.impl.problems.JsonModelWriter
 import org.gradle.internal.cc.impl.problems.JsonSource
 import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.cc.impl.problems.ProblemSeverity
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
@@ -39,7 +40,6 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
-import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
@@ -52,8 +52,6 @@ enum class DiagnosticKind {
     INPUT,
     INCOMPATIBLE_TASK
 }
-
-fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
 @ServiceScope(Scope.BuildTree::class)
 class CommonReport(
@@ -218,7 +216,7 @@ class CommonReport(
                 if (!awaitTermination(1, TimeUnit.SECONDS)) {
                     val unfinishedTasks = shutdownNow()
                     logger.warn(
-                        "${reportFileName.toCapitalized()} is taking too long to write... "
+                        "${reportFileName.capitalized()} is taking too long to write... "
                             + "The build might finish before the report has been completely written."
                     )
                     logger.info("Unfinished tasks: {}", unfinishedTasks)
@@ -231,7 +229,7 @@ class CommonReport(
                 val reportFile = reportDir.resolve("$reportFileName.html")
                 if (!reportFile.exists()) {
                     require(reportDir.mkdirs()) {
-                        "Could not create ${reportFileName} directory '$reportDir'"
+                        "Could not create $reportFileName directory '$reportDir'"
                     }
                     Files.move(spoolFile.toPath(), reportFile.toPath())
                 }
@@ -254,7 +252,7 @@ class CommonReport(
         State.Spooling(
             temporaryFileProvider,
             reportFileName.replace(" ", "-"),
-            executorFactory.create("${reportFileName.toCapitalized()} writer", 1),
+            executorFactory.create("${reportFileName.capitalized()} writer", 1),
             CharBuf::class.java.classLoader
         ).onDiagnostic(problem)
     }

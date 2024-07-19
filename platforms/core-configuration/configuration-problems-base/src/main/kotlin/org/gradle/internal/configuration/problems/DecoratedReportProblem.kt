@@ -33,7 +33,7 @@ data class DecoratedReportProblem(
 )
 
 
-final class DecoratedReportProblemJsonSource(val problem: DecoratedReportProblem) : JsonSource {
+class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProblem) : JsonSource {
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {

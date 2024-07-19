@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-
-import org.gradle.internal.cc.impl.problems.JsonWriter
-import org.gradle.internal.cc.impl.problems.JsonSource
+package org.gradle.internal.cc.impl.problems
 
 class JsonModelWriter(val modelWriter: JsonWriter) {
     fun beginModel() {

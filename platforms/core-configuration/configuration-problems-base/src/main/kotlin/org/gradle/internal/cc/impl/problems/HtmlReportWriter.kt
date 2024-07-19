@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import JsonModelWriter
 import java.io.Writer
 
 

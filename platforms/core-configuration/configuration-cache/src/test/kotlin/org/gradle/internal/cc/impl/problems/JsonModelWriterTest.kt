@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import JsonModelWriter
 import groovy.json.JsonSlurper
 import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import org.gradle.internal.configuration.problems.DecoratedReportProblemJsonSource
