@@ -27,10 +27,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 public class ComponentVariantNodeIdentifier implements NodeIdentifier {
     private final ComponentIdentifier componentId;
     private final String variantName;
+    private final int hashCode;
 
     public ComponentVariantNodeIdentifier(ComponentIdentifier componentId, String variantName) {
         this.componentId = componentId;
         this.variantName = variantName;
+        this.hashCode = 31 * componentId.hashCode() + variantName.hashCode();
     }
 
     @Override
@@ -57,6 +59,6 @@ public class ComponentVariantNodeIdentifier implements NodeIdentifier {
 
     @Override
     public int hashCode() {
-        return componentId.hashCode() ^ variantName.hashCode();
+        return hashCode;
     }
 }
