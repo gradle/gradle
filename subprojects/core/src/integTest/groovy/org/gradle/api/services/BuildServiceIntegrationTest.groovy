@@ -829,7 +829,6 @@ service: closed with value 12
         """
         executer.beforeExecute {
             withArgument("--configuration-cache")
-            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
         }
 
         when:

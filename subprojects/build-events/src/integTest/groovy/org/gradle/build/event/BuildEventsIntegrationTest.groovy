@@ -187,7 +187,6 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         """
         executer.beforeExecute {
             withArgument("--configuration-cache")
-            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
         }
 
         when:
