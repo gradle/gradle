@@ -117,7 +117,6 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run "something"
-//        run "something", "-Dorg.gradle.unsafe.isolated-projects=true"
 
         then:
         outputContains("Computing myValue")
@@ -125,12 +124,6 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can consume build-provided model of shared type from setting script in a build script"() {
-        buildFile file("build-logic/build.gradle"), """
-            plugins {
-                id 'groovy-gradle-plugin'
-            }
-        """
-
         settingsFile """
             // internal API for injection
             SmalltalkBuildModelRegistry modelRegistry = settings.services.get(SmalltalkBuildModelRegistry)
@@ -152,7 +145,6 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run "something"
-//        run "something", "-Dorg.gradle.unsafe.isolated-projects=true"
 
         then:
         outputContains("Computing myValue")
