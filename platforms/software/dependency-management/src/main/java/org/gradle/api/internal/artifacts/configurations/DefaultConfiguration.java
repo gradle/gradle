@@ -111,7 +111,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -228,7 +227,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private final Lazy<List<? extends DependencyMetadata>> syntheticDependencies = Lazy.unsafe().of(this::generateSyntheticDependencies);
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
@@ -1343,17 +1341,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public List<? extends DependencyMetadata> getSyntheticDependencies() {
-        warnOnInvalidInternalAPIUsage("getSyntheticDependencies()", ProperMethodUsage.RESOLVABLE);
-        return syntheticDependencies.get();
-    }
-
-    @Override
     public String getDependencyLockingId() {
         return name;
     }
 
-    private List<? extends DependencyMetadata> generateSyntheticDependencies() {
+    @Override
+    public List<? extends DependencyMetadata> getSyntheticDependencies() {
+        warnOnInvalidInternalAPIUsage("getSyntheticDependencies()", ProperMethodUsage.RESOLVABLE);
         Stream<LocalComponentDependencyMetadata> dependencyLockingConstraintMetadata = Stream.empty();
         if (getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingState dependencyLockingState = dependencyLockingProvider.loadLockState(getDependencyLockingId(), displayName);
@@ -1927,6 +1921,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             assertIsResolvable();
+
+            // The user has requested the resolution result. They are probably going to read it.
+            // Skip serializing it to avoid the IO round-trip.
+            getResolutionStrategy().skipResolvedGraphSerialization();
             return new DefaultResolutionResult(resolutionAccess, attributeDesugaring);
         }
 

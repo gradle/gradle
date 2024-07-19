@@ -212,7 +212,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
+        MinimalResolutionResult resolutionResult = resolutionResultBuilder.getResolutionResult(Collections.emptySet());
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, unresolvedDependencies, null);
 
         ResolutionHost resolutionHost = resolveContext.getResolutionHost();
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
@@ -239,10 +240,16 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
         ResolvedConfigurationDependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
-        BinaryStore newModelStore = stores.nextBinaryStore();
-        Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, resolutionStrategy.getIncludeAllSelectableVariantResults());
+
+        ResolutionResultGraphVisitor resolutionResultVisitor;
+        if (resolutionStrategy.shouldSkipResolvedGraphSerialization()) {
+            resolutionResultVisitor = new InMemoryResolutionResultBuilder(resolutionStrategy.getIncludeAllSelectableVariantResults());
+        } else {
+            BinaryStore newModelStore = stores.nextBinaryStore();
+            Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
+            resolutionResultVisitor = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, resolutionStrategy.getIncludeAllSelectableVariantResults());
+        }
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
 
@@ -251,7 +258,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
 
         ImmutableList.Builder<DependencyGraphVisitor> graphVisitors = ImmutableList.builder();
-        graphVisitors.add(newModelBuilder);
+        graphVisitors.add(resolutionResultVisitor);
         graphVisitors.add(localComponentsVisitor);
         graphVisitors.add(failureCollector);
 
@@ -300,7 +307,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<Throwable> nonFatalFailures = nonFatalFailuresBuilder.build();
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
-        MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
+        MinimalResolutionResult resolutionResult = resolutionResultVisitor.getResolutionResult(lockingFailures);
         Optional<? extends ResolveException> failure = resolutionHost.mapFailure("dependencies", nonFatalFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure.orElse(null));
 

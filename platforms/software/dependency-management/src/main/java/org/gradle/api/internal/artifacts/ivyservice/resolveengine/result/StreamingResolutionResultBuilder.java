@@ -20,11 +20,11 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-public class StreamingResolutionResultBuilder implements DependencyGraphVisitor {
+public class StreamingResolutionResultBuilder implements ResolutionResultGraphVisitor {
     private final static byte ROOT = 1;
     private final static byte COMPONENT = 2;
     private final static byte SELECTOR = 4;
@@ -83,6 +83,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
     }
 
+    @Override
     public MinimalResolutionResult getResolutionResult(Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
         RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, dependencyLockingFailures);
