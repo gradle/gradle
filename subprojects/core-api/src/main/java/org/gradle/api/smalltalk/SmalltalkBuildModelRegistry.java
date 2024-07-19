@@ -28,20 +28,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Build.class)
 @Incubating
-public interface SmalltalkModelRegistry {
+public interface SmalltalkBuildModelRegistry {
 
     /**
      * TBD
      *
      * @since 8.10
      */
-    <T> Provider<T> getModel(String key, Class<T> type);
-
-    /**
-     * TBD
-     *
-     * @since 8.10
-     */
-    <T> void registerModel(String key, Class<T> type, SmalltalkComputation<T> provider);
+    <T> Provider<T> registerModel(String key, Class<T> type, SmalltalkComputation<T> provider);
 
 }

@@ -32,78 +32,6 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    def "can inject registry in ad hoc settings plugin"() {
-        settingsFile """
-            abstract class MyPlugin implements Plugin<Settings> {
-                @Inject
-                abstract SmalltalkModelRegistry getRegistry()
-
-                void apply(Settings s) {
-                    if (getRegistry() != null) println("registry is available")
-                }
-            }
-
-            apply plugin: MyPlugin
-        """
-
-        when:
-        run "help"
-
-        then:
-        outputContains("registry is available")
-    }
-
-    def "can inject registry in precompiled settings plugin"() {
-        buildFile file("build-logic/build.gradle"), """
-            plugins {
-                id 'groovy-gradle-plugin'
-            }
-
-            gradlePlugin {
-                plugins {
-                    mySettingsPlugin {
-                        id = 'my-settings-plugin'
-                        implementationClass = 'my.MySettingsPlugin'
-                    }
-                }
-            }
-        """
-
-        groovyFile "build-logic/src/main/groovy/my/MySettingsPlugin.groovy", """
-            package my
-            import ${Plugin.name}
-            import ${Settings.name}
-            import ${SmalltalkModelRegistry.name}
-            import ${Inject.name}
-
-            abstract class MySettingsPlugin implements Plugin<Settings> {
-                @Inject
-                abstract SmalltalkModelRegistry getRegistry()
-
-                void apply(Settings s) {
-                    if (getRegistry() != null) {
-                        println("registry is available")
-                    }
-                }
-            }
-        """
-
-        settingsFile """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-            plugins {
-                id("my-settings-plugin")
-            }
-        """
-
-        when:
-        run "help"
-
-        then:
-        outputContains("registry is available")
-    }
-
     def "can consume build-provided model from setting plugin in a project plugin"() {
         buildFile file("build-logic/build.gradle"), """
             plugins {
@@ -135,15 +63,15 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
             package my
             import ${Plugin.name}
             import ${Settings.name}
-            import ${SmalltalkModelRegistry.name}
+            import ${SmalltalkBuildModelRegistry.name}
             import ${Inject.name}
 
             abstract class MySettingsPlugin implements Plugin<Settings> {
                 @Inject
-                abstract SmalltalkModelRegistry getRegistry()
+                abstract ${SmalltalkBuildModelRegistry.simpleName} getRegistry()
 
                 void apply(Settings s) {
-                    getRegistry().registerModel("myValue", MyModel) {
+                    registry.registerModel("myValue", MyModel) {
                         println("Computing myValue")
                         return new MyModel("hey")
                     }
@@ -155,15 +83,15 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
             package my
             import ${Plugin.name}
             import ${Project.name}
-            import ${SmalltalkModelRegistry.name}
+            import ${SmalltalkBuildModelLookup.name}
             import ${Inject.name}
 
             abstract class MyProjectPlugin implements Plugin<Project> {
                 @Inject
-                abstract SmalltalkModelRegistry getRegistry()
+                abstract ${SmalltalkBuildModelLookup.name} getRegistry()
 
                 void apply(Project project) {
-                    def valueProvider = getRegistry().getModel("myValue", MyModel)
+                    def valueProvider = registry.getModel("myValue", MyModel)
                     MyModel computedValue = valueProvider.get()
                     println("Project '" + project.buildTreePath + "' got value '" + computedValue.value + "'")
                 }
@@ -205,7 +133,7 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile """
             // internal API for injection
-            SmalltalkModelRegistry modelRegistry = settings.services.get(SmalltalkModelRegistry)
+            SmalltalkBuildModelRegistry modelRegistry = settings.services.get(SmalltalkBuildModelRegistry)
             modelRegistry.registerModel("myValue", String) {
                 println("Computing myValue")
                 "hey"
@@ -214,7 +142,7 @@ class SmalltalkIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             // internal API for injection
-            SmalltalkModelRegistry modelRegistry = project.services.get(SmalltalkModelRegistry)
+            SmalltalkBuildModelRegistry modelRegistry = project.services.get(SmalltalkBuildModelRegistry)
             def valueProvider = modelRegistry.getModel("myValue", String)
             def computedValue = valueProvider.get()
             println("Project '" + project.buildTreePath + "' got value '" + computedValue + "'")

@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.smalltalk.SmalltalkBuildModelRegistryInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
@@ -114,6 +115,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
+                // ensure to isolate all build models before any callbacks are executed
+                services.get(SmalltalkBuildModelRegistryInternal.class).isolateFor(gradle);
+
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
