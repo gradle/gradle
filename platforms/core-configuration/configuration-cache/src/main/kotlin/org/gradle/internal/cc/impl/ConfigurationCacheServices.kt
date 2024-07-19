@@ -27,6 +27,7 @@ import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
@@ -57,14 +58,15 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
+            add(BuildNameProvider::class.java)
             add(ConfigurationCacheKey::class.java)
-            add(DeprecatedFeaturesListener::class.java)
+            add(ConfigurationCacheRepository::class.java)
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
-            add(ConfigurationCacheRepository::class.java)
+            add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
-            add(InstrumentedInputAccessListener::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
+            add(InstrumentedInputAccessListener::class.java)
             add(IsolatedActionCodecsFactory::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)

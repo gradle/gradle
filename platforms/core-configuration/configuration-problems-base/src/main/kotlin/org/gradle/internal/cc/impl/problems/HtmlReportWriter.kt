@@ -28,11 +28,10 @@ import java.io.Writer
  */
 class HtmlReportWriter(
     private val writer: Writer,
-    private val htmlReportTemplate: HtmlReportTemplate
+    private val htmlReportTemplate: HtmlReportTemplate,
+    private val jsonModelWriter: JsonModelWriter
 ) {
 
-    private
-    val jsonModelWriter = JsonModelWriter(writer)
 
     private
     val htmlTemplate = htmlReportTemplate.load()

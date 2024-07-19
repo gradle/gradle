@@ -107,12 +107,12 @@ class ConfigurationCacheReport(
 
         class Spooling(
             spoolFileProvider: TemporaryFileProvider,
-            val reportFileName: String,
+            private val reportFileName: String,
             val executor: ManagedExecutor,
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            val groovyJsonClassLoader: ClassLoader,
+            private val groovyJsonClassLoader: ClassLoader,
             val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedReportProblem
         ) : State() {
 
@@ -120,19 +120,23 @@ class ConfigurationCacheReport(
             val spoolFile = spoolFileProvider.createTemporaryFile(reportFileName, ".html")
 
             private
-            val htmlReportTemplate = HtmlReportTemplate()
-
-            private
             val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
 
             private
-            val writer = HtmlReportWriter(hashingStream.writer(), htmlReportTemplate)
+            val writer = createHtmlReportWriter(hashingStream)
 
             init {
                 executor.submit {
                     Thread.currentThread().contextClassLoader = groovyJsonClassLoader
                     writer.beginHtmlReport()
                 }
+            }
+
+            private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
+                val htmlReportTemplate = HtmlReportTemplate()
+                val hashingWriter = hashingStream.writer()
+                val jsonModelWriter = JsonModelWriter(JsonWriter(hashingWriter))
+                return HtmlReportWriter(hashingWriter, htmlReportTemplate, jsonModelWriter)
             }
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
