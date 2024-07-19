@@ -2720,6 +2720,7 @@ Class <org.gradle.internal.serialize.OutputStreamBackedEncoder> is not annotated
 Class <org.gradle.internal.serialize.PlaceholderAssertionError> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PlaceholderAssertionError.java:0)
 Class <org.gradle.internal.serialize.PlaceholderException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PlaceholderException.java:0)
 Class <org.gradle.internal.serialize.PlaceholderExceptionSupport> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PlaceholderExceptionSupport.java:0)
+Class <org.gradle.internal.serialize.PositionAwareEncoder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PositionAwareEncoder.java:0)
 Class <org.gradle.internal.serialize.Serializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Serializer.java:0)
 Class <org.gradle.internal.serialize.SerializerRegistry> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SerializerRegistry.java:0)
 Class <org.gradle.internal.serialize.Serializers$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Serializers.java:0)

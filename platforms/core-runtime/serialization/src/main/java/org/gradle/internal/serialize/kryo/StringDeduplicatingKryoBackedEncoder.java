@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.Maps;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.PositionAwareEncoder;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -27,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
+public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
 
     static final int NULL_STRING = 0;
     static final int NEW_STRING = 1;
@@ -146,6 +147,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     /**
      * Returns the total number of bytes written by this encoder, some of which may still be buffered.
      */
+    @Override
     public long getWritePosition() {
         return output.total();
     }
