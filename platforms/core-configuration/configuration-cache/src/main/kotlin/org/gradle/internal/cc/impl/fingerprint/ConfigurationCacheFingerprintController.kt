@@ -28,6 +28,7 @@ import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
+import org.gradle.internal.cc.impl.ProjectIdentityPath
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
@@ -97,6 +98,7 @@ class ConfigurationCacheFingerprintController internal constructor(
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
+        val buildPath: Path
         val valueSourceProviderFactory: ValueSourceProviderFactory
         val gradleProperties: GradleProperties
     }
@@ -133,10 +135,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun append(fingerprint: ProjectSpecificFingerprint): Unit =
             illegalStateFor("append")
 
-        open fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T =
+        open fun <T> resolveScriptsForProject(project: ProjectIdentityPath, action: () -> T): T =
             illegalStateFor("resolveScriptsForProject")
 
-        open fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T =
+        open fun <T> runCollectingFingerprintForProject(project: ProjectIdentityPath, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
 
         abstract fun dispose(): WritingState
@@ -169,7 +171,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
         }
 
-        override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
+        override fun <T> resolveScriptsForProject(project: ProjectIdentityPath, action: () -> T): T {
             // Ignore scripts resolved while loading from cache
             return action()
         }
@@ -192,12 +194,12 @@ class ConfigurationCacheFingerprintController internal constructor(
             return this
         }
 
-        override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.runCollectingFingerprintForProject(identityPath, action)
+        override fun <T> resolveScriptsForProject(project: ProjectIdentityPath, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(project, action)
         }
 
-        override fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.runCollectingFingerprintForProject(identityPath, action)
+        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentityPath, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(project, action)
         }
 
         override fun pause(): WritingState {
@@ -262,7 +264,7 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     class Committed : WritingState() {
-        override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
+        override fun <T> resolveScriptsForProject(project: ProjectIdentityPath, action: () -> T): T {
             // Ignore scripts resolved while loading from cache
             return action()
         }
@@ -297,16 +299,16 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.commit(buildScopedFingerprint, projectScopedFingerprint)
     }
 
-    override fun <T : Any> resolveScriptsForProject(identityPath: Path, action: Supplier<T>): T {
-        return writingState.resolveScriptsForProject(identityPath) { action.get() }
+    override fun <T : Any> resolveScriptsForProject(identityPath: Path, buildPath: Path, projectPath: Path, action: Supplier<T>): T {
+        return writingState.resolveScriptsForProject(ProjectIdentityPath(identityPath, buildPath, projectPath)) { action.get() }
     }
 
     /**
      * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
      * with the project.
      */
-    fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
-        return writingState.runCollectingFingerprintForProject(identityPath, action)
+    fun <T> runCollectingFingerprintForProject(project: ProjectIdentityPath, action: () -> T): T {
+        return writingState.runCollectingFingerprintForProject(project, action)
     }
 
     override fun stop() {
@@ -420,6 +422,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         private
         val gradleProperties by lazy(host::gradleProperties)
+
+        override val buildPath: Path
+            get() = host.buildPath
 
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting

@@ -20,6 +20,7 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
+import org.gradle.internal.cc.impl.ProjectIdentityPath
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -30,7 +31,6 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
-import org.gradle.util.Path
 
 
 /**
@@ -62,12 +62,12 @@ class IntermediateModelController(
         }
     }
 
-    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
-        val key = ModelKey(identityPath, modelName, parameter?.hash)
+    fun <T> loadOrCreateIntermediateModel(project: ProjectIdentityPath?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
+        val key = ModelKey(project?.identityPath, modelName, parameter?.hash)
         return loadOrCreateValue(key) {
             try {
-                val model = if (identityPath != null) {
-                    cacheFingerprintController.runCollectingFingerprintForProject(identityPath, creator)
+                val model = if (project != null) {
+                    cacheFingerprintController.runCollectingFingerprintForProject(project, creator)
                 } else {
                     creator()
                 }
