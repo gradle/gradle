@@ -23,19 +23,23 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withCodec
 import org.gradle.execution.plan.ActionNode
-
+import org.gradle.internal.debug.Debug.println
 
 class ActionNodeCodec(
     private val userTypesCodec: Codec<Any?>,
 ) : Codec<ActionNode> {
     override suspend fun WriteContext.encode(value: ActionNode) {
         withCodec(userTypesCodec) {
+            println { "Writing ${value} - build: ${value.owningProject?.gradle?.identityPath}" }
             write(value.action)
         }
     }
 
     override suspend fun ReadContext.decode(): ActionNode {
+        println("Reading action node")
         val action = withCodec(userTypesCodec) { readNonNull<WorkNodeAction>() }
-        return ActionNode(action)
+        val value = ActionNode(action)
+        println {"Read action node $value - build: ${value.owningProject?.gradle?.identityPath}" }
+        return value
     }
 }

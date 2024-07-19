@@ -547,7 +547,7 @@ class ConfigurationCacheState(
                                                         scheduledNodeIds: Map<Node, Int>,
                                                         groupsById: Map<NodeGroup, Int>) {
         workNodeCodec(gradle).run {
-            writeEdgesAndOtherNodeMetadata(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
+            doWriteScheduledWorkEdgesAndGroups(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupsById)
         }
     }
 

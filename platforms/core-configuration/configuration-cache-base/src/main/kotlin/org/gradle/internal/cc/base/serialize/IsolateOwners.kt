@@ -57,4 +57,8 @@ sealed class IsolateOwners : IsolateOwner {
     class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwners() {
         override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
+
+    override fun toString(): String {
+        return this::class.java.simpleName + " " + delegate
+    }
 }

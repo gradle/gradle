@@ -30,6 +30,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.internal.debug.Debug.println
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.cc.base.serialize.getProject
@@ -69,13 +70,16 @@ class TaskNodeCodec(
 ) : Codec<LocalTaskNode> {
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
+        println { "Writing task node ${value}" }
         val task = value.task
         writeTask(task)
     }
 
     override suspend fun ReadContext.decode(): LocalTaskNode {
+        println("Reading task node ")
         val task = readTask()
         val node = taskNodeFactory.getOrCreateNode(task) as LocalTaskNode
+        println { "Read task node: $node" }
         node.isolated()
         return node
     }
@@ -307,7 +311,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
                     writeBoolean(false)
                 }
 
-                else -> throw IllegalStateException()
+                else -> error("Unexpected registered property: ${this.javaClass.name}")
             }
         }
     }

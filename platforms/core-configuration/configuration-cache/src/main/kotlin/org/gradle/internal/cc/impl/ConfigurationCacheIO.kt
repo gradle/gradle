@@ -22,6 +22,7 @@ import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.ScheduledWork
+import org.gradle.internal.debug.Debug.println
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -261,6 +262,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
+        println { "Reading ${stateFile.stateType.name} - ${stateFile.stateFile.file.name}" }
         return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
@@ -273,6 +275,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
+        println { "Writing ${stateFile.stateType.name} - ${stateFile.stateFile.file.name}" }
         val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream)) {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }

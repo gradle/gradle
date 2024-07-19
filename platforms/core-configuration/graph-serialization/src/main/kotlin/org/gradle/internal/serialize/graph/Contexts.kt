@@ -230,6 +230,10 @@ abstract class AbstractIsolateContext<T>(
     private
     val contexts = ArrayList<Pair<T?, Codec<Any?>>>()
 
+    override fun toString(): String {
+        return "${super.toString()} = ${isolate} - ${isolate.owner} - ${(isolate.owner.delegate as Isolate).owner}"
+    }
+
     override fun push(codec: Codec<Any?>) {
         contexts.add(0, Pair(currentIsolate, currentCodec))
         currentCodec = codec

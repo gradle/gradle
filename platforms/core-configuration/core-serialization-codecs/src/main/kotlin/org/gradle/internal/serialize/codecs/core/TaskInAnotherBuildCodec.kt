@@ -23,6 +23,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.execution.plan.TaskInAnotherBuild
+import org.gradle.internal.debug.Debug.println
 
 
 class TaskInAnotherBuildCodec(
@@ -33,12 +34,14 @@ class TaskInAnotherBuildCodec(
         value.run {
             writeString(taskPath)
             write(targetBuild)
+            println { "Writing TaskInAnotherBuildCodec: $taskPath - $targetBuild" }
         }
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentifier>()
+        println { "Reading TaskInAnotherBuildCodec: $taskPath - $targetBuild" }
         return TaskInAnotherBuild.lazy(
             taskPath,
             targetBuild,
