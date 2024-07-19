@@ -114,4 +114,15 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     void setIncludeAllSelectableVariantResults(boolean selectableVariantResults);
 
     boolean getIncludeAllSelectableVariantResults();
+
+    /**
+     * To be called whenever we know the resolved graph will be consumed, and therefore
+     * to skip serializing it -- as we know it will be immediately deserialized.
+     */
+    void skipResolvedGraphSerialization();
+
+    /**
+     * @see #skipResolvedGraphSerialization()
+     */
+    boolean shouldSkipResolvedGraphSerialization();
 }

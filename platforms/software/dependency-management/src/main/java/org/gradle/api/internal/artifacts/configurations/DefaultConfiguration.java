@@ -872,6 +872,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return Stream.empty();
         }
         assertThatConsistentResolutionIsPropertyConfigured();
+
+        // Hint to the configuration we are about to resolve that we will be immediately
+        // reading its resolution result. It should not serialize the result since reading
+        // it would immediately cause it to be deserialized.
+        consistentResolutionSource.getResolutionStrategy().skipResolvedGraphSerialization();
+
         return consistentResolutionSource.getIncoming()
             .getResolutionResult()
             .getAllComponents()

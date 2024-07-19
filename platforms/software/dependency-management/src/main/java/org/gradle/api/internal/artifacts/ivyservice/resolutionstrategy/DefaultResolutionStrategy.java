@@ -82,6 +82,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
     private boolean selectableVariantResults = false;
     private boolean keepStateRequiredForGraphResolution = false;
+    private boolean skipResolvedGraphSerialization = false;
 
     @Inject
     public DefaultResolutionStrategy(
@@ -413,5 +414,15 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public void setKeepStateRequiredForGraphResolution(boolean keepStateRequiredForGraphResolution) {
         this.keepStateRequiredForGraphResolution = keepStateRequiredForGraphResolution;
+    }
+
+    @Override
+    public void skipResolvedGraphSerialization() {
+        skipResolvedGraphSerialization = true;
+    }
+
+    @Override
+    public boolean shouldSkipResolvedGraphSerialization() {
+        return skipResolvedGraphSerialization;
     }
 }
