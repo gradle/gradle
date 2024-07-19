@@ -617,16 +617,16 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void markAsObserved(InternalState requestedState) {
-        markThisObserved(requestedState);
-        markParentsObserved(requestedState);
-    }
-
-    private void markThisObserved(InternalState requestedState) {
         synchronized (observationLock) {
             if (observedState.compareTo(requestedState) < 0) {
                 observedState = requestedState;
+            } else {
+                // If the target state is the same as or greater than the current state,
+                // we and our parents are already at this state or later and we can skip.
+                return;
             }
         }
+        markParentsObserved(requestedState);
     }
 
     @VisibleForTesting
