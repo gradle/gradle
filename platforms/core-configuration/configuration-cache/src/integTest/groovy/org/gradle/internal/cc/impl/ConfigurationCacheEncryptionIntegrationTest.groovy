@@ -119,26 +119,30 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         findRequiredKeystoreFile(false) == null
 
         when:
-        runWithEncryption(kind, ["useSensitive"], ["-Psensitive_property_name=sensitive_property_value"], [
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
-            "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value'
-        ])
+        runWithEncryption(
+            kind,
+            ["useSensitive"],
+            ["-Psensitive_property_name=sensitive_property_value",
+             "-Dorg.gradle.configuration-cache.internal.deduplicate-strings=false"],
+            [(ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
+             "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value']
+        )
 
         then:
         configurationCache.assertStateStored()
         enabled == kind.encrypted
         def cacheDir = new File(this.testDirectory, ".gradle/configuration-cache")
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_property_name")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_property_value")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_property_name2")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_property_value2")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_value1")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_value2")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_env_var_value")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_value3")) == !enabled
-        isFoundInDirectory(cacheDir, encodedBytesOf("sensitive_convention")) == !enabled
-        isFoundInDirectory(cacheDir, "sensitive".getBytes(StandardCharsets.US_ASCII)) == !enabled
-        isFoundInDirectory(cacheDir, "SENSITIVE".getBytes(StandardCharsets.US_ASCII)) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_name".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_value".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_name2".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_value2".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_value1".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_value2".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_env_var_value".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_value3".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_convention".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
 
         (findRequiredKeystoreFile(false) != null) == keystoreExpected
 
@@ -147,21 +151,6 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         EncryptionKind.NONE     | false   | false
         EncryptionKind.KEYSTORE | true    | true
         EncryptionKind.ENV_VAR  | true    | false
-    }
-
-    /**
-     * Returns the bytes as encoded by {@link org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder},
-     * which uses the last byte as a marker.
-     *
-     * @see com.esotericsoftware.kryo.io.Output#writeString(java.lang.String)
-     */
-    @SuppressWarnings('GrDeprecatedAPIUsage')
-    private static byte[] encodedBytesOf(String string) {
-        def charCount = string.length()
-        def bytes = new byte[charCount];
-        string.getBytes(0, charCount, bytes, 0)
-        bytes[charCount - 1] = (byte) (bytes[charCount - 1] | 128);
-        return bytes
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {

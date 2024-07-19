@@ -64,6 +64,14 @@ class ConfigurationCacheStartParameter(
      */
     val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
 
+    /**
+     * Whether strings stored to the configuration cache should be deduplicated
+     * in order to save space on disk and to use less memory on a cache hit.
+     *
+     * The default is `true`.
+     */
+    val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
