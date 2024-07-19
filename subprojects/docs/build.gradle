@@ -635,6 +635,9 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.building-swift*.sample"
+            // We don't have Android SDK installed on mac M1 now
+            excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
         }
     }
 }
