@@ -30,12 +30,12 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.debug.Debug.println
+import org.gradle.internal.debug.Debug.trace
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.decodePreservingIdentity
-import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
@@ -55,14 +55,14 @@ class WorkNodeCodec(
             val groupIds: Map<NodeGroup, Int> = identifyGroups(scheduledNodes)
             val (scheduledNodeIds, scheduledEntryNodeIds) = identifyNodes(scheduledNodes, entryNodes)
             doWriteScheduledNodes(scheduledNodes, scheduledNodeIds::getValue, false)
-            writeEdgesAndOtherNodeMetadata(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupIds)
+            doWriteScheduledWorkEdgesAndGroups(scheduledEntryNodeIds, scheduledNodes, scheduledNodeIds, groupIds)
         }
     }
 
     suspend fun ReadContext.readWork(): ScheduledWork =
         withGradleIsolate(owner, internalTypesCodec) {
             val (scheduledNodes, nodesById) = doReadScheduledNodes(false)
-            doReadScheduledWork(nodesById, scheduledNodes)
+            doReadScheduledWorkEdgesAndGroups(nodesById, scheduledNodes)
         }
 
     private
@@ -95,6 +95,7 @@ class WorkNodeCodec(
      */
     private
     suspend fun WriteContext.doWriteScheduledNodes(scheduledNodes: List<Node>, nodeIdentifier: ((Node) -> Int), writeIds: Boolean) {
+        trace { "Reading ${scheduledNodes.size} scheduled nodes  - ${owner.identityPath}" }
         writeSmallInt(scheduledNodes.size)
         scheduledNodes.forEach { node ->
             val nodeId = nodeIdentifier(node)
@@ -114,6 +115,7 @@ class WorkNodeCodec(
     private
     suspend fun ReadContext.doReadScheduledNodes(readIds: Boolean): Pair<ArrayList<Node>, HashMap<Int, Node>> {
         val nodeCount = readSmallInt()
+        println { "Reading $nodeCount scheduled nodes  - ${owner.identityPath}" }
         val scheduledNodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
         for (i in 0 until nodeCount) {
@@ -132,10 +134,10 @@ class WorkNodeCodec(
 
     fun ReadContext.readScheduledWork(scheduledNodes: List<Node>, nodesById: Map<Int, Node>): ScheduledWork =
         withGradleIsolate(owner, internalTypesCodec) {
-            doReadScheduledWork(nodesById, scheduledNodes)
+            doReadScheduledWorkEdgesAndGroups(nodesById, scheduledNodes)
         }
 
-    fun WriteContext.writeEdgesAndOtherNodeMetadata(
+    fun WriteContext.doWriteScheduledWorkEdgesAndGroups(
         scheduledEntryNodeIds: List<Int>,
         scheduledNodes: List<Node>,
         scheduledNodeIds: Map<Node, Int>,
@@ -148,7 +150,7 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.doReadScheduledWork(
+    fun ReadContext.doReadScheduledWorkEdgesAndGroups(
         nodesById: Map<Int, Node>,
         scheduledNodes: List<Node>
     ): ScheduledWork {
@@ -170,7 +172,7 @@ class WorkNodeCodec(
     ) {
         writeCollection(groupsById.entries) { (group, groupId) ->
             writeSmallInt(groupId)
-            writeNodeGroup(group, scheduledNodeIds)
+            writeNodeGroup(group, scheduledNodeIds, groupsById)
         }
         writeCollection(scheduledNodes) { node ->
             val nodeId = scheduledNodeIds.getValue(node)
@@ -185,12 +187,11 @@ class WorkNodeCodec(
     fun ReadContext.readSuccessorReferencesAndGroups(
         nodesById: Map<Int, Node>
     ) {
-        val groupsById = mutableMapOf<Int, NodeGroup>().apply {
-            readCollection {
-                val groupId = readSmallInt()
-                val group = readNodeGroup(nodesById)
-                this[groupId] = group
-            }
+        val groupsById = mutableMapOf<Int, NodeGroup>()
+        readCollection {
+            val groupId = readSmallInt()
+            val group = readNodeGroup(nodesById, groupsById)
+            groupsById[groupId] = group
         }
         readCollection {
             val scheduledNodeId = readSmallInt()
@@ -263,6 +264,7 @@ class WorkNodeCodec(
 
     private
     suspend fun WriteContext.writeNode(node: Node) {
+        println("writeNode(${node.getNodeType()} ${node}) - ${node.owningProject?.owner?.identityPath} - ${this.isolate.owner} - ${this.isolate.owner.delegate}")
         write(node)
     }
 
@@ -270,47 +272,47 @@ class WorkNodeCodec(
     suspend fun ReadContext.readNode(): Node {
         val node = readNonNull<Any>()
         require(node is Node)
+        println("readNode() -> ${node} - ${node.owningProject?.identityPath} - ${this.isolate.owner} - ${this.isolate.owner.delegate}")
         node.require()
         node.dependenciesProcessed()
         return node
     }
 
     private
-    fun WriteContext.writeNodeGroup(group: NodeGroup, nodesById: Map<Node, Int>) {
-        encodePreservingIdentityOf(group) {
-            when (group) {
-                is OrdinalGroup -> {
-                    writeSmallInt(0)
-                    writeSmallInt(group.ordinal)
-                }
-
-                is FinalizerGroup -> {
-                    writeSmallInt(1)
-                    writeSmallInt(nodesById.getValue(group.node))
-                    writeNodeGroup(group.delegate, nodesById)
-                }
-
-                is CompositeNodeGroup -> {
-                    writeSmallInt(2)
-                    writeBoolean(group.isReachableFromEntryPoint)
-                    writeNodeGroup(group.ordinalGroup, nodesById)
-                    writeCollection(group.finalizerGroups) {
-                        writeNodeGroup(it, nodesById)
-                    }
-                }
-
-                NodeGroup.DEFAULT_GROUP -> {
-                    writeSmallInt(3)
-                }
-
-                else -> throw IllegalArgumentException()
+    fun WriteContext.writeNodeGroup(group: NodeGroup, nodesById: Map<Node, Int>, groupsById: Map<NodeGroup, Int>) {
+        when (group) {
+            is OrdinalGroup -> {
+                writeSmallInt(0)
+                writeSmallInt(group.ordinal)
             }
+
+            is FinalizerGroup -> {
+                writeSmallInt(1)
+                writeSmallInt(nodesById.getValue(group.node))
+                writeSmallInt(groupsById.getValue(group.delegate))
+            }
+
+            is CompositeNodeGroup -> {
+                writeSmallInt(2)
+                writeBoolean(group.isReachableFromEntryPoint)
+                writeSmallInt(groupsById.getValue(group.ordinalGroup))
+                writeNodeGroup(group.ordinalGroup, nodesById, groupsById)
+                writeCollection(group.finalizerGroups) {
+                    writeNodeGroup(it, nodesById, groupsById)
+                }
+            }
+
+            NodeGroup.DEFAULT_GROUP -> {
+                writeSmallInt(3)
+            }
+
+            else -> throw IllegalArgumentException()
         }
     }
 
     private
-    fun ReadContext.readNodeGroup(nodesById: Map<Int, Node>): NodeGroup {
-        return decodePreservingIdentity { id ->
+    fun ReadContext.readNodeGroup(nodesById: Map<Int, Node>, groupsById: MutableMap<Int, NodeGroup>): NodeGroup {
+        val decoded: Any =
             when (readSmallInt()) {
                 0 -> {
                     val ordinal = readSmallInt()
@@ -319,23 +321,24 @@ class WorkNodeCodec(
 
                 1 -> {
                     val finalizerNode = nodesById.getValue(readSmallInt()) as TaskNode
-                    val delegate = readNodeGroup(nodesById)
+                    val delegate = groupsById.getValue(readSmallInt())
                     FinalizerGroup(finalizerNode, delegate)
                 }
 
                 2 -> {
                     val reachableFromCommandLine = readBoolean()
-                    val ordinalGroup = readNodeGroup(nodesById)
-                    val groups = readCollectionInto(::HashSet) { readNodeGroup(nodesById) as FinalizerGroup }
+                    val ordinalGroup = groupsById.getValue(readSmallInt())
+                    val groups = readCollectionInto(::HashSet) {
+                        groupsById.getValue(readSmallInt()) as FinalizerGroup
+                    }
                     CompositeNodeGroup(reachableFromCommandLine, ordinalGroup, groups)
                 }
 
                 3 -> NodeGroup.DEFAULT_GROUP
                 else -> throw IllegalArgumentException()
-            }.also {
-                isolate.identities.putInstance(id, it)
             }
-        }
+        println(decoded)
+        return decoded as NodeGroup
     }
 
     /**

@@ -26,6 +26,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SerializerCodec
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.withDebugFrame
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 
@@ -48,9 +49,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    val encodings = HashMap<Class<*>, TaggedEncoding>()
+    val encodings = ConcurrentHashMap<Class<*>, TaggedEncoding>()
 
-    override suspend fun WriteContext.encode(value: Any?) = when (value) {
+    override suspend fun WriteContext.encode(value: Any?): Unit = when (value) {
         null -> writeSmallInt(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
             writeSmallInt(tag)
@@ -78,7 +79,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         for (binding in bindings) {
             val encoding = binding.encodingForType(type)
             if (encoding != null) {
-                return TaggedEncoding(binding.tag, encoding)
+                return TaggedEncoding(binding.tag, encoding, type)
             }
         }
         throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
@@ -87,7 +88,8 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     private
     data class TaggedEncoding(
         val tag: Int,
-        val encoding: Encoding
+        val encoding: Encoding,
+        val type: Class<*>
     )
 }
 
