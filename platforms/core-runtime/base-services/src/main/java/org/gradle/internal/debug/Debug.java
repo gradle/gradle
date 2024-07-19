@@ -18,13 +18,11 @@ package org.gradle.internal.debug;
 
 import com.google.common.base.Supplier;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.InternalTransformer;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@NonNullApi
 public class Debug {
     public static final boolean ENABLED = false;
 
@@ -36,7 +34,9 @@ public class Debug {
     };
 
     public static void println(Object messageSource) {
-        if (!ENABLED) return;
+        if (!ENABLED) {
+            return;
+        }
         String prefix = StringUtils.repeat(" ", LEVEL.get().get() * 2);
         System.out.println(prefix + asString(messageSource));
     }
@@ -49,7 +49,9 @@ public class Debug {
     }
 
     public static void trace(Object message) {
-        if (!ENABLED) return;
+        if (!ENABLED) {
+            return;
+        }
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         System.out.println("[" + Thread.currentThread().getName() + "] " + asString(message));
         for (StackTraceElement element : trace) {
@@ -59,8 +61,11 @@ public class Debug {
         }
     }
 
+    @Nullable
     public static <I, O> O goInto(@Nullable I instance, InternalTransformer<O, I> action) {
-        if (!ENABLED || instance == null) return null;
+        if (!ENABLED || instance == null) {
+            return null;
+        }
         LEVEL.get().incrementAndGet();
         try {
             return action.transform(instance);
