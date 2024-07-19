@@ -5,7 +5,7 @@ plugins {
     java
 // end::use-plugin[]
 // tag::use-community-plugin[]
-    id("com.jfrog.bintray") version "1.8.5"
+    id("org.springframework.boot") version "2.4.1"
 // tag::use-plugin[]
 }
 // end::use-plugin[]
