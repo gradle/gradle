@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.smalltalk;
 
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.smalltalk.SmalltalkBuildModelRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface SmalltalkBuildModelRegistryInternal extends SmalltalkBuildModelRegistry {
 
-    void isolateFor(Gradle gradle);
+    void isolateAllModelProviders();
 
 }

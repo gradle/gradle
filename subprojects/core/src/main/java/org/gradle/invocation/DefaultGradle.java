@@ -116,7 +116,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             @Override
             public void projectsLoaded(Gradle gradle) {
                 // ensure to isolate all build models before any callbacks are executed
-                services.get(SmalltalkBuildModelRegistryInternal.class).isolateFor(gradle);
+                services.get(SmalltalkBuildModelRegistryInternal.class).isolateAllModelProviders();
 
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
