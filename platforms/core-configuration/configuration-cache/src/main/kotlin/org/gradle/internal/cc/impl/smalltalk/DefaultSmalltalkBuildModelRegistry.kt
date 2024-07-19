@@ -32,6 +32,7 @@ import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
 import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
 import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -40,7 +41,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 
-private
+internal
 typealias IsolatedSmalltalkAction = IsolatedAction<in Consumer<Any?>>
 
 
@@ -51,141 +52,15 @@ data class SmalltalkModelKey<T>(
 )
 
 
-private
-class IsolatedSmalltalkComputation(
-    private val gradle: Gradle,
-    private val isolated: SerializedIsolatedActionGraph<IsolatedSmalltalkAction>
-) {
-
-    fun compute(): Any? {
-        val owner = IsolateOwners.OwnerGradle(gradle)
-        val action = IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
-            .deserialize(isolated)
-
-        val result = AtomicReference<Any?>(null)
-        action.execute {
-            result.set(it)
-        }
-        return result.get()
-    }
-}
-
-
-internal
-class LazilyObtainedModelValue<T>(
-    computation: SmalltalkComputation<*>,
-    calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    inputTrackingState: InputTrackingState,
-    gradle: Gradle
-) {
-
-    // TODO: how to clear this state after the model value has been computed?
-    private val modelComputation: CalculatedValue<IsolatedSmalltalkComputation> =
-        calculatedValueContainerFactory.create<IsolatedSmalltalkComputation>(Describables.of("Model computation")) {
-            isolate(gradle, computation)
-        }
-
-    private val modelValue: CalculatedValue<T> =
-        calculatedValueContainerFactory.create<T>(Describables.of("Model value")) {
-            compute(inputTrackingState)
-        }
-
-    fun hasBeenObtained(): Boolean {
-        return false
-    }
-
-    fun obtain(): Try<T> {
-        modelValue.finalizeIfNotAlready()
-        return modelValue.value
-    }
-
-    fun isolateIfNotAlready() {
-        modelComputation.finalizeIfNotAlready()
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun compute(inputTrackingState: InputTrackingState): T {
-        inputTrackingState.disableForCurrentThread()
-        return try {
-            modelComputation.finalizeIfNotAlready()
-            val result = modelComputation.get().compute()
-            result as T
-        } finally {
-            inputTrackingState.restoreForCurrentThread()
-        }
-    }
-
-    private fun isolate(gradle: Gradle, computation: SmalltalkComputation<*>): IsolatedSmalltalkComputation {
-        val owner = IsolateOwners.OwnerGradle(gradle)
-        val serialized = IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf())
-            .serialize(toAction(computation))
-
-        return IsolatedSmalltalkComputation(gradle, serialized)
-    }
-
-    private fun toAction(computation: SmalltalkComputation<*>): IsolatedSmalltalkAction {
-        return IsolatedSmalltalkAction {
-            accept(computation.get())
-        }
-    }
-}
-
-internal
-class SmalltalkModelProvider<T>(
-    private val key: SmalltalkModelKey<T>,
-    private val value: LazilyObtainedModelValue<T>
-) : AbstractMinimalProvider<T>() {
-
-    fun isolateIfNotAlready() {
-        value.isolateIfNotAlready()
-    }
-
-    override fun toStringNoReentrance(): String {
-        return String.format("modelFor('%s'): %s", key.name, key.type.simpleName)
-    }
-
-    override fun getProducer(): ValueSupplier.ValueProducer {
-        // TODO: not necessarily external value
-        return ValueSupplier.ValueProducer.unknown()
-    }
-
-    override fun visitDependencies(context: TaskDependencyResolveContext) {
-    }
-
-    override fun isImmutable(): Boolean {
-        return true
-    }
-
-    fun hasBeenObtained(): Boolean {
-        return value.hasBeenObtained()
-    }
-
-    override fun getType(): Class<T>? {
-        // TODO: can we do better?
-        return null
-    }
-
-    override fun calculateExecutionTimeValue(): ValueSupplier.ExecutionTimeValue<T> {
-        return if (value.hasBeenObtained()) {
-            ValueSupplier.ExecutionTimeValue.ofNullable(value.obtain().get())
-        } else {
-            ValueSupplier.ExecutionTimeValue.changingValue(this)
-        }
-    }
-
-    override fun calculateOwnValue(consumer: ValueSupplier.ValueConsumer): ValueSupplier.Value<out T> {
-        return ValueSupplier.Value.ofNullable(value.obtain().get())
-    }
-}
-
-
 class DefaultSmalltalkBuildModelRegistry(
 //    private val userCodeApplicationContext: UserCodeApplicationContext,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
+    listenerManager: ListenerManager,
     private val inputTrackingState: InputTrackingState,
     private val gradle: Gradle
 ) : SmalltalkBuildModelRegistryInternal, SmalltalkBuildModelLookup {
 
+    private val computationListener = listenerManager.createAnonymousBroadcaster(SmalltalkComputationListener::class.java)
     private val providerMap = mutableMapOf<SmalltalkModelKey<*>, SmalltalkModelProvider<*>>()
 
     override fun <T> getModel(key: String, type: Class<T>): Provider<T> {

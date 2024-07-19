@@ -40,6 +40,7 @@ import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
+import org.gradle.api.internal.smalltalk.SmalltalkComputationListener
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
@@ -95,6 +96,7 @@ class ConfigurationCacheFingerprintWriter(
     private val inputTrackingState: InputTrackingState,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
+    SmalltalkComputationListener,
     WorkInputListener,
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
@@ -381,6 +383,15 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun afterValueObtained() {
+        inputTrackingState.restoreForCurrentThread()
+    }
+
+    override fun beforeSmalltalkModelObtained() {
+        // Do not track additional inputs while computing a Smalltalk model
+        inputTrackingState.disableForCurrentThread()
+    }
+
+    override fun afterSmalltalkModelObtained() {
         inputTrackingState.restoreForCurrentThread()
     }
 
