@@ -29,6 +29,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.smalltalk.SmalltalkBuildModelRegistry;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
@@ -441,4 +442,11 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @Incubating
     void defaults(Action<? super SharedModelDefaults> action);
+
+    /**
+     * TBD
+     *
+     * @since 8.10
+     */
+    SmalltalkBuildModelRegistry getBuildModels();
 }

@@ -79,6 +79,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.smalltalk.SmalltalkBuildModelLookup;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -1032,6 +1033,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     public abstract DependencyFactory getDependencyFactory();
+
+    @Override
+    @Inject
+    public abstract SmalltalkBuildModelLookup getBuildModels();
 
     @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
