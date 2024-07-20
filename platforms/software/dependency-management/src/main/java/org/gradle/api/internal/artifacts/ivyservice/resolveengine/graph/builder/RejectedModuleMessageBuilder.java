@@ -44,7 +44,7 @@ class RejectedModuleMessageBuilder {
 
         Set<EdgeState> allEdges = new LinkedHashSet<>();
         allEdges.addAll(module.getIncomingEdges());
-        allEdges.addAll(module.getUnattachedEdges());
+        allEdges.addAll(module.getUnattachedDependencies());
         renderEdges(sb, allEdges);
         return sb.toString();
     }
