@@ -321,67 +321,6 @@ class ValueSourceProviderCodec(
         }
 }
 
-
-//class SmalltalkModelProviderCodec(
-//    private val valueSourceProviderFactory: ValueSourceProviderFactory
-//) : Codec<SmalllProvider<*, *>> {
-//
-//    override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-//        if (!value.hasBeenObtained()) {
-//            // source has **NOT** been used as build logic input:
-//            // serialize the source
-//            writeBoolean(true)
-//            encodeValueSource(value)
-//        } else {
-//            // source has been used as build logic input:
-//            // serialize the value directly as it will be part of the
-//            // cached state fingerprint.
-//            // Currently not necessary due to the unpacking that happens
-//            // to the TypeSanitizingProvider put around the ValueSourceProvider.
-//            error("build logic input")
-//        }
-//    }
-//
-//    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
-//        when (readBoolean()) {
-//            true -> decodeValueSource()
-//            false -> error("Unexpected boolean value (false) while decoding")
-//        }
-//
-//    private
-//    suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
-//        encodePreservingSharedIdentityOf(value) {
-//            value.run {
-//                val hasParameters = parametersType != null
-//                writeClass(valueSourceType)
-//                writeBoolean(hasParameters)
-//                if (hasParameters) {
-//                    writeClass(parametersType as Class<*>)
-//                    write(parameters)
-//                }
-//            }
-//        }
-//    }
-//
-//    private
-//    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
-//        decodePreservingSharedIdentity {
-//            val valueSourceType = readClass()
-//            val hasParameters = readBoolean()
-//            val parametersType = if (hasParameters) readClass() else null
-//            val parameters = if (hasParameters) read()!! else null
-//
-//            val provider =
-//                valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
-//                    valueSourceType.uncheckedCast(),
-//                    parametersType?.uncheckedCast(),
-//                    parameters?.uncheckedCast()
-//                )
-//            provider.uncheckedCast()
-//        }
-//}
-
-
 class PropertyCodec(
     private val propertyFactory: PropertyFactory,
     private val providerCodec: FixedValueReplacingProviderCodec

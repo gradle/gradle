@@ -19,15 +19,8 @@ package org.gradle.internal.cc.impl.smalltalk
 import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.invocation.Gradle
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
-import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
-import org.gradle.internal.serialize.graph.serviceOf
-import java.util.concurrent.atomic.AtomicReference
 
 
-internal
 class SmalltalkModelProvider<T>(
     private val key: SmalltalkModelKey<T>,
     private val value: LazilyObtainedModelValue<T>

@@ -25,10 +25,13 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
 import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
 import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
+import org.gradle.internal.event.AnonymousListenerBroadcast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.graph.serviceOf
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Consumer
 
 
 internal
@@ -43,19 +46,18 @@ class IsolatedSmalltalkComputation(
             .deserialize(isolated)
 
         val result = AtomicReference<Any?>(null)
-        action.execute {
+        action.execute(Consumer {
             result.set(it)
-        }
+        })
         return result.get()
     }
 }
 
 
-internal
 class LazilyObtainedModelValue<T>(
     computation: SmalltalkComputation<*>,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    computationListener: SmalltalkComputationListener,
+    computationListener: AnonymousListenerBroadcast<SmalltalkComputationListener>,
     gradle: Gradle
 ) {
 
@@ -84,14 +86,14 @@ class LazilyObtainedModelValue<T>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun compute(inputTrackingState: SmalltalkComputationListener): T {
-        inputTrackingState.beforeSmalltalkModelObtained()
+    private fun compute(computationListener: AnonymousListenerBroadcast<SmalltalkComputationListener>): T {
+        computationListener.source.beforeSmalltalkModelObtained()
         return try {
             modelComputation.finalizeIfNotAlready()
             val result = modelComputation.get().compute()
             result as T
         } finally {
-            inputTrackingState.afterSmalltalkModelObtained()
+            computationListener.source.afterSmalltalkModelObtained()
         }
     }
 
@@ -105,7 +107,8 @@ class LazilyObtainedModelValue<T>(
 
     private fun toAction(computation: SmalltalkComputation<*>): IsolatedSmalltalkAction {
         return IsolatedSmalltalkAction {
-            accept(computation.get())
+            val consumer: Consumer<Any?> = this.uncheckedCast()
+            consumer.accept(computation.get())
         }
     }
 }

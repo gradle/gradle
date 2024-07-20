@@ -17,27 +17,16 @@
 package org.gradle.internal.cc.impl.smalltalk
 
 import org.gradle.api.IsolatedAction
-import org.gradle.api.internal.provider.AbstractMinimalProvider
-import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.internal.smalltalk.SmalltalkBuildModelRegistryInternal
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.internal.smalltalk.SmalltalkComputationListener
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
 import org.gradle.api.smalltalk.SmalltalkBuildModelLookup
 import org.gradle.api.smalltalk.SmalltalkComputation
-import org.gradle.internal.Describables
-import org.gradle.internal.Try
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.InputTrackingState
-import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
-import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
-import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
+import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.serialize.graph.serviceOf
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 
@@ -45,7 +34,6 @@ internal
 typealias IsolatedSmalltalkAction = IsolatedAction<in Consumer<Any?>>
 
 
-internal
 data class SmalltalkModelKey<T>(
     val name: String,
     val type: Class<T>
@@ -56,11 +44,11 @@ class DefaultSmalltalkBuildModelRegistry(
 //    private val userCodeApplicationContext: UserCodeApplicationContext,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     listenerManager: ListenerManager,
-    private val inputTrackingState: InputTrackingState,
     private val gradle: Gradle
 ) : SmalltalkBuildModelRegistryInternal, SmalltalkBuildModelLookup {
 
-    private val computationListener = listenerManager.createAnonymousBroadcaster(SmalltalkComputationListener::class.java)
+    private val computationListener: AnonymousListenerBroadcast<SmalltalkComputationListener> =
+        listenerManager.createAnonymousBroadcaster(SmalltalkComputationListener::class.java)
     private val providerMap = mutableMapOf<SmalltalkModelKey<*>, SmalltalkModelProvider<*>>()
 
     override fun <T> getModel(key: String, type: Class<T>): Provider<T> {
@@ -78,7 +66,7 @@ class DefaultSmalltalkBuildModelRegistry(
     }
 
     private fun <T> createProvider(key: SmalltalkModelKey<T>, computation: SmalltalkComputation<T>): SmalltalkModelProvider<T> {
-        val container = LazilyObtainedModelValue<T>(computation, calculatedValueContainerFactory, inputTrackingState, gradle)
+        val container = LazilyObtainedModelValue<T>(computation, calculatedValueContainerFactory, computationListener, gradle)
         return SmalltalkModelProvider(key, container)
     }
 
