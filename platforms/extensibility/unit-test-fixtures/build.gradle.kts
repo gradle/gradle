@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.instrumentationAgentServices)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.logging)
+    implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.daemonProtocol)
     implementation(projects.daemonServices)
@@ -54,5 +55,5 @@ dependencies {
     integTestRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeClasspath(projects.distributionsCore)
+    integTestDistributionRuntimeClasspath(projects.distributionsFull)
 }

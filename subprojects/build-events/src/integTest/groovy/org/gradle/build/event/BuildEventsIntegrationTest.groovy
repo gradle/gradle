@@ -31,6 +31,8 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
+import static org.hamcrest.Matchers.containsString
+
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def "listener can subscribe to task completion events"() {
         loggingListener()
@@ -333,10 +335,6 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             plugins { id 'groovy-gradle-plugin' }
             repositories { mavenCentral() }
             dependencies { testImplementation("junit:junit:4.13") }
-            test.testLogging {
-                showStandardStreams = true
-                showExceptions = true
-            }
         """
         def plugin = file('src/main/groovy/my-plugin.gradle')
         loggingListener(plugin)
@@ -383,10 +381,6 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             plugins { id 'groovy-gradle-plugin' }
             repositories { mavenCentral() }
             dependencies { testImplementation("junit:junit:4.13") }
-            test.testLogging {
-                showStandardStreams = true
-                showExceptions = true
-            }
         """
 
         def testProjectDir = file("testTmp").tap { it.mkdirs() }
@@ -421,12 +415,12 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
-        outputContains("listener registered")
 
         // ensure the test has been executed
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('my.MyTest')
         result.testClass('my.MyTest').assertTestCount(1, 0, 0)
+        result.testClass('my.MyTest').assertStdout(containsString("listener registered"))
     }
 
     void loggingListener(TestFile file = buildFile) {

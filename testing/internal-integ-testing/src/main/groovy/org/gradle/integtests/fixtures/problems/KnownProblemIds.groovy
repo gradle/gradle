@@ -83,6 +83,7 @@ class KnownProblemIds {
         'deprecation:buildsrc-script' : 'BuildSrc script has been deprecated.',
         'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration' : 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.',
         'deprecation:custom-task-action' : 'Custom Task action has been deprecated.',
+        'deprecation:executing-gradle-on-jvm-versions-and-lower': 'Executing Gradle on JVM versions 16 and lower has been deprecated.',
         'deprecation:missing-java-toolchain-plugin' : 'Using task ValidatePlugins without applying the Java Toolchain plugin.',
         'deprecation:included-build-script' : 'Included build script has been deprecated.',
         'deprecation:included-build-task' : 'Included build task has been deprecated.',

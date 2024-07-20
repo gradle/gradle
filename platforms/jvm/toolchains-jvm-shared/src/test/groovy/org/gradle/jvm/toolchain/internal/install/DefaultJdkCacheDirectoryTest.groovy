@@ -16,11 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal.install
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
-import org.gradle.api.provider.Property
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
@@ -33,7 +31,8 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.jvm.toolchain.internal.InstallationLocation
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Ignore
@@ -222,33 +221,24 @@ class DefaultJdkCacheDirectoryTest extends Specification {
     }
 
     JvmMetadataDetector mockDetector() {
-        JvmInstallationMetadata metadata = Mock(JvmInstallationMetadata)
-        metadata.isValidInstallation() >> true
-        metadata.getVendor() >> JvmVendor.KnownJvmVendor.IBM.asJvmVendor()
-        metadata.getLanguageVersion() >> JavaVersion.VERSION_11
-        metadata.getArchitecture() >> "arch"
-        metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) >> true
-
-        def detector = Mock(JvmMetadataDetector)
-        detector.getMetadata(_ as InstallationLocation) >> metadata
-        detector
+        (location) -> JvmInstallationMetadata.from(
+            location.location,
+            "11",
+            JvmVendor.KnownJvmVendor.IBM.asJvmVendor().rawVendor,
+            "",
+            "",
+            "J9",
+            "",
+            "",
+            "arch"
+        )
     }
 
     JavaToolchainSpec mockSpec() {
-        Property<JavaLanguageVersion> javaLanguageVersionProperty = Mock(Property.class)
-        javaLanguageVersionProperty.get() >> JavaLanguageVersion.of(11)
-
-        Property<JvmImplementation> implementationProperty = Mock(Property.class)
-        implementationProperty.get() >> JvmImplementation.J9
-
-        Property<JvmVendorSpec> vendorProperty = Mock(Property.class)
-        vendorProperty.get() >> JvmVendorSpec.IBM
-
-        JavaToolchainSpec spec = Mock(JavaToolchainSpec)
-        spec.getLanguageVersion() >> javaLanguageVersionProperty
-        spec.getImplementation() >> implementationProperty
-        spec.getVendor() >> vendorProperty
-        spec.getDisplayName() >> "mock spec"
+        JavaToolchainSpec spec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+        spec.languageVersion.set(JavaLanguageVersion.of(11))
+        spec.implementation.set(JvmImplementation.J9)
+        spec.vendor.set(JvmVendorSpec.IBM)
         spec
     }
 

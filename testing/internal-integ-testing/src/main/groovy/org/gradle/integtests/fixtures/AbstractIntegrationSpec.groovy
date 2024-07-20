@@ -128,6 +128,10 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     }
 
     def cleanup() {
+        // TODO: Problems API checks should be integrated into the executor, not the integration spec.
+        // Similar to how we do it with deprecation checks
+        // This allows different executions to keep their emitted problems separate.
+        // See how this is done in SmokeTestGradleRunner
         if (enableProblemsApiCheck) {
             collectedProblems.each {
                 KnownProblemIds.assertIsKnown(it)
@@ -475,13 +479,17 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionFailure runAndFail(String... tasks) {
-        fails(*tasks)
+        fails(Arrays.asList(tasks))
     }
 
     protected ExecutionFailure fails(String... tasks) {
+        fails(Arrays.asList(tasks))
+    }
+
+    protected ExecutionFailure fails(List<String> tasks) {
         resetProblemApiCheck()
 
-        failure = executer.withTasks(*tasks).runWithFailure()
+        failure = executer.withTasks(tasks).runWithFailure()
 
         if (enableProblemsApiCheck && getReceivedProblems().isEmpty()) {
             throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
@@ -766,6 +774,13 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
+            }.findAll {
+                // Filter out all java version deprecation problems
+                // TODO: The problems API infrastructure should be built-into the executor.
+                // However, since it isn't we do not know if the test has disabled the filtering of
+                // these deprecation logs from the normal deprecation checks.
+                // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
+                it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
             }
         }
     }
