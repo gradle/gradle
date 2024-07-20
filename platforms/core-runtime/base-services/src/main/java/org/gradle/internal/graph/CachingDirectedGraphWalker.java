@@ -16,6 +16,8 @@
 
 package org.gradle.internal.graph;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayDeque;
@@ -95,7 +97,7 @@ public class CachingDirectedGraphWalker<N, T> {
     private Set<T> doSearch() {
         int componentCount = 0;
         Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
-        Map<Integer, NodeDetails<N, T>> components = new HashMap<Integer, NodeDetails<N, T>>();
+        Int2ObjectMap<NodeDetails<N, T>> components = new Int2ObjectOpenHashMap<NodeDetails<N, T>>();
         Deque<N> queue = new ArrayDeque<N>(startNodes);
 
         while (!queue.isEmpty()) {

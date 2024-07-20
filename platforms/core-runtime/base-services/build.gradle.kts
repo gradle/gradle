@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.fastutil)
     implementation(libs.slf4jApi)
 
     integTestImplementation(projects.logging)
