@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolation
+package org.gradle.internal.serialize.isolated
 
-import org.gradle.api.IsolatedAction
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.ConfigurationCacheError
 import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
@@ -44,6 +43,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.IdentityHashMap
+import kotlin.io.inputStream
 
 
 /**
@@ -51,7 +51,6 @@ import java.util.IdentityHashMap
  *
  * @param G type of the root object stored in [graph]
  */
-internal
 class SerializedIsolatedActionGraph<G>(
     /**
      * The serialized graph.
@@ -69,7 +68,6 @@ class SerializedIsolatedActionGraph<G>(
 )
 
 
-internal
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
     private val beanStateWriterLookup: BeanStateWriterLookup,
@@ -116,7 +114,6 @@ class IsolatedActionSerializer(
 }
 
 
-internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
     private val beanStateReaderLookup: BeanStateReaderLookup,

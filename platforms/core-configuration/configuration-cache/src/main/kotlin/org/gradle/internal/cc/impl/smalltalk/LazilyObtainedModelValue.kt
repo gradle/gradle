@@ -22,14 +22,14 @@ import org.gradle.api.smalltalk.SmalltalkComputation
 import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
-import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
-import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
+import org.gradle.internal.serialize.isolated.SerializedIsolatedActionGraph
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.graph.serviceOf
+import org.gradle.internal.serialize.isolated.IsolatedActionDeserializer
+import org.gradle.internal.serialize.isolated.IsolatedActionSerializer
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 

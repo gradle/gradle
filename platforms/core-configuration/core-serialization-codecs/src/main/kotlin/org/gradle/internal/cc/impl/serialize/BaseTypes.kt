@@ -23,7 +23,6 @@ import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 
 
-internal
 fun BindingsBuilder.baseTypes() {
     stdlibTypes()
     guavaTypes()

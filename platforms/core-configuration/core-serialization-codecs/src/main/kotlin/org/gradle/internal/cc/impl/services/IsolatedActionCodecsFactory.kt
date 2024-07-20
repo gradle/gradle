@@ -50,7 +50,6 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scope.BuildTree::class)
-internal
 class IsolatedActionCodecsFactory(
 
     private
@@ -77,7 +76,7 @@ class IsolatedActionCodecsFactory(
         bind(DirectoryCodec(fileFactory))
 
         bind(LoggerCodec)
-        bind(ProxyCodec)
+        bind(org.gradle.internal.serialize.codecs.stdlib.ProxyCodec)
 
         bind(ServicesCodec)
 
@@ -115,7 +114,7 @@ class IsolatedActionCodecsFactory(
 
     /**
      * Value sources and build services are currently unsupported but could eventually
-     * be captured as part of the serialized action [environment][org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph.environment]
+     * be captured as part of the serialized action [environment][org.gradle.internal.serialize.isolated.SerializedIsolatedActionGraph.environment]
      **/
     private
     fun BindingsBuilder.unsupportedProviderTypes() {

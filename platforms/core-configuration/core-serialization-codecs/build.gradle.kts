@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
+    implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
@@ -50,9 +51,16 @@ dependencies {
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
+    implementation(projects.stdlibSerializationCodecs)
 
     implementation(libs.asm)
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
+
+    testImplementation(projects.beanSerializationServices)
+    testImplementation(projects.io)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.kotlinCoroutinesDebug)
 }

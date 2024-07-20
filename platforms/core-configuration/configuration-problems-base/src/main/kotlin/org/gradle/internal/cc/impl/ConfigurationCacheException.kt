@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 /**
  * Marker interface for exception handling.
  */
-internal
 interface ConfigurationCacheThrowable
 
 
@@ -32,7 +31,7 @@ interface ConfigurationCacheThrowable
  * State might be corrupted and should be discarded.
  */
 @Contextual
-class ConfigurationCacheError internal constructor(
+class ConfigurationCacheError(
     error: String,
     cause: Throwable? = null
 ) : ConfigurationCacheThrowable, Exception(error, cause)
@@ -64,7 +63,6 @@ open class ConfigurationCacheProblemsException : ConfigurationCacheException {
         causes
     )
 
-    internal
     constructor(
         causes: List<Throwable>,
         summary: () -> String
@@ -76,7 +74,7 @@ open class ConfigurationCacheProblemsException : ConfigurationCacheException {
 }
 
 
-class TooManyConfigurationCacheProblemsException internal constructor(
+class TooManyConfigurationCacheProblemsException(
     causes: List<Throwable>,
     summary: () -> String
 ) : ConfigurationCacheProblemsException(
