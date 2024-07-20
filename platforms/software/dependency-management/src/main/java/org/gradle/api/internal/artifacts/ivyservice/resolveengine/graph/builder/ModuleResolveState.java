@@ -64,7 +64,7 @@ public class ModuleResolveState implements CandidateModule {
     private final ComponentMetaDataResolver metaDataResolver;
     private final ComponentIdGenerator idGenerator;
     private final ModuleIdentifier id;
-    private final List<EdgeState> unattachedEdges = new LinkedList<>();
+    private final List<EdgeState> unattachedDependencies = new LinkedList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
@@ -199,7 +199,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Changes the selected target component for this module due to version conflict resolution.
+     * Changes the selected target component for this module.
      */
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
@@ -239,8 +239,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Overrides the component selection for this module, when this module has been replaced
-     * by another due to capability conflict resolution.
+     * Overrides the component selection for this module, when this module has been replaced by another.
      */
     @Override
     public void replaceWith(ComponentState selected) {
@@ -256,10 +255,6 @@ public class ModuleResolveState implements CandidateModule {
         }
         this.selected = selected;
         this.replaced = computeReplaced(selected);
-
-        if (replaced) {
-            selected.getModule().getPendingDependencies().retarget(pendingDependencies);
-        }
 
         doRestart(selected);
     }
@@ -277,29 +272,29 @@ public class ModuleResolveState implements CandidateModule {
         for (SelectorState selector : selectors) {
             selector.overrideSelection(selected);
         }
-        if (!unattachedEdges.isEmpty()) {
-            restartUnattachedEdges();
+        if (!unattachedDependencies.isEmpty()) {
+            restartUnattachedDependencies();
         }
     }
 
-    private void restartUnattachedEdges() {
-        if (unattachedEdges.size() == 1) {
-            EdgeState singleEdge = unattachedEdges.get(0);
-            singleEdge.restart();
+    private void restartUnattachedDependencies() {
+        if (unattachedDependencies.size() == 1) {
+            EdgeState singleDependency = unattachedDependencies.get(0);
+            singleDependency.restart();
         } else {
-            for (EdgeState edge : new ArrayList<>(unattachedEdges)) {
-                edge.restart();
+            for (EdgeState dependency : new ArrayList<>(unattachedDependencies)) {
+                dependency.restart();
             }
         }
     }
 
-    public void addUnattachedEdge(EdgeState edge) {
-        unattachedEdges.add(edge);
+    public void addUnattachedDependency(EdgeState edge) {
+        unattachedDependencies.add(edge);
         edge.markUnattached();
     }
 
-    public void removeUnattachedEdge(EdgeState edge) {
-        if (unattachedEdges.remove(edge)) {
+    public void removeUnattachedDependency(EdgeState edge) {
+        if (unattachedDependencies.remove(edge)) {
             edge.markAttached();
         }
     }
@@ -320,7 +315,7 @@ public class ModuleResolveState implements CandidateModule {
         }
     }
 
-    void removeSelector(SelectorState selector) {
+    void removeSelector(SelectorState selector, ResolutionConflictTracker conflictTracker) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
@@ -328,7 +323,7 @@ public class ModuleResolveState implements CandidateModule {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection();
+            maybeUpdateSelection(conflictTracker);
         }
     }
 
@@ -336,8 +331,8 @@ public class ModuleResolveState implements CandidateModule {
         return selectors;
     }
 
-    List<EdgeState> getUnattachedEdges() {
-        return unattachedEdges;
+    List<EdgeState> getUnattachedDependencies() {
+        return unattachedDependencies;
     }
 
     ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) throws AttributeMergingException {
@@ -405,9 +400,6 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     PendingDependencies getPendingDependencies() {
-        if (replaced) {
-            return selected.getModule().getPendingDependencies();
-        }
         return pendingDependencies;
     }
 
@@ -419,7 +411,7 @@ public class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
-    public void maybeUpdateSelection() {
+    public void maybeUpdateSelection(ResolutionConflictTracker conflictTracker) {
         if (replaced) {
             // Never update selection for a replaced module
             return;
@@ -431,14 +423,14 @@ public class ModuleResolveState implements CandidateModule {
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         newSelected.setSelectors(selectors);
         if (selected == null) {
-            select(newSelected);
+            // In some cases we should ignore this because the selection happens to be a known conflict
+            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
+                select(newSelected);
+            }
         } else if (newSelected != selected) {
             if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
                 // Let's ignore modules that are changing selection way too much, by keeping the highest version
                 if (maybeSkipSelectionChange(newSelected)) {
-                    // TODO: selectBest updates state, but we ignore that. We should do something with newSelected here
-                    // or reset the selectors to before the selectBest call. Alternatively, we should fail here and ask
-                    // the user to add a version constraint.
                     return;
                 }
             }

@@ -34,9 +34,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -92,8 +91,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ResolveOptimizations resolveOptimizations;
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = new HashMap<>();
     private final AttributeDesugaring attributeDesugaring;
-    private final ModuleConflictHandler moduleConflictHandler;
-    private final CapabilitiesConflictHandler capabilitiesConflictHandler;
+    private final ResolutionConflictTracker conflictTracker;
     private final GraphVariantSelector variantSelector;
 
     public ResolveState(
@@ -113,8 +111,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         VersionParser versionParser,
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
-        ModuleConflictHandler moduleConflictHandler,
-        CapabilitiesConflictHandler capabilitiesConflictHandler,
+        ResolutionConflictTracker conflictTracker,
         GraphVariantSelector variantSelector
     ) {
         this.idGenerator = idGenerator;
@@ -130,8 +127,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionComparator = versionComparator.asVersionComparator();
         this.versionParser = versionParser;
         this.conflictResolution = conflictResolution;
-        this.moduleConflictHandler = moduleConflictHandler;
-        this.capabilitiesConflictHandler = capabilitiesConflictHandler;
+        this.conflictTracker = conflictTracker;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = attributeDesugaring;
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
@@ -155,7 +151,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
-        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictHandler.getResolver(), this, rootComponent, resolveOptimizations, this.versionComparator, versionParser);
+        ModuleConflictResolver<ComponentState> moduleConflictResolver = conflictTracker.getModuleConflictHandler().getResolver();
+        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictResolver, this, rootComponent, resolveOptimizations, this.versionComparator, versionParser);
         rootModule.setSelectorStateResolver(selectorStateResolver);
 
         // Create root node
@@ -169,12 +166,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return idGenerator;
     }
 
-    public ModuleConflictHandler getModuleConflictHandler() {
-        return moduleConflictHandler;
-    }
-
-    public CapabilitiesConflictHandler getCapabilitiesConflictHandler() {
-        return capabilitiesConflictHandler;
+    public ResolutionConflictTracker getConflictTracker() {
+        return conflictTracker;
     }
 
     public Collection<ModuleResolveState> getModules() {
@@ -227,7 +220,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectors.values();
     }
 
-    public SelectorState computeSelectorFor(DependencyState dependencyState, boolean ignoreVersion) {
+    public SelectorState getSelector(DependencyState dependencyState, boolean ignoreVersion) {
         boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
         SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();

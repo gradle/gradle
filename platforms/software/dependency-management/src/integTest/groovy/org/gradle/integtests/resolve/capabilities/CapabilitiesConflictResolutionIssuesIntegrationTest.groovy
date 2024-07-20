@@ -23,19 +23,11 @@ import spock.lang.Issue
 
 class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
-    def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
-
-    def setup() {
-        settingsFile << """
-            rootProject.name = 'test'
-        """
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/14770")
     def "capabilities resolution shouldn't put graph in inconsistent state"() {
         file("shared/build.gradle") << """
             plugins {
-                id("java-library")
+                id 'java'
             }
 
             sourceSets {
@@ -134,14 +126,16 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
         settingsFile << """
+            rootProject.name = 'test'
             include 'shared'
             include 'p1'
             include 'p2'
         """
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
 
         when:
-        resolve.prepare()
-        succeeds(":p1:checkDeps")
+        run ":p1:checkDeps"
 
         then:
         resolve.expectGraph {
@@ -150,11 +144,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     configuration 'runtimeElements'
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'one-preferred')
-                        byConflictResolution("Explicit selection of project :shared variant onePrefRuntimeElements")
                     }
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'two-preferred')
-                        byConflictResolution("Explicit selection of project :shared variant twoPrefRuntimeElements")
                     }
                 }
                 project(":shared", "test:shared:") {
@@ -164,6 +156,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
+                    byConflictResolution()
                     project(":shared", "test:shared:") {
 
                     }
@@ -179,458 +172,4 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         }
     }
-
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1423804572")
-    def "pending dependencies are transferred to new module after capability conflict"() {
-
-        mavenRepo.module("org.hibernate", "hibernate-core", "5.4.18.Final")
-            .dependsOn("org.dom4j", "dom4j", "2.1.3", null, null, null, [[group: "*", module: "*"]])
-            .publish()
-        mavenRepo.module("jaxen", "jaxen", "1.1.1")
-            .dependsOn(mavenRepo.module("dom4j", "dom4j", "1.6.1").publish())
-            .publish()
-        mavenRepo.module("org.dom4j", "dom4j", "2.1.3").publish()
-            .dependsOn(mavenRepo.module("jaxen", "jaxen", "1.1.6").publish())
-            .publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
-                implementation 'jaxen:jaxen:1.1.1'
-            }
-        """
-
-        capability("org.dom4j", "dom4j") {
-            forModule("dom4j:dom4j")
-            selectHighest()
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org.hibernate:hibernate-core:5.4.18.Final") {
-                    module("org.dom4j:dom4j:2.1.3") {
-                        byConflictResolution("latest version of capability org.dom4j:dom4j")
-                        byConflictResolution("between versions 2.1.3 and 1.6.1")
-                    }
-                }
-                edge("jaxen:jaxen:1.1.1", "jaxen:jaxen:1.1.6") {
-                    byConflictResolution("between versions 1.1.6 and 1.1.1")
-                }
-            }
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1967573024")
-    def "first-level dependencies are retained after conflict resolution"() {
-
-        mavenRepo.module("org.bouncycastle", "bcprov-jdk14", "1.70").publish()
-        mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.71").publish()
-        mavenRepo.module("org.bouncycastle", "bctls-fips", "1.0.9").publish()
-        mavenRepo.module("org.bouncycastle", "bctls-jdk14", "1.70")
-            .dependsOn(mavenRepo.module("org.bouncycastle", "bcprov-jdk14", "1.70").publish())
-            .publish()
-        mavenRepo.module("org.bouncycastle", "bctls-jdk18on", "1.72")
-            .dependsOn(mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.72").publish())
-            .publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation("org.bouncycastle:bctls-fips:1.0.9")
-                implementation("org.bouncycastle:bctls-jdk14:1.70")
-                implementation("org.bouncycastle:bctls-jdk18on:1.72")
-                implementation("org.bouncycastle:bcprov-jdk14:1.70")
-                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
-            }
-        """
-
-        capability("foo", "bcprov") {
-            forModule("org.bouncycastle:bcprov-jdk14")
-            forModule("org.bouncycastle:bcprov-jdk18on")
-            selectHighest()
-        }
-
-        capability("foo", "bctls") {
-            forModule("org.bouncycastle:bctls-fips")
-            forModule("org.bouncycastle:bctls-jdk14")
-            forModule("org.bouncycastle:bctls-jdk18on")
-            selectHighest()
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.bouncycastle:bcprov-jdk14:1.70", "org.bouncycastle:bcprov-jdk18on:1.72") {
-                    byConflictResolution("between versions 1.72 and 1.71")
-                    byConflictResolution("latest version of capability foo:bcprov")
-                }
-                edge("org.bouncycastle:bcprov-jdk18on:1.71", "org.bouncycastle:bcprov-jdk18on:1.72")
-                edge("org.bouncycastle:bctls-fips:1.0.9", "org.bouncycastle:bctls-jdk18on:1.72") {
-                    byConflictResolution("latest version of capability foo:bctls")
-                }
-                edge("org.bouncycastle:bctls-jdk14:1.70", "org.bouncycastle:bctls-jdk18on:1.72")
-                module("org.bouncycastle:bctls-jdk18on:1.72") {
-                    module("org.bouncycastle:bcprov-jdk18on:1.72")
-                }
-            }
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1291618229")
-    def "avoids corrupt serialized resolution result"() {
-
-        mavenRepo.module("org.codehaus.woodstox", "wstx-asl", "4.0.6")
-            .dependsOn(mavenRepo.module("org.codehaus.woodstox", "woodstox-core-asl", "4.0.6").publish())
-            .publish()
-        mavenRepo.module("javax.xml.stream", "stax-api", "1.0").publish()
-        mavenRepo.module("org.codehaus.woodstox", "woodstox-core-asl", "4.4.1")
-            .dependsOn(mavenRepo.module("javax.xml.stream", "stax-api", "1.0-2").publish())
-            .publish()
-        mavenRepo.module("stax", "stax-api", "1.0.1").publish()
-        mavenRepo.module("woodstox", "wstx-asl", "2.9.3").publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation("org.codehaus.woodstox:wstx-asl:4.0.6")
-                implementation("javax.xml.stream:stax-api:1.0")
-                implementation("org.codehaus.woodstox:woodstox-core-asl:4.4.1")
-                implementation("stax:stax-api:1.0.1")
-                implementation("woodstox:wstx-asl:2.9.3")
-            }
-        """
-
-        capability("woodstox", "wstx-asl") {
-            forModule("org.codehaus.woodstox:wstx-asl")
-            forModule("org.codehaus.woodstox:woodstox-core-asl")
-            selectHighest()
-        }
-
-        capability("stax", "stax-api") {
-            forModule("javax.xml.stream:stax-api")
-            selectHighest()
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.codehaus.woodstox:wstx-asl:4.0.6", "org.codehaus.woodstox:woodstox-core-asl:4.4.1") {
-                    byConflictResolution("latest version of capability woodstox:wstx-asl")
-                    edge("javax.xml.stream:stax-api:1.0-2", "stax:stax-api:1.0.1")
-                }
-                edge("javax.xml.stream:stax-api:1.0", "stax:stax-api:1.0.1")
-                module("org.codehaus.woodstox:woodstox-core-asl:4.4.1") {
-                    byConflictResolution("latest version of capability woodstox:wstx-asl")
-                }
-                module("stax:stax-api:1.0.1") {
-                    byConflictResolution("latest version of capability stax:stax-api")
-                }
-                edge("woodstox:wstx-asl:2.9.3", "org.codehaus.woodstox:woodstox-core-asl:4.4.1")
-            }
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1423804572")
-    def "resolution succeeds when nodes of a conflict become deselected before conflict is resolved"() {
-
-        mavenRepo.module("org.hibernate", "hibernate-core", "5.4.18.Final")
-            .dependsOn("org.dom4j", "dom4j", "2.1.3", null, "compile", null, [[group: "*", module: "*"]])
-            .publish()
-        mavenRepo.module("org.dom4j", "dom4j", "2.1.3").publish()
-            .dependsOn(mavenRepo.module("jaxen", "jaxen", "1.1.6").publish())
-            .publish()
-        mavenRepo.module("jaxen", "jaxen", "1.1.1")
-            .dependsOn(mavenRepo.module("dom4j", "dom4j", "1.6.1").publish())
-            .publish()
-        mavenRepo.module("org.unitils", "unitils-dbmaintainer", "3.3")
-            .dependsOn(mavenRepo.module("org.hibernate", "hibernate", "3.2.5.ga").publish())
-            .publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation("org.hibernate:hibernate-core:5.4.18.Final")
-                implementation("jaxen:jaxen:1.1.1")
-                implementation("org.unitils:unitils-dbmaintainer:3.3")
-            }
-        """
-
-        capability("org.dom4j", "dom4j") {
-            forModule("dom4j:dom4j")
-            selectHighest()
-        }
-        capability("org.hibernate", "hibernate-core") {
-            forModule("org.hibernate:hibernate")
-            selectHighest()
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org.hibernate:hibernate-core:5.4.18.Final") {
-                    module("org.dom4j:dom4j:2.1.3") {
-                        byConflictResolution("latest version of capability org.dom4j:dom4j")
-                        byConflictResolution("between versions 2.1.3 and 1.6.1")
-                    }
-                }
-                edge("jaxen:jaxen:1.1.1", "jaxen:jaxen:1.1.6") {
-                    byConflictResolution("between versions 1.1.6 and 1.1.1")
-                }
-                module("org.unitils:unitils-dbmaintainer:3.3") {
-                    edge("org.hibernate:hibernate:3.2.5.ga", "org.hibernate:hibernate-core:5.4.18.Final") {
-                        byConflictResolution("latest version of capability org.hibernate:hibernate-core")
-                    }
-                }
-            }
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/26145")
-    @Issue("https://github.com/ljacomet/logging-capabilities/issues/33")
-    def "resolution succeeds when two conflicts affect a single node"() {
-
-        mavenRepo.module("org.slf4j", "slf4j-log4j12", "1.5.6").publish()
-        mavenRepo.module("org.slf4j", "log4j-over-slf4j", "1.4.2").publish()
-        mavenRepo.module("ch.qos.logback", "logback-classic", "1.3.11").publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation("ch.qos.logback:logback-classic:1.3.11")
-                implementation("org.slf4j:slf4j-log4j12:1.5.6")
-                implementation("org.slf4j:log4j-over-slf4j:1.4.2")
-            }
-        """
-
-        capability("slf4j-impl", "slf4j-impl") {
-            forModule("org.slf4j:slf4j-log4j12")
-            forModule("ch.qos.logback:logback-classic")
-            selectModule("ch.qos.logback", "logback-classic")
-        }
-
-        capability("slf4j-vs-log4j", "slf4j-vs-log4j") {
-            forModule("org.slf4j:slf4j-log4j12")
-            forModule("org.slf4j:log4j-over-slf4j")
-            selectModule("org.slf4j", "log4j-over-slf4j")
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("ch.qos.logback:logback-classic:1.3.11")
-                edge("org.slf4j:slf4j-log4j12:1.5.6", "ch.qos.logback:logback-classic:1.3.11") {
-                    byConflictResolution("Explicit selection of ch.qos.logback:logback-classic:1.3.11 variant runtime")
-                }
-                module("org.slf4j:log4j-over-slf4j:1.4.2")
-            }
-        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/29208")
-    def "valid graph with both module conflict and capability conflict"() {
-        mavenRepo.module("org.bouncycastle", "bcprov-jdk12", "130").publish()
-        mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.71").publish()
-        mavenRepo.module("org.bouncycastle", "bcpkix-jdk18on", "1.72")
-            .dependsOn(mavenRepo.module("org.bouncycastle", "bcprov-jdk18on", "1.72").publish())
-            .publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation("org.bouncycastle:bcprov-jdk12:130")
-                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
-                implementation("org.bouncycastle:bcpkix-jdk18on:1.72")
-            }
-        """
-
-        capability("org.gradlex", "bouncycastle-bcprov") {
-            forModule("org.bouncycastle:bcprov-jdk12")
-            forModule("org.bouncycastle:bcprov-jdk18on")
-            selectHighest()
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org.bouncycastle:bcprov-jdk12:130")
-                edge("org.bouncycastle:bcprov-jdk18on:1.71", "org.bouncycastle:bcprov-jdk12:130") {
-                    byConflictResolution("latest version of capability org.gradlex:bouncycastle-bcprov")
-                }
-                module("org.bouncycastle:bcpkix-jdk18on:1.72") {
-                    edge("org.bouncycastle:bcprov-jdk18on:1.72", "org.bouncycastle:bcprov-jdk12:130")
-                }
-            }
-        }
-    }
-
-    @Issue("https://github.com/ljacomet/logging-capabilities/issues/20")
-    def "resolving a conflict does not depend on participant order"() {
-        given:
-        mavenRepo.module("org", "testA", "1.0").publish()
-        mavenRepo.module("org", "testB", "1.0").publish()
-        mavenRepo.module("org", "testC", "1.0").publish()
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                ${deps.collect { "implementation('$it')" }.join("\n")}
-            }
-        """
-
-        capability("org.test", "cap") {
-            forModule("org:testA")
-            forModule("org:testB")
-            forModule("org:testC")
-            selectModule("org", "testC")
-        }
-
-        when:
-        resolve.prepare()
-        succeeds(":checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge('org:testA:1.0', 'org:testC:1.0') {
-                    byConflictResolution("Explicit selection of org:testC:1.0 variant runtime")
-                }
-                edge('org:testB:1.0', 'org:testC:1.0') {
-                    byConflictResolution("Explicit selection of org:testC:1.0 variant runtime")
-                }
-                module('org:testC:1.0')
-            }
-        }
-
-        where:
-        deps << ['org:testA:1.0', 'org:testB:1.0', 'org:testC:1.0'].permutations()
-    }
-
-    // region test fixtures
-
-    class CapabilityClosure {
-
-        private final String group
-        private final String artifactId
-        private final File buildFile
-
-        CapabilityClosure(String group, String artifactId, File buildFile) {
-            this.group = group
-            this.artifactId = artifactId
-            this.buildFile = buildFile
-        }
-
-        def forModule(String module) {
-            buildFile << """
-                dependencies.components.withModule('$module') {
-                    allVariants {
-                        withCapabilities {
-                            addCapability('$group', '$artifactId', id.version)
-                        }
-                    }
-                }
-            """
-        }
-
-        def selectHighest() {
-            buildFile << """
-                configurations.runtimeClasspath {
-                    resolutionStrategy {
-                        capabilitiesResolution {
-                            withCapability("$group:$artifactId") {
-                                selectHighestVersion()
-                            }
-                        }
-                    }
-                }
-            """
-        }
-
-        def selectModule(String selectedGroup, String selectedModule) {
-            buildFile << """
-                configurations.runtimeClasspath {
-                    resolutionStrategy {
-                        capabilitiesResolution {
-                            withCapability("$group:$artifactId") {
-                                def result = candidates.find {
-                                    it.id.group == "${selectedGroup}" && it.id.module == "${selectedModule}"
-                                }
-                                assert result != null
-                                select(result)
-                            }
-                        }
-                    }
-                }
-            """
-        }
-    }
-
-    def capability(String group, String module, @DelegatesTo(CapabilityClosure) Closure<?> closure) {
-        def capabilityClosure = new CapabilityClosure(group, module, buildFile)
-        closure.delegate = capabilityClosure
-        closure.call(capabilityClosure)
-    }
-
-    // endregion
-
 }

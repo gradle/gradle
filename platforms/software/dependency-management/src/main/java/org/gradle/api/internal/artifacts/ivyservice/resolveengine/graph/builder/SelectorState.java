@@ -124,16 +124,16 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    public void release() {
+    public void release(ResolutionConflictTracker conflictTracker) {
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
-            removeAndMarkSelectorForReuse();
+            removeAndMarkSelectorForReuse(conflictTracker);
         }
     }
 
-    private void removeAndMarkSelectorForReuse() {
-        targetModule.removeSelector(this);
+    private void removeAndMarkSelectorForReuse(ResolutionConflictTracker conflictTracker) {
+        targetModule.removeSelector(this, conflictTracker);
         resolved = false;
     }
 
@@ -249,9 +249,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
         this.reusable = true;
         if (markedReusableAlready) {
-            // TODO: We have hit an unstable graph. This selector has already added, removed, added again,
-            // and we are removing it once again. We should fail the resolution here and ask the user
-            // to fix the graph -- likely by adding a version constraint.
             return true;
         } else {
             markedReusableAlready = true;
@@ -260,11 +257,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     /**
-     * Checks if the selector affects selection at the moment it is added to a module
+     * Checks if the selector can be used for resolution.
      *
      * @return {@code true} if the selector can resolve, {@code false} otherwise
      */
-    boolean canAffectSelection() {
+    boolean canResolve() {
         if (reusable) {
             return true;
         }
@@ -279,7 +276,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.resolved = true;
         this.reusable = false;
 
-        // Target module can change, if this is called as the result of a module or capability replacement conflict.
+        // Target module can change, if this is called as the result of a module replacement conflict.
         this.targetModule = selected.getModule();
     }
 

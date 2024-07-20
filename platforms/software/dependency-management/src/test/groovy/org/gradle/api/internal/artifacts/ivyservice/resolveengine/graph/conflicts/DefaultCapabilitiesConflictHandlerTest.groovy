@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState
 import org.gradle.api.internal.capabilities.CapabilityInternal
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.VariantGraphResolveMetadata
@@ -104,7 +103,10 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
     }
 
     CapabilityInternal capability(String group="org", String name="cap") {
-        new DefaultImmutableCapability(group, name, null)
+        Mock(CapabilityInternal) {
+            getGroup() >> group
+            getName() >> name
+        }
     }
 
     NodeState node(ComponentState cs) {
