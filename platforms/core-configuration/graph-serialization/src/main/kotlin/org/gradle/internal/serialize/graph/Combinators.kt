@@ -266,11 +266,19 @@ inline fun Decoder.readCollection(readElement: () -> Unit) {
 inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
     containerForSize: (Int) -> C,
     readElement: () -> T
+): C = buildCollection(containerForSize) {
+    add(readElement())
+}
+
+
+inline fun <T, C> Decoder.buildCollection(
+    containerForSize: (Int) -> C,
+    readElement: C.() -> T
 ): C {
     val size = readSmallInt()
     val container = containerForSize(size)
     for (i in 0 until size) {
-        container.add(readElement())
+        container.readElement()
     }
     return container
 }

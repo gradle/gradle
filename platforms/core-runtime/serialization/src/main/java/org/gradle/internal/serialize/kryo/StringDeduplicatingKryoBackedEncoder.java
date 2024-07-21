@@ -17,7 +17,8 @@
 package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.PositionAwareEncoder;
@@ -26,14 +27,13 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
 public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
 
     static final int NULL_STRING = 0;
     static final int NEW_STRING = 1;
 
-    private Map<String, Integer> strings;
+    private Object2IntMap<String> strings;
 
     private final Output output;
 
@@ -115,11 +115,11 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     private void writeNonnullString(CharSequence value) {
         String key = value.toString();
         if (strings == null) {
-            strings = Maps.newHashMapWithExpectedSize(1024);
+            strings = new Object2IntOpenHashMap<String>(1024);
             writeNewString(key);
         } else {
-            Integer index = strings.get(key);
-            if (index == null) {
+            int index = strings.getOrDefault(key, -1);
+            if (index == -1) {
                 writeNewString(key);
             } else {
                 writeStringIndex(index);
@@ -134,7 +134,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
           - 1 for a new string
           And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
          */
-        Integer newIndex = strings.size() + 2;
+        int newIndex = strings.size() + 2;
         strings.put(key, newIndex);
         writeStringIndex(NEW_STRING);
         output.writeString(key);
