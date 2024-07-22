@@ -45,6 +45,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
@@ -62,6 +63,8 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType.ARTIFACT;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType.INTERCEPTED_METHODS_REPORT;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -155,8 +158,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 instrumentedProjectDependencies
             );
 
-            propertyUpgradeReportConfig.getReportCollector().collect(instrumentedClasspath.getOrDefault(FileType.INTERCEPTED_METHODS_REPORT, Collections.emptyList()));
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(FileType.ARTIFACT, Collections.emptyList()));
+            MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
+            instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
         }
     }
 

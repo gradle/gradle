@@ -23,7 +23,7 @@ public class ConsoleOutputInterceptionListener implements MethodInterceptionList
     private final OnInterceptedMethodInsFormatter formatter = new OnInterceptedMethodInsFormatter();
 
     @Override
-    public void onInterceptedMethodIns(BytecodeInterceptorType type, String sourceFileName, String className, String owner, String name, String descriptor, int lineNumber) {
+    public void onInterceptedMethodInstruction(BytecodeInterceptorType type, String sourceFileName, String className, String owner, String name, String descriptor, int lineNumber) {
         System.out.println(formatter.format(null, sourceFileName, className, owner, name, descriptor, lineNumber));
     }
 }

@@ -20,7 +20,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * A class that collects method interception reports.
@@ -31,8 +30,4 @@ public interface MethodInterceptionReportCollector {
     String INTERCEPTED_METHODS_REPORT_FILE = "gradle-intercepted-methods.report";
 
     void collect(File report);
-
-    default void collect(List<File> reports) {
-        reports.forEach(this::collect);
-    }
 }

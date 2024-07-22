@@ -50,6 +50,7 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("--property-upgrade-report")
 
         then:
+        postBuildOutputContains("Intercepted methods:")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
 
@@ -57,6 +58,7 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("--property-upgrade-report")
 
         then:
+        postBuildOutputContains("Intercepted methods:")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
     }
@@ -79,6 +81,7 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("--property-upgrade-report")
 
         then:
+        postBuildOutputContains("Intercepted methods:")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
 
@@ -86,6 +89,7 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("--property-upgrade-report")
 
         then:
+        postBuildOutputContains("Intercepted methods:")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }

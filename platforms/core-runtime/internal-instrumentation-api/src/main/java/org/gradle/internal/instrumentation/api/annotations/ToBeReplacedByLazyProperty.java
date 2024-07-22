@@ -42,7 +42,7 @@ public @interface ToBeReplacedByLazyProperty {
     String issue() default "";
 
     /**
-     * If true property will be skipped for report
+     * If true property will be not be reported in the upgrade report.
      */
-    boolean skipForReport() default false;
+    boolean unreported() default false;
 }

@@ -330,7 +330,7 @@ public class InstrumentingClassTransform implements ClassTransform {
 
             for (JvmBytecodeCallInterceptor interceptor : interceptors) {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
-                    methodInterceptionListener.onInterceptedMethodIns(
+                    methodInterceptionListener.onInterceptedMethodInstruction(
                         interceptor.getType(),
                         sourceFileName,
                         className,

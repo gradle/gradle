@@ -138,6 +138,19 @@ class TryTest extends Specification {
         success << [Try.successful(null), Try.ofFailable { null }]
     }
 
+    def "can peek a value"() {
+        expect:
+        success.isSuccessful()
+        def value
+        success.peek {
+            value = it
+        }.get() == "value"
+        value == "value"
+
+        where:
+        success << [Try.successful("value"), Try.ofFailable { "value" }]
+    }
+
     def "can compare null-holding try with other"() {
         when:
         def a = Try.successful(null)
