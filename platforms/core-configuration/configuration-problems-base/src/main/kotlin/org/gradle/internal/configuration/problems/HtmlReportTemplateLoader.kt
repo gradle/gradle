@@ -19,7 +19,7 @@ package org.gradle.internal.configuration.problems
 import java.io.BufferedReader
 import java.net.URL
 
-class HtmlReportTemplate(private val reportHtmlFileName: String = "configuration-cache-report.html") {
+class HtmlReportTemplateLoader(private val reportHtmlFileName: String = "configuration-cache-report.html") {
 
     private
     val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""

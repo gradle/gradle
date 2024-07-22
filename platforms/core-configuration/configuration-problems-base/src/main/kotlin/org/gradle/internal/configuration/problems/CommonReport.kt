@@ -161,10 +161,10 @@ class CommonReport(
             }
 
             private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
-                val htmlReportTemplate = HtmlReportTemplate().load()
+                val htmlReportTemplateLoader = HtmlReportTemplateLoader().load()
                 val hashingWriter = hashingStream.writer()
                 val jsonModelWriter = JsonModelWriter(JsonWriter(hashingWriter))
-                return HtmlReportWriter(hashingWriter, htmlReportTemplate, jsonModelWriter)
+                return HtmlReportWriter(hashingWriter, htmlReportTemplateLoader, jsonModelWriter)
             }
 
             override fun onDiagnostic(problem: JsonSource): State {
