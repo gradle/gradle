@@ -54,9 +54,10 @@ abstract class MyCreateFilePlugin : Plugin<Project> {
 === 2. Override the `apply` method
 Add tasks and other logic in the `apply()` method.
 
-When `SamplePlugin` is applied in your project, Gradle calls the `fun apply() {}` method defined which adds the `SampleTask` to your project.
+When `SamplePlugin` is applied in your project, Gradle calls the `fun apply() {}` method defined.
+This adds the `SampleTask` to your project.
 
-You can then apply the plugin in your build script accordingly:
+You can then apply the plugin in your build script:
 
 .build.gradle.kts
 [source,kotlin]
@@ -69,7 +70,7 @@ plugins {
 }
 
 //
-// More build script logic like the dependencies block
+// More build script logic
 //
 
 abstract class SamplePlugin : Plugin<Project> {
@@ -87,11 +88,11 @@ apply<SamplePlugin>()   // <1>
 ----
 <1> Apply the `SamplePlugin`.
 
-Note that this is a simple a hello-world example and does not reflect best practices.
+Note that this is a simple hello-world example and does not reflect best practices.
 
-IMPORTANT: Plugin code should *never* be in your `build.gradle(.kts)` file!
+IMPORTANT: Script plugins are *not* recommended. Plugin code should *not* be in your `build.gradle(.kts)` file.
 
-Plugins should always be written as _pre-compiled script plugins_, _convention plugins_ or _binary plugins (i.e., standalone projects)_.
+Plugins should always be written as _pre-compiled script plugins_, _convention plugins_ or _binary plugins_.
 
 == Pre-compiled script plugin
 
@@ -143,7 +144,17 @@ tasks.register("createFileTask", CreateFileTask::class) {
 }
 ----
 
-The pre-compiled script can now be applied in a `build.gradle(.kts`) file as follows:
+And the `buildSrc` build file contains the following:
+
+.buildSrc/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+----
+
+The pre-compiled script can now be applied in the `build.gradle(.kts`) file of any subproject:
 
 [source,kotlin]
 ----
@@ -152,7 +163,7 @@ plugins {
 }
 ----
 
-The `createFileTask` task from the plugin is now available in your project.
+The `createFileTask` task from the plugin is now available in your subproject.
 
 == Convention Plugins
 
