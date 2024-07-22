@@ -27,12 +27,12 @@ import java.io.Writer
  */
 class HtmlReportWriter(
     private val writer: Writer,
-    private val htmlTemplate: Pair<String, String>,
+    private val htmlTemplate: HtmlReportTemplate,
     val jsonModelWriter: JsonModelWriter
 ) {
 
     fun beginHtmlReport() {
-        writer.append(htmlTemplate.first)
+        writer.append(htmlTemplate.header)
         beginReportData()
         jsonModelWriter.beginModel()
     }
@@ -40,7 +40,7 @@ class HtmlReportWriter(
     fun endHtmlReport(details: JsonSource) {
         jsonModelWriter.endModel(details)
         endReportData()
-        writer.append(htmlTemplate.second)
+        writer.append(htmlTemplate.footer)
     }
 
     private

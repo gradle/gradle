@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.internal.cc.impl.problems.HtmlReportTemplate
 import java.io.BufferedReader
 import java.net.URL
 
@@ -27,7 +28,7 @@ class HtmlReportTemplateLoader(private val reportHtmlFileName: String = "configu
     /**
      * Returns the header and footer of the html template as a pair.
      */
-    fun load(): Pair<String, String> {
+    fun load(): HtmlReportTemplate {
         val template = readHtmlTemplate()
         val headerEnd = template.indexOf(modelLine)
         require(headerEnd > 0) {
@@ -35,7 +36,7 @@ class HtmlReportTemplateLoader(private val reportHtmlFileName: String = "configu
         }
         val header = template.substring(0, headerEnd)
         val footer = template.substring(headerEnd + modelLine.length + 1)
-        return header to footer
+        return HtmlReportTemplate(header, footer)
     }
 
     private
