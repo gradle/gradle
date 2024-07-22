@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -33,7 +34,7 @@ class RelevantProjectsRegistry(
 ) : ProjectComponentObservationListener {
 
     private
-    val targetProjects = mutableSetOf<ProjectState>()
+    val targetProjects = newConcurrentHashSet<ProjectState>()
 
     fun relevantProjects(nodes: List<Node>): Set<ProjectState> {
         val result = mutableSetOf<ProjectState>()
