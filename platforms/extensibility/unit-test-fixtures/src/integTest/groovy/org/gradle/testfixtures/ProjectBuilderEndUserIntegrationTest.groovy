@@ -122,6 +122,44 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertTestStdout(not(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated")))
     }
 
+    def "can set test variables"() {
+        given:
+        withTest("""
+            when:
+            def project = ProjectBuilder.builder()
+                .withEnvironmentVariable("envKey2", "testEnvValue2")
+                .withSystemProperty("sysProp2", "testSysValue2")
+                .withGradleProperty("gradleProp", "testValue")
+                .build()
+            def envProvider1 = project.providers.environmentVariable("envKey1")
+            def envProvider2 = project.providers.environmentVariable("envKey2")
+            def sysProvider1 = project.providers.systemProperty("sysProp1")
+            def sysProvider2 = project.providers.systemProperty("sysProp2")
+            def gradleProvider = project.providers.gradleProperty("gradleProp")
+
+            then:
+            envProvider1.get() == "realEnvValue1"
+            envProvider2.get() == "testEnvValue2"
+            sysProvider1.get() == "realSysValue1"
+            sysProvider2.get() == "testSysValue2"
+            gradleProvider.get() == "testValue"
+        """)
+        buildFile """
+            tasks.test {
+                environment("envKey1", "realEnvValue1")
+                environment("envKey2", "realEnvValue2")
+                systemProperty("sysProp1", "realSysValue1")
+                systemProperty("sysProp2", "realSysValue2")
+            }
+        """
+
+        when:
+        succeeds('test')
+
+        then:
+        testExecuted()
+    }
+
     void withTest(String body) {
         file("src/test/groovy/Test.groovy") << """
             import spock.lang.Specification

@@ -191,6 +191,53 @@ class ProjectBuilderTest extends Specification {
         cleanup:
         IncubationLogger.reset()
     }
+
+    def "can set and get test #type"() {
+        given:
+        def builder = ProjectBuilder.builder()
+        setVar(builder, "testKey", "testValue")
+        setVar(builder, "otherKey", "otherValue")
+        def project = builder.build()
+
+        when:
+        def provider1 = getVar(project, "testKey")
+        def provider2 = getVar(project, "otherKey")
+        def unknownProvider = getVar(project, "unknownKey")
+
+        then:
+        provider1.get() == "testValue"
+        provider2.get() == "otherValue"
+        unknownProvider.isPresent() == false
+
+        where:
+        type                    | setVar                                             | getVar
+        "environment variables" | ({ b, k, v -> b.withEnvironmentVariable(k, v) })   | ({ p, k -> p.providers.environmentVariable(k) })
+        "system properties"     | ({ b, k, v -> b.withSystemProperty(k, v) })        | ({ p, k -> p.providers.systemProperty(k) })
+        "gradle properties"     | ({ b, k, v -> b.withGradleProperty(k, v) })        | ({ p, k -> p.providers.gradleProperty(k) })
+    }
+
+    def "can set test #type and get them by prefix"() {
+        given:
+        def builder = ProjectBuilder.builder()
+        setVar(builder, "testKey1", "testValue1")
+        setVar(builder, "testKey2", "testValue2")
+        setVar(builder, "otherKey3", "testValue3")
+        def project = builder.build()
+
+        when:
+        def provider = getVars(project, "testKey")
+        def unknownProvider = getVars(project, "unknownKey")
+
+        then:
+        provider.get() == ["testKey1" : "testValue1", "testKey2": "testValue2"]
+        unknownProvider.get() == [:]
+
+        where:
+        type                    | setVar                                             | getVars
+        "environment variables" | ({ b, k, v -> b.withEnvironmentVariable(k, v) })   | ({ p, k -> p.providers.environmentVariablesPrefixedBy(k) })
+        "system properties"     | ({ b, k, v -> b.withSystemProperty(k, v) })        | ({ p, k -> p.providers.systemPropertiesPrefixedBy(k) })
+        "gradle properties"     | ({ b, k, v -> b.withGradleProperty(k, v) })        | ({ p, k -> p.providers.gradlePropertiesPrefixedBy(k) })
+    }
 }
 
 

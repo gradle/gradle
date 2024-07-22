@@ -35,6 +35,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -112,7 +113,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir, TestVariables testVariables) {
 
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION) {
@@ -153,6 +154,9 @@ public class ProjectBuilderImpl {
 
         CloseableServiceRegistry buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
+
+        TestProviderFactory providerFactory = (TestProviderFactory) buildServices.get(ProviderFactory.class);
+        providerFactory.setTestVariables(testVariables);
 
         // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);

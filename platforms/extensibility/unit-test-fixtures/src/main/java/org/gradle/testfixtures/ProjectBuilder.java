@@ -15,10 +15,13 @@
  */
 package org.gradle.testfixtures;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
+import org.gradle.testfixtures.internal.TestVariables;
 
 import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.File;
 
 /**
@@ -50,6 +53,7 @@ public class ProjectBuilder {
     private String name = "test";
     private Project parent;
     private final ProjectBuilderImpl impl = new ProjectBuilderImpl();
+    private final TestVariables testVariables = new TestVariables();
 
     /**
      * An instance should only be created via the {@link #builder()}.
@@ -110,6 +114,57 @@ public class ProjectBuilder {
     }
 
     /**
+     * Adds an environment variable to the scope of the project.
+     *
+     * This environment variable is accessible from the {@link org.gradle.api.provider.ProviderFactory}.
+     *
+     * @param name the name of the environment variable
+     * @param value the value of the environment variable
+     * @return the builder
+     * @see org.gradle.api.provider.ProviderFactory#environmentVariable(String)
+     * @since 8.10
+     */
+    @Incubating
+    public ProjectBuilder withEnvironmentVariable(@Nonnull String name, @Nonnull String value) {
+        testVariables.getEnvironmentVariables().put(name, value);
+        return this;
+    }
+
+    /**
+     * Adds a system property to the scope of the project.
+     *
+     * This system property is accessible from the {@link org.gradle.api.provider.ProviderFactory}.
+     *
+     * @param name the name of the system property
+     * @param value the value of the system property
+     * @return the builder
+     * @see org.gradle.api.provider.ProviderFactory#systemProperty(String)
+     * @since 8.10
+     */
+    @Incubating
+    public ProjectBuilder withSystemProperty(@Nonnull String name, @Nonnull String value) {
+        testVariables.getSystemProperties().put(name, value);
+        return this;
+    }
+
+    /**
+     * Adds a gradle property to the scope of the project.
+     *
+     * This gradle property is accessible from the {@link org.gradle.api.provider.ProviderFactory}.
+     *
+     * @param name the name of the gradle property
+     * @param value the value of the gradle property
+     * @return the builder
+     * @see org.gradle.api.provider.ProviderFactory#gradleProperty(String)
+     * @since 8.10
+     */
+    @Incubating
+    public ProjectBuilder withGradleProperty(@Nonnull String name, @Nonnull String value) {
+        testVariables.getGradleProperties().put(name, value);
+        return this;
+    }
+
+    /**
      * Creates the project.
      *
      * @return The project
@@ -118,6 +173,6 @@ public class ProjectBuilder {
         if (parent != null) {
             return impl.createChildProject(name, parent, projectDir);
         }
-        return impl.createProject(name, projectDir, gradleUserHomeDir);
+        return impl.createProject(name, projectDir, gradleUserHomeDir, testVariables);
     }
 }
