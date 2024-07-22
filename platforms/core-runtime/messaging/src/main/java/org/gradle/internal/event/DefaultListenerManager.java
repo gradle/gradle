@@ -24,6 +24,7 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.ListenerService;
+import org.gradle.internal.service.scopes.NonThreadSafeListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 
@@ -229,8 +230,9 @@ public class DefaultListenerManager implements ScopedListenerManager {
         EventBroadcast(Class<T> type) {
             this.type = type;
             stateful = type.getAnnotation(StatefulListener.class) != null;
-            dispatch = new ListenerDispatch(type, true);
-            dispatchNoLogger = new ListenerDispatch(type, false);
+            boolean nonThreadSafe = type.getAnnotation(NonThreadSafeListener.class) != null;
+            dispatch = new ListenerDispatch(type, true, nonThreadSafe);
+            dispatchNoLogger = new ListenerDispatch(type, false, nonThreadSafe);
             if (parent != null) {
                 parentDispatch = parent.getBroadcasterInternal(type).getDispatch(true);
                 invalidateDispatchCache();
@@ -440,19 +442,25 @@ public class DefaultListenerManager implements ScopedListenerManager {
 
         private class ListenerDispatch extends AbstractBroadcastDispatch<T> {
             private final boolean includeLogger;
+            private final boolean nonThreadSafe;
 
-            ListenerDispatch(Class<T> type, boolean includeLogger) {
+            ListenerDispatch(Class<T> type, boolean includeLogger, boolean nonThreadSafe) {
                 super(type);
                 this.includeLogger = includeLogger;
+                this.nonThreadSafe = nonThreadSafe;
             }
 
             @Override
             public void dispatch(MethodInvocation invocation) {
-                List<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
-                try {
-                    dispatch(invocation, dispatchers);
-                } finally {
-                    endNotification(dispatchers);
+                if (nonThreadSafe) {
+                    dispatch(invocation, includeLogger ? allWithLogger : allWithNoLogger);
+                } else {
+                    List<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
+                    try {
+                        dispatch(invocation, dispatchers);
+                    } finally {
+                        endNotification(dispatchers);
+                    }
                 }
             }
         }

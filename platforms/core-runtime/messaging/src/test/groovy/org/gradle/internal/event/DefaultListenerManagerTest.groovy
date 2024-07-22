@@ -18,6 +18,7 @@ package org.gradle.internal.event
 
 import com.google.common.reflect.ClassPath
 import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.NonThreadSafeListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.StatefulListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -281,6 +282,39 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         then:
         instant.bReceived > instant.aHandled
     }
+
+    // This is a copy of above test case,
+    // only with a non-thread safe class and the test predicate reversed
+    def notifyDoesntBlockWhenAnotherThreadIsNotifyingOnTheSameNonThreadSafeType() {
+        given:
+        def listener1 = { String p ->
+            if (p == "a") {
+                instant.aReceived
+                thread.block()
+                instant.aHandled
+            } else {
+                instant.bReceived
+            }
+        } as TestFooNonThreadSafeListener
+
+        manager.addListener(listener1)
+        def broadcaster = manager.getBroadcaster(TestFooNonThreadSafeListener.class)
+
+        when:
+        async {
+            start {
+                broadcaster.foo("a")
+            }
+            start {
+                thread.blockUntil.aReceived
+                broadcaster.foo("b")
+            }
+        }
+
+        then:
+        instant.bReceived < instant.aHandled
+    }
+
 
     def notifyDoesNotBlockWhenAnotherThreadIsNotifyingOnDifferentType() {
         given:
@@ -1025,6 +1059,12 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         1 * listener1.foo("value")
         1 * listener2.foo("value")
         0 * listener3._
+    }
+
+    @EventScope(Scope.BuildTree.class)
+    @NonThreadSafeListener
+    interface TestFooNonThreadSafeListener {
+        void foo(String param);
     }
 
     @EventScope(Scope.BuildTree.class)

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.event;
 
+import org.gradle.internal.service.scopes.NonThreadSafeListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -25,8 +26,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * <p>While the methods work with any Object, in general only interfaces should be used as listener types.
  *
- * <p>Implementations are thread-safe: A listener is notified by at most 1 thread at a time, and so do not need to be thread-safe. All listeners
- * of a given type receive events in the same order. Listeners can be added and removed at any time.
+ * <p>Implementations are thread-safe except for the types that include the {@link NonThreadSafeListener} annotation:
+ * For any other listener, a listener is notified by at most 1 thread at a time, and so do not need to be thread-safe.
+ * All listeners of a given type receive events in the same order. Listeners can be added and removed at any time.
+ * Non thread safe listeners have no such guarantees.
  */
 @ServiceScope(Scope.Global.class)
 public interface ListenerManager {
