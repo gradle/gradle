@@ -265,7 +265,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
-            // ignore project dependencies observed outside of fingerprinting
+            error("Unexpected project dependency observed outside of fingerprinting: consumer=$consumingProjectPath, target=$targetProjectPath")
         }
 
         private
@@ -292,7 +292,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     val lazyProjectComponentObservationListener = lazy {
         ProjectComponentObservationListener { consumingProjectPath, targetProjectPath ->
-            this@ConfigurationCacheFingerprintController.writingState.projectObserved(consumingProjectPath, targetProjectPath)
+            writingState.projectObserved(consumingProjectPath, targetProjectPath)
         }
     }
 
