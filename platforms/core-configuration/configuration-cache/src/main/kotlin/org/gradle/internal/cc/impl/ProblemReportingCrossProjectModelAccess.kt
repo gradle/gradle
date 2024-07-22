@@ -25,7 +25,6 @@ import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.artifacts.dsl.DependencyFactory
-import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
@@ -74,8 +73,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.normalization.InputNormalizationHandler
-import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
