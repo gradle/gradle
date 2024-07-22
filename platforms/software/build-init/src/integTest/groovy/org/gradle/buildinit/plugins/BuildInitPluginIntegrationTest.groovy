@@ -358,6 +358,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --package     Set the package for source files.
 
+     --project-directory     Set the project directory.
+
      --project-name     Set the project name.
 
      --split-project     Split functionality across multiple subprojects?
@@ -500,6 +502,14 @@ Description""") // include the next header to make sure all options are listed
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
+    }
+
+    def "can specify a different project directory"() {
+        when:
+        succeeds "init", "--project-directory=./other-dir"
+
+        then:
+        targetDir.file("other-dir/settings.gradle.kts").isFile()
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {
