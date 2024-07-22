@@ -240,6 +240,9 @@ class ProblemReportingCrossProjectModelAccess(
             super.allprojects(referrer, ConfigureUtil.configureUsing(configureClosure))
         }
 
+        override fun getOwner(): ProjectState =
+            delegate.owner
+
         override fun file(path: Any): File {
             onIsolationViolation("file")
             return super.file(path)
