@@ -83,6 +83,13 @@ public abstract class Try<T> {
     public abstract T get();
 
     /**
+     * Similar to {@link #get()}, but it allows chaining.
+     * Passes a result to a consumer if the represented operation was successful.
+     * Throws the original failure otherwise (wrapped in an {@code UncheckedException} if necessary).
+     */
+    public abstract Try<T> peek(Consumer<T> consumer);
+
+    /**
      * Return the result if the represented operation was successful or return the result of the given function.
      * In the latter case the failure is passed to the function.
      */
@@ -153,6 +160,12 @@ public abstract class Try<T> {
         @Override
         public T get() {
             return value;
+        }
+
+        @Override
+        public Try<T> peek(Consumer<T> consumer) {
+            consumer.accept(get());
+            return this;
         }
 
         @Override
@@ -249,6 +262,12 @@ public abstract class Try<T> {
                 throw new UncheckedIOException((IOException) failure);
             }
             throw new RuntimeException(failure);
+        }
+
+        @Override
+        public Try<T> peek(Consumer<T> consumer) {
+            consumer.accept(get());
+            return this;
         }
 
         @Override

@@ -44,7 +44,7 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
     }
 
     @Override
-    public void onInterceptedMethodIns(BytecodeInterceptorType type, String sourceFileName, String relativePath, String owner, String name, String descriptor, int lineNumber) {
+    public void onInterceptedMethodInstruction(BytecodeInterceptorType type, String sourceFileName, String relativePath, String owner, String name, String descriptor, int lineNumber) {
         try {
             writer.write(formatter.format(this.source, sourceFileName, relativePath, owner, name, descriptor, lineNumber) + "\n");
         } catch (IOException e) {

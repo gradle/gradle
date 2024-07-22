@@ -22,7 +22,7 @@ public interface MethodInterceptionListener {
 
     MethodInterceptionListener NO_OP = (type, sourceFileName, relativePath, owner, name, descriptor, lineNumber) -> {};
 
-    void onInterceptedMethodIns(
+    void onInterceptedMethodInstruction(
         BytecodeInterceptorType type,
         String sourceFileName,
         String relativePath,

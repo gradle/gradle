@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -45,7 +44,6 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
@@ -268,7 +266,7 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            val output = executionEngineFor(scriptHost)
+            executionEngineFor(scriptHost)
                 .createRequest(
                     KotlinScriptCompilationAndInstrumentation(
                         scriptHost.scriptSource,
@@ -288,9 +286,9 @@ class StandardKotlinScriptEvaluator(
                 )
                 .execute()
                 .getOutputAs(Output::class.java)
-                .get()
-            propertyUpgradeReportConfig.reportCollector.collect(output.propertyUpgradeReport)
-            output.instrumentedOutput
+                .peek {
+                    propertyUpgradeReportConfig.reportCollector.collect(it.propertyUpgradeReport)
+                }.get().instrumentedOutput
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }

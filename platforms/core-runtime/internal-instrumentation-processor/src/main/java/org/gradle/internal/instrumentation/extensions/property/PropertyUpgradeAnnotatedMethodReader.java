@@ -231,9 +231,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement annotatedMethod, AnnotationMirror annotation, ReadRequestContext context) {
-        boolean skipForReport = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "skipForReport")
+        boolean skipForReport = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "unreported")
             .map(v -> (boolean) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'skipForReport' attribute in @%s", ToBeReplacedByLazyProperty.class.getSimpleName())));
+            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'unreported' attribute in @%s", ToBeReplacedByLazyProperty.class.getSimpleName())));
         if (skipForReport) {
             return Collections.emptyList();
         }
