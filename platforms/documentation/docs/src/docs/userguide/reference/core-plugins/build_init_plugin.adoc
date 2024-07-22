@@ -27,6 +27,7 @@ gradle init \
   --dsl kotlin \
   --test-framework junit-jupiter \
   --package my.project \
+  --project-directory ./my-project \
   --project-name my-project  \
   --no-split-project  \
   --java-version 17
@@ -98,6 +99,8 @@ For example, to create a Java library project with Kotlin DSL build scripts, run
 ```bash
 gradle init --type java-library --dsl kotlin
 ```
+
+You can change the directory where the project will be generated using the `--project-directory` option. It defaults to the directory where the `init` task is run.
 
 You can change the name of the generated project using the `--project-name` option. It defaults to the name of the directory where the `init` task is run.
 
