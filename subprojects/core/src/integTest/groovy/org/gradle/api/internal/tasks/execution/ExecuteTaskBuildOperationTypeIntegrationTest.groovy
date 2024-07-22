@@ -80,6 +80,8 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
                 throw new RuntimeException("!")
             }
         """
+
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.beforeTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails "t"
 
         then:
@@ -103,6 +105,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
                 throw new RuntimeException("!")
             }
         """
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails "t"
 
         then:
@@ -128,6 +131,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
                 throw new RuntimeException("2")
             }
         """
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails "t"
 
         then:

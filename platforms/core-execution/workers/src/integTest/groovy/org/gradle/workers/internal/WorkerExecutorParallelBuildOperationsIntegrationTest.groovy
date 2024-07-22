@@ -143,7 +143,7 @@ This means workTask and slowTask would be expected to run concurrently in this c
         """
 
         then:
-        workTaskDoesNotCompleteFirst()
+        workTaskDoesNotCompleteFirst(true)
     }
 
     @UnsupportedWithConfigurationCache
@@ -163,12 +163,15 @@ This means workTask and slowTask would be expected to run concurrently in this c
         """
 
         then:
-        workTaskDoesNotCompleteFirst()
+        workTaskDoesNotCompleteFirst(true)
     }
 
-    private void workTaskDoesNotCompleteFirst() {
+    private void workTaskDoesNotCompleteFirst(boolean expectDeprecation = false) {
         blockingHttpServer.expectConcurrent("workTask", "slowTask")
         args("--max-workers=4")
+        if (expectDeprecation) {
+            executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        }
         succeeds(":workTask", ":slowTask")
         assert !endTime(":workTask").isBefore(endTime(":slowTask"))
     }

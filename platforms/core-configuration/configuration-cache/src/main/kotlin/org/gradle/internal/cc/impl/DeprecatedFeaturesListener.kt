@@ -44,7 +44,7 @@ class DeprecatedFeaturesListener(
 ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener, ExecutionAccessListener {
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (shouldNag()) {
+        if (!isConfigurationCache()) {
             nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
         }
     }
@@ -88,7 +88,10 @@ class DeprecatedFeaturesListener(
     private
     fun shouldNag(): Boolean =
         // TODO:configuration-cache - this listener shouldn't be registered when cc is enabled
-        !buildModelParameters.isConfigurationCache && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE)
+        !isConfigurationCache() && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE)
+
+    private
+    fun isConfigurationCache() = buildModelParameters.isConfigurationCache
 
     /**
      * Only nag about tasks that are actually executing, but not tasks that are configured by the executing tasks.
