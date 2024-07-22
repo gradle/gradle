@@ -24,7 +24,6 @@ Additionally, if you find yourself duplicating build logic across subprojects an
 A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 The example below is the most straightforward plugin, a "hello world" *plugin*:
 
-.build.gradle.kts
 [source,kotlin]
 ----
 import org.gradle.api.Plugin
@@ -39,13 +38,63 @@ abstract class SamplePlugin : Plugin<Project> {
 }
 ----
 
-== Script plugin
-
-Many plugins start as a script plugin coded in a build script.
-This offers an easy way to rapidly prototype and experiment when building a plugin.
-Let's take a look at an example:
+You would then apply the plugin in your build script accordingly:
 
 .build.gradle.kts
+[source,kotlin]
+----
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+plugins {
+    application
+}
+
+//
+// More build script logic like the dependencies block
+//
+
+abstract class SamplePlugin : Plugin<Project> {
+    override fun apply(project: Project) {  // Accessible logic when plugin is applied
+        project.tasks.register("createFileTask") {
+            val fileText = "HELLO FROM MY PLUGIN"
+            val myFile = File("myfile.txt")
+            myFile.createNewFile()
+            myFile.writeText(fileText)
+        }
+    }
+}
+
+apply<SamplePlugin>()   // Apply the plugin
+----
+
+Note that this is a simple a hello-world example.
+Plugins should always be written as _pre-compiled script plugins_, _convention plugins_ or _binary plugins (i.e., standalone projects)_.
+
+IMPORTANT: Plugin code should *never* be in your `build.gradle(.kts)` file!
+
+== Pre-compiled script plugin
+
+Precompiled script plugins let you package build logic as `*.gradle(.kts)` script files using the Groovy or Kotlin DSL.
+These scripts reside in specific directories, such as `src/main/groovy` or `src/main/kotlin`.
+To apply one, simply use its `ID` derived from the script filename (without `.gradle`).
+
+Pre-compiled script plugins offer an easy way to rapidly prototype and experiment.
+Let's take a look at an example with the following structure:
+
+[source,text]
+----
+└── buildSrc
+    ├── build.gradle.kts
+    └── src
+       └── main
+          └── kotlin
+             └── my-create-file-plugin.gradle.kts
+----
+
+Our plugin follows the proper plugin development conventions:
+
+.buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts
 [source,kotlin]
 ----
 // Define a task
@@ -67,8 +116,8 @@ abstract class CreateFileTask : DefaultTask() {                                 
 }
 
 // Define a plugin
-abstract class MyPlugin : Plugin<Project> {                                         // <3>
-    override fun apply(project: Project) {
+abstract class MyCreateFilePlugin : Plugin<Project> {                               // <3>
+    override fun apply(project: Project) {                                          // <4>
         tasks {
             register("createFileTask", CreateFileTask::class) {
                 group = "from my plugin"
@@ -78,14 +127,11 @@ abstract class MyPlugin : Plugin<Project> {                                     
         }
     }
 }
-
-// Apply the local plugin
-apply<MyPlugin>()                                                                   // <4>
 ----
 <1> Subclass `DefaultTask()`.
 <2> Use lazy configuration in the task.
 <3> Extend the `org.gradle.api.Plugin` interface.
-<4> Apply the script plugin.
+<4> Override the `apply` method.
 
 === 1. Subclass `DefaultTask()`
 First, build a task by subclassing `DefaultTask()`.
@@ -103,37 +149,38 @@ This is done via the link:{javadocPath}/org/gradle/api/provider/Property.html[`P
 
 [source,kotlin]
 ----
+@get:Input
 abstract val fileText: Property<String>
 ----
 
 One advantage of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
 The `Property` class also knows which task it’s linked to, enabling Gradle to add the required task dependency automatically.
 
-=== 3. Extend the `org.gradle.api.Plugin` interface
-Next, create a new class that extends the `org.gradle.api.Plugin` interface.
+Don't forget to use proper task input and output annotations so that your task is cache friendly.
 
-[source]
+=== 3. Extend the `org.gradle.api.Plugin` interface
+Next, create a new class that extends the `Plugin` interface.
+
+[source,kotlin]
 ----
-abstract class MyPlugin : Plugin<Project> {
+abstract class MyCreateFilePlugin : Plugin<Project> {
     override fun apply() {}
 }
 ----
 
+=== 4. Override the `apply` method
 You can add tasks and other logic in the `apply()` method.
 
-=== 4. Apply the script plugin
-Finally, apply the local plugin in the build script.
+When `MyCreateFilePlugin` is applied in your project, Gradle calls the `fun apply() {}` method defined in the custom `MyCreateFilePlugin` class.
 
-[source]
+The pre-compiled script can now be applied in a `build.gradle(.kts`) file as follows:
+
+[source,kotlin]
 ----
-apply<MyPlugin>()
+plugins {
+    id("my-create-file-plugin")
+}
 ----
-
-When `MyPlugin` is applied in the build script, Gradle calls the `fun apply() {}` method defined in the custom `MyPlugin` class.
-
-This makes the plugin available to the application.
-
-NOTE: Script plugins are NOT recommended. Script plugins offer an easy way to rapidly prototype build logic, before migrating it to a more permanent solution such as *convention plugins* or *binary plugins*.
 
 == Convention Plugins
 
