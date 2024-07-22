@@ -91,6 +91,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
@@ -102,6 +103,16 @@ import java.util.concurrent.Callable;
  * Instances of this class should be created via {@link org.gradle.internal.reflect.Instantiator} to ensure proper runtime decoration.
  */
 public abstract class MutableStateAccessAwareProject implements ProjectInternal, DynamicObjectAware {
+
+    public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
+        ProjectInternal target,
+        ProjectInternal referrer,
+        Function<ProjectInternal, T> wrapper
+    ) {
+        return target == referrer
+            ? target
+            : wrapper.apply(target);
+    }
 
     protected final ProjectInternal delegate;
     private final DynamicObject dynamicObject;
@@ -273,11 +284,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public Project evaluate() {
+        onMutableStateAccess("evaluate");
         return delegate.evaluate();
     }
 
     @Override
     public ProjectInternal bindAllModelRules() {
+        onMutableStateAccess("bindAllModelRules");
         return delegate.bindAllModelRules();
     }
 
@@ -392,21 +405,25 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
+        onMutableStateAccess("beforeEvaluate");
         delegate.beforeEvaluate(action);
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
+        onMutableStateAccess("beforeEvaluate");
         delegate.beforeEvaluate(closure);
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
+        onMutableStateAccess("afterEvaluate");
         delegate.afterEvaluate(action);
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
+        onMutableStateAccess("afterEvaluate");
         delegate.afterEvaluate(closure);
     }
 
@@ -781,11 +798,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public void addRuleBasedPluginListener(RuleBasedPluginListener listener) {
+        onMutableStateAccess("ruleBasedPluginListener");
         delegate.addRuleBasedPluginListener(listener);
     }
 
     @Override
     public void prepareForRuleBasedPlugins() {
+        onMutableStateAccess("ruleBasedPlugins");
         delegate.prepareForRuleBasedPlugins();
     }
 
@@ -796,11 +815,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public ServiceRegistry getServices() {
+        onMutableStateAccess("services");
         return delegate.getServices();
     }
 
     @Override
     public ServiceRegistryFactory getServiceRegistryFactory() {
+        onMutableStateAccess("serviceRegistryFactory");
         return delegate.getServiceRegistryFactory();
     }
 
@@ -855,11 +876,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public ProjectConfigurationActionContainer getConfigurationActions() {
+        onMutableStateAccess("configurationActions");
         return delegate.getConfigurationActions();
     }
 
     @Override
     public ModelRegistry getModelRegistry() {
+        onMutableStateAccess("modelRegistry");
         return delegate.getModelRegistry();
     }
 
@@ -875,6 +898,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public void setScript(Script script) {
+        onMutableStateAccess("script");
         delegate.setScript(script);
     }
 
@@ -885,16 +909,19 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public void addDeferredConfiguration(Runnable configuration) {
+        onMutableStateAccess("deferredConfiguration");
         delegate.addDeferredConfiguration(configuration);
     }
 
     @Override
     public void fireDeferredConfiguration() {
+        onMutableStateAccess("deferredConfiguration");
         delegate.fireDeferredConfiguration();
     }
 
     @Override
     public ModelContainer<?> getModel() {
+        onMutableStateAccess("model");
         return delegate.getModel();
     }
 
@@ -926,26 +953,31 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public ProjectState getOwner() {
+        // TODO: this is a mutable state
         return delegate.getOwner();
     }
 
     @Override
     public InputNormalizationHandlerInternal getNormalization() {
+        onMutableStateAccess("normalization");
         return delegate.getNormalization();
     }
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
+        onMutableStateAccess("normalization");
         delegate.normalization(configuration);
     }
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
+        onMutableStateAccess("dependencyLocking");
         delegate.dependencyLocking(configuration);
     }
 
     @Override
     public DependencyLockingHandler getDependencyLocking() {
+        onMutableStateAccess("dependencyLocking");
         return delegate.getDependencyLocking();
     }
 

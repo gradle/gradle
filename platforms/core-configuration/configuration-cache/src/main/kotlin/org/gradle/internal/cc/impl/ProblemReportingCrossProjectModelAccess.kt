@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -147,12 +148,8 @@ class ProblemReportingCrossProjectModelAccess(
         referrer: ProjectInternal,
         access: CrossProjectModelAccessInstance,
         instantiator: Instantiator
-    ): ProjectInternal {
-        return if (this == referrer) {
-            this
-        } else {
-            instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
-        }
+    ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
+        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
     }
 
     @Suppress("LargeClass")
@@ -359,46 +356,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun exec(action: Action<in ExecSpec>): ExecResult {
             onIsolationViolation("exec")
             return super.exec(action)
-        }
-
-        override fun afterEvaluate(action: Action<in Project>) {
-            onIsolationViolation("afterEvaluate")
-            super.afterEvaluate(action)
-        }
-
-        override fun afterEvaluate(closure: Closure<*>) {
-            onIsolationViolation("afterEvaluate")
-            super.afterEvaluate(closure)
-        }
-
-        override fun beforeEvaluate(action: Action<in Project>) {
-            onIsolationViolation("beforeEvaluate")
-            super.beforeEvaluate(action)
-        }
-
-        override fun beforeEvaluate(closure: Closure<*>) {
-            onIsolationViolation("beforeEvaluate")
-            super.beforeEvaluate(closure)
-        }
-
-        override fun getNormalization(): InputNormalizationHandlerInternal {
-            onIsolationViolation("normalization")
-            return super.getNormalization()
-        }
-
-        override fun normalization(configuration: Action<in InputNormalizationHandler>) {
-            onIsolationViolation("normalization")
-            super.normalization(configuration)
-        }
-
-        override fun dependencyLocking(configuration: Action<in DependencyLockingHandler>) {
-            onIsolationViolation("dependencyLocking")
-            super.dependencyLocking(configuration)
-        }
-
-        override fun getDependencyLocking(): DependencyLockingHandler {
-            onIsolationViolation("dependencyLocking")
-            return super.getDependencyLocking()
         }
 
         override fun getResources(): ResourceHandler {
@@ -619,7 +576,7 @@ class ProblemReportingCrossProjectModelAccess(
             throw UnsupportedOperationException("This internal method should not be used.")
         }
 
-        private fun onIsolationViolation(what : String) {
+        private fun onIsolationViolation(what: String) {
             reportCrossProjectAccessProblem("Project.$what", "functionality")
             onProjectsCoupled()
         }
