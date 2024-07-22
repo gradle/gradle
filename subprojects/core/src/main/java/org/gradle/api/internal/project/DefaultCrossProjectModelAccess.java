@@ -46,7 +46,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
         ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
         return project != null
-            ? LifecycleAwareProject.from(project, instantiator)
+            ? LifecycleAwareProject.from(project, referrer, instantiator)
             : null;
     }
 
@@ -55,7 +55,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return relativeTo.getChildProjectsUnchecked().entrySet().stream().collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> LifecycleAwareProject.from((ProjectInternal) entry.getValue(), instantiator)
+                entry -> LifecycleAwareProject.from((ProjectInternal) entry.getValue(), referrer, instantiator)
             )
         );
     }
@@ -63,14 +63,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getSubProjects(relativeTo.getPath()).stream()
-            .map(project -> LifecycleAwareProject.from(project, instantiator))
+            .map(project -> LifecycleAwareProject.from(project, referrer, instantiator))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return projectRegistry.getAllProjects(relativeTo.getPath()).stream()
-            .map(project -> LifecycleAwareProject.from(project, instantiator))
+            .map(project -> LifecycleAwareProject.from(project, referrer, instantiator))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 

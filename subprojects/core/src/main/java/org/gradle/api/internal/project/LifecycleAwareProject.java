@@ -27,16 +27,16 @@ import javax.annotation.Nullable;
 
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
-    public static ProjectInternal from(ProjectInternal project, Instantiator instantiator) {
-        if (project instanceof LifecycleAwareProject) {
-            return project;
-        } else {
-            return instantiator.newInstance(LifecycleAwareProject.class, project);
-        }
+    public static ProjectInternal from(ProjectInternal target, ProjectInternal referrer, Instantiator instantiator) {
+        return MutableStateAccessAwareProject.wrap(
+            target,
+            referrer,
+            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer)
+        );
     }
 
-    public LifecycleAwareProject(ProjectInternal delegate) {
-        super(delegate);
+    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
+        super(delegate, referrer);
     }
 
     @Override

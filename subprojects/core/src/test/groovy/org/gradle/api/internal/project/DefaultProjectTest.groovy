@@ -148,7 +148,7 @@ class DefaultProjectTest extends Specification {
     Instantiator instantiatorMock = Stub(Instantiator) {
         newInstance(LifecycleAwareProject, _) >> { args ->
             def params = args[1]
-            new LifecycleAwareProject(params[0])
+            new LifecycleAwareProject(params[0], params[1])
         }
     }
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
@@ -947,6 +947,26 @@ def scriptMethod(Closure closure) {
         project.container(String) instanceof FactoryNamedDomainObjectContainer
         project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer
         project.container(String, {}) instanceof FactoryNamedDomainObjectContainer
+    }
+
+    def selfAccessWithoutLifecycleAwareWrapping() {
+        expect:
+        project.project(":child1").parent instanceof DefaultProject
+        project.project(":child1").rootProject instanceof DefaultProject
+        child1.allprojects { project ->
+            if (project.name == "child1") {
+                assert project instanceof DefaultProject
+            } else {
+                assert project instanceof LifecycleAwareProject
+            }
+        }
+        child1.getAllprojects().forEach { project ->
+            if (project.name == "child1") {
+                assert project instanceof DefaultProject
+            } else {
+                assert project instanceof LifecycleAwareProject
+            }
+        }
     }
 
     static boolean assertLifecycleAwareProjectOf(Project crosslyAccessed, Project of) {
