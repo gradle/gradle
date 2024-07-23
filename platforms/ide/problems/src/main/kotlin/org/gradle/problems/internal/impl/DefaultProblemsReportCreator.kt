@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.problems.internal
+package org.gradle.problems.internal.impl
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.StartParameterInternal
@@ -36,6 +36,7 @@ import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.buildtree.ProblemReporter
+import org.gradle.problems.internal.ProblemReportCreator
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -50,14 +51,14 @@ class DefaultProblemsReportCreator(
     private val buildNameProvider: BuildNameProvider
 ) : ProblemReportCreator {
 
-    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report")
+    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report", "problem-report")
     private val taskNames: List<String> = startParameter.taskNames
-    private var problemCount = AtomicInteger(0)
+    private val problemCount = AtomicInteger(0)
 
     private val failureDecorator = FailureDecorator()
 
     override fun getId(): String {
-        return "DefaultProblemsReportCreator"
+        return "org.gradle.problems.internal.impl."
     }
 
     override fun report(reportDir: File, validationFailures: ProblemReporter.ProblemConsumer) {

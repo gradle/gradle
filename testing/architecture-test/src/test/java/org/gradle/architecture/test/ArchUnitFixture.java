@@ -87,7 +87,7 @@ public interface ArchUnitFixture {
         "org.gradle.kotlin..",
         "org.gradle.internal.declarativedsl..",
         "org.gradle.declarative.dsl..",
-        "org.gradle.problems.internal.."
+        "org.gradle.problems.internal.impl.."
     ).as("classes written in Java or Groovy");
 
     DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {

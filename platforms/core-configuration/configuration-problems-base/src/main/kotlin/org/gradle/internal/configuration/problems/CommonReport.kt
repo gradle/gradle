@@ -58,6 +58,7 @@ class CommonReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
     internalOptions: InternalOptions,
+    reportContext: String,
     reportFileName: String
 ) : Closeable {
 
@@ -251,8 +252,8 @@ class CommonReport(
 
         State.Spooling(
             temporaryFileProvider,
-            reportFileName.replace(" ", "-"),
-            executorFactory.create("${reportFileName.capitalized()} writer", 1),
+            reportFileName,
+            executorFactory.create("${reportContext.capitalized()} writer", 1),
             CharBuf::class.java.classLoader
         ).onDiagnostic(problem)
     }

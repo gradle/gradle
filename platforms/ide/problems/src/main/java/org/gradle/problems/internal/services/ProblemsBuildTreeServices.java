@@ -34,10 +34,10 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
-import org.gradle.problems.internal.DefaultProblemsReportCreator;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.ProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
+import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 
 import java.util.Collection;
 
