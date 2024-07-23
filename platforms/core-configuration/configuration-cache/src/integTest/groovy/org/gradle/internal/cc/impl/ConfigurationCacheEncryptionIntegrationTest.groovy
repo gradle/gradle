@@ -208,7 +208,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         fails(*(["help", "--configuration-cache"] + encryptionOptions))
 
         then:
-        failureDescriptionStartsWith "Could not open Gradle Configuration Cache keystore (${keyStoreDir}"
+        failureCauseContains "Could not open Gradle Configuration Cache keystore (${keyStoreDir}"
 
         cleanup:
         fs.chmod(keyStoreDir, 0666)
@@ -269,7 +269,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         // since the key is not fully validated until needed, we only get an error when encrypting
-        failure.assertHasDescription("Error loading encryption key from GRADLE_ENCRYPTION_KEY environment variable")
+        failure.assertHasCause("Error loading encryption key from GRADLE_ENCRYPTION_KEY environment variable")
         failure.assertHasCause("Illegal base64 character ${Integer.toHexString((int) invalidBase64Char)}")
     }
 
@@ -281,7 +281,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         runWithEncryption(EncryptionKind.ENV_VAR, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): insufficientlyLongEncryptionKey], this::configurationCacheFails)
 
         then:
-        failure.assertHasDescription("Error loading encryption key from GRADLE_ENCRYPTION_KEY environment variable")
+        failure.assertHasCause("Error loading encryption key from GRADLE_ENCRYPTION_KEY environment variable")
         failure.assertHasCause("Encryption key length is 8 bytes, but must be at least 16 bytes long")
     }
 
