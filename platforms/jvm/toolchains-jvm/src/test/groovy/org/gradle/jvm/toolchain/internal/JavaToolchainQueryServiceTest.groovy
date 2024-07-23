@@ -39,6 +39,8 @@ import spock.lang.Specification
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -500,7 +502,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         }
 
         def additionalCapabilities = location.name.contains("jdk")
-            ? EnumSet.of(JavaInstallationCapability.JAVA_COMPILER, JavaInstallationCapability.JAVADOC_TOOL)
+            ? EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
             : Collections.<JavaInstallationCapability> emptySet()
 
         new JvmMetadataWithAddedCapabilities(
@@ -517,24 +519,6 @@ class JavaToolchainQueryServiceTest extends Specification {
             ),
             additionalCapabilities
         )
-    }
-
-    private static class JvmMetadataWithAddedCapabilities implements JvmInstallationMetadata {
-        @Delegate
-        private final JvmInstallationMetadata metadata
-        private final Set<JavaInstallationCapability> additionalCapabilities
-
-        JvmMetadataWithAddedCapabilities(JvmInstallationMetadata metadata, Set<JavaInstallationCapability> additionalCapabilities) {
-            this.metadata = metadata
-            this.additionalCapabilities = additionalCapabilities
-        }
-
-        @Override
-        Set<JavaInstallationCapability> getCapabilities() {
-            EnumSet<JavaInstallationCapability> capabilities = EnumSet.copyOf(metadata.getCapabilities())
-            capabilities.addAll(additionalCapabilities)
-            return capabilities
-        }
     }
 
     private def createInstallationRegistry(
