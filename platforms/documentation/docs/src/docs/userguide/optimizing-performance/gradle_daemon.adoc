@@ -30,7 +30,7 @@ The Gradle Daemon reduces build times by:
 * Benefiting from continuous runtime optimization in the JVM
 * <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
 
-[[understanding_wrapper]]
+[[understanding_daemon]]
 == Understanding the Daemon
 
 The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
