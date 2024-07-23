@@ -41,7 +41,6 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -77,7 +76,6 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
 import org.gradle.util.Path
-import org.gradle.util.internal.ConfigureUtil
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
@@ -119,6 +117,10 @@ class ProblemReportingCrossProjectModelAccess(
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
             it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo), instantiator)
         }
+    }
+
+    override fun getAllprojectsForGradle(gradle: GradleInternal): MutableSet<out ProjectInternal> {
+        return getAllprojects(gradle.getRootProject(), gradle.getRootProject());
     }
 
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {

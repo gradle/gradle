@@ -168,11 +168,10 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("help")
+        succeeds("help", "-q")
 
         then:
-        def lifecycleOutput = output.readLines().findAll { it.startsWith("lifecycle: ") }.join("\n")
-        lifecycleOutput == """
+        outputContains """
 lifecycle: gradle.allprojects ':'
 lifecycle: gradle.allprojects ':a'
 lifecycle: gradle.beforeProject ':'

@@ -63,6 +63,11 @@ public interface CrossProjectModelAccess {
     Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo);
 
     /**
+     * For usage only at the {@code Gradle} level, when all projects are requested before the root project evaluation.
+     */
+    Set<? extends ProjectInternal> getAllprojectsForGradle(GradleInternal gradle);
+
+    /**
      * Given the request from the referrerProject to access the specified Gradle instance, returns
      * an instance that behaves correctly regarding cross project model access.
      *
@@ -75,6 +80,7 @@ public interface CrossProjectModelAccess {
     /**
      * Provides an implementation of a tracker that handles the usages of TaskDependency API in the context
      * of the current project. The tracker checks that the usages for possible violation of cross-project model access restriction.
+     *
      * @param referrerProject The project providing the context.
      */
     @Nullable

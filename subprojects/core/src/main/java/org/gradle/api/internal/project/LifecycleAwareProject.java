@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.IsolatedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -27,6 +28,9 @@ import javax.annotation.Nullable;
 
 /**
  * Wrapper for {@link ProjectInternal} that has been accessed across projects, even in vintage mode.
+ * <p>
+ * When mutable state accessed - executes previously registered {@link org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)}
+ * actions <b>eagerly</b>.
  */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
@@ -45,7 +49,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     private final EagerLifecycleExecutor eagerLifecycleExecutor;
 
-    LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, EagerLifecycleExecutor eagerLifecycleExecutor) {
+    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, EagerLifecycleExecutor eagerLifecycleExecutor) {
         super(delegate, referrer);
         this.eagerLifecycleExecutor = eagerLifecycleExecutor;
     }
@@ -58,6 +62,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     @Override
     protected Object propertyMissing(String name) {
         onMutableStateAccess("getProperty");
+        // TODO just delegate.getProperty?
         DynamicObject dynamicDelegate = DynamicObjectUtil.asDynamicObject(delegate);
         DynamicInvokeResult delegateResult = dynamicDelegate.tryGetProperty(name);
 
@@ -72,6 +77,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     @Override
     protected Object methodMissing(String name, Object args) {
         onMutableStateAccess("invokeMethod");
+        // TODO just delegate.invokeMethod?
         Object[] varargs = Cast.uncheckedNonnullCast(args);
         DynamicObject dynamicDelegate = DynamicObjectUtil.asDynamicObject(delegate);
         DynamicInvokeResult delegateResult = dynamicDelegate.tryInvokeMethod(name, varargs);

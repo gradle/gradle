@@ -24,14 +24,14 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def 'lifecycle.beforeProject is executed eagerly when getProperty accessed in Groovy DSL'() {
-        settingsFile << """
+        settingsFile """
             gradle.lifecycle.beforeProject {
                 ext.foo = "\$name bar"
             }
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile << """
+        buildFile """
             project(":a") { $projectReceiver
                println("before")
                $propertyAccess
@@ -54,14 +54,14 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
     def 'lifecycle.beforeProject is executed lazily before project evaluation if immutable state accessed'() {
         given:
-        settingsFile << """
+        settingsFile """
             gradle.lifecycle.beforeProject {
                 println "lifecycle.beforeProject: \${name}"
             }
             include(":a")
         """
         file("a/build.gradle") << "println('evaluate a')"
-        buildFile << """
+        buildFile """
             project(":a") {
                println("eager \$name")
             }
@@ -76,14 +76,14 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
     def 'lifecycle.beforeProject is executed eagerly before mutable state access'() {
         given:
-        settingsFile << """
+        settingsFile """
             gradle.lifecycle.beforeProject {
                 println "lifecycle.beforeProject: \${name}"
             }
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile << """
+        buildFile """
             project(":a") {
                 println("before")
                 it.$mutableStateAccess
@@ -129,7 +129,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
     def 'lifecycle.beforeProject is executed only once for a project'() {
         given:
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'root'
             gradle.lifecycle.beforeProject {
                 println "lifecycle.beforeProject for \${name}"
@@ -139,7 +139,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
         file("a/build.gradle") << ""
 
-        buildFile << """
+        buildFile """
             allprojects { $projectMutableStateAccess }
             $secondEagerExecutionBlock
         """
@@ -160,7 +160,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
     def 'lifecycle.beforeProject can be executed before project.#api'() {
         given:
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'root'
             gradle.lifecycle.beforeProject {
                 ext.foo = "\$name bar"
@@ -172,7 +172,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         file("a/build.gradle") << ""
         file("b/build.gradle") << ""
 
-        buildFile << """
+        buildFile"""
             $invocation { project ->
                 println "\${project.foo}"
             }
@@ -196,7 +196,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
     }
 
     def 'lifecycle.beforeProject can be executed before gradle.allprojects'() {
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'root'
             gradle.allprojects {
                 println "\${foo}"
