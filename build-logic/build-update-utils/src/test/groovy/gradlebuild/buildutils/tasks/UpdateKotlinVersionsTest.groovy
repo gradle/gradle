@@ -20,15 +20,15 @@ import spock.lang.Specification
 
 class UpdateKotlinVersionsTest extends Specification {
 
-    def oneDotEight = ["1.8.22, 1.8.21, 1.8.20, 1.8.20-RC2, 1.8.20-RC, 1.8.20-Beta, 1.8.10, 1.8.0-343, 1.8.0, 1.8.0-RC2, 1.8.0-RC, 1.8.0-Beta"]
-    def oneDotNine = ["1.9.25", "1.9.24", "1.9.23", "1.9.22", "1.9.21", "1.9.20", "1.9.20-RC2", "1.9.20-RC", "1.9.20-Beta2", "1.9.20-Beta", "1.9.10", "1.9.0", "1.9.0-RC", "1.9.0-Beta",]
+    def previousVersions = [
+        "1.9.25", "1.9.24", "1.9.20", "1.9.20-RC2", "1.9.0", "1.9.0-Beta",
+        "1.8.22, 1.8.0, 1.8.0-Beta",
+    ]
+    def minimumSupported = "1.9.10"
 
     def "latest patch version"() {
         given:
-        def minimumSupported = "1.9.10"
-        def allVersions = [
-            "2.0.30", "2.0.20", "2.0.10", "2.0.0"
-        ] as List<String> + oneDotNine + oneDotEight
+        def allVersions = ["2.0.30", "2.0.20", "2.0.10", "2.0.0"] + previousVersions
 
         when:
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
@@ -39,13 +39,12 @@ class UpdateKotlinVersionsTest extends Specification {
 
     def "beta of latest patch version"() {
         given:
-        def minimumSupported = "1.9.10"
         def allVersions = [
             "2.0.30-Beta2", "2.0.30-Beta1",
             "2.0.20", "2.0.20-Beta1",
             "2.0.10", "2.0.10-Beta1",
             "2.0.0", "2.0.0-RC1", "2.0.0-Beta1",
-        ] as List<String> + oneDotNine + oneDotEight
+        ] + previousVersions
 
         when:
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
@@ -57,13 +56,12 @@ class UpdateKotlinVersionsTest extends Specification {
 
     def "rc of latest patch version"() {
         given:
-        def minimumSupported = "1.9.10"
         def allVersions = [
             "2.0.30-RC1", "2.0.30-Beta1",
             "2.0.20",
             "2.0.10",
             "2.0.0", "2.0.0-RC1", "2.0.0-Beta1",
-        ] as List<String> + oneDotNine + oneDotEight
+        ] + previousVersions
 
         when:
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
@@ -74,14 +72,13 @@ class UpdateKotlinVersionsTest extends Specification {
 
     def "beta and rc of two latest patch versions"() {
         given:
-        def minimumSupported = "1.9.10"
         def allVersions = [
             "2.0.40-Beta2", "2.0.40-Beta1",
             "2.0.30-RC1", "2.0.30-Beta1",
             "2.0.20", "2.0.20-RC1",
             "2.0.10", "2.0.10-RC1",
             "2.0.0", "2.0.0-RC1", "2.0.0-Beta1",
-        ] as List<String> + oneDotNine + oneDotEight
+        ] + previousVersions
 
         when:
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
