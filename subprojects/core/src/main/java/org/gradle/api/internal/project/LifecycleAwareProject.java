@@ -24,7 +24,9 @@ import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 
-
+/**
+ * Wrapper for {@link ProjectInternal} that has been accessed across projects, even in vintage mode.
+ * */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     public static ProjectInternal from(ProjectInternal target, ProjectInternal referrer, Instantiator instantiator) {
@@ -41,7 +43,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     @Override
     protected void onMutableStateAccess(String what) {
-        // no-op yet
+        // no-op for now
     }
 
     @Override
@@ -73,12 +75,6 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     }
 
     @Override
-    protected boolean hasPropertyMissing(String name) {
-        onMutableStateAccess("hasProperty");
-        return delegate.hasProperty(name);
-    }
-
-    @Override
     public String toString() {
         return delegate.toString();
     }
@@ -93,7 +89,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
         }
         if (other instanceof LifecycleAwareProject) {
             LifecycleAwareProject lifecycleAwareProject = (LifecycleAwareProject) other;
-            return delegate.equals(lifecycleAwareProject.delegate);
+            return delegate.equals(lifecycleAwareProject.delegate) && referrer.equals(lifecycleAwareProject.referrer);
         } else {
             return delegate.equals(other);
         }

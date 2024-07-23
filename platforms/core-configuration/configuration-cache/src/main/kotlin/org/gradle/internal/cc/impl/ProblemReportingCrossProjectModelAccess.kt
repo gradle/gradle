@@ -200,13 +200,6 @@ class ProblemReportingCrossProjectModelAccess(
             )
         }
 
-        override fun hasPropertyMissing(name: String): Boolean {
-            return hasProperty(name)
-        }
-
-        override fun getOwner(): ProjectState =
-            delegate.owner
-
         override fun file(path: Any): File {
             onIsolationViolation("file")
             return super.file(path)
