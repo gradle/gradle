@@ -42,19 +42,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """)
-        buildFile << """
-            apply plugin: test.MyPlugin
-        """
 
         when:
-        run("--property-upgrade-report")
-
-        then:
-        postBuildOutputContains("Intercepted methods:")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
-
-        when: "From cache"
         run("--property-upgrade-report")
 
         then:
@@ -84,12 +73,47 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         postBuildOutputContains("Intercepted methods:")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
+    }
 
-        when: "From cache"
+    def "usage of upgraded properties is reported even when report comes from cache"() {
+        given:
+        javaFile("buildSrc/src/main/java/test/MyPlugin.java", """
+            package test;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.tasks.compile.JavaCompile;
+
+            public abstract class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().register("myJavaCompile", JavaCompile.class, task -> {
+                        task.getSource();
+                        task.setSource(project.files());
+                    });
+                }
+            }
+        """)
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            tasks.register<JavaCompile>("myJavaCompile") {
+                source
+                source = project.files().asFileTree
+            }
+        """
+
+        when:
+        // Run twice so the second report is from cache
+        run("--property-upgrade-report")
         run("--property-upgrade-report")
 
         then:
         postBuildOutputContains("Intercepted methods:")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }

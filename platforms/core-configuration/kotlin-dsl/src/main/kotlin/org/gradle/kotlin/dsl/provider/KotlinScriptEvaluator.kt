@@ -158,7 +158,21 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(gradlePropertiesController))
+        when(propertyUpgradeReportConfig.isEnabled) {
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
+            false -> Interpreter(InterpreterHost(gradlePropertiesController))
+        }
+    }
+
+    /**
+     * An interpreter host that doesn't cache compiled scripts in memory.
+     * Used for property upgrade report since we don't cache a report in-memory.
+     */
+    inner class InterpreterHostWithoutInMemoryCache(
+        gradleProperties: GradlePropertiesController
+    ) : Interpreter.Host by InterpreterHost(gradleProperties) {
+        override fun cachedClassFor(programId: ProgramId): CompiledScript? = null
+        override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
     }
 
     inner class InterpreterHost(
