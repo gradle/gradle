@@ -120,6 +120,20 @@ package org.gradle.internal.service;
  *
  * The <em>decorator</em> declarations skip the own services, and start the lookup in the parents.
  *
+ * <h3>Service visibility</h3>
+ *
+ * By default, all registered services are visible to all consumers, both via injection and lookup.
+ *
+ * <h4>Private services</h4>
+ *
+ * Using {@link PrivateService} annotation the services can be made <em>private</em> to the registration provider that declares them.
+ * <p>
+ * A private service is visible only within the same <em>registration provider</em>.
+ * It is not visible to other registration providers in the same registry or to other registries.
+ * <p>
+ * The lookup for private services will fail if no other service can fulfil the lookup request.
+ * The private services are also not collected as part of the <em>aggregated</em> injection.
+ *
  * <h3>Service lifetime</h3>
  *
  * Services are created lazily and might not be instantiated at all during the lifetime of the owning service registry.
