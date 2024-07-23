@@ -31,7 +31,7 @@ interface DeferredRootBuildGradle {
     /**
      * Returns the root build's [GradleInternal] instance.
      *
-     * Throws an exception if the instance is not available yet.
+     * @throws IllegalStateException if the root build is not yet initialized
      */
     val gradle: GradleInternal
 }
