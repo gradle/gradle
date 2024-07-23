@@ -39,6 +39,14 @@ class ConfigurationCacheProblemsCrossVersionTest extends ToolingApiSpecification
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof SingleProblemEvent) {
+                def singleProblem = event as SingleProblemEvent
+
+                // Ignore problems caused by the minimum JVM version deprecation.
+                // These are emitted intermittently depending on the version of Java used to run the test.
+                if (singleProblem.definition.id.name == "executing-gradle-on-jvm-versions-and-lower") {
+                    return
+                }
+
                 this.problems.add(event)
             }
         }

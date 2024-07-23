@@ -31,77 +31,77 @@ trait LanguageSpecificTestFileFixture {
     /**
      * <b>Appends</b> provided code to the {@link #getBuildFile() default build file}.
      */
-    void buildFile(@GroovyBuildScriptLanguage String append) {
+    TestFile buildFile(@GroovyBuildScriptLanguage String append) {
         buildFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the given build file.
      */
-    void buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
+    TestFile buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
         file(buildFile) << append
     }
 
     /**
      * <b>Appends</b> provided code to the given build file.
      */
-    void buildFile(TestFile buildFile, @GroovyBuildScriptLanguage String append) {
+    TestFile buildFile(TestFile buildFile, @GroovyBuildScriptLanguage String append) {
         buildFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the {@link #getSettingsFile() default settings file}.
      */
-    void settingsFile(@GroovySettingsScriptLanguage String append) {
+    TestFile settingsFile(@GroovySettingsScriptLanguage String append) {
         settingsFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the given settings file.
      */
-    void settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
+    TestFile settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
         file(settingsFile) << append
     }
 
     /**
      * <b>Appends</b> provided code to the given settings file.
      */
-    void settingsFile(TestFile settingsFile, @GroovySettingsScriptLanguage String append) {
+    TestFile settingsFile(TestFile settingsFile, @GroovySettingsScriptLanguage String append) {
         settingsFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the {@link #getInitScriptFile() default init script file}.
      */
-    void initScriptFile(@GroovyInitScriptLanguage String append) {
+    TestFile initScriptFile(@GroovyInitScriptLanguage String append) {
         initScriptFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the given init script file.
      */
-    void initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
+    TestFile initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
         file(initScriptFile) << append
     }
 
     /**
      * <b>Appends</b> provided code to the given init script file.
      */
-    void initScriptFile(TestFile initScriptFile, @GroovyInitScriptLanguage String append) {
+    TestFile initScriptFile(TestFile initScriptFile, @GroovyInitScriptLanguage String append) {
         initScriptFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the given Java file.
      */
-    void javaFile(String targetFile, @Language('java') String append) {
+    TestFile javaFile(String targetFile, @Language('java') String append) {
         file(targetFile) << append
     }
 
     /**
      * <b>Appends</b> provided code to the given Java file.
      */
-    void javaFile(TestFile targetBuildFile, @Language('java') String append) {
+    TestFile javaFile(TestFile targetBuildFile, @Language('java') String append) {
         targetBuildFile << append
     }
 
@@ -115,7 +115,7 @@ trait LanguageSpecificTestFileFixture {
      * <li>{@link #initScriptFile(java.lang.String, java.lang.String)}
      * </ul>
      */
-    void groovyFile(String targetFile, @Language('groovy') String append) {
+    TestFile groovyFile(String targetFile, @Language('groovy') String append) {
         file(targetFile) << append
     }
 
@@ -129,14 +129,14 @@ trait LanguageSpecificTestFileFixture {
      * <li>{@link #initScriptFile(org.gradle.test.fixtures.file.TestFile, java.lang.String)}
      * </ul>
      */
-    void groovyFile(TestFile targetFile, @Language('groovy') String append) {
+    TestFile groovyFile(TestFile targetFile, @Language('groovy') String append) {
         targetFile << append
     }
 
     /**
      * <b>Appends</b> provided code to the {@link #getVersionCatalogFile() default version catalog file}.
      */
-    void versionCatalogFile(@Language("toml") String append) {
+    TestFile versionCatalogFile(@Language("toml") String append) {
         versionCatalogFile << append
     }
 

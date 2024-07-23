@@ -119,10 +119,14 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         findRequiredKeystoreFile(false) == null
 
         when:
-        runWithEncryption(kind, ["useSensitive"], ["-Psensitive_property_name=sensitive_property_value"], [
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
-            "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value'
-        ])
+        runWithEncryption(
+            kind,
+            ["useSensitive"],
+            ["-Psensitive_property_name=sensitive_property_value",
+             "-Dorg.gradle.configuration-cache.internal.deduplicate-strings=false"],
+            [(ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
+             "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value']
+        )
 
         then:
         configurationCache.assertStateStored()

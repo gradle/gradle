@@ -243,10 +243,10 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         if (vendor == null || vendor.isEmpty()) {
             vendor = metadata.getVendor().getRawVendor();
         }
-        String version = metadata.getLanguageVersion().getMajorVersion();
+        int version = metadata.getJavaMajorVersion();
         String architecture = metadata.getArchitecture();
         String os = OperatingSystem.current().getFamilyName();
-        return String.format("%s-%s-%s-%s", vendor, version, architecture, os)
+        return String.format("%s-%d-%s-%s", vendor, version, architecture, os)
                 .replaceAll("[^a-zA-Z0-9\\-]", "_")
                 .toLowerCase(Locale.ROOT) + ".2";
     }

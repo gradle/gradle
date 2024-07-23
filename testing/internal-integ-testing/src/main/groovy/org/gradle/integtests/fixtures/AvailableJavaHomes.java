@@ -31,6 +31,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
@@ -68,6 +69,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
@@ -118,6 +120,52 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getLowestSupportedLTS() {
         return getJdk8();
+    }
+
+    /**
+     * Get a JVM for each major Java version that is not able to run the Gradle daemon, if available.
+     */
+    public static List<Jvm> getUnsupportedDaemonJdks() {
+        return getJdks(
+            IntStream.range(1, SupportedJavaVersions.MINIMUM_JAVA_VERSION)
+                .mapToObj(JavaVersion::toVersion)
+                .toArray(JavaVersion[]::new)
+        );
+    }
+
+    /**
+     * Get a JVM that is not able to run the Gradle daemon.
+     */
+    @Nullable
+    public static Jvm getUnsupportedDaemonJdk() {
+        return getAvailableJdk(element -> {
+            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
+            return majorVersion < SupportedJavaVersions.MINIMUM_JAVA_VERSION;
+        });
+    }
+
+    /**
+     * Get a JVM that can run the Gradle daemon, but will not be able to in the next major version.
+     */
+    @Nullable
+    public static Jvm getDeprecatedDaemonJdk() {
+        return getAvailableJdk(element -> {
+            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
+            return majorVersion >= SupportedJavaVersions.MINIMUM_JAVA_VERSION &&
+                majorVersion < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION;
+            }
+        );
+    }
+
+    /**
+     * Get a JVM that can run the Gradle daemon and will continue to be able to in the next major version.
+     */
+    @Nullable
+    public static Jvm getNonDeprecatedDaemonJdk() {
+        return getAvailableJdk(element -> {
+            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
+            return majorVersion > SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION;
+        });
     }
 
     @Nullable

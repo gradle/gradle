@@ -91,10 +91,6 @@ class DefaultWriteContext(
         }
     }
 
-    // TODO: consider interning strings
-    override fun writeString(string: CharSequence) =
-        encoder.writeString(string)
-
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
 }

@@ -45,6 +45,7 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.jvmServices)
+    integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 

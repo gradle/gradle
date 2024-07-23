@@ -128,6 +128,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def setup() {
+        // These properties are set on CI. Reset them to allow tests to configure toolchains explicitly.
+        System.setProperty("org.gradle.java.installations.auto-download", "false")
+        System.setProperty("org.gradle.java.installations.auto-detect", "false")
+        System.clearProperty("org.gradle.java.installations.paths")
+
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
@@ -465,6 +470,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         GradleVersion.version("6.9") < targetVersion
     }
 
+    private boolean filterJavaVersionDeprecation = true
+    boolean disableDaemonJavaVersionDeprecationFiltering() {
+        filterJavaVersionDeprecation = false
+    }
+
     ExecutionResult getResult() {
         if (result != null) {
             return result
@@ -484,11 +494,23 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void validateOutput(ExecutionResult result) {
+        List<String> maybeExpectedDeprecations = []
+        if (filterJavaVersionDeprecation) {
+            maybeExpectedDeprecations.add(normalizeDeprecationWarning(
+                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+                    "This will fail with an error in Gradle X. " +
+                    "Use JVM 17 or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${targetDist.version.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
+            ))
+        }
+
         // Check for deprecation warnings.
         new ResultAssertion(
             0,
             expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
-            Collections.emptyList(),
+            maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
             true

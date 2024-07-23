@@ -167,7 +167,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setTempDir(getTemporaryDir());
         List<File> effectiveClasspath;
         if (scalaCompileOptions.getKeepAliveMode().get() == KeepAliveMode.DAEMON) {
-            effectiveClasspath = getCachedClasspathTransformer().transform(DefaultClassPath.of(getClasspath()), CachedClasspathTransformer.StandardTransform.None).getAsFiles();
+            effectiveClasspath = getCachedClasspathTransformer().copyingTransform(DefaultClassPath.of(getClasspath())).getAsFiles();
         } else {
             effectiveClasspath = ImmutableList.copyOf(getClasspath());
         }

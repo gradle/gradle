@@ -20,13 +20,14 @@ import com.esotericsoftware.kryo.io.Output;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.PositionAwareEncoder;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
+public class KryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
     private final Output output;
     private KryoBackedEncoder nested;
 
@@ -133,6 +134,7 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     /**
      * Returns the total number of bytes written by this encoder, some of which may still be buffered.
      */
+    @Override
     public long getWritePosition() {
         return output.total();
     }

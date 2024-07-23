@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -23,6 +24,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
+import org.gradle.configurationcache.withFingerprintCheckOperations
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
 import org.gradle.initialization.GradlePropertiesController
@@ -207,8 +209,8 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
+    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentityPath?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+        return intermediateModels.loadOrCreateIntermediateModel(project, modelName, parameter, creator)
     }
 
     // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
@@ -324,7 +326,7 @@ class DefaultConfigurationCache internal constructor(
                     val description = formatBootstrapSummary(
                         "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                        checkedFingerprint.reason.render()
+                        checkedFingerprint.firstReason.render()
                     )
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.UPDATE to description
@@ -364,11 +366,13 @@ class DefaultConfigurationCache internal constructor(
         return store.useForStateLoad { layout ->
             val entryFile = layout.fileFor(StateType.Entry)
             val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-            if (entryDetails == null) {
-                // No entry file -> treat the entry as empty/missing/invalid
-                CheckedFingerprint.NotFound
-            } else {
-                checkFingerprint(entryDetails, layout)
+            buildOperationRunner.withFingerprintCheckOperations {
+                if (entryDetails == null) {
+                    // No entry file -> treat the entry as empty/missing/invalid
+                    CheckedFingerprint.NotFound
+                } else {
+                    checkFingerprint(entryDetails, layout)
+                }
             }
         }
     }
@@ -596,6 +600,8 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
             withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
+                    override val buildPath: Path
+                        get() = host.service<GradleInternal>().identityPath
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
                     override val gradleProperties: GradleProperties

@@ -31,7 +31,6 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -40,6 +39,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode;
 
 import java.io.File;
 import java.util.Collection;
@@ -79,11 +79,11 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         // One wanted side effect of calling InstrumentationStrategy.getTransform() is also to report
         // a configuration cache problem if third-party agent is used with TestKit with configuration cache,
         // see ConfigurationCacheInjectedClasspathInstrumentationStrategy implementation.
-        StandardTransform transform = instrumentationStrategy.getTransform();
+        TransformMode transform = instrumentationStrategy.getTransform();
         switch (transform) {
-            case None:
+            case NONE:
                 return Lazy.locking().of(this::createUninstrumentedPluginRegistry);
-            case BuildLogic:
+            case BUILD_LOGIC:
                 return Lazy.locking().of(() -> createInstrumentedPluginRegistry(dependencyResolutionServicesFactory));
             default:
                 throw new IllegalArgumentException("Unknown instrumentation strategy: " + transform);

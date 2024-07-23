@@ -17,18 +17,20 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
-@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
-class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
+/**
+ * Tests that the Gradle daemon can be started with certain JDKs.
+ * <p>
+ * Should only contain tests not related to java versions. See {@link SupportedBuildJvmVersionIntegrationTest}.
+ */
+class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     @Requires(UnitTestPreconditions.Symlinks)
     def "can start Gradle with a JDK that contains symlinks"() {
@@ -38,7 +40,8 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         installedJdk.listFiles().each {
             symlinkedJdk.file(it.name).createLink(it)
         }
-        file("gradle.properties").writeProperties("org.gradle.java.home": symlinkedJdk.canonicalPath)
+        propertiesFile.writeProperties("org.gradle.java.home": symlinkedJdk.canonicalPath)
+
         expect:
         succeeds("help")
     }
@@ -66,34 +69,5 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         then:
         // try to start another build
         succeeds("help")
-    }
-
-    @Requires(
-        value = [IntegTestPreconditions.UnsupportedJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
-        reason = "This test requires to start Gradle from scratch with the wrong Java version"
-    )
-    def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
-        given:
-        executer.withJvm(jdk)
-
-        expect:
-        fails("help")
-        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
-
-        where:
-        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
-    }
-
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
-    def "fails when build is configured to use Java #jdk.javaVersion"() {
-        given:
-        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
-
-        expect:
-        fails("help")
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
-
-        where:
-        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import org.gradle.internal.configuration.problems.DecoratedReportProblem
 import java.io.Writer
 
 
@@ -28,24 +27,20 @@ import java.io.Writer
  */
 class HtmlReportWriter(
     private val writer: Writer,
-    private val htmlReportTemplate: HtmlReportTemplate,
-    private val jsonModelWriter: JsonModelWriter
+    private val htmlTemplate: HtmlReportTemplate,
+    val jsonModelWriter: JsonModelWriter
 ) {
 
-
-    private
-    val htmlTemplate = htmlReportTemplate.load()
-
     fun beginHtmlReport() {
-        writer.append(htmlTemplate.first)
+        writer.append(htmlTemplate.header)
         beginReportData()
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(details: ProblemReportDetails) {
+    fun endHtmlReport(details: JsonSource) {
         jsonModelWriter.endModel(details)
         endReportData()
-        writer.append(htmlTemplate.second)
+        writer.append(htmlTemplate.footer)
     }
 
     private
@@ -65,10 +60,6 @@ class HtmlReportWriter(
             appendLine(");}")
             appendLine("</script>")
         }
-    }
-
-    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedReportProblem) {
-        jsonModelWriter.writeDiagnostic(kind, details)
     }
 
     fun close() {

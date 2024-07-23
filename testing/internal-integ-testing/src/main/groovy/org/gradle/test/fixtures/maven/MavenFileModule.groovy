@@ -39,12 +39,6 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     @Override
-    MavenFileModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null, Collection<Map> exclusions = null) {
-        super.dependsOn(group, artifactId, version, type, scope, classifier, exclusions)
-        return this
-    }
-
-    @Override
     MavenFileModule artifact(Map<String, ?> options) {
         super.artifact(options)
         return this

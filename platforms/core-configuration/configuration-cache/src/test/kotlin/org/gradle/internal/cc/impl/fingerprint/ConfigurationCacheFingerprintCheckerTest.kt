@@ -23,10 +23,18 @@ import org.gradle.api.Describable
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.internal.Try
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.file.FileType
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.BeanStateReader
+import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.CircularReferences
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateOwner
@@ -37,16 +45,9 @@ import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIdentities
 import org.gradle.internal.serialize.graph.WriteIsolate
-import org.gradle.internal.serialize.graph.BeanStateReader
-import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
-import org.gradle.internal.Try
-import org.gradle.internal.file.FileType
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestHashCodes
-import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
+import org.gradle.util.Path
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -167,6 +168,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 mock {
                     on { hashCodeAndTypeOf(scriptFile) } doReturn (TestHashCodes.hashCodeFrom(1) to FileType.RegularFile)
                     on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
+                    on { buildPath } doReturn Path.ROOT
                 },
                 ConfigurationCacheFingerprint.InputFile(
                     scriptFile,
@@ -188,6 +190,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 mock {
                     on { hashCodeAndTypeOf(inputFile) } doReturn (missingFileHash to FileType.Missing)
                     on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                    on { buildPath } doReturn Path.ROOT
                 },
                 ConfigurationCacheFingerprint.InputFile(
                     inputFile,
@@ -209,6 +212,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 mock {
                     on { hashCodeAndTypeOf(inputFile) } doReturn (newDirectoryHash to FileType.Directory)
                     on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                    on { buildPath } doReturn Path.ROOT
                 },
                 ConfigurationCacheFingerprint.InputFile(
                     inputFile,
@@ -227,6 +231,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 mock {
                     on { hashCodeAndTypeOf(inputFile) } doReturn (TestHashCodes.hashCodeFrom(1) to FileType.Missing)
                     on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                    on { buildPath } doReturn Path.ROOT
                 },
                 ConfigurationCacheFingerprint.InputFileSystemEntry(
                     inputFile,
@@ -254,6 +259,7 @@ class ConfigurationCacheFingerprintCheckerTest {
             checkFingerprintGiven(
                 mock {
                     on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
+                    on { buildPath } doReturn Path.ROOT
                 },
                 ConfigurationCacheFingerprint.ValueSource(obtainedValue)
             ),
@@ -275,6 +281,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 on { displayNameOf(any()) }.then { invocation ->
                     invocation.getArgument<File>(0).name
                 }
+                on { buildPath } doReturn Path.ROOT
             },
             ConfigurationCacheFingerprint.InitScripts(
                 from.map { (file, hash) -> ConfigurationCacheFingerprint.InputFile(file, hash) }

@@ -32,6 +32,7 @@ dependencies {
 
     implementation(projects.io)
 
+    implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 

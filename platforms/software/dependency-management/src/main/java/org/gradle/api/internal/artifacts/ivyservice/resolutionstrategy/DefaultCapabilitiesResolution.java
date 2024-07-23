@@ -120,11 +120,6 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
                 String reason = resolutionDetails.reason;
                 if (reason != null) {
                     cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
-                } else {
-                    cand.byReason(() -> String.format("Explicit selection of %s variant %s",
-                        resolutionDetails.selected.getId().getDisplayName(),
-                        resolutionDetails.selected.getVariantName()
-                    ));
                 }
             } else {
                 cand.evict();

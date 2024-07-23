@@ -28,8 +28,32 @@ sealed class CheckedFingerprint {
     object Valid : CheckedFingerprint()
 
     // The entry cannot be reused at all and should be recreated from scratch
-    class EntryInvalid(val reason: StructuredMessage) : CheckedFingerprint()
+    class EntryInvalid(val buildPath: Path, val reason: StructuredMessage) : CheckedFingerprint()
 
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
-    class ProjectsInvalid(val reason: StructuredMessage, val invalidProjects: Set<Path>) : CheckedFingerprint()
+    class ProjectsInvalid(
+        /**
+         * Identity path of the first project for which an invalidation was detected.
+         */
+        val firstInvalidated: Path,
+        /**
+         * All invalidated projects with their invalidation reasons by identity path. Must contain [firstInvalidated].
+         */
+        val invalidProjects: Map<Path, ProjectInvalidationData>
+    ) : CheckedFingerprint() {
+        init {
+            require(firstInvalidated in invalidProjects)
+        }
+
+        /**
+         * The first invalidation reason detected.
+         */
+        val firstReason: StructuredMessage
+            get() = invalidProjects.getValue(firstInvalidated).message
+    }
+
+    /**
+     * Information about an invalidated project.
+     */
+    data class ProjectInvalidationData(val buildPath: Path, val projectPath: Path, val message: StructuredMessage)
 }

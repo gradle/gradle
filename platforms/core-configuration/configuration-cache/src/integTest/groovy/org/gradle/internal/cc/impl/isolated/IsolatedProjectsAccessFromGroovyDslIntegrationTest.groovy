@@ -944,4 +944,30 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
         }
     }
+
+    def "can use #api(Closure) API added by runtime decoration"() {
+        settingsFile << """
+            include ':a'
+        """
+        file("a/build.gradle") << ""
+        buildFile << """
+            project(':a') {
+                $invocation
+            }
+        """
+
+        when:
+        isolatedProjectsFails 'help'
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.$api' functionality on another project ':a'", 1)
+        }
+
+        where:
+        api                 | invocation
+        "normalization"     | "normalization { runtimeClasspath{} }"
+        "dependencyLocking" | "dependencyLocking { lockAllConfigurations() }"
+    }
 }

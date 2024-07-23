@@ -87,7 +87,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void computeSelector() {
-        this.selector = resolveState.computeSelectorFor(dependencyState, from.versionProvidedByAncestors(dependencyState));
+        this.selector = resolveState.getSelector(dependencyState, from.versionProvidedByAncestors(dependencyState));
     }
 
     @Override
@@ -138,7 +138,7 @@ class EdgeState implements DependencyGraphEdge {
             // Need to double check that the target still has hard edges to it
             ModuleResolveState module = targetComponent.getModule();
             if (module.isPending()) {
-                selector.getTargetModule().removeUnattachedEdge(this);
+                selector.getTargetModule().removeUnattachedDependency(this);
                 from.makePending(this);
                 module.registerConstraintProvider(from);
                 return;
@@ -150,15 +150,15 @@ class EdgeState implements DependencyGraphEdge {
             targetConfiguration.addIncomingEdge(this);
         }
         if (!targetNodes.isEmpty()) {
-            selector.getTargetModule().removeUnattachedEdge(this);
+            selector.getTargetModule().removeUnattachedDependency(this);
         }
     }
 
     void cleanUpOnSourceChange(NodeState source) {
         removeFromTargetConfigurations();
         maybeDecreaseHardEdgeCount(source);
-        selector.getTargetModule().removeUnattachedEdge(this);
-        selector.release();
+        selector.getTargetModule().removeUnattachedDependency(this);
+        selector.release(resolveState.getConflictTracker());
     }
 
     void removeFromTargetConfigurations() {
@@ -198,7 +198,7 @@ class EdgeState implements DependencyGraphEdge {
         removeFromTargetConfigurations();
         // We now have corner cases that can lead to this restart not succeeding
         if (checkUnattached && !isUnattached()) {
-            selector.getTargetModule().addUnattachedEdge(this);
+            selector.getTargetModule().addUnattachedDependency(this);
         }
         attachToTargetConfigurations();
     }
@@ -233,9 +233,9 @@ class EdgeState implements DependencyGraphEdge {
             }
             if (targetNodes.isEmpty()) {
                 // There is a chance we could not attach target configurations previously
-                List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
-                if (!unattachedEdges.isEmpty()) {
-                    for (EdgeState otherEdge : unattachedEdges) {
+                List<EdgeState> unattachedDependencies = targetComponent.getModule().getUnattachedDependencies();
+                if (!unattachedDependencies.isEmpty()) {
+                    for (EdgeState otherEdge : unattachedDependencies) {
                         if (otherEdge != this && !otherEdge.isConstraint()) {
                             otherEdge.attachToTargetConfigurations();
                             if (otherEdge.targetNodeSelectionFailure != null) {
@@ -374,7 +374,6 @@ class EdgeState implements DependencyGraphEdge {
         if (node == null) {
             return null;
         } else {
-            assert node.getComponent() == getSelectedComponent();
             return node.getNodeId();
         }
     }

@@ -37,6 +37,6 @@ public class JvmVersionValidator {
         }
 
         int javaVersionMajor = versionDetector.getJavaVersionMajor(resolvedJvm);
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", 8, javaVersionMajor);
+        UnsupportedJavaRuntimeException.assertIsSupportedDaemonJvmVersion(javaVersionMajor);
     }
 }

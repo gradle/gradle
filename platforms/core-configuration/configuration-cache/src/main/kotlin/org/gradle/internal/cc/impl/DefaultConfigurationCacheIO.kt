@@ -38,6 +38,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.CloseableReadContext
@@ -59,6 +60,8 @@ import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
@@ -250,12 +253,26 @@ class DefaultConfigurationCacheIO internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String
     ): Pair<CloseableWriteContext, Codecs> =
-        KryoBackedEncoder(outputStreamFor(stateType, outputStream)).let { encoder ->
+        encoderFor(stateType, outputStream).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
                 codecs
             ) to codecs
+        }
+
+    private
+    fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
+        outputStreamFor(stateType, outputStream).let { stream ->
+            if (startParameter.isDeduplicatingStrings) StringDeduplicatingKryoBackedEncoder(stream)
+            else KryoBackedEncoder(stream)
+        }
+
+    private
+    fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
+        inputStreamFor(stateType, inputStream).let { stream ->
+            if (startParameter.isDeduplicatingStrings) StringDeduplicatingKryoBackedDecoder(stream)
+            else KryoBackedDecoder(stream)
         }
 
     private
@@ -272,7 +289,7 @@ class DefaultConfigurationCacheIO internal constructor(
         else inner()
 
     private
-    fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
+    fun loggingTracerFor(profile: () -> String, encoder: PositionAwareEncoder) =
         loggingTracerLogLevel()?.let { level ->
             LoggingTracer(profile(), encoder::getWritePosition, logger, level)
         }
@@ -302,7 +319,7 @@ class DefaultConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(KryoBackedDecoder(inputStreamFor(stateType, inputStream)))
+        readContextFor(decoderFor(stateType, inputStream))
             .let { (context, codecs) ->
                 context.useToRun {
                     runReadOperation {

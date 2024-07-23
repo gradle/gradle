@@ -36,7 +36,7 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         def url2 = new URL("http://localhost/file2.jar")
 
         given:
-        classpathTransformer.transform(_, _) >> [url1, url2]
+        classpathTransformer.copyingTransform(_) >> [url1, url2]
 
         when:
         def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec("test", [url1, url2]), [null])
@@ -54,7 +54,7 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         def url2 = tmpDir.createDir("classes-dir").toURI().toURL()
 
         given:
-        classpathTransformer.transform(_, _) >> [cached, url2]
+        classpathTransformer.copyingTransform(_) >> [cached, url2]
 
         when:
         def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec("test", [url1, url2]), [null])

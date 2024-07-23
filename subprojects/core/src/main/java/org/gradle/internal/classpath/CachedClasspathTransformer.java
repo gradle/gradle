@@ -28,22 +28,19 @@ import java.util.Collection;
  */
 @ServiceScope(Scope.UserHome.class)
 public interface CachedClasspathTransformer {
-    enum StandardTransform {
-        BuildLogic, None
-    }
 
     /**
-     * Transforms a classpath to a classpath with the given transformations applied.
+     * Transforms a classpath to a new classpath with a no-op transform that copies files to a cache location.
      */
-    ClassPath transform(ClassPath classPath, StandardTransform transform);
+    ClassPath copyingTransform(ClassPath classPath);
 
     /**
-     * Transforms a classpath to a classpath with the given transformations applied.
+     * Transform a collection of urls to a new collection with a no-op transform that copies files to a cache location.
      */
-    ClassPath transform(ClassPath classPath, ClassTransform additional);
+    Collection<URL> copyingTransform(Collection<URL> urls);
 
     /**
-     * Transform a collection of urls to a new collection where the file urls are cached jars
+     * Transforms a classpath to a classpath with the given transformations applied, result classpath files are cached in a cache location.
      */
-    Collection<URL> transform(Collection<URL> urls, StandardTransform transform);
+    ClassPath transform(ClassPath classPath, ClassTransform classTransform);
 }

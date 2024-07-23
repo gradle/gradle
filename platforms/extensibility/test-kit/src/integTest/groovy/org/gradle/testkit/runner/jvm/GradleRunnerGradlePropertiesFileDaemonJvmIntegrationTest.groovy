@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.testkit.runner.jvm
 
-import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.jvm.Jvm
 
+/**
+ * Verifies JDK compatibility for GradleRunner when configuring the java home via gradle.properties file.
+ */
+class GradleRunnerGradlePropertiesFileDaemonJvmIntegrationTest extends GradleRunnerExplicitDaemonJvmIntegrationTest {
 
-data class ProblemReportDetails(
-    val buildDisplayName: String?,
-    val cacheAction: String,
-    val cacheActionDescription: StructuredMessage,
-    val requestedTasks: String?,
-    val totalProblemCount: Int
-)
+    @Override
+    def configureBuild(Jvm jvm) {
+        propertiesFile.writeProperties("org.gradle.java.home": jvm.javaHome.absolutePath)
+    }
+
+}

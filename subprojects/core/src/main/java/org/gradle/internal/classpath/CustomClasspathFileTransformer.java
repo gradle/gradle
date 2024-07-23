@@ -22,7 +22,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -35,7 +34,7 @@ import java.io.IOException;
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
-public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
+public class CustomClasspathFileTransformer implements ClasspathFileTransformer {
     private static final int CACHE_FORMAT = 6;
 
     private final FileLockManager fileLockManager;
@@ -43,28 +42,25 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private final ClasspathElementTransformFactory classpathElementTransformFactory;
     private final ClassTransform transform;
 
-    public InstrumentingClasspathFileTransformer(
+    public CustomClasspathFileTransformer(
         FileLockManager fileLockManager,
         ClasspathFileHasher classpathFileHasher,
         ClasspathElementTransformFactory classpathElementTransformFactory,
-        ClassTransform transform,
-        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry
+        ClassTransform transform
     ) {
         this.fileLockManager = fileLockManager;
 
         this.fileHasher = createFileHasherWithConfig(
-            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentationTypeRegistry),
+            configHashFor(classpathElementTransformFactory, transform),
             classpathFileHasher);
         this.classpathElementTransformFactory = classpathElementTransformFactory;
         this.transform = transform;
     }
 
-    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
+    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
-        gradleCoreInstrumentationTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
-        gradleCoreInstrumentationTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
         classpathElementTransformFactory.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
@@ -129,7 +125,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         return fileLockManager.lock(
             file,
             mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
-            "instrumented jar cache"
+            "transformed jar cache"
         );
     }
 
