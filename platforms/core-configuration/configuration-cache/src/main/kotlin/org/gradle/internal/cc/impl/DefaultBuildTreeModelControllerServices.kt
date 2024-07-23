@@ -46,6 +46,7 @@ import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstru
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
@@ -208,6 +209,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
+            registration.add(DefaultDeferredRootBuildGradle::class.java)
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)

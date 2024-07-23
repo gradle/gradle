@@ -16,8 +16,6 @@
 
 package org.gradle.internal.cc.impl.models
 
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.ProjectIdentityPath
@@ -27,6 +25,7 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintCont
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.tooling.provider.model.UnknownModelException
@@ -38,7 +37,7 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
  */
 internal
 class IntermediateModelController(
-    private val host: HostServiceProvider,
+    private val isolateOwner: IsolateOwner,
     private val cacheIO: ConfigurationCacheOperationIO,
     store: ConfigurationCacheStateStore,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
@@ -48,7 +47,7 @@ class IntermediateModelController(
 
     override fun write(encoder: Encoder, value: IntermediateModel) {
         cacheIO.runWriteOperation(encoder) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.userTypesCodec()) {
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
                 write(value)
             }
         }
@@ -56,7 +55,7 @@ class IntermediateModelController(
 
     override fun read(decoder: Decoder): IntermediateModel {
         return cacheIO.runReadOperation(decoder) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.userTypesCodec()) {
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
                 readNonNull()
             }
         }
