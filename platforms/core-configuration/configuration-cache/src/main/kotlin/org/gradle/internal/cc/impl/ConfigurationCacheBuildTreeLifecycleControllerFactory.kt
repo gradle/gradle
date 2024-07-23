@@ -27,6 +27,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 
@@ -40,11 +41,15 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
     private val startParameter: StartParameter,
     private val configurationCacheStartParameter: ConfigurationCacheStartParameter,
     private val buildStateRegistry: BuildStateRegistry,
+    private val deferredRootBuildGradle: DefaultDeferredRootBuildGradle,
 ) : BuildTreeLifecycleControllerFactory {
     private
     val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, stateTransitionControllerFactory, startParameter)
 
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
+        // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree
+        deferredRootBuildGradle.attach(targetBuild.gradle)
+
         cache.initializeCacheEntry()
 
         // Currently, apply the decoration only to the root build, as the cache implementation is still scoped to the root build (that is, it assumes it is only applied to the root build)
