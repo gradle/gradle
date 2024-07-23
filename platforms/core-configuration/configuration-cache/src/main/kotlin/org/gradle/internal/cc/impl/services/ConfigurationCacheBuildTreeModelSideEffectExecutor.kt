@@ -19,8 +19,8 @@ package org.gradle.internal.cc.impl.services
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
+import org.gradle.internal.extensions.service.getValue
 import org.gradle.internal.service.LazyService
-import org.gradle.internal.service.extensions.getValue
 
 
 internal

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.extensions
+package org.gradle.internal.extensions.service
 
 import org.gradle.internal.service.LazyService
 import kotlin.reflect.KProperty
