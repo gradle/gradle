@@ -32,5 +32,6 @@ import kotlin.reflect.KProperty
  * @see LazyService
  * @see org.gradle.internal.service.ServiceRegistrationProvider
  */
+internal
 operator fun <T : Any> LazyService<T>.getValue(thisRef: Any?, property: KProperty<*>): T =
     instance
