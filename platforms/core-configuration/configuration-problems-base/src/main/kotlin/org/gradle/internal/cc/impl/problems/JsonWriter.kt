@@ -72,6 +72,10 @@ class JsonWriter(private val writer: Writer) {
     }
 
     fun <T> jsonObjectList(list: Iterable<T>, body: (T) -> Unit) {
+        jsonObjectList(list.iterator(), body)
+    }
+
+    fun <T> jsonObjectList(list: Iterator<T>, body: (T) -> Unit) {
         jsonList(list) {
             jsonObject {
                 body(it)
@@ -127,7 +131,7 @@ class JsonWriter(private val writer: Writer) {
     fun write(c: Char) = writer.append(c)
 
     private
-    fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
+    fun <T> jsonList(list: Iterator<T>, body: (T) -> Unit) {
         beginArray()
         list.forEach {
             body(it)
