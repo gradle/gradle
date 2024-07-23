@@ -529,10 +529,18 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
             ${mavenCentralRepository()}
 
             ${if (kotlin) {
-                def lastSupportedVersion = (
-                    JvmTarget.fromString(JavaVersion.current().majorVersion)
-                        ?: (JavaVersion.current() == JavaVersion.VERSION_1_8 ? JvmTarget.JVM_1_8 : JvmTarget.entries.last())
-                ).description
+                def majorJavaVersion = JavaVersion.current().majorVersion
+                def jvmTarget = JvmTarget.fromString(majorJavaVersion)
+
+                if (jvmTarget == null) {
+                    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+                        jvmTarget = JvmTarget.JVM_1_8
+                    } else {
+                        jvmTarget = JvmTarget.entries.last()
+                    }
+                }
+                def lastSupportedVersion = jvmTarget.description
+
                 """
                 java {
                     sourceCompatibility = "${lastSupportedVersion}"
