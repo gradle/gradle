@@ -20,6 +20,7 @@ import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.service.LazyService
+import org.gradle.internal.service.extensions.getValue
 
 
 internal
@@ -27,7 +28,7 @@ class ConfigurationCacheBuildTreeModelSideEffectExecutor(
     sideEffectStore: LazyService<BuildTreeModelSideEffectStore>
 ) : BuildTreeModelSideEffectExecutor {
 
-    private val sideEffectStore by lazy { sideEffectStore.instance }
+    private val sideEffectStore by sideEffectStore
 
     override fun runIsolatableSideEffect(sideEffect: BuildTreeModelSideEffect) {
         sideEffect.runSideEffect()

@@ -55,6 +55,7 @@ import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.service.LazyService
+import org.gradle.internal.service.extensions.getValue
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -99,7 +100,7 @@ class DefaultConfigurationCache internal constructor(
     var cacheEntryRequiresCommit = false
 
     private
-    val host by lazy { host.instance }
+    val host by host
 
     private
     val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(this.host) }
@@ -108,19 +109,19 @@ class DefaultConfigurationCache internal constructor(
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     private
-    val store by lazy { store.instance }
+    val store by store
 
     private
-    val cacheIO by lazy { cacheIO.instance }
+    val cacheIO by cacheIO
 
     private
-    val buildTreeModelSideEffects by lazy { buildTreeModelSideEffects.instance }
+    val buildTreeModelSideEffects by buildTreeModelSideEffects
 
     private
-    val intermediateModels by lazy { intermediateModels.instance }
+    val intermediateModels by intermediateModels
 
     private
-    val projectMetadata by lazy { projectMetadata.instance }
+    val projectMetadata by projectMetadata
 
     private
     val gradlePropertiesController: GradlePropertiesController
