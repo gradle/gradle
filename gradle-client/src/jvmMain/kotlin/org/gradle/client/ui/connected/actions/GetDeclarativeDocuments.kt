@@ -116,11 +116,10 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 analyzer.evaluate(model.settingsFile.name, settingsFileContent.value)
             }
         }
-        val domWithConventions = AnalysisDocumentUtils.documentWithConventions(settingsResult, projectResult)
+        val domWithDefaults = AnalysisDocumentUtils.documentWithModelDefaults(settingsResult, projectResult)
 
-
-        val hasAnyConventionContent =
-            domWithConventions?.overlayNodeOriginContainer?.collectToMap(domWithConventions.document)
+        val hasAnyModelDefaultsContent =
+            domWithDefaults?.overlayNodeOriginContainer?.collectToMap(domWithDefaults.document)
                 ?.any { it.value !is FromOverlay } == true
 
         TitleLarge(displayName)
@@ -135,21 +134,21 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             verticallyScrollable = false,
             horizontallyScrollable = true,
             left = {
-                if (domWithConventions != null) {
+                if (domWithDefaults != null) {
                     val projectEvaluationSchema = projectResult.stepResults.values.single()
                         .stepResultOrPartialResult.evaluationSchema
 
                     val projectAnalysisSchema = projectEvaluationSchema.analysisSchema
 
                     val mutationApplicability =
-                        MutationUtils.checkApplicabilityForOverlay(projectAnalysisSchema, domWithConventions)
+                        MutationUtils.checkApplicabilityForOverlay(projectAnalysisSchema, domWithDefaults)
 
                     val highlightingContext = HighlightingContext(
-                        domWithConventions.overlayNodeOriginContainer,
+                        domWithDefaults.overlayNodeOriginContainer,
                         highlightedSourceRangeByFileId
                     )
 
-                    val softwareTypeNode = domWithConventions.document.singleSoftwareTypeNode
+                    val softwareTypeNode = domWithDefaults.document.singleSoftwareTypeNode
                     val softwareTypeSchema = projectAnalysisSchema.softwareTypeNamed(softwareTypeNode.name)
                     val softwareTypeType =
                         projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
@@ -157,13 +156,13 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                     Column {
                         with(
                             ModelTreeRendering(
-                                domWithConventions.overlayResolutionContainer,
+                                domWithDefaults.overlayResolutionContainer,
                                 highlightingContext,
                                 mutationApplicability,
                                 onRunMutation = { mutationDefinition, mutationArgumentsContainer ->
                                     MutationUtils.runMutation(
                                         selectedBuildFile.value,
-                                        domWithConventions.inputOverlay,
+                                        domWithDefaults.inputOverlay,
                                         projectEvaluationSchema,
                                         mutationDefinition,
                                         mutationArgumentsContainer
@@ -189,11 +188,11 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 }
             },
             right = {
-                if (domWithConventions != null) {
+                if (domWithDefaults != null) {
                     SourcesView(
-                        domWithConventions,
+                        domWithDefaults,
                         highlightedSourceRangeByFileId,
-                        hasAnyConventionContent
+                        hasAnyModelDefaultsContent
                     )
                 }
             },
@@ -202,12 +201,12 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
     @Composable
     private fun SourcesView(
-        domWithConventions: DocumentOverlayResult,
+        domWithDefaults: DocumentOverlayResult,
         highlightedSourceRangeByFileId: MutableState<Map<String, IntRange>>,
-        hasAnyConventionContent: Boolean
+        hasAnyModelDefaultsContent: Boolean
     ) {
-        val buildDocument = domWithConventions.inputOverlay.document
-        val settingsDocument = domWithConventions.inputUnderlay.document
+        val buildDocument = domWithDefaults.inputOverlay.document
+        val settingsDocument = domWithDefaults.inputUnderlay.document
 
         val (buildFileId, settingsFileId) =
             listOf(buildDocument, settingsDocument).map { it.sourceIdentifier.fileIdentifier }
@@ -216,7 +215,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             listOf(buildDocument, settingsDocument).map { it.sourceData.text() }
 
         val (buildErrorRanges, settingsErrorRanges) =
-            listOf(domWithConventions.inputOverlay, domWithConventions.inputUnderlay).map { it.errorRanges() }
+            listOf(domWithDefaults.inputOverlay, domWithDefaults.inputUnderlay).map { it.errorRanges() }
 
         val sources = listOfNotNull(
             SourceFileViewInput(
@@ -230,16 +229,16 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 settingsFileId,
                 settingsFileContent,
                 // Trim the settings file to just the part that contributed the relevant conventions:
-                relevantIndicesRange = domWithConventions.inputUnderlay.document.relevantRange(),
+                relevantIndicesRange = domWithDefaults.inputUnderlay.document.relevantRange(),
                 highlightedSourceRange = highlightedSourceRangeByFileId.value[settingsFileId],
                 errorRanges = settingsErrorRanges
-            ).takeIf { hasAnyConventionContent },
+            ).takeIf { hasAnyModelDefaultsContent },
         )
 
         SourcesColumn(sources) { fileIdentifier, clickOffset ->
             val clickedDocument = when (fileIdentifier) {
-                buildFileId -> domWithConventions.inputOverlay
-                settingsFileId -> domWithConventions.inputUnderlay
+                buildFileId -> domWithDefaults.inputOverlay
+                settingsFileId -> domWithDefaults.inputUnderlay
                 else -> null
             }
             val clickedNode = clickedDocument?.document?.nodeAt(fileIdentifier, clickOffset)
