@@ -16,7 +16,6 @@
 
 package org.gradle.internal.encryption.impl
 
-import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.buildoption.InternalOptions
@@ -65,7 +64,7 @@ class DefaultEncryptionService(
                     assertKeyLength(key)
                 }
             } catch (e: Exception) {
-                throw GradleException("Error loading encryption key from ${keySource.sourceDescription}", e)
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
             }
         }
 
