@@ -28,11 +28,11 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.extensions.core.add
@@ -193,8 +193,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             executorFactory: ExecutorFactory,
             temporaryFileProvider: TemporaryFileProvider,
             internalOptions: InternalOptions
-        ): ConfigurationCacheReport {
-            return ConfigurationCacheReport(executorFactory, temporaryFileProvider, internalOptions)
+        ): CommonReport {
+            return CommonReport(executorFactory, temporaryFileProvider, internalOptions, "configuration cache report", "configuration-cache-report")
         }
     }
 }

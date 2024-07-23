@@ -16,25 +16,28 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.configuration.problems.ProblemFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
-import org.gradle.problems.internal.DefaultProblemsReportCreator;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.ProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
+import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 
 import java.util.Collection;
 
@@ -61,10 +64,13 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
         InternalOptions internalOptions,
-        ProblemFactory problemFactory
+        StartParameterInternal startParameter,
+        ListenerManager listenerManager,
+        FailureFactory failureFactory,
+        BuildNameProvider buildNameProvider
     ) {
         if (internalOptions.getOption(enableProblemsReport).get()) {
-            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, problemFactory);
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
         }
         return new NoOpProblemReportCreator();
     }

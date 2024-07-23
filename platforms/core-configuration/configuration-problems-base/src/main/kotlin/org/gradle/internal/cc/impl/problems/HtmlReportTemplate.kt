@@ -16,41 +16,4 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import java.io.BufferedReader
-import java.net.URL
-
-
-class HtmlReportTemplate(private val reportHtmlFileName: String = "configuration-cache-report.html") {
-
-    private
-    val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
-
-    /**
-     * Returns the header and footer of the html template as a pair.
-     */
-    fun load(): Pair<String, String> {
-        val template = readHtmlTemplate()
-        val headerEnd = template.indexOf(modelLine)
-        require(headerEnd > 0) {
-            "Invalid configuration cache report template!"
-        }
-        val header = template.substring(0, headerEnd)
-        val footer = template.substring(headerEnd + modelLine.length + 1)
-        return header to footer
-    }
-
-    private
-    fun readHtmlTemplate() =
-        ConfigurationCacheReport::class.java
-            .requireResource(reportHtmlFileName)
-            .openStream()
-            .bufferedReader()
-            .use(BufferedReader::readText)
-}
-
-
-private
-fun Class<*>.requireResource(path: String): URL = getResource(path).let { url ->
-    require(url != null) { "Resource `$path` could not be found!" }
-    url
-}
+data class HtmlReportTemplate(val header: String, val footer: String)

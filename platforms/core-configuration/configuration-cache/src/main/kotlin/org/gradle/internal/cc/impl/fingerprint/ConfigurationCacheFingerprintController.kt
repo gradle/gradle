@@ -31,9 +31,9 @@ import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.ProjectIdentityPath
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.PropertyProblem
@@ -85,7 +85,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val listenerManager: ListenerManager,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val report: ConfigurationCacheReport,
+    private val report: CommonReport,
     private val problemFactory: ProblemFactory,
     private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,

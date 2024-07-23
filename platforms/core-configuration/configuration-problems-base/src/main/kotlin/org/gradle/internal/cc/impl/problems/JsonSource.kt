@@ -16,13 +16,6 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import org.gradle.internal.configuration.problems.StructuredMessage
-
-
-data class ProblemReportDetails(
-    val buildDisplayName: String?,
-    val cacheAction: String,
-    val cacheActionDescription: StructuredMessage,
-    val requestedTasks: String?,
-    val totalProblemCount: Int
-)
+interface JsonSource {
+    fun writeToJson(jsonWriter: JsonWriter)
+}

@@ -21,6 +21,7 @@ import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
@@ -38,9 +39,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             problems.forNamespace('org.example.plugin').reporting {
-                it.details('Wrong API usage')
+                it.details('Wrong API usage, will not show up anywhere')
             }
         """
+
+        enableProblemsReport()
 
         when:
         run('reportProblem')
@@ -56,6 +59,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 11
                 path == "build file '$buildFile.absolutePath'"
             }
+        }
+    }
+
+    def void enableProblemsReport() {
+        if (GradleContextualExecuter.embedded) {
+            System.setProperty("org.gradle.internal.problems.report.enabled", "true")
+        } else {
+            executer.withBuildJvmOpts("-Dorg.gradle.internal.problems.report.enabled=true")
         }
     }
 
@@ -139,7 +150,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll (receivedProblem.locations) {
+        verifyAll(receivedProblem.locations) {
             size() == 2
             with(get(0) as OffsetInFileLocation) {
                 path == 'test-location'
@@ -168,7 +179,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll (receivedProblem.locations) {
+        verifyAll(receivedProblem.locations) {
             size() == 2
             with(get(0) as LineInFileLocation) {
                 length == -1
@@ -198,7 +209,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll (receivedProblem.locations) {
+        verifyAll(receivedProblem.locations) {
             size() == 2
             with(get(0) as PluginIdLocation) {
                 pluginId == 'org.example.pluginid'
@@ -367,12 +378,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             try {
                 problems.forNamespace("org.example.plugin").throwing {
-                    it.id('type1', 'inner')
+                    it.id('type11', 'inner')
                     .withException(new RuntimeException("test"))
                 }
             } catch (RuntimeException ex) {
                 problems.forNamespace("org.example.plugin").rethrowing(ex) {
-                    it.id('type2', 'outer')
+                    it.id('type12', 'outer')
                 }
             }
         """
@@ -405,6 +416,35 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             verifyAll(receivedProblem(it)) {
                 definition.id.displayName == 'label'
                 definition.id.name == 'type'
+                definition.severity == Severity.WARNING
+                solutions == ["solution"]
+            }
+        }
+    }
+
+    def "problem progress events in report"() {
+        given:
+        withReportProblemTask """
+            for (int i = 0; i < 10; i++) {
+                problems.forNamespace("org.example.plugin").reporting {
+                        it.id("type\$i", "label\$i")
+                        .severity(Severity.WARNING)
+                        .details("details\$i")
+                        .solution("solution")
+                }
+            }
+        """
+
+        enableProblemsReport()
+
+        when:
+        run("reportProblem")
+
+        then:
+        10.times { num ->
+            verifyAll(receivedProblem(num)) {
+                definition.id.displayName == "label$num"
+                definition.id.name == "type$num"
                 definition.severity == Severity.WARNING
                 solutions == ["solution"]
             }
