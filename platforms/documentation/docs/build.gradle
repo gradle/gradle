@@ -812,6 +812,8 @@ tasks.named("docsTest") { task ->
     } else {
         filter {
             excludeTestsMatching "*WithCC*.sample"
+            // these sanityCheck tests fail without CC due to deprecation warnings as they use gradle.taskGraph.beforeTask and afterTask
+            excludeTestsMatching "*.snippet-buildlifecycle-task-execution-events_*_sanityCheck.sample"
         }
     }
 }
