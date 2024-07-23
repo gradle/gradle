@@ -68,9 +68,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Cast;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
-import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
@@ -83,6 +83,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -97,8 +98,8 @@ import java.util.function.Function;
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
  * <p>
  * This class enables dynamic property and method dispatch on the `this` bean rather than on the {@link #delegate}.
- * If the dispatch on `this` fails, the control flow is delegated to {@link #propertyMissing(String)} and
- * {@link #methodMissing(String, Object)} methods.
+ * If the dispatch on `this` fails, the control flow is delegated to {@link #propertyMissing(String)}, {@link #propertyMissing(String, Object)},
+ * {@link #methodMissing(String, Object)} and {@link #hasPropertyMissing(String)} methods.
  * <p>
  * Instances of this class should be created via {@link org.gradle.internal.reflect.Instantiator} to ensure proper runtime decoration.
  */
@@ -115,11 +116,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     protected final ProjectInternal delegate;
+    protected final ProjectInternal referrer;
     private final DynamicObject dynamicObject;
 
-    protected MutableStateAccessAwareProject(ProjectInternal delegate) {
+    protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
         this.delegate = delegate;
-        this.dynamicObject = new BeanDynamicObject(this, Project.class);
+        this.referrer = referrer;
+        this.dynamicObject = new HasPropertyMissingDynamicObject(this, Project.class, this::hasPropertyMissing);
     }
 
     protected abstract void onMutableStateAccess(String what);
@@ -137,6 +140,18 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Nullable
     @SuppressWarnings("unused") // used by Groovy dynamic dispatch
     protected abstract Object methodMissing(String name, Object args);
+
+    // used by Groovy dynamic dispatch
+    protected void propertyMissing(String name, Object args) {
+        onMutableStateAccess("setProperty");
+        delegate.setProperty(name, args);
+    }
+
+    // used by Groovy dynamic dispatch
+    protected boolean hasPropertyMissing(String name) {
+        onMutableStateAccess("hasProperty");
+        return delegate.hasProperty(name);
+    }
 
     @Override
     public DynamicObject getAsDynamicObject() {
@@ -210,7 +225,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Nullable
     @Override
     public ProjectInternal getParent() {
-        return delegate.getParent();
+        return delegate.getParent(referrer);
     }
 
     @Nullable
@@ -274,7 +289,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public ProjectInternal getRootProject() {
-        return delegate.getRootProject();
+        return delegate.getRootProject(referrer);
     }
 
     @Override
@@ -312,22 +327,22 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        delegate.subprojects(action);
+        delegate.subprojects(referrer, action);
     }
 
     @Override
     public void subprojects(Closure configureClosure) {
-        delegate.subprojects(configureClosure);
+        delegate.subprojects(referrer, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        delegate.allprojects(action);
+        delegate.allprojects(referrer, action);
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        delegate.allprojects(configureClosure);
+        delegate.allprojects(referrer, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -337,17 +352,17 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return delegate.project(path, configureClosure);
+        return delegate.project(referrer, path, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public ProjectInternal project(String path) throws UnknownProjectException {
-        return delegate.project(path);
+        return delegate.project(referrer, path);
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        return delegate.project(path, configureAction);
+        return delegate.project(referrer, path, configureAction);
     }
 
     @Override
@@ -363,7 +378,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Nullable
     @Override
     public ProjectInternal findProject(String path) {
-        return delegate.findProject(path);
+        return delegate.findProject(referrer, path);
     }
 
     @Override
@@ -379,7 +394,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public Set<Project> getAllprojects() {
-        return delegate.getAllprojects();
+        return Cast.uncheckedCast(delegate.getAllprojects(referrer));
     }
 
     @Override
@@ -389,7 +404,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public Set<Project> getSubprojects() {
-        return delegate.getSubprojects();
+        return Cast.uncheckedCast(delegate.getSubprojects(referrer));
     }
 
     @Override

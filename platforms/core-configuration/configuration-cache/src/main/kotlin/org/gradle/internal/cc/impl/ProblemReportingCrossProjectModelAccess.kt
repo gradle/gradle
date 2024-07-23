@@ -152,14 +152,14 @@ class ProblemReportingCrossProjectModelAccess(
     @Suppress("LargeClass")
     open class ProblemReportingProject(
         delegate: ProjectInternal,
-        private val referrer: ProjectInternal,
+        referrer: ProjectInternal,
         private val access: CrossProjectModelAccessInstance,
         private val problems: ProblemsListener,
         private val coupledProjectsListener: CoupledProjectsListener,
         private val problemFactory: ProblemFactory,
         private val buildModelParameters: BuildModelParameters,
         private val dynamicCallProblemReporting: DynamicCallProblemReporting,
-    ) : MutableStateAccessAwareProject(delegate) {
+    ) : MutableStateAccessAwareProject(delegate, referrer) {
 
         override fun onMutableStateAccess(what: String) {
             onIsolationViolation(what)
@@ -198,46 +198,6 @@ class ProblemReportingCrossProjectModelAccess(
                 action = { tryInvokeMethod(name, *varargs) },
                 resultNotFoundExceptionProvider = { methodMissingException(name, *varargs) }
             )
-        }
-
-        override fun getParent(): ProjectInternal? =
-            super.getParent(referrer)
-
-        override fun getRootProject(): ProjectInternal =
-            super.getRootProject(referrer)
-
-        override fun project(path: String): ProjectInternal =
-            super.project(referrer, path)
-
-        override fun project(path: String, configureClosure: Closure<*>): Project =
-            super.project(referrer, path, ConfigureUtil.configureUsing(configureClosure))
-
-        override fun project(path: String, configureAction: Action<in Project>): Project =
-            super.project(referrer, path, configureAction)
-
-        override fun findProject(path: String): ProjectInternal? =
-            super.findProject(referrer, path)
-
-        override fun getSubprojects(): Set<Project> =
-            super.getSubprojects(referrer)
-
-        override fun subprojects(action: Action<in Project>) {
-            super.subprojects(referrer, action)
-        }
-
-        override fun subprojects(configureClosure: Closure<*>) {
-            super.subprojects(referrer, ConfigureUtil.configureUsing(configureClosure))
-        }
-
-        override fun getAllprojects(): Set<Project> =
-            super.getAllprojects(referrer)
-
-        override fun allprojects(action: Action<in Project>) {
-            super.allprojects(referrer, action)
-        }
-
-        override fun allprojects(configureClosure: Closure<*>) {
-            super.allprojects(referrer, ConfigureUtil.configureUsing(configureClosure))
         }
 
         override fun file(path: Any): File {

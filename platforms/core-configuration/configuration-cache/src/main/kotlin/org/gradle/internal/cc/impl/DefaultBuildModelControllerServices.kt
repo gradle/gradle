@@ -168,7 +168,7 @@ class DefaultBuildModelControllerServices(
             buildModelParameters: BuildModelParameters,
             instantiator: Instantiator
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator)
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
@@ -201,9 +201,10 @@ class DefaultBuildModelControllerServices(
     class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry<ProjectInternal>
+            projectRegistry: ProjectRegistry<ProjectInternal>,
+            instantiator: Instantiator
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry)
+            return DefaultCrossProjectModelAccess(projectRegistry, instantiator)
         }
 
         @Provides
