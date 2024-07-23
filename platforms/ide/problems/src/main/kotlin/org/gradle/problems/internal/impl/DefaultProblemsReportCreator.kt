@@ -58,7 +58,7 @@ class DefaultProblemsReportCreator(
     private val failureDecorator = FailureDecorator()
 
     override fun getId(): String {
-        return "org.gradle.problems.internal.impl."
+        return "DefaultProblemsReportCreator"
     }
 
     override fun report(reportDir: File, validationFailures: ProblemReporter.ProblemConsumer) {
