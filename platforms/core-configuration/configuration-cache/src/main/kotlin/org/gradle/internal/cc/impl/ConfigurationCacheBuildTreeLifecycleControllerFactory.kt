@@ -32,7 +32,7 @@ import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
-class ConfigurationCacheBuildTreeLifecycleControllerFactory(
+class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor(
     private val buildModelParameters: BuildModelParameters,
     buildOperationExecutor: BuildOperationExecutor,
     private val cache: BuildTreeConfigurationCache,

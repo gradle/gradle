@@ -26,6 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * that becomes available as soon as the root build state is created.
  */
 @ServiceScope(Scope.BuildTree::class)
+internal
 interface DeferredRootBuildGradle {
 
     /**
@@ -37,6 +38,7 @@ interface DeferredRootBuildGradle {
 }
 
 
+internal
 class DefaultDeferredRootBuildGradle : DeferredRootBuildGradle {
 
     private var rootBuildGradle: GradleInternal? = null
