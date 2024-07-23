@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:develocity-gradle-plugin:3.17.5")
+    compileOnly("com.gradle:develocity-gradle-plugin:3.17.6")
 
     api(platform(projects.buildPlatform))
 
