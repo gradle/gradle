@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 /**
  * Wrapper for {@link ProjectInternal} that has been accessed across projects, even in vintage mode.
- * */
+ */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     public static ProjectInternal from(ProjectInternal target, ProjectInternal referrer, Instantiator instantiator) {

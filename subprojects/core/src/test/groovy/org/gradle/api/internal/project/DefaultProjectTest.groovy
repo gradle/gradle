@@ -526,7 +526,7 @@ class DefaultProjectTest extends Specification {
 
     def getProject() {
         expect:
-        assertLifecycleAwareProjectOf(project.project(Project.PATH_SEPARATOR), project)
+        project.project(Project.PATH_SEPARATOR).is(project)
         assertLifecycleAwareProjectOf(project.project(Project.PATH_SEPARATOR + "child1"), child1)
         assertLifecycleAwareProjectOf(project.project("child1"), child1)
         assertLifecycleAwareProjectOf(child1.project("childchild"), childchild)
@@ -565,7 +565,7 @@ class DefaultProjectTest extends Specification {
 
     def findProject() {
         expect:
-        assertLifecycleAwareProjectOf(project.findProject(Project.PATH_SEPARATOR), project)
+        project.findProject(Project.PATH_SEPARATOR).is(project)
         assertLifecycleAwareProjectOf(project.findProject(Project.PATH_SEPARATOR + "child1"), child1)
         assertLifecycleAwareProjectOf(project.findProject("child1"), child1)
         assertLifecycleAwareProjectOf(child1.findProject('childchild'), childchild)

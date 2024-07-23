@@ -21,15 +21,15 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
-class LifecycleAwareProjectTest extends AbstractIntegrationSpec {
+class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
 
     def 'Different equal instances of LifecycleAwareProject bear the same state'() {
         given:
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'root'
             include(":a")
         """
-        buildFile << """
+        buildFile"""
             allprojects {
                 ext.foo = "bar"
             }
@@ -47,12 +47,12 @@ class LifecycleAwareProjectTest extends AbstractIntegrationSpec {
 
     def 'LifecycleAwareProject delegates hasProperty correctly'() {
         given:
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'root'
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile << """
+        buildFile"""
             project(':a') {
                 println("a contains foo: \${it.hasProperty('foo')}")
             }
@@ -63,5 +63,28 @@ class LifecycleAwareProjectTest extends AbstractIntegrationSpec {
 
         then:
         outputContains "a contains foo: true"
+    }
+
+    def 'LifecycleAwareProject delegates setProperty correctly'() {
+        given:
+        settingsFile """
+            rootProject.name = 'root'
+            include(":a")
+        """
+        file("a/build.gradle") << ""
+        buildFile"""
+            project(':a') {
+                foo='bar1'
+            }
+            project(':a') {
+                println("a foo=\$foo")
+            }
+        """
+
+        when:
+        run "help", "-Pfoo=bar"
+
+        then:
+        outputContains "a foo=bar1"
     }
 }

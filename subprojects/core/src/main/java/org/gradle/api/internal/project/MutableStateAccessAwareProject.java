@@ -141,6 +141,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @SuppressWarnings("unused") // used by Groovy dynamic dispatch
     protected abstract Object methodMissing(String name, Object args);
 
+    // used by Groovy dynamic dispatch
+    protected void propertyMissing(String name, Object args) {
+        onMutableStateAccess("setProperty");
+        delegate.setProperty(name, args);
+    }
+
+    // used by Groovy dynamic dispatch
     protected boolean hasPropertyMissing(String name) {
         onMutableStateAccess("hasProperty");
         return delegate.hasProperty(name);
