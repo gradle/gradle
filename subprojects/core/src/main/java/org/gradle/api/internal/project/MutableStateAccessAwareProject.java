@@ -98,7 +98,7 @@ import java.util.function.Function;
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
  * <p>
  * This class enables dynamic property and method dispatch on the `this` bean rather than on the {@link #delegate}.
- * If the dispatch on `this` fails, the control flow is delegated to {@link #propertyMissing(String)},
+ * If the dispatch on `this` fails, the control flow is delegated to {@link #propertyMissing(String)}, {@link #propertyMissing(String, Object)},
  * {@link #methodMissing(String, Object)} and {@link #hasPropertyMissing(String)} methods.
  * <p>
  * Instances of this class should be created via {@link org.gradle.internal.reflect.Instantiator} to ensure proper runtime decoration.
