@@ -18,10 +18,16 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Transform subject is either an initial artifact for the transform chain or a result of a previous transform step.
@@ -30,6 +36,10 @@ public abstract class TransformStepSubject implements Describable {
 
     public static TransformStepSubject initial(ResolvableArtifact artifact) {
         return new Initial(artifact);
+    }
+
+    public Collection<Task> getProducerTasks() {
+        return emptyList();
     }
 
     /**
@@ -54,6 +64,13 @@ public abstract class TransformStepSubject implements Describable {
 
         public Initial(ResolvableArtifact artifact) {
             this.artifact = artifact;
+        }
+
+        @Override
+        public Collection<Task> getProducerTasks() {
+            List<Task> tasks = new ArrayList<>();
+            artifact.visitProducerTasks(tasks::add);
+            return tasks;
         }
 
         @Override
