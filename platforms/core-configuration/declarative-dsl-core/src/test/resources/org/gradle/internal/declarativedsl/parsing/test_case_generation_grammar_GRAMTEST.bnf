@@ -1,0 +1,40 @@
+<statements> ::= [<statement>]
+<statement> ::= <assignment> | <expression>
+
+<assignment> ::= <directlyAssignableExpression> "=" <expression>
+<expression> ::= <postfixUnaryExpression>
+
+<directlyAssignableExpression> ::=
+    <postfixUnaryExpression> [<navigationSuffix>] |
+    <simpleIdentifier> |
+    <parenthesizedDirectlyAssignableExpression>
+
+<parenthesizedDirectlyAssignableExpression> ::= "(" <directlyAssignableExpression> ")"
+
+<postfixUnaryExpression> ::= <primaryExpression> [<postfixUnarySuffix>]
+
+<postfixUnarySuffix> ::= <callSuffix> | <navigationSuffix>
+
+<callSuffix> ::= [<valueArguments>] <annotatedLambda> | <valueArguments>
+
+<annotatedLambda> ::= "{" <statements> "}"
+
+<valueArguments> ::= "(" {<valueArgument> ["," <valueArgument>]}  ")"
+<valueArgument> ::= {<simpleIdentifier> "="} <expression>
+
+<parenthesizedExpression> ::= "(" <expression> ")"
+
+<navigationSuffix> ::= "." <simpleIdentifier>
+
+<primaryExpression> ::= <parenthesizedExpression> | <thisExpression> | <literalConstant> | <simpleIdentifier> | <stringLiteral>
+<simpleIdentifier> ::= <alphanum>
+<stringLiteral> ::= <alphanum>
+<literalConstant> ::= "null" | <booleanLiteral> | <number>
+<booleanLiteral> ::= "true" | "false"
+<thisExpression> ::= "this"
+
+<alphanum> ::= <alphas> | <number>
+<alphas> ::= <alpha> [<alphas>]
+<number> ::= <digit> [<number>]
+<alpha>	 ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z | A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z
+<digit>  ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
