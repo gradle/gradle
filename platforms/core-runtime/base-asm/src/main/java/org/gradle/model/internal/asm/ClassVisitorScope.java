@@ -22,7 +22,7 @@ import org.objectweb.asm.Type;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;

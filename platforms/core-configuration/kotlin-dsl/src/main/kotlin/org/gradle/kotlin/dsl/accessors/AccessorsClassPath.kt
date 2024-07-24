@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath

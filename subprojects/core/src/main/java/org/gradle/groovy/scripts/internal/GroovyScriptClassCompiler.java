@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassPath;

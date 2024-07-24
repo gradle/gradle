@@ -36,8 +36,8 @@ dependencies {
 
     implementation(projects.io)
     implementation(projects.time)
+    implementation(projects.baseAsm)
 
-    implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
