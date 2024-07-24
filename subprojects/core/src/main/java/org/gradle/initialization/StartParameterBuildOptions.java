@@ -76,6 +76,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheProblemsOption());
         options.add(new ConfigurationCacheOption());
         options.add(new ConfigurationCacheIgnoreInputsInTaskGraphSerialization());
+        options.add(new ConfigurationCacheKeyQualifier());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheIgnoredFileSystemCheckInputs());
         options.add(new ConfigurationCacheDebugOption());
@@ -616,6 +617,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    public static class ConfigurationCacheKeyQualifier extends StringBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.internal.key-qualifier";
+
+        public ConfigurationCacheKeyQualifier() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheKeyQualifier(value);
         }
     }
 }

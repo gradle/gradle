@@ -41,6 +41,7 @@ public class StartParameterInternal extends StartParameter {
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
+    private @Nullable String configurationCacheKeyQualifier;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -73,6 +74,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
+        p.configurationCacheKeyQualifier = configurationCacheKeyQualifier;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
@@ -219,6 +221,15 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
+    }
+
+    @Nullable
+    public String getConfigurationCacheKeyQualifier() {
+        return configurationCacheKeyQualifier;
+    }
+
+    public void setConfigurationCacheKeyQualifier(@Nullable String configurationCacheKeyQualifier) {
+        this.configurationCacheKeyQualifier = configurationCacheKeyQualifier;
     }
 
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {

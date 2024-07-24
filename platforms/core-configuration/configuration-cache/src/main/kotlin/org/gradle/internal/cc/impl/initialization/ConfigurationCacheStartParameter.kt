@@ -72,6 +72,9 @@ class ConfigurationCacheStartParameter(
      */
     val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
 
+    val keyQualifier: String?
+        get() = startParameter.configurationCacheKeyQualifier
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
