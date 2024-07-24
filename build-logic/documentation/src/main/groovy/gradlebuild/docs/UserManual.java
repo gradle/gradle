@@ -37,7 +37,7 @@ public abstract class UserManual {
      * Source of samples that can be inserted into the user manual
      *
      */
-    public abstract DirectoryProperty getSamples();
+    //public abstract DirectoryProperty getSamples();
 
     /**
      * Working directory for staging directory for intermediate user manual files
