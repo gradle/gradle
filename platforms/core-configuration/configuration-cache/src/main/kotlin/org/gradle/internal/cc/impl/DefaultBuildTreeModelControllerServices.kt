@@ -75,7 +75,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
 
         private
-        val configurationCacheForModels = InternalFlag("org.gradle.configuration-cache.internal.tooling-models", false)
+        val configurationCacheForModels = InternalFlag("org.gradle.configuration-cache.internal.tooling-models", true)
     }
 
     @Suppress("CyclomaticComplexMethod")
