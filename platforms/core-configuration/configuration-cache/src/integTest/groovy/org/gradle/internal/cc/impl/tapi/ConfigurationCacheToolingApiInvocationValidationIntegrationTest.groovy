@@ -31,7 +31,7 @@ class ConfigurationCacheToolingApiInvocationValidationIntegrationTest extends Ab
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModelFails()
 
         then:
@@ -41,7 +41,7 @@ class ConfigurationCacheToolingApiInvocationValidationIntegrationTest extends Ab
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModelFails()
 
         then:
@@ -64,7 +64,7 @@ class ConfigurationCacheToolingApiInvocationValidationIntegrationTest extends Ab
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModelFails()
 
         then:
@@ -74,7 +74,7 @@ class ConfigurationCacheToolingApiInvocationValidationIntegrationTest extends Ab
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModelFails()
 
         then:

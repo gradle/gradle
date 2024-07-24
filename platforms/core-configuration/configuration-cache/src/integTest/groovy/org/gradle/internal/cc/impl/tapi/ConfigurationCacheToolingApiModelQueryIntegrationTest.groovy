@@ -42,7 +42,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = fetchModel()
 
         then:
@@ -55,7 +55,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputContains("creating model for root project 'root'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = fetchModel()
 
         then:
@@ -70,7 +70,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
             myExtension.message = 'this is the root project'
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = fetchModel()
 
         then:
@@ -84,7 +84,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputContains("creating model for root project 'root'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = fetchModel()
 
         then:
@@ -113,7 +113,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -124,7 +124,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputContains("Execution of dummyTask")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -144,7 +144,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(SomeToolingModel, "help")
 
         then:
@@ -154,7 +154,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -175,7 +175,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCacheLenient()
+        withConfigurationCacheLenientForModels()
         def model = fetchModel()
 
         then:
@@ -186,7 +186,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         }
 
         when:
-        withConfigurationCacheLenient()
+        withConfigurationCacheLenientForModels()
         def model2 = fetchModel()
 
         then:
@@ -206,7 +206,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = fetchModel(GradleBuild)
 
         then:
@@ -223,7 +223,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputContains("configuring build")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = fetchModel(GradleBuild)
 
         then:
@@ -247,7 +247,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = fetchModel()
 
         then:
@@ -261,7 +261,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputContains("creating model for root project 'root'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = fetchModel()
 
         then:
@@ -273,7 +273,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputDoesNotContain("creating model")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = fetchModel(GradleProject)
 
         then:
@@ -287,7 +287,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputDoesNotContain("creating model")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = fetchModel(GradleProject)
 
         then:
@@ -299,7 +299,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         outputDoesNotContain("creating model")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = fetchModel()
 
         then:
@@ -342,7 +342,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -356,7 +356,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         """
 
         and:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -366,7 +366,7 @@ class ConfigurationCacheToolingApiModelQueryIntegrationTest extends AbstractConf
         }
 
         and:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:

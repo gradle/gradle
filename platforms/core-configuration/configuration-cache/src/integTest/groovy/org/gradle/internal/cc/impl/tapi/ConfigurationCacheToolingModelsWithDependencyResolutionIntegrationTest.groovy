@@ -50,7 +50,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -66,7 +66,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -83,7 +83,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("a/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -119,7 +119,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -134,7 +134,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -152,7 +152,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
                 implementation(project(":b"))
             }
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -168,7 +168,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -184,7 +184,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("a/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -222,7 +222,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -237,7 +237,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -255,7 +255,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
                 implementation(project(":b"))
             }
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -271,7 +271,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -287,7 +287,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("a/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -328,7 +328,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -343,7 +343,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -358,7 +358,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         when:
         file("a/build.gradle").replace('implementation(project(":b"))', "")
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -374,7 +374,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -390,7 +390,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("a/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -431,7 +431,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -446,7 +446,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -462,7 +462,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("c/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -478,7 +478,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -494,7 +494,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("b/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -542,7 +542,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -558,7 +558,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -577,7 +577,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
                 implementation(project(":d"))
             }
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -623,7 +623,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -647,7 +647,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -672,7 +672,7 @@ class ConfigurationCacheToolingModelsWithDependencyResolutionIntegrationTest ext
         file("a/build.gradle") << """
             // some change
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:

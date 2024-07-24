@@ -16,10 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.intellij.lang.annotations.Language
 
 abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
@@ -46,7 +46,7 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
     }
 
     void withConfigurationCacheLenient(String... moreExecuterArgs) {
-        executer.withArguments(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING,WARN_PROBLEMS_CLI_OPT, *moreExecuterArgs)
+        executer.withArguments(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, WARN_PROBLEMS_CLI_OPT, *moreExecuterArgs)
     }
 
     void configurationCacheRun(String... tasks) {

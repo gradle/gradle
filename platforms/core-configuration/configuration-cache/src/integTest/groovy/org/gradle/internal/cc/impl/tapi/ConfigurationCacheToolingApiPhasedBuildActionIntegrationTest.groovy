@@ -45,7 +45,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -66,7 +66,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         outputContains("creating model for project ':a'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -88,7 +88,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
             // some change
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -124,7 +124,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             // Empty list means "run tasks defined by build logic or default tasks"
             forTasks([])
@@ -148,7 +148,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         outputContains("creating model for project ':a'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks([])
         }
@@ -184,7 +184,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks(["thing"])
         }
@@ -208,7 +208,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks(["thing"])
         }
@@ -244,7 +244,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -260,7 +260,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models2 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -276,7 +276,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models3 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -289,7 +289,7 @@ class ConfigurationCacheToolingApiPhasedBuildActionIntegrationTest extends Abstr
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models4 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:

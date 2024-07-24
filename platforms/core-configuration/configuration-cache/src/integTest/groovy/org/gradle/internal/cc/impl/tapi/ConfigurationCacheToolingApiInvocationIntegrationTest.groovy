@@ -145,7 +145,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         buildWithSomeToolingModelAndScriptLogStatement()
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = fetchModel()
 
         then:
@@ -157,7 +157,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = fetchModel()
 
         then:
@@ -172,7 +172,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         buildWithSomeToolingModelAndScriptLogStatement()
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
@@ -184,7 +184,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
@@ -200,7 +200,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         buildWithSomeToolingModelAndScriptLogStatement()
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
@@ -213,7 +213,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:

@@ -47,7 +47,7 @@ class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends Abstrac
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -67,7 +67,7 @@ class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends Abstrac
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -81,7 +81,7 @@ class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends Abstrac
             myExtension.message = "updated message for root"
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -102,7 +102,7 @@ class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends Abstrac
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -116,7 +116,7 @@ class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends Abstrac
             myExtension.message = "updated message for :a"
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:

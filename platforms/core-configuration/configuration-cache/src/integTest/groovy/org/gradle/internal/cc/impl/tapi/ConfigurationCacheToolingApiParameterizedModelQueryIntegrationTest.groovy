@@ -35,7 +35,7 @@ class ConfigurationCacheToolingApiParameterizedModelQueryIntegrationTest extends
 
     def "can cache parameterized models"() {
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
 
         then:
@@ -55,7 +55,7 @@ class ConfigurationCacheToolingApiParameterizedModelQueryIntegrationTest extends
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
 
         then:
@@ -66,7 +66,7 @@ class ConfigurationCacheToolingApiParameterizedModelQueryIntegrationTest extends
 
     def "can cache parameterized models with different parameters"() {
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
 
         then:
@@ -75,7 +75,7 @@ class ConfigurationCacheToolingApiParameterizedModelQueryIntegrationTest extends
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch2", "fetch1"]))
 
         then:
@@ -84,7 +84,7 @@ class ConfigurationCacheToolingApiParameterizedModelQueryIntegrationTest extends
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
 
         then:
@@ -99,7 +99,7 @@ class ConfigurationCacheToolingApiParameterizedModelQueryIntegrationTest extends
         model1[":"][1].message == "fetch2 It works from project :"
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch2", "fetch1"]))
 
         then:

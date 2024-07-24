@@ -29,4 +29,12 @@ class AbstractConfigurationCacheToolingApiIntegrationTest extends AbstractConfig
     GradleExecuter createExecuter() {
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
     }
+
+    void withConfigurationCacheForModels(String... moreExecuterArgs) {
+        withConfigurationCache("-Dorg.gradle.configuration-cache.internal.tooling-models=true", *moreExecuterArgs)
+    }
+
+    void withConfigurationCacheLenientForModels(String... moreExecuterArgs) {
+        withConfigurationCacheLenient("-Dorg.gradle.configuration-cache.internal.tooling-models=true", *moreExecuterArgs)
+    }
 }
