@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.encryption.impl
+package org.gradle.internal.exceptions.encryption;
 
-import org.gradle.api.GradleException
-import org.gradle.internal.exceptions.Contextual
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
+
+import javax.annotation.Nullable;
 
 /**
  * This exception can be thrown when an error occurs during the setup or execution of encryption work.
  */
 @Contextual
-internal
-class EncryptionException(message: String, cause: Throwable? = null) : GradleException(message, cause)
+public class EncryptionException extends GradleException {
+
+    public EncryptionException(String message, @Nullable Throwable cause) {
+        super(message, cause);
+    }
+}

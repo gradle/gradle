@@ -19,6 +19,7 @@ package org.gradle.internal.encryption.impl
 import org.gradle.api.InvalidUserDataException
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.exceptions.encryption.EncryptionException
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.core.getInternalString
