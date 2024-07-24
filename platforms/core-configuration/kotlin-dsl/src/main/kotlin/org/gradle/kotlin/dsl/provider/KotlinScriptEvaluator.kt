@@ -280,7 +280,7 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost)
+            val output = executionEngineFor(scriptHost)
                 .createRequest(
                     KotlinScriptCompilationAndInstrumentation(
                         scriptHost.scriptSource,
@@ -300,9 +300,9 @@ class StandardKotlinScriptEvaluator(
                 )
                 .execute()
                 .getOutputAs(Output::class.java)
-                .peek {
-                    propertyUpgradeReportConfig.reportCollector.collect(it.propertyUpgradeReport)
-                }.get().instrumentedOutput
+                .get()
+            propertyUpgradeReportConfig.reportCollector.collect(output.propertyUpgradeReport)
+            output.instrumentedOutput
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
