@@ -24,7 +24,7 @@ val awsS3Version = "1.12.651"
 val bouncycastleVersion = "1.78.1"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
-val junit5Version = "5.8.2"
+val junit5Version = "5.9.3"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-26"
@@ -126,10 +126,6 @@ dependencies {
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
-        api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
-        api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
-        api(libs.junitPlatform)         { version { strictly("1.8.2") }}
-        api(libs.junitPlatformEngine)   { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}

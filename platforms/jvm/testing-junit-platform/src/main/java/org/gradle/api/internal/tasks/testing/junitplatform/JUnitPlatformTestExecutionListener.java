@@ -262,7 +262,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         Set<TestIdentifier> result = new LinkedHashSet<>();
         Optional<String> parentId = testIdentifier.getParentId();
         while (parentId.isPresent()) {
-            TestIdentifier parent = currentTestPlan.getTestIdentifier(parentId.get());
+            TestIdentifier parent = getTestIdentifier(currentTestPlan, parentId.get());
             result.add(parent);
             parentId = parent.getParentId();
         }
@@ -279,9 +279,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (isTestClassIdentifier(current)) {
                 return current;
             }
-            current = current.getParentId().map(currentTestPlan::getTestIdentifier).orElse(null);
+            current = current.getParentId().map(uniqueId -> getTestIdentifier(currentTestPlan, uniqueId)).orElse(null);
         }
         return null;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static TestIdentifier getTestIdentifier(TestPlan testPlan, String uniqueId) {
+        // Starting with JUnit 5.10 this is deprecated
+        // This should be replaced by testPlan.getTestIdentifier(UniqueId.parse(uniqueId))
+        // But this fails with older JUnit 5 versions supported by Gradle that don't have the new function
+        return testPlan.getTestIdentifier(uniqueId);
     }
 
     private boolean isTestClassIdentifier(TestIdentifier testIdentifier) {
