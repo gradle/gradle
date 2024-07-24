@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 [[sharing_build_logic_between_subprojects]]
 = Sharing Build Logic between Subprojects
+:keywords: buildsrc,build-logic
 
 Subprojects in a multi-project build typically share some common dependencies.
 
