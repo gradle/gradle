@@ -502,7 +502,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         }
 
         def additionalCapabilities = location.name.contains("jdk")
-            ? EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+            ? JavaInstallationCapability.JDK_CAPABILITIES
             : Collections.<JavaInstallationCapability> emptySet()
 
         new JvmMetadataWithAddedCapabilities(

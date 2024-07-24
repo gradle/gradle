@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
@@ -57,7 +58,7 @@ public class JavaToolchainQueryService {
 
         private ToolchainLookupKey(JavaToolchainSpecInternal.Key specKey, Set<JavaInstallationCapability> requiredCapabilities) {
             this.specKey = specKey;
-            this.requiredCapabilities = requiredCapabilities;
+            this.requiredCapabilities = Sets.immutableEnumSet(requiredCapabilities);
         }
 
         @Override

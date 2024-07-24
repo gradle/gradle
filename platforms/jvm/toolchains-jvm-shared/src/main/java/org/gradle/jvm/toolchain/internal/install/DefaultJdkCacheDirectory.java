@@ -29,6 +29,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.RenderingUtils;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -48,7 +49,6 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -234,12 +234,23 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         return detector.getMetadata(InstallationLocation.autoProvisioned(javaHome, "provisioned toolchain"));
     }
 
+    private static final String JDK_CAPABILITIES_DISPLAY = JavaInstallationCapability.JDK_CAPABILITIES.stream()
+            .map(cap -> "the " + cap.toDisplayName())
+            .collect(RenderingUtils.oxfordJoin("and"));
+
+    /**
+     * Validates that the metadata of the provisioned JDK matches the specification. This also requires {@link JavaInstallationCapability#JDK_CAPABILITIES} to be present.
+     *
+     * @param spec the specification to validate against
+     * @param uri the URI of the JDK archive
+     * @param metadata the metadata of the provisioned JDK
+     */
     private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
-        // For now, require that all provisioned JDKs have a compiler and javadoc tool
-        if (!new JvmInstallationMetadataMatcher(spec, EnumSet.of(JavaInstallationCapability.JAVA_COMPILER, JavaInstallationCapability.JAVADOC_TOOL)).test(metadata)) {
+        if (!new JvmInstallationMetadataMatcher(spec, JavaInstallationCapability.JDK_CAPABILITIES).test(metadata)) {
             // Log the metadata for debugging purposes
-            LOGGER.warn("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {}", uri, spec.getDisplayName(), metadata);
-            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must contain 'javac' and 'javadoc'.");
+            LOGGER.info("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {} and capabilities {}", uri, spec.getDisplayName(), metadata, metadata.getCapabilities());
+            // Make a readable version of the capabilities for the
+            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must have " + JDK_CAPABILITIES_DISPLAY + ".");
         }
     }
 

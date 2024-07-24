@@ -66,7 +66,7 @@ class ToolchainReportRendererTest extends Specification {
                 "jvmName", "25.292-b01", "jvmVendor",
                 "myArch"
             ),
-            EnumSet.of(JavaInstallationCapability.JAVA_COMPILER, JavaInstallationCapability.JAVADOC_TOOL)
+            JavaInstallationCapability.JDK_CAPABILITIES
         )
         installation.source >> "SourceSupplier"
 

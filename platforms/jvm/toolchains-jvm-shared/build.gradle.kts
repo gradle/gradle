@@ -32,6 +32,8 @@ dependencies {
     api(projects.persistentCache)
     api(projects.core)
 
+    implementation(projects.functional)
+
     implementation(projects.logging)
     implementation(libs.guava)
     implementation(libs.slf4jApi)

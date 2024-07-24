@@ -64,7 +64,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,8 +72,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL;
-import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
 /**
@@ -85,11 +82,6 @@ public abstract class AvailableJavaHomes {
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
-
-    /**
-     * All capabilities needed by our uses of a JDK.
-     */
-    private static final EnumSet<JavaInstallationCapability> JDK_CAPABILITIES = EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL);
 
     @Nullable
     public static Jvm getJdk7() {
@@ -206,7 +198,7 @@ public abstract class AvailableJavaHomes {
 
     public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
         return getAvailableJvmMetadatas().stream()
-            .filter(input -> input.getCapabilities().containsAll(JDK_CAPABILITIES))
+            .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
             .filter(filter::isSatisfiedBy)
             .map(AvailableJavaHomes::jvmFromMetadata)
             .collect(Collectors.toList());
@@ -306,7 +298,7 @@ public abstract class AvailableJavaHomes {
      */
     @Nullable
     public static Jvm getDifferentVersionJreOnly() {
-        return getSupportedJvm(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && Collections.disjoint(element.getCapabilities(), JDK_CAPABILITIES));
+        return getSupportedJvm(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && Collections.disjoint(element.getCapabilities(), JavaInstallationCapability.JDK_CAPABILITIES));
     }
 
     /**

@@ -17,15 +17,13 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.base.Strings;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.util.EnumSet;
 import java.util.List;
 
-import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL;
-import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
@@ -58,7 +56,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         printAttribute(indent, "Language Version", metadata.getLanguageVersion().getMajorVersion());
         printAttribute(indent, "Vendor", metadata.getVendor().getDisplayName());
         printAttribute(indent, "Architecture", metadata.getArchitecture());
-        printAttribute(indent, "Is JDK", String.valueOf(metadata.getCapabilities().containsAll(EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL))));
+        printAttribute(indent, "Is JDK", String.valueOf(metadata.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES)));
     }
 
     private void printAttribute(String indent, String key, String value) {

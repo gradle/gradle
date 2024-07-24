@@ -137,7 +137,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
     JvmInstallationMetadata jvmMetadata(String implementationVersion, boolean isJdk = false, KnownJvmVendor jvmVendor = ADOPTOPENJDK, String installPath = null) {
         return Mock(JvmInstallationMetadata) {
             getJavaHome() >> getJavaHome(implementationVersion, isJdk, installPath).toPath()
-            getCapabilities() >> (isJdk ? EnumSet.of(JavaInstallationCapability.JAVA_COMPILER, JavaInstallationCapability.JAVADOC_TOOL) : Collections.emptySet())
+            getCapabilities() >> (isJdk ? JavaInstallationCapability.JDK_CAPABILITIES : Collections.emptySet())
             getVendor() >> jvmVendor.asJvmVendor()
             getJavaVersion() >> implementationVersion
         }

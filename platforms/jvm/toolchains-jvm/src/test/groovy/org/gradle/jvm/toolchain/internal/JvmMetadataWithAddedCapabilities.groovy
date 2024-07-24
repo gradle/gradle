@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Sets
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 
@@ -26,13 +28,13 @@ class JvmMetadataWithAddedCapabilities implements JvmInstallationMetadata {
 
     JvmMetadataWithAddedCapabilities(JvmInstallationMetadata metadata, Set<JavaInstallationCapability> additionalCapabilities) {
         this.metadata = metadata
-        this.additionalCapabilities = additionalCapabilities
+        this.additionalCapabilities = ImmutableSet.copyOf(additionalCapabilities)
     }
 
     @Override
     Set<JavaInstallationCapability> getCapabilities() {
         EnumSet<JavaInstallationCapability> capabilities = EnumSet.copyOf(metadata.getCapabilities())
         capabilities.addAll(additionalCapabilities)
-        return capabilities
+        return Sets.immutableEnumSet(capabilities)
     }
 }

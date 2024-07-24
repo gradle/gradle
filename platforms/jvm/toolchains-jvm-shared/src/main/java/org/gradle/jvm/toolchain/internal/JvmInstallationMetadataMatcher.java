@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVendor;
@@ -37,7 +38,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
         this.languageVersion = languageVersion;
         this.vendorSpec = (DefaultJvmVendorSpec)vendorSpec;
         this.jvmImplementation = jvmImplementation;
-        this.requiredCapabilities = requiredCapabilities;
+        this.requiredCapabilities = ImmutableSet.copyOf(requiredCapabilities);
     }
 
     public JvmInstallationMetadataMatcher(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {

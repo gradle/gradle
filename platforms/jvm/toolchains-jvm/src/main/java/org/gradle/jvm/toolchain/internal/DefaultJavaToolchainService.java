@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -29,7 +30,6 @@ import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails.JavaTool;
 
 import javax.inject.Inject;
-import java.util.EnumSet;
 
 public class DefaultJavaToolchainService implements JavaToolchainService {
 
@@ -61,7 +61,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec) {
-        return queryService.findMatchingToolchain(spec, EnumSet.of(JavaInstallationCapability.JAVA_COMPILER))
+        return queryService.findMatchingToolchain(spec, Sets.immutableEnumSet(JavaInstallationCapability.JAVA_COMPILER))
             .withSideEffect(toolchain -> emitEvent(toolchain, JavaTool.COMPILER))
             .map(javaToolchain -> new DefaultToolchainJavaCompiler(javaToolchain, compilerFactory));
     }
@@ -85,7 +85,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec) {
-        return queryService.findMatchingToolchain(spec, EnumSet.of(JavaInstallationCapability.JAVADOC_TOOL))
+        return queryService.findMatchingToolchain(spec, Sets.immutableEnumSet(JavaInstallationCapability.JAVADOC_TOOL))
             .withSideEffect(toolchain -> emitEvent(toolchain, JavaTool.JAVADOC))
             .map(javaToolchain -> toolFactory.create(JavadocTool.class, javaToolchain));
     }
