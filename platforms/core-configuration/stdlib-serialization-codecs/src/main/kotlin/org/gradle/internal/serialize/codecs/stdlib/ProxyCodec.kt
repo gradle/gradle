@@ -16,11 +16,11 @@
 
 package org.gradle.internal.serialize.codecs.stdlib
 
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.Decoding
 import org.gradle.internal.serialize.graph.codecs.Encoding
 import org.gradle.internal.serialize.graph.codecs.EncodingProducer
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readClassArray
 import org.gradle.internal.serialize.graph.writeClassArray
 import java.lang.reflect.InvocationHandler
@@ -32,15 +32,21 @@ object ProxyCodec : EncodingProducer, Decoding {
         ProxyEncoding.takeIf { Proxy.isProxyClass(type) }
 
     override suspend fun ReadContext.decode(): Any {
+        val proxyClassLoader = readClassLoader()
         val interfaces = readClassArray()
         val handler = read() as InvocationHandler
-        return Proxy.newProxyInstance(interfaces.first().classLoader, interfaces, handler)
+        return Proxy.newProxyInstance(
+            proxyClassLoader ?: interfaces.first().classLoader,
+            interfaces,
+            handler
+        )
     }
 }
 
 
 object ProxyEncoding : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
+        writeClassLoader(value.javaClass.classLoader)
         writeClassArray(value.javaClass.interfaces)
         write(Proxy.getInvocationHandler(value))
     }
