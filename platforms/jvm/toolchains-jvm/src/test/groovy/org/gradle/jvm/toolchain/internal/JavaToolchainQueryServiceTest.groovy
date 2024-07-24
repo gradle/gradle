@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.GradleException
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
@@ -38,6 +39,8 @@ import spock.lang.Specification
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -148,6 +151,49 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.isPresent()
         toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM
         toolchain.get().vendor == "IBM"
+    }
+
+    def "uses jdk if requested via capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre.hs-adpt", "7.9.jre", "7.7.jre", "14.0.2+12.jre", "8.0.1.jdk"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.jdk")
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
+    }
+
+    def "fails when no jdk is present and requested capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre", "7.9.jre", "7.7.jre", "14.0.2+12.jre"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+
+        queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        def e = thrown(NoToolchainAvailableException)
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=8, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
@@ -455,16 +501,23 @@ class JavaToolchainQueryServiceTest extends Specification {
             jvmName = "J9"
         }
 
-        JvmInstallationMetadata.from(
-            location.absoluteFile,
-            languageVersion.replace("zzz", "999"),
-            vendor,
-            "",
-            "",
-            jvmName,
-            "",
-            "",
-            ""
+        def additionalCapabilities = location.name.contains("jdk")
+            ? JavaInstallationCapability.JDK_CAPABILITIES
+            : Collections.<JavaInstallationCapability> emptySet()
+
+        new JvmMetadataWithAddedCapabilities(
+            JvmInstallationMetadata.from(
+                location.absoluteFile,
+                languageVersion.replace("zzz", "999"),
+                vendor,
+                "",
+                "",
+                jvmName,
+                "",
+                "",
+                ""
+            ),
+            additionalCapabilities
         )
     }
 
