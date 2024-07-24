@@ -119,6 +119,28 @@ class DefaultServiceRegistryLazyServiceTest extends Specification {
             "Cannot create service of type ServiceWithLazyDependency using method <anonymous>.create() as required service of type LazyService<TestService> for parameter #1 is not available."
     }
 
+    def "lazy service is unavailable when a lazy transitive dependency service is unavailable"() {
+        given:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            ServiceWithLazyDependency createWithMissingLazyDependency(LazyService<TestService> missing) { unreachable() }
+
+            @Provides
+            String create(LazyService<ServiceWithLazyDependency> lazy) { unreachable() }
+        })
+
+        when:
+        registry.get(String)
+        then:
+        def e = thrown(ServiceCreationException)
+        withoutTestClassName(e.message) ==
+            "Cannot create service of type String using method <anonymous>.create() as there is a problem with parameter #1 of type LazyService<ServiceWithLazyDependency>."
+
+        def cause = e.cause as ServiceCreationException
+        withoutTestClassName(cause.message) ==
+            "Cannot create service of type ServiceWithLazyDependency using method <anonymous>.createWithMissingLazyDependency() as required service of type LazyService<TestService> for parameter #1 is not available."
+    }
+
     def "lazy service cannot be a return type of a provider method"() {
         when:
         registry.addProvider(new ServiceRegistrationProvider() {
