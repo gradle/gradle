@@ -4998,7 +4998,6 @@ Class <org.gradle.util.internal.SupportedEncryptionAlgorithm$AlgorithmParameters
 Class <org.gradle.util.internal.SupportedEncryptionAlgorithm$DefaultEncryptionAlgorithm> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SupportedEncryptionAlgorithm.java:0)
 Class <org.gradle.util.internal.SupportedEncryptionAlgorithm$GcmAlgorithmParameters> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SupportedEncryptionAlgorithm.java:0)
 Class <org.gradle.util.internal.SupportedEncryptionAlgorithm$IvOnlyAlgorithmParameters> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SupportedEncryptionAlgorithm.java:0)
-Class <org.gradle.util.internal.TextUtil$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TextUtil.java:0)
 Class <org.gradle.util.internal.TextUtil> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TextUtil.java:0)
 Class <org.gradle.util.internal.ToBeImplemented> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ToBeImplemented.java:0)
 Class <org.gradle.util.internal.TreeVisitor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TreeVisitor.java:0)

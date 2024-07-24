@@ -15,7 +15,8 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    // Uninstrumented since it is a mix of Groovy and Java code
+    id("gradlebuild.distribution.uninstrumented.api-java")
 }
 
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"

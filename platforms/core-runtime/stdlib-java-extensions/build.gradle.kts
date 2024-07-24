@@ -1,5 +1,5 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.uninstrumented.api-java")
     id("gradlebuild.publish-public-libraries")
 }
 

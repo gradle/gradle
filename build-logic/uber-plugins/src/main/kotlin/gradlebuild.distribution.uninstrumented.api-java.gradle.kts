@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,5 +18,6 @@ plugins {
     id("gradlebuild.java-library")
     id("gradlebuild.distribution-module")
     id("gradlebuild.distribution.api")
-    id("gradlebuild.instrumented-java-project")
 }
+
+description = "Gradle API project that doesn't apply instrumentation"
