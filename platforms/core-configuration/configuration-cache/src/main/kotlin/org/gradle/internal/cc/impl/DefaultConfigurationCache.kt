@@ -333,7 +333,8 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.firstReason.render()
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.UPDATE to description
+                    val action = if (startParameter.isIsolatedProjects) ConfigurationCacheAction.UPDATE else ConfigurationCacheAction.STORE
+                    action to description
                 }
 
                 is CheckedFingerprint.Valid -> {
