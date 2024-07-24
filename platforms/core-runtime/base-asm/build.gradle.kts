@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 description = "Base asm classes and utilities for Gradle's internal use"

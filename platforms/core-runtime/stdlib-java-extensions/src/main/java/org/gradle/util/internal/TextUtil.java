@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,13 @@
 
 package org.gradle.util.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -38,13 +32,6 @@ import java.util.regex.Pattern;
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
-    private static final Joiner KEBAB_JOINER = Joiner.on("-");
-    private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            return input.toLowerCase();
-        }
-    };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
 
     /**
@@ -65,7 +52,7 @@ public class TextUtil {
      * Returns the line separator for this platform.
      */
     public static String getPlatformLineSeparator() {
-        return SystemProperties.getInstance().getLineSeparator();
+        return System.getProperty("line.separator");
     }
 
     /**
@@ -338,7 +325,15 @@ public class TextUtil {
     }
 
     public static String camelToKebabCase(String camelCase) {
-        return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
+        StringBuilder stringBuilder = new StringBuilder();
+        String[] split = UPPER_CASE.split(camelCase);
+        for (int i = 0; i < split.length; i++) {
+            stringBuilder.append(split[i].toLowerCase());
+            if (i < split.length - 1) {
+                stringBuilder.append("-");
+            }
+        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -373,6 +368,6 @@ public class TextUtil {
     }
 
     public static String screamingSnakeToKebabCase(String text) {
-        return StringUtils.replace(toLowerCaseLocaleSafe(text), "_", "-");
+        return toLowerCaseLocaleSafe(text).replace("_", "-");
     }
 }

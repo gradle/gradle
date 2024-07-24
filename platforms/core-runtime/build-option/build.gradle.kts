@@ -12,6 +12,4 @@ dependencies {
     api(projects.cli)
     api(projects.stdlibJavaExtensions)
     api(projects.messaging)
-
-    implementation(projects.baseServices)
 }

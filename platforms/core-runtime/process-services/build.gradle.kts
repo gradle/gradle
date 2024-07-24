@@ -1,5 +1,6 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    // Uninstrumented since it compiles to Java 6
+    id("gradlebuild.distribution.uninstrumented.api-java")
 }
 
 description = "Process execution abstractions."

@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -31,7 +31,6 @@ dependencies {
     implementation(libs.guava)
 
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.baseServices)
     implementation(projects.baseAsm)
 
     testCompileOnly(libs.jetbrainsAnnotations)
