@@ -21,6 +21,13 @@ import com.google.common.collect.Sets
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 
+/**
+ * Implements a delegating JvmInstallationMetadata but with additional capabilities beyond what the original already contains.
+ *
+ * <p>
+ * In particular, this is useful for adding JDK capabilities to what would normally be a JRE installation, as creating files in the required locations would be verbose in tests.
+ * </p>
+ */
 class JvmMetadataWithAddedCapabilities implements JvmInstallationMetadata {
     @Delegate
     private final JvmInstallationMetadata metadata
