@@ -398,7 +398,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         validateMutation(MutationType.HIERARCHY);
         for (Configuration extended : extendsFrom) {
             DefaultConfiguration other = Objects.requireNonNull(Cast.uncheckedCast(extended));
-            if (!Objects.equals(this.identityPath.getParent(), other.identityPath.getParent())) {
+            if (!Objects.equals(this.getIdentity().getProjectPath(), other.getIdentity().getProjectPath())) {
                 DeprecationLogger.deprecateBehaviour("Configuration '" + this.getName() + "' in project '" + this.identityPath.getParent() + "' extends configuration '" + other.getName() + "' in project '" + other.identityPath.getParent() + "'.")
                     .withAdvice("Configurations can only extend from configurations in the same project.")
                     .willBeRemovedInGradle9()
