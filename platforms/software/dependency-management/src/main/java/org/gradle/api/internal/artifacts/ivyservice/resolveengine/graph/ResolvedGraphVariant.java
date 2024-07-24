@@ -25,7 +25,7 @@ public interface ResolvedGraphVariant {
      * Returns a simple id for this node, unique across all nodes in the same graph.
      * This id cannot be used across graphs.
      */
-    Long getNodeId();
+    long getNodeId();
 
     VariantGraphResolveState getResolveState();
 

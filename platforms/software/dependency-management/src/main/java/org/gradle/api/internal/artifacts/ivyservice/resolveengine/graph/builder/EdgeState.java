@@ -417,7 +417,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Long getFromVariant() {
+    public long getFromVariant() {
         return from.getNodeId();
     }
 
