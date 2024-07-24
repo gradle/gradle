@@ -174,7 +174,7 @@ class DefaultServiceRegistryLazyServiceTest extends Specification {
             "Locating services with type LazyService<TestService> is not supported."
     }
 
-    def "lazy services aggregation is not supported"() {
+    def "aggregation wrapped with lazy is not supported"() {
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
