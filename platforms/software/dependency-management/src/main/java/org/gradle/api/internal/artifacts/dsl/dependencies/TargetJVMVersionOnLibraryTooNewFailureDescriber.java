@@ -59,8 +59,10 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
     @Override
     public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
+        JavaVersion requestedJVMVersion = getJVMVersion(failure);
+
         String message = buildNeedsNewerJDKFailureMsg(failure.describeRequestTarget(), minJVMVersionSupported, failure);
-        List<String> resolutions = buildResolutions(suggestChangeLibraryVersion(failure.describeRequestTarget(), minJVMVersionSupported));
+        List<String> resolutions = buildResolutions(suggestChangeLibraryVersion(failure.describeRequestTarget(), requestedJVMVersion));
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
