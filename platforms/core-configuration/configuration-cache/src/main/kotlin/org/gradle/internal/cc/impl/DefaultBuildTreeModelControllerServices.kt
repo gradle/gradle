@@ -73,6 +73,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
          */
         private
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
+
+        private
+        val configurationCacheForModels = InternalFlag("org.gradle.configuration-cache.internal.tooling-models", false)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
@@ -87,14 +90,16 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val configurationCache = isolatedProjects || startParameter.configurationCache.get()
+        val configurationCacheRequested = startParameter.configurationCache.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
-            // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
+            // When creating a model, disable certain features - only enable configure on demand when isolated projects is enabled
+            val configurationCacheForModels = configurationCacheRequested && options.getOption(configurationCacheForModels).get()
+            val configurationCache = isolatedProjects || configurationCacheForModels
             BuildModelParameters(
                 parallelProjectExecution,
                 isolatedProjects,
@@ -108,6 +113,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 configurationCacheLogLevel
             )
         } else {
+            val configurationCache = isolatedProjects || configurationCacheRequested
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
