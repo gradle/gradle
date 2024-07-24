@@ -201,7 +201,6 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         def updatedModel = fetchModel(GradleProject)
 
         then:
-        // TODO:isolated unexpected output: Configuration cache entry updated for no projects, no projects up-to-date.
         fixture.assertStateRecreated {
             fileChanged("a/build.gradle")
             projectConfigured = 3
@@ -239,7 +238,6 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
 
         then:
         outputContains("updated :a")
-        // TODO:isolated unexpected output: Configuration cache entry updated for no projects, no projects up-to-date.
         fixture.assertStateRecreated {
             fileChanged("a/build.gradle")
             projectConfigured = 3
