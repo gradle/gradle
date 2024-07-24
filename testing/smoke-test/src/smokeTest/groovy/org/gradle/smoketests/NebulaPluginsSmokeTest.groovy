@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -277,7 +278,10 @@ class NebulaPluginDeprecations extends BaseDeprecations {
     }
 
     void expectNebulaDependencyLockPluginDeprecations() {
-        expectDeprecation("Gradle.buildFinished", "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/271")
-        expectDeprecation("TaskExecutionGraph.addTaskExecutionListener", "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/247")
+        if (GradleContextualExecuter.isNotConfigCache()) {
+            // with CC, these are reported as config cache problems only
+            expectDeprecation("Gradle.buildFinished", "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/271")
+            expectDeprecation("TaskExecutionGraph.addTaskExecutionListener", "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/247")
+        }
     }
 }
