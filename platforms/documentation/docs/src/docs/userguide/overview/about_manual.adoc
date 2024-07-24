@@ -30,7 +30,7 @@ The Gradle User Manual is broken down into the following sections:
 <<getting_started_eng.adoc#introduction,Running Gradle Builds>> :: Learn Gradle basics and how to use Gradle to build your project.
 <<build_lifecycle.adoc#build_lifecycle,Authoring Gradle Builds>> :: Develop tasks and plugins to customize your build.
 <<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>> :: Use Gradle with your Java project.
-<<dependency_management_terminology.adoc#dependency_management_terminology,Working with Dependencies>> :: Add dependencies to your build.
+<<glossary.adoc#dependency_management_terminology,Working with Dependencies>> :: Add dependencies to your build.
 <<performance.adoc#performance_gradle,Optimizing Builds>> :: Use caches to optimize your build and understand the Gradle daemon, incremental builds and file system watching.
 
 [[reference]]

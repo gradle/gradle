@@ -270,7 +270,7 @@ For dynamic versions, the `maven-metadata.xml` for the corresponding module need
 Previously, Gradle would also look for a default artifact (`.jar`).
 This behavior often caused a large number of unnecessary requests when using multiple repositories that slowed builds down.
 
-You can opt into the old behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata source>>.
+You can opt into the old behavior for selected repositories by adding the `artifact()` <<declaring_repositories_adv.adoc#sec:supported_metadata_sources,metadata source>>.
 
 ==== Changing the pom `packaging` property no longer changes the artifact extension
 

@@ -56,7 +56,7 @@ You can add code to your Java project from an external library such as `com.goog
 == 2. Understanding Configurations
 
 A developer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
-Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
+Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 == 3. Declaring Repositories
 

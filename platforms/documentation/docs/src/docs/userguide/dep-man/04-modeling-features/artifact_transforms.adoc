@@ -15,7 +15,7 @@
 [[sec:abm_artifact_transforms]]
 = Transforming dependency artifacts on resolution
 
-As described in <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,different kinds of configurations>>, there may be different variants for the same dependency.
+As described in <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,different kinds of configurations>>, there may be different variants for the same dependency.
 For example, an external Maven dependency has a variant which should be used when compiling against the dependency (`java-api`), and a variant for running an application which uses the dependency (`java-runtime`).
 A project dependency has even more variants, for example the classes of the project which are used for compilation are available as classes directories (`org.gradle.usage=java-api, org.gradle.libraryelements=classes`) or as JARs (`org.gradle.usage=java-api, org.gradle.libraryelements=jar`).
 

@@ -55,9 +55,9 @@ Note:
 
 1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
 2. Gradle offers several _configuration_ options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
-See <<dependency-configurations.adoc#dependency-configurations, Dependency Configurations>>.
+See <<dependency_configurations.adoc#dependency-configurations, Dependency Configurations>>.
 3. You can specify repositories where Gradle should look for dependencies in your build file.
-See <<declaring-repositories.adoc#declaring-repositories, Declaring Repositories>>.
+See <<declaring_repositories_adv.adoc#declaring-repositories, Declaring Repositories>>.
 
 [[sec:dependency-types]]
 == Understanding types of dependencies
@@ -99,7 +99,7 @@ dependencies {
 In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
 Instead, you might host these dependencies on a shared drive or to check them into version control alongside the project source code.
 
-These are known as file dependencies because they represent files without any <<dependency_management_terminology.adoc#sub:terminology_module_metadata,metadata>> (such as information about transitive dependencies, origin, or author) attached to them.
+These are known as file dependencies because they represent files without any <<glossary.adoc#sub:terminology_module_metadata,metadata>> (such as information about transitive dependencies, origin, or author) attached to them.
 
 image::dependency-management-file-dependencies.png[]
 

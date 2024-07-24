@@ -1,5 +1,6 @@
 = Glossary
 
+[[dependency_management_terminology]]
 The following glossary helps you understand Gradle terminology.
 
 == A
@@ -26,7 +27,7 @@ For more details, see the section on <<component_capabilities.adoc#declaring-com
 
 [[sub:terminology_component]]
 Component::
-Any single version of a <<dependency_management_terminology.adoc#sub:terminology_module,module>>.
+Any single version of a <<glossary.adoc#sub:terminology_module,module>>.
 +
 For external libraries, the term component refers to one published library version.
 +
@@ -45,7 +46,7 @@ For more information, see the section on <<component_metadata_rules.adoc#sec:com
 Configuration ::
 A configuration is a named set of <<#sub:terminology_dependency, dependencies>> grouped together for a specific goal.
 Configurations provide access to the underlying, resolved <<#sub:terminology_module, modules>> and their artifacts.
-For more information, see the sections on <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
+For more information, see the sections on <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
 +
 NOTE: The word "configuration" is an overloaded term that has a different meaning outside of dependency management.
 

@@ -101,12 +101,12 @@ Gradle supports a wide range of sources for dependencies, both in terms of forma
 You may resolve dependencies from:
 
 * Different formats
-** a <<#sec:maven_repo,Maven compatible>> artifact repository (e.g: Maven Central)
-** an <<#sec:ivy_repositories,Ivy compatible>> artifact repository (including custom layouts)
-** <<#sub:flat_dir_resolver,local (flat) directories>>
+** a <<declaring_repositories_adv.adoc#sec:maven_repo,Maven compatible>> artifact repository (e.g: Maven Central)
+** an <<declaring_repositories_adv.adoc#sec:ivy_repositories,Ivy compatible>> artifact repository (including custom layouts)
+** <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,local (flat) directories>>
 * with different connectivity
-** <<#sec:authentication_schemes, authenticated repositories>>
-** a wide variety of <<#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage based on the presence of artifacts.
+** <<declaring_repositories_adv.adoc#sec:authentication_schemes, authenticated repositories>>
+** a wide variety of <<declaring_repositories_adv.adoc#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage based on the presence of artifacts.
 
 [source,groovy]
 ----
