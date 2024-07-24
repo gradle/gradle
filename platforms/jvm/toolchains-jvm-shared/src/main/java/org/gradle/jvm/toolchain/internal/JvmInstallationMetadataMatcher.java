@@ -47,19 +47,19 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
 
     @Override
     public boolean test(JvmInstallationMetadata metadata) {
-        return languagePredicate(metadata) && vendorSpec.test(metadata) && capabilityPredicate(metadata) && implementationTest(metadata);
+        return hasMatchingMajorVersion(metadata) && vendorSpec.test(metadata) && hasRequiredCapabilities(metadata) && hasMatchingImplementation(metadata);
     }
 
-    private boolean languagePredicate(JvmInstallationMetadata metadata) {
+    private boolean hasMatchingMajorVersion(JvmInstallationMetadata metadata) {
         JavaLanguageVersion actualVersion = JavaLanguageVersion.of(metadata.getJavaMajorVersion());
         return actualVersion.equals(languageVersion);
     }
 
-    private boolean capabilityPredicate(JvmInstallationMetadata metadata) {
+    private boolean hasRequiredCapabilities(JvmInstallationMetadata metadata) {
         return metadata.getCapabilities().containsAll(requiredCapabilities);
     }
 
-    private boolean implementationTest(JvmInstallationMetadata metadata) {
+    private boolean hasMatchingImplementation(JvmInstallationMetadata metadata) {
         if (jvmImplementation == JvmImplementation.VENDOR_SPECIFIC) {
             return true;
         }
