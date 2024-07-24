@@ -20,7 +20,7 @@ import com.google.common.io.ByteStreams
 import com.google.testing.compile.Compilation
 import com.google.testing.compile.JavaFileObjects
 import org.gradle.api.JavaVersion
-import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.model.internal.asm.AsmConstants
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter

@@ -18,7 +18,7 @@ package org.gradle.internal.classpath.transforms;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import static org.gradle.internal.classanalysis.AsmConstants.isSupportedVersion;
+import static org.gradle.model.internal.asm.AsmConstants.isSupportedVersion;
 
 /**
  * Transformation for agent-based instrumentation.
