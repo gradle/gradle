@@ -40,8 +40,8 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.service.FromConstructor;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -52,10 +52,18 @@ import org.gradle.internal.work.WorkerLimits;
 public class CoreCrossBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
-    void configure(ServiceRegistration registration) {
-        registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
-        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
-        registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
+    ResourceLockCoordinationService create(@FromConstructor DefaultResourceLockCoordinationService service) {
+        return service;
+    }
+
+    @Provides
+    DynamicCallContextTracker create(@FromConstructor DefaultDynamicCallContextTracker service) {
+        return service;
+    }
+
+    @Provides({WorkerLeaseService.class, ProjectParallelExecutionController.class})
+    DefaultWorkerLeaseService create(@FromConstructor DefaultWorkerLeaseService service) {
+        return service;
     }
 
     @Provides
