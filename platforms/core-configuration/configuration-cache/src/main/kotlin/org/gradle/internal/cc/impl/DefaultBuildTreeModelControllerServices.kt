@@ -87,6 +87,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
     }
 
+    @Suppress("CyclomaticComplexMethod")
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
 
