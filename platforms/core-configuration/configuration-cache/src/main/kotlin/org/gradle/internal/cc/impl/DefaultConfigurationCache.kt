@@ -27,9 +27,12 @@ import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
+import org.gradle.execution.plan.CompositeNodeGroup
+import org.gradle.execution.plan.FinalizerGroup
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
+import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
@@ -559,7 +562,9 @@ class DefaultConfigurationCache internal constructor(
         scheduledNodes: List<Node>,
         entryNodes: Set<Node>
     ): NodesAndGroups {
-        val nodeGroups: MutableMap<NodeGroup, Int> = mutableMapOf()
+        val nodeGroups: MutableMap<NodeGroup, Int> = mutableMapOf<NodeGroup, Int>().apply {
+            put(NodeGroup.DEFAULT_GROUP, 0)
+        }
         val scheduledNodeIds: HashMap<Node, Int> = HashMap(scheduledNodes.size)
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
@@ -575,7 +580,7 @@ class DefaultConfigurationCache internal constructor(
                 nodesByOwner
                     .computeIfAbsent(owner) { mutableListOf() }
                     .add(n)
-                nodeGroups.computeIfAbsent(node.group) { nodeGroups.size }
+                nodeGroups.collectGroups(node.group)
             }
             collect(node)
             if (node in entryNodes) {
@@ -586,6 +591,28 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         return NodesAndGroups(scheduledNodeIds, scheduledEntryNodeIds, nodesByOwner, nodeGroups)
+    }
+
+    private fun MutableMap<NodeGroup, Int>.collectGroups(group: NodeGroup) {
+        if (containsKey(group)) {
+            return
+        }
+        put(group, size)
+        when (group) {
+            is CompositeNodeGroup -> {
+                collectGroups(group.ordinalGroup)
+                group.finalizerGroups.forEach {
+                    collectGroups(it)
+                }
+            }
+            is FinalizerGroup -> {
+                collectGroups(group.ordinalGroup)
+                collectGroups(group.delegate)
+            }
+            is OrdinalGroup -> {
+                group.previous?.also { collectGroups(it) }
+            }
+        }
     }
 
     //TODO-RC are we getting the group ids passed in or computing here?

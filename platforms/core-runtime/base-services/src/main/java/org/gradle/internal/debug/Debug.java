@@ -33,6 +33,13 @@ public class Debug {
         }
     };
 
+    public static void println(Supplier<?> messageSource) {
+        if (!ENABLED) {
+            return;
+        }
+        println(asString(messageSource));
+    }
+
     public static void println(Object messageSource) {
         if (!ENABLED) {
             return;
@@ -41,11 +48,19 @@ public class Debug {
         System.out.println(prefix + asString(messageSource));
     }
 
+    private static String asString(Supplier<?> obj) {
+        return obj.get().toString();
+    }
+
     private static String asString(Object obj) {
-        if (obj instanceof Supplier<?>) {
-            return ((Supplier<?>) obj).get().toString();
-        }
         return obj.toString();
+    }
+
+    public static void trace(Supplier<?> obj) {
+        if (!ENABLED) {
+            return;
+        }
+        trace(asString(obj));
     }
 
     public static void trace(Object message) {

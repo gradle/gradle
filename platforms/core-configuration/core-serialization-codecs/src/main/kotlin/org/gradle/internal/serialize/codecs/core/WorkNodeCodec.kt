@@ -26,12 +26,12 @@ import org.gradle.execution.plan.FinalizerGroup
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
+import org.gradle.execution.plan.NodeGroupComparator
 import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.debug.Debug.println
-import org.gradle.internal.debug.Debug.trace
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -95,7 +95,7 @@ class WorkNodeCodec(
      */
     private
     suspend fun WriteContext.doWriteScheduledNodes(scheduledNodes: List<Node>, nodeIdentifier: ((Node) -> Int), writeIds: Boolean) {
-        trace { "Reading ${scheduledNodes.size} scheduled nodes  - ${owner.identityPath}" }
+        println { "Writing ${scheduledNodes.size} scheduled nodes  - ${owner.identityPath}" }
         writeSmallInt(scheduledNodes.size)
         scheduledNodes.forEach { node ->
             val nodeId = nodeIdentifier(node)
@@ -170,10 +170,7 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>,
         groupsById: Map<NodeGroup, Int>
     ) {
-        writeCollection(groupsById.entries) { (group, groupId) ->
-            writeSmallInt(groupId)
-            writeNodeGroup(group, scheduledNodeIds, groupsById)
-        }
+        writeGroups(groupsById, scheduledNodeIds)
         writeCollection(scheduledNodes) { node ->
             val nodeId = scheduledNodeIds.getValue(node)
             writeSmallInt(nodeId)
@@ -187,12 +184,7 @@ class WorkNodeCodec(
     fun ReadContext.readSuccessorReferencesAndGroups(
         nodesById: Map<Int, Node>
     ) {
-        val groupsById = mutableMapOf<Int, NodeGroup>()
-        readCollection {
-            val groupId = readSmallInt()
-            val group = readNodeGroup(nodesById, groupsById)
-            groupsById[groupId] = group
-        }
+        val groupsById = readGroups(nodesById)
         readCollection {
             val scheduledNodeId = readSmallInt()
             val node = nodesById.getValue(scheduledNodeId)
@@ -200,6 +192,35 @@ class WorkNodeCodec(
             val groupId = readSmallInt()
             node.group = groupsById[groupId]!!
         }
+    }
+
+    private fun WriteContext.writeGroups(
+        groupsById: Map<NodeGroup, Int>,
+        scheduledNodeIds: Map<Node, Int>
+    ) {
+        groupsById.entries.forEach { (node, id) ->
+            println { "$id -> $node" }
+        }
+        val sortedGroups = groupsById.toSortedMap(NodeGroupComparator.INSTANCE).filter { (group, _) -> group != NodeGroup.DEFAULT_GROUP }
+        writeCollection(sortedGroups.entries) { (group, groupId) ->
+            writeSmallInt(groupId)
+            writeNodeGroup(group, scheduledNodeIds, groupsById)
+            println("Wrote group $groupId - $group - ${group.javaClass.typeName}")
+        }
+    }
+
+    private fun ReadContext.readGroups(nodesById: Map<Int, Node>): MutableMap<Int, NodeGroup> {
+        val groupsById = mutableMapOf<Int, NodeGroup>().apply {
+            put(0, NodeGroup.DEFAULT_GROUP)
+        }
+        readCollection {
+            val groupId = readSmallInt()
+            println("Reading group $groupId")
+            val group = readNodeGroup(nodesById, groupsById)
+            groupsById[groupId] = group
+            println("Read group $groupId - $group - ${group.javaClass.typeName}")
+        }
+        return groupsById
     }
 
     /**
@@ -296,9 +317,8 @@ class WorkNodeCodec(
                 writeSmallInt(2)
                 writeBoolean(group.isReachableFromEntryPoint)
                 writeSmallInt(groupsById.getValue(group.ordinalGroup))
-                writeNodeGroup(group.ordinalGroup, nodesById, groupsById)
                 writeCollection(group.finalizerGroups) {
-                    writeNodeGroup(it, nodesById, groupsById)
+                    writeSmallInt(groupsById.getValue(it))
                 }
             }
 
@@ -337,7 +357,6 @@ class WorkNodeCodec(
                 3 -> NodeGroup.DEFAULT_GROUP
                 else -> throw IllegalArgumentException()
             }
-        println(decoded)
         return decoded as NodeGroup
     }
 
