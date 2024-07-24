@@ -76,6 +76,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
 
         private
+        val configurationCacheForModels = InternalFlag("org.gradle.configuration-cache.internal.tooling-models", false)
+
+        private
         val isolatedProjectsToolingModelsConfigureOnDemand =
             InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tooling", false)
 
@@ -130,7 +133,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val requiresTasks = requirements.isRunsTasks
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val configurationCache = isolatedProjects || startParameter.configurationCache.get()
+        val configurationCacheRequested = startParameter.configurationCache.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
@@ -139,6 +142,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return if (requirements.isCreatesModel) {
             val configureOnDemand = isolatedProjects && !requiresTasks &&
                 options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get()
+            val configurationCacheForModels = configurationCacheRequested && options.getOption(configurationCacheForModels).get()
+            val configurationCache = isolatedProjects || configurationCacheForModels
             DefaultBuildModelParameters(
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
@@ -151,6 +156,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 modelAsProjectDependency = modelAsProjectDependency
             )
         } else {
+            val configurationCache = isolatedProjects || configurationCacheRequested
             val configureOnDemand =
                 if (isolatedProjects) options.getOption(isolatedProjectsTasksConfigureOnDemand).get()
                 else startParameter.isConfigureOnDemand
