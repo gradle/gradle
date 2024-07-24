@@ -36,7 +36,7 @@ class ConfigurationCacheToolingApiStreamingBuildActionIntegrationTest extends Ab
         def listener2 = new TestStreamedValueListener()
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new ModelStreamingBuildAction()) {
             setStreamedValueListener(listener1)
         }
@@ -56,7 +56,7 @@ class ConfigurationCacheToolingApiStreamingBuildActionIntegrationTest extends Ab
         (streamedModels[1] as EclipseProject).gradleProject.name == "hello-world"
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new ModelStreamingBuildAction()) {
             setStreamedValueListener(listener2)
         }
@@ -79,7 +79,7 @@ class ConfigurationCacheToolingApiStreamingBuildActionIntegrationTest extends Ab
         def listener2 = new TestStreamedValueListener()
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runPhasedBuildAction(new CustomModelStreamingBuildAction(GradleProject, 1), new CustomModelStreamingBuildAction(EclipseProject, 2)) {
             setStreamedValueListener(listener1)
         }
@@ -101,7 +101,7 @@ class ConfigurationCacheToolingApiStreamingBuildActionIntegrationTest extends Ab
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runPhasedBuildAction(new CustomModelStreamingBuildAction(GradleProject, 1), new CustomModelStreamingBuildAction(EclipseProject, 2)) {
             setStreamedValueListener(listener2)
         }

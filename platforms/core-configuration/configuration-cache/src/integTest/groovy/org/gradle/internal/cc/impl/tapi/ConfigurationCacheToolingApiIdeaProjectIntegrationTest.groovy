@@ -33,7 +33,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -45,7 +45,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         ideaModel.name == "root"
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(IdeaProject)
 
         then:
@@ -58,7 +58,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(BasicIdeaProject)
 
         then:
@@ -70,7 +70,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         ideaModel.name == "root"
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(BasicIdeaProject)
 
         then:
@@ -94,7 +94,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         originalIdeaModel.modules.every { it.children.isEmpty() } // IdeaModules are always flattened
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -130,7 +130,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         originalIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_9
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -183,7 +183,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         originalIdeaModel.modules[2].javaLanguageSettings == null
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -225,7 +225,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -249,7 +249,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         originalUpdatedModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_11
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def updatedModel = fetchModel(IdeaProject)
 
         then:
@@ -300,7 +300,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(BasicIdeaProject)
 
         then:
@@ -386,7 +386,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def result = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -400,7 +400,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def anotherResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -414,7 +414,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         file("buildC/build.gradle") << """
             println("changed root in buildC")
         """
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def afterChangeResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -450,7 +450,7 @@ class ConfigurationCacheToolingApiIdeaProjectIntegrationTest extends AbstractCon
         originalIdeaModel.modules.name == ["root", "lib1"]
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def ideaModel = fetchModel(IdeaProject)
 
         then:

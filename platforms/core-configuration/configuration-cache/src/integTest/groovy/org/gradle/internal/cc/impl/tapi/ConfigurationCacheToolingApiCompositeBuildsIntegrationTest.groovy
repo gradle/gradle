@@ -35,7 +35,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -49,7 +49,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -66,7 +66,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
             class Thing { }
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -101,7 +101,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -115,7 +115,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -132,7 +132,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
             class Thing { }
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -170,7 +170,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -184,7 +184,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:
@@ -200,7 +200,7 @@ class ConfigurationCacheToolingApiCompositeBuildsIntegrationTest extends Abstrac
             // some change
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
 
         then:

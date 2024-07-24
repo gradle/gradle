@@ -46,7 +46,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -62,7 +62,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         outputContains("creating model for project ':a'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -79,7 +79,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
             myExtension.message = 'this is the root project'
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -95,7 +95,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         outputContains("creating model for root project 'root'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -111,7 +111,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
             myExtension.message = 'this is project a'
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -142,7 +142,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -156,7 +156,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -172,7 +172,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
             println("some new stuff")
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -187,7 +187,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -218,7 +218,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache("-Pshared-input=12", "-Da-input=14")
+        withConfigurationCacheForModels("-Pshared-input=12", "-Da-input=14")
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -232,7 +232,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         }
 
         when:
-        withConfigurationCache("-Pshared-input=12", "-Da-input=14")
+        withConfigurationCacheForModels("-Pshared-input=12", "-Da-input=14")
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -244,7 +244,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         fixture.assertStateLoaded()
 
         when:
-        withConfigurationCache("-Pshared-input=2", "-Da-input=14")
+        withConfigurationCacheForModels("-Pshared-input=2", "-Da-input=14")
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -260,7 +260,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         }
 
         when:
-        withConfigurationCache("-Pshared-input=2", "-Da-input=14")
+        withConfigurationCacheForModels("-Pshared-input=2", "-Da-input=14")
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -272,7 +272,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         fixture.assertStateLoaded()
 
         when:
-        withConfigurationCache("-Pshared-input=2", "-Da-input=2")
+        withConfigurationCacheForModels("-Pshared-input=2", "-Da-input=2")
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -287,7 +287,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         }
 
         when:
-        withConfigurationCache("-Pshared-input=2", "-Da-input=2")
+        withConfigurationCacheForModels("-Pshared-input=2", "-Da-input=2")
         def model6 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -299,7 +299,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         fixture.assertStateLoaded()
 
         when:
-        withConfigurationCache("-Pshared-input=2", "-Da-input=2", "-Db-input=new")
+        withConfigurationCacheForModels("-Pshared-input=2", "-Da-input=2", "-Db-input=new")
         def model7 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -329,7 +329,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -345,7 +345,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         outputContains("creating model for project ':a'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -362,7 +362,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
             myExtension.message = 'this is the root project'
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -378,7 +378,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         outputContains("creating model for root project 'root'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -405,7 +405,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -419,7 +419,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         outputContains("creating model for project ':a'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -434,7 +434,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
             println("changed")
         """
 
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -448,7 +448,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         outputContains("creating model for root project 'root'")
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -466,7 +466,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -481,7 +481,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -496,7 +496,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -508,7 +508,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -533,7 +533,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
         """
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -547,7 +547,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -561,7 +561,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -572,7 +572,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -584,7 +584,7 @@ class ConfigurationCacheToolingApiBuildActionIntegrationTest extends AbstractCon
 
     def "does not cache execution of BuildAction when it fails"() {
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildActionFails(new FailingBuildAction())
 
         then:

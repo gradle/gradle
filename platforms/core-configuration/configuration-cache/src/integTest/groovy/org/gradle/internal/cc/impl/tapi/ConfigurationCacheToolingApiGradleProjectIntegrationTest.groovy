@@ -46,7 +46,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def projectModel = fetchModel(GradleProject)
 
         then:
@@ -57,7 +57,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         checkGradleProject(projectModel, expectedProjectModel)
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         fetchModel(GradleProject)
 
         then:
@@ -93,7 +93,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         }
 
         when:
-        withConfigurationCache("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        withConfigurationCacheForModels("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
         def projectModel = fetchModel(GradleProject)
 
         then:
@@ -104,7 +104,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         checkGradleProject(projectModel, expectedProjectModel)
 
         when:
-        withConfigurationCache("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        withConfigurationCacheForModels("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
         fetchModel(GradleProject)
 
         then:
@@ -138,7 +138,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         }
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
@@ -149,7 +149,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         checkGradleProject(projectModel, expectedProjectModel)
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
@@ -172,7 +172,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         fixture.assertNoConfigurationCache()
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def model = fetchModel(GradleProject)
 
         then:
@@ -197,7 +197,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
 
 
         when:
-        withConfigurationCache()
+        withConfigurationCacheForModels()
         def updatedModel = fetchModel(GradleProject)
 
         then:
@@ -220,7 +220,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         file("b/build.gradle") << ""
 
         when:
-        withConfigurationCache("-Dorg.gradle.internal.model-project-dependencies=false")
+        withConfigurationCacheForModels("-Dorg.gradle.internal.model-project-dependencies=false")
         fetchModel(GradleProject)
 
         then:
@@ -233,7 +233,7 @@ class ConfigurationCacheToolingApiGradleProjectIntegrationTest extends AbstractC
         file("a/build.gradle") << """
             println("updated :a")
         """
-        withConfigurationCache("-Dorg.gradle.internal.model-project-dependencies=false")
+        withConfigurationCacheForModels("-Dorg.gradle.internal.model-project-dependencies=false")
         fetchModel(GradleProject)
 
         then:
