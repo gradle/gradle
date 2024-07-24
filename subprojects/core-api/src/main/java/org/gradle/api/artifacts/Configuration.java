@@ -157,6 +157,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Sets the configurations which this configuration extends from.
+     * <p>
+     * Configurations are only allowed to extend from other configurations in the same project.
      *
      * @param superConfigs The super configuration. Should not be null.
      * @return this configuration
@@ -165,6 +167,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Adds the given configurations to the set of configuration which this configuration extends from.
+     * <p>
+     * Configurations are only allowed to extend from other configurations in the same project.
      *
      * @param superConfigs The super configurations.
      * @return this configuration
