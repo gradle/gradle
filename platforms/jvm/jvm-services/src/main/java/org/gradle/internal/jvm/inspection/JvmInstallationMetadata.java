@@ -259,8 +259,8 @@ public interface JvmInstallationMetadata {
             return capabilities;
         }
 
-        private File getToolByExecutable(String javac) {
-            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(javac));
+        private File getToolByExecutable(String name) {
+            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
         }
 
         @Override

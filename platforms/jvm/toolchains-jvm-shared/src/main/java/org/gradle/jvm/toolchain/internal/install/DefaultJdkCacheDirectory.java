@@ -237,6 +237,8 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
         // For now, require that all provisioned JDKs have a compiler and javadoc tool
         if (!new JvmInstallationMetadataMatcher(spec, EnumSet.of(JavaInstallationCapability.JAVA_COMPILER, JavaInstallationCapability.JAVADOC_TOOL)).test(metadata)) {
+            // Log the metadata for debugging purposes
+            LOGGER.warn("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {}", uri, spec.getDisplayName(), metadata);
             throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must contain 'javac' and 'javadoc'.");
         }
     }

@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal.install
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
@@ -33,11 +35,15 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
-import org.gradle.util.internal.Resources
-import org.junit.Rule
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.TempDir
+
+import java.nio.file.Files
+import java.util.zip.GZIPOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 import static org.junit.Assume.assumeTrue
 
@@ -45,9 +51,6 @@ class DefaultJdkCacheDirectoryTest extends Specification {
 
     @TempDir
     public File temporaryFolder
-
-    @Rule
-    public final Resources resources = new Resources()
 
     def "handles non-existing jdk directory when listing java homes"() {
         given:
@@ -134,7 +137,20 @@ class DefaultJdkCacheDirectoryTest extends Specification {
     }
 
     def "provisions jdk from tar.gz archive"() {
-        def jdkArchive = resources.getResource("jdk.tar.gz")
+        def jdkArchive = new File(temporaryFolder, "jdk.tar.gz")
+        try (def outStream = new TarArchiveOutputStream(new GZIPOutputStream(jdkArchive.newOutputStream()))) {
+            outStream.putArchiveEntry(new TarArchiveEntry("file"))
+            outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("folder/"))
+            outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystem.current().getExecutableName("javac")))
+            outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystem.current().getExecutableName("javadoc")))
+            outStream.closeArchiveEntry()
+        }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
@@ -146,12 +162,21 @@ class DefaultJdkCacheDirectoryTest extends Specification {
         installedJdk.getName() == "ibm-11-arch-${os()}.2"
         new File(installedJdk, DefaultJdkCacheDirectory.LEGACY_MARKER_FILE).exists()
         new File(installedJdk, DefaultJdkCacheDirectory.MARKER_FILE).exists()
-        new File(installedJdk, "jdk/file").exists()
+        new File(installedJdk, "file").exists()
+        new File(installedJdk, "folder").isDirectory()
     }
 
     def "provisions jdk from zip archive"() {
-        def jdkArchive = resources.getResource("jdk.zip")
+        def jdkArchive = new File(temporaryFolder, "jdk.zip")
+        try (def outStream = new ZipOutputStream(jdkArchive.newOutputStream())) {
+            outStream.putNextEntry(new ZipEntry("file"))
 
+            outStream.putNextEntry(new ZipEntry("folder/"))
+
+            outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystem.current().getExecutableName("javac")))
+
+            outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystem.current().getExecutableName("javadoc")))
+        }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
@@ -163,12 +188,31 @@ class DefaultJdkCacheDirectoryTest extends Specification {
         installedJdk.getName() == "ibm-11-arch-${os()}.2"
         new File(installedJdk, DefaultJdkCacheDirectory.LEGACY_MARKER_FILE).exists()
         new File(installedJdk, DefaultJdkCacheDirectory.MARKER_FILE).exists()
-        new File(installedJdk, "jdk-123/file").exists()
+        new File(installedJdk, "file").exists()
+        new File(installedJdk, "folder").isDirectory()
     }
 
+    // This currently isn't working due to the linked issue
     @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/3982")
     def "provisions jdk from tar.gz archive with MacOS symlinks"() {
-        def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
+        def jdkArchive = new File(temporaryFolder, "jdk.tar.gz")
+        try (def outStream = new TarArchiveOutputStream(new GZIPOutputStream(jdkArchive.newOutputStream()))) {
+            // Symlink bin to the top level
+            def binSymlink = new TarArchiveEntry("bin", TarArchiveEntry.LF_SYMLINK)
+            binSymlink.linkName = "Contents/Home/bin"
+            outStream.putArchiveEntry(binSymlink)
+            outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("folder/"))
+            outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("Contents/Home/bin/" + OperatingSystem.current().getExecutableName("javac")))
+            outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("Contents/Home/bin/" + OperatingSystem.current().getExecutableName("javadoc")))
+            outStream.closeArchiveEntry()
+        }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
@@ -176,28 +220,13 @@ class DefaultJdkCacheDirectoryTest extends Specification {
 
         then:
         installedJdk.exists()
-        new File(installedJdk, "jdk-with-symlinks.2/bin/file").exists()
-
-        //TODO: completely wrong; the uncompressed archive should look like this:
-        // .
-        // ├── bin -> zulu-11.jdk/Contents/Home/bin
-        // ├── file
-        // └── zulu-11.jdk
-        //     └── Contents
-        //         └── Home
-        //             └── bin
-        //                 └── file
-        // but actually looks like this:
-        // .
-        // ├── bin
-        // ├── file
-        // └── zulu-11.jdk
-        //     └── Contents
-        //         └── Home
-        //             └── bin
-        //                 └── file
-        // the symbolic link handling is AND HAS NOT BEEN WORKING
-        // the test has been passing because it checks the existence of zulu-11.jdk/Contents/Home/bin/file, which has nothing to do with the symbolic link
+        installedJdk.getParentFile().getName() == "jdks"
+        installedJdk.getName() == "ibm-11-arch-${os()}.2"
+        new File(installedJdk, DefaultJdkCacheDirectory.LEGACY_MARKER_FILE).exists()
+        new File(installedJdk, DefaultJdkCacheDirectory.MARKER_FILE).exists()
+        Files.isSymbolicLink(new File(installedJdk, "bin").toPath())
+        new File(installedJdk, "folder").isDirectory()
+        new File(installedJdk, "Contents/Home/bin").isDirectory()
     }
 
     private GradleUserHomeDirProvider newHomeDirProvider() {
