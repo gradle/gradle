@@ -128,6 +128,26 @@ samples {
 
 }
 
+// Use the version of Gradle being built, not the version of Gradle used to build,
+// also don't validate distribution url, since it is just a local distribution
+tasks.named("generateWrapperForSamples", Wrapper) {
+    gradleVersion = project.version
+    validateDistributionUrl = false
+}
+
+// TODO: The rich console to plain text is flaky
+tasks.named("checkAsciidoctorSampleContents") {
+    enabled = false
+}
+
+// exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
+tasks.withType(InstallSample).configureEach {
+    if (name.contains('ForTest')) {
+        excludes.add("gradle/wrapper/**")
+        excludes.add("README")
+    }
+}
+
 tasks.named("quickTest") {
     dependsOn("checkDeadInternalLinks")
 }
@@ -141,6 +161,7 @@ tasks.named("docsTest") { task ->
     // we want to verify that the samples work with the Gradle distribution being built.
     def installationEnvProvider = objects.newInstance(GradleInstallationForTestEnvironmentProvider.class, project, task)
     installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
+    installationEnvProvider.samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
     jvmArgumentProviders.add(installationEnvProvider)
 
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
