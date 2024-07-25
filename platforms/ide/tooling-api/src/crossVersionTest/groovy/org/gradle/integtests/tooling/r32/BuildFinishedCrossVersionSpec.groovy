@@ -25,7 +25,6 @@ import org.gradle.util.GradleVersion
 class BuildFinishedCrossVersionSpec extends ToolingApiSpecification {
 
     def "model builders are executed before buildFinished hook"() {
-        println("releasedGradleVersion: " + targetVersion)
         when:
         if (targetVersion >= GradleVersion.version("8.10")) {
             expectDocumentedDeprecationWarning("Listener registration using Gradle.buildFinished() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
