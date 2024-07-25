@@ -811,8 +811,8 @@ For example, given repository configuration:
 
 .Externalized repository credentials
 ====
-include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
-include::sample[dir="samples/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="snippets/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
 ====
 
 The username and password will be looked up from `mySecureRepositoryUsername` and `mySecureRepositoryPassword` properties.
