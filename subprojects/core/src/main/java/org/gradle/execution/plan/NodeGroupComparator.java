@@ -43,6 +43,6 @@ public class NodeGroupComparator implements Comparator<NodeGroup> {
             }
             return o1 instanceof FinalizerGroup ? -1 : 1;
         }
-        return compare(((CompositeNodeGroup) o1).getOrdinalGroup(), ((CompositeNodeGroup) o2).getOrdinalGroup());
+        return System.identityHashCode(o1) - System.identityHashCode(o2);
     }
 }
