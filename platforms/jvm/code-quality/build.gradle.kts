@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
 
     runtimeOnly(projects.languageJvm)
 
