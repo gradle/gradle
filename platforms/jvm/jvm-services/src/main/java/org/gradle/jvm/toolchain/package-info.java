@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration;
-
-public class DaemonJvmPropertiesDefaults {
-    public static final String DAEMON_JVM_PROPERTIES_FILE = "gradle/gradle-daemon-jvm.properties";
-
-    public static final String TOOLCHAIN_VERSION_PROPERTY = "toolchainVersion";
-    public static final String TOOLCHAIN_VENDOR_PROPERTY = "toolchainVendor";
-    public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "toolchainImplementation";
-}
+/**
+ * Defines tools that can build things that run on the JVM.
+ */
+package org.gradle.jvm.toolchain;

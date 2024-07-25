@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -28,13 +27,14 @@ import org.gradle.internal.typeconversion.LongFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 public class OptionValueNotationParserFactory {
     public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
         if (targetType.isAssignableFrom(String.class) || targetType.isAssignableFrom(FileSystemLocation.class)) {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
-        } else if (targetType.isAssignableFrom(JavaVersion.class)) {
-            NotationConverter<CharSequence, JavaVersion> converter = new JavaVersionFromCharSequenceNotationConverter();
+        } else if (targetType.isAssignableFrom(JavaLanguageVersion.class)) {
+            NotationConverter<CharSequence, JavaLanguageVersion> converter = new JavaVersionFromCharSequenceNotationConverter();
             return Cast.uncheckedCast(new NotationConverterToNotationParserAdapter<>(converter));
         } else if (targetType.isEnum()) {
             @SuppressWarnings({"rawtypes", "unchecked"})

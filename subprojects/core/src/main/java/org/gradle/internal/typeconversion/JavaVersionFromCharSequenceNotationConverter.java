@@ -16,14 +16,14 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
-public class JavaVersionFromCharSequenceNotationConverter implements NotationConverter<CharSequence, JavaVersion> {
+public class JavaVersionFromCharSequenceNotationConverter implements NotationConverter<CharSequence, JavaLanguageVersion> {
     @Override
-    public void convert(CharSequence notation, NotationConvertResult<? super JavaVersion> result) throws TypeConversionException {
+    public void convert(CharSequence notation, NotationConvertResult<? super JavaLanguageVersion> result) throws TypeConversionException {
         try {
-            result.converted(JavaVersion.toVersion(notation));
+            result.converted(JavaLanguageVersion.of(notation.toString()));
         } catch (IllegalArgumentException e) {
             throw new TypeConversionException(e.getMessage(), e);
         }
@@ -31,6 +31,6 @@ public class JavaVersionFromCharSequenceNotationConverter implements NotationCon
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("A Java version (e.g. '1.8', '11')");
+        visitor.candidate("A Java version (e.g. '8', '11')");
     }
 }

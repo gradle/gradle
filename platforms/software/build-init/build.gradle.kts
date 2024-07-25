@@ -34,7 +34,7 @@ dependencies {
     api(projects.fileCollections)
     api(projects.logging)
     api(projects.platformJvm)
-    api(projects.toolchainsJvmShared)
+    api(projects.jvmServices)
     api(projects.workers)
     api(projects.daemonServices)
 

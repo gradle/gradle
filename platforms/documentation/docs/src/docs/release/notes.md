@@ -50,7 +50,7 @@ Example:
 
 ==========================================================
 ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+vvvvvvvvvvvvvvvvvvvvvvvvvvgvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 <a name="config-cache"></a>
 ### Configuration cache improvements

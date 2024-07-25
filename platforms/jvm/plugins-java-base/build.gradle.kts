@@ -45,6 +45,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.fileCollections)
+    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.reporting)

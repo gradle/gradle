@@ -48,6 +48,20 @@ The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetB
 
 Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.14.html[Ant 1.10.14].
 
+==== Gradle daemon JVM configuration via toolchain
+
+The type of the property `UpdateDaemonJvm.jvmVersion` is now `Property<JavaLanguageVersion>`.
+
+If you configured the task in a build script, you will need to replace:
+
+`jvmVersion = JavaVersion.VERSION_17`
+
+with:
+
+`jvmVersion = JavaLanguageVersion.of(17)`
+
+There is no impact when using the CLI options to configure which JVM version to use for the Gradle Daemon.
+
 === Deprecations
 
 [[minimum_daemon_jvm_version]]

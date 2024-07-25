@@ -20,6 +20,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.fileCollections)
     implementation(projects.hashing)
+    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.pluginDevelopment)
     implementation(projects.pluginsJavaBase)

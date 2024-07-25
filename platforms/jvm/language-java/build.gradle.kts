@@ -57,6 +57,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
+    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.toolingApi)

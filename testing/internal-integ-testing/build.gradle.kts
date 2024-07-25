@@ -100,7 +100,6 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.buildProcessServices)
     implementation(projects.gradleCli)
     implementation(projects.launcher)

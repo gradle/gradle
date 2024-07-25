@@ -1,5 +1,5 @@
 // tag::customized-daemon-jvm-task[]
 tasks.named('updateDaemonJvm') {
-    jvmVersion = JavaVersion.VERSION_17
+    jvmVersion = JavaLanguageVersion.of(17)
 }
 // end::customized-daemon-jvm-task[]

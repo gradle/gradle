@@ -59,3 +59,9 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
+
+packageCycles {
+    // Needed for the factory methods in the interface
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
+    excludePatterns.add("org/gradle/jvm/toolchain/**")
+}
