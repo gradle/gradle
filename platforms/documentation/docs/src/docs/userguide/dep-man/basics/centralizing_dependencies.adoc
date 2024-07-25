@@ -15,14 +15,13 @@
 [[centralizing-dependencies]]
 = 4. Centralizing dependencies
 
-== Understanding dependency centralization
-
-Central dependencies can be managed in Gradle using various techniques such as platforms, version catalogs, and convention plugins.
+Central dependencies can be managed in Gradle using various techniques such as platforms and version catalogs.
 Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
 
 == Using platforms
 
 A platform is a set of modules designed to be used together.
+
 When you define a platform in Gradle, you're essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
 
 [source,kotlin]
@@ -119,10 +118,9 @@ By including the `platform-bom`, you ensure that all Spring components use the v
 A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
 You can reference this catalog in your projects to ensure consistent version management.
 
-Here’s how you can use a version catalog:
+First, create a `libs.versions.toml` file in the `gradle` directory of your project.
+This file will define the versions of your dependencies and plugins:
 
-1. **Create a Version Catalog File**: Create a `libs.versions.toml` file in the `gradle` directory of your project. This file will define the versions of your dependencies and plugins.
-+
 [source,toml]
 .gradle/libs.versions.toml
 ----
@@ -141,21 +139,9 @@ mysql = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
 [plugins]
 spring-boot = { id = "org.springframework.boot", version = "2.5.4" }
 ----
-+
-2. **Enable Version Catalog in `settings.gradle`**: In your `settings.gradle` file, enable the version catalog:
-+
-[source,groovy]
-----
-dependencyResolutionManagement {
-   versionCatalogs {
-       libs {
-           from(files("gradle/libs.versions.toml"))
-       }
-   }
-}
-----
-3. **Use Version Catalog in `build.gradle`**: You can refer to the dependencies defined in the version catalog in your `build.gradle` file:
-+
+
+Then, you can use the version catalog in you build file:
+
 [source,groovy]
 ----
 plugins {
@@ -174,3 +160,6 @@ dependencies {
    runtimeOnly(libs.mysql)
 }
 ----
+
+[.text-right]
+**Next Step:** <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,Learn about Dependency Constrains and Conflict Resolution>> >>

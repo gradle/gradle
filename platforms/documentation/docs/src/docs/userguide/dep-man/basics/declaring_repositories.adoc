@@ -15,7 +15,12 @@
 [[declaring-repositories]]
 = 3. Declaring repositories
 
-You can add repositories for your dependencies by configuring the repositories block in your `build.gradle(.kts)` file:
+Gradle needs to know where it can download the dependencies used in the project.
+
+For example, the `com.google.guava:guava:30.0-jre` dependency can be downloaded from the public Maven Central repository `mavenCentral()`..
+Gradle will find and download the `guava` source code (as a `jar`) from Maven Central and use it build the project.
+
+You can add any number of repositories for your dependencies by configuring the `repositories` block in your `build.gradle(.kts)` file:
 
 [source,kotlin]
 .build.gradle.kts
@@ -37,6 +42,8 @@ repositories {
 <4> File location
 
 Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
+
+If a library is available from more than one of the listed repositories, Gradle will simply pick the first one.
 
 [[sec:declaring_public_repository]]
 == Declaring a public repository
@@ -87,7 +94,7 @@ repositories {
 Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
 
-To declare the local Maven cache as a repository add this to your build script:
+To declare the local Maven cache as a repository, add this to your build script:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
@@ -107,6 +114,8 @@ You may resolve dependencies from:
 * with different connectivity
 ** <<declaring_repositories_adv.adoc#sec:authentication_schemes, authenticated repositories>>
 ** a wide variety of <<declaring_repositories_adv.adoc#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage based on the presence of artifacts.
+
+Here is a quick snapshot:
 
 [source,groovy]
 ----
@@ -154,3 +163,6 @@ repositories {
     }
 }
 ----
+
+[.text-right]
+**Next Step:** <<centralizing-dependencies.adoc#centralizing-dependencies,Learn about Centralizing Repositories>> >>

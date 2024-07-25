@@ -132,7 +132,7 @@ There are other types of configurations such as *consuming configurations* (`api
 Plugins, such as the `swift` plugin add configurations like `swiftModule`.
 While the `cpp` plugins, adds configurations such as `linkOnly`, `linkElements`, and `testHeaderSearchPaths`.
 
-Finally, it is possible to create custom configurations.
+It is also possible to create custom configurations.
 
 [[sec:view-configurations]]
 == Viewing configurations

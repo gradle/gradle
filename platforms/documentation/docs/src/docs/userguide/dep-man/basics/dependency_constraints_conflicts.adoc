@@ -15,10 +15,12 @@
 [[dependency-constraints-conflicts]]
 = 5. Dependency Constraints and Conflict Resolution
 
+When the same library is declared multiple times or when two different libraries are used with the same functionality, a conflict can occur during your build.
+
 [[sec:conflict-resolution]]
 == Understanding types of conflicts
 
-When performing dependency resolution, Gradle handles two types of conflicts:
+During dependency resolution, Gradle handles two types of conflicts:
 
 1. *Version conflicts*: That is when two or more dependencies require a given dependency but with different versions.
 2. *Capability conflicts*: That is when the dependency graph contains multiple modules that provide the same implementation.
@@ -52,3 +54,20 @@ configurations.all {
     }
 }
 ----
+
+== Understanding dependency constraints
+
+In order to help Gradle resolve issue with dependencies, a number of solutions are provided.
+
+For example, the `dependencies` block provides a `constraints` block which can be used to help Gradle pick a specific version of a dependency:
+
+[source,kotlin]
+----
+dependencies {
+    constraints {
+        implementation("org.apache.commons:commons-lang3:3.12.0")
+    }
+}
+----
+
+The configuration API provides additional solutions.

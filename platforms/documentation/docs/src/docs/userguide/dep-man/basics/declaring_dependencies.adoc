@@ -40,7 +40,7 @@ To add a dependency in Gradle, you use the link:{javadocPath}/org/gradle/api/art
 
 The `dependencies` block allows you to specify various types of dependencies such as external libraries, local JAR files, or other projects within a multi-project build.
 
-Dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID, artifact ID, and version.
+Dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID (group), artifact ID (name), and version.
 
 [source,groovy]
 .build.gradle
@@ -54,10 +54,8 @@ dependencies {
 Note:
 
 1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
-2. Gradle offers several _configuration_ options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
-See <<dependency_configurations.adoc#dependency-configurations, Dependency Configurations>>.
-3. You can specify repositories where Gradle should look for dependencies in your build file.
-See <<declaring_repositories_adv.adoc#declaring-repositories, Declaring Repositories>>.
+2. Gradle offers several  <<dependency_configurations.adoc#dependency-configurations,_configuration_>> options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
+3. You can specify <<declaring_repositories_adv.adoc#declaring-repositories,repositories>> where Gradle should look for dependencies in your build file.
 
 [[sec:dependency-types]]
 == Understanding types of dependencies
@@ -185,7 +183,7 @@ dependencies {
 }
 ----
 
-Then, running the `dependencies` task on the `app` project yields the following:
+Running the `dependencies` task on the `app` project yields the following:
 
 [source,text]
 ----
