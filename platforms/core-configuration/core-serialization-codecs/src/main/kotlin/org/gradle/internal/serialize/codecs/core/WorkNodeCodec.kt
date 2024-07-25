@@ -67,7 +67,9 @@ class WorkNodeCodec(
 
     private
     fun identifyGroups(nodes: List<Node>): Map<NodeGroup, Int> {
-        val groupIds: MutableMap<NodeGroup, Int> = mutableMapOf()
+        val groupIds = mutableMapOf<NodeGroup, Int>().apply {
+            put(NodeGroup.DEFAULT_GROUP, 0)
+        }
         nodes.forEach {
             groupIds.computeIfAbsent(it.group) { groupIds.size }
         }
@@ -199,9 +201,10 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>
     ) {
         groupsById.entries.forEach { (node, id) ->
-            println { "$id -> $node" }
+            println { "$id -> $node - ${System.identityHashCode(node).toString(16)}" }
         }
         val sortedGroups = groupsById.toSortedMap(NodeGroupComparator.INSTANCE).filter { (group, _) -> group != NodeGroup.DEFAULT_GROUP }
+        println("writeGroups: ${groupsById.size} - ${sortedGroups.size}")
         writeCollection(sortedGroups.entries) { (group, groupId) ->
             writeSmallInt(groupId)
             writeNodeGroup(group, scheduledNodeIds, groupsById)
