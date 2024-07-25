@@ -37,6 +37,10 @@ class AntInvokeUtils {
         receiver.invokeMethod(methodName, new Object[]{parameters});
     }
 
+    static void invoke(AntBuilderDelegate receiver, String methodName, Object parameter) {
+        receiver.invokeMethod(methodName, parameter);
+    }
+
     @SuppressWarnings("unchecked")
     static Map<String, Object> getProjectProperties(AntBuilderDelegate ant) {
         try {
