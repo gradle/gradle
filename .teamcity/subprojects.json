@@ -994,6 +994,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "process-memory-services",
+    "path": "platforms/core-runtime/process-memory-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
     "unitTests": true,

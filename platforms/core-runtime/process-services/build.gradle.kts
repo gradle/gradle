@@ -1,27 +1,14 @@
 plugins {
-    // Uninstrumented since it compiles to Java 6
-    id("gradlebuild.distribution.uninstrumented.api-java")
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "Process execution abstractions."
-
-gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
-    api(projects.messaging)
-
     api(libs.jsr305)
-
-    implementation(projects.native)
-    implementation(projects.serviceLookup)
-
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.nativePlatform)
-    implementation(projects.internalInstrumentationApi)
 
     testImplementation(testFixtures(projects.core))
 
