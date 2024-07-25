@@ -18,7 +18,6 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nonnull;
 
@@ -33,7 +32,7 @@ public class BuildSrcUpdateFactory {
     @SuppressWarnings("deprecation")
     public ClassPath create(BuildTreeLifecycleController buildController) {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
-        buildController.beforeBuild(gradle -> DeprecationLogger.whileDisabled(() -> gradle.addListener(listener)));
+        buildController.beforeBuild(gradle -> gradle.addListener(listener));
 
         buildController.scheduleAndRunTasks(listener);
 

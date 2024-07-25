@@ -43,7 +43,6 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.CloseableServiceRegistry;
@@ -123,14 +122,12 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             try {
                 GradleInternal gradle = getBuildController().getGradle();
                 DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
-                DeprecationLogger.whileDisabled(() ->
-                    gradle.addBuildListener(new InternalBuildAdapter() {
-                        @Override
-                        public void buildFinished(BuildResult result) {
-                            deploymentRegistry.buildFinished(result);
-                        }
-                    })
-                );
+                gradle.addBuildListener(new InternalBuildAdapter() {
+                    @Override
+                    public void buildFinished(BuildResult result) {
+                        deploymentRegistry.buildFinished(result);
+                    }
+                });
                 return action.apply(buildTreeLifecycleController);
             } finally {
                 buildLifecycleListener.beforeComplete();
