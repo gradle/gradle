@@ -21,6 +21,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer;
@@ -66,11 +67,12 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
         return failures;
     }
 
+    @SuppressWarnings("deprecation")
     private RootProjectBuildDirCollectingListener getRootProjectBuildDirCollectingListener(BuildTreeLifecycleController buildController) {
         RootProjectBuildDirCollectingListener listener = new RootProjectBuildDirCollectingListener(
             defaultRootBuildDirOf()
         );
-        buildController.beforeBuild(gradle -> gradle.addBuildListener(listener));
+        buildController.beforeBuild(gradle -> DeprecationLogger.whileDisabled(() -> gradle.addBuildListener(listener)));
         return listener;
     }
 

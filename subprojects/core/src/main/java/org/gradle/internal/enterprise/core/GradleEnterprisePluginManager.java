@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
@@ -81,19 +82,22 @@ public class GradleEnterprisePluginManager {
      * This should never happen due to the auto apply behavior.
      * It's only here as a kind of safeguard or fallback.
      */
+    @SuppressWarnings("deprecation")
     public void registerMissingPluginWarning(GradleInternal gradle) {
         if (gradle.isRootBuild()) {
             StartParameter startParameter = gradle.getStartParameter();
             boolean requested = !startParameter.isNoBuildScan() && startParameter.isBuildScan();
             if (requested) {
-                gradle.addListener(new InternalBuildAdapter() {
-                    @Override
-                    public void settingsEvaluated(@Nonnull Settings settings) {
-                        if (!isPresent() && !unsupported) {
-                            LOGGER.warn(NO_SCAN_PLUGIN_MSG);
+                DeprecationLogger.whileDisabled(() ->
+                    gradle.addListener(new InternalBuildAdapter() {
+                        @Override
+                        public void settingsEvaluated(@Nonnull Settings settings) {
+                            if (!isPresent() && !unsupported) {
+                                LOGGER.warn(NO_SCAN_PLUGIN_MSG);
+                            }
                         }
-                    }
-                });
+                    })
+                );
             }
         }
     }

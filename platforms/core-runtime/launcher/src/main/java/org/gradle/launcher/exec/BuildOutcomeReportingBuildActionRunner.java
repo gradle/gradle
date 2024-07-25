@@ -26,6 +26,7 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -52,6 +53,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         this.buildLoggerFactory = buildLoggerFactory;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         StartParameter startParameter = action.getStartParameter();
@@ -60,7 +62,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(BuildLogger.class), startParameter, buildStartedTime, buildRequestMetaData);
         // Register as a 'logger' to support this being replaced by build logic.
-        buildController.beforeBuild(gradle -> gradle.useLogger(buildLogger));
+        buildController.beforeBuild(gradle -> DeprecationLogger.whileDisabled(() -> gradle.useLogger(buildLogger)));
 
         Result result = delegate.run(action, buildController);
 
