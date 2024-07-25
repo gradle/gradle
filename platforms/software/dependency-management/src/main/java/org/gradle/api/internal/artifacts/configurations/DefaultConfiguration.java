@@ -397,9 +397,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public Configuration extendsFrom(Configuration... extendsFrom) {
         validateMutation(MutationType.HIERARCHY);
         for (Configuration extended : extendsFrom) {
-            DefaultConfiguration other = Objects.requireNonNull(Cast.uncheckedCast(extended));
+            ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
             if (!Objects.equals(this.getIdentity().getProjectPath(), other.getIdentity().getProjectPath())) {
-                DeprecationLogger.deprecateBehaviour("Configuration '" + this.getName() + "' in project '" + this.identityPath.getParent() + "' extends configuration '" + other.getName() + "' in project '" + other.identityPath.getParent() + "'.")
+                DeprecationLogger.deprecateBehaviour("Configuration '" + this.getName() + "' in project '" + this.getIdentity().getProjectPath() + "' extends configuration '" + other.getName() + "' in project '" + other.getIdentity().getProjectPath() + "'.")
                     .withAdvice("Configurations can only extend from configurations in the same project.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "extending_configurations_in_same_project")
@@ -420,7 +420,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 if (inheritedDependencyConstraints != null) {
                     inheritedDependencyConstraints.addCollection(other.getAllDependencyConstraints());
                 }
-                ((ConfigurationInternal) other).addMutationValidator(parentMutationValidator);
+                other.addMutationValidator(parentMutationValidator);
             }
         }
         return this;
@@ -1526,7 +1526,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private ConfigurationIdentity getIdentity() {
+    @Override
+    public ConfigurationIdentity getIdentity() {
         String name = getName();
         String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
         String buildPath = domainObjectContext.getBuildPath().toString();
