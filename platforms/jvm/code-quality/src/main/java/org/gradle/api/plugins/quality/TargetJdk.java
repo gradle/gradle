@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * Represents the PMD targetjdk property available for PMD &lt; 5.0
@@ -69,6 +70,6 @@ public enum TargetJdk {
     }
 
     public String getName() {
-        return name().substring("VERSION_".length()).replace('_', '.').toLowerCase();
+        return name().substring("VERSION_".length()).replace('_', '.').toLowerCase(Locale.ROOT);
     }
 }

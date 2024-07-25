@@ -16,17 +16,10 @@
 
 plugins {
     // Uninstrumented since it is a mix of Groovy and Java code
-    id("gradlebuild.distribution.uninstrumented.api-java")
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
-
-sourceSets {
-    main {
-        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
-        errorprone.enabled = false
-    }
-}
 
 dependencies {
     api(projects.stdlibJavaExtensions)

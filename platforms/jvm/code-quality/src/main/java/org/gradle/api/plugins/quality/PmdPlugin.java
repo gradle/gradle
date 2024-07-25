@@ -37,7 +37,6 @@ import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +65,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     public static final String DEFAULT_PMD_VERSION = "6.55.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
+    @SuppressWarnings("HidingField")
     private PmdExtension extension;
 
     @Override
@@ -133,7 +133,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     private static List<String> ruleSetsConvention(PmdExtension extension) {
         if (extension.getRuleSetConfig() == null && extension.getRuleSetFiles().isEmpty()) {
-            return new ArrayList<>(Collections.singletonList("category/java/errorprone.xml"));
+            return Collections.singletonList("category/java/errorprone.xml");
         } else {
             return Collections.emptyList();
         }

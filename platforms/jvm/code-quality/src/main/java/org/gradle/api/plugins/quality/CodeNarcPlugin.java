@@ -52,6 +52,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     static final String STABLE_VERSION = "3.2.0";
     static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "3.2.0-groovy-4.0";
 
+    @SuppressWarnings("HidingField")
     private CodeNarcExtension extension;
 
     @Override
@@ -68,7 +69,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     abstract protected JavaToolchainService getToolchainService();
 
     @Override
-    protected Class<? extends Plugin> getBasePlugin() {
+    protected Class<? extends Plugin<?>> getBasePlugin() {
         return GroovyBasePlugin.class;
     }
 
