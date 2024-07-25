@@ -1745,6 +1745,7 @@ Class <org.gradle.internal.buildoption.PropertiesConverter> is not annotated (di
 Class <org.gradle.internal.buildoption.StringBuildOption> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (StringBuildOption.java:0)
 Class <org.gradle.internal.buildoption.StringInternalOption> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (StringInternalOption.java:0)
 Class <org.gradle.internal.cache.MonitoredCleanupAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MonitoredCleanupAction.java:0)
+Class <org.gradle.internal.classanalysis.AsmConstants> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AsmConstants.java:0)
 Class <org.gradle.internal.classpath.CachedClasspathTransformer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachedClasspathTransformer.java:0)
 Class <org.gradle.internal.classpath.ClassData> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassData.java:0)
 Class <org.gradle.internal.classpath.ClassPath> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassPath.java:0)
