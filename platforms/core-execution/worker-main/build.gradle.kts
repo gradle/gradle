@@ -16,7 +16,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.problemsApi)
-    api(projects.processServices)
+    api(projects.processMemoryServices)
     api(projects.native)
     api(libs.jsr305)
 
