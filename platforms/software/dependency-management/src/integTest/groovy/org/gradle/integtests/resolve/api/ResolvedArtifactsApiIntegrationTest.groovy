@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.util.GradleVersion
 
 @FluidDependenciesResolveTest
 class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -127,6 +128,11 @@ task show {
 allprojects {
     configurations.compile.attributes.attribute(usage, 'compile')
 }
+configurations {
+    compile {
+        attributes.attribute(Attribute.of('other', String), 'select')
+    }
+}
 dependencies {
     compile project(':a')
 }
@@ -139,6 +145,7 @@ project(':a') {
                     var1 {
                         artifact file('a1.jar')
                         attributes.attribute(flavor, 'one')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                 }
             }
@@ -156,6 +163,7 @@ project(':b') {
                     var1 {
                         artifact file('b2.jar')
                         attributes.attribute(flavor, 'two')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                 }
             }
@@ -177,13 +185,15 @@ task show {
 """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
         outputContains("components: [project :a, project :b]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, other=select, usage=compile}, {artifactType=jar, flavor=two, other=select, usage=compile}]")
 
         where:
         expression                                                    | _
@@ -282,6 +292,8 @@ task show {
 """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -384,6 +396,8 @@ task show {
 """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -408,6 +422,12 @@ allprojects {
     configurations.compile.attributes.attribute(usage, 'compile')
 }
 
+configurations {
+    compile {
+        attributes.attribute(Attribute.of('other', String), 'select')
+    }
+}
+
 dependencies {
     compile project(':a')
 }
@@ -419,14 +439,18 @@ project(':a') {
         compile {
             attributes.attribute(buildType, 'debug')
             outgoing {
+                attributes.attribute(flavor, 'zero')
+                attributes.attribute(Attribute.of('mismatch', String), 'mismatch')
                 variants {
                     var1 {
                         artifact oneJar
                         attributes.attribute(flavor, 'one')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                     var2 {
                         artifact twoJar
                         attributes.attribute(flavor, 'two')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                 }
             }
@@ -446,10 +470,12 @@ project(':b') {
                     var1 {
                         artifact oneJar
                         attributes.attribute(flavor, 'one')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                     var2 {
                         artifact twoJar
                         attributes.attribute(flavor, 'two')
+                        attributes.attribute(Attribute.of('other', String), 'select')
                     }
                 }
             }
@@ -467,16 +493,24 @@ task show {
 """
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
+        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
-  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'other' with value 'select', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
+      - Unmatched attributes:
+          - Doesn't say anything about other (required 'select')
+          - Provides buildType 'debug' but the consumer didn't ask for it
+          - Provides flavor 'zero' but the consumer didn't ask for it
+          - Provides mismatch 'mismatch' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant var1 declares attribute 'other' with value 'select', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant var2 declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant var2 declares attribute 'other' with value 'select', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
@@ -526,13 +560,9 @@ project(':a') {
     configurations {
         compile {
             attributes.attribute(buildType, 'debug')
+            attributes.attribute(flavor, 'one')
             outgoing {
-                variants {
-                    var1 {
-                        artifact file('a1.jar')
-                        attributes.attribute(flavor, 'one')
-                    }
-                }
+                artifact file('a1.jar')
             }
         }
     }
@@ -813,6 +843,7 @@ ${showFailuresTask(expression)}
         m2.artifact.expectGetBroken()
 
         when:
+        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
@@ -853,9 +884,11 @@ dependencies {
 configurations.compile.attributes.attribute(usage, "compile")
 
 project(':a') {
-    configurations.default.outgoing.variants {
-        v1 { }
-        v2 { }
+    configurations.default {
+        outgoing.variants {
+            v1 { }
+            v2 { }
+        }
     }
 }
 
@@ -892,6 +925,7 @@ task resolveLenient {
         m3.artifact.expectGet()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds 'resolveLenient'
 
         outputContains("failure 1: Could not find org:missing-module:1.0.")
@@ -902,6 +936,9 @@ Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:default':
+      - Unmatched attribute:
+          - Doesn't say anything about usage (required 'compile')
   - Configuration ':a:default' variant v1:
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
@@ -962,7 +999,7 @@ task resolveLenient {
         assert lenientView.files.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.failures.size() == 3
+        assert lenientView.artifacts.failures.size() == 2
     }
 }
 """
@@ -972,6 +1009,7 @@ task resolveLenient {
         m0.pom.expectGetMissing()
 
         expect:
+        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds 'resolveLenient'
         result.assertTasksExecuted(":c:jar1", ":resolveLenient")
     }

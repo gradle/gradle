@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.GradleVersion
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -260,11 +261,13 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 
         expect:
         executer.withArgument("--dry-run")
+        executer.expectDeprecationWarning("The configuration ':child:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
+        executer.expectDeprecationWarning("The configuration ':child:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")

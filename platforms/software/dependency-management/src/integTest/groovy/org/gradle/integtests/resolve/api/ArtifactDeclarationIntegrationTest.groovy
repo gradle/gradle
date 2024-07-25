@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.util.GradleVersion
 
 class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
@@ -273,6 +274,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
                 configurations {
                     compile {
                         outgoing {
+                            attributes.attribute(Attribute.of('usage', String), 'other')
                             variants {
                                 classes {
                                     artifact(file('classes')) {
@@ -294,7 +296,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
             }
 """
 
-        when:
+        when:executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'classes' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds ':b:checkDeps'
 
         then:

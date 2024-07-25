@@ -122,12 +122,17 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variants = getOutgoingVariants(publications)
-        variants.size() == 1
+        variants.size() == 2
 
-        def child = variants.first()
-        child.displayName.displayName == '<config> variant child'
-        child.attributes == AttributeTestUtil.attributes(["thing": "value"])
-        child.artifacts == variantDef.artifacts
+        def child1 = variants.first() // Implicit variant
+        child1.displayName.displayName == '<config>'
+        child1.attributes == AttributeTestUtil.attributes([:])
+        child1.artifacts == [] as Set
+
+        def child2 = variants[1]
+        child2.displayName.displayName == '<config> variant child'
+        child2.attributes == AttributeTestUtil.attributes(["thing": "value"])
+        child2.artifacts == variantDef.artifacts
     }
 
     def "converts to OutgoingVariant when explicit variant and artifacts defined"() {

@@ -164,7 +164,8 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
                     result.add(new PublishArtifactLocalArtifactMetadata(componentId, inheritedArtifact));
                 }
             }
-            return result.build().asList();
+            ImmutableSet<LocalComponentArtifactMetadata> artifactMetadatas = result.build();
+            return artifactMetadatas.asList();
         }));
     }
 
