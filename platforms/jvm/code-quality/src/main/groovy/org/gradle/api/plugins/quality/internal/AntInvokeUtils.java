@@ -28,7 +28,7 @@ class AntInvokeUtils {
         receiver.invokeMethod(methodName, new Object[]{parameters, new Closure<Object>(receiver, receiver) {
             public Object doCall(Object object) {
                 closure.run();
-                return object;
+                return null;
             }
         }});
     }
