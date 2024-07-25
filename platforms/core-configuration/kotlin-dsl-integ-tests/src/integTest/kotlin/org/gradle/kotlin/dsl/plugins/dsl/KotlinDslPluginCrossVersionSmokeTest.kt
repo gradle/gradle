@@ -212,7 +212,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
         )
-        if (!GradleContextualExecuter.isConfigCache()) {
+        if (GradleContextualExecuter.isNotConfigCache()) {
             expectBuildScopeListenerDeprecation()
         }
 
