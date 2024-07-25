@@ -1003,8 +1003,8 @@
   {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
-    "unitTests": true,
-    "functionalTests": true,
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
