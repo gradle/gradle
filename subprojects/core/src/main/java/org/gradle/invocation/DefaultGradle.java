@@ -410,11 +410,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add("buildFinished", action);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void addListener(Object listener) {
         addListener("Gradle.addListener", listener);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void removeListener(Object listener) {
         // do same decoration as in addListener to remove correctly
@@ -489,6 +491,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             || listener instanceof DependencyResolutionListener;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void useLogger(Object logger) {
         notifyListenerRegistration("Gradle.useLogger", logger);
@@ -500,6 +503,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         return projectEvaluationListenerBroadcast.getSource();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void addBuildListener(BuildListener buildListener) {
         addListener("Gradle.addBuildListener", buildListener);
