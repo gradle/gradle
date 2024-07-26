@@ -460,10 +460,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public Object getGroup() {
         if (group != null) {
             return group;
-        } else if (this == rootProject) {
+        } else if (this.equals(rootProject)) {
             return "";
         }
-        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        group = rootProject.getName() + (getParent().equals(rootProject) ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
         return group;
     }
 
