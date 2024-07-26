@@ -263,7 +263,7 @@ class ConfigurationCacheRepository(
     private
     fun projectWorkGraphFileFor(parentStateFile: File, projectPath: Path) =
         parentStateFile.run {
-            resolveSibling("${projectPath}.project.nodes-$name")
+            resolveSibling("project.${projectPath.segments().joinToString { "_" }}.nodes-$name")
         }
 
     private
