@@ -77,6 +77,7 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
+import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -969,6 +970,33 @@ def scriptMethod(Closure closure) {
                 assert project instanceof LifecycleAwareProject
             }
         }
+    }
+
+    def referrerIsPreserved() {
+        expect:
+        assertLifecycleAwareWithReferrer(child1) { rootProject }
+        assertLifecycleAwareWithReferrer(child1) { parent }
+        assertLifecycleAwareWithReferrer(project) { childProjects.values().first() }
+        assertLifecycleAwareWithReferrer(child1) { it.project.parent }
+        assertLifecycleAwareWithReferrer(project) { getAllprojects()[1] }
+        assertLifecycleAwareWithReferrer(project) { getSubprojects()[0] }
+        assertLifecycleAwareWithReferrer(project) { findProject(":child1") }
+        assertLifecycleAwareWithReferrer(project) { project(":child1") }
+        assertLifecycleAwareWithReferrer(project) { project(":child1") {} }
+        assertLifecycleAwareWithReferrer(project) { project(":child1", Actions.doNothing()) }
+
+        def p = project
+        p.allprojects { if (it != p) { assertLifecycleAwareWithReferrer(it, p) } }
+        p.subprojects { assertLifecycleAwareWithReferrer(it, p) }
+    }
+
+    static boolean assertLifecycleAwareWithReferrer(Project referrer, @DelegatesTo(Project.class) Closure navigate) {
+        navigate.delegate = referrer
+        assertLifecycleAwareWithReferrer(navigate(referrer), referrer)
+    }
+
+    static boolean assertLifecycleAwareWithReferrer(Project project, Project referrer) {
+        project instanceof LifecycleAwareProject && project.referrer == referrer
     }
 
     static boolean assertLifecycleAwareProjectOf(Project crosslyAccessed, Project of) {

@@ -389,7 +389,12 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     @AllowUsingApiForExternalUse
     public Map<String, Project> getChildProjects() {
-        return delegate.getChildProjects();
+        return getChildProjects(referrer);
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
+        return delegate.getChildProjects(referrer);
     }
 
     @Override

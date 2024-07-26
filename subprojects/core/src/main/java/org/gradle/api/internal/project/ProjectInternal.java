@@ -116,6 +116,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     Map<String, Project> getChildProjects();
 
+    Map<String, Project> getChildProjects(ProjectInternal referrer);
+
     /**
      * Returns a mapping of the direct child project names to the child project instances.
      *

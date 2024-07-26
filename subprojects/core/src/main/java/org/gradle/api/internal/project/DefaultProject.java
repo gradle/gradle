@@ -511,7 +511,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getCrossProjectModelAccess().getChildProjects(this, this);
+        return getChildProjects(this);
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().getChildProjects(referrer, this);
     }
 
     @Override

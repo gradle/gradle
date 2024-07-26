@@ -46,7 +46,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
-        return project;
+        return LifecycleAwareProject.from(project, referrer, gradleLifecycleActionExecutor, instantiator);
     }
 
     @Override
