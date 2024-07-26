@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
@@ -106,44 +107,25 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
             return;
         }
 
+        StringInterner stringInterner = internalServices.get().getStringInterner();
         try {
-            Map<String, Set<String>> superTypes = new TreeMap<>();
-            Set<String> dependencies = new TreeSet<>();
-            analyzeArtifact(artifact, superTypes, dependencies);
-            writeOutput(artifact, outputs, superTypes, dependencies);
+            ArtifactDependencyCollector collector = new ArtifactDependencyCollector(stringInterner);
+            analyzeArtifact(artifact, collector);
+            writeOutput(artifact, outputs, collector);
         } catch (IOException | FileException ignored) {
             // We support badly formatted jars on the build classpath
             // see: https://github.com/gradle/gradle/issues/13816
-            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
+            writeOutput(artifact, outputs, new ArtifactDependencyCollector(stringInterner));
         }
     }
 
-    private void analyzeArtifact(File artifact, Map<String, Set<String>> superTypesCollector, Set<String> dependenciesCollector) throws IOException {
-        // We cannot inject internal services in to the transform directly, but we can create them via object factory
+    private void analyzeArtifact(File artifact, ArtifactDependencyCollector collector) throws IOException {
         ClasspathWalker walker = internalServices.get().getClasspathWalker();
         walker.visit(artifact, entry -> {
             if (entry.getName().endsWith(".class") && !isInUnsupportedMrJarVersionedDirectory(entry)) {
                 ClassReader reader = new ClassReader(entry.getContent());
-                String className = reader.getClassName();
-                Set<String> classSuperTypes = collectSuperTypes(reader);
-                collectArtifactClassDependencies(className, reader, dependenciesCollector);
-                if (!classSuperTypes.isEmpty()) {
-                    superTypesCollector.put(className, classSuperTypes);
-                }
-            }
-        });
-    }
-
-    private static Set<String> collectSuperTypes(ClassReader reader) {
-        return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
-            .filter(InstrumentationAnalysisTransform::isTypeAccepted)
-            .collect(toImmutableSortedSet(Ordering.natural()));
-    }
-
-    private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
-        ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
-            if (!dependencyDescriptor.equals(className) && InstrumentationAnalysisTransform.isTypeAccepted(dependencyDescriptor)) {
-                collector.add(dependencyDescriptor);
+                collector.collectClassSuperTypes(reader);
+                collector.collectArtifactDependencies(reader);
             }
         });
     }
@@ -152,19 +134,19 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
      * We write types hierarchy and metadata with dependencies as a separate file, since
      * type hierarchy is an input to {@link MergeInstrumentationAnalysisTransform}.
      */
-    private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
+    private void writeOutput(File artifact, TransformOutputs outputs, ArtifactDependencyCollector collector) {
         InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         createInstrumentationClasspathMarker(outputs);
 
         // Write type hierarchy analysis separately from dependencies,
         // since type hierarchy is used only as an input to MergeInstrumentationAnalysisTransform
         File typeHierarchyAnalysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + TYPE_HIERARCHY_ANALYSIS_FILE_NAME);
-        serializer.writeTypeHierarchyAnalysis(typeHierarchyAnalysisFile, superTypes);
+        serializer.writeTypeHierarchyAnalysis(typeHierarchyAnalysisFile, collector.classSuperTypes);
 
         // Write dependency analysis
         File dependencyAnalysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
         InstrumentationArtifactMetadata metadata = getArtifactMetadata(artifact);
-        serializer.writeDependencyAnalysis(dependencyAnalysisFile, new InstrumentationDependencyAnalysis(metadata, toMapWithKeys(dependencies)));
+        serializer.writeDependencyAnalysis(dependencyAnalysisFile, new InstrumentationDependencyAnalysis(metadata, toMapWithKeys(collector.artifactDependencies)));
         outputOriginalArtifact(outputs, artifact);
     }
 
@@ -179,5 +161,37 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         TreeMap<String, Set<String>> map = new TreeMap<>();
         keys.forEach(key -> map.put(key, Collections.emptySet()));
         return map;
+    }
+
+    private static class ArtifactDependencyCollector {
+
+        private final StringInterner interner;
+        private final Set<String> artifactDependencies;
+        private final Map<String, Set<String>> classSuperTypes;
+
+        public ArtifactDependencyCollector(StringInterner interner) {
+            this.interner = interner;
+            this.artifactDependencies = new TreeSet<>();
+            this.classSuperTypes = new TreeMap<>();
+        }
+
+        private void collectClassSuperTypes(ClassReader reader) {
+            Set<String> superTypes = Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
+                .filter(InstrumentationAnalysisTransform::isTypeAccepted)
+                .map(interner::intern)
+                .collect(toImmutableSortedSet(Ordering.natural()));
+            if (!superTypes.isEmpty()) {
+                classSuperTypes.put(interner.intern(reader.getClassName()), superTypes);
+            }
+        }
+
+        private void collectArtifactDependencies(ClassReader reader) {
+            String className = reader.getClassName();
+            ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
+                if (!dependencyDescriptor.equals(className) && InstrumentationAnalysisTransform.isTypeAccepted(dependencyDescriptor)) {
+                    artifactDependencies.add(interner.intern(dependencyDescriptor));
+                }
+            });
+        }
     }
 }
