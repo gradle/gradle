@@ -32,7 +32,6 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
-import org.gradle.internal.buildtree.DefaultBuildModelParameters
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
@@ -47,6 +46,7 @@ import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstru
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
@@ -96,15 +96,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
             DefaultBuildModelParameters(
-                parallelProjectExecution,
-                isolatedProjects,
-                isolatedProjects,
-                isolatedProjects,
-                true,
-                isolatedProjects,
-                parallelToolingActions,
-                invalidateCoupledProjects,
-                modelAsProjectDependency
+                parallelProjectExecution = parallelProjectExecution,
+                configureOnDemand = isolatedProjects,
+                configurationCache = isolatedProjects,
+                isolatedProjects = isolatedProjects,
+                requiresBuildModel = true,
+                intermediateModelCache = isolatedProjects,
+                parallelToolingApiActions = parallelToolingActions,
+                invalidateCoupledProjects = invalidateCoupledProjects,
+                modelAsProjectDependency = modelAsProjectDependency
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
@@ -113,15 +113,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             fun disabledConfigurationCacheDefaultBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
                 return DefaultBuildModelParameters(
-                    parallelProjectExecution,
-                    configureOnDemand,
-                    false,
-                    false,
-                    false,
-                    false,
-                    parallelToolingActions,
-                    invalidateCoupledProjects,
-                    modelAsProjectDependency
+                    parallelProjectExecution = parallelProjectExecution,
+                    configureOnDemand = configureOnDemand,
+                    configurationCache = false,
+                    isolatedProjects = false,
+                    requiresBuildModel = false,
+                    intermediateModelCache = false,
+                    parallelToolingApiActions = parallelToolingActions,
+                    invalidateCoupledProjects = invalidateCoupledProjects,
+                    modelAsProjectDependency = modelAsProjectDependency
                 )
             }
 
@@ -129,15 +129,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheDefaultBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
                 configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheDefaultBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
                 else -> DefaultBuildModelParameters(
-                    parallelProjectExecution,
-                    configureOnDemand,
-                    configurationCache,
-                    isolatedProjects,
-                    false,
-                    false,
-                    parallelToolingActions,
-                    invalidateCoupledProjects,
-                    modelAsProjectDependency
+                    parallelProjectExecution = parallelProjectExecution,
+                    configureOnDemand = configureOnDemand,
+                    configurationCache = configurationCache,
+                    isolatedProjects = isolatedProjects,
+                    requiresBuildModel = false,
+                    intermediateModelCache = false,
+                    parallelToolingApiActions = parallelToolingActions,
+                    invalidateCoupledProjects = invalidateCoupledProjects,
+                    modelAsProjectDependency = modelAsProjectDependency
                 )
             }
         }
@@ -168,15 +168,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             // Configuration cache is not supported for nested build trees
             val buildModelParameters =
                 DefaultBuildModelParameters(
-                    startParameter.isParallelProjectExecutionEnabled,
-                    startParameter.isConfigureOnDemand,
-                    false,
-                    false,
-                    true,
-                    false,
-                    false,
-                    false,
-                    false
+                    parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
+                    configureOnDemand = startParameter.isConfigureOnDemand,
+                    configurationCache = false,
+                    isolatedProjects = false,
+                    requiresBuildModel = true,
+                    intermediateModelCache = false,
+                    parallelToolingApiActions = false,
+                    invalidateCoupledProjects = false,
+                    modelAsProjectDependency = false
                 )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
