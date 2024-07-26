@@ -103,8 +103,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 isolatedProjects,
                 parallelToolingActions,
                 invalidateCoupledProjects,
-                modelAsProjectDependency,
-                configurationCacheLogLevel
+                modelAsProjectDependency
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
@@ -121,8 +120,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     false,
                     parallelToolingActions,
                     invalidateCoupledProjects,
-                    modelAsProjectDependency,
-                    configurationCacheLogLevel
+                    modelAsProjectDependency
                 )
             }
 
@@ -138,8 +136,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     false,
                     parallelToolingActions,
                     invalidateCoupledProjects,
-                    modelAsProjectDependency,
-                    configurationCacheLogLevel
+                    modelAsProjectDependency
                 )
             }
         }
@@ -153,16 +150,18 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             IncubationLogger.incubatingFeatureUsed("Configuration on demand")
         }
 
+        val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
         val buildFeatures = DefaultBuildFeatures(startParameter, modelParameters)
 
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
-            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements)
+            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements, loggingParameters)
         }
     }
 
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
+        val loggingParameters = ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
@@ -176,18 +175,24 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     false,
                     false,
                     false,
-                    false,
-                    LogLevel.LIFECYCLE
+                    false
                 )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
-            registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements)
+            registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements, loggingParameters)
         }
     }
 
     private
-    fun registerCommonBuildTreeServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
+    fun registerCommonBuildTreeServices(
+        registration: ServiceRegistration,
+        modelParameters: BuildModelParameters,
+        buildFeatures: DefaultBuildFeatures,
+        requirements: BuildActionModelRequirements,
+        loggingParameters: ConfigurationCacheLoggingParameters
+    ) {
         registration.add(BuildModelParameters::class.java, modelParameters)
+        registration.add(ConfigurationCacheLoggingParameters::class.java, loggingParameters)
         registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
