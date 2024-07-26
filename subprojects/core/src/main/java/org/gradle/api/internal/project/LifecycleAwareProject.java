@@ -22,7 +22,7 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.invocation.LifecycleActionExecutor;
+import org.gradle.invocation.GradleLifecycleActionExecutor;
 
 import javax.annotation.Nullable;
 
@@ -37,26 +37,26 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     public static ProjectInternal from(
         ProjectInternal target,
         ProjectInternal referrer,
-        LifecycleActionExecutor lifecycleActionExecutor,
+        GradleLifecycleActionExecutor gradleLifecycleActionExecutor,
         Instantiator instantiator
     ) {
         return MutableStateAccessAwareProject.wrap(
             target,
             referrer,
-            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer, lifecycleActionExecutor)
+            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer, gradleLifecycleActionExecutor)
         );
     }
 
-    private final LifecycleActionExecutor lifecycleActionExecutor;
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
 
-    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, LifecycleActionExecutor lifecycleActionExecutor) {
+    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, GradleLifecycleActionExecutor gradleLifecycleActionExecutor) {
         super(delegate, referrer);
-        this.lifecycleActionExecutor = lifecycleActionExecutor;
+        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
     }
 
     @Override
     protected void onMutableStateAccess(String what) {
-        lifecycleActionExecutor.executeBeforeProjectFor(delegate);
+        gradleLifecycleActionExecutor.executeBeforeProjectFor(delegate);
     }
 
     @Override

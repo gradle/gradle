@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
-public interface LifecycleActionExecutor {
+public interface GradleLifecycleActionExecutor {
 
     /**
      * Eagerly executes the actions, previously registered via {@link IsolatedProjectEvaluationListenerProvider#beforeProject(IsolatedAction)}

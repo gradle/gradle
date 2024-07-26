@@ -61,7 +61,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
-import org.gradle.invocation.LifecycleActionExecutor
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -168,9 +168,9 @@ class DefaultBuildModelControllerServices(
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
             instantiator: Instantiator,
-            lifecycleActionExecutor: LifecycleActionExecutor
+            gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator, lifecycleActionExecutor)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
@@ -205,9 +205,9 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             instantiator: Instantiator,
-            lifecycleActionExecutor: LifecycleActionExecutor
+            gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry, instantiator, lifecycleActionExecutor)
+            return DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
         }
 
         @Provides

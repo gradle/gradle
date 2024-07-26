@@ -30,7 +30,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.core.peekSingletonProperty
-import org.gradle.invocation.LifecycleActionExecutor
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
@@ -45,7 +45,7 @@ typealias IsolatedProjectActionList = Collection<IsolatedProjectAction>
 internal
 class DefaultIsolatedProjectEvaluationListenerProvider(
     private val userCodeApplicationContext: UserCodeApplicationContext
-) : IsolatedProjectEvaluationListenerProvider, LifecycleActionExecutor {
+) : IsolatedProjectEvaluationListenerProvider, GradleLifecycleActionExecutor {
 
     private
     val beforeProject = mutableListOf<IsolatedProjectAction>()

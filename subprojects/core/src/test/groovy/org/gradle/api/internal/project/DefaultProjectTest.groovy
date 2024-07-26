@@ -89,7 +89,7 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.invocation.LifecycleActionExecutor
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
@@ -169,7 +169,7 @@ class DefaultProjectTest extends Specification {
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope("root", getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache(), Stub(ClassLoaderScopeRegistryListener))
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project", null)
     ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory), TestFiles.patternSetFactory, new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), TestFiles.taskDependencyFactory(), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
-    LifecycleActionExecutor eagerLifecycleExecutor = Stub(LifecycleActionExecutor)
+    GradleLifecycleActionExecutor eagerLifecycleExecutor = Stub(GradleLifecycleActionExecutor)
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile

@@ -42,7 +42,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.invocation.LifecycleActionExecutor
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
 
@@ -81,7 +81,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(DefaultConfigurationCacheIO::class.java)
             add(
                 IsolatedProjectEvaluationListenerProvider::class.java,
-                LifecycleActionExecutor::class.java,
+                GradleLifecycleActionExecutor::class.java,
                 DefaultIsolatedProjectEvaluationListenerProvider::class.java
             )
         }
