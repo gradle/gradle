@@ -21,6 +21,7 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 @ServiceScope(Scope.BuildTree::class)
+internal
 class ConfigurationCacheLoggingParameters(
     val logLevel: LogLevel
 )

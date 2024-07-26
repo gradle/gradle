@@ -35,7 +35,7 @@ import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCacheStartParameter(
+class ConfigurationCacheStartParameter internal constructor(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
