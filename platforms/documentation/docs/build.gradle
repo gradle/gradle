@@ -109,8 +109,8 @@ tasks.named("stageDocs") {
 
 samples {
     templates {
-        javaAndroidApplication
-        structuringSoftwareProjects
+        javaAndroidApplication {}
+        structuringSoftwareProjects {}
         springBootWebApplication {
             target = "app"
         }
@@ -121,11 +121,11 @@ samples {
             sourceDirectory = gradlePluginInJava.sourceDirectory
             target = "buildSrc"
         }
-        buildSrcPluginJavaModuleTransform
+        buildSrcPluginJavaModuleTransform {}
 
-        javaApplication
-        javaListLibrary
-        javaUtilitiesLibrary
+        javaApplication {}
+        javaListLibrary {}
+        javaUtilitiesLibrary {}
         javaListLibraryInMyLibrary {
             sourceDirectory = javaListLibrary.sourceDirectory
             target = "my-library"
@@ -179,8 +179,8 @@ samples {
             target = "application"
         }
 
-        groovyListLibrary
-        groovyUtilitiesLibrary
+        groovyListLibrary {}
+        groovyUtilitiesLibrary {}
         groovyListLibraryInMyLibrary {
             sourceDirectory = groovyListLibrary.sourceDirectory
             target = "my-library"
@@ -190,7 +190,7 @@ samples {
             target = "my-library"
         }
 
-        projectInfoPlugin
+        projectInfoPlugin {}
 
         precompiledScriptPluginUtils {
             target = "convention-plugins"
@@ -199,7 +199,7 @@ samples {
             sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
             target = "buildSrc"
         }
-        problemsApiUsage
+        problemsApiUsage {}
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration

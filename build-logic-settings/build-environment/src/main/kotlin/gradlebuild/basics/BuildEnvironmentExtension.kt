@@ -24,4 +24,5 @@ interface BuildEnvironmentExtension {
     val gitCommitId: Property<String>
     val gitBranch: Property<String>
     val repoRoot: DirectoryProperty
+    val rootProjectBuildDir: DirectoryProperty
 }
