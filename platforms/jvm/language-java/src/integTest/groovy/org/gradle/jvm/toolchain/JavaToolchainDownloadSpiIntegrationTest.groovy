@@ -86,7 +86,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(10)
                 }
             }
         """
@@ -106,10 +106,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=11, vendor=any vendor, implementation=vendor-specific} for")
+               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=10, vendor=any vendor, implementation=vendor-specific} for")
                .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
-                   "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any vendor, implementation=vendor-specific}) " +
-                   "from '$uri', due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=11, vendor=any vendor, implementation=vendor-specific}.).")
+                   "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements ({languageVersion=10, vendor=any vendor, implementation=vendor-specific}) " +
+                   "from '$uri', due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=10, vendor=any vendor, implementation=vendor-specific} and must have the executable 'javac' and the executable 'javadoc'.)")
     }
 
     def "custom toolchain registries are consulted in order"() {
