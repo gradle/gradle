@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.toolchain
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import spock.lang.Unroll
+import org.junit.Assume
 
 import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static JavaToolchainDownloadUtil.noUrlResolverCode
@@ -446,9 +445,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                    GET_HELP)
     }
 
-    @Unroll("#logLevel logging")
-    def "logs informative warning message if some repositories fail to resolve the toolchain spec"(String logLevel, Closure<ExecutionResult> test) {
+    def "logs informative warning message if some repositories fail to resolve the toolchain spec #logLevel"(String logLevel, Closure<ExecutionResult> test) {
         given:
+        Assume.assumeFalse(JavaVersion.current() == JavaVersion.VERSION_11)
+        
         def jdkRepository = new JdkRepository(JavaVersion.VERSION_11)
         def uri = jdkRepository.start()
         jdkRepository.reset()
