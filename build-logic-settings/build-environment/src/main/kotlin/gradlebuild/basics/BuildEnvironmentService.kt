@@ -17,7 +17,6 @@
 package gradlebuild.basics
 
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildService
@@ -31,13 +30,6 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
     interface Parameters : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
         val rootProjectBuildDir: DirectoryProperty
-        val artifactoryUserName: Property<String>
-        val artifactoryPassword: Property<String>
-        val testVersions: Property<String>
-        val integtestAgentAllowed: Property<String>
-        val integtestDebug: Property<String>
-        val integtestLauncherDebug: Property<String>
-        val integtestVerbose: Property<String>
     }
 
     @get:Inject
