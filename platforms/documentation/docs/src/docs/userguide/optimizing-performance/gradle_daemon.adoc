@@ -222,7 +222,7 @@ $ ./gradlew updateDaemonJvm --jvm-version=17
 
 If you run the task without any arguments, and the properties file does not exist, then the JVM used by the daemon will provide the version value.
 
-NOTE: Currently, Gradle only supports the major JVM version as a criterion.
+NOTE: Currently, Gradle only supports the major JVM version and JVM vendor as a criterion.
 Support for other toolchains criteria will be added in a future release.
 
 On the next execution of Gradle, the launcher will use this file to locate a compatible JVM installation and start the daemon with it.

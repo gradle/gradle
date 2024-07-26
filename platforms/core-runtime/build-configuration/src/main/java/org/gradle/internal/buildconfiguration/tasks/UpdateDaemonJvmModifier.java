@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.util.internal.GFileUtils;
@@ -34,7 +33,7 @@ public class UpdateDaemonJvmModifier {
     public static void updateJvmCriteria(
         File propertiesFile,
         JavaVersion toolchainVersion,
-        @Nullable JvmVendor toolchainVendor,
+        @Nullable String toolchainVendor,
         @Nullable JvmImplementation toolchainImplementation
     ) {
         validateToolchainVersion(toolchainVersion);
@@ -42,7 +41,7 @@ public class UpdateDaemonJvmModifier {
         Properties daemonJvmProperties = new Properties();
         daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, toolchainVersion.getMajorVersion());
         if (toolchainVendor != null) {
-            daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor.getKnownVendor().name());
+            daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor);
         }
         if (toolchainImplementation != null) {
             daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, toolchainImplementation.toString());
