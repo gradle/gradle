@@ -45,6 +45,7 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.jvmServices)
+    integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
@@ -70,11 +71,6 @@ packageCycles {
 
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }
 
 tasks {

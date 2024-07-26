@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.4.1"
+version = "4.5.1"
 
 base.archivesName = "plugins"
 
@@ -18,21 +18,31 @@ dependencies {
     compileOnly(projects.core)
     compileOnly(projects.languageJvm)
     compileOnly(projects.languageJava)
+    compileOnly(projects.loggingApi)
     compileOnly(projects.platformJvm)
     compileOnly(projects.pluginDevelopment)
     compileOnly(projects.kotlinDsl)
+    compileOnly(projects.serviceLookup)
+    compileOnly(projects.stdlibJavaExtensions)
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
 
-    implementation(libs.kotlinStdlib)
+    api(libs.kotlinStdlib)
+
+
     implementation(libs.futureKotlin("gradle-plugin"))
+    implementation(libs.futureKotlin("gradle-plugin-api"))
     implementation(libs.futureKotlin("sam-with-receiver"))
     implementation(libs.futureKotlin("assignment"))
+
 
     testImplementation(projects.logging)
     testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(libs.slf4jApi)
+    testImplementation(libs.kotlinReflect) {
+        because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
+    }
     testImplementation(libs.mockitoKotlin)
 }
 

@@ -25,7 +25,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
 
     def "fails when using an invalid toolchain spec when #description"() {
 
-        buildScript """
+        buildFile """
             apply plugin: JvmToolchainsPlugin
 
             abstract class UnpackLauncher extends DefaultTask {
@@ -61,7 +61,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
     def "do not nag user when toolchain spec is valid (#description)"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
 
             javaToolchains.launcherFor {
@@ -86,7 +86,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
     def "identify whether #tool toolchain corresponds to the #current JVM"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm as Jvm)
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
 
             def tool = javaToolchains.${toolMethod} {
@@ -120,7 +120,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
 
             java {
@@ -146,7 +146,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
     def "fails when trying to change captured toolchain spec property after it has been used to resolve a toolchain"() {
         def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
-        buildScript """
+        buildFile """
             import java.util.concurrent.atomic.AtomicReference
             import org.gradle.jvm.toolchain.JavaToolchainSpec
 
@@ -171,7 +171,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
 
     def "nag user when toolchain spec is IBM_SEMERU"() {
         given:
-        buildScript """
+        buildFile """
             apply plugin: "java"
 
             java {

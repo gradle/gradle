@@ -46,6 +46,7 @@ import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstru
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
@@ -191,6 +192,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
+
+        // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
+        registration.add(DefaultProblemFactory::class.java)
+
         if (modelParameters.isConfigurationCache) {
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
@@ -198,13 +203,13 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
             registration.add(DefaultConfigurationCacheProblemsListener::class.java)
-            registration.add(DefaultProblemFactory::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
+            registration.add(DefaultDeferredRootBuildGradle::class.java)
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)

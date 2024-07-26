@@ -608,6 +608,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return owner.getProjectPath();
     }
 
+    @Nullable
+    @Override
+    public Path getProjectIdentityPath() {
+        return getIdentityPath();
+    }
+
     @Override
     public ModelContainer<ProjectInternal> getModel() {
         return getOwner();
@@ -690,7 +696,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void allprojects(ProjectInternal referrer, Action<? super Project> action) {
-        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(referrer, this), action);
+        getProjectConfigurator().allprojects(getAllprojects(referrer), action);
     }
 
     @Override
@@ -715,7 +721,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
-        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(referrer, this), configureAction);
+        getProjectConfigurator().subprojects(getSubprojects(referrer), configureAction);
     }
 
     @Override
@@ -1553,6 +1559,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         @Nullable
         public ProjectInternal getProject() {
             return delegate.getProject();
+        }
+
+        @Nullable
+        @Override
+        public Path getProjectIdentityPath() {
+            return delegate.getProjectIdentityPath();
         }
 
         @Override

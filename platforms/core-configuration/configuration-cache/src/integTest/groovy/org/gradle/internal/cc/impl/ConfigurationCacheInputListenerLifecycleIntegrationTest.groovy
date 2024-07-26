@@ -86,7 +86,7 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         configurationCacheRun("-D$IGNORE_INPUTS_PROPERTY=true")
 
         then:
-        outputContains("the set of ignored configuration inputs has changed")
+        outputContains("because the value of ignored configuration inputs flag ($IGNORE_INPUTS_PROPERTY) has changed")
     }
 
     private static final String IGNORE_INPUTS_PROPERTY = StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME

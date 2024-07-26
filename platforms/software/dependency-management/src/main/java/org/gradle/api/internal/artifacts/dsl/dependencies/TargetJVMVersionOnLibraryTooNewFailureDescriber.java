@@ -23,9 +23,9 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,26 +45,28 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
     private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency resolution is looking for a library compatible with JVM runtime version %s, but '%s' is only compatible with JVM runtime version %s or newer.";
 
     @Override
-    protected JavaVersion getJVMVersion(IncompatibleGraphVariantFailure failure) {
+    protected JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure) {
         AttributeValue<Integer> jvmVersionAttribute = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         return JavaVersion.toVersion(jvmVersionAttribute.get());
     }
 
     @Override
-    public boolean canDescribeFailure(IncompatibleGraphVariantFailure failure) {
+    public boolean canDescribeFailure(NoCompatibleVariantsFailure failure) {
         boolean isPluginRequest = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         return !isPluginRequest && isDueToJVMVersionTooNew(failure);
     }
 
     @Override
-    public AbstractResolutionFailureException describeFailure(IncompatibleGraphVariantFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
         JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
-        String message = buildNeedsNewerJDKFailureMsg(failure.getRequestedName(), minJVMVersionSupported, failure);
-        List<String> resolutions = buildResolutions(suggestChangeLibraryVersion(failure.getRequestedName(), minJVMVersionSupported));
-        return new VariantSelectionException(message, failure, resolutions);
+        JavaVersion requestedJVMVersion = getJVMVersion(failure);
+
+        String message = buildNeedsNewerJDKFailureMsg(failure.describeRequestTarget(), minJVMVersionSupported, failure);
+        List<String> resolutions = buildResolutions(suggestChangeLibraryVersion(failure.describeRequestTarget(), requestedJVMVersion));
+        return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
-    private String buildNeedsNewerJDKFailureMsg(String requestedName, JavaVersion minRequiredJVMVersion, IncompatibleGraphVariantFailure failure) {
+    private String buildNeedsNewerJDKFailureMsg(String requestedName, JavaVersion minRequiredJVMVersion, NoCompatibleVariantsFailure failure) {
         return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, getJVMVersion(failure).getMajorVersion(), requestedName, minRequiredJVMVersion.getMajorVersion());
     }
 

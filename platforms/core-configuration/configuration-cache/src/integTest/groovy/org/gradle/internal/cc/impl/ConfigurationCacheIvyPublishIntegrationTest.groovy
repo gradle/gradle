@@ -179,7 +179,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateLoaded()
     }
 
-    private String buildFileConfiguration(String repositoriesBlock) {
+    private void buildFileConfiguration(String repositoriesBlock) {
         buildFile """
             apply plugin: 'ivy-publish'
 
@@ -237,7 +237,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
             credentialsBlock = "credentials(PasswordCredentials)"
             configureRepositoryCredentials(username, password, repositoryName)
         }
-        buildFile buildFileConfiguration("""
+        buildFileConfiguration("""
             repositories {
                 ivy {
                     name "${repositoryName}"

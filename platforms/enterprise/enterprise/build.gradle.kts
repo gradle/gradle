@@ -15,7 +15,6 @@ tasks.isolatedProjectsIntegTest {
 }
 
 dependencies {
-    api(projects.serviceProvider)
     api(projects.buildOperations)
     api(projects.baseServices)
     api(projects.configurationCache)
@@ -28,6 +27,8 @@ dependencies {
     api(projects.jvmServices)
     api(projects.launcher)
     api(projects.modelCore)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.testingJvm)
     api(projects.time)

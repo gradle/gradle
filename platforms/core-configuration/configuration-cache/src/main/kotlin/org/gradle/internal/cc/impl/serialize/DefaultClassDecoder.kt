@@ -51,7 +51,7 @@ class DefaultClassDecoder : ClassDecoder {
                 scope.exportClassLoader
             }
         } else {
-            this.classLoader
+            javaClass.classLoader
         }
         val newType = Class.forName(name, false, classLoader)
         classes.putInstance(id, newType)

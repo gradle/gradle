@@ -23,7 +23,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         settingsFile << """
             include 'a', 'b'
         """
-        buildScript """
+        buildFile """
             task ok
         """
         def a = createDir('a')
@@ -57,7 +57,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         settingsFile << """
             include 'a', 'b'
         """
-        buildScript """
+        buildFile """
             allprojects {
                 task ok
             }

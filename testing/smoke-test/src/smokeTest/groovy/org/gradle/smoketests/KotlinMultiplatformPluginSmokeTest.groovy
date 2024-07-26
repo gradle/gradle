@@ -17,8 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.internal.VersionNumber
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -27,7 +27,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  * Smoke test for the Kotlin Multiplatform plugin.
  */
 class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
-    @Ignore("https://github.com/gradle/gradle-private/issues/4223")
     def 'test kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
@@ -47,7 +46,6 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/4223")
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
@@ -60,7 +58,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
             .expectDeprecationWarningIf(
-                kotlinVersionNumber >= VersionNumber.parse('1.9.22'),
+                kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
                 "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
                 "https://youtrack.jetbrains.com/issue/KT-67110"
             )

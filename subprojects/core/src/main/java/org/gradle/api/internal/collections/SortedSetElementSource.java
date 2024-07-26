@@ -39,7 +39,10 @@ import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
-    private final Set<Collectors.TypedCollector<T>> pending = new LinkedHashSet<>();
+    // Note the juggling of pending is a memory optimization to save retained LinkedHashSets
+    // Each DomainObjectSet has a pending set and a Configuration has several DomainObjectSets
+    // And a Project has many Configurations.
+    private Set<Collectors.TypedCollector<T>> pending = Collections.emptySet();
     private Action<T> addRealizedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
@@ -108,7 +111,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void clear() {
-        pending.clear();
+        pending = Collections.emptySet();
         values.clear();
     }
 
@@ -154,6 +157,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean addPending(final ProviderInternal<? extends T> provider) {
+        ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
                 values.remove(previousValue);
@@ -175,6 +179,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             pending.add(collector);
         }
         return added;
+    }
+
+    private void ensurePendingIsMutable() {
+        if (pending == Collections.EMPTY_SET) {
+            pending = new LinkedHashSet<>();
+        }
     }
 
     private Collectors.TypedCollector<T> collectorFromProvider(final ProviderInternal<? extends T> provider) {
@@ -200,6 +210,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> {
                 for (T value : previousValues) {

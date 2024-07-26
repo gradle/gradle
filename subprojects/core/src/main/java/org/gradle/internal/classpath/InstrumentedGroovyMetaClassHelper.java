@@ -53,7 +53,9 @@ public class InstrumentedGroovyMetaClassHelper {
         CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorFilter);
         addInvocationHooksToMetaClass(closure.getThisObject().getClass(), resolver);
         addInvocationHooksToMetaClass(closure.getOwner().getClass(), resolver);
-        addInvocationHooksToMetaClass(closure.getDelegate().getClass(), resolver);
+        if (closure.getDelegate() != null) {
+            addInvocationHooksToMetaClass(closure.getDelegate().getClass(), resolver);
+        }
     }
 
     @SuppressWarnings("unused") // resolved via a method handle

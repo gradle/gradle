@@ -637,7 +637,7 @@ testRuntimeClasspath
         fails 'resolve'
 
         then:
-        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")

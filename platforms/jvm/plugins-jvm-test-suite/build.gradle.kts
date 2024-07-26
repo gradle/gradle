@@ -27,6 +27,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)

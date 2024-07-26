@@ -1,6 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-project")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = """JVM-specific testing functionality, including the Test type and support for configuring options for and detecting
@@ -41,6 +41,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.loggingApi)

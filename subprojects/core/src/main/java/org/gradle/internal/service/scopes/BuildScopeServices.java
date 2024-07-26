@@ -39,9 +39,12 @@ import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.initialization.ActionBasedModelDefaultsHandler;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
+import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
@@ -212,6 +215,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
+import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.ModelDefaultsHandler;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.DefaultExecSpecFactory;
@@ -780,5 +786,15 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
+    }
+
+    @Provides
+    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, SoftwareTypeRegistry softwareTypeRegistry) {
+        return instantiator.newInstance(DefaultSharedModelDefaults.class, softwareTypeRegistry);
+    }
+
+    @Provides
+    protected ModelDefaultsHandler createActionDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme) {
+        return new ActionBasedModelDefaultsHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme());
     }
 }

@@ -24,7 +24,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
 
     def "rule source can be applied to ModelMap element"() {
         when:
-        buildScript '''
+        buildFile '''
             class MessageTask extends DefaultTask {
                 @Internal
                 String message = "default"
@@ -67,7 +67,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
 
     def "scoped rule execution failure yields useful error message"() {
         when:
-        buildScript '''
+        buildFile '''
             class ThrowingRule extends RuleSource {
                 @Mutate
                 void badRule(Task echo) {
@@ -96,7 +96,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
 
     def "invalid rule definitions of scoped rules are reported with a message helping to identify the faulty rule"() {
         when:
-        buildScript '''
+        buildFile '''
             class InvalidRuleSource extends RuleSource {
                 @Mutate
                 String invalidRule(Task echo) {
@@ -125,7 +125,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
 
     def "unbound inputs of scoped rules are reported and their scope is shown"() {
         when:
-        buildScript '''
+        buildFile '''
             class UnboundRuleSource extends RuleSource {
                 @Mutate
                 void unboundRule(String string, Integer integer, @Path("some.inner.path") String withInnerPath) {

@@ -165,11 +165,18 @@ class DefaultBuildModelControllerServices(
             problemFactory: ProblemFactory,
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
-            buildModelParameters: BuildModelParameters
+            buildModelParameters: BuildModelParameters,
+            instantiator: Instantiator
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator)
             return ProblemReportingCrossProjectModelAccess(
-                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting, buildModelParameters
+                delegate,
+                problemsListener,
+                listenerManager.getBroadcaster(CoupledProjectsListener::class.java),
+                problemFactory,
+                dynamicCallProblemReporting,
+                buildModelParameters,
+                instantiator
             )
         }
 
@@ -194,9 +201,10 @@ class DefaultBuildModelControllerServices(
     class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry<ProjectInternal>
+            projectRegistry: ProjectRegistry<ProjectInternal>,
+            instantiator: Instantiator
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry)
+            return DefaultCrossProjectModelAccess(projectRegistry, instantiator)
         }
 
         @Provides

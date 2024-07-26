@@ -32,8 +32,10 @@ import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.SoftwareTypeRegistrationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
@@ -56,6 +58,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
         return ServiceRegistryBuilder.builder()
+            .scope(Scope.Settings.class)
             .displayName("settings services")
             .parent(parent)
             .provider(new SettingsScopeServices(settings))
@@ -102,10 +105,11 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry
+        SoftwareTypeRegistry softwareTypeRegistry,
+        InternalProblems problems
     ) {
         PluginTarget target = new SoftwareTypeRegistrationPluginTarget(
-            new ImperativeOnlyPluginTarget<>(settings),
+            new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
             softwareTypeRegistry,
             pluginScheme.getInspectionScheme()
         );

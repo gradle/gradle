@@ -43,6 +43,12 @@ public interface DomainObjectContext {
     Path getProjectPath();
 
     /**
+     * If this context represents a project, its identity path.
+     */
+    @Nullable
+    Path getProjectIdentityPath();
+
+    /**
      * If this context represents a project, the project.
      */
     @Nullable

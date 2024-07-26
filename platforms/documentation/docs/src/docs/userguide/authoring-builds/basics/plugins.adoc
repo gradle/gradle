@@ -119,9 +119,9 @@ And the location of the plugin must be specified in the settings file:
 pluginManagement {
     repositories {
         gradlePluginPortal()
-    }
-    maven {
-        url 'https://maven.example.com/plugins'
+        maven {
+            url 'https://maven.example.com/plugins'
+        }
     }
 }
 

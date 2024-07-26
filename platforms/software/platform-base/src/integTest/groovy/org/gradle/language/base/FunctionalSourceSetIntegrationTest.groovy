@@ -27,7 +27,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create a top level functional source set with a rule"() {
-        buildScript """
+        buildFile """
         apply plugin: 'language-base'
 
         class Rules extends RuleSource {
@@ -56,7 +56,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can view a functional source set as a ModelElement"() {
-        buildScript """
+        buildFile """
         apply plugin: 'language-base'
 
         class Rules extends RuleSource {
@@ -193,7 +193,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register a language source set"() {
-        buildScript """
+        buildFile """
         apply plugin: 'language-base'
 
         ${registerJavaLanguage()}

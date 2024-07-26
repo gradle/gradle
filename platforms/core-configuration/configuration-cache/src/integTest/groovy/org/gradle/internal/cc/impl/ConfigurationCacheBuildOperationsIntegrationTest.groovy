@@ -25,6 +25,7 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -46,6 +47,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         run 'assemble'
 
         then:
+        operations.none(ConfigurationCacheCheckFingerprintBuildOperationType)
         operations.none(ConfigurationCacheLoadBuildOperationType)
         operations.none(ConfigurationCacheStoreBuildOperationType)
         compositeBuildWorkGraphCalculated()
@@ -62,8 +64,14 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         then:
         workGraphStoredAndLoaded()
+        def checkOp = operations.only(ConfigurationCacheCheckFingerprintBuildOperationType)
         def loadOp = operations.only(ConfigurationCacheLoadBuildOperationType)
         def storeOp = operations.only(ConfigurationCacheStoreBuildOperationType)
+        with(checkOp.result) {
+            status == "NOT_FOUND"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
         with(storeOp.result) {
             cacheEntrySize > 0
         }
@@ -77,9 +85,79 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         configurationCacheRun 'assemble'
 
         then:
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "VALID"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
+
         def loadOpInCcHitBuild = operations.only(ConfigurationCacheLoadBuildOperationType)
         workGraphLoaded()
         loadOpInCcHitBuild.result.originBuildInvocationId == buildInvocationId
+    }
+
+    def "emits invalidation reason in the build operation"() {
+        given:
+        withLibBuild()
+        file('lib/settings.gradle') << """
+            println System.getProperty("settings.property", "empty")
+        """
+        file('lib/build.gradle') << """
+            println System.getProperty("project.property", "empty")
+        """
+
+        when:
+        inDirectory 'lib'
+        configurationCacheRun 'assemble'
+
+        then:
+        workGraphStoredAndLoaded()
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "NOT_FOUND"
+            buildInvalidationReasons == []
+            projectInvalidationReasons == []
+        }
+
+        when: "changing the build-level contents"
+
+        inDirectory 'lib'
+        configurationCacheRun 'assemble', '-Dsettings.property=changed'
+
+        then: "build fingerprint is invalidated"
+        workGraphStoredAndLoaded()
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "INVALID"
+            buildInvalidationReasons == [
+                [
+                    buildPath: ":",
+                    invalidationReasons: [
+                        [message: "system property 'settings.property' has changed"]
+                    ]
+                ]
+            ]
+
+            projectInvalidationReasons == []
+        }
+
+        when: "changing the project-level contents"
+        inDirectory 'lib'
+        configurationCacheRun 'assemble', '-Dsettings.property=changed', '-Dproject.property=changed'
+
+        then: "build fingerprint is invalidated"
+        workGraphStoredAndLoaded()
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "INVALID"
+            buildInvalidationReasons == [
+                [
+                    buildPath: ":",
+                    invalidationReasons: [
+                        [message: "system property 'project.property' has changed"]
+                    ]
+                ]
+            ]
+
+            projectInvalidationReasons == []
+        }
     }
 
     def "emits relevant build operations when configuration cache is used - included build dependency"() {

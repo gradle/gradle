@@ -268,7 +268,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         tasks {
-            @Suppress("unused_variable")
+            @Suppress("UnusedPrivateProperty")
             val hello by creating
         }
         verify(tasks).create("hello")
@@ -282,7 +282,7 @@ class NamedDomainObjectContainerExtensionsTest {
             on { getByName("hello") } doReturn task
         }
 
-        @Suppress("unused_variable")
+        @Suppress("UnusedPrivateProperty")
         tasks {
             val hello by getting(Exec::class)
         }

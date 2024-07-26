@@ -33,6 +33,8 @@ dependencies {
     implementation(projects.core)
     implementation(projects.messaging)
     implementation(projects.problemsApi)
+    implementation(projects.serviceLookup)
+    implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.guava)

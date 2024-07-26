@@ -16,28 +16,25 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.GradleVersion
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
+@TargetVersions("4.10+") // JavaPluginExtension did not exist before 4.10
 class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "plugin implemented in Groovy can use types converted from Groovy to Java"() {
         given:
         def apiDepConf = "implementation"
-        if (previous.version < GradleVersion.version("7.0-rc-1")) {
+        if (previous.version < GradleVersion.version("6.0")) {
             apiDepConf = "compile"
         }
-        def groovyDepConf
-        if (previous.version < GradleVersion.version("1.4-rc-1")) {
-            groovyDepConf = "groovy"
-        } else {
-            groovyDepConf = apiDepConf
-        }
+
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                ${groovyDepConf} localGroovy()
+                ${apiDepConf} localGroovy()
                 ${apiDepConf} gradleApi()
             }
         """
@@ -45,7 +42,7 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
         file("producer/src/main/groovy/SomePlugin.groovy") << """
             import org.gradle.api.Plugin
             import org.gradle.api.Project
-            import org.gradle.api.plugins.JavaPluginConvention
+            import org.gradle.api.plugins.JavaPluginExtension
             import org.gradle.plugins.ide.idea.model.IdeaModule
 
             class SomePlugin implements Plugin<Project> {
@@ -55,17 +52,17 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
 
                     // Verify can use the types with and without various type declarations
 
-                    JavaPluginConvention c = p.convention.plugins.java
+                    JavaPluginExtension c = p.extensions.java
                     c.sourceCompatibility = 1.8
                     println c.sourceCompatibility
                     c.manifest { }
 
-                    GroovyObject o = p.convention.plugins.java
+                    GroovyObject o = p.extensions.java
                     o.sourceCompatibility = 1.7
                     println o.sourceCompatibility
                     o.manifest { }
 
-                    def d = p.convention.plugins.java
+                    def d = p.extensions.java
                     d.sourceCompatibility = 1.8
                     println d.sourceCompatibility
                     d.manifest { }

@@ -35,7 +35,6 @@ import spock.lang.Specification
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
 
 class DaemonJavaToolchainQueryServiceTest extends Specification {
 
@@ -237,20 +236,22 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
             return JvmInstallationMetadata.failure(location, "errorMessage")
         }
 
-        Mock(JvmInstallationMetadata) {
-            getLanguageVersion() >> JavaVersion.toVersion(languageVersion)
-            getJavaHome() >> location.absoluteFile.toPath()
-            getJavaVersion() >> languageVersion.replace("zzz", "999")
-            isValidInstallation() >> true
-            getVendor() >> JvmVendor.fromString(vendor)
-            hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { JvmInstallationMetadata.JavaInstallationCapability capability ->
-                if (capability == J9_VIRTUAL_MACHINE) {
-                    String name = location.name
-                    return name.contains("j9")
-                }
-                return false
-            }
+        String jvmName = ""
+        if (location.name.contains("j9")) {
+            jvmName = "J9"
         }
+
+        JvmInstallationMetadata.from(
+            location.absoluteFile,
+            languageVersion.replace("zzz", "999"),
+            vendor,
+            "",
+            "",
+            jvmName,
+            "",
+            "",
+            ""
+        )
     }
 
     private def versionRange(int begin, int end) {

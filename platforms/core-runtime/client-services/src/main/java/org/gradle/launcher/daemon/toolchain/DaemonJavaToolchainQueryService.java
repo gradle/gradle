@@ -27,6 +27,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -58,7 +59,9 @@ public class DaemonJavaToolchainQueryService {
     }
 
     private Optional<JvmToolchainMetadata> locateToolchain(DaemonJvmCriteria.Spec toolchainSpec) {
-        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(toolchainSpec.getJavaVersion(), toolchainSpec.getVendorSpec(), toolchainSpec.getJvmImplementation());
+        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(
+            toolchainSpec.getJavaVersion(), toolchainSpec.getVendorSpec(), toolchainSpec.getJvmImplementation(), Collections.emptySet()
+        );
         JvmInstallationMetadataComparator metadataComparator = new JvmInstallationMetadataComparator(currentJavaHome);
 
         return javaInstallationRegistry.toolchains().stream()

@@ -499,7 +499,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped(":compileKotlin", ":test")
         println(eventsOnCompile)
-        if (isKotlin1dot8) {
+        if (isKotlin1dot8 && GradleContextualExecuter.notConfigCache) {
             // Kotlin 1.8 uses both launcher and compiler
             assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher", "JavaCompiler")
         } else {

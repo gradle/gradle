@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ivy.IvyComponentGraphResolveState
@@ -417,7 +417,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler)
 
         then:
-        1 * resolutionFailureHandler.externalConfigurationNotFoundFailure(_, _, _) >> failure
+        1 * resolutionFailureHandler.configurationDoesNotExistFailure(_, _) >> failure
         def e = thrown(AbstractResolutionFailureException)
         e == failure
 

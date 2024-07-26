@@ -35,7 +35,7 @@ import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
 
-class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : ToolingModelBuilder, BuildScopeModelBuilder {
+class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : BuildScopeModelBuilder {
 
     override fun create(target: BuildState): Any {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
@@ -72,10 +72,6 @@ class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTy
 
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
-
-    override fun buildAll(modelName: String, project: Project): Any {
-        error("Model should be built before the configuration phase")
-    }
 }
 
 

@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.plexusUtils)

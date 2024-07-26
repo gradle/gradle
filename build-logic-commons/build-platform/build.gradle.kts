@@ -24,8 +24,8 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.23")
-        api("org.apache.ant:ant:1.10.13") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:develocity-gradle-plugin:3.17.5") // Sync with `settings.gradle.kts`
+        api("org.apache.ant:ant:1.10.14") // Bump the version brought in transitively by gradle-guides-plugin
+        api("com.gradle:develocity-gradle-plugin:3.17.6") // Run `build-logic-settings/update-develocity-plugin-version.sh <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.2.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
@@ -43,7 +43,7 @@ dependencies {
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
-        api("com.google.guava:guava:27.1-jre")
+        api("com.google.guava:guava:32.1.2-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
         api("com.google.code.gson:gson:2.8.9")
         api("com.nhaarman:mockito-kotlin:1.6.0")
@@ -69,8 +69,8 @@ dependencies {
         api("org.asciidoctor:asciidoctorj:2.5.11")
         api("org.asciidoctor:asciidoctorj-api:2.5.11")
         api("org.asciidoctor:asciidoctorj-pdf:2.3.10")
-        api("dev.adamko.dokkatoo:dokkatoo-plugin:2.0.0")
-        api("org.jetbrains.dokka:dokka-core:1.8.10")
+        api("dev.adamko.dokkatoo:dokkatoo-plugin:2.3.1")
+        api("org.jetbrains.dokka:dokka-core:1.9.20")
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
             because("CVE-2022-40152 on lower versions")
         }

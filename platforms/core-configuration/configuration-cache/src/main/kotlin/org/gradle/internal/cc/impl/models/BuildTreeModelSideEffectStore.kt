@@ -18,18 +18,16 @@ package org.gradle.internal.cc.impl.models
 
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.ValueStore
-import org.gradle.internal.cc.impl.ConfigurationCacheIO
-import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
-import org.gradle.internal.cc.impl.DefaultConfigurationCache
-import org.gradle.internal.cc.impl.StateType
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
+import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
+import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
+import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.runReadOperation
-import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.withIsolate
 import java.io.Closeable
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -42,8 +40,8 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 internal
 class BuildTreeModelSideEffectStore(
-    private val host: DefaultConfigurationCache.Host,
-    private val cacheIO: ConfigurationCacheIO,
+    private val isolateOwner: IsolateOwner,
+    private val cacheIO: ConfigurationCacheOperationIO,
     private val store: ConfigurationCacheStateStore,
 ) : Closeable {
 
@@ -76,19 +74,19 @@ class BuildTreeModelSideEffectStore(
 
     private
     fun write(encoder: Encoder, value: BuildTreeModelSideEffect) {
-        val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        context.runWriteOperation {
-            write(value)
+        cacheIO.runWriteOperation(encoder) { codecs ->
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
+                write(value)
+            }
         }
     }
 
     private
     fun read(decoder: Decoder): BuildTreeModelSideEffect {
-        val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        return context.runReadOperation {
-            readNonNull()
+        return cacheIO.runReadOperation(decoder) { codecs ->
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
+                readNonNull()
+            }
         }
     }
 

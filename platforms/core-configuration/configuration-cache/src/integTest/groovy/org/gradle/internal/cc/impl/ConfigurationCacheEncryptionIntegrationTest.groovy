@@ -19,6 +19,8 @@ package org.gradle.internal.cc.impl
 import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.internal.encryption.impl.EncryptionKind
+import org.gradle.internal.encryption.impl.KeyStoreKeySource
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -33,7 +35,7 @@ import java.security.KeyStore
 import java.util.stream.Stream
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
-import static org.gradle.internal.cc.impl.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
+import static org.gradle.internal.encryption.impl.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -117,10 +119,14 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         findRequiredKeystoreFile(false) == null
 
         when:
-        runWithEncryption(kind, ["useSensitive"], ["-Psensitive_property_name=sensitive_property_value"], [
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
-            "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value'
-        ])
+        runWithEncryption(
+            kind,
+            ["useSensitive"],
+            ["-Psensitive_property_name=sensitive_property_value",
+             "-Dorg.gradle.configuration-cache.internal.deduplicate-strings=false"],
+            [(ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
+             "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value']
+        )
 
         then:
         configurationCache.assertStateStored()
@@ -141,10 +147,10 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         (findRequiredKeystoreFile(false) != null) == keystoreExpected
 
         where:
-        kind                    | enabled   | keystoreExpected
-        EncryptionKind.NONE     | false     | false
-        EncryptionKind.KEYSTORE | true      | true
-        EncryptionKind.ENV_VAR  | true      | false
+        kind                    | enabled | keystoreExpected
+        EncryptionKind.NONE     | false   | false
+        EncryptionKind.KEYSTORE | true    | true
+        EncryptionKind.ENV_VAR  | true    | false
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {

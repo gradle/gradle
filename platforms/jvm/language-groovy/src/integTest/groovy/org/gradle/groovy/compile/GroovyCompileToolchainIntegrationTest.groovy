@@ -235,7 +235,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_22 }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_23 }
     }
 
     private def getSpockVersion(VersionNumber groovyVersion) {

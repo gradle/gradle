@@ -135,7 +135,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
     def '#scriptTarget action can use injectable #simpleServiceTypeName'() {
         given:
-        groovyFile scriptTarget.fileName, """
+        file(scriptTarget.fileName) << """
             import org.gradle.api.flow.*
 
             class FlowActionInjectionPlugin implements Plugin<$targetType> {

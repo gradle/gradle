@@ -22,6 +22,10 @@ dependencies {
     }
     integTestImplementation(libs.kotlinCompilerEmbeddable)
     integTestImplementation(libs.mockitoKotlin)
+    integTestImplementation(libs.kotlinStdlib)
+    integTestImplementation(libs.kotlinReflect) {
+        because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
+    }
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 

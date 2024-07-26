@@ -20,7 +20,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
     def "can execute build without specifying any arguments"() {
         given:
-        buildScript """
+        buildFile """
             help {
                 doLast {
                     file('out.txt').text = "help"
@@ -37,7 +37,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
     def "can execute build with multiple tasks"() {
         given:
-        buildScript """
+        buildFile """
             task t1 {
                 doLast {
                     file("out.txt").text = "t1"
@@ -59,7 +59,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
     def "can provide non task arguments"() {
         given:
-        buildScript """
+        buildFile """
             task writeValue {
                 doLast {
                     file("out.txt").text = project.value
@@ -76,7 +76,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
     def "can enable parallel execution via --parallel property"() {
         given:
-        buildScript """
+        buildFile """
             task writeValue {
                 doLast {
                     file("out.txt").text = gradle.startParameter.parallelProjectExecutionEnabled

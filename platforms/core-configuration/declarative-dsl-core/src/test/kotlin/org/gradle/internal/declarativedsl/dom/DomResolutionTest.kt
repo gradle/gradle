@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

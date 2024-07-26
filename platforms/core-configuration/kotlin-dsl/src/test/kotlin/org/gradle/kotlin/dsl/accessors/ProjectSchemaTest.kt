@@ -216,13 +216,15 @@ fun projectSchemaWith(
     conventions: TypedProjectSchemaEntryList = emptyList(),
     tasks: TypedProjectSchemaEntryList = emptyList(),
     containerElements: TypedProjectSchemaEntryList = emptyList(),
-    configurations: List<String> = emptyList()
+    configurations: List<String> = emptyList(),
+    buildConventions: TypedProjectSchemaEntryList = emptyList()
 ) = TypedProjectSchema(
     extensions = extensions,
     conventions = conventions,
     tasks = tasks,
     containerElements = containerElements,
-    configurations = configurations.map { ConfigurationEntry(it) }
+    configurations = configurations.map { ConfigurationEntry(it) },
+    modelDefaults = buildConventions
 )
 
 

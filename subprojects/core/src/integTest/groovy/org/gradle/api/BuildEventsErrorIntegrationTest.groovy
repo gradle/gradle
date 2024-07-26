@@ -82,19 +82,19 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces reasonable error when Gradle.allprojects action fails"() {
-        def initScript = initScript """
-allprojects {
-    throw new RuntimeException("broken")
-}
-"""
+        initScriptFile """
+            allprojects {
+                throw new RuntimeException("broken")
+            }
+        """
         when:
-        executer.usingInitScript(initScript)
+        executer.usingInitScript(initScriptFile)
         fails "a"
 
         then:
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
-                .assertHasFileName("Initialization script '$initScript'")
+                .assertHasFileName("Initialization script '$initScriptFile'")
                 .assertHasLineNumber(3)
     }
 

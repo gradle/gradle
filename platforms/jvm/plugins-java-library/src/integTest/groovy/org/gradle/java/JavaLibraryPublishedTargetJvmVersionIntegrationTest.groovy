@@ -101,9 +101,9 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         failure.assertHasErrorOutput('''> Could not resolve all files for configuration ':compileClasspath'.
    > Could not resolve org:producer:1.0.
      Required by:
-         project :
+         root project :
       > Dependency resolution is looking for a library compatible with JVM runtime version 5, but 'org:producer:1.0' is only compatible with JVM runtime version 6 or newer.''')
-        failure.assertHasResolution("Change the dependency on 'org:producer:1.0' to an earlier version that supports JVM runtime version 6.")
+        failure.assertHasResolution("Change the dependency on 'org:producer:1.0' to an earlier version that supports JVM runtime version 5.")
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {

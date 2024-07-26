@@ -33,7 +33,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     @Issue(['GRADLE-1506'])
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 from file('test')
                 destinationDirectory = file('dest')
@@ -59,7 +59,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     @Issue('GRADLE-1506')
     def "create Jar with metadata encoded using user supplied charset"() {
         given:
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 metadataCharset = 'ISO-8859-15'
                 from file('test')
@@ -84,7 +84,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     @Issue('GRADLE-3374')
     def "write manifest encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 from file('test')
                 destinationDirectory = file('dest')
@@ -109,7 +109,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3374")
     def "merge manifest read using UTF-8 by default"() {
         given:
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 from file('test')
                 destinationDirectory = file('dest')
@@ -135,7 +135,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     @Issue('GRADLE-3374')
     def "write manifests using a user defined character set"() {
         given:
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 from file('test')
                 destinationDirectory = file('dest')
@@ -160,7 +160,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     @Issue('GRADLE-3374')
     def "merge manifests using user defined character sets"() {
         given:
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 from file('test')
                 destinationDirectory = file('dest')
@@ -204,7 +204,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
         def mergedManifestFile = file(mergedManifestFilename)
         mergedManifestFile.withOutputStream { mergedManifest.write(it) }
 
-        buildScript """
+        buildFile """
             $taskTypeDeclaration
             task jar(type: $taskType) {
                 from file('test')
@@ -242,7 +242,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     def "reports error for unsupported manifest content charsets, write #writeCharset, read #readCharset"() {
         given:
         settingsFile << "rootProject.name = 'root'"
-        buildScript """
+        buildFile """
             task jar(type: Jar) {
                 from file('test')
                 destinationDirectory = file('dest')

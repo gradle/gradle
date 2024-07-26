@@ -48,7 +48,6 @@ import java.net.URL;
  * <p>
  * Requests that fail during request transmission, after having established a TCP connection, will automatically be retried.
  * This includes dropped connections, read or write timeouts, and low level network failures such as a connection resets.
- * Requests will be retried 3 times, before giving up and disabling use of the cache for the remainder of the build.
  *
  * @since 3.5
  */

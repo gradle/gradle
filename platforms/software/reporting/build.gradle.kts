@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.logging)
     implementation(projects.modelCore)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.jatl)

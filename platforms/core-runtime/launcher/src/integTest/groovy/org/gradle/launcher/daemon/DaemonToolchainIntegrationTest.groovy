@@ -33,7 +33,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         executer.requireDaemon()
     }
 
-    def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
+    def "executes the daemon with the current jvm if the current jvm is specified"() {
         given:
         writeJvmCriteria(Jvm.current())
         captureJavaHome()
@@ -45,7 +45,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given other daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
+    def "executes the daemon with the specified jdk"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm.javaVersion)

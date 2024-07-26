@@ -11,6 +11,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
@@ -52,9 +53,4 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsNative)
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

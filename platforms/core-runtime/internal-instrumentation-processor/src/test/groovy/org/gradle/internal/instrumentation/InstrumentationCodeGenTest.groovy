@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 import org.gradle.internal.instrumentation.processor.ConfigurationCacheInstrumentationProcessor
 import org.gradle.internal.jvm.Jvm
+import org.gradle.model.internal.asm.MethodVisitorScope
 import org.gradle.util.TestClassLoader
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -152,11 +153,11 @@ abstract class InstrumentationCodeGenTest extends Specification {
                     return type == superType
                 }
             }
-            return new MethodVisitor(api, methodVisitor) {
+            return new MethodVisitorScope(methodVisitor) {
                 @Override
                 void visitMethodInsn(int opcode, String owner, String methodName, String methodDescriptor, boolean isInterface) {
-                    def interceptor = interceptorFactory.create(this, instrumentationMetadata, BytecodeInterceptorFilter.ALL)
-                    if (interceptor.visitMethodInsn(className, opcode, owner, methodName, methodDescriptor, isInterface, () -> {})) {
+                    def interceptor = interceptorFactory.create(instrumentationMetadata, BytecodeInterceptorFilter.ALL)
+                    if (interceptor.visitMethodInsn(this, className, opcode, owner, methodName, methodDescriptor, isInterface, () -> {})) {
                         return
                     }
                     super.visitMethodInsn(opcode, owner, methodName, methodDescriptor, isInterface)

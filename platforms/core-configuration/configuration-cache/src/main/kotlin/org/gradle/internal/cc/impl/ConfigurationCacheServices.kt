@@ -24,12 +24,15 @@ import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheReport
+import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.extensions.core.add
@@ -55,20 +58,20 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
-            add(DefaultEncryptionService::class.java)
+            add(BuildNameProvider::class.java)
             add(ConfigurationCacheKey::class.java)
-            add(ConfigurationCacheReport::class.java)
-            add(DeprecatedFeaturesListener::class.java)
+            add(ConfigurationCacheRepository::class.java)
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
-            add(ConfigurationCacheRepository::class.java)
+            add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
-            add(InstrumentedInputAccessListener::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
+            add(InstrumentedInputAccessListener::class.java)
             add(IsolatedActionCodecsFactory::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
+            addProvider(ConfigurationCacheReportProvider)
         }
     }
 
@@ -76,8 +79,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
-            add(ConfigurationCacheHost::class.java)
-            add(ConfigurationCacheIO::class.java)
+            add(DefaultConfigurationCacheHost::class.java)
+            add(DefaultConfigurationCacheIO::class.java)
             add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
         }
     }
@@ -131,6 +134,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     object TaskExecutionAccessCheckerProvider : ServiceRegistrationProvider {
         @Provides
         fun createTaskExecutionAccessChecker(
+            /** In non-CC builds, [BuildTreeConfigurationCache] is not registered; accepting a list here is a way to ignore its absence. */
+            configurationCache: List<BuildTreeConfigurationCache>,
             configurationTimeBarrier: ConfigurationTimeBarrier,
             modelParameters: BuildModelParameters,
             /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
@@ -139,11 +144,27 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             workExecutionTracker: WorkExecutionTracker,
         ): TaskExecutionAccessChecker {
             val broadcast = listenerManager.getBroadcaster(TaskExecutionAccessListener::class.java)
+            val workGraphLoadingState = workGraphLoadingStateFrom(configurationCache)
             return when {
-                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
-                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
-                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast, workExecutionTracker)
+                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(workGraphLoadingState, broadcast, workExecutionTracker)
+                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(
+                    workGraphLoadingState,
+                    broadcast,
+                    workExecutionTracker
+                )
+
+                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, workGraphLoadingState, broadcast, workExecutionTracker)
             }
+        }
+
+        private
+        fun workGraphLoadingStateFrom(maybeConfigurationCache: List<BuildTreeConfigurationCache>): WorkGraphLoadingState {
+            if (maybeConfigurationCache.isEmpty()) {
+                return WorkGraphLoadingState { false }
+            }
+
+            val configurationCache = maybeConfigurationCache.single()
+            return WorkGraphLoadingState { configurationCache.isLoaded }
         }
     }
 
@@ -163,5 +184,17 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         private
         fun hasIgnoredPaths(configurationCacheStartParameter: ConfigurationCacheStartParameter): Boolean =
             !configurationCacheStartParameter.ignoredFileSystemCheckInputs.isNullOrEmpty()
+    }
+
+    private
+    object ConfigurationCacheReportProvider : ServiceRegistrationProvider {
+        @Provides
+        fun createConfigurationCacheReport(
+            executorFactory: ExecutorFactory,
+            temporaryFileProvider: TemporaryFileProvider,
+            internalOptions: InternalOptions
+        ): CommonReport {
+            return CommonReport(executorFactory, temporaryFileProvider, internalOptions, "configuration cache report", "configuration-cache-report")
+        }
     }
 }

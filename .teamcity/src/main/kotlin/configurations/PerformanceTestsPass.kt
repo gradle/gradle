@@ -24,7 +24,8 @@ import model.CIBuildModel
 import model.PerformanceTestType
 import projects.PerformanceTestProject
 
-class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(
+class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : OsAwareBaseGradleBuildType(
+    os = performanceTestProject.spec.os,
     failStage = performanceTestProject.spec.failsStage,
     init = {
         id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")

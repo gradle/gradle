@@ -57,6 +57,12 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
 
     @Nullable
     @Override
+    public Path getProjectIdentityPath() {
+        return null;
+    }
+
+    @Nullable
+    @Override
     public ProjectInternal getProject() {
         return null;
     }

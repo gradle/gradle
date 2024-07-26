@@ -19,9 +19,9 @@ package org.gradle.internal
 import spock.lang.Specification
 
 class RenderingUtilsTest extends Specification {
-    def "oxford comma"() {
+    def "quoted sorted oxford comma"() {
         when:
-        def render = RenderingUtils.oxfordListOf(items, "and")
+        def render = RenderingUtils.quotedOxfordListOf(items, "and")
 
         then:
         render == result
@@ -31,6 +31,21 @@ class RenderingUtilsTest extends Specification {
         ["i1", "i2", "i3"] | "'i1', 'i2', and 'i3'"
         ["i1", "i2"]       | "'i1' and 'i2'"
         ["i1"]             | "'i1'"
+        []                 | ""
+    }
+
+    def "oxford comma"() {
+        when:
+        def render = RenderingUtils.oxfordListOf(items, "or")
+
+        then:
+        render == result
+
+        where:
+        items              | result
+        ["i1", "i3", "i2"] | "i1, i3, or i2"
+        ["i1", "i2"]       | "i1 or i2"
+        ["i1"]             | "i1"
         []                 | ""
     }
 }

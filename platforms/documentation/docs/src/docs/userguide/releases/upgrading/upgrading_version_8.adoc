@@ -38,7 +38,52 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 1.9.24
+
+The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.24[Kotlin 1.9.24].
+
+==== Upgrade to Ant 1.10.14
+
+Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.14.html[Ant 1.10.14].
+
+==== Upgrade to JaCoCo 0.8.12
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.12].
+
+==== Upgrade to Groovy 3.0.22
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.22.html[Groovy 3.0.22].
+
 === Deprecations
+
+[[minimum_daemon_jvm_version]]
+==== Running Gradle on older JVMs
+
+Starting in Gradle 9.0, Gradle will require JVM 17 or later to run. Most Gradle APIs will be compiled to target JVM 17 bytecode.
+
+Gradle will still support compiling Java code to target JVM version 6 or later.
+The <<building_java_projects.adoc#sec:java_cross_compilation,target JVM version>> of the compiled code can be configured separately from the JVM version used to run Gradle.
+
+All Gradle clients (wrapper, launcher, Tooling API and TestKit) will remain compatible with JVM 8 and will be compiled to target JVM 8 bytecode. Only the Gradle daemon will require JVM 17 or later.
+These clients can be configured to run Gradle builds with a different JVM version than the one used to run the client:
+
+- Using <<gradle_daemon#sec:daemon_jvm_criteria,Daemon JVM criteria>> (an incubating feature)
+- Setting the `org.gradle.java.home` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>>
+- Using the link:{javadocPath}/org/gradle/tooling/ConfigurableLauncher.html#setJavaHome(java.io.File)[ConfigurableLauncher#setJavaHome] method on the Tooling API
+
+Alternatively, the `JAVA_HOME` environment variable can be set to a JVM 17 or newer, which will run both the client and daemon with the same version of the JVM.
+
+Running Gradle builds with <<gradle_daemon#sec:disabling_the_daemon,--no-daemon>> or using link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] in tests will require JVM version 17 or later.
+The worker API will remain compatible with JVM 8, and running JVM tests will require JVM 8.
+
+We decided to upgrade the minimum version of the Java runtime for a number of reasons:
+
+- Dependencies are beginning to drop support for older versions and may not release security patches.
+- Significant language improvements between Java 8 and Java 17 cannot be used without upgrading.
+- Some of the most popular plugins already require JVM 17 or later.
+- Download metrics for Gradle distributions show that JVM 17 is widely used.
 
 [[consuming_non_consumable_variants_from_ivy_component]]
 ==== Deprecated consuming non-consumable configurations from Ivy
@@ -48,6 +93,19 @@ An Ivy dependency may sometimes be substituted for a project dependency, either 
 When this happens, configurations in the substituted project could be selected that were marked as non-consumable.
 
 Consuming non-consumable configurations in this manner is deprecated and will result in an error in Gradle 9.0.
+
+[[extending_configurations_in_same_project]]
+==== Deprecated extending configurations in the same project
+
+In prior versions of Gradle, it was possible to extend a configuration in a different project.
+
+The hierarchy of a Project's configurations should not be influenced by configurations in other projects.
+Cross-project hierarchies can lead to unexpected behavior when configurations are extended in a way that is not intended by the configuration's owner.
+
+Projects should also never access the mutable state of another project.
+Since Configurations are mutable, extending configurations across project boundaries restricts the parallelism that Gradle can apply.
+
+Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
 
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
@@ -97,6 +155,17 @@ To address this issue, all code initially under the `org.gradle.configurationcac
 Since Gradle 8.8, file-system watching has only been supported on macOS 12 (Monterey) and later.
 We added a check to automatically disable file-system watching on macOS 11 (Big Sur) and earlier versions.
 
+==== Possible change to JDK8-based compiler output when annotation processors are used
+
+The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+This change will supply the Tooling API clients with structured, rich information about compilation issues.
+
+The feature should not have any visible impact on the usual build output, with JDK8 being an exception.
+When annotation processors are used in the compiler, the output message differs slightly from the previous ones.
+
+The change mainly manifests itself in typename printed.
+For example, Java standard types like `java.lang.String` will be reported as `java.lang.String` instead of `String`.
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
@@ -143,8 +212,8 @@ plugins {
 }
 
 configurations.runtimeClasspath {
-    // `beforeResolve` is called after the configuration is resolved for task dependencies,
-    // but before it is fully resolved during artifact resolution.
+    // `beforeResolve` is not called before the configuration is partially resolved for
+    // build dependencies, but only before a full graph resolution.
     // Configurations should not be mutated in this hook
     incoming.beforeResolve {
         // Add a dependency on `com:foo` if not already present
@@ -171,11 +240,11 @@ tasks.register("resolve") {
 
 For the following use cases, consider these alternatives when replacing a `beforeResolve` hook:
 
-* **Adding dependencies**: Use link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[`withDependencies`].
+* **Adding dependencies**: Use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[DependencyFactory] and `addLater` or `addAllLater` on link:{javadocPath}/org/gradle/api/artifacts/DependencySet.html[DependencySet].
 * **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
-* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] to add excludes to a configuration.
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
-* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a `withDependencies` hook.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
 [[deprecate_filtered_configuration_file_and_filecollection_methods]]
@@ -1443,7 +1512,7 @@ Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/ch
 
 ==== Upgrade to Ant 1.10.13
 
-Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.13.html[Ant 1.10.13].
 
 Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
 

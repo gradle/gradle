@@ -15,8 +15,9 @@ dependencies {
 tasks.register('iterateResolvedArtifacts') {
     dependsOn configurations.scm
 
+    def scm = configurations.scm
     doLast {
-        configurations.scm.each {
+        scm.each {
             logger.quiet it.absolutePath
         }
     }

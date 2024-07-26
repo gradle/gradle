@@ -45,6 +45,7 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.serviceLookup)
     implementation(projects.wrapperMain)
     implementation(projects.wrapperShared)
 
@@ -98,6 +99,8 @@ dependencies {
 
     integTestImplementation(projects.native)
     integTestImplementation(libs.jetty)
+
+    integTestRuntimeOnly(libs.maven3Compat)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")

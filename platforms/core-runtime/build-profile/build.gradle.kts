@@ -15,6 +15,7 @@ dependencies {
 
     implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
 

@@ -117,7 +117,7 @@ class VersionCatalogDependencyRegistryTest extends Specification {
     @Unroll
     def "fully qualified or shortened plugins"() {
         expect:
-        new VersionCatalogDependencyRegistry(fullyQualify).registerPlugin(module, "42") == alias
+        new VersionCatalogDependencyRegistry(fullyQualify).registerPlugin(module, "42", null) == alias
 
         where:
         fullyQualify | module || alias

@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.native)
     implementation(projects.serialization)
+    implementation(projects.serviceLookup)
     implementation(projects.core)
     implementation(projects.daemonProtocol)
 }

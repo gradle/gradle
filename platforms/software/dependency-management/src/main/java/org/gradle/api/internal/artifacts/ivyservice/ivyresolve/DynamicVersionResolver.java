@@ -278,6 +278,11 @@ public class DynamicVersionResolver {
         }
 
         private ImmutableAttributes buildAttributes(AttributeContainer consumerAttributes, ImmutableAttributesFactory attributesFactory) {
+            // TODO: There is a bug here were we do not consider attributes coming from dependency constraints
+            // when determining the effective attributes for dynamic version selection. This means attributes directly declared
+            // on the configuration or on the dependency being resolved are considered, but not attributes coming from
+            // a constraint targeting the dependency being resolved. This is unusual, as we do consider constraint attributes
+            // when selecting variants.
             ImmutableAttributes immutableConsumerAttributes = ((AttributeContainerInternal) consumerAttributes).asImmutable();
             ImmutableAttributes dependencyAttributes = ((AttributeContainerInternal) dependency.getSelector().getAttributes()).asImmutable();
             return attributesFactory.concat(immutableConsumerAttributes, dependencyAttributes);

@@ -98,9 +98,6 @@ gradleDocumentation {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
-    kotlinDslReference {
-        dokkaVersionOverride = "1.9.10"
-    }
 }
 
 tasks.named("stageDocs") {
@@ -666,6 +663,14 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app.sample"
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
+            // SpotBugs doesn't support Java 23
+            excludeTestsMatching "org.gradle.docs.samples.*.publishing-convention-plugins*"
+            excludeTestsMatching "org.gradle.docs.samples.*.incubating-publishing-convention-plugins*"
+            // PMD doesn't support Java 23
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-code-quality-code-quality*"
+        }
+
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
@@ -693,7 +698,6 @@ tasks.named("docsTest") { task ->
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
-        systemProperty("org.gradle.integtest.samples.checkLoadingFromConfigurationCache", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
 
         filter {
@@ -793,7 +797,6 @@ tasks.named("docsTest") { task ->
                 "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
                 "snippet-plugins-dsl_groovy_sanityCheck.sample",
                 "snippet-plugins-dsl_kotlin_sanityCheck.sample",
-                "snippet-kotlin-dsl-interoperability-closure-of_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

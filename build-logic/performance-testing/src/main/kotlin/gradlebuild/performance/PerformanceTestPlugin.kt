@@ -249,6 +249,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             classpath = performanceSourceSet.runtimeClasspath
             maxParallelForks = 1
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
+            systemProperty("org.gradle.performance.develocity.plugin.infoDir", projectDir.absolutePath)
 
             project.toolchainInstallationPaths?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
@@ -499,7 +500,7 @@ class PerformanceTestExtension(
                         if (allTestsWereSkipped(file)) {
                             exclude()
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         exclude()
                     }
                 }

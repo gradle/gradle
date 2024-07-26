@@ -147,8 +147,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         // Component metadata may not necessarily hit the network if there is a custom component metadata supplier
         ComponentMetadata componentMetadata = provider.getComponentMetadata();
         if (componentMetadata != null) {
-            AttributeContainerInternal attributes = (AttributeContainerInternal) componentMetadata.getAttributes();
-            boolean matching = attributesSchema.matcher().isMatching(attributes, consumerAttributes);
+            ImmutableAttributes attributes = ((AttributeContainerInternal) componentMetadata.getAttributes()).asImmutable();
+            boolean matching = attributesSchema.matcher().isMatchingCandidate(attributes.asImmutable(), consumerAttributes);
             if (!matching) {
                 return new RejectedByAttributesVersion(id, attributesSchema.matcher().describeMatching(attributes, consumerAttributes));
             }

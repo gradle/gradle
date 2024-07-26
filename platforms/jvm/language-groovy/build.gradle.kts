@@ -35,6 +35,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseServices)
     implementation(projects.fileCollections)
@@ -70,6 +71,12 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+
+tasks.withType<Test>().configureEach {
+    if (!javaVersion.isJava9Compatible) {
+        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
+    }
 }
 
 packageCycles {

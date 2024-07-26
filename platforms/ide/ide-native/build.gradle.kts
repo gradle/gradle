@@ -12,6 +12,8 @@ sourceSets {
 }
 
 dependencies {
+    compileOnly(libs.jetbrainsAnnotations)
+
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
@@ -32,6 +34,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.testingNative)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
     implementation(libs.commonsLang)
 
     runtimeOnly(projects.dependencyManagement)

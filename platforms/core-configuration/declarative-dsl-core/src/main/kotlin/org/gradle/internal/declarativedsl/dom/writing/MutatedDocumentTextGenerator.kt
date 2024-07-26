@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.dom.writing
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTag
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.TextTreeNode
 import org.jetbrains.kotlin.it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
@@ -28,18 +29,19 @@ class MutatedDocumentTextGenerator {
     private
     val canonicalCodeGenerator = CanonicalCodeGenerator()
 
+    @Suppress("NestedBlockDepth")
     fun generateText(
         tree: TextPreservingTree,
         mapNames: (ownerTag: ChildTag, name: String) -> String = { _, name -> name },
         removeNodeIf: (ownerTag: ChildTag) -> Boolean = { false },
-        insertNodesBefore: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() },
-        insertNodesAfter: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() },
+        insertNodesBefore: (ownerTag: ChildTag) -> NewDocumentNodes = { NewDocumentNodes.empty },
+        insertNodesAfter: (ownerTag: ChildTag) -> NewDocumentNodes = { NewDocumentNodes.empty },
         replaceValue: (ownerTag: ChildTag.ValueNodeChildTag) -> DeclarativeDocument.ValueNode? = { null },
     ): String {
         val textBuilder = TrackingCodeTextBuilder()
 
         fun visit(parentTag: ChildTag?, ownerTag: ChildTag, textTreeNode: TextTreeNode, isTopLevel: Boolean) {
-            insertNodesBefore(ownerTag).takeIf(List<*>::isNotEmpty)?.let { nodesBefore ->
+            insertNodesBefore(ownerTag).takeIf { it.nodes.isNotEmpty() }?.let { nodesBefore ->
                 insertSyntheticNodes(textBuilder, nodesBefore, isTopLevel, textTreeNode.lineRange.first, needsSeparationBefore = false, needsSeparationAfter = !removeNodeIf(ownerTag))
             }
             if (!removeNodeIf(ownerTag)) {
@@ -60,8 +62,8 @@ class MutatedDocumentTextGenerator {
                     }
                 }
             }
-            insertNodesAfter(ownerTag).takeIf(List<*>::isNotEmpty)?.let { nodesAfter ->
-                val needsSeparationAfter = isTopLevel && nodesAfter.last() is ElementNode
+            insertNodesAfter(ownerTag).takeIf(NewDocumentNodes::isNotEmpty)?.let { nodesAfter ->
+                val needsSeparationAfter = isTopLevel && nodesAfter.nodes.last() is ElementNode
                 insertSyntheticNodes(
                     textBuilder, nodesAfter, isTopLevel, textTreeNode.lineRange.last,
                     needsSeparationBefore = !removeNodeIf(ownerTag),
@@ -85,7 +87,7 @@ class MutatedDocumentTextGenerator {
     private
     fun insertSyntheticNodes(
         textBuilder: TrackingCodeTextBuilder,
-        syntheticNodes: List<DeclarativeDocument.DocumentNode>,
+        syntheticNodes: NewDocumentNodes,
         isTopLevel: Boolean,
         endAtOriginalLine: Int,
         needsSeparationBefore: Boolean,

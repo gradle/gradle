@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r76
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
@@ -209,15 +210,13 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         '''
 
         when:
-        withConnection { ProjectConnection connection ->
-            TestLauncher testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
-
-            testLauncher.forTasks("setupTest")
-                        .withTestsFor(s -> s.forTaskPath(":test")
-                        .includeMethod('MyTest', 'pass'))
-                        .forTasks("cleanupTest")
-                        .run()
+        withConnection { connection ->
+            connection.newTestLauncher()
+                .forTasks("setupTest")
+                .withTestsFor(s -> s.forTaskPath(":test")
+                .includeMethod('MyTest', 'pass'))
+                .forTasks("cleanupTest")
+                .run()
         }
 
         then:
@@ -225,32 +224,32 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
 
         when:
         withConnection { connection ->
-            TestLauncher testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
-            testLauncher.withTestsFor(s -> s.forTaskPath(":test").includeMethod('MyTest', 'pass')).forTasks('setupTest')
-            testLauncher.run()
+            connection.newTestLauncher()
+                .withTestsFor(s -> s.forTaskPath(":test").includeMethod('MyTest', 'pass')).forTasks('setupTest')
+                .run()
         }
 
         then:
         tasksExecutedInOrder(':test', ':setupTest')
     }
 
-    private def launchTestWithTestFilter(connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure testLauncherSpec) {
-        withConnection(connector, connectionConfiguration(testLauncherSpec))
-    }
-
-    private def launchTestWithTestFilter(Closure testLauncherSpec) {
-        withConnection(connectionConfiguration(testLauncherSpec))
-    }
-
-    private def connectionConfiguration(Closure testLauncherSpec) {
-        {   ProjectConnection connection ->
-            TestLauncher testLauncher = connection.newTestLauncher()
-            testLauncher.withTaskAndTestMethods(':test', 'MyTest', ['pass'])
-            collectOutputs(testLauncher)
-            testLauncherSpec(testLauncher)
-            testLauncher.run()
+    private def launchTestWithTestFilter(ToolingApiConnector connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure<?> testLauncherSpec) {
+        withConnection(connector) { connection ->
+            runTests(connection, testLauncherSpec)
         }
+    }
+
+    private def launchTestWithTestFilter(@DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure<?> testLauncherSpec) {
+        withConnection { connection ->
+            runTests(connection, testLauncherSpec)
+        }
+    }
+
+    private static void runTests(ProjectConnection connection, Closure<?> testLauncherSpec) {
+        TestLauncher testLauncher = connection.newTestLauncher()
+        testLauncher.withTaskAndTestMethods(':test', 'MyTest', ['pass'])
+        testLauncherSpec(testLauncher)
+        testLauncher.run()
     }
 
     def taskExecuted(String path) {

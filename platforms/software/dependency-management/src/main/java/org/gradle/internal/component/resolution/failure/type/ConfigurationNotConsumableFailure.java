@@ -17,15 +17,17 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByNameFailure;
 
 /**
- * A {@link ResolutionFailure} that represents the situation when the selected configuration
+ * A {@link VariantSelectionByNameFailure} that represents the situation when the explicitly selected configuration
  * is not consumable.
  *
  * This is exclusive to project dependencies when a configuration is requested by name.
  */
-public final class ConfigurationNotConsumableFailure extends AbstractConfigurationSelectionFailure {
-    public ConfigurationNotConsumableFailure(String requestedConfigurationName, ComponentIdentifier componentId) {
-        super(requestedConfigurationName, componentId);
+public final class ConfigurationNotConsumableFailure extends AbstractVariantSelectionByNameFailure {
+    public ConfigurationNotConsumableFailure(ComponentIdentifier targetComponent, String requestedConfigurationName) {
+        super(ResolutionFailureProblemId.CONFIGURATION_NOT_CONSUMABLE, targetComponent, requestedConfigurationName);
     }
 }

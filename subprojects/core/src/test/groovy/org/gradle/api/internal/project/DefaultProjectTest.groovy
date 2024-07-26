@@ -145,7 +145,12 @@ class DefaultProjectTest extends Specification {
     ProviderFactory propertyStateFactoryMock = Stub(ProviderFactory)
     ProcessOperations processOperationsMock = Stub(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
-    Instantiator instantiatorMock = Stub(Instantiator)
+    Instantiator instantiatorMock = Stub(Instantiator) {
+        newInstance(LifecycleAwareProject, _) >> { args ->
+            def params = args[1]
+            new LifecycleAwareProject(params[0], params[1])
+        }
+    }
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
     InputNormalizationHandlerInternal inputNormalizationHandler = Stub(InputNormalizationHandlerInternal)
     ProjectConfigurationActionContainer configureActions = Stub(ProjectConfigurationActionContainer)
@@ -222,7 +227,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
-        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
+        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, instantiatorMock)
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
         pluginManager.getPluginContainer() >> pluginContainer
@@ -269,7 +274,7 @@ class DefaultProjectTest extends Specification {
         }
     }
 
-    private DefaultProject defaultProject(String name, ProjectState owner, def parent, File rootDir, ClassLoaderScope scope) {
+    private DefaultProject defaultProject(String name, ProjectState owner, ProjectInternal parent, File rootDir, ClassLoaderScope scope) {
         _ * owner.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
         _ * owner.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
         _ * owner.depth >> owner.projectPath.segmentCount()
@@ -522,10 +527,10 @@ class DefaultProjectTest extends Specification {
     def getProject() {
         expect:
         project.project(Project.PATH_SEPARATOR).is(project)
-        project.project(Project.PATH_SEPARATOR + "child1").is(child1)
-        project.project("child1").is(child1)
-        child1.project('childchild').is(childchild)
-        childchild.project(Project.PATH_SEPARATOR + "child1").is(child1)
+        assertLifecycleAwareProjectOf(project.project(Project.PATH_SEPARATOR + "child1"), child1)
+        assertLifecycleAwareProjectOf(project.project("child1"), child1)
+        assertLifecycleAwareProjectOf(child1.project("childchild"), childchild)
+        assertLifecycleAwareProjectOf(childchild.project(Project.PATH_SEPARATOR + "child1"), child1)
     }
 
     def getProjectWithUnknownAbsolutePath() {
@@ -561,10 +566,10 @@ class DefaultProjectTest extends Specification {
     def findProject() {
         expect:
         project.findProject(Project.PATH_SEPARATOR).is(project)
-        project.findProject(Project.PATH_SEPARATOR + "child1").is(child1)
-        project.findProject("child1").is(child1)
-        child1.findProject('childchild').is(childchild)
-        childchild.findProject(Project.PATH_SEPARATOR + "child1").is(child1)
+        assertLifecycleAwareProjectOf(project.findProject(Project.PATH_SEPARATOR + "child1"), child1)
+        assertLifecycleAwareProjectOf(project.findProject("child1"), child1)
+        assertLifecycleAwareProjectOf(child1.findProject('childchild'), childchild)
+        assertLifecycleAwareProjectOf(childchild.findProject(Project.PATH_SEPARATOR + "child1"), child1)
     }
 
     def findProjectWithUnknownAbsolutePath() {
@@ -587,7 +592,7 @@ class DefaultProjectTest extends Specification {
         }
 
         then:
-        child1.is(child)
+        assertLifecycleAwareProjectOf(child, child1)
         child1.newProp == newPropValue
     }
 
@@ -602,7 +607,7 @@ class DefaultProjectTest extends Specification {
         then:
         1 * action.execute(child1)
         0 * action._
-        child1.is(child)
+        assertLifecycleAwareProjectOf(child, child1)
     }
 
     def methodMissing() {
@@ -944,6 +949,29 @@ def scriptMethod(Closure closure) {
         project.container(String, {}) instanceof FactoryNamedDomainObjectContainer
     }
 
+    def selfAccessWithoutLifecycleAwareWrapping() {
+        expect:
+        project.project(":child1").parent instanceof DefaultProject
+        project.project(":child1").rootProject instanceof DefaultProject
+        child1.allprojects { project ->
+            if (project.name == "child1") {
+                assert project instanceof DefaultProject
+            } else {
+                assert project instanceof LifecycleAwareProject
+            }
+        }
+        child1.getAllprojects().forEach { project ->
+            if (project.name == "child1") {
+                assert project instanceof DefaultProject
+            } else {
+                assert project instanceof LifecycleAwareProject
+            }
+        }
+    }
+
+    static boolean assertLifecycleAwareProjectOf(Project crosslyAccessed, Project of) {
+        crosslyAccessed instanceof LifecycleAwareProject && crosslyAccessed == of
+    }
 }
 
 class TaskContainerDynamicObject {

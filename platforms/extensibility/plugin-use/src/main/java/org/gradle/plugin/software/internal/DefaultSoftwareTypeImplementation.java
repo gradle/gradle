@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.software.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
@@ -34,8 +33,7 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     private final Class<? extends T> modelPublicType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
-
-    private final List<Convention<?>> conventionRules = new ArrayList<>();
+    private final List<ModelDefault<?>> defaults = new ArrayList<>();
 
     public DefaultSoftwareTypeImplementation(String softwareType,
                                              Class<? extends T> modelPublicType,
@@ -68,13 +66,16 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     }
 
     @Override
-    public void addConvention(Convention<?> rule) {
-        conventionRules.add(rule);
+    public void addModelDefault(ModelDefault<?> modelDefault) {
+        defaults.add(modelDefault);
     }
 
     @Override
-    public List<Convention<?>> getConventions() {
-        return ImmutableList.copyOf(conventionRules);
+    public <V extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<V>> type, V visitor) {
+        defaults.stream()
+            .filter(type::isInstance)
+            .map(type::cast)
+            .forEach(modelDefault -> modelDefault.visit(visitor));
     }
 
     @Override

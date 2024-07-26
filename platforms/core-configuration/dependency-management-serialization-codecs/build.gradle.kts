@@ -42,6 +42,7 @@ dependencies {
 
     implementation(projects.configurationCacheBase)
     implementation(projects.serialization)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
 

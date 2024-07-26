@@ -22,7 +22,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.MutationGuards;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -165,7 +164,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
-        ClassPathRegistry createClassPathRegistry(DefaultModuleRegistry moduleRegistry) {
+        ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry) {
             return new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
         }
 

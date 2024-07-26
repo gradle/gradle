@@ -302,7 +302,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         fails("compileJava")
 
         then:
-        failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.')
+        failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrLater)
@@ -459,6 +459,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29370")
     def "gradle classpath does not leak onto java compile classpath"() {
         given:
         file("src/main/java/Example.java") << """
@@ -792,7 +793,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
 
     def configureBoostrapClasspath(Jvm jvm) {
         if (Integer.parseInt(jvm.javaVersion.majorVersion) < 9) {
-            def rtJar = new File(jvm.javaHome, "jre/lib/rt.jar")
+            def rtJar = new File(jvm.jre, "lib/rt.jar")
             def rtJarPath = TextUtil.escapeString(rtJar.absolutePath)
             return """
                 options.bootstrapClasspath = files('${rtJarPath}')

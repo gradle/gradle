@@ -17,8 +17,12 @@
 package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
+import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
+import org.gradle.internal.declarativedsl.dom.mutation.elementNamed
+import org.gradle.internal.declarativedsl.dom.writing.CanonicalCodeGenerator
 import org.gradle.internal.declarativedsl.dom.writing.CanonicalDocumentTextGenerator
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -34,6 +38,8 @@ class CanonicalDocumentTextGeneratorTest {
                 x = "y"
             }
             factory(1)
+            otherFactory()
+            otherFactoryWithArgs(1, 2)
         }
 
         myOtherFun {
@@ -53,5 +59,27 @@ class CanonicalDocumentTextGeneratorTest {
         val tree = parseAsTopLevelBlock(canonicalCode)
         val dom = convertBlockToDocument(tree)
         assertEquals(canonicalCode, CanonicalDocumentTextGenerator().generateText(dom))
+    }
+
+    @Test
+    fun `canonical writer can insert an empty element with forced empty block`() {
+        val tree = parseAsTopLevelBlock(canonicalCode)
+        val dom = convertBlockToDocument(tree)
+
+        val forceEmptyBlock = NodeRepresentationFlagsContainer(
+            setOf(
+                dom.elementNamed("myFun").elementNamed("factory"),
+                dom.elementNamed("block").elementNamed("test")
+            )
+        )
+
+        assertEquals(
+            canonicalCode
+                .replace("factory(1)", "factory(1) { }") // with arguments
+                .replace("test()", "test { }"), // with no arguments
+            CanonicalCodeGenerator().generateCode(
+                NewDocumentNodes(dom.content, forceEmptyBlock), "    "::repeat, true
+            )
+        )
     }
 }

@@ -165,19 +165,6 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
 
         @Override
         @Nullable
-        public Object callGetProperty(Object receiver) throws Throwable {
-            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.readsOfPropertiesNamed(getName()));
-            if (interceptor != null) {
-                return interceptor.intercept(
-                    new InvocationImpl<>(receiver, new Object[0], () -> super.callGetProperty(receiver)),
-                    callSiteOwnerClassName()
-                );
-            }
-            return super.callGetProperty(receiver);
-        }
-
-        @Override
-        @Nullable
         public Object callStatic(Class receiver, Object[] args) throws Throwable {
             CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
@@ -241,6 +228,16 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
                             restoreCallSiteArrayEntry();
                         }
                     }
+                case CALL_GET_PROPERTY:
+                    if (groovyDefaultCallSite != null) {
+                        return groovyDefaultCallSite.callGetProperty(receiver);
+                    } else {
+                        try {
+                            return super.callGetProperty(receiver);
+                        } finally {
+                            restoreCallSiteArrayEntry();
+                        }
+                    }
                 default:
                     throw new IllegalArgumentException("Unexpected callStrategy " + callStrategy);
             }
@@ -271,6 +268,19 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         }
 
         @Override
+        @Nullable
+        public Object callGetProperty(Object receiver) throws Throwable {
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.readsOfPropertiesNamed(getName()));
+            if (interceptor != null) {
+                return interceptor.intercept(
+                    new InvocationImpl<>(receiver, new Object[0], () -> maybeInstrumentedDynamicCall(CallStrategy.CALL_GET_PROPERTY, receiver, null)),
+                    callSiteOwnerClassName()
+                );
+            }
+            return maybeInstrumentedDynamicCall(CallStrategy.CALL_GET_PROPERTY, receiver, null);
+        }
+
+        @Override
         public @Nullable Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
             return maybeInstrumentedDynamicCall(CallStrategy.CALL_GROOVY_OBJECT_GET_PROPERTY, receiver, null);
         }
@@ -287,6 +297,6 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
 
     @NonNullApi
     enum CallStrategy {
-        CALL_CURRENT, CALL_GROOVY_OBJECT_GET_PROPERTY
+        CALL_CURRENT, CALL_GET_PROPERTY, CALL_GROOVY_OBJECT_GET_PROPERTY
     }
 }

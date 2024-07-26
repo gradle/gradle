@@ -16,7 +16,6 @@ errorprone {
 }
 
 dependencies {
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
@@ -33,6 +32,8 @@ dependencies {
     api(projects.platformBase)
     api(projects.platformNative)
     api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
 
     api(libs.guava)
@@ -89,8 +90,3 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

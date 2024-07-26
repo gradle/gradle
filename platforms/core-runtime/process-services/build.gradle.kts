@@ -15,6 +15,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.native)
+    implementation(projects.serviceLookup)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

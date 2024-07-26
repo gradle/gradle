@@ -34,6 +34,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
     implementation(projects.time)
+    implementation(projects.serviceLookup)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
     implementation(projects.logging)
@@ -97,8 +98,3 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

@@ -17,18 +17,23 @@
 package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.PositionAwareEncoder;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
-public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
-    private Map<String, Integer> strings;
+public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
+
+    static final int NULL_STRING = 0;
+    static final int NEW_STRING = 1;
+
+    private Object2IntMap<String> strings;
 
     private final Output output;
 
@@ -91,38 +96,58 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     }
 
     @Override
+    public void writeNullableString(@Nullable CharSequence value) {
+        if (value == null) {
+            writeStringIndex(NULL_STRING);
+            return;
+        }
+        writeNonnullString(value);
+    }
+
+    @Override
     public void writeString(CharSequence value) {
         if (value == null) {
             throw new IllegalArgumentException("Cannot encode a null string.");
         }
-        writeNullableString(value);
+        writeNonnullString(value);
     }
 
-    @Override
-    public void writeNullableString(@Nullable CharSequence value) {
-        if (value == null) {
-            output.writeInt(-1);
-            return;
+    private void writeNonnullString(CharSequence value) {
+        String key = value.toString();
+        if (strings == null) {
+            strings = new Object2IntOpenHashMap<String>(1024);
+            writeNewString(key);
         } else {
-            if (strings == null) {
-                strings = Maps.newHashMapWithExpectedSize(1024);
+            int index = strings.getOrDefault(key, -1);
+            if (index == -1) {
+                writeNewString(key);
+            } else {
+                writeStringIndex(index);
             }
         }
-        String key = value.toString();
-        Integer index = strings.get(key);
-        if (index == null) {
-            index = strings.size();
-            output.writeInt(index);
-            strings.put(key, index);
-            output.writeString(key);
-        } else {
-            output.writeInt(index);
-        }
+    }
+
+    private void writeNewString(String key) {
+        /*
+          Actual stored string indices start from 2 so `0` and `1` can be used as special codes:
+          - 0 for null
+          - 1 for a new string
+          And be efficiently encoded as var ints (writeVarInt/readVarInt) to save even more space.
+         */
+        int newIndex = strings.size() + 2;
+        strings.put(key, newIndex);
+        writeStringIndex(NEW_STRING);
+        output.writeString(key);
+    }
+
+    private void writeStringIndex(int index) {
+        output.writeVarInt(index, true);
     }
 
     /**
      * Returns the total number of bytes written by this encoder, some of which may still be buffered.
      */
+    @Override
     public long getWritePosition() {
         return output.total();
     }

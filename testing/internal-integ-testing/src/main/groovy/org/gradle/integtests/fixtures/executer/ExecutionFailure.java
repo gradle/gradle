@@ -19,6 +19,8 @@ import org.hamcrest.Matcher;
 
 import java.util.function.Consumer;
 
+import static org.hamcrest.CoreMatchers.startsWith;
+
 public interface ExecutionFailure extends ExecutionResult {
     /**
      * {@inheritDoc}
@@ -49,7 +51,10 @@ public interface ExecutionFailure extends ExecutionResult {
      *
      * <p>Error messages are normalized to use new-line char as line separator.
      */
-    ExecutionFailure assertHasCause(String cause);
+    default ExecutionFailure assertHasCause(String cause) {
+        assertThatCause(startsWith(cause));
+        return this;
+    }
 
     /**
      * Asserts that there is a failure present with the given cause (ie the bit after the description).
@@ -73,7 +78,10 @@ public interface ExecutionFailure extends ExecutionResult {
      *
      * <p>Error messages are normalized to use new-line char as line separator.
      */
-    ExecutionFailure assertHasDescription(String description);
+    default ExecutionFailure assertHasDescription(String description) {
+        assertThatDescription(startsWith(description));
+        return this;
+    }
 
     /**
      * Asserts that there is a failure present with the given description (ie the bit after '* What went wrong').
@@ -106,12 +114,18 @@ public interface ExecutionFailure extends ExecutionResult {
 
     ExecutionFailure assertHasNoCause();
 
-    ExecutionFailure assertTestsFailed();
+    default ExecutionFailure assertTestsFailed() {
+        assertHasDescription("Execution failed for task ':test'.");
+        assertThatCause(startsWith("There were failing tests"));
+        return this;
+    }
 
     /**
      * @param configurationPath, for example ':compile'
      */
-    DependencyResolutionFailure assertResolutionFailure(String configurationPath);
+    default DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
+        return new DependencyResolutionFailure(this, configurationPath);
+    }
 
     interface Failure {
         /**

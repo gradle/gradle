@@ -24,6 +24,7 @@ import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
+import gradlebuild.basics.isRetryBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
@@ -121,7 +122,7 @@ fun Project.extractCiData() {
             }
             buildFinished {
                 println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
-                if (failures.isEmpty()) {
+                if (failures.isEmpty() && isRetryBuild) {
                     println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
                 }
             }
@@ -145,11 +146,9 @@ fun Project.extractWatchFsData() {
 
 open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanConfiguration) : BuildOperationListener {
 
-    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
-    }
+    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) = Unit
 
-    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) {
-    }
+    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) = Unit
 
     override fun finished(buildOperation: BuildOperationDescriptor, finishEvent: OperationFinishEvent) {
         when (val result = finishEvent.result) {

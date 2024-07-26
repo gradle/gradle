@@ -111,6 +111,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
@@ -118,7 +119,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -533,10 +534,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
+        ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
             InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
             ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
-            return new ResolutionFailureHandler(failureDescriberRegistry);
+            return new ResolutionFailureHandler(failureDescriberRegistry, problemsService);
         }
 
         @Provides

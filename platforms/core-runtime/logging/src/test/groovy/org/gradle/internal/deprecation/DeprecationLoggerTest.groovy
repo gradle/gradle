@@ -16,6 +16,7 @@
 
 package org.gradle.internal.deprecation
 
+
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.DefaultProblems
@@ -38,10 +39,10 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
     def problemEmitter = Stub(ProblemEmitter)
-    def problems = new DefaultProblems(problemEmitter)
+    def problems = new DefaultProblems([problemEmitter])
 
     def setup() {
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, problems, diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {

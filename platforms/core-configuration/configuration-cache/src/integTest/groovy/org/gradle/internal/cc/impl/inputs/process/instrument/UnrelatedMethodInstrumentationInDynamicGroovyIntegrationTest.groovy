@@ -16,9 +16,6 @@
 
 package org.gradle.internal.cc.impl.inputs.process.instrument
 
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
-import org.gradle.test.fixtures.file.TestFile
-
 class UnrelatedMethodInstrumentationInDynamicGroovyIntegrationTest extends AbstractProcessInstrumentationIntegrationTest implements DynamicGroovyPluginMixin {
     def "calling an unrelated method is allowed in groovy build script #indyStatus"() {
         given:
@@ -76,11 +73,5 @@ class UnrelatedMethodInstrumentationInDynamicGroovyIntegrationTest extends Abstr
         where:
         enableIndy << [true, false]
         indyStatus = enableIndy ? "with indy" : "without indy"
-    }
-
-    // Lift the visibility of the method to make it available for the mixin
-    @Override
-    TestFile buildScript(@GroovyBuildScriptLanguage String script) {
-        super.buildScript(script)
     }
 }

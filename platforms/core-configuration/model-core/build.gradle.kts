@@ -5,15 +5,10 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // This cannot really be turned off, because of the false positive in errorprone (https://github.com/google/error-prone/issues/4409)
-    )
-}
-
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
     api(projects.coreApi)
     api(projects.problemsApi)
     api(projects.hashing)
@@ -35,6 +30,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
     implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)

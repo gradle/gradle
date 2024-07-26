@@ -364,7 +364,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             """
         }
 
-        buildScript("""
+        buildFile("""
             buildscript {
                 dependencies {
                     classpath "org.gradle.test:mrjar:1.+"
@@ -387,18 +387,18 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             }
         """)
 
-        def java8Home = AvailableJavaHomes.getJdk8().javaHome
-        def java11Home = AvailableJavaHomes.getJdk11().javaHome
+        def jdk8 = AvailableJavaHomes.getJdk8()
+        def jdk11 = AvailableJavaHomes.getJdk11()
 
         when:
-        executer.withJavaHome(java8Home).withArguments("-Porg.gradle.java.installations.paths=$java8Home,$java11Home")
+        executer.withJvm(jdk8).withArguments("-Porg.gradle.java.installations.paths=${jdk8.javaHome},${jdk11.javaHome}")
         succeeds("printFoo")
 
         then:
         outputContains("JAR = DEFAULT")
 
         when:
-        executer.withJavaHome(java11Home).withArguments("-Porg.gradle.java.installations.paths=$java8Home,$java11Home")
+        executer.withJvm(jdk11).withArguments("-Porg.gradle.java.installations.paths=${jdk8.javaHome},${jdk11.javaHome}")
         succeeds("printFoo")
 
         then:
@@ -430,7 +430,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 """)
             }
         }
-        buildScript("""
+        buildFile("""
             abstract class LambdaTask extends DefaultTask {
                 @Input
                 abstract ListProperty<Runnable> getMyActions()
@@ -504,9 +504,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
 
-        settingsScript("""
+        settingsFile """
             include "reproducible", "current"
-        """)
+        """
 
         file("reproducible/build.gradle").text = subprojectSource(reproducibleJar)
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)

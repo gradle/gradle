@@ -39,13 +39,14 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.AddSoftwareTypesAsExtensionsPluginTarget;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
+import org.gradle.api.internal.plugins.ModelDefaultsApplyingPluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -70,6 +71,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -102,8 +104,8 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
+import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -122,6 +124,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         Factory<LoggingManagerInternal> loggingManagerInternalFactory
     ) {
         return ServiceRegistryBuilder.builder()
+            .scope(Scope.Project.class)
             .displayName("project services")
             .parent(parent)
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
@@ -228,20 +231,17 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry
+        InternalProblems problems,
+        ModelDefaultsApplicator modelDefaultsApplicator
     ) {
+
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
-            new ImperativeOnlyPluginTarget<>(project),
+            new ImperativeOnlyPluginTarget<>(PluginTargetType.PROJECT, project, problems),
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new AddSoftwareTypesAsExtensionsPluginTarget(
-            project,
-            ruleBasedTarget,
-            pluginScheme.getInspectionScheme(),
-            softwareTypeRegistry
-        );
+        PluginTarget pluginTarget = new ModelDefaultsApplyingPluginTarget<>(project, ruleBasedTarget, modelDefaultsApplicator);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,
@@ -350,6 +350,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         @Override
         public Path getProjectPath() {
             return delegate.getProjectPath();
+        }
+
+        @Nullable
+        @Override
+        public Path getProjectIdentityPath() {
+            return delegate.getProjectIdentityPath();
         }
 
         @Nullable

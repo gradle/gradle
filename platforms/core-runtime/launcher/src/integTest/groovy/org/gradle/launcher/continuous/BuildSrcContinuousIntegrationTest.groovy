@@ -33,7 +33,7 @@ class BuildSrcContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
     def "can build and reload a project with buildSrc when buildSrc changes"() {
         when:
-        buildScript """
+        buildFile """
             task a {
               inputs.files "a"
               doLast {

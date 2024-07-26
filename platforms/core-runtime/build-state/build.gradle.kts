@@ -22,7 +22,9 @@ description = "Types for build process and session state management"
 
 dependencies {
     api(projects.instrumentationAgentServices)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
+    api(projects.serviceRegistryBuilder)
     api(projects.core)
     api(projects.baseServices)
     api(projects.stdlibJavaExtensions)

@@ -44,6 +44,30 @@ public interface AttributeSelectionSchema {
 
     boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);
 
+    /**
+     * Determine if two values are compatible with each other. This is a "two directional"
+     * match. If the two values mach in any direction, this method returns true.
+     */
+    default <T> boolean weakMatchValue(Attribute<T> attribute, T requested, T candidate) {
+        return matchValue(attribute, requested, candidate) || matchValue(attribute, candidate, requested);
+    }
+
+    /**
+     * Attempt to "rehydrate" an attribute that was previously desugared.
+     * Desugared attributes are converted from rich types to primitives
+     * during serialization.
+     *
+     * @return The attribute in this schema that has the same name as the provided
+     * attribute, or the provided attribute if no such attribute exists.
+     */
+    default Attribute<?> tryRehydrate(Attribute<?> attribute) {
+        Attribute<?> typedAttribute = getAttribute(attribute.getName());
+        if (typedAttribute == null) {
+            return attribute;
+        }
+        return typedAttribute;
+    }
+
     @Nullable
     Attribute<?> getAttribute(String name);
 

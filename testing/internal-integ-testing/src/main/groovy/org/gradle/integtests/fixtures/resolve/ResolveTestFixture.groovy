@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Path
 import org.junit.ComparisonFailure
 
 /**
@@ -488,7 +489,11 @@ $END_MARKER
         }
 
         private NodeBuilder projectNode(String projectIdentityPath, String moduleVersion) {
-            return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+            if (Objects.equals(Path.path(projectIdentityPath), Path.ROOT)) {
+                return node("project:$projectIdentityPath", "root project $projectIdentityPath", moduleVersion)
+            } else {
+                return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+            }
         }
 
         private NodeBuilder moduleNode(String moduleVersionId) {

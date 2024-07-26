@@ -829,7 +829,6 @@ service: closed with value 12
         """
         executer.beforeExecute {
             withArgument("--configuration-cache")
-            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
         }
 
         when:
@@ -879,8 +878,8 @@ service: closed with value 12
         include 'subproject2'
         """
         // plugin 1 declares a service
-        groovyFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
-        groovyFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+        buildFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
             import org.gradle.api.services.BuildService
             import org.gradle.api.services.BuildServiceParameters
             abstract class MyService implements BuildService<BuildServiceParameters.None> {
@@ -900,16 +899,16 @@ service: closed with value 12
             }
         """)
         // plugin 2
-        groovyFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
-        groovyFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        buildFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
         // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
-        groovyFile(file("subproject1/build.gradle"), """
+        buildFile(file("subproject1/build.gradle"), """
         plugins {
             id 'my.plugin1'
             id 'my.plugin2'
         }
         """)
-        groovyFile(file("subproject2/build.gradle"), """
+        buildFile(file("subproject2/build.gradle"), """
         plugins {
             // must include the plugin contributing the build service,
             // and must be a different ordered set than the other project
@@ -945,8 +944,8 @@ Hello, subproject1
         include 'subproject2'
         """
         // plugin 1 declares a service
-        groovyFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
-        groovyFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+        buildFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
             import org.gradle.api.services.BuildService
             import org.gradle.api.services.BuildServiceParameters
             abstract class MyService implements BuildService<BuildServiceParameters.None> {
@@ -979,16 +978,16 @@ Hello, subproject1
         """)
 
         // plugin 2
-        groovyFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
-        groovyFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        buildFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
         // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
-        groovyFile(file("subproject1/build.gradle"), """
+        buildFile(file("subproject1/build.gradle"), """
         plugins {
             id 'my.plugin1'
             id 'my.plugin2'
         }
         """)
-        groovyFile(file("subproject2/build.gradle"), """
+        buildFile(file("subproject2/build.gradle"), """
         plugins {
             // must include the plugin contributing the build service,
             // and must be a different ordered set than the other project

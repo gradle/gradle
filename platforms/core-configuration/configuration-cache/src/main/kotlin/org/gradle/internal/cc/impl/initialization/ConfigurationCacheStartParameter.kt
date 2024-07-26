@@ -19,19 +19,17 @@ package org.gradle.internal.cc.impl.initialization
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.extensions.stdlib.unsafeLazy
-import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.extensions.core.getInternalFlag
+import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 
 
@@ -60,17 +58,19 @@ class ConfigurationCacheStartParameter(
 
     val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
 
-    val encryptionRequested: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
-
-    val keystoreDir: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
-
-    val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
-
     /**
      * Should be provided if a link to the report is expected even if no errors were found.
      * Useful in testing.
      */
     val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
+
+    /**
+     * Whether strings stored to the configuration cache should be deduplicated
+     * in order to save space on disk and to use less memory on a cache hit.
+     *
+     * The default is `true`.
+     */
+    val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
@@ -78,9 +78,6 @@ class ConfigurationCacheStartParameter(
 
     val configurationCacheLogLevel: LogLevel
         get() = modelParameters.configurationCacheLogLevel
-
-    val isQuiet: Boolean
-        get() = startParameter.isConfigurationCacheQuiet
 
     val isIgnoreInputsInTaskGraphSerialization: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization
@@ -161,13 +158,3 @@ class ConfigurationCacheStartParameter(
     val isIsolatedProjects: Boolean
         get() = modelParameters.isIsolatedProjects
 }
-
-
-private
-fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
-    getOption(InternalFlag(systemPropertyName, defaultValue)).get()
-
-
-private
-fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?) =
-    getOption(StringInternalOption(systemPropertyName, defaultValue)).get()
