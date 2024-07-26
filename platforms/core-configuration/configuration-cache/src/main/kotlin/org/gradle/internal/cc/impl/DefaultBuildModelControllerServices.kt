@@ -61,7 +61,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
-import org.gradle.invocation.EagerLifecycleExecutor
+import org.gradle.invocation.LifecycleActionExecutor
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -168,9 +168,9 @@ class DefaultBuildModelControllerServices(
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
             instantiator: Instantiator,
-            eagerLifecycleExecutor: EagerLifecycleExecutor
+            lifecycleActionExecutor: LifecycleActionExecutor
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator, eagerLifecycleExecutor)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator, lifecycleActionExecutor)
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
@@ -205,9 +205,9 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             instantiator: Instantiator,
-            eagerLifecycleExecutor: EagerLifecycleExecutor
+            lifecycleActionExecutor: LifecycleActionExecutor
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry, instantiator, eagerLifecycleExecutor)
+            return DefaultCrossProjectModelAccess(projectRegistry, instantiator, lifecycleActionExecutor)
         }
 
         @Provides

@@ -96,7 +96,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
             newInstance(LifecycleAwareProject, _, _, _) >> { args ->
                 def params = args[1]
-                new LifecycleAwareProject(params[0], params[1], Stub(EagerLifecycleExecutor))
+                new LifecycleAwareProject(params[0], params[1], Stub(LifecycleActionExecutor))
             }
         }
 
@@ -485,5 +485,5 @@ class DefaultGradleSpec extends Specification {
         }
     }
 
-    static interface TestIsolatedProjectEvaluationListenerProvider extends IsolatedProjectEvaluationListenerProvider, EagerLifecycleExecutor {}
+    static interface TestIsolatedProjectEvaluationListenerProvider extends IsolatedProjectEvaluationListenerProvider, LifecycleActionExecutor {}
 }
