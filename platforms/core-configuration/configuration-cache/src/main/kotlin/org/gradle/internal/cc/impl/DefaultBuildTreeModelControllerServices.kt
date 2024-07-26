@@ -110,7 +110,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
 
-            fun disabledConfigurationCacheDefaultBuildModelParameters(buildOptionReason: String): BuildModelParameters {
+            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
                 return DefaultBuildModelParameters(
                     parallelProjectExecution = parallelProjectExecution,
@@ -126,8 +126,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
 
             when {
-                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheDefaultBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
-                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheDefaultBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
+                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
+                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
                 else -> DefaultBuildModelParameters(
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
