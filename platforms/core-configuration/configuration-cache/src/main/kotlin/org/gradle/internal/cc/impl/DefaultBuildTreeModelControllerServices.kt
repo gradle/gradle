@@ -32,6 +32,7 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.DefaultBuildModelParameters
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
@@ -94,7 +95,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(
+            DefaultBuildModelParameters(
                 parallelProjectExecution,
                 isolatedProjects,
                 isolatedProjects,
@@ -109,9 +110,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
 
-            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
+            fun disabledConfigurationCacheDefaultBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
-                return BuildModelParameters(
+                return DefaultBuildModelParameters(
                     parallelProjectExecution,
                     configureOnDemand,
                     false,
@@ -125,9 +126,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
 
             when {
-                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
-                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
-                else -> BuildModelParameters(
+                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheDefaultBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
+                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheDefaultBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
+                else -> DefaultBuildModelParameters(
                     parallelProjectExecution,
                     configureOnDemand,
                     configurationCache,
@@ -166,7 +167,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
             val buildModelParameters =
-                BuildModelParameters(
+                DefaultBuildModelParameters(
                     startParameter.isParallelProjectExecutionEnabled,
                     startParameter.isConfigureOnDemand,
                     false,

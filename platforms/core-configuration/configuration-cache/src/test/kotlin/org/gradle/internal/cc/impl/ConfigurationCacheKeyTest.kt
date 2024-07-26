@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
-import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.DefaultBuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.encryption.EncryptionConfiguration
@@ -171,7 +171,7 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(
+                DefaultBuildModelParameters(
                     false,
                     false,
                     true,
