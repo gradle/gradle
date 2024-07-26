@@ -23,11 +23,12 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
 class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
-    private final FakeDaemonLog daemonLog = new FakeDaemonLog(daemonsFixture)
+    private FakeDaemonLog daemonLog
 
     def setup() {
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
         requireIsolatedTestKitDir = true
+        daemonLog = new FakeDaemonLog(daemonsFixture)
     }
 
     def iteration = 0
