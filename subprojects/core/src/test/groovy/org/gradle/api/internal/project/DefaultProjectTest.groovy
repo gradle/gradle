@@ -300,8 +300,8 @@ class DefaultProjectTest extends Specification {
 
     def testProject() {
         expect:
-        project.is(child1.parent)
-        project.is(child1.rootProject)
+        project == child1.parent
+        project == child1.rootProject
         checkProject(project, null, 'root', rootDir)
     }
 
@@ -976,8 +976,8 @@ def scriptMethod(Closure closure) {
         expect:
         assertLifecycleAwareWithReferrer(child1) { rootProject }
         assertLifecycleAwareWithReferrer(child1) { parent }
-        assertLifecycleAwareWithReferrer(project) { childProjects.values().first() }
         assertLifecycleAwareWithReferrer(child1) { it.project.parent }
+        assertLifecycleAwareWithReferrer(project) { childProjects.values().first() }
         assertLifecycleAwareWithReferrer(project) { getAllprojects()[1] }
         assertLifecycleAwareWithReferrer(project) { getSubprojects()[0] }
         assertLifecycleAwareWithReferrer(project) { findProject(":child1") }
