@@ -29,7 +29,7 @@ val artifactoryUserName
     get() = project.providers.gradleProperty("artifactoryUserName").orNull
 
 val artifactoryUserPassword
-    get() = project.providers.gradleProperty("artifactoryPassword").orNull
+    get() = project.providers.gradleProperty("artifactoryUserPassword").orNull
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     val noUpload = project.gradleProperty("noUpload")
