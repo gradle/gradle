@@ -43,7 +43,14 @@ class DefaultClassDecoder : ClassDecoder {
             return type as Class<*>
         }
         val name = readString()
-        val classLoader = if (readBoolean()) {
+        val classLoader = decodeClassLoader() ?: javaClass.classLoader
+        val newType = Class.forName(name, false, classLoader)
+        classes.putInstance(id, newType)
+        return newType
+    }
+
+    override fun ReadContext.decodeClassLoader(): ClassLoader? =
+        if (readBoolean()) {
             val scope = readScope()
             if (readBoolean()) {
                 scope.localClassLoader
@@ -51,12 +58,8 @@ class DefaultClassDecoder : ClassDecoder {
                 scope.exportClassLoader
             }
         } else {
-            javaClass.classLoader
+            null
         }
-        val newType = Class.forName(name, false, classLoader)
-        classes.putInstance(id, newType)
-        return newType
-    }
 
     private
     fun ReadContext.readScope(): ClassLoaderScope {
