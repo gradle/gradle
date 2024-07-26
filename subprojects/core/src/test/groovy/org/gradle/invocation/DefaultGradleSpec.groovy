@@ -69,7 +69,7 @@ class DefaultGradleSpec extends Specification {
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator)
-    CrossProjectModelAccess crossProjectModelAccess = Mock(CrossProjectModelAccess)
+    GradleLifecycleActionExecutor gradleLifecycleActionExecutor = Mock(GradleLifecycleActionExecutor)
 
     GradleInternal gradle
 
@@ -88,15 +88,16 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(BuildOperationRunner) >> buildOperationRunner
         _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
-        _ * serviceRegistry.get(CrossProjectModelAccess) >> crossProjectModelAccess
+        _ * serviceRegistry.get(CrossProjectModelAccess) >> Stub(CrossProjectModelAccess)
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
         _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
+        _ * serviceRegistry.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
             newInstance(LifecycleAwareProject, _, _, _) >> { args ->
                 def params = args[1]
-                new LifecycleAwareProject(params[0], params[1], Stub(GradleLifecycleActionExecutor))
+                new LifecycleAwareProject(params[0], params[1], gradleLifecycleActionExecutor)
             }
         }
 
@@ -425,8 +426,7 @@ class DefaultGradleSpec extends Specification {
         1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
             a.execute(p)
         }
-        1 * crossProjectModelAccess.getAllprojectsForGradle(gradle) >> [rootProject]
-        1 * crossProjectConfigurator.allprojects([rootProject] as Set, action)
+        1 * rootProject.allprojects(action)
     }
 
     def "has toString()"() {
