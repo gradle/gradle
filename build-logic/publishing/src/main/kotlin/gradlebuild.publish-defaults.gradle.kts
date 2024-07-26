@@ -15,7 +15,6 @@
  */
 
 import gradle.kotlin.dsl.accessors._25bd7e7076749e7e243da5bad7112e92.moduleIdentity
-import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.gradleProperty
 import org.gradle.api.publish.maven.MavenPublication
 
@@ -27,10 +26,10 @@ val artifactoryUrl
     get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
 
 val artifactoryUserName
-    get() = getBuildEnvironmentExtension().artifactoryUserName.orNull
+    get() = project.providers.gradleProperty("artifactoryUserName").orNull
 
 val artifactoryUserPassword
-    get() = getBuildEnvironmentExtension().artifactoryPassword.orNull
+    get() = project.providers.gradleProperty("artifactoryPassword").orNull
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     val noUpload = project.gradleProperty("noUpload")

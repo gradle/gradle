@@ -25,11 +25,4 @@ interface BuildEnvironmentExtension {
     val gitBranch: Property<String>
     val repoRoot: DirectoryProperty
     val rootProjectBuildDir: DirectoryProperty
-    val artifactoryUserName: Property<String>
-    val artifactoryPassword: Property<String>
-    val testVersions: Property<String>
-    val integtestAgentAllowed: Property<String>
-    val integtestDebug: Property<String>
-    val integtestLauncherDebug: Property<String>
-    val integtestVerbose: Property<String>
 }
