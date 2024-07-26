@@ -172,10 +172,10 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains """
+lifecycle: gradle.lifecycle.beforeProject ':'
 lifecycle: gradle.allprojects ':'
 lifecycle: gradle.allprojects ':a'
 lifecycle: gradle.beforeProject ':'
-lifecycle: gradle.lifecycle.beforeProject ':'
 lifecycle: <evaluating> ':'
 lifecycle: <root>.subprojects ':a'
 lifecycle: gradle.afterProject ':'
