@@ -1,3 +1,5 @@
+import gradlebuild.basics.BuildEnvironmentExtension
+
 plugins {
     id("gradlebuild.distribution.packaging")
     id("gradlebuild.verify-build-environment")
@@ -25,8 +27,9 @@ dependencies {
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future
+val buildEnvironmentExtension = extensions.getByType(BuildEnvironmentExtension::class)
 tasks.register<Copy>("copyDistributionsToRootBuild") {
     dependsOn("buildDists")
     from(layout.buildDirectory.dir("distributions"))
-    into(rootProject.layout.buildDirectory.dir("distributions"))
+    into(buildEnvironmentExtension.rootProjectBuildDir.dir("distributions"))
 }
