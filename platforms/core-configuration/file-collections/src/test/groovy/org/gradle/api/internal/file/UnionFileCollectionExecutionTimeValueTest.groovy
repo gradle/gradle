@@ -47,9 +47,9 @@ class UnionFileCollectionExecutionTimeValueTest extends Specification {
 
     def "UnionFileCollection supports absence of execution time value for source"() {
         given:
-        def emptyEtvSource = new EmptyExecutionTimeValueFileCollection()
+        def emptySource = new EmptyExecutionTimeValueFileCollection()
         def fixedSource = fileCollectionFactory().fixed("foo", new File("foo.txt"))
-        def collection = new UnionFileCollection(DefaultTaskDependencyFactory.withNoAssociatedProject(), [emptyEtvSource, fixedSource])
+        def collection = new UnionFileCollection(DefaultTaskDependencyFactory.withNoAssociatedProject(), [emptySource, fixedSource])
 
         when:
         def executionTimeValue = collection.calculateExecutionTimeValue()

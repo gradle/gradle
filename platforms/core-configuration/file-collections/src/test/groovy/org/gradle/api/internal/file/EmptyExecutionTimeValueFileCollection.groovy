@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file
 
-class EmptyExecutionTimeValueFileCollection extends AbstractFileCollection{
+class EmptyExecutionTimeValueFileCollection extends AbstractFileCollection {
     @Override
     String getDisplayName() {
         return "empty etv file collection"
