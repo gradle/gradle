@@ -181,12 +181,13 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         ]
     }
 
-    def 'lifecycle.beforeProject can be executed before project.#api'() {
+    def 'lifecycle.beforeProject eager execution can be triggered from project.#api'() {
         given:
         settingsFile """
             rootProject.name = 'root'
             gradle.lifecycle.beforeProject {
-                ext.foo = "\$name bar"
+                println "lifecycle :\$name"
+                ext.foo = "bar :\$name"
             }
             include(":a")
             include(":b")
@@ -197,6 +198,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
         buildFile"""
             $invocation { project ->
+                println "access :\${project.name}"
                 println "\${project.foo}"
             }
         """
@@ -209,23 +211,25 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
         where:
         api                | invocation                            | expectedOutput
-        "allprojects"      | "allprojects"                         | "root bar\na bar\nb bar"
-        "subprojects"      | "subprojects"                         | "a bar\nb bar"
-        "project"          | "project(':a')"                       | "a bar"
-        "findProject"      | "configure(findProject(':a'))"        | "a bar"
-        "getAllprojects"   | "getAllprojects().forEach"            | "root bar\na bar\nb bar"
-        "getSubprojects"   | "getSubprojects().forEach"            | "a bar\nb bar"
-        "getChildProjects" | "getChildProjects().values().forEach" | "a bar\nb bar"
+        "allprojects"      | "allprojects"                         | "lifecycle :root\naccess :root\nbar :root\naccess :a\nlifecycle :a\nbar :a\naccess :b\nlifecycle :b\nbar :b"
+        "subprojects"      | "subprojects"                         | "lifecycle :root\naccess :a\nlifecycle :a\nbar :a\naccess :b\nlifecycle :b\nbar :b"
+        "project"          | "project(':a')"                       | "lifecycle :root\naccess :a\nlifecycle :a\nbar :a\nlifecycle :b"
+        "findProject"      | "configure(findProject(':a'))"        | "lifecycle :root\naccess :a\nlifecycle :a\nbar :a\nlifecycle :b"
+        "getAllprojects"   | "getAllprojects().forEach"            | "lifecycle :root\naccess :root\nbar :root\naccess :a\nlifecycle :a\nbar :a\naccess :b\nlifecycle :b\nbar :b"
+        "getSubprojects"   | "getSubprojects().forEach"            | "lifecycle :root\naccess :a\nlifecycle :a\nbar :a\naccess :b\nlifecycle :b\nbar :b"
+        "getChildProjects" | "getChildProjects().values().forEach" | "lifecycle :root\naccess :a\nlifecycle :a\nbar :a\naccess :b\nlifecycle :b\nbar :b"
     }
 
-    def 'lifecycle.beforeProject can be executed before gradle.allprojects'() {
+    def 'lifecycle.beforeProject eager execution can be triggered from gradle.allprojects'() {
         settingsFile """
             rootProject.name = 'root'
             gradle.allprojects {
+                println "allprojects :\$name"
                 println "\${foo}"
             }
             gradle.lifecycle.beforeProject {
-                ext.foo = "\$name bar"
+                println "lifecycle :\$name"
+                ext.foo = "bar :\$name"
             }
             include(":a")
             include(":b")
@@ -238,7 +242,17 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         run "help", "-q"
 
         then:
-        outputContains "root bar\na bar\nb bar"
+        outputContains """
+allprojects :root
+lifecycle :root
+bar :root
+allprojects :a
+lifecycle :a
+bar :a
+allprojects :b
+lifecycle :b
+bar :b
+"""
     }
 
     static def projectMutableStateAccess = "version"
