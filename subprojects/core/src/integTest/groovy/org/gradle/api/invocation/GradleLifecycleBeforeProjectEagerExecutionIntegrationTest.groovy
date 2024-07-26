@@ -243,8 +243,8 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
 
         then:
         outputContains """
-allprojects :root
 lifecycle :root
+allprojects :root
 bar :root
 allprojects :a
 lifecycle :a
@@ -252,6 +252,30 @@ bar :a
 allprojects :b
 lifecycle :b
 bar :b
+"""
+    }
+
+    def 'lifecycle.beforeProject eager execution can be triggered from gradle.rootProject'() {
+        settingsFile """
+            rootProject.name = 'root'
+            gradle.rootProject {
+                println "access :root"
+                println "\${foo}"
+            }
+            gradle.lifecycle.beforeProject {
+                println "lifecycle :\$name"
+                ext.foo = "bar :\$name"
+            }
+        """
+
+        when:
+        run "help", "-q"
+
+        then:
+        outputContains """
+lifecycle :root
+access :root
+bar :root
 """
     }
 

@@ -82,13 +82,6 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojectsForGradle(GradleInternal gradle) {
-        return projectRegistry.getAllProjects(gradle.getRootProject().getPath()).stream()
-            .map(project -> instantiator.newInstance(LifecycleAwareProject.class, project, project, gradleLifecycleActionExecutor))
-            .collect(Collectors.toCollection(TreeSet::new));
-    }
-
-    @Override
     public GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle) {
         return gradle;
     }

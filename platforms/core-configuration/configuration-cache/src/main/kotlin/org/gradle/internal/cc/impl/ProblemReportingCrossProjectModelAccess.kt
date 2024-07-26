@@ -119,10 +119,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
     }
 
-    override fun getAllprojectsForGradle(gradle: GradleInternal): MutableSet<out ProjectInternal> {
-        return getAllprojects(gradle.getRootProject(), gradle.getRootProject());
-    }
-
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
         return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
     }

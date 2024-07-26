@@ -81,7 +81,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal, Closeable {
@@ -95,6 +94,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
@@ -110,6 +110,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.services = parentRegistry.createFor(this);
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
         this.isolatedProjectEvaluationListenerProvider = services.get(IsolatedProjectEvaluationListenerProvider.class);
+        this.gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
 
@@ -119,6 +120,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
 
                 if (!rootProjectActions.isEmpty()) {
+                    gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
                 if (isolatedListener != null) {
@@ -304,11 +306,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void allprojects(final Action<? super Project> action) {
-        rootProject("Gradle.allprojects", project -> {
-                Set<? extends ProjectInternal> allprojects = getCrossProjectModelAccess().getAllprojectsForGradle(this);
-                crossProjectConfigurator.allprojects(allprojects, action);
-            }
-        );
+        rootProject("Gradle.allprojects", project -> project.allprojects(action));
     }
 
     @Override
