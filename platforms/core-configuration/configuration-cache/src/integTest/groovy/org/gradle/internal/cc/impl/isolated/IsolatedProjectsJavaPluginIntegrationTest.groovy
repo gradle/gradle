@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProjectInParallel
 import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsJavaPluginIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {

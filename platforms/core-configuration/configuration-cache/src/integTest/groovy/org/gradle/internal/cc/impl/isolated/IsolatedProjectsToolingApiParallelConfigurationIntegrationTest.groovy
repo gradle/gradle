@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProjectInParallel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.GradleProject
