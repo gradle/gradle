@@ -321,7 +321,6 @@ class ValueSourceProviderCodec(
         }
 }
 
-
 class PropertyCodec(
     private val propertyFactory: PropertyFactory,
     private val providerCodec: FixedValueReplacingProviderCodec

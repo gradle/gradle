@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.serialize
+package org.gradle.api.smalltalk;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
-import org.gradle.internal.serialize.codecs.core.JavaRecordCodec
-import org.gradle.internal.serialize.codecs.guava.guavaTypes
-import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
-import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * TBD
+ *
+ * @since 8.10
+ */
+@ServiceScope(Scope.Build.class)
+@Incubating
+public interface SmalltalkBuildModelRegistry {
 
-internal
-fun BindingsBuilder.baseTypes() {
-    stdlibTypes()
-    guavaTypes()
-    bind(JavaRecordCodec)
-    bind(BuildIdentifierSerializer())
+    /**
+     * TBD
+     *
+     * @since 8.10
+     */
+    <T> Provider<T> registerModel(String key, Class<T> type, SmalltalkComputation<T> provider);
+
 }
