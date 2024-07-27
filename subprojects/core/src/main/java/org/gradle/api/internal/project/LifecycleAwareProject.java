@@ -16,39 +16,53 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.IsolatedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.invocation.GradleLifecycleActionExecutor;
 
 import javax.annotation.Nullable;
 
 /**
  * Wrapper for {@link ProjectInternal} that has been accessed across projects, even in vintage mode.
+ * <p>
+ * When mutable state accessed - executes previously registered {@link org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)}
+ * actions <b>eagerly</b>.
  */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
-    public static ProjectInternal from(ProjectInternal target, ProjectInternal referrer, Instantiator instantiator) {
+    public static ProjectInternal from(
+        ProjectInternal target,
+        ProjectInternal referrer,
+        GradleLifecycleActionExecutor gradleLifecycleActionExecutor,
+        Instantiator instantiator
+    ) {
         return MutableStateAccessAwareProject.wrap(
             target,
             referrer,
-            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer)
+            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer, gradleLifecycleActionExecutor)
         );
     }
 
-    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
+
+    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, GradleLifecycleActionExecutor gradleLifecycleActionExecutor) {
         super(delegate, referrer);
+        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
     }
 
     @Override
     protected void onMutableStateAccess(String what) {
-        // no-op for now
+        gradleLifecycleActionExecutor.executeBeforeProjectFor(delegate);
     }
 
     @Override
     protected Object propertyMissing(String name) {
         onMutableStateAccess("getProperty");
+        // TODO just delegate.getProperty?
         DynamicObject dynamicDelegate = DynamicObjectUtil.asDynamicObject(delegate);
         DynamicInvokeResult delegateResult = dynamicDelegate.tryGetProperty(name);
 
@@ -63,6 +77,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     @Override
     protected Object methodMissing(String name, Object args) {
         onMutableStateAccess("invokeMethod");
+        // TODO just delegate.invokeMethod?
         Object[] varargs = Cast.uncheckedNonnullCast(args);
         DynamicObject dynamicDelegate = DynamicObjectUtil.asDynamicObject(delegate);
         DynamicInvokeResult delegateResult = dynamicDelegate.tryInvokeMethod(name, varargs);

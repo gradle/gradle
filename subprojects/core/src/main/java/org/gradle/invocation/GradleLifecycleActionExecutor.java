@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.impl;
+package org.gradle.invocation;
 
-
-import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.inject.Inject;
+@ServiceScope(Scope.Build.class)
+public interface GradleLifecycleActionExecutor {
 
-public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
-
-    private final Gradle gradle;
-
-    @Inject
-    public DefaultDevelocityBuildLifecycleService(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    @Override
-    public void beforeProject(Action<? super Project> action) {
-        gradle.getLifecycle().beforeProject(action::execute);
-    }
+    /**
+     * Eagerly executes the actions, previously registered via {@link IsolatedProjectEvaluationListenerProvider#beforeProject(IsolatedAction)}
+     * against the given project. Safe to be called concurrently.
+     */
+    void executeBeforeProjectFor(Project project);
 }
