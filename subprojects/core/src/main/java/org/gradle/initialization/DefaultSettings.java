@@ -37,6 +37,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.isolated.models.BuildIsolatedModelRegistry;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
@@ -421,4 +422,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void defaults(Action<? super SharedModelDefaults> action) {
         action.execute(getDefaults());
     }
+
+    @Override
+    @Inject
+    public abstract BuildIsolatedModelRegistry getBuildModelRegistry();
 }

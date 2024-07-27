@@ -34,6 +34,7 @@ import org.gradle.api.toolchain.management.ToolchainManagement
 import org.gradle.api.cache.CacheConfigurations
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.initialization.SharedModelDefaults
+import org.gradle.api.isolated.models.BuildIsolatedModelRegistry
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.plugin.management.PluginManagementSpec
@@ -177,4 +178,7 @@ abstract class SettingsDelegate : Settings {
     override fun defaults(action: Action<in SharedModelDefaults>) {
         delegate.defaults(action)
     }
+
+    override fun getBuildModelRegistry(): BuildIsolatedModelRegistry =
+        delegate.buildModelRegistry
 }
