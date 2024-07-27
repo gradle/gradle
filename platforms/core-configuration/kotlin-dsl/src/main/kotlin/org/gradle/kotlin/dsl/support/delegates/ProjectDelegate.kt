@@ -52,6 +52,7 @@ import org.gradle.api.project.IsolatedProject
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
+import org.gradle.api.isolated.models.BuildIsolatedModelLookup
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
@@ -496,4 +497,7 @@ abstract class ProjectDelegate : Project {
 
     override fun getBuildFile(): File =
         delegate.buildFile
+
+    override fun getBuildIsolatedModels(): BuildIsolatedModelLookup =
+        delegate.buildIsolatedModels
 }

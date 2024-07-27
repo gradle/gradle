@@ -64,6 +64,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -186,6 +187,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public IsolatedProject getIsolated() {
         return delegate.getIsolated();
+    }
+
+    @Override
+    public BuildIsolatedModelLookup getBuildIsolatedModels() {
+        return delegate.getBuildIsolatedModels();
     }
 
     @Nullable
