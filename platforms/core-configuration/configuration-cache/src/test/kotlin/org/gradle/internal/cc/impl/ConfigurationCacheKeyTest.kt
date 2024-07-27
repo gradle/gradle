@@ -21,9 +21,9 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -171,7 +171,18 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(false, false, true, startParameter.isolatedProjects.get(), false, false, false, false, false, LogLevel.LIFECYCLE)
+                DefaultBuildModelParameters(
+                    parallelProjectExecution = false,
+                    configureOnDemand = false,
+                    configurationCache = true,
+                    isolatedProjects = startParameter.isolatedProjects.get(),
+                    requiresBuildModel = false,
+                    intermediateModelCache = false,
+                    parallelToolingApiActions = false,
+                    invalidateCoupledProjects = false,
+                    modelAsProjectDependency = false
+                ),
+                ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {
