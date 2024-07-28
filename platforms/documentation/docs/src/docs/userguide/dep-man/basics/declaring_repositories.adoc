@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring-repositories]]
+[[declaring-basic-repositories]]
 = 3. Declaring repositories
 
 Gradle needs to know where it can download the dependencies used in the project.
@@ -91,8 +91,7 @@ repositories {
 [[sec:declaring_local_repository]]
 == Declaring a local repository
 
-Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
-Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
+Gradle can consume dependencies available in a link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 
 To declare the local Maven cache as a repository, add this to your build script:
 
@@ -165,4 +164,4 @@ repositories {
 ----
 
 [.text-right]
-**Next Step:** <<centralizing-dependencies.adoc#centralizing-dependencies,Learn about Centralizing Repositories>> >>
+**Next Step:** <<centralizing_dependencies.adoc#centralizing-dependencies,Learn about Centralizing Repositories>> >>

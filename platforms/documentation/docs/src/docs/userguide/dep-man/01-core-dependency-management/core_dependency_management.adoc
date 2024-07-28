@@ -49,7 +49,7 @@ include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/
 
 <2> *Here we declare remote and local repositories for dependency locations.*
 +
-You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
+You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
 In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_. +
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
 Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
@@ -61,7 +61,7 @@ Subsequent builds use this cache to avoid unnecessary network calls and speed up
 +
 You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
 In this example, the theoretical project uses Guava version 32.1.2-jre and JUnit 4.13.2 as _dependencies_. +
-A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+A build engineer can <<declaring_dependencies.adoc#declaring-basic-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
 Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 Repositories offer dependencies in multiple formats.

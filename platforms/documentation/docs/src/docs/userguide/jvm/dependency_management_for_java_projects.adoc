@@ -48,7 +48,7 @@ include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="buil
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=define-dependency]"]
 ====
 
-To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>.
+To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>>.
 
 [[sec:configurations_java_tutorial]]
 == Using dependency configurations
@@ -100,7 +100,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining repositories, have a look at <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>>.
+To find out more about defining repositories, have a look at <<declaring_repositories.adoc#declaring-basic-repositories,Declaring Repositories>>.
 
 [[sec:publishing_artifacts_java_tutorial]]
 == Publishing artifacts

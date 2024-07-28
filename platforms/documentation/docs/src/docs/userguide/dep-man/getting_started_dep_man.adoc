@@ -52,23 +52,23 @@ In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_
 == 1. Declaring Dependencies
 
 You can add external libraries to your Java project such as `com.google.common.base`, a Guava package.
-These libraries are <<declaring-repositories.adoc#declaring-dependencies, _dependencies_>> of your project.
+These libraries are <<declaring_dependencies.adoc#declaring-basic-dependencies, _dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
 
 == 2. Dependency Configurations
 
-You can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+You can <<declaring_dependencies.adoc#declaring-basic-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
 Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 == 3. Declaring Repositories
 
-You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_.
+You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_.
 
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
 
 == 4. Centralizing Dependencies
 
-<<centralizing-dependencies.adoc#centralizing-dependencies, Centralizing dependencies>> in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
+<<centralizing_dependencies.adoc#centralizing-dependencies, Centralizing dependencies>> in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
 
 This is typically done using platforms and version catalogs.
 A platform is a set of modules intended to be used together.

@@ -23,7 +23,7 @@ When the same library is declared multiple times or when two different libraries
 During dependency resolution, Gradle handles two types of conflicts:
 
 1. *Version conflicts*: That is when two or more dependencies require a given dependency but with different versions.
-2. *Capability conflicts*: That is when the dependency graph contains multiple modules that provide the same implementation.
+2. *Capability conflicts*: That is when the dependency graph contains multiple components that provide the same implementation.
 
 == Resolving version conflicts
 
@@ -35,7 +35,7 @@ A version conflict occurs when a component declares two dependencies that:
 ** Our project also depends on `com.google.inject:guice:4.2.2` which itself depends on `com.google.guava:guava:25.1-android`
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
-Out of these versions, it will select the _highest_ one.
+By default, it will select the _highest_ one out of these versions.
 
 == Resolving capability conflicts
 

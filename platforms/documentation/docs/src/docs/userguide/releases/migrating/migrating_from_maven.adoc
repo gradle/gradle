@@ -204,7 +204,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#declaring-dependencies,Declaring Dependencies>> chapter.
+All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 

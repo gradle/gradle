@@ -55,7 +55,7 @@ NOTE: The word "configuration" is an overloaded term that has a different meanin
 [[sub:terminology_dependency]]
 Dependency::
 A dependency is a pointer to another piece of software required to build, test, or run a <<#sub:terminology_module, module>>.
-For more information, see the section on <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies>>.
+For more information, see the section on <<declaring_dependencies.adoc#declaring-basic-dependencies,declaring dependencies>>.
 
 [[sub:terminology_dependency_constraint]]
 Dependency constraint::
@@ -141,7 +141,7 @@ A publication has a name and consists of one or more artifacts plus information 
 Repository::
 A repository hosts a set of <<#sub:terminology_module, modules>>, each of which may provide one or many releases (components) indicated by a <<#sub:terminology_module_version, module version>>.
 The repository can be based on a binary repository product (e.g., Artifactory or Nexus) or a directory structure in the filesystem.
-For more information, see <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>>.
+For more information, see <<declaring_repositories.adoc#declaring-basic-repositories,Declaring Repositories>>.
 
 [[sub:terminology_resolution_rule]]
 Resolution rule::

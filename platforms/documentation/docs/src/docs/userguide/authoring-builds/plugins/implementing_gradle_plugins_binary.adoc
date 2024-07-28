@@ -544,7 +544,7 @@ You might want to automatically download an artifact using Gradle’s dependency
 Ideally, the plugin implementation does not need to ask the user for the coordinates of that dependency - it can simply predefine a sensible default version.
 
 Let’s look at an example of a plugin that downloads files containing data for further processing.
-The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-dependencies,assigning those external dependencies with dependency coordinates>>:
+The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-basic-dependencies,assigning those external dependencies with dependency coordinates>>:
 
 .DataProcessingPlugin.java
 [source,java]
