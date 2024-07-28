@@ -19,32 +19,32 @@ package org.gradle.internal.isolated.models;
 import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
 import org.gradle.api.provider.Provider;
 
-public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegistryInternal, BuildIsolatedModelLookup {
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.gradle.internal.Cast.uncheckedCast;
+
+public class BuildIsolatedModelProjectLookup implements BuildIsolatedModelLookup {
 
     private final BuildIsolatedModelStore store;
 
-    public DefaultBuildIsolatedModelRegistry(BuildIsolatedModelStore store) {
+    private final Map<IsolatedModelKey<?>, Provider<?>> modelByKey = new HashMap<>();
+
+    public BuildIsolatedModelProjectLookup(BuildIsolatedModelStore store) {
         this.store = store;
     }
 
     @Override
-    public <T> void registerModel(String key, Class<T> type, Provider<T> provider) {
-        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
-        store.registerModel(modelKey, provider);
+    public <T> Provider<T> getModel(String key, Class<T> type) {
+        Provider<?> provider = modelByKey.computeIfAbsent(new IsolatedModelKey<>(key, type), this::resolveModel);
+        return uncheckedCast(provider);
     }
 
-    @Override
-    public <T> Provider<T> getModel(String key, Class<T> type) {
-        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
-        BuildIsolatedModel<T> model = store.findModel(modelKey);
+    private Provider<?> resolveModel(IsolatedModelKey<?> modelKey) {
+        BuildIsolatedModel<?> model = store.findModel(modelKey);
         if (model == null) {
             throw new IllegalArgumentException("No provider for " + modelKey);
         }
         return model.instantiate();
-    }
-
-    @Override
-    public void isolateAllModelProviders() {
-
     }
 }

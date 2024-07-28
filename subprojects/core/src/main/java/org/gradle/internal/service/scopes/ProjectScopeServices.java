@@ -77,6 +77,8 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.models.BuildIsolatedModelProjectLookup;
+import org.gradle.internal.isolated.models.BuildIsolatedModelStore;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -376,5 +378,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme, InternalProblems problems) {
         return new ActionBasedModelDefaultsHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
+    }
+
+    @Provides
+    BuildIsolatedModelProjectLookup create(BuildIsolatedModelStore store) {
+        return new BuildIsolatedModelProjectLookup(store);
     }
 }
