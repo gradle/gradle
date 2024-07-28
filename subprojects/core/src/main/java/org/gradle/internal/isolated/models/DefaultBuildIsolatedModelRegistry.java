@@ -17,20 +17,20 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
-import org.gradle.internal.Cast;
-import org.gradle.internal.isolated.models.IsolatedProviderFactory.IsolatedProviderForGradle;
+import org.gradle.api.provider.Provider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegistryInternal, BuildIsolatedModelLookup {
 
     private final GradleInternal gradle;
     private final IsolatedProviderFactory isolatedProviderFactory;
 
-    private final Map<IsolatedModelKey<?>, IsolatedProviderForGradle<?>> providersByKey = new ConcurrentHashMap<>();
+    private final Map<IsolatedModelKey<?>, BuildIsolatedModel<?>> providersByKey = new ConcurrentHashMap<>();
 
     public DefaultBuildIsolatedModelRegistry(GradleInternal gradle, IsolatedProviderFactory isolatedProviderFactory) {
         this.gradle = gradle;
@@ -39,19 +39,19 @@ public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegi
 
     @Override
     public <T> void registerModel(String key, Class<T> type, Provider<T> provider) {
-        IsolatedProviderForGradle<T> isolated = isolatedProviderFactory.isolate(provider, gradle);
         IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
-        providersByKey.put(modelKey, isolated);
+        BuildIsolatedModel<T> modelProvider = new BuildIsolatedModel<>(isolatedProviderFactory, provider, gradle);
+        providersByKey.put(modelKey, modelProvider);
     }
 
     @Override
     public <T> Provider<T> getModel(String key, Class<T> type) {
         IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
-        IsolatedProviderForGradle<T> isolated = Cast.uncheckedCast(providersByKey.get(modelKey));
-        if (isolated == null) {
+        BuildIsolatedModel<T> model = uncheckedCast(providersByKey.get(modelKey));
+        if (model == null) {
             throw new IllegalArgumentException("No provider for " + modelKey);
         }
-        return isolated.instantiate(gradle);
+        return model.instantiate();
     }
 
     @Override
