@@ -21,7 +21,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 
 import javax.inject.Inject
 
@@ -206,6 +205,78 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Realizing model for someKey")
         outputContains("model[someKey] = someValue")
+    }
+
+    def "build-scoped model is realized only once"() {
+        settingsFile """
+            include(":a")
+            settings.buildModelRegistry.registerModel("someKey", String, providers.provider {
+                println("Computing model for someKey")
+                "someValue"
+            })
+        """
+
+        buildFile """
+            def model = project.buildIsolatedModels.getModel("someKey", String).get()
+            println("project '\$path' model[someKey] = \$model")
+        """
+
+        buildFile "a/build.gradle", """
+            def model = project.buildIsolatedModels.getModel("someKey", String).get()
+            println("project '\$path' model[someKey] = \$model")
+        """
+
+        when:
+        run "help"
+
+        then:
+        output.count("Computing model for someKey")
+        outputContains("project ':' model[someKey] = someValue")
+        outputContains("project ':a' model[someKey] = someValue")
+    }
+
+    def "build-scoped model state is isolated per consuming project"() {
+        settingsFile """
+            rootProject.name = "root"
+            include(":a")
+
+            settings.buildModelRegistry.registerModel("someKey", List<String>, providers.provider {
+                println("Computing model for someKey")
+                ["settings"]
+            })
+        """
+
+        buildFile "buildSrc/build.gradle", """
+            plugins { id 'groovy-gradle-plugin' }
+        """
+
+        buildFile "buildSrc/src/main/groovy/my-plugin.gradle", """
+            def model1 = project.buildIsolatedModels.getModel("someKey", List<String>).get()
+            model1 << project.name
+            println("project '\$path' model[someKey] = \$model1")
+
+            def model2 = project.buildIsolatedModels.getModel("someKey", List<String>).get()
+            model2 << project.name
+            println("project '\$path' model[someKey] = \$model2")
+        """
+
+        buildFile """
+            plugins { id 'my-plugin' }
+        """
+
+        buildFile "a/build.gradle", """
+            plugins { id 'my-plugin' }
+        """
+
+        when:
+        run "help"
+
+        then:
+        output.count("Computing model for someKey")
+        outputContains("project ':' model[someKey] = [settings, root]")
+        outputContains("project ':' model[someKey] = [settings, root, root]")
+        outputContains("project ':a' model[someKey] = [settings, a]")
+        outputContains("project ':a' model[someKey] = [settings, a, a]")
     }
 
 }
