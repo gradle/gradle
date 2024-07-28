@@ -149,8 +149,6 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Project ':' got value 'hey'")
     }
 
-
-    @ToBeImplemented
     def "model provider is finalized lazily"() {
         settingsFile """
             settings.ext.foo = ["a"]
@@ -158,28 +156,56 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             foo.tap { fooList ->
                 settings.buildModelRegistry.registerModel("myValue", String, providers.provider {
                     fooList.add("c")
-                    fooList.join("-") as String
+                    fooList.toString()
                 })
             }
 
             foo.add("b")
-            println("(before model) settings.foo = \${foo.join("-")}")
+            println("(before model) settings.foo = \$foo")
 
             settings.buildModelRegistry.getModel("myValue", String).tap { myValueProvider ->
                 def myValue = myValueProvider.get()
                 println("settings.myValue = \${myValue}")
             }
 
-            println("(after model) settings.foo = \${foo.join("-")}")
+            println("(after model) settings.foo = \$foo")
         """
 
         when:
         run "help"
 
         then:
-        outputContains("(before model) settings.foo = a-c-b") // TODO: before model is realized, we should not see the side effect
-        outputContains("settings.myValue = a-c")
-        outputContains("(after model) settings.foo = a-c-b")
+        outputContains("(before model) settings.foo = [a, b]")
+        outputContains("settings.myValue = [a, b, c]")
+        outputContains("(after model) settings.foo = [a, b, c]")
+    }
+
+    def "build-scope isolated model provider is evaluated only if model is realized"() {
+        settingsFile """
+            settings.buildModelRegistry.registerModel("someKey", String, providers.provider {
+                println("Producing model for someKey")
+                "someValue"
+            })
+
+            if (Boolean.getBoolean("realizeModel")) {
+                println("Realizing model for someKey")
+                settings.buildModelRegistry.getModel("someKey", String).tap { myValueProvider ->
+                    def value = myValueProvider.get()
+                    println("model[someKey] = \${value}")
+                }
+            }
+        """
+
+        when:
+        run "help"
+        then:
+        outputDoesNotContain("Realizing model for someKey")
+
+        when:
+        run "help", "-DrealizeModel=true"
+        then:
+        outputContains("Realizing model for someKey")
+        outputContains("model[someKey] = someValue")
     }
 
 }
