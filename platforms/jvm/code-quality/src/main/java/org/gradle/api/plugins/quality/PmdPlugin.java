@@ -65,7 +65,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     public static final String DEFAULT_PMD_VERSION = "6.55.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
-    @SuppressWarnings("HidingField")
     private PmdExtension extension;
 
     @Override
