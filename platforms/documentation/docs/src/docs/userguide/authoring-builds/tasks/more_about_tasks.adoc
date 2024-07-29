@@ -141,7 +141,7 @@ plugins {
 [.multi-language-sample]
 =====
 .app/build.gradle
-[source,groovy]
+[source, groovy]
 ----
 plugins {
     id('base')
@@ -304,7 +304,7 @@ tasks.register("helloTask") {
 [source,groovy]
 ----
 tasks.register("helloTask") {
-    println("Hello")
+    println 'Hello'
 }
 ----
 =====
@@ -354,7 +354,7 @@ tasks.register("helloTask") {
 tasks.register("helloTask") {
     group = "Other"
     description = "Hello task"
-    println("Hello")
+    println 'Hello'
 }
 ----
 =====
@@ -530,13 +530,13 @@ Let's create our own group so that all tasks are hidden by default by updating t
 val myBuildGroup = "my app build"               // Create a group name
 
 tasks.register<TaskReportTask>("tasksAll") {    // Register the tasksAll task
-    group = myBuildGroup
-    description = "Show additional tasks."
-    setShowDetail(true)
+group = myBuildGroup
+description = "Show additional tasks."
+setShowDetail(true)
 }
 
 tasks.named<TaskReportTask>("tasks") {          // Move all existing tasks to the group
-    displayGroup = myBuildGroup
+displayGroup = myBuildGroup
 }
 ----
 =====
@@ -911,7 +911,7 @@ To create a custom task class, you extend link:{javadocPath}/org/gradle/api/Defa
 .app/build.gradle.kts
 [source,kotlin]
 ----
-abstract class MyCopyTask extends DefaultTask {
+abstract class MyCopyTask : DefaultTask() {
 
 }
 ----
@@ -921,7 +921,7 @@ abstract class MyCopyTask extends DefaultTask {
 .app/build.gradle
 [source,groovy]
 ----
-abstract class MyCopyTask : DefaultTask() {
+abstract class MyCopyTask extends DefaultTask {
 
 }
 ----
