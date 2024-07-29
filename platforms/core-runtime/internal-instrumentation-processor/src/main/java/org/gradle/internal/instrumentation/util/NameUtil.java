@@ -16,23 +16,43 @@
 
 package org.gradle.internal.instrumentation.util;
 
+import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
-import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
 
+import java.util.Locale;
+import java.util.regex.Pattern;
+
 public class NameUtil {
+
+    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
+
     private NameUtil() {
     }
 
     public static String getterName(String propertyName, Type propertyType) {
         String prefix = propertyType.equals(Type.BOOLEAN_TYPE) || propertyType.getClassName().equals("java.lang.Boolean") ? "is" : "get";
-        return prefix + TextUtil.capitalize(propertyName);
+        return prefix + capitalize(propertyName);
     }
 
     public static String setterName(String propertyName) {
-        return "set" + TextUtil.capitalize(propertyName);
+        return "set" + capitalize(propertyName);
+    }
+
+    public static String capitalize(String value) {
+        return Strings.isNullOrEmpty(value)
+            ? value
+            : Character.toTitleCase(value.charAt(0)) + value.substring(1);
+    }
+
+    public static String camelToUpperUnderscoreCase(String camelCase) {
+        String[] split = UPPER_CASE.split(camelCase);
+        for (int i = 0; i < split.length; i++) {
+            split[i] = split[i].toUpperCase(Locale.US);
+        }
+        return String.join("_", split);
     }
 
     public static String interceptedJvmMethodName(CallableInfo callableInfo) {
