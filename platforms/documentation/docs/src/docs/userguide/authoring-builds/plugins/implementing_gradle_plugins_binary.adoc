@@ -682,8 +682,6 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 <2> A problem reporter, is created for the plugin. While the namespace is up to the plugin author, it is recommended that the plugin ID be used.
 <3> A problem is reported. This problem is recoverable so that the build will continue.
 
-For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
-
 === Problem building
 
 When reporting a problem, a wide variety of information can be provided.

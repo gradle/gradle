@@ -78,7 +78,7 @@ For example, the output of `./gradlew run --include-build ../my-utils` run from 
 
 ----
 $ ./gradlew --include-build ../my-utils run
-include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
+include::{snippetsPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
 ----
 
 [[settings_defined_composite]]
