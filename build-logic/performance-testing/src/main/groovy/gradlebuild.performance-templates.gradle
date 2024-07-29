@@ -357,9 +357,9 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
 
 // Build-builder projects
 tasks.register("buildBuilder", RemoteProject) {
-    remoteUri = 'https://github.com/blindpirate/build-builder.git'
+    remoteUri = 'https://github.com/gradle/build-builder.git'
     // From master branch
-    ref = 'b20046b38b5c11213a307f6454a6a71a59a08ba2'
+    ref = '39037ebf30b9eab5bdceff259ce50126f94a5561'
 }
 
 tasks.register("installBuildBuilder", GradleBuild) {
@@ -412,13 +412,13 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     // From android-73 branch
-    ref = "54eef7cc87e9eb1e89fce0d2de8d12e60c694080"
+    ref = "6f56fcdbaade0a9ce43777cf91ab8bf79cd14dd0"
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large-2.git'
     // Pinned from android-73-kotlin-16 branch
-    ref = "a67ceb08a7b4e4a71e3c151a3abd72a9abe5d703"
+    ref = "16d64faa6055a281874329ff95fbcdd6861b7248"
 }
 
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
@@ -568,7 +568,7 @@ performanceTest.registerTestProject("springBootApp", RemoteProject) {
 performanceTest.registerTestProject("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
     // From master branch
-    ref = "af00fd258fbe9c7d274f386e46847fe12062cc71"
+    ref = "08a06b5f4943a5a892a178baddc27e1884e7c03c"
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 
