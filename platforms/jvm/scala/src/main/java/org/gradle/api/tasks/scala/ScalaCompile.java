@@ -40,7 +40,7 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
  * Compiles Scala source files, and optionally, Java source files.
  */
 @CacheableTask
-public abstract class ScalaCompile extends AbstractScalaCompile {
+public abstract class ScalaCompile extends AbstractScalaCompile implements ScalaTask {
 
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
@@ -58,10 +58,12 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      */
     @Classpath
     @ToBeReplacedByLazyProperty
+    @Override
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
     }
 
+    @Override
     public void setScalaClasspath(FileCollection scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
     }
@@ -139,7 +141,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     protected void assertScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "
+            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala library dependency is provided, "
                     + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
         }
     }

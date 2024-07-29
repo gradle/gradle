@@ -31,6 +31,7 @@ import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -53,6 +54,8 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
+import org.gradle.api.tasks.scala.ScalaTask;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
@@ -107,16 +110,17 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+        project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
         ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
         Category incrementalAnalysisCategory = objectFactory.named(Category.class, "scala-analysis");
         configureConfigurations((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
 
-        configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project));
+        configureScalaTaskDefaults(project);
+        configureScalaCompileDefaults(project, (DefaultJavaPluginExtension) javaPluginExtension(project));
         configureSourceSetDefaults((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage);
-        configureScaladoc(project, scalaRuntime);
+        configureScalaDocDefaults(project);
     }
 
     @SuppressWarnings("deprecation")
@@ -260,15 +264,25 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
     }
 
-    private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
-        project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
-            ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
-            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
-            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
-            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
-            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, compile).toString());
-            compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
+    private static void configureScalaTaskDefaults(final Project project) {
+        ScalaRuntimeHelper scalaRuntimeHelper = ScalaRuntimeHelper.create(project);
+        project.getTasks().withType(ScalaTask.class).matching(IConventionAware.class::isInstance).configureEach(scalaTask -> {
+            Configuration scalaClasspath = scalaRuntimeHelper.configureAsScalaClasspath(
+                    project.getConfigurations().detachedConfiguration(),
+                    project.provider(scalaTask::getClasspath).map(scalaRuntimeHelper::findScalaVersion));
+            ConventionMapping conventionMapping = ((IConventionAware) scalaTask).getConventionMapping();
+            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaClasspath);
+        });
+    }
+
+    private static void configureScalaCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
+        project.getTasks().withType(ScalaCompile.class).configureEach(scalaCompile -> {
+            ConventionMapping conventionMapping = scalaCompile.getConventionMapping();
+            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getByName(ZINC_CONFIGURATION_NAME));
+            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getByName(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
+            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, scalaCompile).toString());
+            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, scalaCompile).toString());
+            scalaCompile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
         });
     }
 
@@ -288,11 +302,11 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return JavaVersion.toVersion(compileTask.getSourceCompatibility());
     }
 
-    private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
+    private static void configureScalaDocDefaults(final Project project) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
-            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            ConventionMapping conventionMapping = scalaDoc.getConventionMapping();
+            conventionMapping.map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
+            conventionMapping.map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }
