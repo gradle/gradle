@@ -172,6 +172,35 @@ tasks.named("docsTest") { task ->
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
         failOnNoMatchingTests = false
+
+        if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
+            // Disable tests that suffer from charset issues under JDK 18 for now
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
+        }
+
+        if (!javaVersion.java11Compatible) {
+            // Android requires Java 11+
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample"
+            // This test sets source and target compatibility to 11
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample"
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
+        }
+
+        if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
+        }
+
+        // filter tests which won't run on Groovy 4 without updating the Spock version
+        if (System.getProperty('bundleGroovy4', 'false') == 'true') {
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-configuration-cache-test-kit*configurationCacheTestKit.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-developing-plugins-testing-plugins*testPlugin.sample'
+        }
     }
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
