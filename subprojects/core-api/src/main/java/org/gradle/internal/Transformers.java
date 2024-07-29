@@ -43,12 +43,11 @@ public abstract class Transformers {
 
     //just returns the original object
     public static <T> Transformer<T, T> noOpTransformer() {
-        return new Transformer<T, T>() {
-            @Override
-            public T transform(T original) {
-                return original;
-            }
-        };
+        return original -> original;
+    }
+
+    public static <T> Transformer<T, T> compose(Transformer<T, T> left, Transformer<T, T> right) {
+        return original -> right.transform(left.transform(original));
     }
 
     private static class CastingTransformer<O, I> implements Transformer<O, I> {
@@ -86,7 +85,7 @@ public abstract class Transformers {
     private static class CommandLineArgumentTransformer implements Transformer<String, String> {
         private static final Pattern SINGLE_QUOTED = Pattern.compile("^'.*'$");
         private static final Pattern DOUBLE_QUOTED = Pattern.compile("^\".*\"$");
-        private static final Pattern A_SINGLE_QUOTE =  Pattern.compile("'");
+        private static final Pattern A_SINGLE_QUOTE = Pattern.compile("'");
 
         @Override
         public String transform(String input) {

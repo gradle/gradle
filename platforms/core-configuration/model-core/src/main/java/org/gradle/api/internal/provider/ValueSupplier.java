@@ -517,6 +517,9 @@ public interface ValueSupplier {
         @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
             R transformResult = transformer.transform(result);
+            if (transformResult == result) {
+                return Cast.uncheckedCast(this);
+            }
             if (transformResult == null || sideEffect == null) {
                 return Value.ofNullable(transformResult);
             }

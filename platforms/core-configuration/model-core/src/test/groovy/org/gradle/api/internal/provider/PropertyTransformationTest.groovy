@@ -25,6 +25,9 @@ class PropertyTransformationTest extends Specification {
         def property = propertyWithDefaultValue(String)
 
         and:
+        property.set('original value will be ignored')
+
+        and:
         def transformed = property.addTransformation {
             it.reverse()
         }
@@ -45,9 +48,36 @@ class PropertyTransformationTest extends Specification {
         'map'       | { it.map { it }.get() }
     }
 
+    def 'can add multiple transformation'() {
+        given:
+        def property = propertyWithDefaultValue(String)
+
+        and:
+        def transformed1 = property.addTransformation {
+            it + " 1"
+        }
+
+        def transformed2 = property.addTransformation {
+            it + " 2"
+        }
+
+        when:
+        property.set('foo')
+
+        then:
+        property.get() == 'foo 1 2'
+
+        and:
+        transformed1 === property
+        transformed2 === property
+    }
+
     def 'can add transformation over convention'() {
         given:
         def property = propertyWithDefaultValue(String)
+
+        and:
+        property.convention('original convention will be ignored')
 
         and:
         property.addTransformation {
@@ -72,6 +102,30 @@ class PropertyTransformationTest extends Specification {
 
         then:
         property.getOrNull() == null
+    }
+
+    def 'transformation cannot return null'() {
+        given:
+        def property = propertyWithDefaultValue(String)
+
+        and:
+        property.addTransformation {
+            null
+        }
+
+        when:
+        operation(property)
+
+        and:
+        property.getOrNull()
+
+        then:
+        thrown(IllegalStateException)
+
+        where:
+        description  | operation
+        'set'        | { it.set('foo') }
+        'convention' | { it.convention('foo') }
     }
 
     <T> DefaultProperty<T> propertyWithDefaultValue(Class<T> type) {

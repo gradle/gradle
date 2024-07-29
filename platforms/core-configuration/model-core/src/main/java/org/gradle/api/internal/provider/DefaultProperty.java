@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Transformers;
 
 import javax.annotation.Nullable;
 
@@ -34,8 +35,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
-    @Nullable
-    private Transformer<T, T> transformation;
+    private Transformer<T, T> transformation = Transformers.noOpTransformer();
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
@@ -46,7 +46,16 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     public Property<T> addTransformation(Transformer<T, T> transformation) {
-        this.transformation = transformation;
+        this.transformation = Transformers.compose(
+            this.transformation,
+            original -> {
+                T value = transformation.transform(original);
+                if (value == null) {
+                    throw new IllegalStateException();
+                }
+                return value;
+            }
+        );
         return this;
     }
 
@@ -162,11 +171,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     protected Value<? extends T> calculateValueFrom(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
-        Value<? extends T> calculatedValue = value.calculateValue(consumer);
-        if (transformation != null) {
-            return calculatedValue.transform(transformation);
-        }
-        return calculatedValue;
+        return value.calculateValue(consumer).transform(transformation);
     }
 
     @Override
