@@ -15,7 +15,6 @@
  */
 
 plugins {
-    // Uninstrumented since it is a mix of Groovy and Java code
     id("gradlebuild.distribution.api-java")
 }
 
