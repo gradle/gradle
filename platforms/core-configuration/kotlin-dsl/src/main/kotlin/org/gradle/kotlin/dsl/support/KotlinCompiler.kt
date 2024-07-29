@@ -89,6 +89,7 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
+@Suppress("LongParameterList")
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
@@ -502,7 +503,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
             "^ $message".lines().joinToString(
                 prefix = columnIndent,
-                separator = "\n$columnIndent  $indent"
+                separator = "\n$columnIndent  $INDENT"
             )
     }
 
@@ -511,7 +512,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
         location.line.toString().padStart(maxLineNumberStringLength, '0')
 
     private
-    fun prependIndent(it: String) = it.prependIndent(indent)
+    fun prependIndent(it: String) = it.prependIndent(INDENT)
 
     private
     val errorPlural
@@ -525,7 +526,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
 
 private
-const val indent = "  "
+const val INDENT = "  "
 
 
 private

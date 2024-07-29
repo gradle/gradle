@@ -48,11 +48,16 @@ class KnownProblemIds {
         'compilation' : 'Compilation',
         'deprecation' : 'Deprecation',
         'compilation:java' : 'Java compilation',
+        'plugin-application' : 'Plugin application',
         'task-selection' : 'Task selection',
         'dependency-version-catalog' : 'Version catalog',
         'compilation:groovy-dsl' : 'Groovy DSL script compilation',
         'validation:property-validation' : 'Property validation problems',
         'validation:type-validation' : 'Gradle type validation',
+        'validation:configuration-cache' : 'Configuration cache',
+
+        // dependency resolution failures
+        'dependency-variant-resolution' : 'Dependency variant resolution',
 
         // groups from integration tests
         'generic' : 'Generic'
@@ -78,6 +83,7 @@ class KnownProblemIds {
         'deprecation:buildsrc-script' : 'BuildSrc script has been deprecated.',
         'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration' : 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.',
         'deprecation:custom-task-action' : 'Custom Task action has been deprecated.',
+        'deprecation:executing-gradle-on-jvm-versions-and-lower': 'Executing Gradle on JVM versions 16 and lower has been deprecated.',
         'deprecation:missing-java-toolchain-plugin' : 'Using task ValidatePlugins without applying the Java Toolchain plugin.',
         'deprecation:included-build-script' : 'Included build script has been deprecated.',
         'deprecation:included-build-task' : 'Included build task has been deprecated.',
@@ -87,6 +93,10 @@ class KnownProblemIds {
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption' : 'The detachedConfiguration1 configuration has been deprecated for consumption.',
         'deprecation:configurations-acting-as-both-root-and-variant' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
         'deprecation:repository-jcenter' : 'The RepositoryHandler.jcenter() method has been deprecated.',
+        'task-selection:no-matches' : 'cannot locate task',
+        'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported' : 'registration of listener on \'Gradle.buildFinished\' is unsupported',
+        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported' : 'invocation of \'Task.project\' at execution time is unsupported.',
+        'plugin-application:target-type-mismatch' : 'Unexpected plugin type',
         'task-selection:ambiguous-matches' : 'Ambiguous matches',
         'task-selection:no-matches' : 'No matches',
         'task-selection:selection-failed' : 'Selection failed',
@@ -119,6 +129,24 @@ class KnownProblemIds {
         'validation:type-validation:ignored-annotations-on-method' : 'Ignored annotations on method',
         'validation:type-validation:invalid-use-of-type-annotation' : 'Incorrect use of type annotation',
         'validation:type-validation:not-cacheable-without-reason' : 'Not cacheable without reason',
+        'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache' : 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.',
+
+        // dependency resolution failures
+        'dependency-variant-resolution:configuration-not-compatible' : 'Configuration selected by name is not compatible',
+        'dependency-variant-resolution:configuration-not-consumable' : 'Configuration selected by name is not consumable',
+        'dependency-variant-resolution:configuration-does-not-exist' : 'Configuration selected by name does not exist',
+        'dependency-variant-resolution:ambiguous-variants' : 'Multiple variants exist that would match the request',
+        'dependency-variant-resolution:no-compatible-variants' : 'No variants exist that would match the request',
+        'dependency-variant-resolution:no-variants-with-matching-capabilities' : 'No variants exist with capabilities that would match the request',
+
+        'dependency-variant-resolution:ambiguous-artifact-transform' : 'Multiple artifacts transforms exist that would satisfy the request',
+        'dependency-variant-resolution:no-compatible-artifact' : 'No artifacts exist that would match the request',
+        'dependency-variant-resolution:ambiguous-artifacts' : 'Multiple artifacts exist that would match the request',
+        'dependency-variant-resolution:unknown-artifact-selection-failure' : 'Unknown artifact selection failure',
+
+        'dependency-variant-resolution:incompatible-multiple-nodes' : 'Incompatible nodes of a single component were selected',
+
+        'dependency-variant-resolution:unknown-resolution-failure' : 'Unknown resolution failure',
 
         // integration test problems
         'deprecation:some-indirect-deprecation' : 'Some indirect deprecation has been deprecated.',
@@ -127,7 +155,17 @@ class KnownProblemIds {
         'deprecation:typed-task' : 'Typed task has been deprecated.',
         'generic:deprecation:plugin' : 'DisplayName',
         'generic:type' : 'label',
-        'generic:type1' : 'inner',
-        'generic:type2' : 'outer',
+        'generic:type0' : 'label0',
+        'generic:type1' : 'label1',
+        'generic:type2' : 'label2',
+        'generic:type3' : 'label3',
+        'generic:type4' : 'label4',
+        'generic:type5' : 'label5',
+        'generic:type6' : 'label6',
+        'generic:type7' : 'label7',
+        'generic:type8' : 'label8',
+        'generic:type9' : 'label9',
+        'generic:type11' : 'inner',
+        'generic:type12' : 'outer',
     ]
 }

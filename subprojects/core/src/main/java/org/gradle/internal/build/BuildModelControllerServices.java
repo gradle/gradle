@@ -18,7 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -42,6 +42,6 @@ public interface BuildModelControllerServices {
     Supplier servicesForBuild(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild);
 
     interface Supplier {
-        void applyServicesTo(ServiceRegistration registration, BuildScopeServices services);
+        void applyServicesTo(ServiceRegistration registration, ServiceRegistry buildScopeServices);
     }
 }

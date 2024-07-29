@@ -32,6 +32,7 @@ import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
+import org.spockframework.lang.Wildcard
 
 import java.util.regex.Pattern
 
@@ -418,6 +419,11 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildB.buildFile << registration("buildB")
 
         when:
+        if (!(deprecation instanceof Wildcard)) {
+            3.times {
+                executer.expectDocumentedDeprecationWarning("Listener registration using $deprecation has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+            }
+        }
         execute(buildA, ":jar")
 
         then:
@@ -429,9 +435,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildFinished.progress.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it${getPlatformLineSeparator()}".toString() }
 
         where:
-        description     | registration                                                          | message
-        "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from"
-        "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"
+        description     | registration                                                          | message               | deprecation
+        "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from"  | "Gradle.buildFinished()"
+        "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"     | _
     }
 
     def "build tree finished operation happens even when configuration fails"() {

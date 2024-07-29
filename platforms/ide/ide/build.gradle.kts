@@ -14,67 +14,68 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":file-collections"))
-    api(project(":java-language-extensions"))
-    api(project(":model-core"))
-    api(project(":platform-jvm"))
-    api(project(":service-provider"))
-    api(project(":tooling-api"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
+    api(projects.stdlibJavaExtensions)
+    api(projects.modelCore)
+    api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.toolingApi)
 
     api(libs.guava)
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-services-groovy"))
-    implementation(project(":ear"))
-    implementation(project(":language-java"))
-    implementation(project(":logging-api"))
-    implementation(project(":platform-base"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":war"))
+    implementation(projects.baseServicesGroovy)
+    implementation(projects.ear)
+    implementation(projects.languageJava)
+    implementation(projects.loggingApi)
+    implementation(projects.platformBase)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.serviceLookup)
+    implementation(projects.war)
 
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
 
-    runtimeOnly(project(":language-jvm"))
-    runtimeOnly(project(":testing-base"))
-    runtimeOnly(project(":testing-jvm"))
+    runtimeOnly(projects.languageJvm)
+    runtimeOnly(projects.testingBase)
+    runtimeOnly(projects.testingJvm)
 
-    testFixturesApi(project(":base-services")) {
+    testFixturesApi(projects.baseServices) {
         because("test fixtures export the Action class")
     }
-    testFixturesApi(project(":logging")) {
+    testFixturesApi(projects.logging) {
         because("test fixtures export the ConsoleOutput class")
     }
-    testFixturesApi(project(":tooling-api")) {
+    testFixturesApi(projects.toolingApi) {
         because("test fixtures export the EclipseWorkspace and EclipseWorkspaceProject classes")
     }
-    testFixturesImplementation(project(":dependency-management"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":model-core"))
+    testFixturesImplementation(projects.dependencyManagement)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(libs.xmlunit)
 
-    testImplementation(project(":dependency-management"))
+    testImplementation(projects.dependencyManagement)
     testImplementation(libs.xmlunit)
     testImplementation(libs.equalsverifier)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":language-groovy")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.languageGroovy))
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {

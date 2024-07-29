@@ -36,10 +36,10 @@ import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -50,8 +50,9 @@ import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
-import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
+import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
@@ -149,6 +150,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
     private String javaHome;
+    private Jvm jvm;
     private File buildScript;
     private File projectDir;
     private File settingsFile;
@@ -197,6 +199,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
     private boolean checkDeprecations = true;
+    private boolean filterJavaVersionDeprecation = true;
     private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
@@ -219,6 +222,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         this.daemonBaseDir = buildContext.getDaemonBaseDir();
         this.daemonCrashLogsBeforeTest = ImmutableSet.copyOf(DaemonLogsAnalyzer.findCrashLogs(daemonBaseDir));
+
+        if (gradleVersion.compareTo(GradleVersion.version("4.5.0")) < 0) {
+            warningMode = null;
+        }
     }
 
     protected Logger getLogger() {
@@ -242,6 +249,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         dependencyList = false;
         executable = null;
         javaHome = null;
+        jvm = null;
         environmentVars.clear();
         stdinPipe = null;
         defaultCharacterEncoding = null;
@@ -261,6 +269,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        filterJavaVersionDeprecation = true;
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
@@ -333,6 +342,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (javaHome != null) {
             executer.withJavaHome(javaHome);
+        }
+        if (jvm != null) {
+            executer.withJvm(jvm);
         }
         for (File initScript : initScripts) {
             executer.usingInitScript(initScript);
@@ -413,6 +425,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.noDeprecationChecks();
         }
 
+        if (!filterJavaVersionDeprecation) {
+            executer.disableDaemonJavaVersionDeprecationFiltering();
+        }
+
         if (durationMeasurement != null) {
             executer.withDurationMeasurement(durationMeasurement);
         }
@@ -469,7 +485,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter usingInitScript(File initScript) {
-        initScripts.add(initScript);
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            initScripts.add(initScript);
+        }
         return this;
     }
 
@@ -625,7 +643,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected String getJavaHome() {
-        return javaHome == null ? Jvm.current().getJavaHome().getAbsolutePath() : javaHome;
+        if (javaHome != null) {
+            return javaHome;
+        }
+        if (jvm != null) {
+            return jvm.getJavaHome().getAbsolutePath();
+        }
+        return Jvm.current().getJavaHome().getAbsolutePath();
     }
 
     protected File getJavaHomeLocation() {
@@ -635,12 +659,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withJavaHome(String javaHome) {
         this.javaHome = javaHome;
+        this.jvm = null;
         return this;
     }
 
     @Override
-    public GradleExecuter withJavaHome(File javaHome) {
-        this.javaHome = javaHome == null ? null : javaHome.getAbsolutePath();
+    public GradleExecuter withJvm(Jvm jvm) {
+        if (jvm.getJavaVersion() == null) {
+            throw new IllegalArgumentException(
+                "The provided JVM does not have a version and was likely created with Jvm.forHome(File). " +
+                    "This method should only be used with probed JVMs. " +
+                    "Use withJavaHome(String) instead."
+            );
+        }
+
+        this.jvm = jvm;
+        this.javaHome = null;
         return this;
     }
 
@@ -1090,7 +1124,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (disableToolchainDownload) {
-            allArgs.add("-Porg.gradle.java.installations.auto-download=false");
+            allArgs.add("-P" + AutoInstalledInstallationSupplier.AUTO_DOWNLOAD + "=false");
         }
         if (disableToolchainDetection) {
             allArgs.add("-P" + ToolchainConfiguration.AUTO_DETECT + "=false");
@@ -1194,7 +1228,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
         }
 
-        properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
+        properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         // Having this unset is now deprecated, will default to `false` in Gradle 9.0
         // TODO remove - see https://github.com/gradle/gradle/issues/26810
@@ -1324,9 +1358,36 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
+        boolean shouldCheckDeprecations = checkDeprecations;
+
+        // Rich consoles mess with our deprecation log scraping
+        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
+        if ((isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED) ||
+            consoleType == ConsoleOutput.Verbose ||
+            consoleType == ConsoleOutput.Rich
+        ) {
+            shouldCheckDeprecations = false;
+        }
+
+        List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
+        if (filterJavaVersionDeprecation) {
+            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
+                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Use JVM 17 or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
+            )));
+        }
+
         return new ResultAssertion(
-            expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
-            !stackTraceChecksOn, checkDeprecations, jdkWarningChecksOn
+            expectedGenericDeprecationWarnings,
+            expectedDeprecationWarnings,
+            maybeExpectedDeprecationWarnings,
+            !stackTraceChecksOn,
+            shouldCheckDeprecations,
+            jdkWarningChecksOn
         );
     }
 
@@ -1350,8 +1411,27 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+    }
+
+    private String normalizeDocumentationLink(String warning) {
+        if (gradleVersionOverride != null) {
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
+        } else {
+            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersion);
+        }
+    }
+
+    @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter disableDaemonJavaVersionDeprecationFiltering() {
+        filterJavaVersionDeprecation = false;
         return this;
     }
 
@@ -1554,8 +1634,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return durationMeasurement;
     }
 
-    private static LoggingServiceRegistry newCommandLineProcessLogging() {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+    private static ServiceRegistry newCommandLineProcessLogging() {
+        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;

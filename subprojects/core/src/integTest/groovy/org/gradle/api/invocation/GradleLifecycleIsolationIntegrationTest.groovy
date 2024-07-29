@@ -52,7 +52,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
             version = 'from script'
         '''
         buildFile script
-        groovyFile 'sub/build.gradle', script
+        buildFile 'sub/build.gradle', script
 
         when:
         succeeds 'help'
@@ -204,12 +204,12 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
 
     def 'lifecycle actions preserve user code application context for plugins'() {
         given:
-        groovyFile "build-logic/build.gradle", '''
+        buildFile "build-logic/build.gradle", '''
             plugins {
                 id 'groovy-gradle-plugin'
             }
         '''
-        groovyFile "build-logic/src/main/groovy/my-settings-plugin.settings.gradle", """
+        buildFile "build-logic/src/main/groovy/my-settings-plugin.settings.gradle", """
             gradle.lifecycle.beforeProject {
                 println("before:" + $currentApplication)
             }

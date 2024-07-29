@@ -51,6 +51,7 @@ class HasAnnotatedMembers {
 
     @Adding
     @AccessFromCurrentReceiverOnly
+    @Suppress("FunctionOnlyReturningConstant")
     fun f(): Int = 0
 
     @Configuring

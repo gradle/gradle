@@ -3,7 +3,8 @@ import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
-import configurations.GitHubMergeQueueCheckPass
+import configurations.StageTrigger
+import configurations.stageWithOsTriggers
 import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.failureConditions.BuildFailureOnText
@@ -42,12 +43,14 @@ class CIConfigIntegrationTests {
     @Test
     fun configurationTreeCanBeGenerated() {
         assertEquals(rootProject.subProjects.size, model.stages.size)
-        assertEquals(rootProject.buildTypes.size, model.stages.size + 1) // +1 for the GitHubMergeQueueCheckPass
+        // +1 for the GitHubMergeQueueCheckPass
+        // +8 for OS triggers
+        assertEquals(rootProject.buildTypes.size, model.stages.size + 1 + stageWithOsTriggers.values.sumOf { it.size })
     }
 
     @Test
     fun configurationsHaveDependencies() {
-        val stagePassConfigs = rootProject.buildTypes.filter { it !is GitHubMergeQueueCheckPass }
+        val stagePassConfigs = rootProject.buildTypes.filter { it is StageTrigger && it.name.endsWith("(Trigger)") }
         assertEquals(model.stages.size, stagePassConfigs.size)
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1

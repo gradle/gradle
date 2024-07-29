@@ -23,11 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
 
-import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -60,7 +61,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry)
+    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems))
 
     def 'direct match on variant means no finder interaction'() {
         given:
@@ -73,7 +74,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result == resolvedArtifactSet
-        1 * attributeMatcher.matches(_, _, _) >> [variant]
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [variant]
         1 * variant.getArtifacts() >> resolvedArtifactSet
         0 * consumerProvidedVariantFinder._
     }
@@ -88,12 +89,12 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactVariantSelectionException
+        result.failure instanceof ArtifactSelectionException
 
         1 * variantSet.getSchema() >> attributesSchema
         1 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
-        2 * attributeMatcher.matches(_, _, _) >> [variant, otherVariant]
-        2 * attributeMatcher.isMatching(_, _, _) >> true
+        2 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [variant, otherVariant]
+        2 * attributeMatcher.isMatchingValue(_, _, _) >> true
         0 * consumerProvidedVariantFinder._
     }
 
@@ -110,7 +111,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         then:
         result == transformed
 
-        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
         1 * factory.asTransformed(variant, transformedVariants[0].getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
         0 * attributeMatcher._
@@ -129,9 +130,9 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         then:
         result == transformed
 
-        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
-        1 * attributeMatcher.matches(_, _, _) >> [transformedVariants[resultNum]]
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [transformedVariants[resultNum]]
         1 * factory.asTransformed(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
 
         where:
@@ -149,11 +150,11 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         then:
         result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactVariantSelectionException
+        result.failure instanceof ArtifactSelectionException
 
-        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
-        1 * attributeMatcher.matches(_, _, _) >> transformedVariants
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> transformedVariants
     }
 
     ResolvedVariantSet variantSetOf(List<ResolvedVariant> variants) {

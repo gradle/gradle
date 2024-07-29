@@ -24,7 +24,7 @@ class UnmanagedCollectionPropertyIntegrationTest extends AbstractIntegrationSpec
 
     def "managed type can have unmanaged properties of collection type with types that are not scalar types"() {
         given:
-        buildScript """
+        buildFile """
 
         class Widget {
             String name

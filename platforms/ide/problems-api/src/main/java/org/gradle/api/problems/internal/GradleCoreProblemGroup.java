@@ -23,8 +23,10 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
     private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup("compilation", "Compilation");
     private static final DefaultProblemGroup DEPRECATION_PROBLEM_GROUP = new DefaultProblemGroup("deprecation", "Deprecation");
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup("validation", "Validation");
+    private static final DefaultProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = new DefaultProblemGroup("plugin-application", "Plugin application");
     private static final DefaultProblemGroup TASK_SELECTION_PROBLEM_GROUP = new DefaultProblemGroup("task-selection", "Task selection");
     private static final DefaultProblemGroup VERSION_CATALOG_PROBLEM_GROUP = new DefaultProblemGroup("dependency-version-catalog", "Version catalog");
+    private static final DefaultProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = new DefaultProblemGroup("dependency-variant-resolution", "Variant resolution");
 
     public static CompilationProblemGroup compilation() {
         return COMPILATION_PROBLEM_GROUP;
@@ -38,12 +40,20 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
         return VALIDATION_PROBLEM_GROUP;
     }
 
+    public static ProblemGroup pluginApplication() {
+        return PLUGIN_APPLICATION_PROBLEM_GROUP;
+    }
+
     public static ProblemGroup taskSelection() {
         return TASK_SELECTION_PROBLEM_GROUP;
     }
 
     public static ProblemGroup versionCatalog() {
         return VERSION_CATALOG_PROBLEM_GROUP;
+    }
+
+    public static ProblemGroup variantResolution() {
+        return VARIANT_RESOLUTION_PROBLEM_GROUP;
     }
 
     public interface CompilationProblemGroup extends ProblemGroup {

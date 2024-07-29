@@ -230,6 +230,9 @@ class ConfigurationCacheFixture {
         spec.withUniqueProblems(details.problems.collect {
             it.message.replace('/', File.separator)
         })
+        details.incompatibleTasks.each {
+            spec.withIncompatibleTask(it.task, it.reason)
+        }
     }
 
     private assertHasNoProblems() {
@@ -290,9 +293,9 @@ class ConfigurationCacheFixture {
 
         def messages = reasons.collect { reason ->
             if (details.runsTasks) {
-                "Calculating task graph as configuration cache cannot be reused because $reason has changed."
+                "Calculating task graph as configuration cache cannot be reused because $reason has changed"
             } else {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed."
+                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
             }
         }
 
@@ -321,7 +324,28 @@ class ConfigurationCacheFixture {
         }
     }
 
-    trait HasProblems {
+    static class IncompatibleTaskDetails {
+        final String task
+        final String reason
+        IncompatibleTaskDetails(String task, String reason) {
+            this.task = task
+            this.reason = reason
+        }
+    }
+
+    trait HasIncompatibleTasks {
+        final List<IncompatibleTaskDetails> incompatibleTasks = []
+
+        void incompatibleTask(String task, String reason) {
+            incompatibleTasks.add(new IncompatibleTaskDetails(task, reason))
+        }
+
+        int getTotalIncompatibleTasks() {
+            return incompatibleTasks.size()
+        }
+    }
+
+    trait HasProblems extends HasIncompatibleTasks {
         final List<ProblemDetails> problems = []
 
         void problem(String message, int count = 1, boolean hasStackTrace = true) {

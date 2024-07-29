@@ -120,14 +120,13 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
-        def javaHome = AvailableJavaHomes.differentJdk.javaHome
-
-        file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.canonicalPath)
+        def differentJdk = AvailableJavaHomes.differentJdk
+        file('gradle.properties').writeProperties("org.gradle.java.home": differentJdk.javaHome.canonicalPath)
 
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
-        executer.withJavaHome(javaHome)
+        executer.withJvm(differentJdk)
         succeeds()
 
         then:
@@ -142,7 +141,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         captureJavaHome()
 
         when:
-        executer.withJavaHome(otherJdk.javaHome)
+        executer.withJvm(otherJdk)
         withInstallations(otherJdk).succeeds()
         assertDaemonUsedJvm(otherJdk)
 
@@ -188,7 +187,7 @@ assert System.getProperty('some-prop') == 'some-value'
         def encoding = Charset.defaultCharset().name()
 
         given:
-        buildScript """
+        buildFile """
             task encoding {
                 doFirst { println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
             }

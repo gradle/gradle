@@ -38,7 +38,7 @@ class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends Cro
     def "task can use project.file() from statically typed Groovy"() {
         when:
         def apiDepConf = "implementation"
-        if (previous.version < GradleVersion.version("7.0-rc-1")) {
+        if (previous.version < GradleVersion.version("6.0")) {
             apiDepConf = "compile"
         }
         def groovyDepConf

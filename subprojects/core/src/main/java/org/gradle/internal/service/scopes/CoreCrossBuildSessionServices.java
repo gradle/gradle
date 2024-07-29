@@ -24,9 +24,7 @@ import org.gradle.configuration.internal.DynamicCallContextTracker;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.concurrent.DefaultWorkerLimits;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -46,12 +44,17 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
+import org.gradle.internal.work.DefaultWorkerLimits;
+import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerLimits;
 
 public class CoreCrossBuildSessionServices implements ServiceRegistrationProvider {
+
+    @Provides
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
-        registration.add(DefaultWorkerLeaseService.class);
+        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
         registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
     }
 

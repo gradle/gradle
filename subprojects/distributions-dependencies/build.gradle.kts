@@ -15,7 +15,7 @@ plugins {
 
 description = "Provides a platform dependency to align all distribution versions"
 
-val antVersion = "1.10.13"
+val antVersion = "1.10.14"
 // Don't forget to bump versions in
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.
@@ -48,7 +48,7 @@ dependencies {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
-        api(libs.antJunit)           { version { strictly(antVersion) }}
+        api(libs.antJunit)              { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
         api(libs.asmAnalysis)           { version { strictly(asmVersion) }}
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
@@ -71,7 +71,7 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.14.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.errorProneAnnotations) { version { strictly("2.26.1") }}
+        api(libs.errorProneAnnotations) { version { strictly("2.29.0") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
@@ -97,7 +97,7 @@ dependencies {
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.10") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
-        api(libs.hamcrestCore)              { version { strictly("1.3"); because("2.x changes the API") }}
+        api(libs.hamcrestCore)          { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
@@ -191,6 +191,8 @@ dependencies {
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
+        api(libs.kotlinxSerializationCore)   { version { strictly("1.6.2") }}
+        api(libs.kotlinxSerializationJson)   { version { strictly("1.6.2") }}
         api(libs.littleproxy)           { version { strictly("2.0.5") }}
         api(libs.maven3ResolverProvider){ version { strictly(mavenVersion) }}
         api(libs.mavenResolverApi)              { version { strictly(mavenResolverVersion) }}

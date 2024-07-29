@@ -19,11 +19,11 @@ package org.gradle.internal.cc.impl.serialization.codecs
 import com.google.common.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
-import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -430,7 +430,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
         @Suppress("unused")
         private
-        fun writeReplace(): Any? {
+        fun writeReplace(): Any {
             value = "42"
             return this
         }
@@ -443,18 +443,18 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
 
         @Suppress("unused")
-        fun readResolve(): Any? = SINGLETON
+        fun readResolve(): Any = SINGLETON
     }
 
     class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
 
         @Suppress("unused")
-        fun writeReplace(): Any? = Memento()
+        fun writeReplace(): Any = Memento()
 
         private
         class Memento : Serializable {
             @Suppress("unused")
-            fun readResolve(): Any? = SerializableWriteReplaceBean("42")
+            fun readResolve(): Any = SerializableWriteReplaceBean("42")
         }
     }
 

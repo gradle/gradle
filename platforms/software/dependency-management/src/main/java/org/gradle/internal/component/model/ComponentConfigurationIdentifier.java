@@ -19,7 +19,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * An general identifier for a variant that represents a configuration in a component.
+ * Identifies the "implicit" artifact variant for a graph variant.
  */
 public class ComponentConfigurationIdentifier implements VariantResolveMetadata.Identifier {
     private final ComponentIdentifier component;

@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -91,6 +91,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
         return new DefaultDaemonContext(configuration.getUid(),
             canonicalize(Jvm.current().getJavaHome()),
             JavaLanguageVersion.current(),
+            Jvm.current().getVendor(),
             configuration.getBaseDir(),
             processEnvironment.maybeGetPid(),
             configuration.getIdleTimeout(),

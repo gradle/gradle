@@ -27,7 +27,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
 
     def "emits operation for task execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {}
         """
         succeeds "t"
@@ -50,7 +50,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
 
     def "emits operation result for failed task execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("!")
@@ -71,7 +71,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
     @UnsupportedWithConfigurationCache
     def "does not emit result for beforeTask failure"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {}
             }
@@ -80,6 +80,8 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
                 throw new RuntimeException("!")
             }
         """
+
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.beforeTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails "t"
 
         then:
@@ -94,7 +96,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
     @UnsupportedWithConfigurationCache
     def "does emit result for afterTask failure"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {}
             }
@@ -103,6 +105,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
                 throw new RuntimeException("!")
             }
         """
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails "t"
 
         then:
@@ -117,7 +120,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
     @UnsupportedWithConfigurationCache
     def "afterTask failure is included with task failure"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("!")
@@ -128,6 +131,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
                 throw new RuntimeException("2")
             }
         """
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails "t"
 
         then:

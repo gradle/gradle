@@ -262,7 +262,7 @@ trait KotlinDslTestProjectInitiation {
         file(defaultBuildFileName)
     }
 
-    void buildFile(@GroovyBuildScriptLanguage String script) {
+    TestFile buildFile(@GroovyBuildScriptLanguage String script) {
         getBuildFile() << script
     }
 

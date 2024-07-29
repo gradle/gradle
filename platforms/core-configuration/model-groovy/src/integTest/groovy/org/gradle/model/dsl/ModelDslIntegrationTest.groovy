@@ -29,7 +29,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "can reference rule inputs using dollar method syntax"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
@@ -66,7 +66,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule inputs can be referenced in closures that are not executed during rule execution"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
@@ -104,7 +104,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "inputs are fully configured when used in rules"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
@@ -138,7 +138,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "the same input can be referenced more than once, and refers to the same object"() {
         when:
-        buildScript '''
+        buildFile '''
             class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
@@ -173,7 +173,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports on the first reference to unknown input"() {
         when:
-        buildScript '''
+        buildFile '''
             model {
               tasks {
                 $.unknown
@@ -197,7 +197,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports on configuration action failure"() {
         when:
-        buildScript '''
+        buildFile '''
             model {
               tasks {
                 unknown = 12
@@ -215,7 +215,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a'; include 'b'"
         when:
 
-        buildScript '''
+        buildFile '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {

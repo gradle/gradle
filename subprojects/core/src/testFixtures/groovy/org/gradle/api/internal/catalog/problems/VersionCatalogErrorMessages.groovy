@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
 import static org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames
-import static org.gradle.internal.RenderingUtils.oxfordListOf
+import static org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
@@ -246,12 +246,12 @@ trait VersionCatalogErrorMessages {
         }
 
         ReservedAlias reservedAliasPrefix(String... suffixes) {
-            this.solution = "Use a different alias which prefix is not equal to ${oxfordListOf(suffixes as List, 'or')}"
+            this.solution = "Use a different alias which prefix is not equal to ${quotedOxfordListOf(suffixes as List, 'or')}"
             this
         }
 
         ReservedAlias reservedAliases(String... aliases) {
-            this.solution = "Use a different alias which isn't in the reserved names ${oxfordListOf(aliases as List, "or")}"
+            this.solution = "Use a different alias which isn't in the reserved names ${quotedOxfordListOf(aliases as List, "or")}"
             this.reservedNames(aliases)
         }
 
@@ -305,7 +305,7 @@ trait VersionCatalogErrorMessages {
 
     Possible solutions:
       1. Declare '${versionRef}' in the catalog.
-      2. Use one of the following existing versions: ${oxfordListOf(existingVersionRefs, 'or')}.
+      2. Use one of the following existing versions: ${quotedOxfordListOf(existingVersionRefs, 'or')}.
 
     ${documentation}"""
         }

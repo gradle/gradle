@@ -146,11 +146,9 @@ fun Project.extractWatchFsData() {
 
 open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanConfiguration) : BuildOperationListener {
 
-    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
-    }
+    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) = Unit
 
-    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) {
-    }
+    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) = Unit
 
     override fun finished(buildOperation: BuildOperationDescriptor, finishEvent: OperationFinishEvent) {
         when (val result = finishEvent.result) {

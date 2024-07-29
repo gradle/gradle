@@ -64,9 +64,11 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
+    is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
 }
 
 
+@Suppress("LongMethod")
 private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
@@ -309,7 +311,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    (1..7).forEach { ALOAD(it) }
+                    for (i in 1..7) { ALOAD(i) }
+                    @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
                         "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
@@ -843,6 +846,51 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
 
 
 private
+fun fragmentsForModelDefault(
+    accessor: Accessor.ForModelDefault
+): Fragments {
+
+    val accessorSpec = accessor.spec
+    val className = internalNameForAccessorClassOf(accessorSpec)
+    val (accessibleReceiverType, name, modelType) = accessorSpec
+    val softwareTypeName = name.kotlinIdentifier
+    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
+
+    return className to sequenceOf(
+        AccessorFragment(
+            source = modelDefaultAccessor(accessorSpec),
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    LDC(softwareTypeName)
+                    LDC(jvmPublicType)
+                    ALOAD(1)
+                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    receiverType = receiverType,
+                    returnType = KotlinType.unit,
+                    name = softwareTypeName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
+                    ),
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                name.kotlinIdentifier,
+                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
+            )
+        )
+    )
+}
+
+
+private
 fun MethodVisitor.invokeDependencyHandlerAdd() {
     INVOKEINTERFACE(GradleTypeName.dependencyHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
 }
@@ -913,6 +961,7 @@ inline fun <reified T> classOf(): KmType =
     classOf(T::class.java)
 
 
+@Suppress("FunctionParameterNaming")
 private
 fun classOf(`class`: Class<*>) =
     classOf(`class`.internalName)

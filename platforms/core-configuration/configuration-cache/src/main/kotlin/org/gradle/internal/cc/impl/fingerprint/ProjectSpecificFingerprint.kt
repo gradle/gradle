@@ -21,8 +21,14 @@ import org.gradle.util.Path
 
 internal
 sealed class ProjectSpecificFingerprint {
+    data class ProjectIdentity(
+        val identityPath: Path,
+        val buildPath: Path,
+        val projectPath: Path
+    ) : ProjectSpecificFingerprint()
+
     data class ProjectFingerprint(
-        val projectPath: Path,
+        val projectIdentityPath: Path,
         val value: ConfigurationCacheFingerprint
     ) : ProjectSpecificFingerprint()
 

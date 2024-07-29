@@ -25,14 +25,18 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.scopes.Scope;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState, Closeable {
-    private final BuildScopeServices buildServices;
+    private final CloseableServiceRegistry buildServices;
     private final Lazy<BuildLifecycleController> buildLifecycleController;
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
     private final Lazy<BuildWorkGraphController> workGraphController;
@@ -47,11 +51,20 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
         workGraphController = Lazy.locking().of(() -> buildServices.get(BuildWorkGraphController.class));
     }
 
-    protected BuildScopeServices prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-        return new BuildScopeServices(buildTree.getServices(), supplier);
+    private CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+        return ServiceRegistryBuilder.builder()
+            .displayName("Build-scoped services")
+            .scope(Scope.Build.class)
+            .parent(buildTree.getServices())
+            .provider(prepareServicesProvider(buildDefinition, supplier))
+            .build();
     }
 
-    protected BuildScopeServices getBuildServices() {
+    protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+        return new BuildScopeServices(supplier);
+    }
+
+    protected CloseableServiceRegistry getBuildServices() {
         return buildServices;
     }
 

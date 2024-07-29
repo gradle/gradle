@@ -106,6 +106,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                     case Directory:
                         return Optional.empty();
                     case RegularFile:
+                        // Avoid snapshotting the same location concurrently
+                        // This is only a performance optimization for a common scenario; the VFS handles its own concurrency
                         return Optional.of(producingSnapshots.guardByKey(location,
                             () -> virtualFileSystem.findSnapshot(location)
                                 .orElseGet(() -> {
@@ -145,7 +147,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     ) {
         return virtualFileSystem.findSnapshot(location)
             .map(snapshotProcessor)
-            // Avoid snapshotting the same location at the same time
+            // Avoid snapshotting the same location concurrently
+            // This is only a performance optimization for a common scenario; the VFS handles its own concurrency
             .orElseGet(() -> producingSnapshots.guardByKey(location,
                 () -> virtualFileSystem.findSnapshot(location)
                     .map(snapshotProcessor)

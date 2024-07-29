@@ -26,6 +26,6 @@ public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfigurat
 
     public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, FileCollectionFactory fileCollectionFactory, boolean instrumentationAgentAllowed, NativeServicesMode nativeServicesMode) {
         // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()
-        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonParameters.Priority.NORMAL, new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs(), instrumentationAgentAllowed, nativeServicesMode);
+        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonPriority.NORMAL, new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs(), instrumentationAgentAllowed, nativeServicesMode);
     }
 }

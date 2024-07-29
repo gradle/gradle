@@ -12,48 +12,50 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":platform-jvm"))
-    api(project(":reporting"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.platformJvm)
+    api(projects.reporting)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":logging-api"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-base"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":process-services"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":testing-jvm"))
+    implementation(projects.internalInstrumentationApi)
+    implementation(projects.loggingApi)
+    implementation(projects.modelCore)
+    implementation(projects.platformBase)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.processServices)
+    implementation(projects.serviceLookup)
+    implementation(projects.testSuitesBase)
+    implementation(projects.testingJvm)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.internalIntegTesting)
 
     testFixturesImplementation(libs.jsoup)
     testFixturesImplementation(libs.groovyXml)
 
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":internal-integ-testing"))
-    testImplementation(project(":language-java"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.internalTesting)
+    testImplementation(projects.resources)
+    testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.languageJava)
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {

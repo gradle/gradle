@@ -34,10 +34,10 @@ abstract class AbstractProblemsListener : ProblemsListener {
             throw error
         }
         throw ConfigurationCacheError(
-            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message)}",
+            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message).render()}",
             error.maybeUnwrapInvocationTargetException()
         )
     }
 
-    override fun forIncompatibleTask(path: String): ProblemsListener = this
+    override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 }

@@ -238,7 +238,7 @@ public class ProviderConnection {
     }
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
         NotifyDaemonAboutChangedPathsClient client = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
@@ -246,7 +246,7 @@ public class ProviderConnection {
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
         ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
@@ -307,7 +307,7 @@ public class ProviderConnection {
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
         } else {
-            LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
+            ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
             executor = clientServices.get(DaemonClient.class);
@@ -365,7 +365,7 @@ public class ProviderConnection {
         }
 
         daemonParams.applyDefaultsFromJvmCriteria(jvmVersionDetector);
-        DaemonRequestContext requestContext = DaemonRequestContext.from(daemonParams);
+        DaemonRequestContext requestContext = daemonParams.toRequestContext();
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());

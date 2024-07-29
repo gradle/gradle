@@ -57,7 +57,7 @@ class JvmInstallationMetadataMatcherTest extends Specification {
         spec.getImplementation().set(implementation)
 
         then:
-        new JvmInstallationMetadataMatcher(spec).test(metadata)
+        new JvmInstallationMetadataMatcher(spec, Collections.emptySet()).test(metadata)
 
         where:
         jdk              | systemProperties         | javaVersion             | vendor                    | implementation

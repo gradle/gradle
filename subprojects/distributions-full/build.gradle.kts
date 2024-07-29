@@ -1,3 +1,5 @@
+import gradlebuild.basics.BuildEnvironmentExtension
+
 plugins {
     id("gradlebuild.distribution.packaging")
     id("gradlebuild.verify-build-environment")
@@ -7,26 +9,27 @@ plugins {
 description = "The collector project for the entirety of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(platform(project(":distributions-publishing")))
-    pluginsRuntimeOnly(platform(project(":distributions-jvm")))
-    pluginsRuntimeOnly(platform(project(":distributions-native")))
+    pluginsRuntimeOnly(platform(projects.distributionsPublishing))
+    pluginsRuntimeOnly(platform(projects.distributionsJvm))
+    pluginsRuntimeOnly(platform(projects.distributionsNative))
 
-    pluginsRuntimeOnly(project(":plugin-development"))
-    pluginsRuntimeOnly(project(":build-configuration"))
-    pluginsRuntimeOnly(project(":build-init"))
-    pluginsRuntimeOnly(project(":build-profile"))
-    pluginsRuntimeOnly(project(":antlr"))
-    pluginsRuntimeOnly(project(":enterprise"))
-    pluginsRuntimeOnly(project(":unit-test-fixtures"))
+    pluginsRuntimeOnly(projects.pluginDevelopment)
+    pluginsRuntimeOnly(projects.buildConfiguration)
+    pluginsRuntimeOnly(projects.buildInit)
+    pluginsRuntimeOnly(projects.buildProfile)
+    pluginsRuntimeOnly(projects.antlr)
+    pluginsRuntimeOnly(projects.enterprise)
+    pluginsRuntimeOnly(projects.unitTestFixtures)
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future
+val buildEnvironmentExtension = extensions.getByType(BuildEnvironmentExtension::class)
 tasks.register<Copy>("copyDistributionsToRootBuild") {
     dependsOn("buildDists")
     from(layout.buildDirectory.dir("distributions"))
-    into(rootProject.layout.buildDirectory.dir("distributions"))
+    into(buildEnvironmentExtension.rootProjectBuildDir.dir("distributions"))
 }

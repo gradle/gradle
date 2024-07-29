@@ -70,6 +70,7 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -322,6 +323,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -423,8 +425,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @return this
      */
-    @Internal
-    // TODO:LPTR Should be @Nested with @Console inside
+    @Nested
     public TestLoggingContainer getTestLogging() {
         return testLogging;
     }

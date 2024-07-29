@@ -158,6 +158,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
             )
         }
+        if (kotlinVersion < VersionNumber.parse("1.9.0") && GradleContextualExecuter.isNotConfigCache()) {
+            executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addBuildListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        }
         if (kotlinVersion < VersionNumber.parse("1.8.0") && GradleContextualExecuter.isConfigCache()) {
             executer.expectDocumentedDeprecationWarning(
                 "The Provider.forUseAtConfigurationTime method has been deprecated. " +

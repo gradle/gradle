@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 
@@ -42,7 +41,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
             actual = DefaultModuleComponentIdentifier.newId(attempted.getModuleIdentifier(), attempted.getVersion());
         } else if (dependency.getAttempted() instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector attempted = (DefaultProjectComponentSelector) dependency.getAttempted();
-            actual = new DefaultProjectComponentIdentifier(attempted.getBuildIdentifier(), attempted.getIdentityPath(), attempted.projectPath(), attempted.getProjectName());
+            actual = attempted.toIdentifier();
         } else {
             actual = () -> dependency.getAttempted().getDisplayName();
         }

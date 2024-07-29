@@ -143,7 +143,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
     def "captures for arbitrary targets"() {
         given:
         def script = file("script.gradle") << ""
-        buildScript """
+        buildFile """
             apply from: "${normaliseFileSeparators(script.absolutePath)}", to: new Object() {}
         """
 
@@ -170,7 +170,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
         httpServer.start()
         def script = file("script.gradle") << ""
         httpServer.allowGetOrHead("/script.gradle", script)
-        buildScript """
+        buildFile """
             apply from: "${httpServer.uri}/script.gradle"
         """
 

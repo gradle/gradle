@@ -16,7 +16,7 @@
 
 import gradlebuild.configureAsRuntimeElements
 import gradlebuild.configureAsRuntimeJarClasspath
-import gradlebuild.packaging.transforms.CopyPublicApiClassesTransform
+import gradlebuild.packaging.transforms.ShrinkPublicApiClassesTransform
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -65,9 +65,8 @@ dependencies {
         attributes.attribute(filteredAttribute, Filtering.ALL)
     }
 
-    // Filters out classes that are not exposed by our API.
-    // TODO Use actual filtering not copying
-    registerTransform(CopyPublicApiClassesTransform::class.java) {
+    // Filter and shrink the published API.
+    registerTransform(ShrinkPublicApiClassesTransform::class.java) {
         from.attribute(filteredAttribute, Filtering.ALL)
             .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
         to.attribute(filteredAttribute, Filtering.PUBLIC_API)

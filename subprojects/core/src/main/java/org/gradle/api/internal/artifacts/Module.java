@@ -16,19 +16,21 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-
-import javax.annotation.Nullable;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
- * module.</p>
+ * Represents the identity of the component that a dependency management instance exposes.
+ *
+ * This is used both as the identity of the root component of a resolution, and the public identity
+ * of the components that a dependency management instance exposes.
+ *
+ * TODO: This could use a better name. Maybe something like LocalComponentIdentity
  */
 public interface Module {
-    String DEFAULT_STATUS = "integration";
-
-    @Nullable
-    ProjectComponentIdentifier getProjectId();
+    /**
+     * Get this module's componentId.
+     */
+    ComponentIdentifier getComponentId();
 
     String getGroup();
 

@@ -22,11 +22,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
-    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
+    @UnsupportedWithConfigurationCache(because = "expects deprecation that is only issued without CC")
     def "nags when #type is registered via #path and feature preview is enabled"() {
-        settingsFile """
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-        """
         buildFile """
             def taskExecutionListener = new TaskExecutionListener() {
                 void beforeExecute(Task task) { }
@@ -41,7 +38,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        expectBuildListenerDeprecationWarning(registrationPoint)
         run("broken")
 
         then:
@@ -54,18 +51,15 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         TaskActionListener    | "taskActionListener"    | "gradle.addListener"                        | "Gradle.addListener"
     }
 
-    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
+    @UnsupportedWithConfigurationCache(because = "expects deprecation that is only issued without CC")
     def "nags when task execution hook #path is used and feature preview is enabled"() {
-        settingsFile """
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-        """
         buildFile """
             $path { }
             task broken
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        expectBuildListenerDeprecationWarning(registrationPoint)
         run("broken")
 
         then:
@@ -77,7 +71,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         "gradle.taskGraph.afterTask"  | "TaskExecutionGraph.afterTask"
     }
 
-    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
+    @UnsupportedWithConfigurationCache(because = "expects deprecation that is only issued without CC")
     def "events passed to any task execution listener are synchronised"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -108,9 +102,14 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectBuildListenerDeprecationWarning("Gradle.addListener")
         run("foo")
 
         then:
         noExceptionThrown()
+    }
+
+    protected void expectBuildListenerDeprecationWarning(String registrationPoint) {
+        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
     }
 }

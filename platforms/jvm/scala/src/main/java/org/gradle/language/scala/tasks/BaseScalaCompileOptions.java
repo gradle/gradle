@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -76,6 +77,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Fail the build on compilation errors.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -88,6 +90,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Generate deprecation information.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isDeprecation() {
         return deprecation;
     }
@@ -100,6 +103,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Generate unchecked information.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isUnchecked() {
         return unchecked;
     }
@@ -115,6 +119,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDebugLevel() {
         return debugLevel;
     }
@@ -127,6 +132,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Run optimizations.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isOptimize() {
         return optimize;
     }
@@ -138,6 +144,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Encoding of source files.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getEncoding() {
         return encoding;
@@ -154,6 +161,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * - true (always recompile all files)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isForce() {
         return force;
     }
@@ -170,6 +178,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      */
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
@@ -190,6 +199,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * List files to be compiled.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isListFiles() {
         return listFiles;
     }
@@ -203,6 +213,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Legal values:  none, verbose, debug
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public String getLoggingLevel() {
         return loggingLevel;
     }
@@ -217,6 +228,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public List<String> getLoggingPhases() {
         return loggingPhases;
     }

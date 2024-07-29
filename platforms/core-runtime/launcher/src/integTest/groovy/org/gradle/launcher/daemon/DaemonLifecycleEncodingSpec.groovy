@@ -25,7 +25,7 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
 
     def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
         when:
-        startBuild(null, "US-ASCII")
+        startBuild("US-ASCII")
         waitForBuildToWait()
 
         then:
@@ -41,7 +41,7 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
         idle()
 
         when:
-        startBuild(null, "UTF-8")
+        startBuild("UTF-8")
         waitForLifecycleLogToContain(1, "1 incompatible")
         waitForBuildToWait()
 
@@ -61,7 +61,7 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
-        buildScript """
+        buildFile """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
             task verify {

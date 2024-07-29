@@ -20,10 +20,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution and that is independent of the particular
@@ -77,21 +78,6 @@ public interface ComponentGraphResolveState {
     boolean isAdHoc();
 
     /**
-     * Get all names such that {@link #getConfiguration(String)} return a non-null value.
-     */
-    Set<String> getConfigurationNames();
-
-    /**
-     * Returns the configuration with the given name. A component does not necessarily define any configurations.
-     * <p>
-     * This method should be avoided if possible. Instead, use {@link GraphSelectionCandidates#getVariantByConfigurationName(String)},
-     * which exposes configurations as a variant.
-     * </p>
-     */
-    @Nullable
-    ConfigurationGraphResolveState getConfiguration(String configurationName);
-
-    /**
      * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
      */
     @Nullable
@@ -103,4 +89,13 @@ public interface ComponentGraphResolveState {
      * <p>Note that this may be expensive, and should be used only when required.</p>
      */
     ComponentArtifactResolveState prepareForArtifactResolution();
+
+    /**
+     * Constructs the default capability for this component.
+     *
+     * @return default capability for this component.
+     */
+    default ImmutableCapability getDefaultCapability() {
+        return DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId());
+    }
 }

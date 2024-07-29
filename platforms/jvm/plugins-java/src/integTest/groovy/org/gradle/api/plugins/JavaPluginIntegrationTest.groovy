@@ -538,7 +538,7 @@ Artifacts
 
     def "accessing reportsDir convention from the java plugin convention is deprecated"() {
         given:
-        buildScript("""
+        buildFile("""
             plugins { id 'java' }
             println(reportsDir)
         """)

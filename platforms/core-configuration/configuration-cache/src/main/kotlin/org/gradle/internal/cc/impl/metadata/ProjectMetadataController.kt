@@ -23,38 +23,35 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.cc.impl.ConfigurationCacheIO
+import org.gradle.internal.Describables
+import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
-import org.gradle.internal.cc.impl.DefaultConfigurationCache
 import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.models.ProjectStateStore
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.ownerService
-import org.gradle.internal.serialize.graph.readList
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.runReadOperation
-import org.gradle.internal.serialize.graph.runWriteOperation
-import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
-import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata
+import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.ValueCalculator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.util.Path
 
 
@@ -63,8 +60,8 @@ import org.gradle.util.Path
  */
 internal
 class ProjectMetadataController(
-    private val host: DefaultConfigurationCache.Host,
-    private val cacheIO: ConfigurationCacheIO,
+    private val isolateOwner: IsolateOwner,
+    private val cacheIO: ConfigurationCacheOperationIO,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     store: ConfigurationCacheStateStore,
     calculatedValueContainerFactory: CalculatedValueContainerFactory
@@ -73,28 +70,28 @@ class ProjectMetadataController(
     override fun projectPathForKey(key: Path) = key
 
     override fun write(encoder: Encoder, value: LocalComponentGraphResolveState) {
-        val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        context.runWriteOperation {
-            write(value.id)
-            write(value.moduleVersionId)
-            writeConfigurations(value.candidatesForGraphVariantSelection)
+        cacheIO.runWriteOperation(encoder) { codecs ->
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
+                write(value.id)
+                write(value.moduleVersionId)
+                writeVariants(value.candidatesForGraphVariantSelection)
+            }
         }
     }
 
     private
-    suspend fun WriteContext.writeConfigurations(candidates: LocalComponentGraphResolveState.LocalComponentGraphSelectionCandidates) {
+    suspend fun WriteContext.writeVariants(candidates: LocalComponentGraphResolveState.LocalComponentGraphSelectionCandidates) {
         writeCollection(candidates.allSelectableVariants) {
-            writeConfiguration(it)
+            writeVariant(it)
         }
     }
 
     private
-    suspend fun WriteContext.writeConfiguration(configuration: VariantGraphResolveState) {
-        writeString(configuration.name)
-        write(configuration.attributes)
-        writeDependencies(configuration.metadata.dependencies)
-        writeVariants(configuration.prepareForArtifactResolution().artifactVariants)
+    suspend fun WriteContext.writeVariant(variant: LocalVariantGraphResolveState) {
+        writeString(variant.name)
+        write(variant.attributes)
+        writeDependencies(variant.metadata.dependencies)
+        writeArtifactVariants(variant.prepareForArtifactResolution().artifactVariants)
     }
 
     private
@@ -106,14 +103,14 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun WriteContext.writeVariants(variants: Set<VariantResolveMetadata>) {
+    suspend fun WriteContext.writeArtifactVariants(variants: Set<VariantResolveMetadata>) {
         writeCollection(variants) {
-            writeVariant(it)
+            writeArtifactVariant(it)
         }
     }
 
     private
-    suspend fun WriteContext.writeVariant(variant: VariantResolveMetadata) {
+    suspend fun WriteContext.writeArtifactVariant(variant: VariantResolveMetadata) {
         writeString(variant.name)
         write(variant.identifier)
         write(variant.attributes)
@@ -121,50 +118,50 @@ class ProjectMetadataController(
     }
 
     override fun read(decoder: Decoder): LocalComponentGraphResolveState {
-        val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
-        return context.runReadOperation {
-            val id = readNonNull<ComponentIdentifier>()
-            val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
+        return cacheIO.runReadOperation(decoder) { codecs ->
+            withIsolate(isolateOwner, codecs.userTypesCodec()) {
+                val id = readNonNull<ComponentIdentifier>()
+                val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
 
-            val configurations = readConfigurations(id, ownerService())
-            resolveStateFactory.realizedStateFor(
-                id,
-                moduleVersionId,
-                Project.DEFAULT_STATUS,
-                EmptySchema.INSTANCE,
-                configurations
-            )
+                val variants = readVariants(id, ownerService())
+                resolveStateFactory.realizedStateFor(
+                    id,
+                    moduleVersionId,
+                    Project.DEFAULT_STATUS,
+                    EmptySchema.INSTANCE,
+                    variants
+                )
+            }
         }
     }
 
     private
-    suspend fun ReadContext.readConfigurations(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): List<LocalConfigurationGraphResolveMetadata> {
+    suspend fun ReadContext.readVariants(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): List<LocalVariantGraphResolveMetadata> {
         return readList {
-            readConfiguration(componentId, factory)
+            readVariant(componentId, factory)
         }
     }
 
     private
-    suspend fun ReadContext.readConfiguration(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): LocalConfigurationGraphResolveMetadata {
-        val configurationName = readString()
-        val configurationAttributes = readNonNull<ImmutableAttributes>()
+    suspend fun ReadContext.readVariant(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): LocalVariantGraphResolveMetadata {
+        val variantName = readString()
+        val attributes = readNonNull<ImmutableAttributes>()
         val dependencies = readDependencies()
-        val variants = readVariants(factory).toSet()
+        val variants = readArtifactVariants(factory).toSet()
 
-        val dependencyMetadata = factory.create(Describables.of(configurationName, "dependencies"), ValueCalculator {
-            ConfigurationDependencyMetadata(
+        val dependencyMetadata = factory.create(Describables.of(variantName, "dependencies"), ValueCalculator {
+            DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata(
                 dependencies, emptySet(), emptyList(),
             )
         })
 
-        val artifactMetadata = factory.create(Describables.of(configurationName, "artifacts"), ValueCalculator {
+        val artifactMetadata = factory.create(Describables.of(variantName, "artifacts"), ValueCalculator {
             ImmutableList.of<LocalComponentArtifactMetadata>()
         })
 
-        return DefaultLocalConfigurationMetadata(
-            configurationName, configurationName, componentId, true, true, setOf(configurationName), configurationAttributes,
-            ImmutableCapabilities.EMPTY, true, false, true, dependencyMetadata,
+        return DefaultLocalVariantGraphResolveMetadata(
+            variantName, variantName, componentId, true, attributes,
+            ImmutableCapabilities.EMPTY, false, dependencyMetadata,
             variants, factory, artifactMetadata
         )
     }
@@ -190,14 +187,14 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun ReadContext.readVariants(factory: CalculatedValueContainerFactory): List<LocalVariantMetadata> {
+    suspend fun ReadContext.readArtifactVariants(factory: CalculatedValueContainerFactory): List<LocalVariantMetadata> {
         return readList {
-            readVariant(factory)
+            readArtifactVariant(factory)
         }
     }
 
     private
-    suspend fun ReadContext.readVariant(factory: CalculatedValueContainerFactory): LocalVariantMetadata {
+    suspend fun ReadContext.readArtifactVariant(factory: CalculatedValueContainerFactory): LocalVariantMetadata {
         val variantName = readString()
         val identifier = readNonNull<VariantResolveMetadata.Identifier>()
         val attributes = readNonNull<ImmutableAttributes>()

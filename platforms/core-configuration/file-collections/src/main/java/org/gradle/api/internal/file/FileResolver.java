@@ -25,7 +25,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.io.File;
 import java.net.URI;
 
-@ServiceScope({Scope.Global.class, Scope.BuildSession.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildSession.class, Scope.Settings.class, Scope.Project.class})
 public interface FileResolver extends RelativeFilePathResolver, PathToFileResolver {
     File resolve(Object path, PathValidation validation);
 

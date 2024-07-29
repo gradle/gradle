@@ -42,6 +42,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
@@ -93,6 +94,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
@@ -108,16 +110,19 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.services = parentRegistry.createFor(this);
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
         this.isolatedProjectEvaluationListenerProvider = services.get(IsolatedProjectEvaluationListenerProvider.class);
+        this.gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
+                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
+
                 if (!rootProjectActions.isEmpty()) {
+                    gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
-                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
@@ -321,6 +326,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public abstract TaskExecutionGraphInternal getTaskGraph();
 
+    @Inject
+    public abstract CrossProjectModelAccess getCrossProjectModelAccess();
+
     @Override
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {
         addListener("Gradle.addProjectEvaluationListener", listener);
@@ -410,11 +418,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add("buildFinished", action);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void addListener(Object listener) {
         addListener("Gradle.addListener", listener);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void removeListener(Object listener) {
         // do same decoration as in addListener to remove correctly
@@ -489,6 +499,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             || listener instanceof DependencyResolutionListener;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void useLogger(Object logger) {
         notifyListenerRegistration("Gradle.useLogger", logger);
@@ -500,6 +511,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         return projectEvaluationListenerBroadcast.getSource();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void addBuildListener(BuildListener buildListener) {
         addListener("Gradle.addBuildListener", buildListener);

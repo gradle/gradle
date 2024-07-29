@@ -62,7 +62,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can capture multiple user input if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, 'something one', 'something two')
         }
 
@@ -75,7 +75,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can capture multiple user input if standard input was provided using default values"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, '', '')
         }
 
@@ -88,7 +88,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can default subsequent user input as default values if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, 'something', '')
         }
 
@@ -100,17 +100,14 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection, String answer1, String answer2) {
-        def build = connection.newBuild()
-        collectOutputs(build)
-        build.forTasks(DUMMY_TASK_NAME)
-
         def stdin = new PipedInputStream()
         def stdinWriter = new PipedOutputStream(stdin)
-
-        build.standardInput = stdin
-
         def resultHandler = new TestResultHandler()
-        build.run(resultHandler)
+
+        connection.newBuild()
+            .forTasks(DUMMY_TASK_NAME)
+            .setStandardInput(stdin)
+            .run(resultHandler)
 
         poll(60) {
             assert getOutput().contains(FOO.prompt)

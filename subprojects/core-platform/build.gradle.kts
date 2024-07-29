@@ -7,24 +7,27 @@ description = "Defines which JARs go into the core part (libs/*.jar) of a Gradle
 javaPlatform.allowDependencies()
 
 dependencies {
-    runtime(project(":installation-beacon"))
-    runtime(project(":api-metadata"))
-    runtime(project(":daemon-server")) {
+    runtime(projects.installationBeacon)
+    runtime(projects.apiMetadata)
+    runtime(projects.daemonServer) {
         because("This is the Gradle daemon implementation, which transitively depends on all other core projects.")
     }
-    runtime(project(":gradle-cli-main")) {
-        because("This is the entry point of the `gradle` command.")
+    runtime(projects.daemonMain) {
+        because("This is the entry point of the Gradle daemon. It bootstraps the implementation.")
     }
-    runtime(project(":daemon-main")) {
-        because("This is the entry point of the Gradle daemon.")
+    runtime(projects.gradleCli) {
+        because("This is the `gradle` command implementation.")
     }
-    runtime(project(":tooling-api-provider")) {
+    runtime(projects.gradleCliMain) {
+        because("This is the entry point of the `gradle` command. It bootstraps the implementation.")
+    }
+    runtime(projects.toolingApiProvider) {
         because("This is the entry point of the tooling API provider, which is the version-specific client part of the tooling API.")
     }
-    runtime(project(":kotlin-dsl")) {
+    runtime(projects.kotlinDsl) {
         because("Adds support for Kotlin DSL scripts.")
     }
-    runtime(project(":declarative-dsl-provider")) {
+    runtime(projects.declarativeDslProvider) {
         because("Adds support for interpreting files with the declarative DSL")
     }
 }

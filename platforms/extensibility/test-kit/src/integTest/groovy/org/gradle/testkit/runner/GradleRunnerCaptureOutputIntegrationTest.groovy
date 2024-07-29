@@ -34,7 +34,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         given:
         def standardOutput = new StringWriter()
         def standardError = new StringWriter()
-        buildScript helloWorldWithStandardOutputAndError()
+        buildFile helloWorldWithStandardOutputAndError()
 
         when:
         def result = runner('helloWorld', "-d", "-s")

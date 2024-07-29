@@ -16,17 +16,13 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -142,7 +138,7 @@ object DomResolutionTest {
     }
 
     private
-    val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses.toList())
+    val schema = schemaFromTypes(TestApi.TopLevelReceiver::class, TestApi::class.nestedClasses.toList())
 
     private
     fun resolutionPrettyString(resolution: DocumentResolution): String =
@@ -172,77 +168,4 @@ object DomResolutionTest {
     private
     fun functionSignatureString(function: SchemaFunction) =
         "${function.simpleName}(${function.parameters.joinToString { typeString(it.type) }}): ${typeString(function.returnValueType)}"
-
-    @Suppress("unused", "UNUSED_PARAMETER")
-    private
-    class TopLevelReceiver {
-        @Adding
-        fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit) = TopLevelElement().also {
-            it.name = name
-            configure(it)
-        }
-
-        @get:Restricted
-        lateinit var complexValueOne: ComplexValueOne
-
-        @get:Restricted
-        lateinit var complexValueOneFromUtils: ComplexValueOne
-
-        @get:Restricted
-        lateinit var complexValueTwo: ComplexValueTwo
-
-        @Adding
-        fun justAdd(name: String): TopLevelElement = TopLevelElement()
-
-        @Configuring
-        fun nested(configure: NestedReceiver.() -> Unit) = configure(nested)
-
-        @Restricted
-        fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne = ComplexValueOne()
-
-        @Restricted
-        fun two(name: String): ComplexValueTwo = ComplexValueTwo()
-
-        @get:Restricted
-        val utils: Utils = Utils()
-
-        @get:Restricted
-        @get:HiddenInDeclarativeDsl
-        val nested = NestedReceiver()
-    }
-
-    private
-    class ComplexValueOne
-
-    private
-    class ComplexValueTwo
-
-    @Suppress("unused")
-    private
-    class TopLevelElement {
-        @get:Restricted
-        var name: String = ""
-
-        @get:Restricted
-        var number: Int = 0
-    }
-
-    @Suppress("unused")
-    private
-    class NestedReceiver {
-        @get:Restricted
-        var number: Int = 0
-
-        @Adding
-        fun add(): MyNestedElement = MyNestedElement()
-    }
-
-    private
-    class Utils {
-        @Restricted
-        fun oneUtil(): ComplexValueOne = ComplexValueOne()
-    }
-
-    private
-    class MyNestedElement
 }

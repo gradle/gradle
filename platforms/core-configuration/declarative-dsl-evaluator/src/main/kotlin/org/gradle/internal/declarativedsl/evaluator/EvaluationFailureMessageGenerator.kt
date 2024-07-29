@@ -147,6 +147,7 @@ object EvaluationFailureMessageGenerator {
         DocumentCheckFailureReason.PluginsBlockOrderViolated -> "illegal content before 'plugins', which can only be preceded by 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginManagementBlock -> "duplicate 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginsBlock -> "duplicate 'plugins'"
+        is DocumentCheckFailureReason.UnsupportedSyntaxInDocument -> "unsupported syntax (${reason.cause})"
     }
 
     private

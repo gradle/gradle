@@ -36,6 +36,7 @@ object MethodCodec : Codec<Method> {
         val declaringClass = readClass()
         val methodName = readString()
         val parameterTypes = readClassArray()
+        @Suppress("SpreadOperator")
         return declaringClass.getDeclaredMethod(methodName, *parameterTypes)
     }
 }

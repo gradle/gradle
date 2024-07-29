@@ -18,10 +18,10 @@ package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
 import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -42,7 +42,7 @@ interface DecodingProvider<T> {
 }
 
 
-interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
+interface WriteContext : MutableIsolateContext, Encoder {
 
     val tracer: Tracer?
 
@@ -57,7 +57,15 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
     suspend fun write(value: Any?)
 
     fun writeClass(type: Class<*>)
+
+    /**
+     * @see ClassEncoder.encodeClassLoader
+     */
+    fun writeClassLoader(classLoader: ClassLoader?): Boolean = false
 }
+
+
+interface CloseableWriteContext : WriteContext, AutoCloseable
 
 
 interface Tracer {
@@ -74,8 +82,6 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     override val isolate: ReadIsolate
 
-    val classLoader: ClassLoader
-
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 
     /**
@@ -89,11 +95,29 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     fun readClass(): Class<*>
 
     /**
+     * @see ClassDecoder.decodeClassLoader
+     */
+    fun readClassLoader(): ClassLoader? = null
+
+    /**
      * Defers the given [action] until all objects have been read.
      */
     fun onFinish(action: () -> Unit)
 
     fun <T : Any> getSingletonProperty(propertyType: Class<T>): T
+}
+
+
+interface MutableReadContext : ReadContext {
+    /**
+     * Sets a client specific property value that can be queried via [getSingletonProperty].
+     */
+    fun <T : Any> setSingletonProperty(singletonProperty: T)
+}
+
+
+interface CloseableReadContext : MutableReadContext, AutoCloseable {
+    fun finish()
 }
 
 
@@ -160,7 +184,7 @@ interface MutableIsolateContext : IsolateContext {
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 
-    suspend fun forIncompatibleType(path: String, action: suspend () -> Unit)
+    suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit)
 }
 
 

@@ -188,6 +188,16 @@ public class TestFile extends File {
         }
     }
 
+    /**
+     * Resets the file content to be empty (creating the file if it does not exist).
+     *
+     * @return the same file
+     * @see #setText(String)
+     */
+    public TestFile clear() {
+        return setText("");
+    }
+
     @Override
     public TestFile[] listFiles() {
         File[] children = super.listFiles();

@@ -18,11 +18,17 @@
 The sections below describe Gradle's compatibility with several integrations.
 Versions not listed here may or may not work.
 
-== Java
-A Java version between 8 and 22 is required to execute Gradle.
-Java 23 and later versions are not yet supported.
+== Java Runtime
 
-Java 6 and 7 can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>> but are deprecated for use with testing. Testing with Java 6 and 7 will not be supported in Gradle 9.0.
+Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
+A JVM version between 8 and 23 is required to execute Gradle.
+JVM 24 and later versions are not yet supported.
+
+Executing the Gradle daemon with JVM 16 or earlier has been deprecated and will become an error in Gradle 9.0.
+The Gradle wrapper, Gradle client, Tooling API client, and TestKit client will remain compatible with JVM 8.
+
+JDK 6 and 7 can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>>.
+Testing with JVM 6 and 7 is deprecated and will not be supported in Gradle 9.0.
 
 Any fully supported version of Java can be used for compilation or testing.
 However, the latest Java version may only be supported for compilation or testing, not for running Gradle.
@@ -49,13 +55,14 @@ See the table below for the Java version supported by a specific Gradle release:
 | 20| 8.1 | 8.3
 | 21| 8.4 | 8.5
 | 22| 8.7 | 8.8
-| 23| N/A | N/A
+| 23| 8.10 | 8.10
+| 24| N/A | N/A
 |===
 
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 1.6.10 through 2.0.0.
+Gradle is tested with Kotlin 1.6.10 through 2.0.20-Beta2.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -86,9 +93,11 @@ Beta and RC versions may or may not work.
 | 1.9.20 | 8.5 | 1.8
 | 1.9.22 | 8.7 | 1.8
 | 1.9.23 | 8.9 | 1.8
+| 1.9.24 | 8.10 | 1.8
 |===
 
 == Groovy
+
 Gradle is tested with Groovy 1.5.8 through 4.0.0.
 
 Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.

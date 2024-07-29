@@ -116,7 +116,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public Set<? extends VariantResolveMetadata> getVariants() {
+    public Set<? extends VariantResolveMetadata> getArtifactVariants() {
         return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
@@ -147,11 +147,6 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public boolean isVisible() {
-        return true;
-    }
-
-    @Override
-    public boolean isCanBeConsumed() {
         return true;
     }
 

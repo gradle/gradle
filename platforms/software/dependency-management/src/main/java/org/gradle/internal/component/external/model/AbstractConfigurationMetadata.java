@@ -129,11 +129,6 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public boolean isCanBeConsumed() {
-        return true;
-    }
-
-    @Override
     public boolean isExternalVariant() {
         return externalVariant;
     }
@@ -159,7 +154,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public Set<? extends VariantResolveMetadata> getVariants() {
+    public Set<? extends VariantResolveMetadata> getArtifactVariants() {
         return ImmutableSet.of(new DefaultVariantMetadata(name, getIdentifier(), asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 

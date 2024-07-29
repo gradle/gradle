@@ -23,11 +23,12 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -44,6 +45,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final boolean buildProjectDependencies;
     private final TaskDependencyFactory taskDependencyFactory;
 
+    @SuppressWarnings("unused") // Called reflectively by instantiator
     public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
         this(dependencyProject, null, buildProjectDependencies, taskDependencyFactory);
     }
@@ -84,10 +86,15 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return dependencyProject.getIdentityPath();
     }
 
+    @Override
+    public ProjectIdentity getTargetProjectIdentity() {
+        return dependencyProject.getOwner().getIdentity();
+    }
+
     private Configuration findProjectConfiguration() {
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
-        Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
+        Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.isTrue(declaredConfiguration) ? declaredConfiguration : Dependency.DEFAULT_CONFIGURATION);
         if (!selectedConfiguration.isCanBeConsumed()) {
             failDueToNonConsumableConfigurationSelection(selectedConfiguration);
         }
@@ -109,12 +116,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
      * @param selectedConfiguration the non-consumable configuration that was selected
      */
     private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
-        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(selectedConfiguration.getName(), dependencyProject.getDisplayName());
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(dependencyProject.getOwner().getComponentIdentifier(), selectedConfiguration.getName());
         String message = String.format(
-            "Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() +
-            "' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+            "Selected configuration '" + failure.getRequestedConfigurationName() + "' on " + failure.getTargetComponent().getDisplayName() +
+            " but it can't be used as a project dependency because it isn't intended for consumption by other components."
         );
-        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
+        throw new VariantSelectionByNameException(message, failure, Collections.emptyList());
     }
 
     @Override
@@ -188,7 +195,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (this == dependency) {
             return true;
         }
-        if (dependency == null || getClass() != dependency.getClass()) {
+        if (getClass() != dependency.getClass()) {
             return false;
         }
 
@@ -223,10 +230,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!Objects.equal(getAttributes(), that.getAttributes())) {
             return false;
         }
-        if (!Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities())) {
-            return false;
-        }
-        return true;
+        return Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities());
     }
 
     @Override

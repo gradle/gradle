@@ -16,72 +16,73 @@ errorprone {
 }
 
 dependencies {
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.files)
+    api(projects.fileCollections)
+    api(projects.fileTemp)
+    api(projects.hashing)
+    api(projects.stdlibJavaExtensions)
+    api(projects.modelCore)
+    api(projects.persistentCache)
+    api(projects.platformBase)
+    api(projects.platformNative)
+    api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(project(":base-services"))
-    api(project(":build-operations"))
-    api(project(":concurrent"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":files"))
-    api(project(":file-collections"))
-    api(project(":file-temp"))
-    api(project(":hashing"))
-    api(project(":java-language-extensions"))
-    api(project(":model-core"))
-    api(project(":persistent-cache"))
-    api(project(":platform-base"))
-    api(project(":platform-native"))
-    api(project(":serialization"))
-    api(project(":snapshots"))
+    api(projects.snapshots)
 
     api(libs.guava)
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(project(":logging-api"))
-    implementation(project(":maven"))
-    implementation(project(":process-services"))
-    implementation(project(":publish"))
-    implementation(project(":version-control"))
+    implementation(projects.loggingApi)
+    implementation(projects.maven)
+    implementation(projects.processServices)
+    implementation(projects.publish)
+    implementation(projects.versionControl)
 
     implementation(libs.commonsLang)
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
 
-    testFixturesApi(project(":base-services")) {
+    testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Named class")
     }
-    testFixturesApi(project(":platform-base")) {
+    testFixturesApi(projects.platformBase) {
         because("Test fixtures export the Platform class")
     }
 
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":platform-native")))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.platformNative))
 
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":base-services-groovy"))
+    testImplementation(projects.native)
+    testImplementation(projects.resources)
+    testImplementation(projects.baseServicesGroovy)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":version-control")))
-    testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.versionControl))
+    testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.snapshots))
 
-    integTestImplementation(project(":native"))
-    integTestImplementation(project(":enterprise-operations"))
-    integTestImplementation(project(":resources"))
+    integTestImplementation(projects.native)
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.resources)
     integTestImplementation(libs.nativePlatform)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.jgit)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native"))
+    integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
 
 packageCycles {
@@ -89,8 +90,3 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

@@ -288,7 +288,7 @@ public abstract class XcodePlugin extends IdePlugin {
         String result = binary.getName().replace(component.getName(), "");
         if (binary instanceof SwiftSharedLibrary || binary instanceof CppSharedLibrary) {
             return result.replace("Shared", "");
-        } else if (binary instanceof SwiftStaticLibrary || binary instanceof  CppStaticLibrary) {
+        } else if (binary instanceof SwiftStaticLibrary || binary instanceof CppStaticLibrary) {
             return result.replace("Static", "");
         }
         return result;
@@ -413,12 +413,7 @@ public abstract class XcodePlugin extends IdePlugin {
 
         private XcodeTarget findXcodeTarget() {
             final String productName = xcodePropertyAdapter.getProductName();
-            final XcodeTarget target = CollectionUtils.findFirst(xcodeProject.getTargets(), new Spec<XcodeTarget>() {
-                @Override
-                public boolean isSatisfiedBy(XcodeTarget target) {
-                    return target.getProductName().equals(productName);
-                }
-            });
+            final XcodeTarget target = CollectionUtils.findFirst(xcodeProject.getTargets(), t -> t.getProductName().equals(productName));
             if (target == null) {
                 throw new GradleException("Unknown Xcode target '" + productName + "', do you need to re-generate Xcode configuration?");
             }

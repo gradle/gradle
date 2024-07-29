@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r23
 
-
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.tooling.ProjectConnection
@@ -45,7 +44,7 @@ task log {
 """
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection(connectorWithoutOutputRedirection()) { ProjectConnection connection ->
             def build = connection.newBuild()
             build.forTasks("log")
             build.run()
@@ -75,7 +74,7 @@ task log {
         when:
         def output = new TestOutputStream()
         def error = new TestOutputStream()
-        withConnection { ProjectConnection connection ->
+        withConnection(connectorWithoutOutputRedirection()) { ProjectConnection connection ->
             def build = connection.newBuild()
             build.standardOutput = output
             build.standardError = error
@@ -108,7 +107,7 @@ task log {
 """
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection(connectorWithoutOutputRedirection()) { ProjectConnection connection ->
             def build = connection.newBuild()
             build.colorOutput = true
             build.forTasks("log")

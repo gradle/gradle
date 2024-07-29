@@ -98,9 +98,6 @@ gradleDocumentation {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
-    kotlinDslReference {
-        dokkaVersionOverride = "1.9.10"
-    }
 }
 
 samples {
@@ -191,6 +188,11 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
+            // PMD doesn't support Java 23
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-code-quality-code-quality*"
+        }
+
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
@@ -205,7 +207,6 @@ tasks.named("docsTest") { task ->
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
-        systemProperty("org.gradle.integtest.samples.checkLoadingFromConfigurationCache", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
 
         filter {
@@ -303,6 +304,8 @@ tasks.named("docsTest") { task ->
     } else {
         filter {
             excludeTestsMatching "*WithCC*.sample"
+            // these sanityCheck tests fail without CC due to deprecation warnings as they use gradle.taskGraph.beforeTask and afterTask
+            excludeTestsMatching "*.snippet-buildlifecycle-task-execution-events_*_sanityCheck.sample"
         }
     }
 }

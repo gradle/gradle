@@ -16,10 +16,12 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.jetbrains.kotlin.config.JvmTarget
 
 class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
     def 'can configure an extension using DependencyCollector in declarative DSL'() {
@@ -525,6 +527,32 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
             }
 
             ${mavenCentralRepository()}
+
+            ${if (kotlin) {
+                def majorJavaVersion = JavaVersion.current().majorVersion
+                def jvmTarget = JvmTarget.fromString(majorJavaVersion)
+
+                if (jvmTarget == null) {
+                    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+                        jvmTarget = JvmTarget.JVM_1_8
+                    } else {
+                        jvmTarget = JvmTarget.entries.last()
+                    }
+                }
+                def lastSupportedVersion = jvmTarget.description
+
+                """
+                java {
+                    sourceCompatibility = "${lastSupportedVersion}"
+                    targetCompatibility = "${lastSupportedVersion}"
+                }
+                tasks.compileKotlin {
+                    kotlinOptions.jvmTarget = "${lastSupportedVersion}"
+                }
+                """
+            } else {
+                ''
+            }}
 
             gradlePlugin {
                 plugins {

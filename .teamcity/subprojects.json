@@ -72,7 +72,7 @@
   {
     "name": "build-cache-example-client",
     "path": "platforms/core-execution/build-cache-example-client",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -427,6 +427,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "encryption-services",
+    "path": "platforms/core-configuration/encryption-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "enterprise",
     "path": "platforms/enterprise/enterprise",
     "unitTests": true,
@@ -518,6 +525,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "gradle-cli",
+    "path": "platforms/core-runtime/gradle-cli",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "gradle-cli-main",
     "path": "platforms/core-runtime/gradle-cli-main",
     "unitTests": false,
@@ -585,6 +599,13 @@
     "path": "platforms/core-runtime/instrumentation-agent",
     "unitTests": false,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "instrumentation-agent-services",
+    "path": "platforms/core-runtime/instrumentation-agent-services",
+    "unitTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -679,16 +700,9 @@
     "crossVersionTests": false
   },
   {
-    "name": "java-language-extensions",
-    "path": "platforms/core-runtime/java-language-extensions",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -1071,9 +1085,30 @@
     "crossVersionTests": false
   },
   {
+    "name": "service-lookup",
+    "path": "platforms/core-runtime/service-lookup",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "service-provider",
     "path": "platforms/core-runtime/service-provider",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "service-registry-builder",
+    "path": "platforms/core-runtime/service-registry-builder",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "service-registry-impl",
+    "path": "platforms/core-runtime/service-registry-impl",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -1113,9 +1148,16 @@
     "crossVersionTests": false
   },
   {
+    "name": "stdlib-java-extensions",
+    "path": "platforms/core-runtime/stdlib-java-extensions",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "stdlib-kotlin-extensions",
     "path": "platforms/core-configuration/stdlib-kotlin-extensions",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

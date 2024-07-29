@@ -113,5 +113,6 @@ public abstract class Transient<T> implements java.io.Serializable {
         }
     }
 
+    @SuppressWarnings("ClassInitializationDeadlock")
     private static final Transient<Object> DISCARDED = new Discarded<>();
 }

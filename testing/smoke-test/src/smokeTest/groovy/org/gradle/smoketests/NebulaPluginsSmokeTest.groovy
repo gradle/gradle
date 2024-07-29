@@ -17,10 +17,13 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -71,8 +74,9 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         """
 
         then:
-        runner('groovydoc', '-s')
-            .build()
+        runner('groovydoc', '-s').deprecations(NebulaPluginDeprecations) {
+            expectNebulaPluginDeprecations()
+        }.build()
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
@@ -128,7 +132,9 @@ testImplementation('junit:junit:4.7')""")
         """.stripIndent()
 
         then:
-        runner('buildEnvironment', 'generateLock').build()
+        runner('buildEnvironment', 'generateLock').deprecations(NebulaPluginDeprecations) {
+            expectNebulaDependencyLockPluginDeprecations()
+        }.build()
 
         where:
         nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
@@ -190,9 +196,17 @@ testImplementation('junit:junit:4.7')""")
 }'''
 
         then:
-        runner('dependencies').build()
-        runner('generateLock').build()
-        runner('resolve').build()
+        runner('dependencies').deprecations(NebulaPluginDeprecations) {
+            expectNebulaDependencyLockPluginDeprecations()
+        }.build()
+
+        runner('generateLock').deprecations(NebulaPluginDeprecations) {
+            expectNebulaDependencyLockPluginDeprecations()
+        }.build()
+
+        runner('resolve').deprecations(NebulaPluginDeprecations) {
+            expectNebulaDependencyLockPluginDeprecations()
+        }.build()
 
         where:
         version << TestedVersions.nebulaDependencyLock
@@ -245,5 +259,29 @@ testImplementation('junit:junit:4.7')""")
             'com.netflix.nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
+    }
+}
+
+class NebulaPluginDeprecations extends BaseDeprecations {
+
+    NebulaPluginDeprecations(SmokeTestGradleRunner runner) {
+        super(runner)
+    }
+
+    void expectDeprecation(String deprecatedInvocation, String followUp) {
+        runner.expectDeprecationWarning("Listener registration using ${deprecatedInvocation}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_7.html#task_execution_events", followUp)
+    }
+
+    void expectNebulaPluginDeprecations() {
+        // nebula plugin applies dependency lock
+        expectNebulaDependencyLockPluginDeprecations()
+    }
+
+    void expectNebulaDependencyLockPluginDeprecations() {
+        if (GradleContextualExecuter.isNotConfigCache()) {
+            // with CC, these are reported as config cache problems only
+            expectDeprecation("Gradle.buildFinished", "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/271")
+            expectDeprecation("TaskExecutionGraph.addTaskExecutionListener", "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/247")
+        }
     }
 }

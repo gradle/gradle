@@ -24,7 +24,7 @@ class NestedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can provide a managed model tree"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -96,7 +96,7 @@ class NestedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can apply defaults to a nested managed model element"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 String getDisplayName()

@@ -19,14 +19,13 @@ package org.gradle.internal.build;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 
@@ -46,7 +45,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
     }
 
     @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildScopeServices buildScopeServices) {
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, ServiceRegistry buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         @SuppressWarnings("deprecation")
@@ -64,7 +63,6 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
 
         BuildModelController buildModelController = buildScopeServices.get(BuildModelController.class);
-        InternalProblems problems = buildScopeServices.get(InternalProblems.class);
 
         return new DefaultBuildLifecycleController(
             gradle,

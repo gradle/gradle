@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import spock.lang.Timeout
 
@@ -38,10 +37,9 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.addProgressListener(events, OperationType.FILE_DOWNLOAD)
+        withConnection { connection ->
+            connection.newBuild()
+                .addProgressListener(events, OperationType.FILE_DOWNLOAD)
                 .run()
         }
 
@@ -92,10 +90,9 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.addProgressListener(events, OperationType.FILE_DOWNLOAD)
+        withConnection { connection ->
+            connection.newBuild()
+                .addProgressListener(events, OperationType.FILE_DOWNLOAD)
                 .run()
         }
 
@@ -113,11 +110,10 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.forTasks("resolve")
-            build.addProgressListener(events, OperationType.FILE_DOWNLOAD)
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("resolve")
+                .addProgressListener(events, OperationType.FILE_DOWNLOAD)
                 .run()
         }
 
@@ -139,10 +135,9 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.addProgressListener(events, OperationType.FILE_DOWNLOAD, OperationType.PROJECT_CONFIGURATION)
+        withConnection { connection ->
+            connection.newBuild()
+                .addProgressListener(events, OperationType.FILE_DOWNLOAD, OperationType.PROJECT_CONFIGURATION)
                 .run()
         }
 
@@ -167,11 +162,10 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.forTasks("resolve")
-            build.addProgressListener(events, OperationType.FILE_DOWNLOAD, OperationType.TASK)
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("resolve")
+                .addProgressListener(events, OperationType.FILE_DOWNLOAD, OperationType.TASK)
                 .run()
         }
 
@@ -195,11 +189,10 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.forTasks("resolve")
-            build.addProgressListener(events, EnumSet.complementOf(EnumSet.of(OperationType.FILE_DOWNLOAD)))
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("resolve")
+                .addProgressListener(events, EnumSet.complementOf(EnumSet.of(OperationType.FILE_DOWNLOAD)))
                 .run()
         }
 
@@ -213,10 +206,9 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.addProgressListener(events, OperationType.FILE_DOWNLOAD)
+        withConnection { connection ->
+            connection.newBuild()
+                .addProgressListener(events, OperationType.FILE_DOWNLOAD)
                 .run()
         }
 
@@ -230,10 +222,9 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.addProgressListener(events)
+        withConnection { connection ->
+            connection.newBuild()
+                .addProgressListener(events)
                 .run()
         }
 
@@ -248,10 +239,9 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            build.addProgressListener(events, OperationType.GENERIC)
+        withConnection { connection ->
+            connection.newBuild()
+                .addProgressListener(events, OperationType.GENERIC)
                 .run()
         }
 

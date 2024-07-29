@@ -8,21 +8,23 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
-    api(project(":base-services"))
-    api(project(":messaging"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.messaging)
 
     api(libs.jsr305)
 
-    implementation(project(":native"))
+    implementation(projects.native)
+    implementation(projects.serviceLookup)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.nativePlatform)
+    implementation(projects.internalInstrumentationApi)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {

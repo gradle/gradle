@@ -31,6 +31,7 @@ interface PerformanceTestBuildSpec {
 }
 
 interface PerformanceTestProjectSpec {
+    val os: Os
     val type: PerformanceTestType
     val failsStage: Boolean
 
@@ -77,6 +78,7 @@ data class FlameGraphGeneration(
     private val name: String,
     private val scenarios: List<PerformanceScenario>
 ) : PerformanceTestProjectSpec {
+    override val os: Os = Os.LINUX
     override
     fun asConfigurationId(model: CIBuildModel) =
         "${model.projectId}_PerformanceTest$uuid"
