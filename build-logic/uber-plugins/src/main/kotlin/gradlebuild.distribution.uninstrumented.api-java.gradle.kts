@@ -20,4 +20,4 @@ plugins {
     id("gradlebuild.distribution.api")
 }
 
-description = "Gradle API project that doesn't apply instrumentation"
+description = "Used for Gradle API projects that don't apply instrumentation"

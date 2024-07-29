@@ -1,6 +1,6 @@
 plugins {
-    // Uninstrumented since it is a mix of Groovy and Java code
-    // and we don't plan to have upgrades for IDE plugins
+    // Uninstrumented since it is a mix of Groovy and Java code,
+    // and additionally we don't plan to have upgrades for IDE plugins.
     id("gradlebuild.distribution.uninstrumented.api-java")
 }
 
