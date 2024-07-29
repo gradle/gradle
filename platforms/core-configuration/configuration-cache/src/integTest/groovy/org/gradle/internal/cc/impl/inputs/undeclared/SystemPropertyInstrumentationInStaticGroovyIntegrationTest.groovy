@@ -47,7 +47,7 @@ class SystemPropertyInstrumentationInStaticGroovyIntegrationTest extends Abstrac
             }
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
         """)
 
@@ -80,7 +80,7 @@ class SystemPropertyInstrumentationInStaticGroovyIntegrationTest extends Abstrac
         def configurationCache = newConfigurationCacheFixture()
 
         given:
-        buildScript("""
+        buildFile("""
             import ${CompileStatic.name}
             import static ${System.name}.setProperties
 

@@ -29,7 +29,7 @@ dependencies {
     api(projects.fileCollections)
     api(projects.flowServices)
     api(projects.graphSerialization)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.modelCore)
     api(projects.snapshots)
@@ -48,9 +48,11 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.publish)
     implementation(projects.serialization)
+    implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)
+    implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
 }

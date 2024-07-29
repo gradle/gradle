@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -549,8 +548,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16936")
-    @NotYetImplemented
-    def "extension can be created on task"() {
+    def "extension with managed properties can be created on task"() {
         buildFile """
             interface MyExtension {
                 Property<String> getProp()
@@ -559,8 +557,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             tasks.register("mytask") {
                 extensions.create("myext", MyExtension)
                 myext.prop = "foobar"
+                def myextProp = myext.prop
                 doLast {
-                    println("myext.prop = " + myext.prop.get())
+                    println("myext.prop = " + myextProp.get())
                 }
             }
         """

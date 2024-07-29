@@ -24,7 +24,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
     def "rule can provide a managed model element backed by an abstract class"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Person {
                 abstract String getName()
@@ -59,7 +59,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
     def "managed type implemented as abstract class can have generative getters"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Person {
                 abstract String getFirstName()
@@ -101,7 +101,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
     def "managed type implemented as abstract class can have a custom toString() implementation"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class CustomToString {
                 abstract String getStringRepresentation()
@@ -254,7 +254,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
     def "reports managed abstract type in missing property error message"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Person {
                 abstract String getName()

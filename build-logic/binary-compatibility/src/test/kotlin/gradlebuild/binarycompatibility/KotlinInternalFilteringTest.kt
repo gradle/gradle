@@ -73,7 +73,8 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
         class ExistingClass {
 
-            class ExistingNestedClass
+            class ExistingNestedClass(foo: String)
+
         }
 
         val valTurnedIntoVar: String
@@ -93,7 +94,9 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
             $internalMembers
 
-            class ExistingNestedClass {
+            class ExistingNestedClass internal constructor() {
+
+                constructor(foo: String) : this()
 
                 $internalMembers
 
@@ -140,7 +143,9 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
             $publicMembers
 
-            class ExistingNestedClass {
+            class ExistingNestedClass() {
+
+                constructor(foo: String) : this()
 
                 $publicMembers
 
@@ -236,6 +241,8 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
     ) + reportedMembersFor("AddedObject") + reportedMembersFor("ExistingClass") + listOf(
         "Constructor" to "ExistingClass(java.lang.String)"
     ) + reportedMembersFor("ExistingClass${'$'}ExistingNestedClass") + listOf(
+        "Constructor" to "ExistingClass${'$'}ExistingNestedClass()"
+    ) + listOf(
         "Field" to "cathedral"
     ) + reportedMembersFor("SourceKt") + listOf(
         "Method" to "SourceKt.setValTurnedIntoVar(java.lang.String)"

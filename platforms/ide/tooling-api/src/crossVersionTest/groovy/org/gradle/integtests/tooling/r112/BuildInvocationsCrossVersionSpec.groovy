@@ -28,43 +28,47 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << '''
-include 'a'
-include 'b'
-include 'b:c'
-rootProject.name = 'test'
-'''
+            include 'a'
+            include 'b'
+            include 'b:c'
+            rootProject.name = 'test'
+        '''
+
+        file("a/build.gradle") << ""
+
+        file("b/build.gradle") << '''
+            task t3 {
+                doLast {
+                    println "t3 in $project.name"
+                }
+            }
+            task t2 {
+                doLast {
+                    println "t2 in $project.name"
+                }
+            }
+        '''
+
+        file("b/c/build.gradle") << '''
+            task t1 {
+                doLast {
+                    println "t1 in $project.name"
+                }
+            }
+            task t2 {
+                doLast {
+                    println "t2 in $project.name"
+                }
+            }
+        '''
+
         buildFile << '''
-task t1 {
-    doLast {
-        println "t1 in $project.name"
-    }
-}
-
-project(':b') {
-    task t3 {
-        doLast {
-            println "t3 in $project.name"
-        }
-    }
-    task t2 {
-        doLast {
-            println "t2 in $project.name"
-        }
-    }
-}
-
-project(':b:c') {
-    task t1 {
-        doLast {
-            println "t1 in $project.name"
-        }
-    }
-    task t2 {
-        doLast {
-            println "t2 in $project.name"
-        }
-    }
-}'''
+            task t1 {
+                doLast {
+                    println "t1 in $project.name"
+                }
+            }
+        '''
     }
 
     def "can request task selectors in action"() {
@@ -86,12 +90,12 @@ project(':b:c') {
         BuildInvocations projectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
         TaskSelector selector = projectSelectors.taskSelectors.find { it -> it.name == 't1'}
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selector)
         }
 
         then:
-        result.result.assertTasksExecuted(':b:c:t1')
+        result.assertTasksExecuted(':b:c:t1')
     }
 
     def "can run build using task selectors from connection"() {
@@ -102,12 +106,12 @@ project(':b:c') {
         TaskSelector selector = model.taskSelectors.find { TaskSelector it ->
             it.name == 't1'
         }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selector)
         }
 
         then:
-        result.result.assertTasksExecuted(':t1', ':b:c:t1')
+        result.assertTasksExecuted(':t1', ':b:c:t1')
     }
 
     def "build task selectors from connection in specified order"() {
@@ -117,18 +121,18 @@ project(':b:c') {
         }
         TaskSelector selectorT1 = model.taskSelectors.find {  it.name == 't1' }
         TaskSelector selectorT2 = model.taskSelectors.find { it.name == 't2' }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT1, selectorT2)
         }
         then:
-        result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
 
         when:
-        result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT2, selectorT1)
         }
         then:
-        result.result.assertTasksExecutedInOrder(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
+        result.assertTasksExecutedInOrder(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
     def "can fetch task selectors for root project from connection"() {
@@ -170,12 +174,12 @@ project(':b:c') {
             connection.action(new FetchTasksBuildAction(':b')).run()
         }
         Launchable task = tasks.find { it -> it.name == 't2'}
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(task)
         }
 
         then:
-        result.result.assertTasksExecuted(':b:t2')
+        result.assertTasksExecuted(':b:t2')
     }
 
     def "build task from connection as Launchable"() {
@@ -186,12 +190,12 @@ project(':b:c') {
         Task task = model.tasks.find { Task it ->
             it.name == 't1'
         }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(task)
         }
 
         then:
-        result.result.assertTasksExecuted(':t1')
+        result.assertTasksExecuted(':t1')
     }
 
     def "build tasks Launchables in order"() {
@@ -202,19 +206,19 @@ project(':b:c') {
         GradleTask taskT1 = model.tasks.find { it.name == 't1' }
         GradleTask taskBT2 = model.findByPath(':b').tasks.find { it.name == 't2' }
         GradleTask taskBCT1 = model.findByPath(':b:c').tasks.find { it.name == 't1' }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(taskT1, taskBT2, taskBCT1)
         }
 
         then:
-        result.result.assertTasksExecutedInOrder(':t1', ':b:t2', ':b:c:t1')
+        result.assertTasksExecutedInOrder(':t1', ':b:t2', ':b:c:t1')
 
         when:
-        result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(taskBCT1, taskBT2, taskT1)
         }
         then:
-        result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t2', ':t1')
+        result.assertTasksExecutedInOrder(':b:c:t1', ':b:t2', ':t1')
     }
 
     def "build tasks and selectors in order"() {
@@ -228,11 +232,11 @@ project(':b:c') {
         }
         TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selectorBT1, selectorBT3, taskT1)
         }
         then:
-        result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t3', ':t1')
+        result.assertTasksExecutedInOrder(':b:c:t1', ':b:t3', ':t1')
     }
 
     def "build tasks and selectors in order cross version"() {
@@ -247,11 +251,11 @@ project(':b:c') {
         }
         TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorT2 = rootSelectors.taskSelectors.find { it.name == 't2' }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(taskT1, selectorT1, selectorT2, taskBT2)
         }
         then:
-        result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
     }
 
     def "builds selectors from different projects"() {
@@ -265,11 +269,11 @@ project(':b:c') {
         TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
-        def result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
+        result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
     def "can request tasks for root project"() {

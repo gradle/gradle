@@ -5,56 +5,58 @@ plugins {
 description = "Infrastructure for starting and managing worker processes"
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":build-operations"))
-    api(project(":concurrent"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":hashing"))
-    api(project(":java-language-extensions"))
-    api(project(":logging"))
-    api(project(":logging-api"))
-    api(project(":messaging"))
-    api(project(":model-core"))
-    api(project(":process-services"))
-    api(project(":serialization"))
-    api(project(":service-provider"))
-    api(project(":snapshots"))
-    api(project(":worker-main"))
-    api(project(":build-process-services"))
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.hashing)
+    api(projects.stdlibJavaExtensions)
+    api(projects.logging)
+    api(projects.loggingApi)
+    api(projects.messaging)
+    api(projects.modelCore)
+    api(projects.processServices)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.snapshots)
+    api(projects.workerMain)
+    api(projects.buildProcessServices)
 
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":file-collections"))
-    implementation(project(":time"))
+    implementation(projects.fileCollections)
+    implementation(projects.time)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation(projects.native)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.resources)
+    testImplementation(projects.snapshots)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
 
-    integTestRuntimeOnly(project(":kotlin-dsl"))
-    integTestRuntimeOnly(project(":kotlin-dsl-provider-plugins"))
-    integTestRuntimeOnly(project(":api-metadata"))
-    integTestRuntimeOnly(project(":test-kit"))
+    integTestRuntimeOnly(projects.kotlinDsl)
+    integTestRuntimeOnly(projects.kotlinDslProviderPlugins)
+    integTestRuntimeOnly(projects.apiMetadata)
+    integTestRuntimeOnly(projects.testKit)
 
-    integTestImplementation(project(":jvm-services"))
-    integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.enterpriseOperations)
 
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.baseServices)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
 }

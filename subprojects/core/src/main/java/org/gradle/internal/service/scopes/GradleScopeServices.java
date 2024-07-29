@@ -26,7 +26,9 @@ import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -66,7 +68,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ScopedServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -76,10 +78,7 @@ import java.util.List;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 @SuppressWarnings("deprecation")
-public class GradleScopeServices extends ScopedServiceRegistry {
-    public GradleScopeServices(final ServiceRegistry parent) {
-        super(Scope.Gradle.class, "Gradle-scope services", parent);
-    }
+public class GradleScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     OptionReader createOptionReader() {
@@ -170,14 +169,25 @@ public class GradleScopeServices extends ScopedServiceRegistry {
     }
 
     @Provides
-    PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
+    PluginRegistry createPluginRegistry(PluginRegistry parentRegistry, GradleInternal gradleInternal) {
+        return parentRegistry.createChild(gradleInternal.getClassLoaderScope());
     }
 
     @Provides
-    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+    PluginManagerInternal createPluginManager(
+        ServiceRegistry gradleScopeServiceRegistry,
+        Instantiator instantiator,
+        GradleInternal gradleInternal,
+        PluginRegistry pluginRegistry,
+        InstantiatorFactory instantiatorFactory,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator decorator,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        InternalProblems problems
+    ) {
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(gradleScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     @Provides

@@ -25,13 +25,14 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.hashing)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.jsr305)
 
     implementation(projects.io)
 
+    implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 

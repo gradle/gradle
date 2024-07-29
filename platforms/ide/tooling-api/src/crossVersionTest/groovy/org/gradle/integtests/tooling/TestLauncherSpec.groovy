@@ -72,14 +72,28 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         }
     }
 
+    void launchFailingTests(Collection<TestOperationDescriptor> testsToLaunch) {
+        launchFailingTests { TestLauncher testLauncher ->
+            testLauncher.withTests(testsToLaunch)
+        }
+    }
+
+    void launchFailingTests(Closure configurationClosure) {
+        launchFailingTests(null, configurationClosure)
+    }
+
+    void launchFailingTests(ResultHandler<Void> resultHandler, Closure configurationClosure) {
+        fails { ProjectConnection connection ->
+            launchTests(connection, resultHandler, cancellationTokenSource.token(), configurationClosure)
+        }
+    }
+
     void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationToken)
             .addProgressListener(events, OperationType.TASK, OperationType.TEST)
 
-        collectOutputs(testLauncher)
-
-        configurationClosure.call(testLauncher)
+        configurationClosure(testLauncher)
 
         events.clear()
         if (resultHandler == null) {

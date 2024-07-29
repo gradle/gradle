@@ -8,24 +8,25 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(projects.serviceProvider)
-    api(project(":base-services"))
+    api(projects.baseServices)
 
     api(libs.jsr305)
     api(libs.slf4jApi)
 
     implementation(projects.io)
-    implementation(project(":build-operations"))
+    implementation(projects.buildOperations)
 
     implementation(libs.guava)
 
     testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(projects.serviceRegistryBuilder)
 }

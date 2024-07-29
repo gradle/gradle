@@ -26,10 +26,10 @@ val artifactoryUrl
     get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
 
 val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
+    get() = project.providers.gradleProperty("artifactoryUserName").orNull
 
 val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
+    get() = project.providers.gradleProperty("artifactoryUserPassword").orNull
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     val noUpload = project.gradleProperty("noUpload")
@@ -39,6 +39,7 @@ tasks.withType<AbstractPublishToMaven>().configureEach {
     }
 }
 
+@Suppress("ThrowsCount")
 fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
     gradle.taskGraph.whenReady {
         if (hasTask(publish)) {

@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
 import java.util.Set;
@@ -49,6 +50,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
+    @ToBeReplacedByLazyProperty
     public TextResource getConfig() {
         return config;
     }
@@ -65,6 +67,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     /**
      * The CodeNarc configuration file to use.
      */
+    @ToBeReplacedByLazyProperty
     public File getConfigFile() {
         return getConfig().asFile();
     }
@@ -79,6 +82,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     /**
      * The maximum number of priority 1 violations allowed before failing the build.
      */
+    @ToBeReplacedByLazyProperty
     public int getMaxPriority1Violations() {
         return maxPriority1Violations;
     }
@@ -93,6 +97,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
      */
+    @ToBeReplacedByLazyProperty
     public int getMaxPriority2Violations() {
         return maxPriority2Violations;
     }
@@ -107,6 +112,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
      */
+    @ToBeReplacedByLazyProperty
     public int getMaxPriority3Violations() {
         return maxPriority3Violations;
     }
@@ -121,6 +127,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     /**
      * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.
      */
+    @ToBeReplacedByLazyProperty
     public String getReportFormat() {
         return reportFormat;
     }

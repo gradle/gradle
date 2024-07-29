@@ -82,7 +82,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         tasks.withType(AbstractCheckOrUpdateContributorsInReleaseNotes.class).configureEach(task -> {
             task.getGithubToken().set(project.getProviders().environmentVariable("GITHUB_TOKEN"));
             task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
-            task.getMilestone().convention(project.getProviders().fileContents(project.getRootProject().getLayout().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
+            task.getMilestone().convention(project.getProviders().fileContents(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
         });
 
         Configuration jquery = project.getConfigurations().create("jquery", conf -> {

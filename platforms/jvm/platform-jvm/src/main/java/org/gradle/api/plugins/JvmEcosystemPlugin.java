@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 
 import javax.inject.Inject;
 
@@ -66,7 +66,7 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
     private void configureSchema(ProjectInternal project) {
         AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         JavaEcosystemSupport.configureSchema(attributesSchema, objectFactory);
-        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
+        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
 
         project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
             .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))

@@ -69,7 +69,7 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemEmitter)
-        def problemReporter = new DefaultProblemReporter(emitter, null, org.gradle.internal.operations.CurrentBuildOperationRef.instance(), HashMultimap.create())
+        def problemReporter = new DefaultProblemReporter([emitter], null, org.gradle.internal.operations.CurrentBuildOperationRef.instance(), HashMultimap.create())
         def problem = createTestProblem(Severity.WARNING)
         def builder = problem.toBuilder()
         def newProblem = builder

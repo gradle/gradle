@@ -25,27 +25,27 @@ import org.gradle.util.GradleVersion
 @SuppressWarnings("IntegrationTestFixtures")
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
-        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
+        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJvm(jdk)
 
         then:
-        def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
+        def result = executor.withArgument('help').runWithFailure()
         result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
 
         then:
-        def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
+        def result = executor.withArgument('help').runWithFailure()
         result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
         where:

@@ -140,8 +140,7 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(@Nullable String comment, String pluginId) {
-        block.plugins.add(new PluginSpec(pluginId, null, comment));
-        return this;
+        return plugin(comment, pluginId, null, null);
     }
 
     /**
@@ -159,10 +158,10 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version) {
+    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version, @Nullable String pluginAlias) {
         AbstractStatement plugin;
         if (useVersionCatalog && version != null) {
-            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version);
+            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version, pluginAlias);
             plugin = new PluginSpec(versionCatalogRef, comment);
         } else {
             plugin = new PluginSpec(pluginId, version, comment);
@@ -1871,8 +1870,8 @@ public class BuildScriptBuilder {
         private String indent = "";
         private String eolComment = null;
         private int commentCount = 0;
-        private boolean needSeparatorLine = true;
-        private boolean firstStatementOfBlock = false;
+        private boolean needSeparatorLine = false;
+        private boolean firstStatementOfBlock = true;
         private boolean hasSeparatorLine = false;
 
         PrettyPrinter(Syntax syntax, PrintWriter writer, BuildInitComments comments) {
@@ -1899,6 +1898,9 @@ public class BuildScriptBuilder {
                 }
             }
             println(" */");
+
+            firstStatementOfBlock = false;
+            needSeparatorLine = true;
         }
 
         public void printBlock(String blockSelector, BlockBody blockBody) {

@@ -25,6 +25,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 
+import java.util.Collection;
+
 import static org.gradle.api.problems.internal.DefaultProblemCategory.GRADLE_CORE_NAMESPACE;
 
 @ServiceScope(Scope.BuildTree.class)
@@ -32,18 +34,19 @@ public class DefaultProblems implements InternalProblems {
 
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final ProblemEmitter emitter;
+    private final Collection<ProblemEmitter> emitter;
     private final InternalProblemReporter internalReporter;
     private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
 
-    public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(Collection<ProblemEmitter> emitter, CurrentBuildOperationRef currentBuildOperationRef) {
         this(emitter, null, currentBuildOperationRef);
     }
-    public DefaultProblems(ProblemEmitter emitter) {
+
+    public DefaultProblems(Collection<ProblemEmitter> emitter) {
         this(emitter, null, CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(ProblemEmitter emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(Collection<ProblemEmitter> emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
         this.emitter = emitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
@@ -58,7 +61,7 @@ public class DefaultProblems implements InternalProblems {
         return createReporter(emitter, problemStream, problemsForThrowables);
     }
 
-    private DefaultProblemReporter createReporter(ProblemEmitter emitter, ProblemStream problemStream, Multimap<Throwable, Problem> problems) {
+    private DefaultProblemReporter createReporter(Collection<ProblemEmitter> emitter, ProblemStream problemStream, Multimap<Throwable, Problem> problems) {
         return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, problems);
     }
 

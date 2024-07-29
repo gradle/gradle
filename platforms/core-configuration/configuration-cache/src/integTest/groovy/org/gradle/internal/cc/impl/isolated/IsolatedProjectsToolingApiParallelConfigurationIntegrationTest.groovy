@@ -238,7 +238,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         '''
 
         def buildScriptA = file('a/build.gradle')
-        groovyFile buildScriptA, '''
+        buildFile buildScriptA, '''
             plugins {
                 id("my.plugin-1")
                 id("my.plugin-2")
@@ -248,7 +248,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         configuring(buildScriptA)
 
         def buildScriptB = file('b/build.gradle')
-        groovyFile buildScriptB, '''
+        buildFile buildScriptB, '''
             plugins {
                 id("my.plugin")
                 id("my.plugin-2")

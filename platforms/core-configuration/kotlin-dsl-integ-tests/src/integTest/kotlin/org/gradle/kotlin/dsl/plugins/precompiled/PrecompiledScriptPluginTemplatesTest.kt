@@ -140,6 +140,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             )
         )
 
+        @Suppress("deprecation")
         verify(gradle).useLogger("my-logger")
     }
 

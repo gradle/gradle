@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -138,10 +139,11 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        assertThat(
-            outputOf("test", "-i"),
-            containsString("Plugin Using Embedded Kotlin ")
-        )
+        build("test")
+
+        val results = DefaultTestExecutionResult(testDirectory)
+        results.assertTestClassesExecuted("MyTest")
+        results.testClass("MyTest").assertStdout(containsString("Plugin Using Embedded Kotlin "))
     }
 
     @Test
@@ -244,10 +246,11 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        assertThat(
-            outputOf("test", "-i"),
-            containsString("Plugin Using Embedded Kotlin ")
-        )
+        build("test")
+
+        val results = DefaultTestExecutionResult(testDirectory)
+        results.assertTestClassesExecuted("MyTest")
+        results.testClass("MyTest").assertStdout(containsString("Plugin Using Embedded Kotlin "))
     }
 
     @Test
@@ -390,10 +393,6 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             """
         )
     }
-
-    private
-    fun outputOf(vararg arguments: String) =
-        build(*arguments).output
 }
 
 

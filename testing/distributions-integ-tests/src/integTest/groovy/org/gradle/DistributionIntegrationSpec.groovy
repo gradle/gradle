@@ -36,7 +36,86 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final THIRD_PARTY_LIB_COUNT = 144
 
-    @Shared String baseVersion = GradleVersion.current().baseVersion.version
+    @Shared
+    String baseVersion = GradleVersion.current().baseVersion.version
+
+    def coreLibsModules = [
+        "base-asm",
+        "base-services",
+        "base-services-groovy",
+        "build-cache",
+        "build-cache-base",
+        "build-cache-local",
+        "build-cache-packaging",
+        "build-cache-spi",
+        "build-events",
+        "build-operations",
+        "build-option",
+        "build-process-services",
+        "build-state",
+        "cli",
+        "client-services",
+        "concurrent",
+        "configuration-problems-base",
+        "core",
+        "core-api",
+        "daemon-main",
+        "daemon-protocol",
+        "daemon-server",
+        "daemon-services",
+        "declarative-dsl-api",
+        "declarative-dsl-core",
+        "declarative-dsl-evaluator",
+        "declarative-dsl-provider",
+        "declarative-dsl-tooling-models",
+        "enterprise-logging",
+        "enterprise-operations",
+        "enterprise-workers",
+        "execution",
+        "file-collections",
+        "file-temp",
+        "file-watching",
+        "files",
+        "functional",
+        "gradle-cli",
+        "gradle-cli-main",
+        "hashing",
+        "input-tracking",
+        "installation-beacon",
+        "instrumentation-agent-services",
+        "internal-instrumentation-api",
+        "io",
+        "java-api-extractor",
+        "jvm-services",
+        "launcher",
+        "logging",
+        "logging-api",
+        "messaging",
+        "model-core",
+        "model-groovy",
+        "native",
+        "normalization-java",
+        "persistent-cache",
+        "problems",
+        "problems-api",
+        "process-services",
+        "resources",
+        "runtime-api-info",
+        "serialization",
+        "service-lookup",
+        "service-provider",
+        "service-registry-builder",
+        "service-registry-impl",
+        "snapshots",
+        "stdlib-java-extensions",
+        "stdlib-kotlin-extensions",
+        "time",
+        "toolchains-jvm-shared",
+        "tooling-api",
+        "tooling-api-provider",
+        "worker-main",
+        "wrapper-shared",
+    ]
 
     abstract String getDistributionLabel()
 
@@ -46,7 +125,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        68
+        coreLibsModules.size()
     }
 
     /**
@@ -87,7 +166,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def dupes = entriesByPath.findAll { it.value.size() > 1 }
 
         when:
-        def dupesWithCount = dupes.collectEntries { [it.key, it.value.size()]}
+        def dupesWithCount = dupes.collectEntries { [it.key, it.value.size()] }
 
         then:
         dupesWithCount.isEmpty()
@@ -167,7 +246,21 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def coreLibs = contentsDir.file("lib").listFiles().findAll {
             it.name.startsWith("gradle-") && !it.name.startsWith("gradle-api-metadata") && !it.name.startsWith("gradle-kotlin-dsl")
         }
-        assert coreLibs.size() == coreLibJarsCount
+
+
+        def prefixedCoreLibNames = coreLibsModules.collect { "gradle-$it" }
+        def expectedCoreLibs = prefixedCoreLibNames.toSet()
+        def actualCoreLibs = coreLibs.collect { it.name - "-${baseVersion}.jar" }.toSet()
+
+        def unknownCoreLibs = (actualCoreLibs - expectedCoreLibs).sort()
+        def missingCoreLibs = (expectedCoreLibs - actualCoreLibs).sort()
+
+        verifyAll {
+            unknownCoreLibs == []
+            missingCoreLibs == []
+        }
+
+        assert (prefixedCoreLibNames.clone().sort() == prefixedCoreLibNames) : "coreLibsFileNames has be sorted"
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")

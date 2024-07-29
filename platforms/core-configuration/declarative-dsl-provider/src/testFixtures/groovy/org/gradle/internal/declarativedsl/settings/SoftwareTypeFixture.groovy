@@ -133,7 +133,7 @@ trait SoftwareTypeFixture {
         )
     }
 
-    PluginBuilder withSettingsPluginThatConfiguresSoftwareTypeConventions() {
+    PluginBuilder withSettingsPluginThatConfiguresModelDefaults() {
         return withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesSoftwareType,
@@ -324,6 +324,8 @@ trait SoftwareTypeFixture {
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    target.getExtensions().add("${softwareType}", extension);
+
                     ${conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {

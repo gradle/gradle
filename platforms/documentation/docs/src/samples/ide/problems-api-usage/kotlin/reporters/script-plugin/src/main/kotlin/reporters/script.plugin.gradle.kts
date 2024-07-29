@@ -1,9 +1,11 @@
 package reporters
-import org.gradle.api.internal.GradleInternal
 import org.gradle.kotlin.dsl.registering
 
-val gradleInternal = gradle as GradleInternal
-val problems = gradleInternal.services.get(Problems::class.java)
+interface Injected {
+    @get:Inject val problems: Problems
+}
+
+val problems = project.objects.newInstance<Injected>().problems
 
 problems.forNamespace("buildscript").reporting {
     id("adhoc-script-deprecation", "Deprecated script plugin")

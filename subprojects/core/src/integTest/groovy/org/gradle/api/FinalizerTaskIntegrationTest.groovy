@@ -492,7 +492,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     void 'finalizer tasks are not run when finalized task does not run due to unrelated task failure and not using --continue'() {
         given:
-        buildScript("""
+        buildFile("""
             task a {
             }
             task b {

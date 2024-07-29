@@ -30,14 +30,15 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
@@ -73,7 +74,7 @@ public class PluginRequestCollector {
             new DefaultPluginRequest(original.id, original.apply, PluginRequestInternal.Origin.OTHER, scriptSource.getDisplayName(), original.lineNumber, original.version, null, null, null)
         );
 
-        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, PluginRequest::getId);
+        Map<PluginId, List<PluginRequestInternal>> groupedById = pluginRequests.stream().collect(groupingBy(PluginRequest::getId, Collectors.toList()));
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {

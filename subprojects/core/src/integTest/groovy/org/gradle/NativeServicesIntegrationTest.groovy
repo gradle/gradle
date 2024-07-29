@@ -103,13 +103,13 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     def "native services flag should be passed to the daemon and to the worker"() {
         given:
         executer.withArguments(systemProperties.collect { it.toString() })
-        buildScript("""
+        buildFile("""
             import org.gradle.workers.WorkParameters
             import org.gradle.internal.nativeintegration.services.NativeServices
             import org.gradle.internal.nativeintegration.NativeCapabilities
 
             tasks.register("doWork", WorkerTask)
-            println("Uses native integration in daemon: " + NativeServices.instance.createNativeCapabilities().useNativeIntegrations())
+            println("Uses native integration in daemon: " + NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
@@ -123,7 +123,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
             abstract class NoOpWorkAction implements WorkAction<WorkParameters.None> {
                 void execute() {
-                    println("Uses native integration in worker: " + NativeServices.instance.createNativeCapabilities().useNativeIntegrations())
+                    println("Uses native integration in worker: " + NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
                 }
             }
         """)
@@ -148,7 +148,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     def "native services are not initialized inside a test executor but should be initialized for a build inside the executor"() {
         given:
         def nativeDirOverride = normaliseFileSeparators(new File(tmpDir.testDirectory, 'native-libs-for-test-executor').absolutePath)
-        buildScript("""
+        buildFile("""
             plugins {
                 id("java-gradle-plugin")
                 id("groovy")
@@ -201,7 +201,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
                     buildFile << \"""
                         println("Build inside a test executor initialized Native services: " + new File("${nativeDirOverride}").exists())
                         println("Build inside a test executor uses Native services: " +
-                            org.gradle.internal.nativeintegration.services.NativeServices.instance.createNativeCapabilities().useNativeIntegrations())
+                            org.gradle.internal.nativeintegration.services.NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
                     \"""
 
                     when:

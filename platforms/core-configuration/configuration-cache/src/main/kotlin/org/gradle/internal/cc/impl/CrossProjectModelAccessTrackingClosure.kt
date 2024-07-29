@@ -32,7 +32,7 @@ class CrossProjectModelAccessTrackingClosure<T>(
     trackingProjectAccess(crossProjectModelAccess, referrerProject, delegate.owner),
     trackingProjectAccess(crossProjectModelAccess, referrerProject, delegate.thisObject)
 ) {
-    @Suppress("unused")
+    @Suppress("unused", "SpreadOperator")
     fun doCall(vararg args: Any) {
         val numClosureArgs = delegate.maximumNumberOfParameters
         val finalArgs: Array<out Any> = args.take(numClosureArgs).map { trackingProjectAccess(crossProjectModelAccess, referrerProject, it) }.toTypedArray()

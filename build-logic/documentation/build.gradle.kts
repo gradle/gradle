@@ -9,7 +9,7 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":build-update-utils"))
+    implementation(projects.buildUpdateUtils)
 
     implementation("com.github.javaparser:javaparser-core")
     implementation("com.google.guava:guava")

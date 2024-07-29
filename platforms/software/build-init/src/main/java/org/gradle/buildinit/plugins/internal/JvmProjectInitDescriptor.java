@@ -114,7 +114,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         description.getPluginName().ifPresent(languagePlugin -> {
             String pluginVersionProperty = description.getPluginVersionProperty();
             String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
-            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion);
+            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion, description.getExplicitPluginAlias());
         });
 
         settings.getJavaLanguageVersion().ifPresent(languageVersion -> {

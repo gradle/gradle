@@ -5,7 +5,7 @@ plugins {
 description = "Collection of test fixtures and tests for architecture testing Gradle code"
 
 dependencies {
-    api(platform(project(":distributions-dependencies")))
+    api(platform(projects.distributionsDependencies))
     api(libs.archunit)
     api(libs.archunitJunit5Api)
     api(libs.archunitJunit5) {

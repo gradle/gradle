@@ -87,18 +87,18 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 """
 
         when:
-        String debug = withBuild { it.withArguments('-d') }.standardOutput
-
-        and:
-        String info = withBuild { it.withArguments('-i') }.standardOutput
+        withBuild { it.withArguments('-d') }
 
         then:
-        debug.count("debugging stuff") == 1
-        debug.count("infoing stuff") == 1
+        result.output.count("debugging stuff") == 1
+        result.output.count("infoing stuff") == 1
 
-        and:
-        info.count("debugging stuff") == 0
-        info.count("infoing stuff") == 1
+        when:
+        withBuild { it.withArguments('-i') }
+
+        then:
+        result.output.count("debugging stuff") == 0
+        result.output.count("infoing stuff") == 1
     }
 
     def "gives decent feedback for invalid option"() {

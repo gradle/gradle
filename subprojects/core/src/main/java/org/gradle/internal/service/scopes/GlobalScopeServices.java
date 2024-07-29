@@ -48,6 +48,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.execution.DefaultWorkValidationWarningRecorder;
+import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
@@ -56,8 +57,6 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.agents.AgentInitializer;
-import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -67,11 +66,14 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
+import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.instrumentation.agent.AgentInitializer;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -82,7 +84,9 @@ import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
+import org.gradle.internal.scripts.ScriptFileResolvedListener;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileResolverListeners;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.Provides;
@@ -136,13 +140,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Override
     void configure(ServiceRegistration registration) {
         super.configure(registration);
-        registration.add(DefaultScriptFileResolverListeners.class);
+        registration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
+        registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
     }
 
     @Provides
-    ScriptFileResolver createScriptFileResolver(DefaultScriptFileResolverListeners listeners) {
-        return new DefaultScriptFileResolver(listeners);
+    ScriptFileResolver createScriptFileResolver(ScriptFileResolvedListener listener) {
+        return new DefaultScriptFileResolver(listener);
     }
 
     @Provides
@@ -323,11 +328,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Provides
     OverlappingOutputDetector createOverlappingOutputDetector() {
         return new DefaultOverlappingOutputDetector();
-    }
-
-    @Provides
-    DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
-        return new DefaultWorkValidationWarningRecorder();
     }
 
     @Provides

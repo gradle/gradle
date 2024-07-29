@@ -46,8 +46,8 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.util.Matchers
 import org.gradle.util.internal.VersionNumber
-import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
@@ -60,7 +60,6 @@ import java.util.regex.Pattern
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
-import static org.gradle.util.Matchers.normalizedLineSeparators
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -70,7 +69,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-abstract class AbstractIntegrationSpec extends Specification {
+abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -128,12 +127,16 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
+        // TODO: Problems API checks should be integrated into the executor, not the integration spec.
+        // Similar to how we do it with deprecation checks
+        // This allows different executions to keep their emitted problems separate.
+        // See how this is done in SmokeTestGradleRunner
         if (enableProblemsApiCheck) {
             collectedProblems.each {
                 KnownProblemIds.assertIsKnown(it)
             }
 
-            if (getReceivedProblems().every {it == null }) {
+            if (getReceivedProblems().every { it == null }) {
                 receivedProblems = null
             } else {
                 println "Problems that were not accessed during test execution:"
@@ -195,42 +198,6 @@ abstract class AbstractIntegrationSpec extends Specification {
         return "junit:junit:4.13"
     }
 
-    void buildFile(@GroovyBuildScriptLanguage String script) {
-        groovyFile(buildFile, script)
-    }
-
-    void settingsFile(@GroovyBuildScriptLanguage String script) {
-        groovyFile(settingsFile, script)
-    }
-
-    /**
-     * Provides best-effort groovy script syntax highlighting.
-     * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
-     */
-    void groovyFile(String targetBuildFile, @GroovyBuildScriptLanguage String script) {
-        groovyFile(file(targetBuildFile), script)
-    }
-
-    void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
-        targetBuildFile << script
-    }
-
-    void javaFile(String targetBuildFile, @Language('JAVA') String code) {
-        javaFile(file(targetBuildFile), code)
-    }
-
-    void javaFile(TestFile targetBuildFile, @Language('JAVA') String code) {
-        targetBuildFile << code
-    }
-
-    static String groovyScript(@GroovyBuildScriptLanguage String script) {
-        script
-    }
-
-    void versionCatalogFile(@Language("toml") String script) {
-        versionCatalogFile << script
-    }
-
     TestFile getBuildKotlinFile() {
         testDirectory.file(defaultBuildKotlinFileName)
     }
@@ -242,32 +209,6 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected String getDefaultBuildKotlinFileName() {
         'build.gradle.kts'
     }
-
-    /**
-     * Sets (replacing) the contents of the build.gradle file.
-     *
-     * To append, use #buildFile(String).
-     */
-    protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
-        buildFile.text = script
-        buildFile
-    }
-
-    /**
-     * Sets (replacing) the contents of the settings.gradle file.
-     *
-     * To append, use #settingsFile(String)
-     */
-    protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
-        settingsFile.text = script
-        settingsFile
-    }
-
-    protected TestFile initScript(@GroovyBuildScriptLanguage String script) {
-        initScriptFile.text = script
-        initScriptFile
-    }
-
 
     protected TestFile getSettingsFile() {
         testDirectory.file(settingsFileName)
@@ -537,13 +478,17 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionFailure runAndFail(String... tasks) {
-        fails(*tasks)
+        fails(Arrays.asList(tasks))
     }
 
     protected ExecutionFailure fails(String... tasks) {
+        fails(Arrays.asList(tasks))
+    }
+
+    protected ExecutionFailure fails(List<String> tasks) {
         resetProblemApiCheck()
 
-        failure = executer.withTasks(*tasks).runWithFailure()
+        failure = executer.withTasks(tasks).runWithFailure()
 
         if (enableProblemsApiCheck && getReceivedProblems().isEmpty()) {
             throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
@@ -610,8 +555,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         failure.assertThatCause(containsNormalizedString(description))
     }
 
+    // TODO: Inline and remove.
     protected Matcher<String> containsNormalizedString(String description) {
-        normalizedLineSeparators(CoreMatchers.containsString(description))
+        return Matchers.containsNormalizedString(description)
     }
 
     private assertHasResult() {
@@ -824,10 +770,17 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         if (!enableProblemsApiCheck) {
             throw new IllegalStateException('Problems API check is not enabled')
         }
-        return buildOperationsFixture.all().collectMany {operation ->
+        return buildOperationsFixture.all().collectMany { operation ->
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
+            }.findAll {
+                // Filter out all java version deprecation problems
+                // TODO: The problems API infrastructure should be built-into the executor.
+                // However, since it isn't we do not know if the test has disabled the filtering of
+                // these deprecation logs from the normal deprecation checks.
+                // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
+                it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
             }
         }
     }
@@ -850,9 +803,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             }
             println "    ]"
         }
-        if (problem.additionalData?.size() == 1) {
+        if (problem.additionalData?.asMap.size() == 1) {
             println "    additionalData.asMap == [ '${problem.additionalData.asMap.keySet().iterator().next()}' : '${problem.additionalData.asMap.values().iterator().next()}' ]"
-        } else if (problem.additionalData?.size() > 1) {
+        } else if (problem.additionalData?.asMap.size() > 1) {
             println "    additionalData.asMap == ["
             problem.additionalData.asMap.each { key, value ->
                 println "        '$key' : '$value',"

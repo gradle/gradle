@@ -14,21 +14,49 @@
  * limitations under the License.
  */
 
+
+import org.gradle.api.flow.BuildWorkResult
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
+import org.gradle.api.flow.FlowProviders
+import org.gradle.api.flow.FlowScope
+
 // We want to double check that a build failure is
 // only caused by failing test executions
-gradle.buildFinished { result ->
-    buildDir.mkdirs()
-    if(result.failure) {
-        def unexpectedFailure = (result.failure instanceof org.gradle.execution.MultipleBuildFailures && result.failure.causes.every { cause ->
-            def failureMessage = cause?.cause?.cause?.message
-            !failureMessage?.contains("There were failing tests")
-        }
-        )
-        if(unexpectedFailure) {
-            StringWriter errors = new StringWriter();
-            result.failure.printStackTrace(new PrintWriter(errors));
+abstract class CheckResult implements FlowAction<Parameters> {
+    interface Parameters extends FlowParameters {
+        @Input
+        Property<BuildWorkResult> getBuildResult()
+        @Input
+        Property<File> getBuildDirectory()
+    }
+
+    @Override
+    void execute(Parameters parameters) throws Exception {
+        BuildWorkResult result = parameters.getBuildResult().get()
+        if(result.failure.isPresent()) {
+            File buildDir = parameters.getBuildDirectory().get()
             buildDir.mkdirs()
-            new File(buildDir, "error.log").text = errors.toString()
+            def failure = result.failure.get()
+            def unexpectedFailure = (failure instanceof org.gradle.execution.MultipleBuildFailures && failure.causes.every { cause ->
+                def failureMessage = cause?.cause?.cause?.message
+                !failureMessage?.contains("There were failing tests")
+            })
+            if(unexpectedFailure) {
+                StringWriter errors = new StringWriter();
+                failure.printStackTrace(new PrintWriter(errors));
+                new File(buildDir, "error.log").text = errors.toString()
+            }
         }
+    }
+}
+
+FlowProviders flowProviders = gradle.services.get(FlowProviders)
+FlowScope flowScope = gradle.services.get(FlowScope)
+
+flowScope.always(CheckResult) {
+    parameters {
+        buildResult = flowProviders.buildWorkResult
+        buildDirectory = project.layout.buildDirectory.asFile
     }
 }

@@ -77,6 +77,7 @@ public interface ArchUnitFixture {
         "org.gradle.internal.cc..",
         "org.gradle.configurationcache..",
         "org.gradle.internal.configuration.problems..",
+        "org.gradle.internal.encryption..",
         "org.gradle.internal.extensions.core..",
         "org.gradle.internal.extensions.stdlib..",
         "org.gradle.internal.flow.services..",
@@ -85,7 +86,8 @@ public interface ArchUnitFixture {
         "org.gradle.internal.serialize.graph..",
         "org.gradle.kotlin..",
         "org.gradle.internal.declarativedsl..",
-        "org.gradle.declarative.dsl.."
+        "org.gradle.declarative.dsl..",
+        "org.gradle.problems.internal.impl.."
     ).as("classes written in Java or Groovy");
 
     DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {

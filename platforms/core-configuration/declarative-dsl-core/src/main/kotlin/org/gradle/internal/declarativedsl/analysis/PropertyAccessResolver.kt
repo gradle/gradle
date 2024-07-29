@@ -70,6 +70,7 @@ class PropertyAccessResolverImpl(
         }
     }
 
+    @Suppress("NestedBlockDepth")
     private
     fun AnalysisContext.doResolvePropertyAccessToObject(
         propertyAccess: PropertyAccess
@@ -145,7 +146,7 @@ class PropertyAccessResolverImpl(
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
         onExternalObject: (ObjectOrigin.External) -> Unit
     ) {
-        require(propertyAccess.receiver != null) { "Property access with explicit receiver expected" }
+        require(propertyAccess.receiver != null) { "property access with explicit receiver expected" }
 
         val propertyName = propertyAccess.name
 
@@ -169,7 +170,7 @@ class PropertyAccessResolverImpl(
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
         onExternal: (ObjectOrigin.External) -> Unit
     ) {
-        require(propertyAccess.receiver == null) { "Name-only property access is expected" }
+        require(propertyAccess.receiver == null) { "name-only property access is expected" }
 
         lookupNamedValueInScopes(propertyAccess, onLocalValue, onProperty)
 

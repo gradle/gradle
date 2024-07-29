@@ -16,14 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -45,16 +43,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.CompatibilityRule;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
@@ -65,7 +62,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,7 +70,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -398,8 +393,8 @@ public class DependencyGraphBuilder {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
-        List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
-        if (!incomingRootEdges.isEmpty()) {
+
+        if (resolveState.getRoot().wasIncomingEdgeAdded()) {
             String rootNodeName = resolveState.getRoot().getMetadata().getName();
             DeprecationLogger.deprecate(
                     String.format(
@@ -495,50 +490,35 @@ public class DependencyGraphBuilder {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
             .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
             .collect(Collectors.toSet());
+
         if (selectedNodes.size() < 2) {
             return;
         }
+
         Set<Set<NodeState>> combinations = Sets.combinations(selectedNodes, 2);
         Set<NodeState> incompatibleNodes = new HashSet<>();
+
+        AttributeMatcher matcher = consumerSchema.withProducer(selected.getMetadata().getAttributesSchema());
         for (Set<NodeState> combination : combinations) {
             Iterator<NodeState> it = combination.iterator();
             NodeState first = it.next();
             NodeState second = it.next();
-            assertCompatibleAttributes(first, second, incompatibleNodes, consumerSchema);
-        }
-        if (!incompatibleNodes.isEmpty()) {
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(consumerSchema, selected, incompatibleNodes);
-            for (EdgeState edge : module.getIncomingEdges()) {
-                edge.failWith(variantsSelectionException);
-            }
-        }
-    }
 
-    private static void assertCompatibleAttributes(NodeState first, NodeState second, Set<NodeState> incompatibleNodes, AttributesSchemaInternal consumerSchema) {
-        ImmutableAttributes firstAttributes = first.getMetadata().getAttributes();
-        ImmutableAttributes secondAttributes = second.getMetadata().getAttributes();
-        ImmutableSet<Attribute<?>> firstKeys = firstAttributes.keySet();
-        ImmutableSet<Attribute<?>> secondKeys = secondAttributes.keySet();
-        for (Attribute<?> attribute : Sets.intersection(firstKeys, secondKeys)) {
-            CompatibilityRule<Object> rule = consumerSchema.compatibilityRules(attribute);
-            Object v1 = firstAttributes.getAttribute(attribute);
-            Object v2 = secondAttributes.getAttribute(attribute);
-            // for all commons attributes, make sure they are compatible with each other
-            if (!compatible(rule, v1, v2) && !compatible(rule, v2, v1)) {
+            if (!matcher.areMutuallyCompatible(first.getMetadata().getAttributes(), second.getMetadata().getAttributes())) {
                 incompatibleNodes.add(first);
                 incompatibleNodes.add(second);
             }
         }
-    }
 
-    private static boolean compatible(CompatibilityRule<Object> rule, @Nullable Object v1, @Nullable Object v2) {
-        if (Objects.equals(v1, v2)) {
-            // Equal values are compatible
-            return true;
+        if (!incompatibleNodes.isEmpty()) {
+            Set<VariantGraphResolveMetadata> incompatibleNodeMetadatas = incompatibleNodes.stream()
+                .map(NodeState::getMetadata)
+                .collect(Collectors.toSet());
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected.getMetadata(), incompatibleNodeMetadatas);
+            for (EdgeState edge : module.getIncomingEdges()) {
+                edge.failWith(variantsSelectionException);
+            }
         }
-        DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<>(v1, v2);
-        rule.execute(result);
-        return result.hasResult() && result.isCompatible();
     }
 
     private static void attachMultipleForceOnPlatformFailureToEdges(ModuleResolveState module) {

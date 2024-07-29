@@ -12,50 +12,53 @@ sourceSets {
 }
 
 dependencies {
+    compileOnly(libs.jetbrainsAnnotations)
+
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
     api(libs.plist)
-    api(project(":base-ide-plugins"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":file-collections"))
-    api(project(":ide"))
-    api(project(":java-language-extensions"))
-    api(project(":language-native"))
-    api(project(":platform-base"))
-    api(project(":platform-native"))
-    api(project(":service-provider"))
+    api(projects.baseIdePlugins)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.ide)
+    api(projects.stdlibJavaExtensions)
+    api(projects.languageNative)
+    api(projects.platformBase)
+    api(projects.platformNative)
+    api(projects.serviceProvider)
 
-    implementation(project(":model-core"))
-    implementation(project(":testing-native"))
-    implementation(project(":logging-api"))
+    implementation(projects.modelCore)
+    implementation(projects.testingNative)
+    implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
     implementation(libs.commonsLang)
 
-    runtimeOnly(project(":dependency-management"))
-    runtimeOnly(project(":testing-base"))
+    runtimeOnly(projects.dependencyManagement)
+    runtimeOnly(projects.testingBase)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":language-native")))
-    testImplementation(testFixtures(project(":version-control")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.languageNative))
+    testImplementation(testFixtures(projects.versionControl))
 
-    integTestImplementation(project(":native"))
+    integTestImplementation(projects.native)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jgit)
 
-    testFixturesApi(testFixtures(project(":ide")))
+    testFixturesApi(testFixtures(projects.ide))
     testFixturesImplementation(libs.plist)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyXml)
-    testFixturesImplementation(testFixtures(project(":ide")))
+    testFixturesImplementation(testFixtures(projects.ide))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native"))
+    integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
 
 integTest.usesJavadocCodeSnippets = true

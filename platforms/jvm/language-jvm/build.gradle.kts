@@ -1,6 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-project")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes,
@@ -15,43 +15,43 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":files"))
-    api(project(":platform-base"))
-    api(project(":platform-jvm"))
-    api(project(":process-services"))
-    api(project(":workers"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.files)
+    api(projects.platformBase)
+    api(projects.platformJvm)
+    api(projects.processServices)
+    api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":dependency-management"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":test-suites-base"))
+    implementation(projects.dependencyManagement)
+    implementation(projects.logging)
+    implementation(projects.modelCore)
+    implementation(projects.testSuitesBase)
 
     implementation(libs.guava)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.native)
+    testImplementation(projects.resources)
+    testImplementation(projects.snapshots)
+    testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(project(":model-core")))
-    integTestImplementation(testFixtures(project(":resources-http")))
+    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.resourcesHttp))
 
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

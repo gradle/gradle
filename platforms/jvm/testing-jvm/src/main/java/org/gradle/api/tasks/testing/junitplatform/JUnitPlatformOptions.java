@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing.junitplatform;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -95,11 +96,13 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<String> getIncludeEngines() {
         return includeEngines;
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<String> getIncludeTags() {
         return includeTags;
     }
@@ -109,6 +112,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<String> getExcludeEngines() {
         return excludeEngines;
     }
@@ -122,6 +126,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<String> getExcludeTags() {
         return excludeTags;
     }

@@ -27,7 +27,7 @@ internal
 class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
         when (kClass) {
-            keyClass -> discoverClasses
+            keyClass -> discoverClasses.distinct()
             else -> emptyList()
         }
 }

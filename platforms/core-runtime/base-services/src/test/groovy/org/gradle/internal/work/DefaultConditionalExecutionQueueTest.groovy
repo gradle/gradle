@@ -17,7 +17,6 @@
 package org.gradle.internal.work
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService

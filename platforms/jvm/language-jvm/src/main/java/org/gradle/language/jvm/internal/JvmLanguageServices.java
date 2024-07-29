@@ -50,11 +50,7 @@ public class JvmLanguageServices extends AbstractGradleModuleServices {
     }
 
     private static class ComponentRegistrationAction implements ServiceRegistrationProvider {
-        /**
-         * @param registration unused parameter required by convention, see {@link org.gradle.internal.service.DefaultServiceRegistry}.
-         */
-        public void configure(ServiceRegistration registration,
-                              ComponentTypeRegistry componentTypeRegistry) {
+        public void configure(ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry
                 .maybeRegisterComponentType(JvmLibrary.class)
                 .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);

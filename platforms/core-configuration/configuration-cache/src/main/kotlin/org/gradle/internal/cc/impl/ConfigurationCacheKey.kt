@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
@@ -77,6 +78,7 @@ class ConfigurationCacheKey(
         putBuildScan()
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
+        putBoolean(startParameter.isDeduplicatingStrings)
     }
 
     private

@@ -121,7 +121,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     private
     val futurePluginVersions by lazy {
         loadPropertiesFromResource("/future-plugin-versions.properties")
-            ?: throw IllegalStateException("/future-plugin-versions.properties resource not found.")
+            ?: error("/future-plugin-versions.properties resource not found.")
     }
 
     protected

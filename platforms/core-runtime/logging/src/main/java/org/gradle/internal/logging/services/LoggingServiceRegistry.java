@@ -30,9 +30,10 @@ import org.gradle.internal.logging.source.DefaultStdOutLoggingSystem;
 import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
@@ -47,7 +48,7 @@ import org.gradle.internal.time.Time;
  * <li>When finished, stop the logging manager using {@link LoggingManagerInternal#stop()}.</li>
  * </ol>
  */
-public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
+public abstract class LoggingServiceRegistry implements ServiceRegistrationProvider {
 
     public static final ServiceRegistrationProvider NO_OP = new ServiceRegistrationProvider() {
         @Provides
@@ -76,8 +77,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(org.gradle.api.logging.configuration.ConsoleOutput)} to enable this.</p>
      */
-    public static LoggingServiceRegistry newCommandLineProcessLogging() {
-        CommandLineLogging loggingServices = new CommandLineLogging();
+    public static ServiceRegistry newCommandLineProcessLogging() {
+        ServiceRegistry loggingServices = createCommandLineLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
         rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
@@ -102,8 +103,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Does nothing until started.</p>
      */
-    public static LoggingServiceRegistry newEmbeddableLogging() {
-        return new CommandLineLogging();
+    public static ServiceRegistry newEmbeddableLogging() {
+        return createCommandLineLogging();
     }
 
     /**
@@ -112,8 +113,18 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</p>
      */
-    public static LoggingServiceRegistry newNestedLogging() {
-        return new NestedLogging();
+    public static ServiceRegistry newNestedLogging() {
+        return ServiceRegistryBuilder.builder()
+            .displayName("logging services")
+            .provider(new NestedLogging())
+            .build();
+    }
+
+    private static ServiceRegistry createCommandLineLogging() {
+        return ServiceRegistryBuilder.builder()
+            .displayName("logging services")
+            .provider(new CommandLineLogging())
+            .build();
     }
 
     @Provides
@@ -122,24 +133,24 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     @Provides
-    protected StyledTextOutputFactory createStyledTextOutputFactory() {
-        return new DefaultStyledTextOutputFactory(getStdoutListener(), get(Clock.class));
+    protected StyledTextOutputFactory createStyledTextOutputFactory(Clock clock) {
+        return new DefaultStyledTextOutputFactory(getStdoutListener(), clock);
     }
 
     protected TextStreamOutputEventListener getStdoutListener() {
         if (stdoutListener == null) {
-            stdoutListener = new TextStreamOutputEventListener(get(OutputEventListenerManager.class).getBroadcaster());
+            stdoutListener = new TextStreamOutputEventListener(outputEventListenerManager.getBroadcaster());
         }
         return stdoutListener;
     }
 
     @Provides
-    protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
+    protected DefaultLoggingManagerFactory createLoggingManagerFactory(Clock clock) {
         OutputEventListener outputEventBroadcaster = outputEventListenerManager.getBroadcaster();
 
-        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(Clock.class));
+        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), clock);
         stdout.setLevel(LogLevel.QUIET);
-        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(outputEventBroadcaster), get(Clock.class));
+        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(outputEventBroadcaster), clock);
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
             renderer,
@@ -178,7 +189,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
         @Provides
         @Override
-        protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
+        protected DefaultLoggingManagerFactory createLoggingManagerFactory(Clock clock) {
             // Don't configure anything
             return new DefaultLoggingManagerFactory(
                 renderer,

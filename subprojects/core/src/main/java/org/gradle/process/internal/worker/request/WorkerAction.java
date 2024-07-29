@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker.request;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.problems.internal.DefaultProblems;
@@ -31,8 +32,8 @@ import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -75,11 +76,16 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             if (instantiatorFactory == null) {
                 instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Global.class)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
             }
-            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
-            // Make the argument serializers available so work implementations can register their own serializers
-            serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
-            serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
-            serviceRegistry.add(InternalProblems.class, new DefaultProblems(new WorkerProblemEmitter(responder), CurrentBuildOperationRef.instance()));
+            ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
+                .displayName("worker action services")
+                .parent(parentServices)
+                .provider(registration -> {
+                    // Make the argument serializers available so work implementations can register their own serializers
+                    registration.add(RequestArgumentSerializers.class, argumentSerializers);
+                    registration.add(InstantiatorFactory.class, instantiatorFactory);
+                    registration.add(InternalProblems.class, new DefaultProblems(ImmutableList.of(new WorkerProblemEmitter(responder)), CurrentBuildOperationRef.instance()));
+                })
+                .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);
             implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {

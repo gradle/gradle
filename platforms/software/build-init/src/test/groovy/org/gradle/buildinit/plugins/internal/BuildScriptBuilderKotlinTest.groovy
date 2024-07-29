@@ -27,6 +27,14 @@ class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
 
     TestFile outputFile = tmpDir.file("build.gradle.kts")
 
+    def "generates empty kotlin build script"() {
+        when:
+        builder.withComments(BuildInitComments.OFF).create(target).generate()
+
+        then:
+        assertOutputFile("")
+    }
+
     def "generates basic kotlin build script"() {
         when:
         builder.create(target).generate()
@@ -91,7 +99,7 @@ see more at gradle.org""")
         when:
         builder.plugin("Add support for the Java language", "java")
         builder.plugin("Add support for Java libraries", "java-library")
-        builder.plugin("Add support for the Kotlin language", "org.jetbrains.kotlin.jvm", "1.3.41")
+        builder.plugin("Add support for the Kotlin language", "org.jetbrains.kotlin.jvm", "1.3.41", "kotlin-jvm")
         builder.create(target).generate()
 
         then:
@@ -564,6 +572,51 @@ block1 {
 }
 
 // another block
+block2 {
+    method1()
+    foo = "bar"
+}
+
+foo = "second last"
+foo = "last"
+""")
+    }
+
+    def "vertical whitespace is included around blocks when comments are off"() {
+        given:
+        builder.propertyAssignment(null, "foo", "bar")
+        builder.methodInvocation(null, "foo", "bar")
+        builder.propertyAssignment("has comment", "foo", "bar")
+        builder.propertyAssignment(null, "foo", 123)
+        builder.propertyAssignment(null, "foo", false)
+        def b1 = builder.block(null, "block1")
+        b1.methodInvocation("comment", "method1")
+        b1.methodInvocation("comment", "method2")
+        b1.methodInvocation(null, "method3")
+        b1.methodInvocation(null, "method4")
+        def b2 = builder.block("another block", "block2")
+        b2.methodInvocation(null, "method1")
+        b2.propertyAssignment(null, "foo", "bar", true)
+        builder.propertyAssignment(null, "foo", "second last")
+        builder.propertyAssignment(null, "foo", "last")
+
+        when:
+        builder.withComments(BuildInitComments.OFF).create(target).generate()
+
+        then:
+        assertOutputFile("""foo = "bar"
+foo("bar")
+foo = "bar"
+foo = 123
+isFoo = false
+
+block1 {
+    method1()
+    method2()
+    method3()
+    method4()
+}
+
 block2 {
     method1()
     foo = "bar"

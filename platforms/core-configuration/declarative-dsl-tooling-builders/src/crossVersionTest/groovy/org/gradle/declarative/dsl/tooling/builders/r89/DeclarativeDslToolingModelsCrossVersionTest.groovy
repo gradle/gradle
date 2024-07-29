@@ -16,10 +16,9 @@
 
 package org.gradle.declarative.dsl.tooling.builders.r89
 
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.dom.DataStructuralEqualityKt
@@ -34,13 +33,15 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Assignm
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParserKt
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.tooling.ModelBuilder
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
 @TargetGradleVersion(">=8.9")
 @ToolingApiVersion('>=8.9')
-class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecification {
+class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 
-    def setup(){
+    def setup() {
         settingsFile.delete() //we are using a declarative settings file
     }
 
@@ -66,6 +67,24 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         !schema.dataClassesByFqName.isEmpty()
     }
 
+    def 'model is obtained without configuring the project'() {
+        given:
+        file("settings.gradle.dcl") << """
+            rootProject.name = "test"
+            include(":a")
+        """
+
+        file("a/build.gradle.dcl") << ""
+
+        when:
+        def listener = new ConfigurationPhaseMonitoringListener()
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class, listener)
+
+        then:
+        model != null
+        listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
+    }
+
     def 'schema contains custom software type from included build'() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -86,15 +105,16 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         !topLevelFunctions.find { it.contains("simpleName=testSoftwareType") }
     }
 
+    @TargetGradleVersion(">=8.10")
     def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
         file("settings.gradle.dcl") << """
             $ecosystemPluginInSettings
-            conventions {
+            defaults {
                 testSoftwareType {
-                    id = "convention"
+                    id = "default"
                 }
             }
         """
@@ -109,14 +129,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         def settings = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text)
         def project = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text)
 
-        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
+        ["settingsPluginManagement", "settingsPlugins", "settingsDefaults", "settings"].toSet() == settings.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
         ["project"].toSet() == project.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
 
-        and: 'conventions get properly applied'
+        and: 'defaults get properly applied'
         // check the conventions in the resolution results, they should be there, and it is independent of the DOM overlay
         def projectEvaluated = project.stepResults.values()[0] as EvaluationResult.Evaluated<AnalysisStepResult>
         projectEvaluated.stepResult.assignmentTrace.resolvedAssignments.entrySet().any {
-            it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "convention"
+            it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "default"
         }
 
         when: 'the build and settings files contain errors'
@@ -127,14 +147,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         documentIsEquivalentTo(
             """
             testSoftwareType {
-                unresolvedId = "convention"
+                unresolvedId = "default"
                 foo {
                     bar = "baz"
                 }
             }
             unresolvedToTestErrorHandling()
             """,
-            AnalysisDocumentUtils.INSTANCE.documentWithConventions(settingsWithErrors, projectWithErrors).document
+            AnalysisDocumentUtils.INSTANCE.documentWithModelDefaults(settingsWithErrors, projectWithErrors).document
         )
     }
 
@@ -255,7 +275,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
+            import org.gradle.api.internal.plugins.software.SoftwareType;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
@@ -288,7 +308,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
+            import org.gradle.api.internal.plugins.software.SoftwareType;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
@@ -329,12 +349,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         return pluginBuilder
     }
 
-    private <T> T fetchSchemaModel(Class<T> modelType) {
-        toolingApi.withConnection() { connection ->
-            ModelBuilder<T> modelBuilder = connection.model(modelType)
-            collectOutputs(modelBuilder)
-            modelBuilder.get()
-        }
+    private <T> T fetchSchemaModel(Class<T> modelType, ProgressListener listener = null) {
+        toolingApi.withConnection({ connection ->
+            def model = connection.model(modelType)
+            if (listener != null) {
+                model.addProgressListener(listener)
+            }
+            model.get()
+        })
     }
 
     private static boolean documentIsEquivalentTo(
@@ -348,5 +370,22 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         )
         def expectedDocument = LanguageTreeToDomKt.toDocument(languageTree)
         DataStructuralEqualityKt.structurallyEqualsAsData(doc, expectedDocument)
+    }
+
+    private static final class ConfigurationPhaseMonitoringListener implements ProgressListener {
+
+        boolean hasSeenSomeEvents = false
+        final List<ProgressEvent> configPhaseStartEvents = new ArrayList<>()
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            hasSeenSomeEvents = true
+            if (event instanceof BuildPhaseStartEvent) {
+                BuildPhaseStartEvent buildPhaseStartEvent = (BuildPhaseStartEvent) event
+                if (buildPhaseStartEvent.descriptor.buildPhase.startsWith("CONFIGURE")) {
+                    configPhaseStartEvents.add(event)
+                }
+            }
+        }
     }
 }

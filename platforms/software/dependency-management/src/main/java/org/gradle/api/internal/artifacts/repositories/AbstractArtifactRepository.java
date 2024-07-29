@@ -42,9 +42,10 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -173,15 +174,19 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
     ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            RepositoryResourceAccessor createResourceAccessor() {
-                return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
-            }
-        });
-        registry.add(ObjectFactory.class, objectFactory);
-        return new ImplicitInputsCapturingInstantiator(registry, instantiatorFactory);
+        ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
+            .displayName("implicit inputs capturing instantiator services")
+            .provider(new ServiceRegistrationProvider() {
+                @Provides
+                RepositoryResourceAccessor createResourceAccessor() {
+                    return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
+                }
+            })
+            .provider(registration -> {
+                registration.add(ObjectFactory.class, objectFactory);
+            })
+            .build();
+        return new ImplicitInputsCapturingInstantiator(serviceRegistry, instantiatorFactory);
     }
 
     protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {

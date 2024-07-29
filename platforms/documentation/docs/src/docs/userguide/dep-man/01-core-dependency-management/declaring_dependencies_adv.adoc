@@ -82,6 +82,9 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 ====
 
 Configurations can inherit dependencies from other configurations by extending from them.
+
+NOTE: Configurations can only extend configurations within the same project.
+
 Now, notice that the code above doesn't tell us anything about the intended _consumer_ of this configuration.
 In particular, it doesn't tell us how the configuration is meant to be _used_.
 Let's say that `lib` is a Java library: it might expose different things, such as its API, implementation, or test fixtures.

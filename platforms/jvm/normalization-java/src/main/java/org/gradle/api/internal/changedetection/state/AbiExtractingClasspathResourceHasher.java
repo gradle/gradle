@@ -23,9 +23,9 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.io.IoFunction;
-import org.gradle.internal.normalization.java.ApiClassExtractor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.objectweb.asm.ClassReader;
+import org.gradle.internal.tools.api.ApiClassExtractor;
+import org.gradle.internal.tools.api.impl.JavaApiMemberWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +34,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
-    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(new ApiClassExtractor(Collections.emptySet()));
+    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(
+        ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())
+            .includePackagePrivateMembers()
+            .build());
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
@@ -59,8 +61,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Nullable
     private HashCode hashClassBytes(byte[] classBytes) {
         // Use the ABI as the hash
-        ClassReader reader = new ClassReader(classBytes);
-        return extractor.extractApiClassFrom(reader)
+        return extractor.extractApiClassFrom(classBytes)
             .map(Hashing::hashBytes)
             .orElse(null);
     }
@@ -98,14 +99,14 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         return fallbackStrategy.handle(new ZipEntryContent(zipEntry.getName(), content), entry -> hashClassBytes(content));
     }
 
-    private boolean isNotClassFile(String name) {
+    private static boolean isNotClassFile(String name) {
         return !name.endsWith(".class");
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
-        extractor.appendConfigurationToHasher(hasher);
+        hasher.putString(extractor.getClass().getName());
     }
 
     private static class ZipEntryContent {
@@ -136,7 +137,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
             HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) {
                 try {
                     return function.apply(zipEntry);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", zipEntry.name, e);
                     return Hashing.hashBytes(zipEntry.content);
                 }
@@ -157,7 +158,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         };
 
         @Nullable
-        abstract  HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
+        abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
 
         @Nullable
         abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException;

@@ -175,6 +175,18 @@ class AndroidGradlePluginVersions {
         return getMinimumJavaVersionFor(VersionNumber.parse(agpVersion))
     }
 
+    static String getBuildToolsVersionFor(String agpVersion) {
+        VersionNumber version = VersionNumber.parse(agpVersion)
+
+        if (version < VersionNumber.parse("8.1")) {
+            return "30.0.3"
+        } else if (version < VersionNumber.parse("8.2")) {
+            return "33.0.1"
+        }
+
+        return "34.0.0"
+    }
+
     static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
         if (agpVersion.baseVersion < AGP_7_0) {
             return JavaVersion.VERSION_1_8

@@ -167,7 +167,7 @@ This method is only meant to be called on configurations which allow the (non-de
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Selected configuration 'internal' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project :b' but no variant with that configuration name exists."
 
         where:
         role                    | code
@@ -207,7 +207,8 @@ This method is only meant to be called on configurations which allow the (non-de
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Selected configuration 'default' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause """Unable to find a matching variant of project :b:
+  - No variants exist."""
 
         where:
         role                    | code

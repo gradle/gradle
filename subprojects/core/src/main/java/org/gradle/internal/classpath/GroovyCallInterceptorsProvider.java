@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 @NonNullApi
 public interface GroovyCallInterceptorsProvider {
 
+    @SuppressWarnings("ClassInitializationDeadlock")
     GroovyCallInterceptorsProvider DEFAULT = new ClassSourceGroovyCallInterceptorsProvider(Instrumented.class.getName());
 
     List<FilterableCallInterceptor> getCallInterceptors();

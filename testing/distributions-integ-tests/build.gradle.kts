@@ -8,20 +8,20 @@ plugins {
 description = "The collector project for the 'integ-tests' portion of the Gradle distribution"
 
 dependencies {
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(project(":base-services"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":core-api"))
+    integTestImplementation(projects.internalTesting)
+    integTestImplementation(projects.baseServices)
+    integTestImplementation(projects.logging)
+    integTestImplementation(projects.coreApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.ant)
 
-    integTestBinDistribution(project(":distributions-full"))
-    integTestAllDistribution(project(":distributions-full"))
-    integTestDocsDistribution(project(":distributions-full"))
-    integTestSrcDistribution(project(":distributions-full"))
+    integTestBinDistribution(projects.distributionsFull)
+    integTestAllDistribution(projects.distributionsFull)
+    integTestDocsDistribution(projects.distributionsFull)
+    integTestSrcDistribution(projects.distributionsFull)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
 tasks.forkingIntegTest {

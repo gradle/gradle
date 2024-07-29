@@ -45,6 +45,8 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -167,12 +169,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * @return The source files. Never returns null.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public FileCollection getSource() {
         return rootSpec.buildRootResolver().getAllSource();
     }
 
     @Internal
     @Override
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public CopySpecInternal getRootSpec() {
         return rootSpec;
     }
@@ -191,6 +195,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public boolean isCaseSensitive() {
         return getMainSpec().isCaseSensitive();
     }
@@ -208,6 +213,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public boolean getIncludeEmptyDirs() {
         return getMainSpec().getIncludeEmptyDirs();
     }
@@ -233,6 +239,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public DuplicatesStrategy getDuplicatesStrategy() {
         return getRootSpec().getDuplicatesStrategy();
     }
@@ -422,6 +429,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public Set<String> getIncludes() {
         return getMainSpec().getIncludes();
     }
@@ -440,6 +448,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public Set<String> getExcludes() {
         return getMainSpec().getExcludes();
     }
@@ -456,7 +465,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask rename(Transformer<String, String> renamer) {
+    public AbstractCopyTask rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer) {
         getMainSpec().rename(renamer);
         return this;
     }
@@ -510,7 +519,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask filter(Transformer<String, String> transformer) {
+    public AbstractCopyTask filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer) {
         getMainSpec().filter(transformer);
         return this;
     }
@@ -630,6 +639,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public String getFilteringCharset() {
         return getMainSpec().getFilteringCharset();
     }

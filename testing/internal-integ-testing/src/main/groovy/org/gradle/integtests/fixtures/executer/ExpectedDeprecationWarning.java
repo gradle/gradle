@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Preconditions;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -28,6 +29,9 @@ import java.util.regex.Pattern;
  * which may include the keyword "{@code deprecated}" multiple times.
  */
 public abstract class ExpectedDeprecationWarning {
+
+    private static final Pattern DEPRECATION_WARNING_LOG_PREFIX_PATTERN =
+        Pattern.compile("^.* " + Pattern.quote("[WARN] [" + LoggingDeprecatedFeatureHandler.class.getName() + "] "));
 
     private final int numLines;
 
@@ -95,6 +99,11 @@ public abstract class ExpectedDeprecationWarning {
         String nextLines = numLines == 1
             ? lines.get(startIndex)
             : String.join("\n", lines.subList(startIndex, Math.min(startIndex + numLines, lines.size())));
+
+        // When info or debug logging is enabled, the line will be prefixed with the log level and timestamp.
+        // We need to strip this out to match the expected message.
+        nextLines = DEPRECATION_WARNING_LOG_PREFIX_PATTERN.matcher(nextLines).replaceAll("");
+
         return matchesNextLines(nextLines);
     }
 

@@ -64,9 +64,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     }
 
     @Override
-    public abstract GraphSelectionCandidates getCandidatesForGraphVariantSelection();
-
-    @Override
     public boolean isAdHoc() {
         return false;
     }

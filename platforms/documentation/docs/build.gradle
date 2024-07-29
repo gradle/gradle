@@ -98,9 +98,6 @@ gradleDocumentation {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
-    kotlinDslReference {
-        dokkaVersionOverride = "1.9.10"
-    }
 }
 
 tasks.named("stageDocs") {
@@ -112,8 +109,8 @@ tasks.named("stageDocs") {
 
 samples {
     templates {
-        javaAndroidApplication
-        structuringSoftwareProjects
+        javaAndroidApplication {}
+        structuringSoftwareProjects {}
         springBootWebApplication {
             target = "app"
         }
@@ -124,11 +121,11 @@ samples {
             sourceDirectory = gradlePluginInJava.sourceDirectory
             target = "buildSrc"
         }
-        buildSrcPluginJavaModuleTransform
+        buildSrcPluginJavaModuleTransform {}
 
-        javaApplication
-        javaListLibrary
-        javaUtilitiesLibrary
+        javaApplication {}
+        javaListLibrary {}
+        javaUtilitiesLibrary {}
         javaListLibraryInMyLibrary {
             sourceDirectory = javaListLibrary.sourceDirectory
             target = "my-library"
@@ -182,8 +179,8 @@ samples {
             target = "application"
         }
 
-        groovyListLibrary
-        groovyUtilitiesLibrary
+        groovyListLibrary {}
+        groovyUtilitiesLibrary {}
         groovyListLibraryInMyLibrary {
             sourceDirectory = groovyListLibrary.sourceDirectory
             target = "my-library"
@@ -193,7 +190,7 @@ samples {
             target = "my-library"
         }
 
-        projectInfoPlugin
+        projectInfoPlugin {}
 
         precompiledScriptPluginUtils {
             target = "convention-plugins"
@@ -202,7 +199,7 @@ samples {
             sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
             target = "buildSrc"
         }
-        problemsApiUsage
+        problemsApiUsage {}
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
@@ -666,6 +663,14 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app.sample"
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
+            // SpotBugs doesn't support Java 23
+            excludeTestsMatching "org.gradle.docs.samples.*.publishing-convention-plugins*"
+            excludeTestsMatching "org.gradle.docs.samples.*.incubating-publishing-convention-plugins*"
+            // PMD doesn't support Java 23
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-code-quality-code-quality*"
+        }
+
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
@@ -693,7 +698,6 @@ tasks.named("docsTest") { task ->
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
-        systemProperty("org.gradle.integtest.samples.checkLoadingFromConfigurationCache", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
 
         filter {
@@ -808,6 +812,8 @@ tasks.named("docsTest") { task ->
     } else {
         filter {
             excludeTestsMatching "*WithCC*.sample"
+            // these sanityCheck tests fail without CC due to deprecation warnings as they use gradle.taskGraph.beforeTask and afterTask
+            excludeTestsMatching "*.snippet-buildlifecycle-task-execution-events_*_sanityCheck.sample"
         }
     }
 }

@@ -131,7 +131,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         where:
         order                                     | content
         'a plugins block but no pluginManagement' | 'plugins { }\nrootProject.name = "test-project"'
-        'a pluginManagement block but no plugins' | 'pluginManagement { }\nrootProject.name = "test-project'
+        'a pluginManagement block but no plugins' | 'pluginManagement { }\nrootProject.name = "test-project"'
         'no special blocks'                       | 'rootProject.name = "test-project"'
     }
 

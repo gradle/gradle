@@ -21,8 +21,10 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.tooling.CancellationTokenSource;
@@ -32,10 +34,10 @@ import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementa
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class ConnectorServices {
-    private static DefaultServiceRegistry singletonRegistry;
+    private static CloseableServiceRegistry singletonRegistry;
 
     static {
-        singletonRegistry = new ConnectorServiceRegistry();
+        singletonRegistry = ConnectorServiceRegistry.create();
     }
 
     public static DefaultGradleConnector createConnector() {
@@ -55,10 +57,19 @@ public class ConnectorServices {
      */
     public static void reset() {
         singletonRegistry.close();
-        singletonRegistry = new ConnectorServiceRegistry();
+        singletonRegistry = ConnectorServiceRegistry.create();
     }
 
-    private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
+    private static class ConnectorServiceRegistry implements ServiceRegistrationProvider {
+
+        // Note: if the class or the method changes, this has to be adjusted in `ToolingApi.createClientConnectorServiceRegistry()` fixture
+        private static CloseableServiceRegistry create() {
+            return ServiceRegistryBuilder.builder()
+                .displayName("connector services")
+                .provider(new ConnectorServiceRegistry())
+                .build();
+        }
+
         @Provides
         protected Factory<DefaultGradleConnector> createConnectorFactory(final ConnectionFactory connectionFactory, final DistributionFactory distributionFactory) {
             return new Factory<DefaultGradleConnector>() {

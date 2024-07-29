@@ -31,6 +31,7 @@ interface FqName : Serializable {
             get() = ""
         override val qualifiedName: String
             get() = ""
+        @Suppress("unused")
         private
         fun readResolve(): Any = Empty
     }

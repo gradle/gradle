@@ -29,6 +29,7 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
 
     interface Parameters : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
+        val rootProjectBuildDir: DirectoryProperty
     }
 
     @get:Inject
