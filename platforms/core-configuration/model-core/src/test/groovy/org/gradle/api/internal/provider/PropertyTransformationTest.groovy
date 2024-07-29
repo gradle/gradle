@@ -18,6 +18,11 @@ package org.gradle.api.internal.provider
 
 import spock.lang.Specification
 
+// TODO:
+//        addTransformation(T -> T)
+//        addTransformationWith(Provider<R>, (T, Optional<R>) -> T)
+//        addFlatTransformation(Optional<T> -> Optional<T>)
+//        addFlatTransformationWith(Provider<R>, (Optional<T>, Optional<R>) -> Optional<T>)
 class PropertyTransformationTest extends Specification {
 
     def 'can add transformation over set value'() {
@@ -91,7 +96,39 @@ class PropertyTransformationTest extends Specification {
         property.get() == 'raboof'
     }
 
-    def 'can add transformation to unset property'() {
+    def 'can add transformation before set'() {
+        given:
+        def property = propertyWithDefaultValue(String)
+
+        and:
+        property.addTransformation {
+            it.reverse()
+        }
+
+        when:
+        property.set('foobar')
+
+        then:
+        property.get() == 'raboof'
+    }
+
+    def 'can add transformation after set'() {
+        given:
+        def property = propertyWithDefaultValue(String)
+
+        and:
+        property.set('foobar')
+
+        when:
+        property.addTransformation {
+            it.reverse()
+        }
+
+        then:
+        property.get() == 'raboof'
+    }
+
+    def 'can add transformation to an unset property'() {
         given:
         def property = propertyWithDefaultValue(String)
 
