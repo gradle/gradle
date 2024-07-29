@@ -52,7 +52,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -160,7 +160,7 @@ public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFacto
 
         if (valueType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
+            return Cast.uncheckedNonnullCast(property(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType)));
         }
 
         if (List.class.isAssignableFrom(valueType)) {
@@ -190,7 +190,7 @@ public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFacto
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
         if (elementType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+            return Cast.uncheckedNonnullCast(listProperty(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(elementType)));
         }
         return propertyFactory.listProperty(elementType);
     }
@@ -199,7 +199,7 @@ public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFacto
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
         if (elementType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+            return Cast.uncheckedNonnullCast(setProperty(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(elementType)));
         }
         return propertyFactory.setProperty(elementType);
     }
@@ -208,11 +208,11 @@ public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFacto
     public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
         if (keyType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(mapProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(keyType), valueType));
+            return Cast.uncheckedNonnullCast(mapProperty(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(keyType), valueType));
         }
         if (valueType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
+            return Cast.uncheckedNonnullCast(mapProperty(keyType, AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType)));
         }
         return propertyFactory.mapProperty(keyType, valueType);
     }

@@ -18,7 +18,7 @@ package org.gradle.internal.instantiation.generator;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.util.List;
 
@@ -73,7 +73,7 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 while (param != null && toParam < parameterTypes.length) {
                     Class<?> toType = parameterTypes[toParam];
                     if (toType.isPrimitive()) {
-                        toType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(toType);
+                        toType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(toType);
                     }
                     if (toType.isInstance(param)) {
                         break;
