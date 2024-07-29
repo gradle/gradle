@@ -59,6 +59,20 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @RunFor(
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["gradleBuildCurrent"])
+    )
+    def "checkstyle test"() {
+        given:
+        runner.tasksToRun = ['checkstyleMain', "--rerun"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["archivePerformanceProject"])
     )
     def "visiting tar trees"() {
