@@ -112,7 +112,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         when:
         def result = kgpRunner(false, kotlinPluginVersion, 'test', 'integTest')
             .deprecations(KotlinDeprecations) {
-                runner.expectLegacyDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
+                runner.expectLegacyDeprecationWarningIf(
+                    kotlinPluginVersion.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
+                    "Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize"
+                )
             }.build()
 
         then:

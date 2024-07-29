@@ -396,23 +396,31 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
         validateMutation(MutationType.HIERARCHY);
-        for (Configuration configuration : extendsFrom) {
-            if (configuration.getHierarchy().contains(this)) {
+        for (Configuration extended : extendsFrom) {
+            ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
+            if (!Objects.equals(this.getIdentity().getProjectPath(), other.getIdentity().getProjectPath())) {
+                DeprecationLogger.deprecateBehaviour("Configuration '" + this.getName() + "' in project '" + this.getIdentity().getProjectPath() + "' extends configuration '" + other.getName() + "' in project '" + other.getIdentity().getProjectPath() + "'.")
+                    .withAdvice("Configurations can only extend from configurations in the same project.")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "extending_configurations_in_same_project")
+                    .nagUser();
+            }
+            if (other.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
                     "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
-                    configuration, configuration.getHierarchy()));
+                    other, other.getHierarchy()));
             }
-            if (this.extendsFrom.add(configuration)) {
+            if (this.extendsFrom.add(other)) {
                 if (inheritedArtifacts != null) {
-                    inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+                    inheritedArtifacts.addCollection(other.getAllArtifacts());
                 }
                 if (inheritedDependencies != null) {
-                    inheritedDependencies.addCollection(configuration.getAllDependencies());
+                    inheritedDependencies.addCollection(other.getAllDependencies());
                 }
                 if (inheritedDependencyConstraints != null) {
-                    inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
+                    inheritedDependencyConstraints.addCollection(other.getAllDependencyConstraints());
                 }
-                ((ConfigurationInternal) configuration).addMutationValidator(parentMutationValidator);
+                other.addMutationValidator(parentMutationValidator);
             }
         }
         return this;
@@ -1518,7 +1526,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private ConfigurationIdentity getIdentity() {
+    @Override
+    public ConfigurationIdentity getIdentity() {
         String name = getName();
         String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
         String buildPath = domainObjectContext.getBuildPath().toString();

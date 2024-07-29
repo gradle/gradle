@@ -16,16 +16,19 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.daemon.FakeDaemonLog
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
 class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
+    private FakeDaemonLog daemonLog
 
     def setup() {
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
         requireIsolatedTestKitDir = true
+        daemonLog = new FakeDaemonLog(daemonsFixture)
     }
 
     def iteration = 0
@@ -53,7 +56,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.",
             new IOException("Some exception in the chain",
                 new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
@@ -68,7 +71,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -86,7 +89,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
@@ -104,7 +107,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         iteration++
 
         when:
-        logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
+        daemonLog.logException("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -116,13 +119,5 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         if (condition) {
             throw throwable
         }
-    }
-
-    private void logToFakeDaemonLog(String exceptionInDaemon) {
-        def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
-        logDir.mkdirs()
-        def log = new File(logDir, "daemon-fake.log")
-        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,javaVersion=11,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
-        log << exceptionInDaemon
     }
 }

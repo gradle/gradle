@@ -46,8 +46,8 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.util.Matchers
 import org.gradle.util.internal.VersionNumber
-import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
@@ -60,7 +60,6 @@ import java.util.regex.Pattern
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
-import static org.gradle.util.Matchers.normalizedLineSeparators
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -556,8 +555,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         failure.assertThatCause(containsNormalizedString(description))
     }
 
+    // TODO: Inline and remove.
     protected Matcher<String> containsNormalizedString(String description) {
-        normalizedLineSeparators(CoreMatchers.containsString(description))
+        return Matchers.containsNormalizedString(description)
     }
 
     private assertHasResult() {

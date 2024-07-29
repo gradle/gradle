@@ -306,7 +306,9 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * The listener is notified of events which occur during the execution of the build.
      *
      * @param buildListener The listener to add.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void addBuildListener(BuildListener buildListener);
 
     /**
@@ -330,14 +332,18 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * </ul>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void addListener(Object listener);
 
     /**
      * Removes the given listener from this build.
      *
      * @param listener The listener to remove. Does nothing if this listener has not been added.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void removeListener(Object listener);
 
     /**
@@ -352,7 +358,9 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * provides with your own implementation, for certain types of events.
      *
      * @param logger The logger to use.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void useLogger(Object logger);
 
     /**

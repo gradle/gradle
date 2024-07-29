@@ -31,6 +31,7 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     task test
 """
         then:
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.beforeTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
                 .assertHasCause("beforeTask failure")
@@ -47,6 +48,7 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     task test
 """
         then:
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
                 .assertHasCause("afterTask failure")
@@ -71,6 +73,8 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         then:
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.beforeTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails('test')
         result.groupedOutput.task(":test").output == """beforeTask action
 task action
@@ -90,6 +94,7 @@ afterTask action"""
     }
 """
         then:
+        executer.expectDocumentedDeprecationWarning("Listener registration using TaskExecutionGraph.afterTask() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
                 .assertHasCause("afterTask failure")

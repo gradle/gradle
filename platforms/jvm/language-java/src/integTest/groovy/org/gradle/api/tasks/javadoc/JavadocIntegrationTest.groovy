@@ -256,51 +256,6 @@ Joe!""")
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/1484")
-    def "can use various multi-value options"() {
-        buildFile << """
-            apply plugin: 'java'
-
-            javadoc {
-                options {
-                    addMultilineStringsOption("addMultilineStringsOption").setValue([
-                        "a",
-                        "b",
-                        "c"
-                    ])
-                    addStringsOption("addStringsOption", " ").setValue([
-                        "a",
-                        "b",
-                        "c"
-                    ])
-                    addMultilineMultiValueOption("addMultilineMultiValueOption").setValue([
-                        [ "a" ],
-                        [ "b", "c" ]
-                    ])
-                }
-            }
-        """
-        writeSourceFile()
-        expect:
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            executer.expectDeprecationWarnings(2)
-        } else {
-            executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
-        }
-        fails("javadoc") // we're using unsupported options to verify that we do the right thing
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
-            "-addMultilineStringsOption 'b'\n" +
-            "-addMultilineStringsOption 'c'"))
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineMultiValueOption \n" +
-            "'a' \n" +
-            "-addMultilineMultiValueOption \n" +
-            "'b' 'c' "))
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/1502")
     def "can pass Jflags to javadoc"() {
         buildFile << """

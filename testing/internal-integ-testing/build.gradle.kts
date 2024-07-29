@@ -179,8 +179,8 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 }
 
 val copyTestedVersionsInfo by tasks.registering(Copy::class) {
-    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
-    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
+    from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
     into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 

@@ -37,6 +37,11 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
     }
 
+    def disableBuildListenerDeprecation() {
+        // deprecation warnings mess up console logging tests
+        executer.withArgument("-Dorg.gradle.configuration-cache.internal.deprecation.buildScopeListener=false")
+    }
+
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "listener added to script receives output synchronously and only while script is running"() {
         buildFile << """
@@ -70,6 +75,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
 
         expect:
+        disableBuildListenerDeprecation()
         succeeds("log")
     }
 
@@ -121,6 +127,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
 
         expect:
+        disableBuildListenerDeprecation()
         succeeds("log", "other")
     }
 
@@ -150,6 +157,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         when:
         executer.withArguments("--debug")
+        disableBuildListenerDeprecation()
         run("log")
         def captured = file("output.txt").text
 
@@ -164,6 +172,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         when:
         executer.withArguments("--info")
+        disableBuildListenerDeprecation()
         run("log")
         def lines = file("output.txt").text.readLines()
 
@@ -181,6 +190,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         !lines.contains('debug')
 
         when:
+        disableBuildListenerDeprecation()
         run("log")
         lines = file("output.txt").text.readLines()
 
@@ -200,6 +210,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         when:
         executer.withArguments("--warn")
+        disableBuildListenerDeprecation()
         run("log")
         lines = file("output.txt").text.readLines()
 

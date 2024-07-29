@@ -304,6 +304,8 @@ fun BuildType.killProcessStep(mode: KillProcessMode, os: Os, arch: Arch = Arch.A
     }
 }
 
+fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
 /**
  * Define clean up rules for the project.
  * See https://www.jetbrains.com/help/teamcity/teamcity-data-clean-up.html#Clean-up+Rules

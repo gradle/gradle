@@ -111,7 +111,7 @@ abstract class AbstractSmokeTest extends Specification {
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "4.1.1"
+        static grgit = "5.2.2"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
         static gradleVersions = "0.51.0"

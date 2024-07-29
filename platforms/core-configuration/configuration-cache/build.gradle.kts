@@ -13,7 +13,6 @@ tasks.configCacheIntegTest {
 
 dependencies {
     api(projects.baseServices)
-    api(projects.buildOption)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
@@ -38,6 +37,7 @@ dependencies {
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildEvents)
     implementation(projects.buildOperations)
+    implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.coreSerializationCodecs)
     implementation(projects.dependencyManagementSerializationCodecs)

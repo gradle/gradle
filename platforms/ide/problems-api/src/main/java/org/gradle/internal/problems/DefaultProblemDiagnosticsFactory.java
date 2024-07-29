@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
@@ -54,6 +55,9 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     };
 
+    private static final int MAX_STACKTRACE_COUNT = 50;
+    private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
+
     private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
@@ -63,9 +67,14 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     public DefaultProblemDiagnosticsFactory(
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
-        UserCodeApplicationContext userCodeContext
+        UserCodeApplicationContext userCodeContext,
+        BuildModelParameters buildModelParameters
     ) {
-        this(failureFactory, locationAnalyzer, userCodeContext, 50);
+        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters));
+    }
+
+    private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
+        return buildModelParameters.isIsolatedProjects() ? ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT : MAX_STACKTRACE_COUNT;
     }
 
     @VisibleForTesting

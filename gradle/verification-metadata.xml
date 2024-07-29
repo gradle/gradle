@@ -123,6 +123,7 @@
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="31FAE244A81D64507B47182E1B2718089CE964B8" group="com.thoughtworks.qdox"/>
+         <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF" group="org.jetbrains" name="annotations"/>
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B">
             <trusting group="org.apache.groovy"/>
             <trusting group="org.apache.groovy" name="groovy"/>
@@ -179,6 +180,7 @@
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="6A27B2F30F3DB8BF86D519F7EC5BCE97B4DEFA96" group="^com[.]esotericsoftware($|([.].*))" regex="true"/>
+         <trusted-key id="6DE9B8077FBB2F8A019F4904BD17A565509DEE20" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="6F538074CCEBF35F28AF9B066A0975F8B1127B83" group="org.jetbrains.kotlin"/>
          <trusted-key id="6FCA825C6E85FCB4DF9A96B27A3C11434EC6434E" group="^com[.]trueaccord($|([.].*))" regex="true"/>
          <trusted-key id="70CD19BFD9F6C330027D6F260315BFB7970A144F" group="com.sun.xml.bind"/>
@@ -813,8 +815,8 @@
             </sha256>
          </artifact>
       </component>
-      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="2.0.0">
-         <artifact name="dokkatoo-plugin-2.0.0.jar">
+      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="2.3.1">
+         <artifact name="dokkatoo-plugin-2.3.1.jar">
             <pgp value="CB764D538CF417822B4108341CF69814023DEDE9"/>
          </artifact>
       </component>
@@ -888,8 +890,8 @@
             <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
          </artifact>
       </component>
-      <component group="it.unimi.dsi" name="fastutil" version="8.5.2">
-         <artifact name="fastutil-8.5.2.jar">
+      <component group="it.unimi.dsi" name="fastutil-core" version="8.5.12">
+         <artifact name="fastutil-core-8.5.12.jar">
             <pgp value="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A"/>
          </artifact>
       </component>
@@ -1325,8 +1327,8 @@
             <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
          </artifact>
       </component>
-      <component group="org.freemarker" name="freemarker" version="2.3.31">
-         <artifact name="freemarker-2.3.31.jar">
+      <component group="org.freemarker" name="freemarker" version="2.3.32">
+         <artifact name="freemarker-2.3.32.jar">
             <pgp value="13AC2213964ABE1D1C147C0E1939A2520BAB1D90"/>
          </artifact>
       </component>
@@ -1430,9 +1432,9 @@
             <pgp value="33FD4BFD33554634053D73C0C2148900BCD3C2AF"/>
          </artifact>
       </component>
-      <component group="org.jetbrains" name="markdown-jvm" version="0.3.1">
-         <artifact name="markdown-jvm-0.3.1.jar">
-            <pgp value="E62231331BCA7E1F292C9B88C1B12A5D99C0729D"/>
+      <component group="org.jetbrains" name="markdown-jvm" version="0.5.2">
+         <artifact name="markdown-jvm-0.5.2.jar">
+            <pgp value="CFBE6E7934FB211224EE1C2B0C0A9468268C79AE"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-impl-embeddable" version="1.6.21">
@@ -1445,14 +1447,14 @@
             <sha256 value="f1b0634dbb94172038463020bb2dd45ca26849f8ce29d625acb0f1569d11dbee" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.jetbrains.kotlin" name="kotlin-tooling-metadata" version="1.6.21">
-         <artifact name="kotlin-tooling-metadata-1.6.21.jar">
-            <sha256 value="4ec93d0516066b0b648ba987c6d3d65f6fb067dc0bbba95c1ece61e0428488e5" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.jetbrains.kotlinx" name="kotlinx-html-jvm" version="0.8.0">
          <artifact name="kotlinx-html-jvm-0.8.0.jar">
             <pgp value="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrexains.kotlin" name="kotlin-tooling-metadata" version="1.6.21">
+         <artifact name="kotlin-tooling-metadata-1.6.21.jar">
+            <sha256 value="4ec93d0516066b0b648ba987c6d3d65f6fb067dc0bbba95c1ece61e0428488e5" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.jline" name="jline" version="3.22.0">

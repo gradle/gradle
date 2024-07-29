@@ -30,10 +30,11 @@ The Gradle Daemon reduces build times by:
 * Benefiting from continuous runtime optimization in the JVM
 * <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
 
-[[understanding_wrapper]]
+[[understanding_daemon]]
 == Understanding the Daemon
 
 The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
+[[understanding_wrapper]]
 The Wrapper is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
 Communication between the client and the Daemon happens via a local socket connection.
 
@@ -222,7 +223,7 @@ $ ./gradlew updateDaemonJvm --jvm-version=17
 
 If you run the task without any arguments, and the properties file does not exist, then the JVM used by the daemon will provide the version value.
 
-NOTE: Currently, Gradle only supports the major JVM version as a criterion.
+NOTE: Currently, Gradle only supports the major JVM version and JVM vendor as a criterion.
 Support for other toolchains criteria will be added in a future release.
 
 On the next execution of Gradle, the launcher will use this file to locate a compatible JVM installation and start the daemon with it.

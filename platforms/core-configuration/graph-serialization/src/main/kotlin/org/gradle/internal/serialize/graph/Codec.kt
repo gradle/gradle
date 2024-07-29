@@ -57,6 +57,11 @@ interface WriteContext : MutableIsolateContext, Encoder {
     suspend fun write(value: Any?)
 
     fun writeClass(type: Class<*>)
+
+    /**
+     * @see ClassEncoder.encodeClassLoader
+     */
+    fun writeClassLoader(classLoader: ClassLoader?): Boolean = false
 }
 
 
@@ -88,6 +93,11 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     suspend fun read(): Any?
 
     fun readClass(): Class<*>
+
+    /**
+     * @see ClassDecoder.decodeClassLoader
+     */
+    fun readClassLoader(): ClassLoader? = null
 
     /**
      * Defers the given [action] until all objects have been read.

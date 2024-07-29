@@ -91,6 +91,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
         return new DefaultDaemonContext(configuration.getUid(),
             canonicalize(Jvm.current().getJavaHome()),
             JavaLanguageVersion.current(),
+            Jvm.current().getVendor(),
             configuration.getBaseDir(),
             processEnvironment.maybeGetPid(),
             configuration.getIdleTimeout(),

@@ -91,6 +91,10 @@ class DefaultWriteContext(
         }
     }
 
+    override fun writeClassLoader(classLoader: ClassLoader?): Boolean = classEncoder.run {
+        encodeClassLoader(classLoader)
+    }
+
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
 }
@@ -102,11 +106,25 @@ value class ClassLoaderRole(val local: Boolean)
 
 interface ClassEncoder {
     fun WriteContext.encodeClass(type: Class<*>)
+
+    /**
+     * Tries to encode the given [classLoader].
+     *
+     * @return `true` when the given [ClassLoader] is not `null` and could be encoded, `false` otherwise.
+     */
+    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean = false
 }
 
 
 interface ClassDecoder {
     fun ReadContext.decodeClass(): Class<*>
+
+    /**
+     * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
+     *
+     * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
+     */
+    fun ReadContext.decodeClassLoader(): ClassLoader? = null
 }
 
 
@@ -159,6 +177,10 @@ class DefaultReadContext(
 
     override fun readClass(): Class<*> = classDecoder.run {
         decodeClass()
+    }
+
+    override fun readClassLoader(): ClassLoader? = classDecoder.run {
+        decodeClassLoader()
     }
 
     override val isolate: ReadIsolate
