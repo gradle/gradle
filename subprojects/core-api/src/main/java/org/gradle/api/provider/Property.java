@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
@@ -197,4 +198,12 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      */
     @Override
     void finalizeValue();
+
+    /**
+     * Adds a transformation to the chain of transformations.
+     *
+     * @param transformation the transformation
+     * @return this
+     */
+    Property<T> addTransformation(Transformer<T, T> transformation);
 }

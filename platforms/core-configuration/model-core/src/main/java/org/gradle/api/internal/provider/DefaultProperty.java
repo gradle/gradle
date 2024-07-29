@@ -34,12 +34,20 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
+    @Nullable
+    private Transformer<T, T> transformation;
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
         init(getDefaultValue());
+    }
+
+    @Override
+    public Property<T> addTransformation(Transformer<T, T> transformation) {
+        this.transformation = transformation;
+        return this;
     }
 
     @Override
@@ -154,7 +162,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     protected Value<? extends T> calculateValueFrom(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
-        return value.calculateValue(consumer);
+        Value<? extends T> calculatedValue = value.calculateValue(consumer);
+        if (transformation != null) {
+            return calculatedValue.transform(transformation);
+        }
+        return calculatedValue;
     }
 
     @Override
