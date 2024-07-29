@@ -93,7 +93,7 @@ It's advisable to discuss this with your organization's security team.
 
 Some CI providers attempt to redact sensitive credentials from logs, but this process is not foolproof and typically only redacts exact matches of pre-configured secrets.
 
-If you suspect that a Gradle Plugin may inadvertently expose sensitive information, please contact [security@gradle.com](mailto:security@gradle.com) for assistance with disclosure.
+If you suspect that a Gradle Plugin may inadvertently expose sensitive information, please contact security@gradle.com for assistance with disclosure.
 
 [[sec:sending_your_own_log_messages]]
 == Writing your own log messages
